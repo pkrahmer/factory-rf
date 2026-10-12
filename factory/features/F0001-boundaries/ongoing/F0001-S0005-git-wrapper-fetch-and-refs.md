@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 5
 blocked: null
 comments_seen: 0
 round: 0
@@ -200,3 +200,9 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`domain/errors.py`, `domain/paths.py`, `domain/git.py`, `application/git.py`, `adapters/git_cli.py`). The rules list states each behaviour: the message formats, the 30-line tail, the environment order, the sorting and the defaults. The fixtures `remote` and `checkout` and the helpers in `tests/git_support.py` are specified too.
+   - Criteria: all 25 are testable by one test function each. Every Interface behaviour has a criterion: the error message (1), the tail (2), the unstartable executable (3), the time limit (4), the configuration isolation (8, 9), credentials by environment (10, 11), the sort order and the `origin/` prefix (12), the 40-character id (13), the exact text (15), the plain string order and non-ASCII names (17), and the defaults and non-sharing of `environment` (23). Every rule has its failing side: `fetch` failure (7), `resolve` of a missing ref (14), `show_file` of a missing path or ref (16), `list_files` of a missing directory or ref (18), `is_ancestor` of an unknown ref (20), and empty identity fields (21).
+   - Demo: both blocks are runnable as written, and each `Expect:` line is checkable against the printed output.
+   - Architecture: the domain types are pure data. The `Git` Protocol is in application. `GitCli` is in adapters, reaches git only through `run_process`, and satisfies the Protocol structurally (22). The DTOs are Pydantic models, and there are five constructor parameters or fewer.
+   - Scope: within the feature's "The git wrapper" scope. The writing operations, history and status are left to S0006, S0011, S0012 and S0013, and the wiring is left to F0010. Nothing falls under "Out of scope".
