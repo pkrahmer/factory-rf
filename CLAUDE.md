@@ -48,3 +48,4 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 
 ## Not without asking (end the stage with `question`)
 - New dependency, new top-level package, change to `factory/`, change to a test you did not write, a new entry in `.secrets.baseline` or a `pragma: allowlist secret`, a `nosemgrep` or `nosec` marker, a licence outside the allow list.
+- The one exception, decided with the seed: `src/factory/adapters/process.py`, the one module that starts processes (R5), may carry `# noqa: S404` and `# nosec B404` on its `subprocess` import and `# noqa: S603` and `# nosec B603` on its one `Popen` call, and nothing else.

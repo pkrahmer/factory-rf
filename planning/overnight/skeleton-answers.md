@@ -37,3 +37,7 @@ Taken by the main session on 2026-10-13 at 00:05; they bind the drafters. Number
 12. `HostingService.close` stays, because R10 is exact.
 13. `Boundaries` as a frozen dataclass is accepted: it holds interfaces, not data.
 14. F0006's drafter checks the event kinds against `v1-04-08.md`, chapter 7.
+
+## Answers during drafting
+
+- **Console scripts (F0004's question 3).** Before the first story starts, the human (the session) adds every console script of the sheet's `factory.entry` table to `pyproject.toml` in one setup commit, each as `<name> = "factory.entry.<module>:main"`: `factory-check-story`, `factory-guard`, `factory-bill`, `factory-watch`, `factory-run`, `factory-health`. Every entry module's entry function is therefore `main() -> int`. F0004-S0004's `run` becomes `main`.

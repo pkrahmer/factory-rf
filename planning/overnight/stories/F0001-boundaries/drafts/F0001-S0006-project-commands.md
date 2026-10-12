@@ -1,0 +1,125 @@
+# The project-commands interface and the make class
+
+## Assignment (as of log entry 1)
+
+Give the factory its one way into a project's build: the `ProjectCommands` interface, whose single operation runs a named command under a `time_limit` and returns a `CheckResult` judged by the exit status alone, and `MakeProjectCommands`, the first implementation, which runs `make <command>` (a Python project's make targets call uv). The result is generic: it carries no layer names, because a project declares its own layers and checks them with a project command of its own. A red command or a command that reached its `time_limit` is a result, not an error; an error is only a command that cannot be started. Covers R11 (the interface and the make class) and R8 (the generic check result); keeps kept thing 8 (a check is its exit status: the factory reads nothing from a command but the exit status, the last line and the tail of the output) and kept thing 17 (the project is reached through its project commands only: a search shows `make` is named in one module). The pipeline uses these results from F0005; the preflight's probe from F0010.
+
+## Interface
+
+`src/factory/domain/checks.py`
+
+```python
+OUTPUT_TAIL_LINES = 30
+CheckStatus = Literal["passed", "failed", "time_limit"]
+
+class CheckResult(BaseModel):
+    command: Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9-]*$")]
+    status: CheckStatus
+    exit_status: int | None
+    duration: timedelta
+    last_line: str
+    output_tail: str
+
+    @property
+    def passed(self) -> bool: ...
+```
+
+`src/factory/domain/errors.py` (adds one type)
+
+```python
+class ProjectCommandError(BoundaryError):
+    command: str
+    detail: str
+    def __init__(self, command: str, detail: str) -> None: ...
+```
+
+`src/factory/application/project_commands.py`
+
+```python
+class ProjectCommands(Protocol):
+    def run(self, command: str, *, time_limit: timedelta) -> CheckResult: ...
+```
+
+`src/factory/adapters/make_commands.py`
+
+```python
+class MakeProjectCommands:      # satisfies ProjectCommands structurally, no inheritance
+    def __init__(self, directory: Path, kill_points: KillPoints | None = None, *, executable: str = "make") -> None: ...
+    def run(self, command: str, *, time_limit: timedelta) -> CheckResult: ...
+```
+
+The rules, each with a criterion below:
+
+- `CheckResult.status` is `"passed"` exactly when `exit_status` is 0, `"failed"` exactly when `exit_status` is an integer other than 0, and `"time_limit"` exactly when `exit_status` is `None`. `passed` is true only for `"passed"`. The model is frozen and forbids unknown keys.
+- `run(command, time_limit=...)` runs `<executable> <command>` in `directory` through `run_process` with `merge_stderr=True` and the current environment. `directory` is where `make` finds the project's Makefile. A `time_limit` of zero or less raises `ValueError`.
+- The exit status alone decides: 0 is `"passed"`, any other is `"failed"`, and a command ended by the `time_limit` is `"time_limit"` with `exit_status` `None`. A missing target is a failed command (make exits 2), not an error.
+- `output_tail` is the last `OUTPUT_TAIL_LINES` (30) lines of the merged stdout and stderr, in the order written, joined with newlines; fewer lines are all returned.
+- `last_line` is the last line of the output that is not blank and does not start with `make:` or `make[` (make's own messages); `""` when there is none.
+- `duration` is the time the command ran.
+- `command` that does not match `^[a-z][a-z0-9-]*$` raises `ProjectCommandError` before anything is started; so does an `executable` that cannot be started (the detail is the operating system's message). The message of the error is `project command <command> failed: <detail>`.
+- `kill_points` is accepted so that wiring builds every wrapper the same way; this wrapper reaches no kill point.
+- No identifier in the three modules contains `layer` (R8), and the string `"make"` appears in no module under `src/factory` other than `factory.adapters.make_commands` (kept 17).
+
+Tests: `tests/domain/test_checks.py`, `tests/domain/test_errors.py` (extended), `tests/adapters/test_make_commands.py` (each test writes a Makefile into `tmp_path` and runs the class against it), `tests/test_make_search.py`. A test module assigns `MakeProjectCommands` to a variable annotated `ProjectCommands`, so that mypy checks the fit. The only waiting in the tests is for a command that the `time_limit` kills.
+
+## Acceptance criteria
+
+1. `CheckResult` accepts `("passed", 0)`, `("failed", 2)` and `("time_limit", None)` for `status` and `exit_status`, and `passed` is true for the first and false for the other two.
+2. `CheckResult` rejects `("passed", 1)`, `("failed", 0)`, `("failed", None)`, `("time_limit", 0)` and `("time_limit", 124)`.
+3. `CheckResult.command` accepts `check` and `lint-all` and rejects `Check`, `1x`, `a b`, the empty string and `-f`.
+4. `CheckResult` rejects an unknown keyword argument and rejects assignment to a field.
+5. The field names of `CheckResult` are exactly `command`, `status`, `exit_status`, `duration`, `last_line` and `output_tail`, and no identifier (name, attribute, argument, class or function name) in `factory.domain.checks`, `factory.application.project_commands` or `factory.adapters.make_commands` contains `layer` (a test parses the three files with `ast`).
+6. `run("check", ...)` against a Makefile whose target `check` prints `check: green` and succeeds returns `status == "passed"`, `exit_status == 0`, `command == "check"` and `passed` true.
+7. A target that exits with status 2 returns `status == "failed"` and `exit_status == 2`; nothing is raised.
+8. A command whose target does not exist returns `status == "failed"` and `exit_status == 2`; nothing is raised.
+9. A target that sleeps 60 seconds, run with `time_limit=timedelta(seconds=1)`, returns `status == "time_limit"` and `exit_status` `None` within 6 seconds, and the `sleep` it started is gone.
+10. `run` with `time_limit=timedelta(0)` raises `ValueError`; with one second it runs.
+11. For a target that prints numbered lines `1` to `n`, `output_tail` holds all `n` lines when `n` is 29 and when `n` is 30, the lines `2` to `31` when `n` is 31, and the lines `11` to `40` when `n` is 40.
+12. A target that prints `a` to stdout, `b` to stderr and `c` to stdout gives an `output_tail` with the lines `a`, `b`, `c` in that order.
+13. `last_line` is the last non-blank line of the output when blank lines follow it.
+14. `last_line` is `""` for a target that prints nothing.
+15. For a failing target that prints `lint: red` and then make prints `make: *** [Makefile:2: lint] Error 3`, `last_line` is `lint: red`; a line starting with `make[1]:` is skipped in the same way.
+16. For a target that runs about 0.3 seconds, `duration` is at least 0.3 seconds and below the time limit.
+17. `run("check; rm -rf x", ...)`, `run("Check", ...)` and `run("-f", ...)` raise `ProjectCommandError` with `command` set, and no process is started (a marker file the target would create does not exist).
+18. `MakeProjectCommands(directory, executable="/no/such/make").run("check", time_limit=...)` raises `ProjectCommandError` whose `command` is `check` and whose `detail` is not empty.
+19. `ProjectCommandError("check", "boom")` has the message `project command check failed: boom` and is a subclass of `BoundaryError`.
+20. The string literal `"make"` occurs in no module of `src/factory` other than `factory.adapters.make_commands`.
+21. `MakeProjectCommands` is not a subclass of `ProjectCommands`, and a test module assigns a `MakeProjectCommands` to a variable annotated `ProjectCommands`, so that `make check` (mypy) proves the structural fit.
+22. make check stays green.
+23. docs: `docs/project-guide.md` describes the project-commands interface (the single `run` operation, the exit status as the only verdict, the tail of 30 lines, the generic result with no layer names) and says how a project declares its own layers check as a project command; `docs/operator-guide.md` notes that the make targets `check`, `lint` and `test` are what the factory calls.
+
+## Demo
+
+```bash
+uv run python -c "
+import tempfile
+from datetime import timedelta
+from pathlib import Path
+from factory.adapters.make_commands import MakeProjectCommands
+root = Path(tempfile.mkdtemp())
+(root / 'Makefile').write_text('check:\n\t@echo \"check: green\"\n\nlint:\n\t@echo \"lint: red\"; exit 3\n')
+commands = MakeProjectCommands(root)
+for name in ('check', 'lint', 'nope'):
+    result = commands.run(name, time_limit=timedelta(seconds=30))
+    print(name, result.status, result.exit_status, repr(result.last_line))
+"
+```
+Expect: three lines: `check passed 0 'check: green'`, then `lint failed 3 'lint: red'`, then `nope failed 2 ''`: the exit status decides, and make's own messages are not taken as the last line.
+
+```bash
+uv run python -c "
+from datetime import timedelta
+from pathlib import Path
+from factory.adapters.make_commands import MakeProjectCommands
+from factory.domain.errors import ProjectCommandError
+try:
+    MakeProjectCommands(Path('.')).run('Check; ls', time_limit=timedelta(seconds=5))
+except ProjectCommandError as error:
+    print(error)
+"
+```
+Expect: one line starting with `project command Check; ls failed:` that names the invalid command name.
+
+## Log (append only)
+
+1. 2026-10-12 human: created.
