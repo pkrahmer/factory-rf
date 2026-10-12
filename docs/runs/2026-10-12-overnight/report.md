@@ -2,7 +2,7 @@ This is not v1.1's baseline run: that run is v1.1 on `factory-demo-todo`, after 
 
 # Morning report, 2026-10-12 overnight
 
-A running file: every push of the night log updates it. Status at the last update: Phase 1 done; Phase 2 (features and stories) starting.
+A running file: every push of the night log updates it. Status at the last update (01:10): Phase 1 done. Phase 2 done: 11 features, 79 stories drafted (F0001 now 14), skeleton, interface sheet, traceability and cross-check 1 committed under `planning/overnight/`. Phase 3/4 for F0001 in its third round; F0001-S0001 started at 01:09. Later features not yet audited (usage kept for the build).
 
 ## Done
 
@@ -36,6 +36,7 @@ Conditions: run 4 ticked every 2 minutes fixed; tonight the pause starts at 15 s
 ## Usage
 
 - Start (23:17): 5-hour window 1% used, resets 03:30; weekly 53% used, resets 05:00.
+- 00:46: 5-hour window 57%, weekly 61%.
 
 ## What needs the operator
 
@@ -43,3 +44,5 @@ Conditions: run 4 ticked every 2 minutes fixed; tonight the pause starts at 15 s
 - Decision 007 to confirm.
 - The items v1 cannot build tonight: WE1.4, WE4, WE5 and R35's rewrite.
 - The `mutants` decision (left out of the seed).
+- The working answers in `planning/overnight/skeleton-answers.md`, taken by the session.
+- The traceability (`planning/overnight/traceability.md`) and its morning observations: ST3.3, ST5.1, WE3.1, WE3.3, WE3.4.
