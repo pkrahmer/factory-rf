@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 4
 blocked: null
 comments_seen: 0
@@ -131,3 +131,12 @@ Expect: one line, `['src/factory/adapters/process.py']`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built `src/factory/adapters/process.py`, which holds `ProcessRequest`, `ProcessResult` (frozen, `extra="forbid"`, like the domain DTOs) and `run_process`. `make check` is green with 100 % coverage. Both demo blocks print what the ticket expects.
+      - How it works: `subprocess.Popen` gets the argv list (no shell), `start_new_session=True`, `stdin=DEVNULL`, and `stderr=STDOUT` when `merge_stderr` is set. Then `communicate(timeout=…)` runs. On `TimeoutExpired` it calls `os.killpg(pid, SIGKILL)`, suppressing `ProcessLookupError`, and a second `communicate()` collects the output written so far. Once the group is dead the pipes close, so that call returns. `exit_status` is `None` when the time limit was reached. Output is decoded as UTF-8 with `errors="replace"`. `time_limit` is checked with `Field(gt=timedelta(0))`. `duration` is measured with `time.monotonic`. `OSError` is not caught.
+      - Markers: the four markers sit on `import subprocess` and on the `subprocess.Popen(` line. The call's arguments wrap onto later lines, and ruff and bandit both accept the markers on the opening line. No docstring or comment uses the marker words.
+      - Rejected: `subprocess.run(timeout=…)`. It kills only the direct child, so a grandchild would keep the pipe open and the call would hang. `SIGTERM` followed by a grace period was also rejected: it adds a wait the ticket does not ask for, and `SIGKILL` cannot be ignored.
+      - Commit: one, `feat(adapters): run_process, the one process wrapper`.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: when a child exits normally inside the limit but leaves a background grandchild holding stdout open, `communicate()` waits for that grandchild. The time limit still bounds that wait if one is set. The ticket does not cover this case.
+
+   `make check`: check: green
