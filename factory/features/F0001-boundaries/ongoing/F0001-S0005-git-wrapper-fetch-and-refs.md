@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 5
 blocked: null
 comments_seen: 0
@@ -206,3 +206,47 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
    - Demo: both blocks are runnable as written, and each `Expect:` line is checkable against the printed output.
    - Architecture: the domain types are pure data. The `Git` Protocol is in application. `GitCli` is in adapters, reaches git only through `run_process`, and satisfies the Protocol structurally (22). The DTOs are Pydantic models, and there are five constructor parameters or fewer.
    - Scope: within the feature's "The git wrapper" scope. The writing operations, history and status are left to S0006, S0011, S0012 and S0013, and the wiring is left to F0010. Nothing falls under "Out of scope".
+3. tester: red tests written for all criteria. These are the coder's specification.
+
+   Mapping (criterion → test):
+   - 1: tests/domain/test_errors.py::test_git_error_carries_command_status_and_tail_in_its_message
+   - 2: tests/adapters/test_git_cli_reading.py::test_failure_keeps_the_last_thirty_lines_of_output (parametrized: fetch/FetchFailed and remote_branches/GitError, × 40 lines → lines 11–40 and 3 lines → all 3)
+   - 3: tests/adapters/test_git_cli_reading.py::test_executable_that_cannot_start_raises_without_exit_status
+   - 4: tests/domain/test_git.py::test_git_time_limit_is_five_minutes and tests/adapters/test_git_cli_reading.py::test_command_that_reaches_its_time_limit_raises_without_exit_status
+   - 5: tests/adapters/test_git_cli_reading.py::test_fetch_brings_in_a_branch_pushed_by_another_clone
+   - 6: tests/adapters/test_git_cli_reading.py::test_fetch_prunes_a_branch_the_remote_deleted
+   - 7: tests/adapters/test_git_cli_reading.py::test_fetch_outside_a_repository_raises_fetch_failed and ::test_fetch_from_a_removed_remote_raises_fetch_failed. For "a clone whose remote was removed", the test deletes the bare remote directory.
+   - 8: tests/adapters/test_git_cli_reading.py::test_global_configuration_is_ignored
+   - 9: tests/adapters/test_git_cli_reading.py::test_system_configuration_is_ignored
+   - 10: tests/adapters/test_git_cli_reading.py::test_options_environment_reaches_git
+   - 11: tests/adapters/test_git_cli_reading.py::test_process_environment_reaches_git
+   - 12: tests/adapters/test_git_cli_reading.py::test_remote_branches_lists_the_remote_tracking_branches_sorted
+   - 13: tests/adapters/test_git_cli_reading.py::test_resolve_returns_the_full_commit_id
+   - 14: tests/adapters/test_git_cli_reading.py::test_resolve_returns_none_for_a_missing_ref
+   - 15: tests/adapters/test_git_cli_reading.py::test_show_file_returns_the_text_as_committed
+   - 16: tests/adapters/test_git_cli_reading.py::test_show_file_returns_none_for_no_file_and_raises_for_a_missing_ref
+   - 17: tests/adapters/test_git_cli_reading.py::test_list_files_returns_all_paths_under_a_directory_sorted
+   - 18: tests/adapters/test_git_cli_reading.py::test_list_files_is_empty_for_a_missing_directory_and_raises_for_a_missing_ref
+   - 19: tests/adapters/test_git_cli_reading.py::test_is_ancestor_follows_history
+   - 20: tests/adapters/test_git_cli_reading.py::test_is_ancestor_raises_for_an_unknown_ref (parametrized: unknown ancestor, unknown descendant)
+   - 21: tests/domain/test_git.py::test_identity_needs_a_name_and_an_email_and_is_frozen
+   - 22: tests/adapters/test_git_cli_reading.py::test_git_cli_fits_the_git_interface_without_inheriting_it. It assigns `git: Git = checkout` and checks that `Git` is not in `GitCli.__mro__`, because `issubclass` raises on a Protocol that is not runtime-checkable.
+   - 23: tests/domain/test_git.py::test_options_default_to_the_factory_identity_and_plain_git and tests/adapters/test_git_cli_reading.py::test_git_cli_works_with_default_options (parametrized: `GitCli(directory)` and `GitCli(directory, GitOptions())`)
+   - 24, 25: not tests. 24 is the gate `make check`; 25 is the documenter's.
+
+   Files:
+   - new: tests/git_support.py, which holds CHECKOUT, TEST_IDENTITY, PIPELINE_YAML, STORY_FORM, REMOTE_FILES, run_git, write_files, commit_all, clone, make_remote and write_executable. `run_git` runs through `run_process`, ignores the global and system configuration and uses the author Test Author <test@example.invalid>.
+   - new: tests/adapters/test_git_cli_reading.py and tests/domain/test_git.py.
+   - extended (new tests and imports only): tests/domain/test_errors.py and tests/conftest.py. conftest.py gains `remote`, a bare repository at tmp_path/origin/remote.git, and `checkout`, a GitCli on a clone at tmp_path/checkout built with kill_points and TEST_IDENTITY.
+
+   Missing modules:
+   - `factory.adapters.git_cli`, `factory.application.git`, and the new names in `factory.domain.git` and `factory.domain.errors`.
+
+   Test run:
+   - The one `make test` run happened before conftest.py imported git_cli at the top. That run showed collection errors (ImportError) in test_git_cli_reading.py, test_errors.py and test_git.py.
+   - After that, lint (PLC0415) refused the lazy imports in conftest.py, so the imports moved to the top of the file. As a result the whole suite now fails at collection with ImportError until `factory.adapters.git_cli` and `factory.domain.git.GitOptions` exist. I did not run the tests again after that change.
+
+   `make lint` is green. The type check was skipped, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.git_cli'
