@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 1
 blocked: null
 comments_seen: 4
@@ -269,3 +269,4 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
     Checked against the acceptance criteria: the output contradicts none of them. It agrees with criteria 4, 5 and 6 (fires once on the (n+1)-th reach, then disarmed, with the raising reach counted), 3 (an unreached point counts 0), 11 (passes through `except Exception`, not an `Exception`) and 12 (the message `injected kill at <point>`). The other criteria are not exercised by the demo. Their coverage comes from the tests and the earlier stages, not from this run.
 
     Open: nothing.
+18. done (pull request merged); cost: 14 runs, 5.4 min, 73 turns, 247k tokens in (824k more from cache), 25k out, $2.41
