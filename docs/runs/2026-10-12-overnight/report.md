@@ -9,6 +9,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | Story | Pull request | Agent runs | Agent minutes | Clock minutes (start to archive) | Cost | Answers |
 |---|---|---|---|---|---|---|
 | F0001-S0001 Kill points in the wrappers | #1 | 14 | 5.4 | 12 (01:09 to 01:21) | $2.41 | 2 (coder: test vs mypy; reviewer: a missing failing side) |
+| F0001-S0002 Hosting-service interface and DTOs | #2 | 6 | 4.3 | 7 (01:25 to 01:31) | $1.37 | 0 (first-pass) |
 
 ## Stops
 
