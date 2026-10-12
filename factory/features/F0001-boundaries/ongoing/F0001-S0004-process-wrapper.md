@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 4
 blocked: null
 comments_seen: 0
@@ -150,3 +150,12 @@ Expect: one line, `['src/factory/adapters/process.py']`.
       - Ticket hygiene: the coder's entry explains the `Popen`/`communicate`/`killpg` design. It also explains why `subprocess.run(timeout=…)` and a SIGTERM grace period were rejected. `Assignment` matches the code. Criterion 16 still describes what the documenter must write.
 
    Open, not a finding: after `killpg`, the second `communicate()` has no time limit. A descendant that left the group (by calling `setsid`) and still holds the pipe would block it. The ticket defines the kill as killing the process group, so this is outside the story. The coder's entry notes a related case: a background grandchild of a child that exits normally.
+6. documenter: no findings. `make check` is green.
+   - `docs/project-guide.md`: new section "Starting a process". It states that `subprocess` is started only in `factory.adapters.process`, and describes `ProcessRequest` and `run_process` (no shell, own session, process-group SIGKILL at the `time_limit`, whole environment, merged output, UTF-8 replace, uncaught `OSError`). It also lists the two limits the coder and reviewer noted, and the three search tests that keep the boundary.
+   - `docs/decisions.md`: extended the existing entry on the four markers. It now says why there are no others and which test enforces that.
+   - `README.md`: the status sentence now mentions the process wrapper.
+   - Cross-read against the diff: `CLAUDE.md`-linked `docs/operator-guide.md` has no content yet and nothing in it is stale. The rest of `project-guide.md` and `decisions.md` is unrelated to this story and is current.
+   - Not run: the `git status` example in the guide. It is illustrative and needs no demo. The ticket's own demo blocks were not rerun by me; the coder reported them, and `make check` covers the behaviour.
+   - Stale but untouched: nothing seen.
+
+   `make check`: check: green
