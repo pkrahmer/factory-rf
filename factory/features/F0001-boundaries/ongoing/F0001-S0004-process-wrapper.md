@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 4
 blocked: null
 comments_seen: 0
 round: 0
@@ -101,3 +101,9 @@ Expect: one line, `['src/factory/adapters/process.py']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/adapters/process.py` names `ProcessRequest`, `ProcessResult` and `run_process` with full signatures. Each stated behaviour (no shell, own session, group kill, `time_limit` None or >0, env None or whole, merged stderr, UTF-8 replace, uncaught `OSError`) has a criterion (1-11).
+   - Criteria: each is testable by one test function. The failing sides are covered: empty `argv`, zero and negative `time_limit` (9), missing executable (8), non-zero exit (2), timeout (5, 6), and a child that ends within the limit (7).
+   - Demo: both blocks are runnable. The `Expect:` lines are checkable: `3 False 'out\nerr\n'` and `None True 'started\n'` for the first, and `['src/factory/adapters/process.py']` for the second.
+   - Architecture: the module sits in `factory.adapters`, uses Pydantic DTOs, has no `dict[str, Any]` crossing a boundary, and is the single process wrapper per R5. The suppression markers match the exception in `CLAUDE.md`, so no question is needed.
+   - Scope: this is the feature's "one place that starts a subprocess" and the boundary searches. It stays clear of Out of scope. The `tests/source_search.py` helper comes from S0003, which is earlier in the feature's order.
