@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 4
 blocked: null
 comments_seen: 0
@@ -179,3 +179,4 @@ Expect: one line, `['src/factory/adapters/process.py']`.
    - Command 2 is consistent with criterion 12.
 
    The demo contradicts no criterion. Criteria 15 (`make check`) and 16 (docs) are not targeted by the demo. The factory runs `make check` after this stage.
+8. done (pull request merged); cost: 6 runs, 4.3 min, 37 turns, 100k tokens in (465k more from cache), 23k out, $1.19
