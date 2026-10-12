@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 2
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The hosting-service interface and its DTOs
 
 ## Assignment (as of log entry 1)
@@ -161,3 +169,121 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (errors, identifiers, git, paths, domain.hosting, application.hosting); the partial modules and the names later stories add are stated, and the ten operations are listed.
+   - Criteria: each is testable by a test function without further decisions. Every stated rule has its failing side: PostKey rejections (5), parse_post_key None cases (8), the naive datetime, id 0 and UTC conversion (11), merge_commit missing, present on a non-merged state, wrong length or case, and number 0 (12), unknown keywords and assignment (13). The behaviours in the Interface comments (render_post format, last-non-blank-line parsing, by_factory from the marker only, the error message) are each covered by criteria 1, 3, 6 to 10.
+   - Demo: both commands are runnable; the Expect lines give exact output (the three lines, and `rejected 1`).
+   - Architecture: the domain DTOs and the protocol in application sit in the right layers, application imports only the domain, and criterion 16 enforces the imports. The hosting service stays behind an interface (R6, R10).
+   - Scope: within F0001's scope (the interface, DTOs, marker and post key). Idempotent posting and the fake are left to S0014 and F0003/F0007, as the feature says.
+3. tester: Wrote red tests for criteria 1–16. Criteria 17 and 18 are the factory's check and the documenter's work, so they get no test.
+
+   - criterion 1: tests/domain/test_errors.py::test_hosting_service_error_carries_operation_detail_and_message
+   - criterion 2: tests/domain/test_hosting.py::test_constants_have_their_values
+   - criterion 3: tests/domain/test_hosting.py::test_post_key_comment_names_work_item_kind_and_n
+   - criterion 4: tests/domain/test_hosting.py::test_post_key_accepts_valid_values (parametrized: the ten kinds, F0001-A0001, n "0a1f"), plus test_post_kind_lists_exactly_the_ten_kinds
+   - criterion 5: tests/domain/test_hosting.py::test_post_key_rejects_invalid_values
+   - criterion 6: tests/domain/test_hosting.py::test_render_post_strips_trailing_whitespace_and_ends_with_the_key
+   - criterion 7: tests/domain/test_hosting.py::test_parse_post_key_reads_back_a_rendered_post (one case per kind)
+   - criterion 8: tests/domain/test_hosting.py::test_parse_post_key_returns_none_without_a_valid_last_key_line (eight cases)
+   - criterion 9: tests/domain/test_hosting.py::test_parse_post_key_tolerates_trailing_whitespace_and_crlf (four cases)
+   - criterion 10: tests/domain/test_hosting.py::test_comment_is_by_factory_exactly_when_it_carries_the_marker
+   - criterion 11: tests/domain/test_hosting.py::test_comment_rejects_a_naive_created_at, ::test_comment_id_must_be_positive (0 rejected, 1 accepted), ::test_comment_converts_created_at_to_utc
+   - criterion 12: tests/domain/test_hosting.py::test_pull_request_view_accepts_consistent_states, ::test_pull_request_view_rejects_inconsistent_values
+   - criterion 13: tests/domain/test_hosting.py::test_models_forbid_unknown_keys_and_are_frozen (one case per model)
+   - criterion 14: tests/application/test_hosting_protocol.py::test_hosting_service_has_exactly_the_ten_operations, ::test_no_operation_returns_or_reads_labels. The second test compares each operation's return hint with the one in the Interface. It also checks that `set_labels` is the only operation with "label" in its name and that `PullRequestView` has no label field.
+   - criterion 15: tests/test_no_untyped_dicts.py::test_the_search_finds_a_mutable_mapping_to_any (the `MutableMapping[str, Any]` snippet), ::test_the_search_finds_nested_and_qualified_mappings_to_any, ::test_no_function_in_the_package_has_a_mapping_to_any. The search uses `ast` and also reads string annotations. It follows no type alias, as the Interface says.
+   - criterion 16: tests/domain/test_hosting.py::test_domain_modules_import_only_stdlib_pydantic_and_domain (the four modules), ::test_application_hosting_imports_only_stdlib_and_domain. Both parse the source with `ast` and resolve relative imports. "Standard library" means `sys.stdlib_module_names`.
+
+   Files created: tests/domain/test_hosting.py, tests/application/__init__.py, tests/application/test_hosting_protocol.py, tests/test_no_untyped_dicts.py. Extended: tests/domain/test_errors.py gains one new test. Its import line now also names `BoundaryError` and `HostingServiceError`, and the existing test is unchanged; until those names exist, the whole module fails at collection.
+
+   `make test` (one run) fails at collection as intended: `ModuleNotFoundError: No module named 'factory.domain.hosting'` for tests/domain/test_hosting.py and tests/application/test_hosting_protocol.py. The coder must also create `factory.domain.identifiers`, `factory.domain.git`, `factory.domain.paths` and `factory.application.hosting`, and add `BoundaryError` and `HostingServiceError` to `factory.domain.errors`.
+
+   Outside the stage's procedure, I ran tests/test_no_untyped_dicts.py once on its own to check that the search logic works. It passes on the current tree because there are no offenders yet. `make lint` is green.
+
+   I made no interpretation that needs the human. Commit ids in tests use `"a" * 40`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the hosting-service interface and its DTOs. All tests from the tester pass, `make check` is green (coverage 100 %) and both demos print exactly what the ticket expects. Commit: `ticket F0001-S0002: feat(domain): hosting-service DTOs, post key and HostingService protocol`.
+
+   Built:
+   - src/factory/domain/errors.py: adds `BoundaryError(FactoryError)` and `HostingServiceError(BoundaryError)`. The second carries `operation` and `detail`, and its message is `hosting service <operation> failed: <detail>`.
+   - src/factory/domain/identifiers.py (only `WorkItemId`), src/factory/domain/git.py (only `CommitId`), src/factory/domain/paths.py (only `MAIN_BRANCH` and `LABEL_PREFIX`). Each is the first part of a module that later stories extend.
+   - src/factory/domain/hosting.py: `FACTORY_MARKER`, `PullRequestState`, `PostKind`, `PostOutcome`, and the models `PullRequestView`, `PostKey` and `PullRequestComment`.
+     - The three models share a private `_Frozen` base: frozen, with `extra="forbid"`.
+     - A model validator on `PullRequestView` requires `merge_commit` exactly when the state is `"merged"`.
+     - A field validator converts `created_at` to UTC after `AwareDatetime` has rejected naive values.
+     - `render_post` and `parse_post_key` are module functions. `PullRequestComment.from_body` takes `by_factory` from the marker alone and never looks at the author.
+   - src/factory/application/hosting.py: the `HostingService` Protocol with its ten operations. Each has a one-line docstring and `...` as its body. No operation reads labels.
+
+   Main design decision: `parse_post_key` matches the last non-blank line, with trailing whitespace stripped, against a loose regex for the comment's shape, `<!-- factory key=A:B:C -->`. It then hands the three parts to `PostKey.model_validate` and returns `None` on a `ValidationError`. That way the rules for a valid work item, kind and `n` live only in `PostKey`. The alternative I rejected was one strict regex that repeats the work-item pattern, the kind alternation and the hex rule, which would duplicate the model's rules.
+
+   Refactor: I read the diff as a reviewer would and found nothing to change, so there is no refactor commit.
+
+   Not touched: the docs for criterion 18 belong to the documenter. The PyGithub client (S0003) and the fake (S0014) implement this protocol later.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read each test against its criterion. Criteria 1–16 each have a test that checks what the criterion says. Every rule in the Interface is also tested on its failing side:
+     - PostKey rejections (work item, kind, `n` empty, not hex, uppercase)
+     - the eight `None` cases of `parse_post_key`
+     - a naive `created_at` and an `id` of 0, with 1 accepted on the other side of that limit
+     - `merge_commit` missing when merged, present when open or closed, 39 characters, uppercase; and a `number` of 0
+     - unknown keys and assignment on all three models
+     - the search for mappings to `Any`, run against a snippet that has an offender and one that has none
+   - Make check: the coder's entry reports `make check` green with 100 % coverage.
+   - Architecture:
+     - `factory.domain.hosting`, `identifiers`, `git` and `paths` import only the standard library, pydantic and `factory.domain`.
+     - `factory.application.hosting` imports only `factory.domain`.
+     - The DTOs are Pydantic models shaped by the factory.
+     - The Protocol has the ten operations, and none of them reads labels.
+   - Security: no secrets, no strings run as shell or SQL, and no security-silencing marker. The only marker in the diff is `# noqa: DTZ001` in `tests/domain/test_hosting.py`, which is a lint rule and not a security check. It is on the line that builds a naive datetime on purpose to test that it is rejected.
+   - Quality:
+     - `parse_post_key` matches the shape of the key line with a loose regex and leaves validation to `PostKey`, so the rules are written once.
+     - The private `_Frozen` base holds the shared model config.
+     - Docstrings are there and say what each thing is; there is no dead code.
+   - Ticket hygiene: the main decision and the rejected alternative (one strict regex) are in the coder's entry. The Assignment matches what was built, and criterion 18 still names what the documenter has to write.
+
+   Open, not a finding: `PullRequestComment` built directly, not through `from_body`, does not check that `by_factory` and `key` agree with `body`. The Interface only says what `from_body` does. S0003's adapter should build comments through `from_body`.
+6. documenter: wrote the documentation for criterion 18. No findings: the code matches the Interface. `make check` is green.
+
+   Files changed:
+   - docs/project-guide.md: new "The hosting service" section with the ten operations as a table, the data models, the marker and post key rules, and the statement that the hosting service is reached only through `HostingService`. The Errors section gains `BoundaryError` and `HostingServiceError`. The intro no longer says nothing is built.
+   - docs/decisions.md: new entry on why a post carries a key and why the marker, not the author, tells the factory's posts apart. It lists the rejected alternatives. It cites WE6.3 and R34.
+   - README.md: the intro says what exists so far. The project guide is marked "partly written".
+
+   Cross-read and found current: docs/operator-guide.md (still a stub, correct), the other entries in docs/decisions.md, and the kill points and errors sections of the project guide.
+
+   I did not run the demos. The behaviour in the docs comes from the Interface and the tests.
+
+   Stale but not touched: nothing.
+
+   The reviewer's open point is in the project guide: build comments through `PullRequestComment.from_body`. S0003 should do this.
+
+   `make check`: check: green
+7. demo: both commands ran from the repository root exactly as written. Both printed what their `Expect:` line says, and there are no findings.
+
+   Command 1 (render, parse and classify a post), exit 0:
+   ```
+   'Stage tests stalled.\n\n<!-- factory -->\n<!-- factory key=F0001-S0003:stall:12 -->'
+   True
+   True stall
+   ```
+   Met its Expect line: the three lines match exactly.
+
+   Command 2 (a merged pull request without a merge commit), exit 0:
+   ```
+   rejected 1
+   ```
+   Met its Expect line: the view was refused with exactly one validation error.
+
+   Checked against the acceptance criteria:
+   - Criterion 2: the marker is `<!-- factory -->`.
+   - Criterion 3: the key comment has the form `<!-- factory key=<work_item>:<kind>:<n> -->`.
+   - Criterion 6: `render_post` adds a blank line, then the marker, a newline and the key comment, with no newline at the end.
+   - Criterion 7: the rendered key parses back to the same key.
+   - Criterion 10: an author of `someone` with the marker counts as the factory's post.
+   - Criterion 12: `merged` without a `merge_commit` is rejected.
+
+   The demo contradicts no criterion. The other criteria are outside what the commands show, and the tests and the earlier stages cover them. I did not run `make check`; the factory runs it after this stage.

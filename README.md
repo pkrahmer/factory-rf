@@ -1,6 +1,6 @@
 # factory-rf
 
-The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The package is empty so far: four layer packages and the checks around them.
+The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The package is small so far: four layer packages, the error types, the kill points and the hosting-service interface.
 
 ## Getting started
 
@@ -14,7 +14,7 @@ When it works, `make check` ends with the line `check: green`. There is nothing 
 ## Where to look next
 
 - `docs/operator-guide.md`: install, configure, the stops and what to do about each (not yet written)
-- `docs/project-guide.md`: the guide for agents working on this code (not yet written)
+- `docs/project-guide.md`: the guide for agents working on this code (partly written)
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `CLAUDE.md`: the rules every change follows (architecture, tests, checks)
 
