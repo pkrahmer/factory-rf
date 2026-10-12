@@ -18,3 +18,13 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - The documenter's write path `docs/*` also covers `docs/runs/`; only `CLAUDE.md`'s rule keeps stages out of it.
 - The old branch `ccr-cf8b451b-yugt27` of `factory-rf` still exists (its deletion was refused by the permission classifier).
 - The scratch repository `pkrahmer/factory-night-scratch` (private), used to prove the command forms, is yours to delete.
+
+- Fault paths (`planning/overnight/fault-paths.md`, open questions): whether WE1.1 means five kill points or the six rows of section 7.2; whether a crash after a stage's result (between commit and push, between post and record) raises `crashes`, and on which stage (working reading taken: yes, on the stage in flight); whether a close while the stages work and a merge while the move-back question is open need injection tests; the demo README's own path names were not read.
+
+## Rows after going unattended
+
+| Time | Act | Pull request | Reason |
+|---|---|---|---|
+| 23:37 | Phase 2 started: skeleton (opus) and fault-path table (opus) in parallel; brief templates for drafting, auditing, improving and the pre-check written | | plan, section 5 |
+| 23:39 | Pre-check deviation: one opus subagent per feature plays intake and every later role, instead of sonnet for intake and opus for the rest (simpler, one output per feature) | | plan, section 7 |
+| 23:52 | Fault-path table done (`planning/overnight/fault-paths.md`): 13 paths, each walked by one injection test with one kill point; none "mechanism removed"; one extra test for the crash cap. Working readings taken for feature 10's stories: one kill per path; run 1's four further paths only as a note; a crash anywhere in a stage counts on the work item whose latest pushed stage-start commit is in flight; the form check's unit test covers path 1's second half; ST2's rule reads the work item's remote-tracking branch | | decision 007, question 3 |
