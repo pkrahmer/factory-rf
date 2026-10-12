@@ -1160,3 +1160,12 @@ Every name in this sheet that renames a v1 word, so that drafters can check them
 - v1's data model (`AgentSpec`, `AgentRun`, `Memo`, `Running`, `Bucket`, `GitHubError`, `AgentMissingError`, the state fields, `lanes`, `checks`, `records`): `factory-v2/planning/v1.1/v1-style-facts.md`.
 - Layers, wrappers, test rules, argument limit and dependencies: `factory-rf/CLAUDE.md`, `factory-rf/pyproject.toml`.
 - The form of an exact `## Interface` section and v1's journal and front matter: `factory-demo-todo/factory/features/F0001-todo-service/done/F0001-S0001-domain-model-and-in-memory-repository.md`.
+
+## Amendments during the night
+
+Changes the main session made after the sheet was written. They win over the sections above.
+
+- 2026-10-13 01:00, from F0001 round 1: `GitCli(..., *, identity: GitIdentity | None = None, environment: Mapping[str, str] | None = None)`. `GitIdentity(name: str, email: str)` is a frozen Pydantic model in `factory.domain.git`. The identity comes from the instance's settings (`GIT_USER_NAME`, `GIT_USER_EMAIL`), and the extra environment carries the factory process's credential settings. Git still ignores the system and global configuration.
+- 2026-10-13 01:00: F0001's stories were renumbered (14 stories). The "created by" tags for F0001 in the tables above are stale; `stories/F0001-boundaries/FEATURE.md` is authoritative.
+- 2026-10-13 01:00: `factory.entry.wiring` grows with each feature (`build_boundaries`, `build_dispatcher`); see `skeleton-answers.md`, the answers to cross-check round 1's blockers.
+- 2026-10-13 01:00: every entry module's function is `main() -> int`, reading its arguments from `sys.argv` (`pyproject.toml`'s console scripts).

@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Define everything the factory knows about running an agent, with factory-shaped DTOs (R7): the agent definition, the request (agent, prompt, allowed decisions, `time_limit`, working directory, the run's whole environment, guard settings), the result (end reason, decision and entry, duration, turns, tokens, cost, permission denials, with cost and tokens `None` when unknown, never 0), and the `AgentRuntime` protocol with `run` and `version`. A run that dies, reaches its `time_limit` or exhausts its budget is a result with an end reason, not an error: for the caller it is a stall. Build the fake runtime that every stage test uses: it applies a scripted run to the working directory, records every request, and can reach the `agent-run` kill point after the agent's writes. Covers R12 (the interface; the `claude -p` implementation follows in S0008), R6 and R7; keeps kept thing 20 (every agent run's duration, turns, tokens and cost are reported, and unknown is unknown) and kept thing 10 (`question` is always an allowed decision). This story also adds `Name` to `factory.domain.identifiers`, which S0002 created with `WorkItemId` only.
+Define everything the factory knows about running an agent, with factory-shaped DTOs (R7): the agent definition, the request (agent, prompt, allowed decisions, `time_limit`, working directory, the run's whole environment, guard settings), the result (end reason, decision and entry, duration, turns, tokens, cost, permission denials, with cost and tokens `None` when unknown, never 0), and the `AgentRuntime` protocol with `run` and `version`. A run that dies, reaches its `time_limit` or exhausts its budget is a result with an end reason, not an error: for the caller it is a stall. Build the fake runtime that every stage test uses: it applies a scripted run to the working directory, records every request, and can reach the `agent-run` kill point after the agent's writes. Covers R12 (the interface; the `claude -p` implementation follows in S0009 and S0010), R6 and R7; keeps kept thing 20 (every agent run's duration, turns, tokens and cost are reported, and unknown is unknown) and kept thing 10 (`question` is always an allowed decision). This story also adds `Name` to `factory.domain.identifiers`, which S0002 created with `WorkItemId` only.
 
 ## Interface
 
@@ -107,7 +107,7 @@ The rules, each with a criterion below:
 - `version()` returns the string given at construction.
 - `AgentRuntimeError` has the message `agent runtime failed: <detail>`.
 
-Tests: `tests/domain/test_agent_runs.py`, `tests/domain/test_name.py`, `tests/domain/test_errors.py` (extended), `tests/adapters/test_fake_agent_runtime.py`; `tests/conftest.py` gains the fixture `agent_runtime`, a `FakeAgentRuntime(kill_points)`. A test module assigns `FakeAgentRuntime` to a variable annotated `AgentRuntime`, so that mypy checks the fit.
+Tests: `tests/domain/test_agent_runs.py`, `tests/domain/test_name.py`, `tests/domain/test_errors.py` (extended: it gains new tests only, no existing test is changed), `tests/adapters/test_fake_agent_runtime.py`; `tests/conftest.py` gains the fixture `agent_runtime`, a `FakeAgentRuntime(kill_points)` (an addition; no existing fixture is changed). A test module assigns `FakeAgentRuntime` to a variable annotated `AgentRuntime`, so that mypy checks the fit.
 
 ## Acceptance criteria
 
@@ -120,22 +120,23 @@ Tests: `tests/domain/test_agent_runs.py`, `tests/domain/test_name.py`, `tests/do
 7. `time_limit` of `timedelta(0)` is rejected and `timedelta(seconds=1)` is accepted.
 8. A relative `working_directory` is rejected and an absolute one accepted.
 9. `GuardSettings` rejects a relative `root`, accepts an absolute one, and keeps `write_paths` and `protected_paths` as given.
-10. `TokenCounts` rejects `input=-1`, accepts `input=0`, and has `cache_read == 0` and `cache_creation == 0` by default.
+10. `TokenCounts` rejects `-1` for each of `input`, `output`, `cache_read` and `cache_creation`, accepts `0` for each, and has `cache_read == 0` and `cache_creation == 0` by default.
 11. An `AgentRunResult` with `end_reason="completed"` is rejected without a `decision` and rejected without an `entry`, and accepted with both.
 12. An `AgentRunResult` with any other end reason is rejected when it has a `decision` or an `entry`, for each of `no_result`, `time_limit`, `budget` and `died`, and accepted without them.
 13. An `AgentRunResult` without measures has `turns`, `tokens` and `cost_usd` equal to `None`, not 0, and `ok` is true for `completed` and false for each of the other four end reasons.
 14. Each of `AgentDefinition`, `GuardSettings`, `AgentRunRequest`, `TokenCounts`, `PermissionDenial`, `AgentRunResult` and `ScriptedRun` rejects an unknown keyword argument and rejects assignment to a field.
 15. With two scripted runs queued, two calls of `run` return the two results in the order queued, and `requests()` holds the two requests in the order received.
 16. A scripted run with `writes={"tests/test_a.py": "x = 1\n"}` and `deletes=["old.txt"]` creates `tests/test_a.py` (and the folder) under the working directory with that text, replaces it when it exists, and removes `old.txt`; a delete of a file that does not exist raises nothing.
-17. A scripted run that writes `../escape.txt`, or an absolute path, makes `run` raise `AgentRuntimeError`, and nothing is written or deleted, not even by the valid entries of the same run.
+17. A scripted run that writes `../escape.txt` or an absolute path, and a scripted run that deletes `../x` or an absolute path, each make `run` raise `AgentRuntimeError`, and nothing is written or deleted, not even by the valid entries of the same run (a file that exists under the working directory is still there).
 18. `run` with nothing queued raises `AgentRuntimeError`, and the request is in `requests()`.
 19. With a scripted run whose `kill` is true and `KillPoint.AGENT_RUN` armed, `run` raises `InjectedKill` after the writes: the written file is on disk.
 20. With `kill` true and the point not armed, `run` returns the scripted result and `reached(KillPoint.AGENT_RUN)` is 1; with `kill` false the point is not reached (`reached` is 0) even when armed, and the result is returned.
-21. `FakeAgentRuntime().version()` is `"fake"`, and `FakeAgentRuntime(version="2.1.289").version()` is `"2.1.289"`.
-22. `AgentRuntimeError("boom")` has the message `agent runtime failed: boom`, carries `detail == "boom"` and is a subclass of `BoundaryError`.
-23. `FakeAgentRuntime` is not a subclass of `AgentRuntime`, and a test module assigns a `FakeAgentRuntime` to a variable annotated `AgentRuntime`, so that `make check` (mypy) proves the structural fit.
-24. make check stays green.
-25. docs: `docs/project-guide.md` describes the agent-runtime interface (request, result, end reasons, unknown measures as `None`, `question` always allowed) and the fake for tests; `docs/decisions.md` records why a dead, timed-out or over-budget run is a result and not an error (WE6.3).
+21. A `FakeAgentRuntime()` built without kill points returns the scripted result for a run with `kill` true, and the writes are on disk.
+22. `FakeAgentRuntime().version()` is `"fake"`, and `FakeAgentRuntime(version="2.1.289").version()` is `"2.1.289"`.
+23. `AgentRuntimeError("boom")` has the message `agent runtime failed: boom`, carries `detail == "boom"` and is a subclass of `BoundaryError`.
+24. `FakeAgentRuntime` is not a subclass of `AgentRuntime`, and a test module assigns a `FakeAgentRuntime` to a variable annotated `AgentRuntime`, so that `make check` (mypy) proves the structural fit.
+25. make check stays green.
+26. docs: `docs/project-guide.md` describes the agent-runtime interface (request, result, end reasons, unknown measures as `None`, `question` always allowed) and the fake for tests; `docs/decisions.md` records why a dead, timed-out or over-budget run is a result and not an error (WE6.3).
 
 ## Demo
 

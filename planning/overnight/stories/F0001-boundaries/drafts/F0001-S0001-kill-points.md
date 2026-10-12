@@ -56,7 +56,7 @@ Tests: `tests/domain/test_kill_points.py` and `tests/domain/test_errors.py`; `te
 7. Arming one point leaves the other three inert: reaching them raises nothing.
 8. `after` counts from the arming, not from the start: after two reaches of a point, `arm(point)` makes the third reach raise.
 9. Arming an armed point replaces the earlier arming: `arm(point, after=3)` followed by `arm(point)` makes the next reach raise.
-10. `arm(point, after=-1)` raises `ValueError` and leaves the point inert; `arm(point, after=0)` is accepted.
+10. `arm(point, after=-1)` raises `ValueError` and leaves the point inert, and on a point that is already armed it leaves the earlier arming as it was; `arm(point, after=0)` is accepted.
 11. `InjectedKill` is a `BaseException` and not an `Exception`: a function that calls `reach` inside `try` with `except Exception` does not stop it, and `pytest.raises(InjectedKill)` around that function sees it.
 12. `str(InjectedKill(KillPoint.AFTER_PUSH))` is `injected kill at after-push`, and `InjectedKill` is not a subclass of `FactoryError`.
 13. `FactoryError` is a subclass of `Exception`, and `str(FactoryError("x"))` is `x`.

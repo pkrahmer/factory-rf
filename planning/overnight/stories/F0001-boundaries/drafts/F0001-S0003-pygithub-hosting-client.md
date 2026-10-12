@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Build the first implementation of the hosting-service interface on PyGithub, so that every call to the hosting service goes through one client with one error handling. Every failing call, whether the API answers with an error or cannot be reached, raises the one `HostingServiceError` to every caller. A search test proves that no other module imports `github`, calls the hosting service's API by another route, or names the `gh` tool. The client is tested against stand-ins of PyGithub's objects with no network (a real call is a morning observation, and the baseline run is the first to see it). Covers SI2.1, SI2.2 and R9 (PyGithub behind the hosting-service interface; not GitPython, pygit2, dulwich, githubkit, the `gh` tool or plain httpx); builds on S0002 and keeps kept thing 11 (the post carries the marker and its key). The fake (S0011) is the other implementation; wiring that builds the PyGithub `Repository` from the token is F0010.
+Build the first implementation of the hosting-service interface on PyGithub, so that every call to the hosting service goes through one client with one error handling. Every failing call, whether the API answers with an error or cannot be reached, raises the one `HostingServiceError` to every caller. A search test proves that no other module imports `github`, calls the hosting service's API by another route, or names the `gh` tool. The client is tested against stand-ins of PyGithub's objects with no network (a real call is a morning observation, and the baseline run is the first to see it). Covers SI2.1, SI2.2 and R9 (PyGithub behind the hosting-service interface; not GitPython, pygit2, dulwich, githubkit, the `gh` tool or plain httpx); builds on S0002 and keeps kept thing 11 (the post carries the marker and its key). The fake (S0014) is the other implementation; wiring that builds the PyGithub `Repository` from the token is F0002 onward (`factory.entry.wiring`), with F0010 for the token.
 
 ## Interface
 
@@ -19,7 +19,7 @@ class PyGithubHostingService:      # satisfies HostingService structurally, no i
 
 The members of PyGithub that the client uses, which the stand-ins provide (PyGithub 2.10.0):
 
-- `repository.create_pull(base, head, *, title, body, draft)`, `repository.get_pulls(state=..., head=...)`, `repository.get_pull(number)`, `repository.owner.login`.
+- `repository.create_pull(base, head, *, title, body, draft)`, `repository.get_pulls(state=..., head=...)`, `repository.get_pull(number)`, `repository.owner.login`. The constructor reads nothing from the repository; `owner.login` is read only inside `find_open_pull_request`.
 - On a pull request: `number`, `head.ref`, `title`, `state` (`"open"` or `"closed"`), `merged` (bool), `draft` (bool), `merge_commit_sha`, `html_url`, `get_issue_comments()`, `create_issue_comment(body)`, `edit(state=...)` and `edit(body=...)`, `convert_to_draft()`, `mark_ready_for_review()`, `get_labels()`, `set_labels(*names)`.
 - On a comment: `id`, `user.login`, `body`, `created_at`. On a label: `name`.
 
@@ -33,9 +33,9 @@ The rules, each with a criterion below:
 - `close` calls `edit(state="closed")`, `reopen` calls `edit(state="open")`, `set_draft(number, True)` calls `convert_to_draft()`, `set_draft(number, False)` calls `mark_ready_for_review()`, `set_description` calls `edit(body=body)`.
 - `set_labels` reads the pull request's label names and calls `set_labels` with the names that do not start with `LABEL_PREFIX`, in their order, followed by the given labels. The names it read are never returned.
 - A `github.GithubException` or an `OSError` (a connection error is an `OSError`) raised inside any of the ten operations is raised again as `HostingServiceError(operation, detail)` with the operation's name and `str(error)` as detail, chained to the original (`raise ... from error`). Any other exception, and `InjectedKill`, passes through unchanged.
-- `github` is imported by this module only; no module in `src/factory` imports `requests`, `httpx`, `urllib.request`, `http.client`, `git`, `pygit2`, `dulwich` or `githubkit`, and none contains the string literal `"gh"`.
+- `github` is imported by this module only; no module in `src/factory` imports `requests`, `httpx`, `aiohttp`, `urllib3`, `urllib.request`, `http.client`, `socket`, `git`, `pygit2`, `dulwich` or `githubkit`, and none contains the string literal `"gh"`. The search reads import statements and string literals; it does not see `importlib` or a command line built from pieces, which F0001's other searches and `make check` (ruff `S` rules) cover.
 
-Tests: `tests/adapters/test_pygithub_hosting.py`, with stand-ins in `tests/adapters/pygithub_stand_ins.py` (plain classes with the members above that record every call, passed to the client with `typing.cast`; the module also assigns the client to a variable annotated `HostingService`, so that mypy checks the fit); `tests/source_search.py` (a helper that parses every module under `src/factory` with `ast`) and `tests/test_hosting_search.py`.
+Tests: `tests/adapters/test_pygithub_hosting.py`, with stand-ins in `tests/adapters/pygithub_stand_ins.py` (plain classes with the members above that record every call, passed to the client with `typing.cast`; the module also assigns the client to a variable annotated `HostingService`, so that mypy checks the fit); `tests/source_search.py` (a helper that parses every module under `src/factory` with `ast`) and `tests/test_hosting_search.py`. A test that needs a commit id uses a low-entropy literal such as `"a" * 40`, so that `make secrets` stays green.
 
 ## Acceptance criteria
 
@@ -56,11 +56,12 @@ Tests: `tests/adapters/test_pygithub_hosting.py`, with stand-ins in `tests/adapt
 15. `set_labels(n, ["stage:doing"])` on a pull request that has the labels `bug` and `stage:tests` calls `set_labels("bug", "stage:doing")`; with no existing label it calls `set_labels("stage:doing")`.
 16. For each of the ten operations, a `GithubException` (status 500) and an `OSError` raised by the stand-in surface as `HostingServiceError` whose `operation` is the operation's name and whose `detail` is `str(error)`, with the original as `__cause__`; for `post_comment` this holds whether the error comes while listing or while posting.
 17. A `ValueError` raised by the stand-in passes through unchanged, and so does `InjectedKill` raised by the client's own kill point.
-18. Among the modules of `src/factory`, exactly `factory.adapters.pygithub_hosting` imports `github`, and none imports `requests`, `httpx`, `urllib.request`, `http.client`, `git`, `pygit2`, `dulwich` or `githubkit`.
-19. No module under `src/factory` contains the string literal `"gh"`.
-20. `PyGithubHostingService` is not a subclass of `HostingService`, and a test module assigns a `PyGithubHostingService` to a variable annotated `HostingService`, so that `make check` (mypy) proves the structural fit.
-21. make check stays green.
-22. docs: `docs/project-guide.md` states that the hosting service is reached only through the `HostingService` interface, that `PyGithubHostingService` is the one client and raises `HostingServiceError` for every failing call, and that tests use the fake; `docs/decisions.md` records why PyGithub and not `gh`, GitPython-style wrappers or plain httpx (R9) (WE6.3).
+18. `PyGithubHostingService(repository)` calls nothing on `repository` and reads no attribute of it: a stand-in that raises on every access is accepted by the constructor.
+19. Among the modules of `src/factory`, exactly `factory.adapters.pygithub_hosting` imports `github`, and none imports `requests`, `httpx`, `aiohttp`, `urllib3`, `urllib.request`, `http.client`, `socket`, `git`, `pygit2`, `dulwich` or `githubkit`.
+20. No module under `src/factory` contains the string literal `"gh"`.
+21. `PyGithubHostingService` is not a subclass of `HostingService`, and a test module assigns a `PyGithubHostingService` to a variable annotated `HostingService`, so that `make check` (mypy) proves the structural fit.
+22. make check stays green.
+23. docs: `docs/project-guide.md` states that the hosting service is reached only through the `HostingService` interface, that `PyGithubHostingService` is the one client and raises `HostingServiceError` for every failing call, and that the one fake of the hosting service (S0014) is what other tests use; `docs/decisions.md` records why PyGithub and not `gh`, GitPython-style wrappers or plain httpx (R9) (WE6.3).
 
 ## Demo
 

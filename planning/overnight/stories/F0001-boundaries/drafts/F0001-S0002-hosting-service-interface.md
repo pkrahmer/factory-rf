@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Define everything the factory knows about the hosting service, with no implementation behind it: the pull request DTOs, the factory's marker, the post key that makes a repeated post a no-op, the one error type of every failing call, and the `HostingService` protocol with exactly the operations R10 lists (create as draft or ready, find the open pull request of a branch, read state and merge state, list comments with id and author, post with the marker, close, reopen, mark draft or ready, replace the description, write labels). The PyGithub client (S0003) and the one fake (S0011) implement it. Covers R10 (the interface), R6 (an interface in front of the tool), R7 (DTOs shaped by the factory, with a search that no `dict[str, Any]` crosses a function boundary) and R34 (the marker, not the author, tells the factory's posts apart); keeps kept thing 11 (posts carry the factory's marker). Because the hosting DTOs need a work item id, a commit id and two names that the interface sheet gives to later stories, this story creates the first part of three modules and the later stories add the rest: `factory.domain.identifiers` (only `WorkItemId`), `factory.domain.git` (only `CommitId`) and `factory.domain.paths` (only `MAIN_BRANCH` and `LABEL_PREFIX`).
+Define everything the factory knows about the hosting service, with no implementation behind it: the pull request DTOs, the factory's marker, the post key that makes a repeated post a no-op, the one error type of every failing call, and the `HostingService` protocol with the operations R10 lists (create as draft or ready, read state and merge state, list comments with id and author, post with the marker, close, reopen) plus those that R22 (the description as the one projection of the work item) and kept thing 11 (draft or ready) need: find the open pull request of a branch, mark draft or ready, replace the description, write labels. The PyGithub client (S0003) and the one fake (S0014) implement it. Covers R10 (the interface), R6 (an interface in front of the tool), R7 (DTOs shaped by the factory, with a search that no `dict[str, Any]` crosses a function boundary) and R34 (the marker, not the author, tells the factory's posts apart); keeps kept thing 11 (posts carry the factory's marker). Because the hosting DTOs need a work item id, a commit id and two names that the interface sheet gives to later stories, this story creates the first part of three modules and the later stories add the rest: `factory.domain.identifiers` (only `WorkItemId`), `factory.domain.git` (only `CommitId`) and `factory.domain.paths` (only `MAIN_BRANCH` and `LABEL_PREFIX`).
 
 ## Interface
 
@@ -24,7 +24,7 @@ class HostingServiceError(BoundaryError):
 WorkItemId = Annotated[str, StringConstraints(pattern=r"^F\d{4}-[SA]\d{4}$")]
 ```
 
-`src/factory/domain/git.py` (only this name; S0004 and later stories add the rest)
+`src/factory/domain/git.py` (only this name; S0005 and later stories add the rest)
 
 ```python
 CommitId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
@@ -98,16 +98,17 @@ There are ten operations, and none of them returns labels: labels are written as
 The rules, each with a criterion below:
 
 - Every model in `factory.domain.hosting` is frozen and forbids unknown keys; datetimes are aware and converted to UTC.
-- `PullRequestView.state` is `"merged"` whatever the merge method was; `merge_commit` is set exactly when `state` is `"merged"`, and is a 40-character lowercase hexadecimal commit id.
+- `merge_commit` is set exactly when `PullRequestView.state` is `"merged"`, and is a 40-character lowercase hexadecimal commit id.
 - `PostKey.comment()` is `<!-- factory key=<work_item>:<kind>:<n> -->`, for example `<!-- factory key=F0001-S0001:question:7 -->`. `n` is lowercase hexadecimal and not empty.
 - `render_post(text, key)` is `text` with its trailing whitespace removed, then a blank line, then `FACTORY_MARKER`, a newline and `key.comment()`; nothing follows the key.
-- `parse_post_key(body)` reads only the last non-blank line of `body`; that line must be exactly a key comment (trailing whitespace ignored) whose work item, kind and `n` are valid; in every other case it returns `None`.
+- `parse_post_key(body)` reads only the last non-blank line of `body`; that line must be exactly a key comment (trailing whitespace, a trailing `
+` included, ignored) whose work item, kind and `n` are valid, and blank lines after it do not matter; in every other case it returns `None`.
 - `PullRequestComment.from_body` sets `by_factory` exactly when `body` contains `FACTORY_MARKER` (the author is never consulted: R34) and `key` to `parse_post_key(body)` when `by_factory`, else `None`.
 - `HostingServiceError` is raised by every implementation for every failing call (SI2.2); its message is `hosting service <operation> failed: <detail>`.
 - Both domain modules import only the standard library, Pydantic and `factory.domain`; `factory.application.hosting` imports only the domain.
-- No function or method in `src/factory` has a parameter or return annotation of the form `dict[str, Any]` or `Mapping[str, Any]` (R7).
+- No function or method in `src/factory` has a parameter or return annotation that is a subscript of `dict`, `Mapping` or `MutableMapping` (also as `typing.Mapping` or `collections.abc.Mapping`) whose second argument is `Any`, however deeply nested (R7). The search does not follow a type alias; the factory writes none for these types.
 
-Tests: `tests/domain/test_hosting.py`, `tests/domain/test_errors.py` (extended), `tests/application/test_hosting_protocol.py`, `tests/test_no_untyped_dicts.py`.
+Tests: `tests/domain/test_hosting.py`, `tests/domain/test_errors.py` (extended: it gains new tests only, no existing test is changed), `tests/application/test_hosting_protocol.py`, `tests/test_no_untyped_dicts.py`. A test that needs a commit id uses a low-entropy literal such as `"a" * 40`, so that `make secrets` stays green.
 
 ## Acceptance criteria
 
@@ -119,15 +120,19 @@ Tests: `tests/domain/test_hosting.py`, `tests/domain/test_errors.py` (extended),
 6. `render_post("Stage tests stalled.\n\n", key)` returns `Stage tests stalled.`, a blank line, `<!-- factory -->`, a newline and the key comment, with no newline at the end.
 7. `parse_post_key(render_post(text, key)) == key` for every one of the ten kinds.
 8. `parse_post_key` returns `None` for: an empty string; a body without a key line; a key line followed by another line of text; a key comment quoted inside a sentence; a key with the kind `other`; a key with the work item `F001-S0001`; a key with `n` `G` and a key with an empty `n`.
-9. `PullRequestComment.from_body` gives `by_factory` true and the parsed key for a body made by `render_post`; true and `None` for a body with the marker and no key; false and `None` for a body with a key line and no marker; false and `None` for a plain body; and an author of `"factory"` without the marker is not by the factory, while an author of `"someone"` with the marker is.
-10. `PullRequestComment` rejects a naive `created_at` and an `id` of 0, accepts an id of 1, and converts a `created_at` with another offset to UTC.
-11. `PullRequestView` accepts `state="merged"` with a 40-character lowercase hexadecimal `merge_commit`, and accepts `"open"` and `"closed"` without one; it rejects `"merged"` without a `merge_commit`, `"open"` with one, a `merge_commit` of 39 characters or with an uppercase letter, and a `number` of 0.
-12. Every model of `factory.domain.hosting` (`PullRequestView`, `PostKey`, `PullRequestComment`) rejects an unknown keyword argument and rejects assignment to a field.
-13. `HostingService` has exactly these ten public operations: `create_pull_request`, `find_open_pull_request`, `get_pull_request`, `list_comments`, `post_comment`, `close`, `reopen`, `set_draft`, `set_description` and `set_labels`; none of them returns labels, and there is no operation that reads them.
-14. No function or method under `src/factory` has an annotation containing `dict[str, Any]` or `Mapping[str, Any]` (a test parses every module with `ast`).
-15. `factory.domain.hosting`, `factory.domain.identifiers`, `factory.domain.git` and `factory.domain.paths` import only the standard library, `pydantic` and `factory.domain` modules, and `factory.application.hosting` imports only `factory.domain` modules and the standard library.
-16. make check stays green.
-17. docs: `docs/project-guide.md` describes the hosting-service interface (the ten operations, the marker and the post key, the one error type) and says that the hosting service is reached only through it; `docs/decisions.md` records why a post carries a key and why the marker, not the author, tells the factory's posts apart (WE6.3).
+9. `parse_post_key` returns the key for a body whose key line is followed by two blank lines, for one whose key line ends in spaces, for one whose key line ends in `
+` and for one with `
+
+` line ends throughout.
+10. `PullRequestComment.from_body` gives `by_factory` true and the parsed key for a body made by `render_post`; true and `None` for a body with the marker and no key; false and `None` for a body with a key line and no marker; false and `None` for a plain body; and an author of `"factory"` without the marker is not by the factory, while an author of `"someone"` with the marker is.
+11. `PullRequestComment` rejects a naive `created_at` and an `id` of 0, accepts an id of 1, and converts a `created_at` with another offset to UTC.
+12. `PullRequestView` accepts `state="merged"` with a 40-character lowercase hexadecimal `merge_commit`, and accepts `"open"` and `"closed"` without one; it rejects `"merged"` without a `merge_commit`, `"open"` with one, a `merge_commit` of 39 characters or with an uppercase letter, and a `number` of 0.
+13. Every model of `factory.domain.hosting` (`PullRequestView`, `PostKey`, `PullRequestComment`) rejects an unknown keyword argument and rejects assignment to a field.
+14. `HostingService` has exactly these ten public operations: `create_pull_request`, `find_open_pull_request`, `get_pull_request`, `list_comments`, `post_comment`, `close`, `reopen`, `set_draft`, `set_description` and `set_labels`; none of them returns labels, and there is no operation that reads them.
+15. No function or method under `src/factory` has an annotation that is a subscript of `dict`, `Mapping` or `MutableMapping` (also as `typing.Mapping` or `collections.abc.Mapping`) with `Any` as its second argument, at any depth (a test parses every module with `ast`; the test itself is checked against a source snippet that has `MutableMapping[str, Any]` in a parameter and is found).
+16. `factory.domain.hosting`, `factory.domain.identifiers`, `factory.domain.git` and `factory.domain.paths` import only the standard library, `pydantic` and `factory.domain` modules, and `factory.application.hosting` imports only `factory.domain` modules and the standard library.
+17. make check stays green.
+18. docs: `docs/project-guide.md` describes the hosting-service interface (the ten operations, the marker and the post key, the one error type) and says that the hosting service is reached only through it; `docs/decisions.md` records why a post carries a key and why the marker, not the author, tells the factory's posts apart (WE6.3).
 
 ## Demo
 
