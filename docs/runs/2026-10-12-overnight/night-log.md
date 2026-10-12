@@ -20,6 +20,7 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - The scratch repository `pkrahmer/factory-night-scratch` (private), used to prove the command forms, is yours to delete.
 
 - Fault paths (`planning/overnight/fault-paths.md`, open questions): whether WE1.1 means five kill points or the six rows of section 7.2; whether a crash after a stage's result (between commit and push, between post and record) raises `crashes`, and on which stage (working reading taken: yes, on the stage in flight); whether a close while the stages work and a merge while the move-back question is open need injection tests; the demo README's own path names were not read.
+- The 16 working answers in `planning/overnight/skeleton-answers.md` (taken by the session, not by you), especially answers 1 (expiry as a crash), 3 (the checkout restored every tick), 4 (keyed posts) and 15 (`handed_over`).
 
 ## Rows after going unattended
 
@@ -28,3 +29,7 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 23:37 | Phase 2 started: skeleton (opus) and fault-path table (opus) in parallel; brief templates for drafting, auditing, improving and the pre-check written | | plan, section 5 |
 | 23:39 | Pre-check deviation: one opus subagent per feature plays intake and every later role, instead of sonnet for intake and opus for the rest (simpler, one output per feature) | | plan, section 7 |
 | 23:40 | Fault-path table done (`planning/overnight/fault-paths.md`): 13 paths, each walked by one injection test with one kill point; none "mechanism removed"; one extra test for the crash cap. Working readings taken for feature 10's stories: one kill per path; run 1's four further paths only as a note; a crash anywhere in a stage counts on the work item whose latest pushed stage-start commit is in flight; the form check's unit test covers path 1's second half; ST2's rule reads the work item's remote-tracking branch | | decision 007, question 3 |
+| 23:45 | Skeleton done (`planning/overnight/skeleton.md`): 11 features, 66 proposed stories; 88 of 96 conditions in the build order, 8 not tonight (WE1.4, WE4.1–3, WE5.1–4); crash recovery split out as F0008 | | plan, section 5 |
+| 23:47 | Working answers to the skeleton's 16 open questions taken (`planning/overnight/skeleton-answers.md`): expiry of another instance's lease handled as a crash; no tick lock; the checkout restored to the remote each tick (ST3.3's dirty-main stop = the restore fails); keyed posts; `handed_over` state field; PyGithub tested with stand-ins. Checked on the PC: v1's container has no root, no sudo, no Docker, so ST3.3, WE3.1, WE3.3, WE3.4 stay static tests plus morning observations | | plan, sections 3 and 5 |
+| 23:48 | Interface sheet started (opus) | | plan, section 5 |
+| 23:55 | Usage: 5-hour window 9%, weekly 54% | | plan, section 11 |
