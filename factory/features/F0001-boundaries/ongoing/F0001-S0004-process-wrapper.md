@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 4
 blocked: null
 comments_seen: 0
@@ -159,3 +159,23 @@ Expect: one line, `['src/factory/adapters/process.py']`.
    - Stale but untouched: nothing seen.
 
    `make check`: check: green
+7. demo: no findings. Both demo blocks ran from the repository root exactly as written, and each output matches its `Expect:` line.
+
+   - Command 1 (`run_process`: merged output with exit 3, then a sleeping child killed at a 1 s `time_limit`). The command took 1.27 s in total and exited 0.
+     ```
+     3 False 'out\nerr\n'
+     None True 'started\n'
+     ```
+     Met `Expect:`. The two lines are exactly as expected. The exit status and the merged stdout/stderr come back. The sleeping child is killed at the limit with `exit_status` `None`, `timed_out` true and the output it had written.
+
+   - Command 2 (an `ast` search for modules under `src/factory` that import `subprocess`). Exited 0.
+     ```
+     ['src/factory/adapters/process.py']
+     ```
+     Met `Expect:`. There is one line, and it names only the process wrapper.
+
+   Checked against the acceptance criteria:
+   - Command 1 is consistent with criteria 1, 2, 3 and 5. The exit status comes back without anything being raised, the merged output keeps the order written with `stderr` empty, and the timeout result is correct. The call returned well within 6 s.
+   - Command 2 is consistent with criterion 12.
+
+   The demo contradicts no criterion. Criteria 15 (`make check`) and 16 (docs) are not targeted by the demo. The factory runs `make check` after this stage.
