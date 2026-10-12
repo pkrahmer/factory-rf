@@ -7,6 +7,8 @@ Fix the module layout and the names and signatures of every DTO and interface op
 ## Inputs (read these; nothing else)
 
 - `C:\Dev\Projects\factory-rf\planning\overnight\skeleton.md`: the features, their scope and proposed stories. The sheet serves exactly these.
+- `C:\Dev\Projects\factory-rf\planning\overnight\skeleton-answers.md`: the main session's answers to the skeleton's open questions. They bind you (for example: keyed posts, the `handed_over` field, no tick lock, the restore of the checkout).
+- `C:\Dev\Projects\factory-rf\planning\overnight\fault-paths.md`: the injection test names, for the injection points the wrappers need.
 - `C:\Dev\Projects\factory-v2\planning\v1.1\handover.md`, sections 2, 4 (R1 to R38) and 5, and the appendix (names).
 - `C:\Dev\Projects\factory-v2\planning\decisions\005-v1-1-architecture-choices.md`, `006-v1-1-open-points.md`, `007-overnight-defaults.md`.
 - `C:\Dev\Projects\factory-v2\planning\v1.1\v1-style-facts.md` (v1's code style, checks and data model: a reference for what fields v1's work item carries).
