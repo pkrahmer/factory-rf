@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 4
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The process wrapper: the one place that starts a subprocess
 
 ## Assignment (as of log entry 1)
@@ -93,3 +101,81 @@ Expect: one line, `['src/factory/adapters/process.py']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/adapters/process.py` names `ProcessRequest`, `ProcessResult` and `run_process` with full signatures. Each stated behaviour (no shell, own session, group kill, `time_limit` None or >0, env None or whole, merged stderr, UTF-8 replace, uncaught `OSError`) has a criterion (1-11).
+   - Criteria: each is testable by one test function. The failing sides are covered: empty `argv`, zero and negative `time_limit` (9), missing executable (8), non-zero exit (2), timeout (5, 6), and a child that ends within the limit (7).
+   - Demo: both blocks are runnable. The `Expect:` lines are checkable: `3 False 'out\nerr\n'` and `None True 'started\n'` for the first, and `['src/factory/adapters/process.py']` for the second.
+   - Architecture: the module sits in `factory.adapters`, uses Pydantic DTOs, has no `dict[str, Any]` crossing a boundary, and is the single process wrapper per R5. The suppression markers match the exception in `CLAUDE.md`, so no question is needed.
+   - Scope: this is the feature's "one place that starts a subprocess" and the boundary searches. It stays clear of Out of scope. The `tests/source_search.py` helper comes from S0003, which is earlier in the feature's order.
+3. tester: Wrote red tests for criteria 1–14 against the Interface. Children are Python one-liners run with `sys.executable`, all in `tmp_path`. Nothing is faked.
+   - criterion 1: tests/adapters/test_process.py::test_output_and_exit_status_come_back, ::test_child_runs_in_the_given_working_directory (compares the printed cwd with `tmp_path.resolve()`)
+   - criterion 2: tests/adapters/test_process.py::test_non_zero_exit_status_is_returned_not_raised
+   - criterion 3: tests/adapters/test_process.py::test_merged_stderr_keeps_the_order_written
+   - criterion 4: tests/adapters/test_process.py::test_given_env_is_the_whole_environment (sets the parent variable with monkeypatch; checks it is absent with a given env and present with `env=None`)
+   - criterion 5: tests/adapters/test_process.py::test_child_is_killed_at_the_time_limit (`time.monotonic` < 6 s)
+   - criterion 6: tests/adapters/test_process.py::test_grandchild_is_killed_with_the_child_at_the_time_limit (the grandchild's pid goes to a file; it counts as gone on `ProcessLookupError` from `os.kill(pid, 0)`, a missing `/proc/<pid>/stat`, or state `Z`)
+   - criterion 7: tests/adapters/test_process.py::test_child_within_the_time_limit_keeps_its_exit_status
+   - criterion 8: tests/adapters/test_process.py::test_missing_executable_raises_file_not_found
+   - criterion 9: tests/adapters/test_process.py::test_request_rejects_empty_argv_and_non_positive_time_limit (empty argv, 0, -1 s), ::test_request_accepts_positive_or_no_time_limit (1 s, None)
+   - criterion 10: tests/adapters/test_process.py::test_undecodable_output_bytes_are_replaced
+   - criterion 11: tests/adapters/test_process.py::test_shell_characters_reach_the_child_as_written
+   - criterion 12: tests/test_process_search.py::test_only_the_process_wrapper_imports_subprocess
+   - criterion 13: tests/test_process_search.py::test_no_module_uses_another_route_to_a_process. It also checks that the search finds `os.system` in a snippet. The search is `routes_to_a_process` in that test module: it finds `shell=<truthy constant>` keywords, `os.`/`asyncio.` attribute access and `from os|asyncio import …` for the listed names. I added no helper to `tests/source_search.py`.
+   - criterion 14: tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper. It scans every line under `src/factory` for the four tokens and expects exactly `{noqa: S404, nosec B404}` on the `import subprocess` line of `adapters/process.py` and `{noqa: S603, nosec B603}` on the line with `subprocess.Popen(`. So the coder must keep `Popen(` on the same line as its markers, and must not use these words in docstrings or comments in `process.py`.
+
+   Files created: tests/adapters/test_process.py, tests/test_process_search.py.
+   `make test`: collection error, `ModuleNotFoundError: No module named 'factory.adapters.process'`. This is expected, because the module does not exist yet. The criterion-12 and criterion-14 tests fail until it exists. The criterion-13 test already passes: it guards something that must stay absent.
+   `make lint`: green. The type check was skipped as this stage requires.
+
+   Not done: none of these tests were run against an implementation, because none exists yet. Open: nothing; I did not have to interpret any criterion.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built `src/factory/adapters/process.py`, which holds `ProcessRequest`, `ProcessResult` (frozen, `extra="forbid"`, like the domain DTOs) and `run_process`. `make check` is green with 100 % coverage. Both demo blocks print what the ticket expects.
+      - How it works: `subprocess.Popen` gets the argv list (no shell), `start_new_session=True`, `stdin=DEVNULL`, and `stderr=STDOUT` when `merge_stderr` is set. Then `communicate(timeout=…)` runs. On `TimeoutExpired` it calls `os.killpg(pid, SIGKILL)`, suppressing `ProcessLookupError`, and a second `communicate()` collects the output written so far. Once the group is dead the pipes close, so that call returns. `exit_status` is `None` when the time limit was reached. Output is decoded as UTF-8 with `errors="replace"`. `time_limit` is checked with `Field(gt=timedelta(0))`. `duration` is measured with `time.monotonic`. `OSError` is not caught.
+      - Markers: the four markers sit on `import subprocess` and on the `subprocess.Popen(` line. The call's arguments wrap onto later lines, and ruff and bandit both accept the markers on the opening line. No docstring or comment uses the marker words.
+      - Rejected: `subprocess.run(timeout=…)`. It kills only the direct child, so a grandchild would keep the pipe open and the call would hang. `SIGTERM` followed by a grace period was also rejected: it adds a wait the ticket does not ask for, and `SIGKILL` cannot be ignored.
+      - Commit: one, `feat(adapters): run_process, the one process wrapper`.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: when a child exits normally inside the limit but leaves a background grandchild holding stdout open, `communicate()` waits for that grandchild. The time limit still bounds that wait if one is set. The ticket does not cover this case.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   I checked these against `git diff main...HEAD -- . ':!factory'`: `src/factory/adapters/process.py`, `tests/adapters/test_process.py` and `tests/test_process_search.py`.
+      - Acceptance criteria: criteria 1–14 each have a test that checks what the criterion says. The failing sides of the Interface's rules are covered. Criterion 9 tests an empty `argv`, a `time_limit` of 0 and of -1 s (rejected) and of 1 s and `None` (accepted). Criterion 8 tests a missing executable, criterion 2 a non-zero exit, and criteria 5, 6 and 7 the timeout and the in-limit case. Criterion 13's test also runs the search against an `os.system` snippet and checks that it finds it. Criterion 14's marker regex reads each marker up to the next `#`, so a reason added to a marker comment would fail the test. The coder's entry says `make check` was green with 100 % coverage.
+      - Architecture: the module is in `factory.adapters` and imports only the standard library and pydantic. Its DTOs are frozen Pydantic models, and no `dict[str, Any]` crosses a function boundary. `subprocess` is imported here only, as R5 requires.
+      - Security: no shell, and `argv` is passed as a list. stdin is `DEVNULL`. The child starts with `start_new_session=True`. At the limit it gets `killpg` with SIGKILL, and a `ProcessLookupError` from that call is suppressed. The only markers are the four that `CLAUDE.md` allows, on the import line and the `Popen(` line. The reason for them is in the module docstring ("the one place that starts a subprocess") and in `docs/decisions.md` (the entry on `process.py`). Nothing else is silenced.
+      - Quality: names and docstrings are present and accurate. `_decode` handles the `None` stderr of the merged case. The two comments explain why. There is no dead code.
+      - Ticket hygiene: the coder's entry explains the `Popen`/`communicate`/`killpg` design. It also explains why `subprocess.run(timeout=…)` and a SIGTERM grace period were rejected. `Assignment` matches the code. Criterion 16 still describes what the documenter must write.
+
+   Open, not a finding: after `killpg`, the second `communicate()` has no time limit. A descendant that left the group (by calling `setsid`) and still holds the pipe would block it. The ticket defines the kill as killing the process group, so this is outside the story. The coder's entry notes a related case: a background grandchild of a child that exits normally.
+6. documenter: no findings. `make check` is green.
+   - `docs/project-guide.md`: new section "Starting a process". It states that `subprocess` is started only in `factory.adapters.process`, and describes `ProcessRequest` and `run_process` (no shell, own session, process-group SIGKILL at the `time_limit`, whole environment, merged output, UTF-8 replace, uncaught `OSError`). It also lists the two limits the coder and reviewer noted, and the three search tests that keep the boundary.
+   - `docs/decisions.md`: extended the existing entry on the four markers. It now says why there are no others and which test enforces that.
+   - `README.md`: the status sentence now mentions the process wrapper.
+   - Cross-read against the diff: `CLAUDE.md`-linked `docs/operator-guide.md` has no content yet and nothing in it is stale. The rest of `project-guide.md` and `decisions.md` is unrelated to this story and is current.
+   - Not run: the `git status` example in the guide. It is illustrative and needs no demo. The ticket's own demo blocks were not rerun by me; the coder reported them, and `make check` covers the behaviour.
+   - Stale but untouched: nothing seen.
+
+   `make check`: check: green
+7. demo: no findings. Both demo blocks ran from the repository root exactly as written, and each output matches its `Expect:` line.
+
+   - Command 1 (`run_process`: merged output with exit 3, then a sleeping child killed at a 1 s `time_limit`). The command took 1.27 s in total and exited 0.
+     ```
+     3 False 'out\nerr\n'
+     None True 'started\n'
+     ```
+     Met `Expect:`. The two lines are exactly as expected. The exit status and the merged stdout/stderr come back. The sleeping child is killed at the limit with `exit_status` `None`, `timed_out` true and the output it had written.
+
+   - Command 2 (an `ast` search for modules under `src/factory` that import `subprocess`). Exited 0.
+     ```
+     ['src/factory/adapters/process.py']
+     ```
+     Met `Expect:`. There is one line, and it names only the process wrapper.
+
+   Checked against the acceptance criteria:
+   - Command 1 is consistent with criteria 1, 2, 3 and 5. The exit status comes back without anything being raised, the merged output keeps the order written with `stderr` empty, and the timeout result is correct. The call returned well within 6 s.
+   - Command 2 is consistent with criterion 12.
+
+   The demo contradicts no criterion. Criteria 15 (`make check`) and 16 (docs) are not targeted by the demo. The factory runs `make check` after this stage.
