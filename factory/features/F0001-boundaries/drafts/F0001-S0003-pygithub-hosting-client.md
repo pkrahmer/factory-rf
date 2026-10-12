@@ -61,7 +61,7 @@ Tests: `tests/adapters/test_pygithub_hosting.py`, with stand-ins in `tests/adapt
 20. No module under `src/factory` contains the string literal `"gh"`.
 21. `PyGithubHostingService` is not a subclass of `HostingService`, and a test module assigns a `PyGithubHostingService` to a variable annotated `HostingService`, so that `make check` (mypy) proves the structural fit.
 22. make check stays green.
-23. docs: `docs/project-guide.md` states that the hosting service is reached only through the `HostingService` interface, that `PyGithubHostingService` is the one client and raises `HostingServiceError` for every failing call, and that the one fake of the hosting service (S0014) is what other tests use; `docs/decisions.md` records why PyGithub and not `gh`, GitPython-style wrappers or plain httpx (R9) (WE6.3).
+23. docs: `docs/project-guide.md` states that the hosting service is reached only through the `HostingService` interface, that `PyGithubHostingService` is the one client and raises `HostingServiceError` for every failing call, and that tests do not call PyGithub: they use stand-ins of its objects here, and a fake follows in a later story; `docs/decisions.md` records why PyGithub and not `gh`, GitPython-style wrappers or plain httpx (R9) (WE6.3).
 
 ## Demo
 

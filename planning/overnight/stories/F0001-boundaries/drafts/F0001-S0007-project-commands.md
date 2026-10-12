@@ -51,7 +51,7 @@ class MakeProjectCommands:      # satisfies ProjectCommands structurally, no inh
 The rules, each with a criterion below:
 
 - `CheckResult.status` is `"passed"` exactly when `exit_status` is 0, `"failed"` exactly when `exit_status` is an integer other than 0, and `"time_limit"` exactly when `exit_status` is `None`. `passed` is true only for `"passed"`. The model is frozen and forbids unknown keys.
-- `run(command, time_limit=...)` runs `<executable> <command>` in `directory` through `run_process` with `merge_stderr=True` and the current environment of the process. `directory` is where `make` finds the project's Makefile. A `time_limit` of zero or less raises `ValueError`.
+- `run(command, time_limit=...)` runs `<executable> --no-print-directory <command>` in `directory` through `run_process` with `merge_stderr=True` and the current environment of the process less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. The two differences keep a run under `make check` (where the tests run inside make, so `MAKELEVEL` is set) from giving different output than a run on its own: an inner make that sees `MAKELEVEL` adds `make[N]: Entering directory` and `Leaving directory` lines to the output. `directory` is where `make` finds the project's Makefile. A `time_limit` of zero or less raises `ValueError`.
 - The exit status alone decides: 0 is `"passed"`, any other is `"failed"`, and a command ended by the `time_limit` is `"time_limit"` with `exit_status` `None`. GNU make, not the recipe, sets the exit status: it exits 2 whenever a recipe fails (whatever status the recipe's command had) and when a target is missing, and `exit_status` is that 2. A missing target is a failed command, not an error.
 - `output_tail` is the last `OUTPUT_TAIL_LINES` (30) lines of the merged stdout and stderr, in the order written, joined with newlines; fewer lines are all returned.
 - `last_line` is the last line of the output that is not blank and does not start with `make:` or `make[` (make's own messages); `""` when there is none. This refines the interface sheet's "last non-blank line" (decision 11 of the feature).
@@ -80,15 +80,16 @@ Tests: `tests/domain/test_checks.py`, `tests/domain/test_errors.py` (extended: i
 14. `last_line` is `""` for a target that prints nothing.
 15. For a failing target that prints `lint: red` and then make prints `make: *** [Makefile:2: lint] Error 3`, `last_line` is `lint: red`; a line starting with `make[1]:` is skipped in the same way.
 16. For a target that runs about 0.3 seconds, `duration` is at least 0.3 seconds and below the time limit.
-17. A target that prints `$$PROBE` shows the value of a variable `PROBE` that was set in the test process, so the command runs with the current environment.
+17. A target that prints `$$PROBE` shows the value of a variable `PROBE` that was set in the test process, so the command runs with the current environment (less the three make variables of criterion 24).
 18. With all four kill points armed, `run` returns normally and `reached` is 0 for each point.
 19. `run("check; rm -rf x", ...)`, `run("Check", ...)` and `run("-f", ...)` raise `ProjectCommandError` with `command` set, and no process is started (a marker file the target would create does not exist).
 20. `MakeProjectCommands(directory, executable="/no/such/make").run("check", time_limit=...)` raises `ProjectCommandError` whose `command` is `check` and whose `detail` is not empty.
 21. `ProjectCommandError("check", "boom")` has the message `project command check failed: boom` and is a subclass of `BoundaryError`.
 22. The string literal `"make"` occurs in no module of `src/factory` other than `factory.adapters.make_commands`.
 23. `MakeProjectCommands` is not a subclass of `ProjectCommands`, and a test module assigns a `MakeProjectCommands` to a variable annotated `ProjectCommands`, so that `make check` (mypy) proves the structural fit.
-24. make check stays green.
-25. docs: `docs/project-guide.md` describes the project-commands interface (the single `run` operation, the exit status as the only judgment, the tail of 30 lines, the generic result with no layer names) and says how a project declares its own layers check as a project command; `docs/operator-guide.md` notes that the make targets `check`, `lint` and `test` are what the factory calls.
+24. With `MAKELEVEL=1`, `MAKEFLAGS=w` and `MFLAGS=-w` set in the test process, a target that prints `ok` and then `$(MAKELEVEL)` gives an `output_tail` of exactly the lines `ok` and `0`: no line starts with `make[` and none holds `Entering directory` or `Leaving directory`.
+25. make check stays green.
+26. docs: `docs/project-guide.md` describes the project-commands interface (the single `run` operation, `--no-print-directory` and the removed make variables, the exit status as the only judgment, the tail of 30 lines, the generic result with no layer names) and says how a project declares its own layers check as a project command; `docs/operator-guide.md` notes that the make targets `check`, `lint` and `test` are what the factory calls.
 
 ## Demo
 
