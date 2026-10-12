@@ -10,12 +10,22 @@ from factory.domain.paths import REMOTE
 
 OUTPUT_TAIL_LINES = 30
 REMOTE_PREFIX = f"refs/remotes/{REMOTE}/"
-# Exit status of `rev-parse --verify --quiet` and `merge-base --is-ancestor` for "no".
-NO = 1
+# The exit status by which `rev-parse --verify --quiet` and `merge-base --is-ancestor` say "no".
+ANSWER_NO = 1
 
 
 def _tail(output: str) -> str:
     return "\n".join(output.splitlines()[-OUTPUT_TAIL_LINES:])
+
+
+def _blob_in_listing(listing: str, path: str) -> str | None:
+    # One `ls-tree -z` entry is "<mode> <type> <object>\t<path>", entries end in NUL.
+    for entry in filter(None, listing.split("\0")):
+        meta, entry_path = entry.split("\t", 1)
+        _mode, kind, blob = meta.split(" ")
+        if entry_path == path and kind == "blob":
+            return blob
+    return None
 
 
 class GitCli:
@@ -45,23 +55,19 @@ class GitCli:
     def resolve(self, ref: str) -> CommitId | None:
         """The commit id `ref` points to, or `None` when there is no such ref."""
         result = self._run(
-            ["rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], accepted=(0, NO)
+            ["rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], accepted=(0, ANSWER_NO)
         )
-        if result.exit_status == NO:
+        if result.exit_status == ANSWER_NO:
             return None
         return result.stdout.strip()
 
     def show_file(self, ref: str, path: str) -> str | None:
         """The text of `path` at `ref`, or `None` when it is absent or not a file."""
         listing = self._run(["ls-tree", "-z", ref, "--", path]).stdout
-        for entry in listing.split("\0"):
-            if not entry:
-                continue
-            meta, entry_path = entry.split("\t", 1)
-            _mode, kind, blob = meta.split(" ")
-            if entry_path == path and kind == "blob":
-                return self._run(["cat-file", "blob", blob]).stdout
-        return None
+        blob = _blob_in_listing(listing, path)
+        if blob is None:
+            return None
+        return self._run(["cat-file", "blob", blob]).stdout
 
     def list_files(self, ref: str, directory: str) -> list[str]:
         """The repository-relative paths of all files under `directory` at `ref`, sorted."""
@@ -71,7 +77,9 @@ class GitCli:
 
     def is_ancestor(self, ancestor: str, descendant: str) -> bool:
         """Whether `ancestor` is reachable from `descendant`."""
-        result = self._run(["merge-base", "--is-ancestor", ancestor, descendant], accepted=(0, NO))
+        result = self._run(
+            ["merge-base", "--is-ancestor", ancestor, descendant], accepted=(0, ANSWER_NO)
+        )
         return result.exit_status == 0
 
     def _environment(self) -> dict[str, str]:
