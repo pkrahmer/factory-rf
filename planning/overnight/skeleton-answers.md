@@ -18,3 +18,22 @@ The main session's answers, taken unattended on 2026-10-12 under the plan's rule
 14. **Tick status across a restart.** The tick status is a local cache and may reset on a restart. The error-cap report is keyed (answer 4), so a restart cannot post it twice. A restart may reset the retry count of an error, which the morning report notes.
 15. **Hand-over state.** The work item's front matter gets one more state field, `handed_over`: the stage whose hand-over completed. The watcher raises a hand-over event while `stage` differs from `handed_over`, and the hand-over writes the field when it completes.
 16. **Docker, root and a second OS user inside v1's container:** checked on the PC at 23:46. The container runs as uid 1000 `factory` with no `sudo`, no `docker` command and no Docker socket (`useradd` exists but needs root). ST3.3, WE3.1, WE3.3 and WE3.4 stay a static test plus a morning observation.
+
+## Answers to the interface sheet's open questions
+
+Taken by the main session on 2026-10-13 at 00:05; they bind the drafters. Numbers follow `interfaces.md`'s open questions.
+
+1. Acceptance ids stay `F000N-A000M`, ordered by `work_item_order` (a stated rule).
+2. The spellings chosen in the sheet stand: the glossary's word where it renames v1's, the sheet's choice elsewhere. For the morning.
+3. Default `time_limit`s stay at 40 minutes for an agent run and 10 minutes for a project command. ST8.5 refuses a definition where they do not fit, and a project may set them.
+4. The five values of `blocked` stay.
+5. Only the human's journal entries carry a date, as in v1.
+6. `Claim.lease_duration` is accepted.
+7. The write-path placeholders `{work_item}` and `{feature}` are accepted.
+8. The pipeline definition has a reader and no writer: no story writes it. For the morning, since R13 says "one reader and writer class".
+9. `AgentDefinition` keys as in the sheet; F0010 may change them with its finding.
+10. `ERROR_CAP` stays the constant 3. For the morning.
+11. Four kill points, as in the sheet.
+12. `HostingService.close` stays, because R10 is exact.
+13. `Boundaries` as a frozen dataclass is accepted: it holds interfaces, not data.
+14. F0006's drafter checks the event kinds against `v1-04-08.md`, chapter 7.
