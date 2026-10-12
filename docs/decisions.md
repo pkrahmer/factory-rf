@@ -25,3 +25,7 @@ PyGithub is LGPL-3.0, and `pip-licenses` reports it as `GNU Library or Lesser Ge
 ## The one module that starts processes may carry four markers
 
 Date: 2026-10-13. Every command-line tool is reached through one wrapper class (R5), and the wrappers share one function that starts a process, in `src/factory/adapters/process.py`. ruff's S404 and S603 and bandit's B404 and B603 flag any `subprocess` use, and `CLAUDE.md` puts `nosec` markers under "Not without asking". So exactly that module may carry those four markers, on its import and its one `Popen` call. Alternatives rejected: a per-file ignore in `pyproject.toml` (bandit has none, and it would hide the exception from the reader of the code); lowering bandit's severity (loosens the whole package).
+
+## `InjectedKill` is a `BaseException`
+
+Date: 2026-10-12. An armed kill point stands in for the factory dying at that moment (WE6.3). A real death runs no handler, so the injected one must not be caught by any either. If `InjectedKill` were an `Exception`, an `except Exception` in a wrapper or a stage would swallow it and the test would show recovery from an error, not from a crash. As a `BaseException` it passes every `except Exception`; only a test's `pytest.raises(InjectedKill)` or a bare `except BaseException` sees it. It is also not a `FactoryError`, which is an `Exception`. Alternatives rejected: an `Exception` subclass (swallowed by the handlers the test is meant to bypass); `os._exit` or a signal (kills the test process and cannot be asserted on).
