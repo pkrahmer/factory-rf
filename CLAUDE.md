@@ -33,6 +33,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 - Fake: the hosting service, through its one fake implementation; the agent runtime, through a fake implementation of its interface.
 - Do not fake git. Tests use a real local bare remote and clones in a temporary directory (`tmp_path`).
 - No network, no sleeps, no files outside `tmp_path`.
+- Tests pass `mypy --strict` once the code exists: never use the value of a call to a function typed `-> None` (no `assert f() is None`); call it as a statement.
 
 ## Docs
 - `README.md` is for the newcomer: what it is, how to run it, where to look next. `docs/operator-guide.md` is for the operator: install, configure, the stops and what to do about each. `docs/project-guide.md` is the project guide for agents (R17). `docs/decisions.md` is the decision log. The documenter stage keeps these four true from each story's docs criterion; the coder does not write them.
