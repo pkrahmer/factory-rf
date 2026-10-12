@@ -11,6 +11,16 @@ dependencies = [
     "python-frontmatter==1.3.0",
 ]
 
+[project.scripts]
+# The commands v1.1 installs. Each module's entry function is `main() -> int`; the modules are
+# built by the stories named in planning/overnight/interfaces.md (factory.entry).
+factory-check-story = "factory.entry.check_story:main"
+factory-guard = "factory.entry.guard:main"
+factory-bill = "factory.entry.bill:main"
+factory-watch = "factory.entry.watch:main"
+factory-run = "factory.entry.run:main"
+factory-health = "factory.entry.health:main"
+
 [dependency-groups]
 dev = [
     "ruff==0.17.0",
