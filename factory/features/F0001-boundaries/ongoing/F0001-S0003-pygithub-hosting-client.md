@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 3
 blocked: null
 comments_seen: 0
@@ -163,3 +163,21 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
       - Noticed, not touched: nothing outside the ticket. Criterion 23 (docs) is the documenter's.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: I reviewed `git diff main...HEAD -- . ':!factory'`. It contains `src/factory/adapters/pygithub_hosting.py`, the stand-ins, the client tests, `tests/source_search.py` and `tests/test_hosting_search.py`. The two `docs/runs/` files in the diff come from the human's own commit 4e81e15 (night log and report), not from a stage, so they are not under review.
+      - 1. Acceptance criteria: each of criteria 1–21 has a test, and each test checks what its criterion names. Specific checks:
+        - Criteria 5–6: merged-with-closed state and an unmerged pull request carrying a sha.
+        - Criterion 7: the order of ids is shuffled, and both a naive and a +02:00 `created_at` are covered.
+        - Criteria 8 and 10: a quoted key line without the marker does not count.
+        - Criterion 11: kill point reached once, the repeat returns `already_posted`, and the unarmed path is covered.
+        - Criterion 12: the pull request of the other number is untouched.
+        - Criterion 16: a table of 13 failing calls × `GithubException(500)`/`OSError`, asserting `operation`, `detail` and `__cause__`. It covers both the listing and posting paths of `post_comment`.
+        - Criterion 17: `ValueError` and `InjectedKill`.
+        - Criterion 18: `Untouchable` raises on any attribute access.
+        - Criteria 19–20: an ast search of imports and string literals. `git` is matched exactly or as a dotted prefix, so `github` does not trigger it.
+        - Criterion 21: the module-level `STRUCTURAL_FIT: HostingService` plus an MRO check.
+        - Every stated rule has its failing side tested; the Interface states no numeric limit. The coder's entry records `make check` green. Criterion 22 is the factory's; criterion 23 is the documenter's.
+      - 2. Architecture: the client is in `factory.adapters` and imports only `factory.domain` and PyGithub. It satisfies `HostingService` structurally without inheriting it. PyGithub is confined to this one module (R9), no command-line tool is called, and no `dict[str, Any]` crosses a boundary.
+      - 3. Security: no secrets (the test sha is `"a" * 40`), no strings built into commands, and no suppression markers. A raised error carries only the operation name and `str(error)`, chained to the original error.
+      - 4. Quality: there is one error boundary (`_failing_as`). The `AFTER_POST` kill point is reached outside it, after a successful post, as the rule asks. The private mapping functions each do one thing. The module, class and public-method docstrings are present and say what each one is for. Comments explain why (test-merge sha, `OSError` as connection error).
+      - 5. Ticket hygiene: the coder's entry names the main decision (a context manager as the single error boundary) and what was rejected (a decorator with `ParamSpec`). The Assignment matches what was built. Criterion 23 still describes what the reader must learn: the interface-only route, the one client and its one error, stand-ins now and a fake later, and why PyGithub (R9).
