@@ -61,3 +61,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 01:24 | S0001 archived by the factory (`5081e1b`). `F0001: start S0002` | | plan, section 8 (start) |
 | 01:31 | S0002 at accept: 16 behavioural criteria mapped to tests, demos met both `Expect:` lines, `make check` green in the session's clone, diff within the story. Merged; archived by the factory | #2 | plan, section 8 (approval) |
 | 01:32 | `F0001: start S0003` | | plan, section 8 (start) |
+| 01:42 | S0003 at accept: 21 behavioural criteria mapped to tests, demos met both `Expect:` lines, `make check` green in the session's clone, diff within the story (README's link line from the docs criterion). Merged; archived | #3 | plan, section 8 (approval) |
+| 01:43 | `F0001: start S0004` | | plan, section 8 (start) |
