@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 2
 blocked: null
 comments_seen: 0
@@ -175,3 +175,32 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
    - Demo: both commands are runnable; the Expect lines give exact output (the three lines, and `rejected 1`).
    - Architecture: the domain DTOs and the protocol in application sit in the right layers, application imports only the domain, and criterion 16 enforces the imports. The hosting service stays behind an interface (R6, R10).
    - Scope: within F0001's scope (the interface, DTOs, marker and post key). Idempotent posting and the fake are left to S0014 and F0003/F0007, as the feature says.
+3. tester: Wrote red tests for criteria 1–16. Criteria 17 and 18 are the factory's check and the documenter's work, so they get no test.
+
+   - criterion 1: tests/domain/test_errors.py::test_hosting_service_error_carries_operation_detail_and_message
+   - criterion 2: tests/domain/test_hosting.py::test_constants_have_their_values
+   - criterion 3: tests/domain/test_hosting.py::test_post_key_comment_names_work_item_kind_and_n
+   - criterion 4: tests/domain/test_hosting.py::test_post_key_accepts_valid_values (parametrized: the ten kinds, F0001-A0001, n "0a1f"), plus test_post_kind_lists_exactly_the_ten_kinds
+   - criterion 5: tests/domain/test_hosting.py::test_post_key_rejects_invalid_values
+   - criterion 6: tests/domain/test_hosting.py::test_render_post_strips_trailing_whitespace_and_ends_with_the_key
+   - criterion 7: tests/domain/test_hosting.py::test_parse_post_key_reads_back_a_rendered_post (one case per kind)
+   - criterion 8: tests/domain/test_hosting.py::test_parse_post_key_returns_none_without_a_valid_last_key_line (eight cases)
+   - criterion 9: tests/domain/test_hosting.py::test_parse_post_key_tolerates_trailing_whitespace_and_crlf (four cases)
+   - criterion 10: tests/domain/test_hosting.py::test_comment_is_by_factory_exactly_when_it_carries_the_marker
+   - criterion 11: tests/domain/test_hosting.py::test_comment_rejects_a_naive_created_at, ::test_comment_id_must_be_positive (0 rejected, 1 accepted), ::test_comment_converts_created_at_to_utc
+   - criterion 12: tests/domain/test_hosting.py::test_pull_request_view_accepts_consistent_states, ::test_pull_request_view_rejects_inconsistent_values
+   - criterion 13: tests/domain/test_hosting.py::test_models_forbid_unknown_keys_and_are_frozen (one case per model)
+   - criterion 14: tests/application/test_hosting_protocol.py::test_hosting_service_has_exactly_the_ten_operations, ::test_no_operation_returns_or_reads_labels. The second test compares each operation's return hint with the one in the Interface. It also checks that `set_labels` is the only operation with "label" in its name and that `PullRequestView` has no label field.
+   - criterion 15: tests/test_no_untyped_dicts.py::test_the_search_finds_a_mutable_mapping_to_any (the `MutableMapping[str, Any]` snippet), ::test_the_search_finds_nested_and_qualified_mappings_to_any, ::test_no_function_in_the_package_has_a_mapping_to_any. The search uses `ast` and also reads string annotations. It follows no type alias, as the Interface says.
+   - criterion 16: tests/domain/test_hosting.py::test_domain_modules_import_only_stdlib_pydantic_and_domain (the four modules), ::test_application_hosting_imports_only_stdlib_and_domain. Both parse the source with `ast` and resolve relative imports. "Standard library" means `sys.stdlib_module_names`.
+
+   Files created: tests/domain/test_hosting.py, tests/application/__init__.py, tests/application/test_hosting_protocol.py, tests/test_no_untyped_dicts.py. Extended: tests/domain/test_errors.py gains one new test. Its import line now also names `BoundaryError` and `HostingServiceError`, and the existing test is unchanged; until those names exist, the whole module fails at collection.
+
+   `make test` (one run) fails at collection as intended: `ModuleNotFoundError: No module named 'factory.domain.hosting'` for tests/domain/test_hosting.py and tests/application/test_hosting_protocol.py. The coder must also create `factory.domain.identifiers`, `factory.domain.git`, `factory.domain.paths` and `factory.application.hosting`, and add `BoundaryError` and `HostingServiceError` to `factory.domain.errors`.
+
+   Outside the stage's procedure, I ran tests/test_no_untyped_dicts.py once on its own to check that the search logic works. It passes on the current tree because there are no offenders yet. `make lint` is green.
+
+   I made no interpretation that needs the human. Commit ids in tests use `"a" * 40`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
