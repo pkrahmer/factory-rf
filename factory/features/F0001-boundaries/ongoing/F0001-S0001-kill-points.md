@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 1
 blocked: null
 comments_seen: 4
@@ -249,3 +249,23 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
     - Stale but unrelated, left alone: the `CLAUDE.md` and `planning/` changes in the diff come from the human's commits.
 
     `make check`: check: green
+17. demo: demo (round 1): I ran both demo commands from the repository root exactly as written. Both met their `Expect:` lines, and I have no findings.
+
+    1. Arming `BEFORE_PUSH` with `after=1`, then reaching it three times:
+    ```
+    1 passed
+    2 injected kill at before-push
+    3 passed
+    3 0
+    ```
+    Exit code 0. This meets its `Expect:` line: four lines, the point fired on the second reach only, and the counts include the raising reach (3 for `BEFORE_PUSH`, 0 for `AGENT_RUN`).
+
+    2. An armed `AGENT_RUN` reached inside `except Exception`:
+    ```
+    InjectedKill False
+    ```
+    Exit code 0. This meets its `Expect:` line: one line, and `swallowed` was not printed.
+
+    Checked against the acceptance criteria: the output contradicts none of them. It agrees with criteria 4, 5 and 6 (fires once on the (n+1)-th reach, then disarmed, with the raising reach counted), 3 (an unreached point counts 0), 11 (passes through `except Exception`, not an `Exception`) and 12 (the message `injected kill at <point>`). The other criteria are not exercised by the demo. Their coverage comes from the tests and the earlier stages, not from this run.
+
+    Open: nothing.
