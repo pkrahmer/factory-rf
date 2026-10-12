@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 3
 blocked: null
 comments_seen: 0
@@ -205,3 +205,4 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
    Exit code 0. One line, as expected: only the PyGithub client imports `github`, which matches criterion 19.
 
    Cross-check: neither output contradicts any other acceptance criterion. Criteria 1–21 are covered by the tests named in entry 3. I did not run `make check` (criterion 22) in this stage; the factory runs it as the gate. The documenter's entry 6 covers criterion 23.
+8. done (pull request merged); cost: 6 runs, 8.1 min, 41 turns, 129k tokens in (682k more from cache), 27k out, $1.54
