@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 1
 blocked: null
 comments_seen: 4
@@ -240,3 +240,12 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
     - Not reviewed: the changes to `CLAUDE.md`, `docs/runs/` and `planning/` come from the human's own commits on the branch (80e084e, 78d9609, 0f1bbf5), which I confirmed with `git log`.
 
     Open: criterion 18 (docs) is the documenter's.
+16. documenter: wrote criterion 18 and found no code findings.
+    - `docs/project-guide.md`: replaced the placeholder text with two sections. "Errors" covers `FactoryError` as the root of the factory's own errors. "Kill points: testing a crash" covers the `kill_points` fixture, `arm` and `after`, firing once, `reached`, and a table of which wrapper reaches which of the four points. The table is marked as the plan, because the wrappers reach the points in their own stories. The intro sentence "Nothing is built yet" is unchanged, since the rest of the guide is still empty.
+    - `docs/decisions.md`: added "`InjectedKill` is a `BaseException`" (WE6.3). It says why, and that an `Exception` subclass and `os._exit` or a signal were rejected.
+    - The example test in the guide is not run. It is a sketch with `...` for the code under test. The behaviours it shows are covered by the passing tests, and both demo commands in the ticket were run by the coder.
+    - Cross-read and found current: `README.md`, `docs/operator-guide.md`, and the earlier entries in `docs/decisions.md`. Nothing in them touches this story.
+    - `make check` is green.
+    - Stale but unrelated, left alone: the `CLAUDE.md` and `planning/` changes in the diff come from the human's commits.
+
+    `make check`: check: green
