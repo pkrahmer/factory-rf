@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 1
 blocked: null
 comments_seen: 2
@@ -158,3 +158,11 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: with the tester's change from entry 7 in place, `make check` is green (100 % coverage). This round needed no new code: the implementation is still the one in commit 0d091ba.
+      - Built: `src/factory/domain/errors.py` has `FactoryError`. `src/factory/domain/kill_points.py` has `KillPoint`, `InjectedKill` and `KillPoints`. `KillPoints` keeps a reach count for every point, plus a map from each armed point to the number of reaches still allowed to pass. Arming overwrites that number, which gives replacement for free. Firing deletes the entry, which disarms the point. A negative `after` raises `ValueError` before anything changes, so an earlier arming is kept. Each instance keeps its own state, and the module imports only `enum`.
+      - Design decision: I store a "passes left" countdown for each armed point. The alternative was to store an absolute target reach number taken from `reached` at arming time. I rejected it because the countdown makes "counts from the arming" structural: no arithmetic on the global count is needed.
+      - Demos: both print exactly the expected output. The first prints `1 passed`, `2 injected kill at before-push`, `3 passed`, `3 0`. The second prints `InjectedKill False`, and `swallowed` is not printed.
+      - Refactor: I read the diff and found nothing to rename, simplify or remove, so there is no refactor commit.
+      - Noticed, not touched: the intake gap still stands. No test checks that arming one point leaves an already armed point armed. The implementation does keep it armed, because the map is per point. Criterion 17 (the docs) belongs to the documenter.
+
+   `make check`: check: green
