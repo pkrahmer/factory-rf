@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 3
 blocked: null
 comments_seen: 0
@@ -181,3 +181,12 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
       - 3. Security: no secrets (the test sha is `"a" * 40`), no strings built into commands, and no suppression markers. A raised error carries only the operation name and `str(error)`, chained to the original error.
       - 4. Quality: there is one error boundary (`_failing_as`). The `AFTER_POST` kill point is reached outside it, after a successful post, as the rule asks. The private mapping functions each do one thing. The module, class and public-method docstrings are present and say what each one is for. Comments explain why (test-merge sha, `OSError` as connection error).
       - 5. Ticket hygiene: the coder's entry names the main decision (a context manager as the single error boundary) and what was rejected (a decorator with `ParamSpec`). The Assignment matches what was built. Criterion 23 still describes what the reader must learn: the interface-only route, the one client and its one error, stand-ins now and a fake later, and why PyGithub (R9).
+6. documenter: wrote criterion 23. `make check` is green. No findings: the code matches the Interface.
+   - docs/project-guide.md: added "The PyGithub client" under The hosting service. It covers the one error type, the post flow, the state and merge_commit mapping, label handling, the search test, and the stand-ins (the fake follows later). It also replaces the sentence that said the client comes in a later story.
+   - docs/decisions.md: new entry on why PyGithub behind the interface with one error type, and not `gh`, git libraries or plain httpx (R9).
+   - README.md: the status sentence now names the PyGithub client.
+   - Cross-read and found current: docs/operator-guide.md (a stub) and the Kill points section. The `AFTER_POST` row already named the PyGithub client.
+   - Not run: the Demo commands. I only ran `make check`.
+   - Stale but unrelated: nothing seen.
+
+   `make check`: check: green
