@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 3
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The PyGithub hosting client and its one error type
 
 ## Assignment (as of log entry 1)
@@ -104,3 +112,96 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/adapters/pygithub_hosting.py` names the class, the constructor signature and the exact PyGithub members the stand-ins must provide. Every operation's call and mapping is stated concretely: the `create_pull` arguments, the `get_pulls` head string, the state and merge_commit mapping, the comment sorting and UTC rule, the post flow, and the label filtering.
+   - Criteria: each of the 23 is testable by one test function. Every rule has its failing side. A key line without the marker does not count (8, 10). An open or closed-unmerged pull request has no merge_commit (6). Errors are covered for all ten operations, in both the list and post paths of `post_comment` (16). Other exceptions and `InjectedKill` pass through (17). The constructor touches nothing (18). The source searches are in 19 and 20, the structural fit in 21. Kill-point behaviour is in 11, including the case where it is not reached.
+   - Demo: both commands are runnable. The expected lines can be checked: the `GithubException` text for 404 and the single module path that imports `github`.
+   - Architecture: the client sits in `factory.adapters`, behind the S0002 interface. It imports `HostingService`, DTOs and `HostingServiceError` from the domain and application layers, which is the allowed direction. PyGithub is confined to one module, as R9 requires.
+   - Scope: the story is within the feature's scope (SI2.1, SI2.2). The wiring of the `Repository` and the token are left to F0002 and F0010, and the fake to S0014.
+3. tester: wrote red tests for criteria 1–21. Criterion 22 is the factory's `make check`, and criterion 23 belongs to the docs stage.
+   - criterion 1: tests/adapters/test_pygithub_hosting.py::test_create_pull_request_opens_against_main_and_returns_the_view (parametrized over draft True/False)
+   - criterion 2: tests/adapters/test_pygithub_hosting.py::test_find_open_pull_request_filters_by_owner_and_branch
+   - criterion 3: tests/adapters/test_pygithub_hosting.py::test_find_open_pull_request_is_none_without_a_result
+   - criterion 4: tests/adapters/test_pygithub_hosting.py::test_get_pull_request_maps_the_pull_request_to_a_view
+   - criterion 5: tests/adapters/test_pygithub_hosting.py::test_view_state_follows_merged_then_state
+   - criterion 6: tests/adapters/test_pygithub_hosting.py::test_unmerged_pull_request_has_no_merge_commit_even_with_a_sha
+   - criterion 7: tests/adapters/test_pygithub_hosting.py::test_list_comments_sorts_by_id_and_reads_naive_times_as_utc
+   - criterion 8: tests/adapters/test_pygithub_hosting.py::test_list_comments_tells_factory_posts_by_marker_and_key
+   - criterion 9: tests/adapters/test_pygithub_hosting.py::test_post_comment_posts_the_rendered_body_once
+   - criterion 10: tests/adapters/test_pygithub_hosting.py::test_post_comment_skips_an_existing_key_but_not_a_quoted_one
+   - criterion 11: tests/adapters/test_pygithub_hosting.py::test_kill_after_post_leaves_the_post_recognisable
+   - criterion 12: tests/adapters/test_pygithub_hosting.py::test_close_and_reopen_edit_the_state
+   - criterion 13: tests/adapters/test_pygithub_hosting.py::test_set_draft_converts_or_marks_ready
+   - criterion 14: tests/adapters/test_pygithub_hosting.py::test_set_description_edits_the_body
+   - criterion 15: tests/adapters/test_pygithub_hosting.py::test_set_labels_keeps_foreign_labels_and_replaces_stage_labels
+   - criterion 16: tests/adapters/test_pygithub_hosting.py::test_every_failing_call_raises_hosting_service_error (13 failing stand-in calls × GithubException(500)/OSError). The table covers both the listing and posting paths of post_comment, both set_draft paths, and both get_labels and set_labels for set_labels.
+   - criterion 17: tests/adapters/test_pygithub_hosting.py::test_other_errors_and_injected_kills_pass_through
+   - criterion 18: tests/adapters/test_pygithub_hosting.py::test_constructor_touches_nothing_on_the_repository
+   - criterion 19: tests/test_hosting_search.py::test_only_the_pygithub_client_imports_github and ::test_no_module_imports_another_route_to_the_hosting_service (parametrized over the forbidden modules)
+   - criterion 20: tests/test_hosting_search.py::test_no_module_names_the_gh_tool
+   - criterion 21: tests/adapters/test_pygithub_hosting.py::test_client_fits_the_interface_without_inheriting_it, together with the module-level `STRUCTURAL_FIT: HostingService = ...` in the same test module, which mypy checks
+
+   Files created:
+   - tests/adapters/__init__.py
+   - tests/adapters/pygithub_stand_ins.py: plain recording stand-ins. Each has a `failures` map from method name to exception, and `create_issue_comment` appends the comment so that a repeated post sees it. `Untouchable` raises on any attribute access.
+   - tests/adapters/test_pygithub_hosting.py
+   - tests/source_search.py: an ast helper with `modules()`, `imported_modules()`, `imports()` and `string_literals()`.
+   - tests/test_hosting_search.py
+
+   What I chose: the `HostingService` assignment sits in the test module, not in the stand-ins module. Criterion 21 says "a test module", and that is where mypy checks the fit either way. The tests import the stand-ins as `adapters.pygithub_stand_ins` and the search helper as `source_search`, because `tests/` has no `__init__.py`.
+
+   `make test` run once: collection stops at `ModuleNotFoundError: No module named 'factory.adapters.pygithub_hosting'`, the only module the runner could not import. Before the coder's work, test_only_the_pygithub_client_imports_github fails on an empty set. `make lint` is green after `ruff format` on my files. I skipped the type check, as this stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built `src/factory/adapters/pygithub_hosting.py` (commit a9600d5). `PyGithubHostingService` implements the ten `HostingService` operations on PyGithub's `Repository` without inheriting the protocol. The constructor only stores the repository and the kill points.
+      - Main decision: there is one error boundary, a private context manager `_failing_as(operation)`. Each operation wraps its whole body in it, and it re-raises `GithubException` and `OSError` as `HostingServiceError(operation, str(error)) from error`. Because each operation's `get_pull` call is inside its own wrapper, a failure while `post_comment` lists comments is reported as `post_comment`. The `AFTER_POST` kill point is reached outside the wrapper, after a successful post. `InjectedKill` is a `BaseException` and is never caught anyway.
+      - Alternative rejected: a decorator on each method. It would hide the operation name in the decorator argument, and mypy would need a `ParamSpec` dance. The `with` block reads more plainly.
+      - Mapping: four private module functions do the translation. `_state` checks merged first, then open, then closed. `_view` sets `merge_commit` only when the pull request is merged. `_as_utc` treats a naive `created_at` as UTC. `_comments` sorts by id. `set_labels` keeps label names without `LABEL_PREFIX`, in their order, then adds the given ones. `MAIN_BRANCH` and `LABEL_PREFIX` come from `factory.domain.paths`.
+      - `make check` is green, with 100 % coverage. Demo 1 prints `get_pull_request | 404 {"message": "Not Found"}`.
+      - Refactor pass: I read the diff (one new module) and found nothing to rename, simplify or remove, so there is no refactor commit.
+      - Noticed, not touched: nothing outside the ticket. Criterion 23 (docs) is the documenter's.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: I reviewed `git diff main...HEAD -- . ':!factory'`. It contains `src/factory/adapters/pygithub_hosting.py`, the stand-ins, the client tests, `tests/source_search.py` and `tests/test_hosting_search.py`. The two `docs/runs/` files in the diff come from the human's own commit 4e81e15 (night log and report), not from a stage, so they are not under review.
+      - 1. Acceptance criteria: each of criteria 1–21 has a test, and each test checks what its criterion names. Specific checks:
+        - Criteria 5–6: merged-with-closed state and an unmerged pull request carrying a sha.
+        - Criterion 7: the order of ids is shuffled, and both a naive and a +02:00 `created_at` are covered.
+        - Criteria 8 and 10: a quoted key line without the marker does not count.
+        - Criterion 11: kill point reached once, the repeat returns `already_posted`, and the unarmed path is covered.
+        - Criterion 12: the pull request of the other number is untouched.
+        - Criterion 16: a table of 13 failing calls × `GithubException(500)`/`OSError`, asserting `operation`, `detail` and `__cause__`. It covers both the listing and posting paths of `post_comment`.
+        - Criterion 17: `ValueError` and `InjectedKill`.
+        - Criterion 18: `Untouchable` raises on any attribute access.
+        - Criteria 19–20: an ast search of imports and string literals. `git` is matched exactly or as a dotted prefix, so `github` does not trigger it.
+        - Criterion 21: the module-level `STRUCTURAL_FIT: HostingService` plus an MRO check.
+        - Every stated rule has its failing side tested; the Interface states no numeric limit. The coder's entry records `make check` green. Criterion 22 is the factory's; criterion 23 is the documenter's.
+      - 2. Architecture: the client is in `factory.adapters` and imports only `factory.domain` and PyGithub. It satisfies `HostingService` structurally without inheriting it. PyGithub is confined to this one module (R9), no command-line tool is called, and no `dict[str, Any]` crosses a boundary.
+      - 3. Security: no secrets (the test sha is `"a" * 40`), no strings built into commands, and no suppression markers. A raised error carries only the operation name and `str(error)`, chained to the original error.
+      - 4. Quality: there is one error boundary (`_failing_as`). The `AFTER_POST` kill point is reached outside it, after a successful post, as the rule asks. The private mapping functions each do one thing. The module, class and public-method docstrings are present and say what each one is for. Comments explain why (test-merge sha, `OSError` as connection error).
+      - 5. Ticket hygiene: the coder's entry names the main decision (a context manager as the single error boundary) and what was rejected (a decorator with `ParamSpec`). The Assignment matches what was built. Criterion 23 still describes what the reader must learn: the interface-only route, the one client and its one error, stand-ins now and a fake later, and why PyGithub (R9).
+6. documenter: wrote criterion 23. `make check` is green. No findings: the code matches the Interface.
+   - docs/project-guide.md: added "The PyGithub client" under The hosting service. It covers the one error type, the post flow, the state and merge_commit mapping, label handling, the search test, and the stand-ins (the fake follows later). It also replaces the sentence that said the client comes in a later story.
+   - docs/decisions.md: new entry on why PyGithub behind the interface with one error type, and not `gh`, git libraries or plain httpx (R9).
+   - README.md: the status sentence now names the PyGithub client.
+   - Cross-read and found current: docs/operator-guide.md (a stub) and the Kill points section. The `AFTER_POST` row already named the PyGithub client.
+   - Not run: the Demo commands. I only ran `make check`.
+   - Stale but unrelated: nothing seen.
+
+   `make check`: check: green
+7. demo: ran both `## Demo` commands from the repository root, exactly as written. Both met their `Expect:` line and there are no findings.
+
+   Command 1 (a `GithubException` 404 from `get_pull` becomes a `HostingServiceError`):
+   ```
+   get_pull_request | 404 {"message": "Not Found"}
+   ```
+   Exit code 0. One line, as expected: the operation name is `get_pull_request` and the detail is `str(error)`. This matches criterion 16 for this operation, and the constructor accepted a stand-in with no `owner` attribute, in line with criterion 18.
+
+   Command 2 (ast search for modules that import `github`):
+   ```
+   ['src/factory/adapters/pygithub_hosting.py']
+   ```
+   Exit code 0. One line, as expected: only the PyGithub client imports `github`, which matches criterion 19.
+
+   Cross-check: neither output contradicts any other acceptance criterion. Criteria 1–21 are covered by the tests named in entry 3. I did not run `make check` (criterion 22) in this stage; the factory runs it as the gate. The documenter's entry 6 covers criterion 23.

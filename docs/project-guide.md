@@ -10,7 +10,7 @@ The guide for agents working on `factory-rf`: how the code is laid out, where a 
 
 ## The hosting service
 
-The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` protocol in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. The PyGithub client and the one fake implement the protocol in later stories. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
+The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` protocol in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. `PyGithubHostingService` (`factory.adapters.pygithub_hosting`) is the one client; the one fake follows in a later story. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
 
 The ten operations:
 
@@ -27,6 +27,19 @@ The ten operations:
 | `set_labels(number, labels)` | `None` | write the labels |
 
 Labels are a projection of the stage: they are written and never read back, so no operation returns them and `PullRequestView` has no label field. `LABEL_PREFIX` (`"stage:"`) in `factory.domain.paths` is the prefix of those labels, and `MAIN_BRANCH` is `"main"`.
+
+### The PyGithub client
+
+`PyGithubHostingService(repository, kill_points=None)` implements the ten operations on a PyGithub `Repository`. It satisfies `HostingService` structurally and does not inherit it. The constructor reads nothing from the repository. Wiring that builds the `Repository` from the token comes with `factory.entry.wiring` (F0002 onward, token in F0010).
+
+- Every failing call raises `HostingServiceError(operation, detail)`: a `github.GithubException` or an `OSError` (a connection error is one) inside any of the ten operations is re-raised with the operation's name and `str(error)` as detail, chained to the original. Any other exception, and `InjectedKill`, passes through unchanged.
+- `post_comment` lists the comments first and returns `"already_posted"` without posting when one has the same key; otherwise it posts `render_post(text, key)`, reaches `KillPoint.AFTER_POST` and returns `"posted"`.
+- `find_open_pull_request` asks for open pull requests with head `<owner login>:<branch>`. A view's `state` is `merged` when PyGithub says merged, else `open` or `closed`; `merge_commit` is set only for a merged pull request, even though GitHub reports a test-merge commit for an open one.
+- `list_comments` sorts by id, oldest first, and reads a naive `created_at` as UTC.
+- `set_labels` keeps the labels that do not start with `LABEL_PREFIX` and adds the given ones; the names it read are never returned.
+- `github` is imported by this module only. No module in `src/factory` imports another route to the hosting service (`requests`, `httpx`, `aiohttp`, `urllib3`, `urllib.request`, `http.client`, `socket`, `git`, `pygit2`, `dulwich`, `githubkit`) or contains the string `"gh"`; `tests/test_hosting_search.py` checks it.
+
+Tests do not call PyGithub. `tests/adapters/test_pygithub_hosting.py` uses the recording stand-ins of PyGithub's objects in `tests/adapters/pygithub_stand_ins.py`, passed in with `typing.cast`; the fake hosting service follows in a later story. A real call is first seen by the baseline run. Use a low-entropy literal such as `"a" * 40` for a commit id in a test, so that `make secrets` stays green.
 
 ### Data
 
