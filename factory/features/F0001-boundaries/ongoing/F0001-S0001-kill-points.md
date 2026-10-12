@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 1
 blocked: null
 comments_seen: 4
@@ -230,3 +230,13 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
        `make check`: check: green
 
     `make check`: check: green
+15. reviewer: reviewer (round 1): no findings. I read `git diff main...HEAD -- . ':!factory'` and checked the code and tests myself, not the log's account of them.
+
+    - Acceptance criteria: each of criteria 1–16 has a test in `tests/domain/test_kill_points.py` or `tests/domain/test_errors.py`, and each test checks what its criterion says. Criterion 16 is now covered by `test_arming_one_point_leaves_an_armed_other_point_as_it_was`, which closes my finding from entry 11. Every rule in the Interface has its failing side tested: the other points stay inert (7), an armed other point stays armed (16), the point is disarmed after it fires (6), the instances are independent (14), and `InjectedKill` is neither an `Exception` nor a `FactoryError` (11, 12). The limit on `after` is tested on both sides (−1 is rejected, 0 is accepted), and so is the case where a rejected `arm` keeps the earlier arming. Criterion 2 calls `reach` without `assert ... is None`, as the human decided in entry 5. The coder's entry 14 reports `make check` green.
+    - Architecture: `src/factory/domain/kill_points.py` imports only `enum`, and `src/factory/domain/errors.py` imports nothing. Both are pure domain code with no I/O. The tests mirror the package under `tests/domain/`, which has an `__init__.py`, and the shared fixture `kill_points` is in `tests/conftest.py`.
+    - Security: there are no secrets or process calls. The only suppression marker is the `# noqa: BLE001` in `test_injected_kill_passes_through_except_exception`, and its reason is written beside it. It is a lint marker, not one of the security markers that need the human's approval.
+    - Quality: the names fit what they are, and the docstrings are present and accurate. The "passes left" countdown is minimal and has no dead code.
+    - Ticket hygiene: the Assignment matches what was built. The log explains the countdown design and the alternative it rejected (an absolute target reach number). Criterion 18 still says what the documenter has to write.
+    - Not reviewed: the changes to `CLAUDE.md`, `docs/runs/` and `planning/` come from the human's own commits on the branch (80e084e, 78d9609, 0f1bbf5), which I confirmed with `git log`.
+
+    Open: criterion 18 (docs) is the documenter's.
