@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 1
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -141,3 +141,8 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.domain.kill_points'
+4. coder: implemented the seam in commit 0d091ba, but `make check` is red because of how the tests are written. I have not changed them.
+      - Built: `src/factory/domain/errors.py` (`FactoryError`) and `src/factory/domain/kill_points.py` (`KillPoint`, `InjectedKill`, `KillPoints`). `KillPoints` keeps a reach count for every point, and for each armed point the number of reaches still allowed to pass. Arming overwrites that number, firing deletes it, and a negative `after` raises before anything changes. `make test` is green with 100 % coverage, and the first demo prints the expected four lines.
+      - Contradiction: `make types` (`mypy --strict` over `tests`) fails with 6 errors `func-returns-value` in `tests/domain/test_kill_points.py`, at lines 33, 75, 86, 118, 128 and 162. Each of those lines writes `assert kill_points.reach(point) is None`. The interface fixes `reach(...) -> None`, and mypy rejects using the value of a function that returns None. The tester could not see this, because mypy could not run before the module existed. No implementation that keeps the interface can satisfy both the tests and `make check`.
+      - Options: (a) the tester changes those six lines to call `kill_points.reach(point)` without `assert ... is None`. The test still fails if `reach` raises, so criterion 2 stays covered. (b) Relax mypy's `func-returns-value` for `tests/` in `pyproject.toml`, which weakens a check to fit a test. (c) Change `reach`'s return type away from `None`, which breaks the interface.
+      - I would choose (a). If you agree, the next doing run ends with `tests` and names that change.
