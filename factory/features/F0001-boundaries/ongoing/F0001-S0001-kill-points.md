@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 1
 blocked: null
 comments_seen: 0
@@ -116,3 +116,28 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
    - Demo: both commands are runnable with `uv run python -c`. The expected output of each can be checked line by line: `1 passed`, `2 injected kill at before-push`, `3 passed`, `3 0`, and `InjectedKill False` with no `swallowed`.
    - Architecture: both modules sit in `factory.domain` with no I/O, which fits the four layers in `CLAUDE.md`. The tests mirror the package under `tests/domain/`, and the criterion 17 docs targets are the ones `CLAUDE.md` assigns to the documenter.
    - Scope: the story builds only the seam (R36) and the error root, as `FEATURE.md` scope item 1 says. Wiring the points into the wrappers and the kill-point tests are left to later stories and to F0011, which matches "Out of scope".
+3. tester: wrote red tests for criteria 1–15, one test function for each.
+   - criterion 1: tests/domain/test_kill_points.py::test_kill_point_has_exactly_the_four_named_members
+   - criterion 2: tests/domain/test_kill_points.py::test_new_kill_points_never_raise (parametrized over the four points, 5 reaches each)
+   - criterion 3: tests/domain/test_kill_points.py::test_reached_counts_every_reach_per_point
+   - criterion 4: tests/domain/test_kill_points.py::test_armed_point_raises_injected_kill_on_next_reach
+   - criterion 5: tests/domain/test_kill_points.py::test_after_lets_that_many_reaches_pass_first
+   - criterion 6: tests/domain/test_kill_points.py::test_point_is_disarmed_after_it_fires_and_the_raising_reach_counts
+   - criterion 7: tests/domain/test_kill_points.py::test_arming_one_point_leaves_the_others_inert
+   - criterion 8: tests/domain/test_kill_points.py::test_after_counts_from_the_arming
+   - criterion 9: tests/domain/test_kill_points.py::test_arming_an_armed_point_replaces_the_earlier_arming
+   - criterion 10: tests/domain/test_kill_points.py::test_after_must_not_be_negative checks the boundary (-1 raises ValueError and leaves the point inert; 0 is accepted and fires on the next reach). tests/domain/test_kill_points.py::test_negative_after_leaves_an_earlier_arming_as_it_was checks that arm(after=1), then a rejected arm(after=-1), lets one reach pass and raises on the second.
+   - criterion 11: tests/domain/test_kill_points.py::test_injected_kill_passes_through_except_exception
+   - criterion 12: tests/domain/test_kill_points.py::test_injected_kill_message_names_the_point_and_is_no_factory_error
+   - criterion 13: tests/domain/test_errors.py::test_factory_error_is_an_exception_with_its_message
+   - criterion 14: tests/domain/test_kill_points.py::test_two_kill_points_instances_are_independent
+   - criterion 15: tests/domain/test_kill_points.py::test_domain_modules_import_nothing_that_touches_the_outside. It finds each module's source through importlib.util.find_spec without importing the module, parses it with ast, and checks the top-level names of `import` and absolute `from` imports.
+
+   Files created: tests/conftest.py (the `kill_points` fixture returns a new KillPoints() for each test), tests/domain/__init__.py, tests/domain/test_kill_points.py, tests/domain/test_errors.py.
+
+   Red as intended: `make test` fails while loading tests/conftest.py with ModuleNotFoundError: No module named 'factory.domain.kill_points'. Because the conftest import fails, pytest aborts the whole run, so tests/test_layers.py does not run either until the module exists. factory.domain.errors is missing as well. `make lint` is green.
+
+   Rejected: importing KillPoints lazily inside the fixture so the rest of the suite could still collect. A top-level import is the normal idiom, and the run stays red for the right reason. Not tested, because no criterion names it: whether arming one point leaves an already armed point armed (intake noted this gap).
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.domain.kill_points'
