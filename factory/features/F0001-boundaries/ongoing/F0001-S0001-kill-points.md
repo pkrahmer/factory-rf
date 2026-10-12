@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 1
 blocked: null
 comments_seen: 0
 round: 0
@@ -110,3 +110,9 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `factory.domain.errors` (`FactoryError`) and `factory.domain.kill_points` (`KillPoint`, `InjectedKill`, `KillPoints` with `arm`, `reach`, `reached`) are concrete, with signatures and defaults. The `kill_points` fixture in `tests/conftest.py` is named. Every behaviour in the Interface rules has a criterion.
+   - Criteria: the 14 behavioural criteria (1–14) and the structural one (15) can each be tested by one test function without further decisions. Every rule has its failing side: negative `after` leaves an inert or armed point unchanged (10), the other points stay inert (7), the point is disarmed after firing (6), the instances are independent (14), and `InjectedKill` is not an `Exception` or a `FactoryError` (11, 12). The only gap is that no criterion says an armed point stays armed when another point is armed. Criterion 7 covers the inert side and the story rule reads "as they were", so I did not treat it as a blocker.
+   - Demo: both commands are runnable with `uv run python -c`. The expected output of each can be checked line by line: `1 passed`, `2 injected kill at before-push`, `3 passed`, `3 0`, and `InjectedKill False` with no `swallowed`.
+   - Architecture: both modules sit in `factory.domain` with no I/O, which fits the four layers in `CLAUDE.md`. The tests mirror the package under `tests/domain/`, and the criterion 17 docs targets are the ones `CLAUDE.md` assigns to the documenter.
+   - Scope: the story builds only the seam (R36) and the error root, as `FEATURE.md` scope item 1 says. Wiring the points into the wrappers and the kill-point tests are left to later stories and to F0011, which matches "Out of scope".
