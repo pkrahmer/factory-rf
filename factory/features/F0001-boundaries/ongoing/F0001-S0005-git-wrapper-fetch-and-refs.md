@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 5
 blocked: null
 comments_seen: 0
@@ -307,3 +307,31 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
    Nothing stale found that I left untouched.
 
    `make check`: check: green
+7. demo: both blocks ran from the repository root exactly as written. Both met their `Expect:` lines, so there are no findings.
+
+   Block 1 (wrapper reads on a fresh clone with a bare remote), exit 0:
+   ```
+   ['main']
+   'hello\n'
+   ['docs/read me.txt']
+   None None
+   True
+   ```
+   Expected five lines: `['main']`, `'hello\n'`, `['docs/read me.txt']`, `None None`, `True`. Met.
+
+   Block 2 (`fetch()` in a directory that is not a repository), exit 0:
+   ```
+   FetchFailed git fetch --prune origin 128
+   ```
+   Expected one line: `FetchFailed git fetch --prune origin 128`. Met.
+
+   Criteria cross-check: the output contradicts no acceptance criterion, and several criteria show up directly in it.
+   - 12: remote branches are listed without the `origin/` prefix and without `HEAD`.
+   - 14: `resolve` gives `None` for `origin/nope`.
+   - 15: `show_file` keeps the trailing newline.
+   - 16: `show_file` gives `None` for a missing path.
+   - 17: `list_files` returns the full path, and a name with a space comes back exactly.
+   - 19: `is_ancestor` is true for a commit and itself.
+   - 7 and 23: `fetch()` outside a repository raises `FetchFailed` with the exact command and exit status 128, using the default `GitCli(directory)`.
+
+   Not run here: `make check` (criterion 24). The factory runs it after this stage, and the coder and documenter reported it green.
