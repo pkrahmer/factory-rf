@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 2
 blocked: null
 comments_seen: 0
@@ -262,3 +262,28 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
    The reviewer's open point is in the project guide: build comments through `PullRequestComment.from_body`. S0003 should do this.
 
    `make check`: check: green
+7. demo: both commands ran from the repository root exactly as written. Both printed what their `Expect:` line says, and there are no findings.
+
+   Command 1 (render, parse and classify a post), exit 0:
+   ```
+   'Stage tests stalled.\n\n<!-- factory -->\n<!-- factory key=F0001-S0003:stall:12 -->'
+   True
+   True stall
+   ```
+   Met its Expect line: the three lines match exactly.
+
+   Command 2 (a merged pull request without a merge commit), exit 0:
+   ```
+   rejected 1
+   ```
+   Met its Expect line: the view was refused with exactly one validation error.
+
+   Checked against the acceptance criteria:
+   - Criterion 2: the marker is `<!-- factory -->`.
+   - Criterion 3: the key comment has the form `<!-- factory key=<work_item>:<kind>:<n> -->`.
+   - Criterion 6: `render_post` adds a blank line, then the marker, a newline and the key comment, with no newline at the end.
+   - Criterion 7: the rendered key parses back to the same key.
+   - Criterion 10: an author of `someone` with the marker counts as the factory's post.
+   - Criterion 12: `merged` without a `merge_commit` is rejected.
+
+   The demo contradicts no criterion. The other criteria are outside what the commands show, and the tests and the earlier stages cover them. I did not run `make check`; the factory runs it after this stage.
