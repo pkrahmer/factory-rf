@@ -10,7 +10,7 @@ Check the whole set of features and stories as one, and write the traceability f
 - `C:\Dev\Projects\factory-rf\planning\overnight\skeleton.md`, `skeleton-answers.md`, `interfaces.md`, `fault-paths.md`.
 - `C:\Dev\Projects\factory-v2\planning\v1.1\overnight-run-plan.md`, section 5 (the dependency table, "Traceability", "Cross-feature check").
 - `C:\Dev\Projects\factory-v2\planning\v1.1\handover.md`, sections 3 to 5 and 8, and the appendix.
-- `C:\Dev\Projectsactory-rf\planning\overnight\drafter-reports.md`: the drafters' replies and open questions; check each cross-feature question and report it as a finding where it holds.
+- `C:\Dev\Projects\factory-rf\planning\overnight\drafter-reports.md`: the drafters' replies and open questions; check each cross-feature question and report it as a finding where it holds.
 
 ## Output
 

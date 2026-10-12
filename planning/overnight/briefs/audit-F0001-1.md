@@ -12,8 +12,8 @@ Find, adversarially, every defect in feature F0001's `FEATURE.md` and stories th
 - `C:\Dev\Projects\factory-v2\planning\decisions\001-truth-on-the-remote.md` to `007-overnight-defaults.md`.
 - `C:\Dev\Projects\factory-v2\planning\v1.1\run-facts.md`, sections "Writing features and stories" and "What makes v1 refuse, ask or send back".
 - `C:\Dev\Projects\factory-rf\CLAUDE.md`, `pyproject.toml`, `factory\stages.yml`, `factory\TICKET.md`.
-- `C:\Dev\Projectsactory-rf\planning\overnight\drafter-reports.md`, section F0001 (the drafter's own open questions).
-- `C:\Dev\Projectsactory-rf\planning\overnight\skeleton-answers.md`.
+- `C:\Dev\Projects\factory-rf\planning\overnight\drafter-reports.md`, section F0001 (the drafter's own open questions).
+- `C:\Dev\Projects\factory-rf\planning\overnight\skeleton-answers.md`.
 
 ## Output
 
