@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 5
 blocked: null
 comments_seen: 0
@@ -276,3 +276,16 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
    - I ran the second demo block and it printed `FetchFailed git fetch --prune origin 128`. The first block's behaviour is covered by the tests, but I did not run it.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked:
+   - Criteria 1–23: each has a test. Each test exercises its criterion, including the failing side of every Interface rule: the tail on both sides of 30 lines (40 and 3), the unstartable executable, the time limit, the non-repository and the missing remote, the missing ref, path and directory, the unknown ref in each position of `is_ancestor`, the empty identity fields, unknown keys and frozen fields.
+   - The isolation tests (8, 9) can fail. Test 10 shows that an `insteadOf` rewrite on a plain path takes effect when git honours it, and test 9 removes `GIT_CONFIG_NOSYSTEM` from the test process.
+   - The coder's entry reports `make check` green.
+   - Architecture: the domain types are pure Pydantic data. The `Git` Protocol is in application, and `GitCli` in adapters satisfies it without inheriting from it. Git is reached only through `run_process`. No `dict[str, Any]` crosses a `src` boundary.
+   - Security: no secrets and no silencing markers. Arguments go to git as a list, never through a shell. The configuration isolation comes after `options.environment` (`src/factory/adapters/git_cli.py`, `_environment`), so the options cannot lift it.
+   - Quality: the names, docstrings and why-comments are in order. Missing refs and paths are told apart by exit status and by `ls-tree -z` listings, not by git's wording. Output is decoded from bytes without newline translation, so `show_file` returns the text exactly as committed.
+
+   Considered, not raised:
+   - `self._identity` in `GitCli.__init__` duplicates `self._options.identity` and nothing reads it yet. The Interface explicitly asks `GitCli` to keep the identity for S0006, so I don't count it as dead code.
+   - The Interface's `merge_stderr=True` means a git warning on stderr would be mixed into the output that `remote_branches` and `resolve` parse. `rev-parse --quiet` suppresses the ambiguity warning, and `for-each-ref` warns only on a broken ref. This is a possible gap in the story, not in this code.
