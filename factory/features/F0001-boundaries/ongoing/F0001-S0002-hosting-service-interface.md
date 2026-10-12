@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 2
 blocked: null
 comments_seen: 0
@@ -204,3 +204,22 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the hosting-service interface and its DTOs. All tests from the tester pass, `make check` is green (coverage 100 %) and both demos print exactly what the ticket expects. Commit: `ticket F0001-S0002: feat(domain): hosting-service DTOs, post key and HostingService protocol`.
+
+   Built:
+   - src/factory/domain/errors.py: adds `BoundaryError(FactoryError)` and `HostingServiceError(BoundaryError)`. The second carries `operation` and `detail`, and its message is `hosting service <operation> failed: <detail>`.
+   - src/factory/domain/identifiers.py (only `WorkItemId`), src/factory/domain/git.py (only `CommitId`), src/factory/domain/paths.py (only `MAIN_BRANCH` and `LABEL_PREFIX`). Each is the first part of a module that later stories extend.
+   - src/factory/domain/hosting.py: `FACTORY_MARKER`, `PullRequestState`, `PostKind`, `PostOutcome`, and the models `PullRequestView`, `PostKey` and `PullRequestComment`.
+     - The three models share a private `_Frozen` base: frozen, with `extra="forbid"`.
+     - A model validator on `PullRequestView` requires `merge_commit` exactly when the state is `"merged"`.
+     - A field validator converts `created_at` to UTC after `AwareDatetime` has rejected naive values.
+     - `render_post` and `parse_post_key` are module functions. `PullRequestComment.from_body` takes `by_factory` from the marker alone and never looks at the author.
+   - src/factory/application/hosting.py: the `HostingService` Protocol with its ten operations. Each has a one-line docstring and `...` as its body. No operation reads labels.
+
+   Main design decision: `parse_post_key` matches the last non-blank line, with trailing whitespace stripped, against a loose regex for the comment's shape, `<!-- factory key=A:B:C -->`. It then hands the three parts to `PostKey.model_validate` and returns `None` on a `ValidationError`. That way the rules for a valid work item, kind and `n` live only in `PostKey`. The alternative I rejected was one strict regex that repeats the work-item pattern, the kind alternation and the hex rule, which would duplicate the model's rules.
+
+   Refactor: I read the diff as a reviewer would and found nothing to change, so there is no refactor commit.
+
+   Not touched: the docs for criterion 18 belong to the documenter. The PyGithub client (S0003) and the fake (S0014) implement this protocol later.
+
+   `make check`: check: green
