@@ -41,3 +41,11 @@ Taken by the main session on 2026-10-13 at 00:05; they bind the drafters. Number
 ## Answers during drafting
 
 - **Console scripts (F0004's question 3).** Before the first story starts, the human (the session) adds every console script of the sheet's `factory.entry` table to `pyproject.toml` in one setup commit, each as `<name> = "factory.entry.<module>:main"`: `factory-check-story`, `factory-guard`, `factory-bill`, `factory-watch`, `factory-run`, `factory-health`. Every entry module's entry function is therefore `main() -> int`. F0004-S0004's `run` becomes `main`.
+
+## Answers for F0001's round 1 (00:45)
+
+- **Commit identity.** `GitCli` takes the commit identity (name and email) as a constructor argument, which comes from the instance's settings (`GIT_USER_NAME`, `GIT_USER_EMAIL`, R25). It is not fixed in code. F0010's preflight checks that it is set (kept thing 18).
+- **Git credentials.** `GitCli` ignores global and system configuration, and it takes an optional extra environment from the factory process (for example `GIT_ASKPASS` or a credential-helper setting passed with `-c`). That is how the factory's own pushes get the token (WE3.5, R33). The agent run never receives it. S0004 or S0005 states this as a rule with a criterion.
+- **`claude -p` flags.** Only flags that v1's book gives (the extraction `v1-04-08.md`, chapter 8 "Starting the agent") are used. `--permission-prompts` is dropped. A flag not in that chapter is not invented.
+- **Budget stop.** The end reason is decided from the result's `subtype` (`error_max_budget_usd`) before the exit status, so that a budget stop always reaches the one resume.
+- **Size.** A story above 22 criteria with several mechanisms is split (S0004 and S0008 at least), with consecutive ids, and the later stories are renumbered.
