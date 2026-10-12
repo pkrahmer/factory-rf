@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 3
 blocked: null
 comments_seen: 0
@@ -118,3 +118,39 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
    - Demo: both commands are runnable. The expected lines can be checked: the `GithubException` text for 404 and the single module path that imports `github`.
    - Architecture: the client sits in `factory.adapters`, behind the S0002 interface. It imports `HostingService`, DTOs and `HostingServiceError` from the domain and application layers, which is the allowed direction. PyGithub is confined to one module, as R9 requires.
    - Scope: the story is within the feature's scope (SI2.1, SI2.2). The wiring of the `Repository` and the token are left to F0002 and F0010, and the fake to S0014.
+3. tester: wrote red tests for criteria 1–21. Criterion 22 is the factory's `make check`, and criterion 23 belongs to the docs stage.
+   - criterion 1: tests/adapters/test_pygithub_hosting.py::test_create_pull_request_opens_against_main_and_returns_the_view (parametrized over draft True/False)
+   - criterion 2: tests/adapters/test_pygithub_hosting.py::test_find_open_pull_request_filters_by_owner_and_branch
+   - criterion 3: tests/adapters/test_pygithub_hosting.py::test_find_open_pull_request_is_none_without_a_result
+   - criterion 4: tests/adapters/test_pygithub_hosting.py::test_get_pull_request_maps_the_pull_request_to_a_view
+   - criterion 5: tests/adapters/test_pygithub_hosting.py::test_view_state_follows_merged_then_state
+   - criterion 6: tests/adapters/test_pygithub_hosting.py::test_unmerged_pull_request_has_no_merge_commit_even_with_a_sha
+   - criterion 7: tests/adapters/test_pygithub_hosting.py::test_list_comments_sorts_by_id_and_reads_naive_times_as_utc
+   - criterion 8: tests/adapters/test_pygithub_hosting.py::test_list_comments_tells_factory_posts_by_marker_and_key
+   - criterion 9: tests/adapters/test_pygithub_hosting.py::test_post_comment_posts_the_rendered_body_once
+   - criterion 10: tests/adapters/test_pygithub_hosting.py::test_post_comment_skips_an_existing_key_but_not_a_quoted_one
+   - criterion 11: tests/adapters/test_pygithub_hosting.py::test_kill_after_post_leaves_the_post_recognisable
+   - criterion 12: tests/adapters/test_pygithub_hosting.py::test_close_and_reopen_edit_the_state
+   - criterion 13: tests/adapters/test_pygithub_hosting.py::test_set_draft_converts_or_marks_ready
+   - criterion 14: tests/adapters/test_pygithub_hosting.py::test_set_description_edits_the_body
+   - criterion 15: tests/adapters/test_pygithub_hosting.py::test_set_labels_keeps_foreign_labels_and_replaces_stage_labels
+   - criterion 16: tests/adapters/test_pygithub_hosting.py::test_every_failing_call_raises_hosting_service_error (13 failing stand-in calls × GithubException(500)/OSError). The table covers both the listing and posting paths of post_comment, both set_draft paths, and both get_labels and set_labels for set_labels.
+   - criterion 17: tests/adapters/test_pygithub_hosting.py::test_other_errors_and_injected_kills_pass_through
+   - criterion 18: tests/adapters/test_pygithub_hosting.py::test_constructor_touches_nothing_on_the_repository
+   - criterion 19: tests/test_hosting_search.py::test_only_the_pygithub_client_imports_github and ::test_no_module_imports_another_route_to_the_hosting_service (parametrized over the forbidden modules)
+   - criterion 20: tests/test_hosting_search.py::test_no_module_names_the_gh_tool
+   - criterion 21: tests/adapters/test_pygithub_hosting.py::test_client_fits_the_interface_without_inheriting_it, together with the module-level `STRUCTURAL_FIT: HostingService = ...` in the same test module, which mypy checks
+
+   Files created:
+   - tests/adapters/__init__.py
+   - tests/adapters/pygithub_stand_ins.py: plain recording stand-ins. Each has a `failures` map from method name to exception, and `create_issue_comment` appends the comment so that a repeated post sees it. `Untouchable` raises on any attribute access.
+   - tests/adapters/test_pygithub_hosting.py
+   - tests/source_search.py: an ast helper with `modules()`, `imported_modules()`, `imports()` and `string_literals()`.
+   - tests/test_hosting_search.py
+
+   What I chose: the `HostingService` assignment sits in the test module, not in the stand-ins module. Criterion 21 says "a test module", and that is where mypy checks the fit either way. The tests import the stand-ins as `adapters.pygithub_stand_ins` and the search helper as `source_search`, because `tests/` has no `__init__.py`.
+
+   `make test` run once: collection stops at `ModuleNotFoundError: No module named 'factory.adapters.pygithub_hosting'`, the only module the runner could not import. Before the coder's work, test_only_the_pygithub_client_imports_github fails on an empty set. `make lint` is green after `ruff format` on my files. I skipped the type check, as this stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
