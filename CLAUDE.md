@@ -1,24 +1,50 @@
 # factory-rf
 
-The second implementation of the factory (github.com/pkrahmer/factory), planned and built by the factory itself. <Architecture to be filled in once agreed.> Built by the factory (github.com/pkrahmer/factory); the pipeline's rules reach every agent as a skill, so this file holds only what is true of this project.
+The second implementation of the factory (github.com/pkrahmer/factory), planned and built by the factory itself: v1.1, v1 reimplemented by v1. Built by the factory (github.com/pkrahmer/factory); the pipeline's rules reach every agent as a skill, so this file holds only what is true of this project. `docs/project-guide.md` is the guide for agents: read it before you change anything.
 
 ## Language
 - Everything in this repository is English: code, comments, docs, tickets, commit messages.
 
+## Vocabulary
+- The pipeline's own files under `factory/` (the stage table, the story and feature forms, the features and their stories) use v1's words, because v1 reads them.
+- Code, documentation and the file formats that v1.1 defines use the glossary's names: work item, journal, backlog, start, approval, pipeline definition, write paths, project commands, acceptance reviewer, smoke test, error (R3). Stall, lease, crash and `time_limit` keep the meanings the decision log gives them.
+
 ## Architecture
-- <Layers, dependency direction, what is pure, where wiring happens.>
-- <Typing and validation rules.>
+- One package, `factory`, under `src/` (Python 3.12, uv). Four layers; a higher one may import a lower one and never the reverse: `factory.entry` → `factory.adapters` → `factory.application` → `factory.domain`. import-linter enforces this in `make check`.
+- `factory.domain`: pure rules and data, the Pydantic DTOs and the decisions made on them. No I/O, no tool, no clock or process of its own.
+- `factory.application`: the use cases (the pipeline, its stages, claim, lease and recovery) and the interfaces they need from the outside: the hosting service, the agent runtime, the project commands. It knows no concrete tool.
+- `factory.adapters`: the wrappers, readers and writers behind those interfaces: git, PyGithub, `claude -p`, make, ruamel.yaml, python-frontmatter, and the fake hosting service the tests use.
+- `factory.entry`: the command line and the wiring that picks the concrete adapters. Nothing else wires.
+- Wrappers (R5). Git, the agent runtime and the build commands are each reached only through one wrapper class; the hosting service only through the hosting-service interface. No other module calls a command-line tool.
+- Interfaces (R6). Where other stacks will want other tools, an interface or abstract type stands in front, and v1's tool is its first implementation. Nothing is built for the other stacks now, but no interface or DTO may rule them out.
+- DTOs (R7). Inputs and outputs are Pydantic models shaped by what the factory needs, not by the tool. A wrapper translates them into call parameters and the tool's output text back into return types. No `dict[str, Any]` crosses a function boundary.
+- Layers belong to the project (R8). The factory knows no layer names: a project declares its layers and checks them with a project command, and the DTOs carry a generic check result. Do not copy the todo demo's split into this code.
+- Git and the hosting service (R9). The git command-line tool sits in a wrapper class with DTOs; PyGithub sits behind the hosting-service interface. Not GitPython, pygit2, dulwich, githubkit, the `gh` tool or plain httpx.
+- The hosting-service client (R10) does pull requests only: create as draft or ready, read state and merge state, list comments with id and author, post with the marker, close and reopen; and labels, written as a projection of the stage and never read back. One fake implements the same interface.
+- Project commands (R11). The factory calls a project-commands interface; the make-based class is its first implementation (make targets that call uv). Gradle or npm implementations come with those stacks.
+- Agent runtime (R12). An agent-runtime interface with factory-shaped DTOs; the first implementation wraps `claude -p` under the operator's own login. It may install Claude Code hook scripts that refuse writes outside a write path. Other runtimes come later.
+- File formats (R13). ruamel.yaml (keeps comments and order when it rewrites YAML the human edits) and python-frontmatter, each format behind one reader and one writer class, validated into Pydantic DTOs.
+- Type everything; `mypy --strict` is part of the checks. `Any` only at a boundary that Pydantic validates immediately.
+- Before changing the architecture, read `docs/decisions.md`; lasting reasons are there.
 
 ## Tests
-- <Framework; where tests live; fixtures; what may be faked and what may not.>
+- pytest. Tests live under `tests/` and mirror the package: `tests/domain/`, `tests/application/`, `tests/adapters/`, `tests/entry/`, each folder a package with an `__init__.py`; a module outside the layers is tested at the `tests/` root.
+- Plain test functions, shared fixtures in `tests/conftest.py`, parametrize for tables of cases. Never mock the code under test.
+- Fake: the hosting service, through its one fake implementation; the agent runtime, through a fake implementation of its interface.
+- Do not fake git. Tests use a real local bare remote and clones in a temporary directory (`tmp_path`).
+- No network, no sleeps, no files outside `tmp_path`.
 
 ## Docs
-- `README.md` is for the newcomer: what it is, how to run it, where to look next. `docs/api.md` holds what the schema cannot say (concepts, errors, examples); `docs/architecture.md` the layers and their reasons; `docs/decisions.md` lasting decisions. The documenter stage writes these from each story's docs criterion; the coder does not.
-- `docs/openapi.json` is generated: `make openapi` writes it, a test fails when it is stale, and the coder runs the target after changing a route. Nobody edits it.
-- Docstrings: one per module (its purpose, a sentence) and one per public class and function in <the packages that form the interface>; none on private names or where the signature says it all. Comments say why, never what. `ruff`'s `D` rules enforce the presence; the reviewer judges the content.
+- `README.md` is for the newcomer: what it is, how to run it, where to look next. `docs/operator-guide.md` is for the operator: install, configure, the stops and what to do about each. `docs/project-guide.md` is the project guide for agents (R17). `docs/decisions.md` is the decision log. The documenter stage keeps these four true from each story's docs criterion; the coder does not write them.
+- Docstrings: one per module (its purpose, a sentence) and one per public class and function in every package under `src/factory/`; none on private names or where the signature says it all. Comments say why, never what. `ruff`'s `D` rules (Google convention) enforce the presence; the reviewer judges the content.
 
 ## Checks
-- `make check` must be green before any stage reports done. It runs <tools: lint, types, sast (semgrep + bandit), secrets (detect-secrets), licenses (pip-licenses allow list), tests with coverage and, for an HTTP API, the schemathesis contract test>. `make lint` and `make test` run <subset>; the pipeline knows only these three targets.
+- `make check` must be green before any stage reports done. It runs `make lint` (ruff check and format check, including the docstring rules), `make types` (`mypy --strict` over `src` and `tests`), `make layers` (import-linter), `make sast` (semgrep with the rules in `security/semgrep`, and bandit over `src`), `make secrets` (detect-secrets against `.secrets.baseline`), `make licenses` (pip-licenses against an allow list for the production dependencies) and `make test` (pytest with branch coverage of `src/factory`, at least 90 %).
+- `make lint` and `make test` run those two alone; the pipeline knows only these three targets (`check`, `lint`, `test`).
+- Run Python through `uv run`. All dependencies, runtime and development, are declared and pinned in `pyproject.toml`; the lockfile is `uv.lock`.
+
+## The human's files
+- `planning/` and `docs/runs/` belong to the human. No stage edits them; they are outside every write path.
 
 ## Not without asking (end the stage with `question`)
 - New dependency, new top-level package, change to `factory/`, change to a test you did not write, a new entry in `.secrets.baseline` or a `pragma: allowlist secret`, a `nosemgrep` or `nosec` marker, a licence outside the allow list.

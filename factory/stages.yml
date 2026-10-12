@@ -14,7 +14,7 @@ max_attempts: 2          # stage runs that ended without a commit before the wat
 lanes:
   intake:     ["factory/features/*/ongoing/*.md"]
   tester:     ["factory/features/*/ongoing/*.md", "tests/*"]
-  coder:      ["factory/features/*/ongoing/*.md", "src/*", "docs/openapi.json"]
+  coder:      ["factory/features/*/ongoing/*.md", "src/*", "image/*", "template/*", "claude/*"]
   reviewer:   ["factory/features/*/ongoing/*.md"]
   documenter: ["factory/features/*/ongoing/*.md", "README.md", "docs/*"]
   demo:       ["factory/features/*/ongoing/*.md"]

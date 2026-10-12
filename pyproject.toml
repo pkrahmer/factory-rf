@@ -1,0 +1,95 @@
+[project]
+name = "factory"
+version = "0.1.0"
+description = "The factory, reimplemented by v1 of itself"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic==2.14.1",
+    "PyGithub==2.10.0",
+    "ruamel.yaml==0.19.1",
+    "python-frontmatter==1.3.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff==0.17.0",
+    "mypy==2.4.0",
+    "import-linter==2.15",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "semgrep==1.180.0",
+    "bandit==1.9.4",
+    "detect-secrets==1.5.0",
+    "pip-licenses==5.5.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/factory"]
+
+# --- Lint and format ---------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+extend-exclude = ["*.md"]   # stories carry illustrative code blocks, not code
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RET", "ARG", "PL", "C90", "S", "D"]
+# Magic values are fine in small code; domain errors keep noun names; magic methods and
+# __init__ need no docstring. (Packages do: D104 stays on, every layer package says what it holds.)
+ignore = ["PLR2004", "N818", "D105", "D107"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S603", "S607", "PLR0913", "D"]  # asserts and fixtures are the point of tests
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["factory"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 8
+
+[tool.ruff.lint.pylint]
+max-args = 5
+
+# --- Types -------------------------------------------------------------------
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+# --- Layers ------------------------------------------------------------------
+# A higher layer may import a lower one, never the other way round (R8).
+[tool.importlinter]
+root_package = "factory"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers"
+type = "layers"
+layers = ["factory.entry", "factory.adapters", "factory.application", "factory.domain"]
+
+# --- Tests -------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.coverage.run]
+source = ["src/factory"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+
+# --- SAST --------------------------------------------------------------------
+[tool.bandit]
+targets = ["src"]

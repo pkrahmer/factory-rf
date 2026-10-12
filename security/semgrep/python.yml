@@ -1,0 +1,31 @@
+rules:
+  - id: factory-no-eval-exec
+    languages: [python]
+    severity: ERROR
+    message: eval() and exec() run arbitrary code; parse the input into a DTO instead.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+
+  - id: factory-no-subprocess-shell
+    languages: [python]
+    severity: ERROR
+    message: A shell command line invites injection; pass an argument list and leave shell=False.
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+
+  - id: factory-no-unsafe-yaml-load
+    languages: [python]
+    severity: ERROR
+    message: yaml.load without a safe loader can build arbitrary objects; use yaml.safe_load or ruamel.yaml.
+    patterns:
+      - pattern: yaml.load(...)
+      - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+      - pattern-not: yaml.load(..., Loader=yaml.CSafeLoader, ...)
+
+  - id: factory-no-pickle-loads
+    languages: [python]
+    severity: ERROR
+    message: Unpickling runs arbitrary code; read data through a validated format (Pydantic, YAML, JSON).
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
