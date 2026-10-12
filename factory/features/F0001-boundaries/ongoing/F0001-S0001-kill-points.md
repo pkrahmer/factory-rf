@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 1
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -185,3 +185,4 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
    - Quality: docstrings are present and accurate, and there is no dead code.
    - Ticket hygiene: the log explains the countdown design and why the alternative was rejected.
    - The `CLAUDE.md` and `docs/runs/` lines in the diff are your own commits merged from main (78d9609, 0f1bbf5), so I did not review them.
+10. human (pull request comment, 2026-10-12): (a): add the criterion before the two closing ones, exactly as you worded it: "Arming one point leaves an armed other point as it was: after `arm(BEFORE_PUSH, after=1)` and then `arm(AFTER_PUSH)`, the first reach of `BEFORE_PUSH` returns and the second raises." Back to doing, ending with `tests`; the tester adds the one test. It closes the failing side of an Interface rule (the story's own rule).
