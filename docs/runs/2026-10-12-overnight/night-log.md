@@ -36,3 +36,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 23:55 | Usage: 5-hour window 9%, weekly 54% | | plan, section 11 |
 | 00:05 | Interface sheet done (`planning/overnight/interfaces.md`, 86 modules, one error hierarchy, four kill points, keyed posts); its 14 open questions answered in `skeleton-answers.md` | | plan, section 5; decision 007 question 1 |
 | 00:07 | Eleven drafters (sonnet) started in parallel, one per feature F0001 to F0011 | | plan, section 5 |
+| 00:41 | Nine of eleven drafters back (F0002 to F0006, F0008 to F0011: 54 stories); their replies kept in `planning/overnight/drafter-reports.md`. Console scripts answered: the session adds them to `pyproject.toml` in one setup commit before the first start | | plan, section 5 |
+| 00:42 | Usage: 5-hour window 48% (resets 03:30), weekly 60%. Priority set: cross-check over all, then audit and pre-check F0001 first so the build can start; later features' audits follow while F0001 builds | | plan, sections 7 and 11 |
