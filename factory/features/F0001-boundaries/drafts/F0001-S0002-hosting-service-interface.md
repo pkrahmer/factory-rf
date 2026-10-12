@@ -101,8 +101,7 @@ The rules, each with a criterion below:
 - `merge_commit` is set exactly when `PullRequestView.state` is `"merged"`, and is a 40-character lowercase hexadecimal commit id.
 - `PostKey.comment()` is `<!-- factory key=<work_item>:<kind>:<n> -->`, for example `<!-- factory key=F0001-S0001:question:7 -->`. `n` is lowercase hexadecimal and not empty.
 - `render_post(text, key)` is `text` with its trailing whitespace removed, then a blank line, then `FACTORY_MARKER`, a newline and `key.comment()`; nothing follows the key.
-- `parse_post_key(body)` reads only the last non-blank line of `body`; that line must be exactly a key comment (trailing whitespace, a trailing `
-` included, ignored) whose work item, kind and `n` are valid, and blank lines after it do not matter; in every other case it returns `None`.
+- `parse_post_key(body)` reads only the last non-blank line of `body`; that line must be exactly a key comment (trailing whitespace, a trailing `\r` included, ignored) whose work item, kind and `n` are valid, and blank lines after it do not matter; in every other case it returns `None`.
 - `PullRequestComment.from_body` sets `by_factory` exactly when `body` contains `FACTORY_MARKER` (the author is never consulted: R34) and `key` to `parse_post_key(body)` when `by_factory`, else `None`.
 - `HostingServiceError` is raised by every implementation for every failing call (SI2.2); its message is `hosting service <operation> failed: <detail>`.
 - Both domain modules import only the standard library, Pydantic and `factory.domain`; `factory.application.hosting` imports only the domain.
@@ -120,10 +119,7 @@ Tests: `tests/domain/test_hosting.py`, `tests/domain/test_errors.py` (extended: 
 6. `render_post("Stage tests stalled.\n\n", key)` returns `Stage tests stalled.`, a blank line, `<!-- factory -->`, a newline and the key comment, with no newline at the end.
 7. `parse_post_key(render_post(text, key)) == key` for every one of the ten kinds.
 8. `parse_post_key` returns `None` for: an empty string; a body without a key line; a key line followed by another line of text; a key comment quoted inside a sentence; a key with the kind `other`; a key with the work item `F001-S0001`; a key with `n` `G` and a key with an empty `n`.
-9. `parse_post_key` returns the key for a body whose key line is followed by two blank lines, for one whose key line ends in spaces, for one whose key line ends in `
-` and for one with `
-
-` line ends throughout.
+9. `parse_post_key` returns the key for a body whose key line is followed by two blank lines, for one whose key line ends in spaces, for one whose key line ends in `\r`, and for one with `\r\n` line ends throughout.
 10. `PullRequestComment.from_body` gives `by_factory` true and the parsed key for a body made by `render_post`; true and `None` for a body with the marker and no key; false and `None` for a body with a key line and no marker; false and `None` for a plain body; and an author of `"factory"` without the marker is not by the factory, while an author of `"someone"` with the marker is.
 11. `PullRequestComment` rejects a naive `created_at` and an `id` of 0, accepts an id of 1, and converts a `created_at` with another offset to UTC.
 12. `PullRequestView` accepts `state="merged"` with a 40-character lowercase hexadecimal `merge_commit`, and accepts `"open"` and `"closed"` without one; it rejects `"merged"` without a `merge_commit`, `"open"` with one, a `merge_commit` of 39 characters or with an uppercase letter, and a `number` of 0.

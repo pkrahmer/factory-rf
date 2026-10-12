@@ -62,7 +62,7 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 from factory.adapters.process import ProcessRequest, run_process
-code = 'import sys; print(\"out\"); print(\"err\", file=sys.stderr); sys.exit(3)'
+code = 'import sys; print(\"out\", flush=True); print(\"err\", file=sys.stderr, flush=True); sys.exit(3)'
 result = run_process(ProcessRequest(argv=[sys.executable, '-c', code], cwd=Path('.'), merge_stderr=True))
 print(result.exit_status, result.timed_out, repr(result.stdout))
 slow = 'import time; print(\"started\", flush=True); time.sleep(60)'
