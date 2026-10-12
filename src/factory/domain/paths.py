@@ -2,3 +2,4 @@
 
 MAIN_BRANCH = "main"
 LABEL_PREFIX = "stage:"
+REMOTE = "origin"
