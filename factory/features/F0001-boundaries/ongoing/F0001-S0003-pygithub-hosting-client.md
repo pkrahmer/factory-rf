@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 3
 blocked: null
 comments_seen: 0
@@ -190,3 +190,18 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
    - Stale but unrelated: nothing seen.
 
    `make check`: check: green
+7. demo: ran both `## Demo` commands from the repository root, exactly as written. Both met their `Expect:` line and there are no findings.
+
+   Command 1 (a `GithubException` 404 from `get_pull` becomes a `HostingServiceError`):
+   ```
+   get_pull_request | 404 {"message": "Not Found"}
+   ```
+   Exit code 0. One line, as expected: the operation name is `get_pull_request` and the detail is `str(error)`. This matches criterion 16 for this operation, and the constructor accepted a stand-in with no `owner` attribute, in line with criterion 18.
+
+   Command 2 (ast search for modules that import `github`):
+   ```
+   ['src/factory/adapters/pygithub_hosting.py']
+   ```
+   Exit code 0. One line, as expected: only the PyGithub client imports `github`, which matches criterion 19.
+
+   Cross-check: neither output contradicts any other acceptance criterion. Criteria 1–21 are covered by the tests named in entry 3. I did not run `make check` (criterion 22) in this stage; the factory runs it as the gate. The documenter's entry 6 covers criterion 23.
