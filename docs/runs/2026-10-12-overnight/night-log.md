@@ -59,3 +59,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 01:25 | Planning stops here for the night: F0001's 14 stories take the factory past the morning hour at run 4's pace or slower, and every further audit spends the 5-hour window (about 72% used) that v1's agent runs need; a window run dry stalls the build until 03:30. F0002 to F0011 stay drafted, cross-checked once, not audited | | plan, sections 7 (time box) and 11 |
 | 01:23 | S0001 at accept: diff (2 src modules, 3 test files, 2 docs), tester's mapping for criteria 1–16, demos met both `Expect:` lines, `make check` green in the session's own clone. Merged with a merge commit | #1 | plan, section 8 (approval) |
 | 01:24 | S0001 archived by the factory (`5081e1b`). `F0001: start S0002` | | plan, section 8 (start) |
+| 01:31 | S0002 at accept: 16 behavioural criteria mapped to tests, demos met both `Expect:` lines, `make check` green in the session's clone, diff within the story. Merged; archived by the factory | #2 | plan, section 8 (approval) |
+| 01:32 | `F0001: start S0003` | | plan, section 8 (start) |
