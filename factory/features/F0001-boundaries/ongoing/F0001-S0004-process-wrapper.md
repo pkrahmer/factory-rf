@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 4
 blocked: null
 comments_seen: 0
@@ -140,3 +140,13 @@ Expect: one line, `['src/factory/adapters/process.py']`.
       - Noticed, not touched: when a child exits normally inside the limit but leaves a background grandchild holding stdout open, `communicate()` waits for that grandchild. The time limit still bounds that wait if one is set. The ticket does not cover this case.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   I checked these against `git diff main...HEAD -- . ':!factory'`: `src/factory/adapters/process.py`, `tests/adapters/test_process.py` and `tests/test_process_search.py`.
+      - Acceptance criteria: criteria 1–14 each have a test that checks what the criterion says. The failing sides of the Interface's rules are covered. Criterion 9 tests an empty `argv`, a `time_limit` of 0 and of -1 s (rejected) and of 1 s and `None` (accepted). Criterion 8 tests a missing executable, criterion 2 a non-zero exit, and criteria 5, 6 and 7 the timeout and the in-limit case. Criterion 13's test also runs the search against an `os.system` snippet and checks that it finds it. Criterion 14's marker regex reads each marker up to the next `#`, so a reason added to a marker comment would fail the test. The coder's entry says `make check` was green with 100 % coverage.
+      - Architecture: the module is in `factory.adapters` and imports only the standard library and pydantic. Its DTOs are frozen Pydantic models, and no `dict[str, Any]` crosses a function boundary. `subprocess` is imported here only, as R5 requires.
+      - Security: no shell, and `argv` is passed as a list. stdin is `DEVNULL`. The child starts with `start_new_session=True`. At the limit it gets `killpg` with SIGKILL, and a `ProcessLookupError` from that call is suppressed. The only markers are the four that `CLAUDE.md` allows, on the import line and the `Popen(` line. The reason for them is in the module docstring ("the one place that starts a subprocess") and in `docs/decisions.md` (the entry on `process.py`). Nothing else is silenced.
+      - Quality: names and docstrings are present and accurate. `_decode` handles the `None` stderr of the merged case. The two comments explain why. There is no dead code.
+      - Ticket hygiene: the coder's entry explains the `Popen`/`communicate`/`killpg` design. It also explains why `subprocess.run(timeout=…)` and a SIGTERM grace period were rejected. `Assignment` matches the code. Criterion 16 still describes what the documenter must write.
+
+   Open, not a finding: after `killpg`, the second `communicate()` has no time limit. A descendant that left the group (by calling `setsid`) and still holds the pipe would block it. The ticket defines the kill as killing the process group, so this is outside the story. The coder's entry notes a related case: a background grandchild of a child that exits normally.
