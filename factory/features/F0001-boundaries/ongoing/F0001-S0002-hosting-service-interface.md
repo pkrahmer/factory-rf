@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 2
 blocked: null
 comments_seen: 0
@@ -246,3 +246,19 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
    - Ticket hygiene: the main decision and the rejected alternative (one strict regex) are in the coder's entry. The Assignment matches what was built, and criterion 18 still names what the documenter has to write.
 
    Open, not a finding: `PullRequestComment` built directly, not through `from_body`, does not check that `by_factory` and `key` agree with `body`. The Interface only says what `from_body` does. S0003's adapter should build comments through `from_body`.
+6. documenter: wrote the documentation for criterion 18. No findings: the code matches the Interface. `make check` is green.
+
+   Files changed:
+   - docs/project-guide.md: new "The hosting service" section with the ten operations as a table, the data models, the marker and post key rules, and the statement that the hosting service is reached only through `HostingService`. The Errors section gains `BoundaryError` and `HostingServiceError`. The intro no longer says nothing is built.
+   - docs/decisions.md: new entry on why a post carries a key and why the marker, not the author, tells the factory's posts apart. It lists the rejected alternatives. It cites WE6.3 and R34.
+   - README.md: the intro says what exists so far. The project guide is marked "partly written".
+
+   Cross-read and found current: docs/operator-guide.md (still a stub, correct), the other entries in docs/decisions.md, and the kill points and errors sections of the project guide.
+
+   I did not run the demos. The behaviour in the docs comes from the Interface and the tests.
+
+   Stale but not touched: nothing.
+
+   The reviewer's open point is in the project guide: build comments through `PullRequestComment.from_body`. S0003 should do this.
+
+   `make check`: check: green
