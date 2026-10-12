@@ -1,7 +1,7 @@
 ---
 stage: review
 pr: 1
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -166,3 +166,22 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
       - Noticed, not touched: the intake gap still stands. No test checks that arming one point leaves an already armed point armed. The implementation does keep it armed, because the map is per point. Criterion 17 (the docs) belongs to the documenter.
 
    `make check`: check: green
+9. reviewer: I read the full diff. One gap in the story stops me from passing it. The coder cannot fix it, so I am asking instead of sending the ticket back to doing.
+
+   **The gap.** The Interface rule "Arming one point leaves the others as they were" has no criterion for its failing side when the other point is already armed. Criterion 7 covers only other points that are still inert. No test checks that `arm(A)` leaves an earlier `arm(B, after=n)` as it was. The intake (entry 2), the tester (entry 3) and the coder (entry 8) each noted this gap and left it open. The checklist says a rule without its failing side is a finding against the story, so I am raising it with you.
+
+   The code is correct on this point. In `src/factory/domain/kill_points.py`, `_passes_left` is a separate entry for each point, so arming one point does not touch another. What is missing is the test.
+
+   **Options:**
+   - (a) Add a criterion before the two closing ones: "Arming one point leaves an armed other point as it was: after `arm(BEFORE_PUSH, after=1)` and then `arm(AFTER_PUSH)`, the first reach of `BEFORE_PUSH` returns and the second raises." The ticket goes back to doing, ends with `tests`, and the tester adds one test for it. No code changes.
+   - (b) Accept the gap as it is, with criterion 7 covering only the inert case. I would then pass the review on the next run.
+
+   **My recommendation is (a).** It costs one test and closes the last uncovered rule of the seam that F0008 and F0011 will rely on.
+
+   **What I checked besides the gap:**
+   - Acceptance criteria: the tests for criteria 1–15 match their criteria. The boundary of criterion 10 is tested on both sides (−1 is rejected and 0 is accepted), including the case where a rejected `arm` leaves an earlier arming in place. The coder reports `make check` green in entry 8.
+   - Architecture: both modules are in `factory.domain` and import only `enum`.
+   - Security: nothing to report. The only marker is the `# noqa: BLE001` in the test, and its reason is written beside it.
+   - Quality: docstrings are present and accurate, and there is no dead code.
+   - Ticket hygiene: the log explains the countdown design and why the alternative was rejected.
+   - The `CLAUDE.md` and `docs/runs/` lines in the diff are your own commits merged from main (78d9609, 0f1bbf5), so I did not review them.
