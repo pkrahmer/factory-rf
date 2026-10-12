@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 1
 blocked: null
 comments_seen: 2
@@ -150,3 +150,11 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
 6. coder: the human's answer (entry 5, option a) calls for a test change. I have not touched the test and the implementation stays as it was (commit 0d091ba).
       - Change for the tester: in `tests/domain/test_kill_points.py`, lines 33, 75, 86, 118, 128 and 162, replace `assert <kp>.reach(<point>) is None` with a plain call `<kp>.reach(<point>)`. That is `kill_points.reach(point)`, `kill_points.reach(other)` on line 86 and `untouched.reach(point)` on line 162. These lines fail `mypy --strict` with `func-returns-value`.
       - Unchanged: the interface stays `reach(...) -> None`, and the mypy settings stay as they are. Once those six lines are changed, `make check` should be green with no further work from the coder.
+7. tester: made the test change the human approved in entry 5 (option a), as entry 6 names it. Nothing else changed.
+      - Changed: `tests/domain/test_kill_points.py`, lines 33, 75, 86, 118, 128 and 162. Each `assert <kp>.reach(<point>) is None` is now a plain call: `kill_points.reach(point)` five times, and `untouched.reach(point)` on line 162. On line 86 the call is `kill_points.reach(other)`.
+      - Why: `reach` is typed `-> None`, so `mypy --strict` rejected using its value (`func-returns-value`). The test still fails if `reach` raises, so criterion 2 is still covered, and so are the other criteria that use these lines (5, 6, 7, 10 and 14). The interface and the mypy settings are unchanged.
+      - Diff: 6 lines changed in that one file.
+      - `make test`: green, 100 % coverage. `make lint`: green. I did not run `make types` myself; the coder's entry 6 expects `make check` to be green with this change.
+
+   `make lint`: lint: green
+   `make test`: test: green

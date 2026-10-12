@@ -30,7 +30,7 @@ def test_kill_point_has_exactly_the_four_named_members() -> None:
 @pytest.mark.parametrize("point", ALL_POINTS)
 def test_new_kill_points_never_raise(kill_points: KillPoints, point: KillPoint) -> None:
     for _ in range(5):
-        assert kill_points.reach(point) is None
+        kill_points.reach(point)
 
 
 def test_reached_counts_every_reach_per_point(kill_points: KillPoints) -> None:
@@ -72,7 +72,7 @@ def test_point_is_disarmed_after_it_fires_and_the_raising_reach_counts(
     with pytest.raises(InjectedKill):
         kill_points.reach(point)
     assert kill_points.reached(point) == 1
-    assert kill_points.reach(point) is None
+    kill_points.reach(point)
     assert kill_points.reached(point) == 2
 
 
@@ -83,7 +83,7 @@ def test_arming_one_point_leaves_the_others_inert(
     kill_points.arm(point)
     for other in _others(point):
         for _ in range(3):
-            assert kill_points.reach(other) is None
+            kill_points.reach(other)
 
 
 @pytest.mark.parametrize("point", ALL_POINTS)
@@ -115,7 +115,7 @@ def test_after_must_not_be_negative(kill_points: KillPoints, after: int, accepte
     else:
         with pytest.raises(ValueError):
             kill_points.arm(point, after=after)
-        assert kill_points.reach(point) is None
+        kill_points.reach(point)
 
 
 def test_negative_after_leaves_an_earlier_arming_as_it_was(
@@ -125,7 +125,7 @@ def test_negative_after_leaves_an_earlier_arming_as_it_was(
     kill_points.arm(point, after=1)
     with pytest.raises(ValueError):
         kill_points.arm(point, after=-1)
-    assert kill_points.reach(point) is None
+    kill_points.reach(point)
     with pytest.raises(InjectedKill):
         kill_points.reach(point)
 
@@ -159,7 +159,7 @@ def test_two_kill_points_instances_are_independent(point: KillPoint) -> None:
     armed = KillPoints()
     untouched = KillPoints()
     armed.arm(point)
-    assert untouched.reach(point) is None
+    untouched.reach(point)
     assert untouched.reached(point) == 1
     assert armed.reached(point) == 0
 
