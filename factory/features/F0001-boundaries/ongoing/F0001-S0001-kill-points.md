@@ -1,14 +1,14 @@
 ---
-stage: review
+stage: doing
 pr: 1
 blocked: null
 comments_seen: 4
-round: 0
+round: 1
 attempts: 0
 ---
 # Kill points in the wrappers
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 10)
 
 Create the injection seam of R36 and the root of the factory's error hierarchy. `KillPoints` holds four named points that are inert until a test arms one; reaching an armed point raises `InjectedKill`, a `BaseException`, so that no handler's `except Exception` survives it, just as no handler survives a real death. This story builds only the seam. The wrappers reach the points in their own stories (the fake hosting service and the PyGithub client reach `after-post`, the git wrapper reaches `before-push` and `after-push`, the two agent runtimes reach `agent-run`), each with its own criterion; the tests that use the points to prove recovery come in F0008 and F0011. Covers R36 (the seam); keeps kept thing 13 (recover by construction) by making a crash testable. It also creates `factory.domain.errors` with `FactoryError`, the root that the later stories add their error types to.
 
@@ -70,8 +70,9 @@ Tests: `tests/domain/test_kill_points.py` and `tests/domain/test_errors.py`; `te
 13. `FactoryError` is a subclass of `Exception`, and `str(FactoryError("x"))` is `x`.
 14. Two `KillPoints` instances are independent: arming a point on one does not make the same point raise on the other.
 15. Neither `factory.domain.kill_points` nor `factory.domain.errors` imports `os`, `subprocess`, `time`, `socket` or `pathlib` (a test parses both files with `ast`).
-16. make check stays green.
-17. docs: `docs/project-guide.md` explains how a test arms a kill point (the `kill_points` fixture, `arm`, `after`) and names which wrapper reaches which of the four points; `docs/decisions.md` records why `InjectedKill` is a `BaseException` (WE6.3).
+16. Arming one point leaves an armed other point as it was: after `arm(BEFORE_PUSH, after=1)` and then `arm(AFTER_PUSH)`, the first reach of `BEFORE_PUSH` returns and the second raises.
+17. make check stays green.
+18. docs: `docs/project-guide.md` explains how a test arms a kill point (the `kill_points` fixture, `arm`, `after`) and names which wrapper reaches which of the four points; `docs/decisions.md` records why `InjectedKill` is a `BaseException` (WE6.3).
 
 ## Demo
 
@@ -186,3 +187,19 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
    - Ticket hygiene: the log explains the countdown design and why the alternative was rejected.
    - The `CLAUDE.md` and `docs/runs/` lines in the diff are your own commits merged from main (78d9609, 0f1bbf5), so I did not review them.
 10. human (pull request comment, 2026-10-12): (a): add the criterion before the two closing ones, exactly as you worded it: "Arming one point leaves an armed other point as it was: after `arm(BEFORE_PUSH, after=1)` and then `arm(AFTER_PUSH)`, the first reach of `BEFORE_PUSH` returns and the second raises." Back to doing, ending with `tests`; the tester adds the one test. It closes the failing side of an Interface rule (the story's own rule).
+11. reviewer: I followed the human's answer in entry 10 (option a) and found one finding. The ticket goes back to doing.
+
+    Ticket edit: I added the human's criterion word for word as criterion 16, ahead of the two closing ones, which are now 17 (make check) and 18 (docs). The Assignment heading now reads "as of log entry 10". The text of the Assignment and the Interface did not change, because the Interface rule "Arming one point leaves the others as they were" already covers the new criterion.
+
+    Findings:
+    1. `tests/domain/test_kill_points.py`: criterion 16 has no test. Fix: the coder ends with `tests` and names one new test, for example `test_arming_one_point_leaves_an_armed_other_point_as_it_was`. It should call `arm(KillPoint.BEFORE_PUSH, after=1)` and then `arm(KillPoint.AFTER_PUSH)`. The first `reach(BEFORE_PUSH)` should return and the second should raise `InjectedKill`. No code change is needed: in `src/factory/domain/kill_points.py`, `_passes_left` keeps each point's arming separate, so the new test should pass against commit 0d091ba as it is.
+
+    Checked again in this round, all as entry 9 found them:
+    - The tests for criteria 1–15 match their criteria. Criterion 10 is tested on both sides of the boundary (−1 and 0), including the case where an earlier arming must survive.
+    - The coder reported `make check` green in entry 8.
+    - Both modules import only `enum`.
+    - No markers apart from the `# noqa: BLE001` in the test, which has its reason written beside it.
+    - Docstrings are present and accurate.
+    - The log explains the countdown design and the alternative it rejected.
+
+    Not reviewed: the changes to `planning/`, `docs/runs/`, `CLAUDE.md` and `factory/features/F0001-boundaries/` other than this ticket come from the human's own commits on the branch (80e084e, 78d9609, 0f1bbf5), not from this ticket's work.
