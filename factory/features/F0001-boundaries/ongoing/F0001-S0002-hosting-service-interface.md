@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 2
 blocked: null
 comments_seen: 0
@@ -223,3 +223,26 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
    Not touched: the docs for criterion 18 belong to the documenter. The PyGithub client (S0003) and the fake (S0014) implement this protocol later.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read each test against its criterion. Criteria 1–16 each have a test that checks what the criterion says. Every rule in the Interface is also tested on its failing side:
+     - PostKey rejections (work item, kind, `n` empty, not hex, uppercase)
+     - the eight `None` cases of `parse_post_key`
+     - a naive `created_at` and an `id` of 0, with 1 accepted on the other side of that limit
+     - `merge_commit` missing when merged, present when open or closed, 39 characters, uppercase; and a `number` of 0
+     - unknown keys and assignment on all three models
+     - the search for mappings to `Any`, run against a snippet that has an offender and one that has none
+   - Make check: the coder's entry reports `make check` green with 100 % coverage.
+   - Architecture:
+     - `factory.domain.hosting`, `identifiers`, `git` and `paths` import only the standard library, pydantic and `factory.domain`.
+     - `factory.application.hosting` imports only `factory.domain`.
+     - The DTOs are Pydantic models shaped by the factory.
+     - The Protocol has the ten operations, and none of them reads labels.
+   - Security: no secrets, no strings run as shell or SQL, and no security-silencing marker. The only marker in the diff is `# noqa: DTZ001` in `tests/domain/test_hosting.py`, which is a lint rule and not a security check. It is on the line that builds a naive datetime on purpose to test that it is rejected.
+   - Quality:
+     - `parse_post_key` matches the shape of the key line with a loose regex and leaves validation to `PostKey`, so the rules are written once.
+     - The private `_Frozen` base holds the shared model config.
+     - Docstrings are there and say what each thing is; there is no dead code.
+   - Ticket hygiene: the main decision and the rejected alternative (one strict regex) are in the coder's entry. The Assignment matches what was built, and criterion 18 still names what the documenter has to write.
+
+   Open, not a finding: `PullRequestComment` built directly, not through `from_body`, does not check that `by_factory` and `key` agree with `body`. The Interface only says what `from_body` does. S0003's adapter should build comments through `from_body`.
