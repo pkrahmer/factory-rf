@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 3
 blocked: null
 comments_seen: 0
@@ -154,3 +154,12 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built `src/factory/adapters/pygithub_hosting.py` (commit a9600d5). `PyGithubHostingService` implements the ten `HostingService` operations on PyGithub's `Repository` without inheriting the protocol. The constructor only stores the repository and the kill points.
+      - Main decision: there is one error boundary, a private context manager `_failing_as(operation)`. Each operation wraps its whole body in it, and it re-raises `GithubException` and `OSError` as `HostingServiceError(operation, str(error)) from error`. Because each operation's `get_pull` call is inside its own wrapper, a failure while `post_comment` lists comments is reported as `post_comment`. The `AFTER_POST` kill point is reached outside the wrapper, after a successful post. `InjectedKill` is a `BaseException` and is never caught anyway.
+      - Alternative rejected: a decorator on each method. It would hide the operation name in the decorator argument, and mypy would need a `ParamSpec` dance. The `with` block reads more plainly.
+      - Mapping: four private module functions do the translation. `_state` checks merged first, then open, then closed. `_view` sets `merge_commit` only when the pull request is merged. `_as_utc` treats a naive `created_at` as UTC. `_comments` sorts by id. `set_labels` keeps label names without `LABEL_PREFIX`, in their order, then adds the given ones. `MAIN_BRANCH` and `LABEL_PREFIX` come from `factory.domain.paths`.
+      - `make check` is green, with 100 % coverage. Demo 1 prints `get_pull_request | 404 {"message": "Not Found"}`.
+      - Refactor pass: I read the diff (one new module) and found nothing to rename, simplify or remove, so there is no refactor commit.
+      - Noticed, not touched: nothing outside the ticket. Criterion 23 (docs) is the documenter's.
+
+   `make check`: check: green
