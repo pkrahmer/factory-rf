@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 5
 blocked: null
 comments_seen: 0
@@ -289,3 +289,21 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
    Considered, not raised:
    - `self._identity` in `GitCli.__init__` duplicates `self._options.identity` and nothing reads it yet. The Interface explicitly asks `GitCli` to keep the identity for S0006, so I don't count it as dead code.
    - The Interface's `merge_stderr=True` means a git warning on stderr would be mixed into the output that `remote_branches` and `resolve` parse. `rev-parse --quiet` suppresses the ambiguity warning, and `for-each-ref` warns only on a broken ref. This is a possible gap in the story, not in this code.
+6. documenter: no findings. `make check` is green. I ran the second demo block and it printed `FetchFailed git fetch --prune origin 128`. I did not run the first block; the tests cover its behaviour.
+
+   Files changed:
+   - `docs/project-guide.md`, Errors section: `GitError` (the three attributes, the message formats, the 30-line tail) and `FetchFailed`.
+   - `docs/project-guide.md`, new section "The git wrapper":
+     - `Git` and `GitCli` as the only route to git.
+     - The `GitOptions` fields with their defaults, and the identity and environment that F0010 fills from `GIT_USER_NAME`, `GIT_USER_EMAIL` and the token.
+     - The six operations and their failure rules.
+     - The isolated configuration, and credentials that reach git only through the environment and never inside a URL.
+     - The real-bare-remote fixtures and the helpers in `tests/git_support.py`.
+   - `docs/decisions.md`: new entry on why global and system git configuration are ignored (WE6.3). It lists the rejected alternatives: trusting the user's configuration, a private `HOME`, and credentials in the URL.
+   - `README.md`: the one-sentence status of the package now mentions the git wrapper's reading half.
+
+   Cross-read and found current: the rest of `docs/project-guide.md` (hosting service, process wrapper, kill points) and `docs/decisions.md`. The kill-point table still holds, because `GitCli` does not reach any kill point yet. `docs/operator-guide.md` is a stub and was left alone.
+
+   Nothing stale found that I left untouched.
+
+   `make check`: check: green
