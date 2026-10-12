@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 4
 blocked: null
 comments_seen: 0
@@ -107,3 +107,27 @@ Expect: one line, `['src/factory/adapters/process.py']`.
    - Demo: both blocks are runnable. The `Expect:` lines are checkable: `3 False 'out\nerr\n'` and `None True 'started\n'` for the first, and `['src/factory/adapters/process.py']` for the second.
    - Architecture: the module sits in `factory.adapters`, uses Pydantic DTOs, has no `dict[str, Any]` crossing a boundary, and is the single process wrapper per R5. The suppression markers match the exception in `CLAUDE.md`, so no question is needed.
    - Scope: this is the feature's "one place that starts a subprocess" and the boundary searches. It stays clear of Out of scope. The `tests/source_search.py` helper comes from S0003, which is earlier in the feature's order.
+3. tester: Wrote red tests for criteria 1–14 against the Interface. Children are Python one-liners run with `sys.executable`, all in `tmp_path`. Nothing is faked.
+   - criterion 1: tests/adapters/test_process.py::test_output_and_exit_status_come_back, ::test_child_runs_in_the_given_working_directory (compares the printed cwd with `tmp_path.resolve()`)
+   - criterion 2: tests/adapters/test_process.py::test_non_zero_exit_status_is_returned_not_raised
+   - criterion 3: tests/adapters/test_process.py::test_merged_stderr_keeps_the_order_written
+   - criterion 4: tests/adapters/test_process.py::test_given_env_is_the_whole_environment (sets the parent variable with monkeypatch; checks it is absent with a given env and present with `env=None`)
+   - criterion 5: tests/adapters/test_process.py::test_child_is_killed_at_the_time_limit (`time.monotonic` < 6 s)
+   - criterion 6: tests/adapters/test_process.py::test_grandchild_is_killed_with_the_child_at_the_time_limit (the grandchild's pid goes to a file; it counts as gone on `ProcessLookupError` from `os.kill(pid, 0)`, a missing `/proc/<pid>/stat`, or state `Z`)
+   - criterion 7: tests/adapters/test_process.py::test_child_within_the_time_limit_keeps_its_exit_status
+   - criterion 8: tests/adapters/test_process.py::test_missing_executable_raises_file_not_found
+   - criterion 9: tests/adapters/test_process.py::test_request_rejects_empty_argv_and_non_positive_time_limit (empty argv, 0, -1 s), ::test_request_accepts_positive_or_no_time_limit (1 s, None)
+   - criterion 10: tests/adapters/test_process.py::test_undecodable_output_bytes_are_replaced
+   - criterion 11: tests/adapters/test_process.py::test_shell_characters_reach_the_child_as_written
+   - criterion 12: tests/test_process_search.py::test_only_the_process_wrapper_imports_subprocess
+   - criterion 13: tests/test_process_search.py::test_no_module_uses_another_route_to_a_process. It also checks that the search finds `os.system` in a snippet. The search is `routes_to_a_process` in that test module: it finds `shell=<truthy constant>` keywords, `os.`/`asyncio.` attribute access and `from os|asyncio import …` for the listed names. I added no helper to `tests/source_search.py`.
+   - criterion 14: tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper. It scans every line under `src/factory` for the four tokens and expects exactly `{noqa: S404, nosec B404}` on the `import subprocess` line of `adapters/process.py` and `{noqa: S603, nosec B603}` on the line with `subprocess.Popen(`. So the coder must keep `Popen(` on the same line as its markers, and must not use these words in docstrings or comments in `process.py`.
+
+   Files created: tests/adapters/test_process.py, tests/test_process_search.py.
+   `make test`: collection error, `ModuleNotFoundError: No module named 'factory.adapters.process'`. This is expected, because the module does not exist yet. The criterion-12 and criterion-14 tests fail until it exists. The criterion-13 test already passes: it guards something that must stay absent.
+   `make lint`: green. The type check was skipped as this stage requires.
+
+   Not done: none of these tests were run against an implementation, because none exists yet. Open: nothing; I did not have to interpret any criterion.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
