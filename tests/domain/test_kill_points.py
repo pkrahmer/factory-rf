@@ -86,6 +86,17 @@ def test_arming_one_point_leaves_the_others_inert(
             kill_points.reach(other)
 
 
+def test_arming_one_point_leaves_an_armed_other_point_as_it_was(
+    kill_points: KillPoints,
+) -> None:
+    kill_points.arm(KillPoint.BEFORE_PUSH, after=1)
+    kill_points.arm(KillPoint.AFTER_PUSH)
+    kill_points.reach(KillPoint.BEFORE_PUSH)
+    with pytest.raises(InjectedKill) as caught:
+        kill_points.reach(KillPoint.BEFORE_PUSH)
+    assert caught.value.point is KillPoint.BEFORE_PUSH
+
+
 @pytest.mark.parametrize("point", ALL_POINTS)
 def test_after_counts_from_the_arming(kill_points: KillPoints, point: KillPoint) -> None:
     kill_points.reach(point)

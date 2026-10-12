@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 1
 blocked: null
 comments_seen: 4
@@ -207,3 +207,16 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
        - Change for the tester: add one test function, `test_arming_one_point_leaves_an_armed_other_point_as_it_was`, to `tests/domain/test_kill_points.py`. Using the `kill_points` fixture, it calls `arm(KillPoint.BEFORE_PUSH, after=1)` and then `arm(KillPoint.AFTER_PUSH)`. The first `reach(KillPoint.BEFORE_PUSH)` should return (a plain call, without `assert ... is None`, as CLAUDE.md requires), and the second should raise `InjectedKill` with `point == KillPoint.BEFORE_PUSH`.
        - Why it should pass as it is: in `src/factory/domain/kill_points.py`, `KillPoints.arm` writes only `_passes_left[point]`, so arming `AFTER_PUSH` leaves the `BEFORE_PUSH` countdown alone. I have not run this test, because it does not exist yet.
        - Not touched: criterion 18 (docs) is the documenter's.
+13. tester: added the one test that the human approved in entry 10 (option a), as the coder's entry 12 names it. Nothing else changed.
+       - Added: `tests/domain/test_kill_points.py::test_arming_one_point_leaves_an_armed_other_point_as_it_was`. It sits directly after `test_arming_one_point_leaves_the_others_inert`.
+       - What it checks (criterion 16): it uses the `kill_points` fixture to call `arm(KillPoint.BEFORE_PUSH, after=1)` and then `arm(KillPoint.AFTER_PUSH)`. The first `reach(BEFORE_PUSH)` is a plain call that must return. The second must raise `InjectedKill` with `point is KillPoint.BEFORE_PUSH`. There is no `assert ... is None`, so the test passes `mypy --strict`.
+       - Why: criterion 16 covers the failing side of the Interface rule "Arming one point leaves the others as they were" in the case where the other point is already armed. Criterion 7 covers only the inert case.
+       - Diff: one new function in that one file, 11 lines. No other test changed.
+       - Not red: the test passes against commit 0d091ba as it stands. That is expected, because the coder's entry 12 says no code change is needed.
+       - I did not run `make types` myself. The test follows the same pattern as the existing typed tests.
+
+       `make test`: test: green (100 % coverage)
+       `make lint`: lint: green
+
+    `make lint`: lint: green
+    `make test`: test: green
