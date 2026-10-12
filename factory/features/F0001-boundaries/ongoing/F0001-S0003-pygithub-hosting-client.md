@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 3
 blocked: null
 comments_seen: 0
 round: 0
@@ -112,3 +112,9 @@ Expect: one line, `['src/factory/adapters/pygithub_hosting.py']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/adapters/pygithub_hosting.py` names the class, the constructor signature and the exact PyGithub members the stand-ins must provide. Every operation's call and mapping is stated concretely: the `create_pull` arguments, the `get_pulls` head string, the state and merge_commit mapping, the comment sorting and UTC rule, the post flow, and the label filtering.
+   - Criteria: each of the 23 is testable by one test function. Every rule has its failing side. A key line without the marker does not count (8, 10). An open or closed-unmerged pull request has no merge_commit (6). Errors are covered for all ten operations, in both the list and post paths of `post_comment` (16). Other exceptions and `InjectedKill` pass through (17). The constructor touches nothing (18). The source searches are in 19 and 20, the structural fit in 21. Kill-point behaviour is in 11, including the case where it is not reached.
+   - Demo: both commands are runnable. The expected lines can be checked: the `GithubException` text for 404 and the single module path that imports `github`.
+   - Architecture: the client sits in `factory.adapters`, behind the S0002 interface. It imports `HostingService`, DTOs and `HostingServiceError` from the domain and application layers, which is the allowed direction. PyGithub is confined to one module, as R9 requires.
+   - Scope: the story is within the feature's scope (SI2.1, SI2.2). The wiring of the `Repository` and the token are left to F0002 and F0010, and the fake to S0014.
