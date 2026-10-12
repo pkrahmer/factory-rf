@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 2
 blocked: null
 comments_seen: 0
 round: 0
@@ -169,3 +169,9 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (errors, identifiers, git, paths, domain.hosting, application.hosting); the partial modules and the names later stories add are stated, and the ten operations are listed.
+   - Criteria: each is testable by a test function without further decisions. Every stated rule has its failing side: PostKey rejections (5), parse_post_key None cases (8), the naive datetime, id 0 and UTC conversion (11), merge_commit missing, present on a non-merged state, wrong length or case, and number 0 (12), unknown keywords and assignment (13). The behaviours in the Interface comments (render_post format, last-non-blank-line parsing, by_factory from the marker only, the error message) are each covered by criteria 1, 3, 6 to 10.
+   - Demo: both commands are runnable; the Expect lines give exact output (the three lines, and `rejected 1`).
+   - Architecture: the domain DTOs and the protocol in application sit in the right layers, application imports only the domain, and criterion 16 enforces the imports. The hosting service stays behind an interface (R6, R10).
+   - Scope: within F0001's scope (the interface, DTOs, marker and post key). Idempotent posting and the fake are left to S0014 and F0003/F0007, as the feature says.
