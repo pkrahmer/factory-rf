@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 1
 blocked: null
 comments_seen: 4
@@ -220,3 +220,13 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
 
     `make lint`: lint: green
     `make test`: test: green
+14. coder: coder (round 1): the tester's new test for criterion 16 passes as expected, `make check` is green, and I changed no code. The implementation is still the one in commit 0d091ba.
+       - Finding from entry 11 is closed: `tests/domain/test_kill_points.py::test_arming_one_point_leaves_an_armed_other_point_as_it_was` (added in entry 13) passes against `src/factory/domain/kill_points.py` as it is. That is because `KillPoints.arm` writes only `_passes_left[point]`, so arming `AFTER_PUSH` leaves the `BEFORE_PUSH` countdown alone.
+       - I ran `make check` myself: lint, types, layers, sast, secrets, licenses and test are all green, with 100 % branch coverage. That includes `mypy --strict` over the new test, which neither the tester nor I had run before.
+       - Design is unchanged: a "passes left" countdown for each armed point. I rejected storing an absolute target reach number (see entry 8).
+       - Refactor: nothing new to refactor this round, because there is no new code, so there is no refactor commit.
+       - Open: criterion 18 (docs) is the documenter's.
+
+       `make check`: check: green
+
+    `make check`: check: green
