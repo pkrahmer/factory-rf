@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 5
 blocked: null
 comments_seen: 0
@@ -250,3 +250,29 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.git_cli'
+4. coder: the git wrapper's reading half is built and `make check` is green (100 % branch coverage). I did not change any test. Commits: 1e3fe8e (feat), 97e65fe (refactor).
+
+   What I built:
+   - `src/factory/domain/errors.py`: `GitError` (`command`, `exit_status`, `output_tail`; message `<command> failed (exit N|no exit status): <tail>`) and `FetchFailed`.
+   - `src/factory/domain/paths.py`: `REMOTE = "origin"`.
+   - `src/factory/domain/git.py`: `GIT_TIME_LIMIT`, `RemoteBranch`, `GitIdentity` (frozen, forbids unknown keys, non-empty fields) and `GitOptions` (frozen, forbids unknown keys, `arbitrary_types_allowed` for `KillPoints`). Pydantic copies the `{}` default of `environment`, so two `GitOptions()` never share it.
+   - `src/factory/application/git.py`: the `Git` Protocol.
+   - `src/factory/adapters/git_cli.py`: `GitCli`. Every command goes through one private `_run`. It calls `run_process` with `merge_stderr=True` and `options.time_limit`. The environment is the process environment, then `options.environment`, then `GIT_CONFIG_NOSYSTEM=1` and `GIT_CONFIG_GLOBAL=os.devnull`. `_run` turns an `OSError`, a timeout, or an exit status it was not told to expect into the error class it is given (`GitError`, or `FetchFailed` for `fetch`), with the last 30 output lines as the tail.
+
+   Main decision: I tell a missing ref or path apart from a failure by git's exit statuses and listings, not by matching error text.
+   - `resolve` uses `rev-parse --verify --quiet <ref>^{commit}`: exit 1 means `None`, exit 128 is an error.
+   - `is_ancestor` uses `merge-base --is-ancestor`: 0 is true, 1 is false, 128 is an error.
+   - `show_file` runs `ls-tree -z <ref> -- <path>` and returns `None` unless that exact path is a blob; then `cat-file blob <oid>` gives the text.
+   - `list_files` runs `ls-tree -r -z --name-only` and keeps only paths under `<directory>/`, so a sibling such as `factory/features-x` or a file named like the directory is not counted.
+   - With `-z`, names with spaces or non-ASCII characters come back unquoted.
+   - Rejected: `git show <ref>:<path>` with parsing of its error text to tell "no such path" from "no such ref". That depends on git's wording and its language setting.
+
+   Refactor (97e65fe): renamed the exit-status constant to `ANSWER_NO` and moved the ls-tree entry parsing into `_blob_in_listing`. Behaviour is unchanged.
+
+   Noticed, not touched:
+   - `GitCli` stores the identity (`self._identity`) but does not use it yet; S0006's `commit` needs it.
+   - It does not use `kill_points` yet either.
+   - `RemoteBranch` is not frozen, because the interface does not ask for it.
+   - I ran the second demo block and it printed `FetchFailed git fetch --prune origin 128`. The first block's behaviour is covered by the tests, but I did not run it.
+
+   `make check`: check: green
