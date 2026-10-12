@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 1
 blocked: null
 comments_seen: 2
@@ -147,3 +147,6 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
       - Options: (a) the tester changes those six lines to call `kill_points.reach(point)` without `assert ... is None`. The test still fails if `reach` raises, so criterion 2 stays covered. (b) Relax mypy's `func-returns-value` for `tests/` in `pyproject.toml`, which weakens a check to fit a test. (c) Change `reach`'s return type away from `None`, which breaks the interface.
       - I would choose (a). If you agree, the next doing run ends with `tests` and names that change.
 5. human (pull request comment, 2026-10-12): (a): the tester changes the six lines to call `kill_points.reach(point)` without `assert ... is None`; the test still fails if `reach` raises, so criterion 2 stays covered. The interface (`reach(...) -> None`) and mypy's settings stay as they are.
+6. coder: the human's answer (entry 5, option a) calls for a test change. I have not touched the test and the implementation stays as it was (commit 0d091ba).
+      - Change for the tester: in `tests/domain/test_kill_points.py`, lines 33, 75, 86, 118, 128 and 162, replace `assert <kp>.reach(<point>) is None` with a plain call `<kp>.reach(<point>)`. That is `kill_points.reach(point)`, `kill_points.reach(other)` on line 86 and `untouched.reach(point)` on line 162. These lines fail `mypy --strict` with `func-returns-value`.
+      - Unchanged: the interface stays `reach(...) -> None`, and the mypy settings stay as they are. Once those six lines are changed, `make check` should be green with no further work from the coder.
