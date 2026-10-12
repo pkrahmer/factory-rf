@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 1
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -146,3 +146,4 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
       - Contradiction: `make types` (`mypy --strict` over `tests`) fails with 6 errors `func-returns-value` in `tests/domain/test_kill_points.py`, at lines 33, 75, 86, 118, 128 and 162. Each of those lines writes `assert kill_points.reach(point) is None`. The interface fixes `reach(...) -> None`, and mypy rejects using the value of a function that returns None. The tester could not see this, because mypy could not run before the module existed. No implementation that keeps the interface can satisfy both the tests and `make check`.
       - Options: (a) the tester changes those six lines to call `kill_points.reach(point)` without `assert ... is None`. The test still fails if `reach` raises, so criterion 2 stays covered. (b) Relax mypy's `func-returns-value` for `tests/` in `pyproject.toml`, which weakens a check to fit a test. (c) Change `reach`'s return type away from `None`, which breaks the interface.
       - I would choose (a). If you agree, the next doing run ends with `tests` and names that change.
+5. human (pull request comment, 2026-10-12): (a): the tester changes the six lines to call `kill_points.reach(point)` without `assert ... is None`; the test still fails if `reach` raises, so criterion 2 stays covered. The interface (`reach(...) -> None`) and mypy's settings stay as they are.
