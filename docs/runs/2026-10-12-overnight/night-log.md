@@ -21,6 +21,7 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 
 - Fault paths (`planning/overnight/fault-paths.md`, open questions): whether WE1.1 means five kill points or the six rows of section 7.2; whether a crash after a stage's result (between commit and push, between post and record) raises `crashes`, and on which stage (working reading taken: yes, on the stage in flight); whether a close while the stages work and a merge while the move-back question is open need injection tests; the demo README's own path names were not read.
 - The 16 working answers in `planning/overnight/skeleton-answers.md` (taken by the session, not by you), especially answers 1 (expiry as a crash), 3 (the checkout restored every tick), 4 (keyed posts) and 15 (`handed_over`).
+- The interface sheet's chosen spellings for v1.1's own formats (`factory/pipeline.yml`, `backlog/`, `in-progress/`, `done/`, `work-item/<id>` branches, `## Description`, `## Smoke test`, `## Journal`, acceptance ids `F000N-A000M`), its `time_limit` defaults (40 and 10 minutes), `ERROR_CAP` as a constant, and no writer for the pipeline definition.
 
 ## Rows after going unattended
 
@@ -33,3 +34,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 23:47 | Working answers to the skeleton's 16 open questions taken (`planning/overnight/skeleton-answers.md`): expiry of another instance's lease handled as a crash; no tick lock; the checkout restored to the remote each tick (ST3.3's dirty-main stop = the restore fails); keyed posts; `handed_over` state field; PyGithub tested with stand-ins. Checked on the PC: v1's container has no root, no sudo, no Docker, so ST3.3, WE3.1, WE3.3, WE3.4 stay static tests plus morning observations | | plan, sections 3 and 5 |
 | 23:48 | Interface sheet started (opus) | | plan, section 5 |
 | 23:55 | Usage: 5-hour window 9%, weekly 54% | | plan, section 11 |
+| 00:05 | Interface sheet done (`planning/overnight/interfaces.md`, 86 modules, one error hierarchy, four kill points, keyed posts); its 14 open questions answered in `skeleton-answers.md` | | plan, section 5; decision 007 question 1 |
+| 00:07 | Eleven drafters (sonnet) started in parallel, one per feature F0001 to F0011 | | plan, section 5 |
