@@ -6,11 +6,14 @@ A running file: every push of the night log updates it. Status at the last updat
 
 ## Done
 
-Nothing archived yet.
+| Story | Pull request | Agent runs | Agent minutes | Clock minutes (start to archive) | Cost | Answers |
+|---|---|---|---|---|---|---|
+| F0001-S0001 Kill points in the wrappers | #1 | 14 | 5.4 | 12 (01:09 to 01:21) | $2.41 | 2 (coder: test vs mypy; reviewer: a missing failing side) |
 
 ## Stops
 
-None yet.
+- S0001, coder at doing: tests used `assert reach(...) is None` against a `-> None` function, red under `mypy --strict`. Answered (a), the tester fixed six lines; `CLAUDE.md` got a test rule to prevent it.
+- S0001, reviewer at review: a rule without its failing side for an already armed point. Answered (a), one criterion and one test added.
 
 ## Fixes made
 
