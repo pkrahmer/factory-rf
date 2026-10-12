@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 1
 blocked: null
 comments_seen: 4
@@ -203,3 +203,7 @@ Expect: one line, `InjectedKill False`; the word `swallowed` is not printed.
     - The log explains the countdown design and the alternative it rejected.
 
     Not reviewed: the changes to `planning/`, `docs/runs/`, `CLAUDE.md` and `factory/features/F0001-boundaries/` other than this ticket come from the human's own commits on the branch (80e084e, 78d9609, 0f1bbf5), not from this ticket's work.
+12. coder: the human's answer in entry 10 (option a) needs one new test for criterion 16 and no code change. I have not touched the tests, and the implementation stays as it is in commit 0d091ba.
+       - Change for the tester: add one test function, `test_arming_one_point_leaves_an_armed_other_point_as_it_was`, to `tests/domain/test_kill_points.py`. Using the `kill_points` fixture, it calls `arm(KillPoint.BEFORE_PUSH, after=1)` and then `arm(KillPoint.AFTER_PUSH)`. The first `reach(KillPoint.BEFORE_PUSH)` should return (a plain call, without `assert ... is None`, as CLAUDE.md requires), and the second should raise `InjectedKill` with `point == KillPoint.BEFORE_PUSH`.
+       - Why it should pass as it is: in `src/factory/domain/kill_points.py`, `KillPoints.arm` writes only `_passes_left[point]`, so arming `AFTER_PUSH` leaves the `BEFORE_PUSH` countdown alone. I have not run this test, because it does not exist yet.
+       - Not touched: criterion 18 (docs) is the documenter's.
