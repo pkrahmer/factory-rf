@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 2
 blocked: null
 comments_seen: 0
@@ -287,3 +287,4 @@ Expect: one line, `rejected 1`: a merged pull request without a merge commit is 
    - Criterion 12: `merged` without a `merge_commit` is rejected.
 
    The demo contradicts no criterion. The other criteria are outside what the commands show, and the tests and the earlier stages cover them. I did not run `make check`; the factory runs it after this stage.
+8. done (pull request merged); cost: 6 runs, 4.3 min, 39 turns, 120k tokens in (550k more from cache), 25k out, $1.37
