@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 10
 blocked: null
 comments_seen: 0
@@ -119,3 +119,30 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
    - Demo: both commands are runnable with the stand-in script. The Expect lines are checkable: `2.1.289`, then `completed doing 8 3.25 10 5`, then the list of budgets.
    - Architecture: the module sits in `factory.adapters`, reached through the `AgentRuntime` protocol and `run_process`. Fit is by structural typing, so no layer is crossed.
    - Scope: within the feature's scope ("claude -p implementation with the budget resume, the time_limit and the version query"). Nothing falls under "Out of scope". The stand-in is used and the real `claude` is not.
+3. tester: Wrote the red tests for the budget resume, the shared time_limit, the added-up measures and the version query of the `claude -p` runtime. All of them are in one new file, `tests/adapters/test_claude_runtime_resume.py`. It uses the S0009 stand-in from `tests/adapters/claude_stand_in.py` without changes, since no new helper was needed.
+
+   Criterion → test (all in tests/adapters/test_claude_runtime_resume.py):
+   - criterion 1: test_resume_budget_is_a_quarter_at_least_fifty_cents_rounded_half_up (parametrized over all 8 values; checks the Decimal value and its string, e.g. `1.00`)
+   - criterion 2: test_budget_stop_resumes_the_same_session_with_the_finish_message
+   - criterion 3: test_resumed_call_sees_the_same_run_files_and_none_is_left
+   - criterion 4: test_completed_resume_adds_up_the_measures_and_joins_the_denials
+   - criterion 5: test_resume_still_over_budget_ends_as_budget_without_a_third_call (parametrized: the resumed call exits 0 or 1; a third step is scripted to show it is never played)
+   - criterion 6: test_budget_stop_with_exit_status_1_is_resumed
+   - criterion 7: test_first_call_ended_by_the_time_limit_is_not_resumed
+   - criterion 8: test_resume_gets_what_is_left_of_the_time_limit_and_unknown_measures
+   - criterion 9: test_measures_a_call_did_not_report_add_nothing (parametrized: only the resumed call reported / neither did)
+   - criterion 10: test_duration_covers_both_calls
+   - criterion 11: test_armed_kill_point_fires_only_after_the_resumed_call, test_unarmed_kill_point_is_reached_once_for_a_resumed_run
+   - criterion 12: test_version_is_the_first_word_of_the_first_non_blank_line (parametrized: first line / after blank lines; also checks that the argv is exactly `--version`)
+   - criterion 13: test_version_that_cannot_be_read_is_a_runtime_error (parametrized: missing executable, exit status 1, prints nothing)
+   - criterion 14: test_version_query_over_its_limit_is_a_runtime_error (also checks that VERSION_TIME_LIMIT is 30 s)
+   - criterion 15: test_version_query_sees_the_processes_environment
+   - criterion 16: test_claude_runtime_fits_the_agent_runtime_protocol_structurally. It assigns the runtime to a variable annotated `AgentRuntime`, which mypy checks, and it asserts that `AgentRuntime` is not in the MRO. It does not use `issubclass`, because that raises TypeError on a protocol that is not runtime_checkable.
+   - criteria 17 and 18 are not tests: `make check` is the gate, and the docs criterion is for the docs stage.
+
+   Note for the coder on criterion 8: the test also asserts that the whole run takes under 2.9 s. That is the observable form of "the resumed call's limit was what was left": a resume given the whole 2 s again would end near 3 s.
+
+   `make test`: collection error in the new module. The test runner could not import `FINISH_MESSAGE` from `factory.adapters.claude_runtime`; `resume_budget`, `VERSION_TIME_LIMIT`, the `version_time_limit` keyword and `version()` are missing too. `make lint` is green. I did not run the type check, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
