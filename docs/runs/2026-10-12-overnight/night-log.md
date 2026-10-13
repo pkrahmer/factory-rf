@@ -82,3 +82,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 03:39 | Heartbeat after the reset: the 5-hour window is at 0%, weekly 65% (resets 05:00). `F0001: start S0010`. The planning cut-off (03:30) has passed: only F0001 is built from here | | plan, sections 3 (cut-off), 8 (start) |
 | 03:50 | S0010 at accept: 16 behavioural criteria mapped, demos met both `Expect:` lines, `make check` green in the container, diff within the story. Merged; archived | #10 | plan, section 8 (approval) |
 | 03:51 | `F0001: start S0011` | | plan, section 8 (start) |
+| 03:56 | S0011: the coder asked (two random-looking commit ids in a test fail `make secrets`). Answered (a): low-entropy ids, no baseline entry, no pragma. `CLAUDE.md` Tests gets the matching line (a tightening) | #11 | plan, section 8: the recommendation loosens nothing |
