@@ -317,7 +317,9 @@ class GitCli:
                 self._run(["checkout", "--quiet", commit_id, "--", path])
 
     def move(self, source: str, destination: str) -> None:
-        """Run `git mv`, after creating the destination's parent directories."""
+        """Run `git mv`, after checking both paths and creating the destination's parents."""
+        check_repository_path(source)
+        check_repository_path(destination)
         (self._directory / destination).parent.mkdir(parents=True, exist_ok=True)
         self._run(["mv", "--", source, destination])
 

@@ -126,5 +126,7 @@ class Git(Protocol):
         """Move the tracked file `source` to `destination`, staged as a rename.
 
         The destination's parent directories are created; an existing destination is refused.
+        Both paths follow the rule of `revert_paths`: an absolute path or a `..` segment in
+        either raises `ValueError` before anything is created.
         """
         ...
