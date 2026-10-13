@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 35
 blocked: null
 comments_seen: 2
@@ -111,3 +111,38 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
    - Demo: both blocks are runnable. Each `Expect:` line can be checked against the output.
    - Architecture: only `factory.entry.wiring` imports adapters, and criterion 20 checks that. The placement rules are a pure function in `factory.domain`.
    - Scope: the story is within the feature's scope ("The story form check ... and its command") and touches nothing in "Out of scope".
+5. tester: wrote red tests for criteria 1–23, one per criterion. Criterion 20 has two tests, one for each of its parts.
+   - criterion 1: tests/domain/test_story_place.py::test_a_story_in_its_place_has_no_finding (backlog, in-progress, done, no slug)
+   - criterion 2: tests/domain/test_story_place.py::test_a_path_outside_the_work_item_locations_gives_only_that_finding (ongoing, one part too deep (six parts), one part too short (four), outside `factory`, outside `features`, `drafts`, and a path with everything else wrong too)
+   - criterion 3: tests/domain/test_story_place.py::test_a_file_name_that_is_not_a_story_name_is_a_finding
+   - criterion 4: tests/domain/test_story_place.py::test_a_feature_directory_that_does_not_parse_is_a_finding
+   - criterion 5: tests/domain/test_story_place.py::test_a_story_in_the_directory_of_another_feature_is_a_finding and ::test_a_story_in_the_directory_of_its_own_feature_is_no_finding
+   - criterion 6: tests/domain/test_story_place.py::test_a_missing_feature_file_is_a_finding (False and True)
+   - criterion 7: tests/domain/test_story_place.py::test_a_bad_name_in_a_bad_directory_without_feature_file_gives_three_findings_in_order
+   - criterion 8: tests/entry/test_check_story.py::test_a_clean_backlog_story_prints_ok_and_returns_0
+   - criterion 9: tests/entry/test_check_story.py::test_findings_print_with_and_without_a_line_place_before_form
+   - criterion 10: tests/entry/test_check_story.py::test_several_paths_are_checked_in_the_order_given (all ok gives 0, one finding gives 1)
+   - criterion 11: tests/entry/test_check_story.py::test_no_path_prints_the_usage_and_returns_2
+   - criterion 12: tests/entry/test_check_story.py::test_an_unreadable_story_form_prints_the_reason_and_returns_2
+   - criterion 13: tests/entry/test_check_story.py::test_an_unreadable_story_prints_the_reason_and_returns_2_at_once (no file, and the bytes `\xff\xfe`). A path after the broken one is not printed, per the Interface's "returns 2 at once".
+   - criterion 14: tests/entry/test_check_story.py::test_a_path_outside_the_work_item_locations_is_reported_and_not_read
+   - criterion 15: tests/entry/test_check_story.py::test_a_started_story_with_a_bad_front_matter_prints_the_fault_alone. The body also breaks the form, which shows the form check is skipped.
+   - criterion 16: tests/entry/test_check_story.py::test_a_started_story_with_front_matter_is_checked_with_its_folder (in-progress, done)
+   - criterion 17: tests/entry/test_check_story.py::test_a_started_story_as_the_human_moved_it_is_ok
+   - criterion 18: tests/entry/test_check_story.py::test_a_backlog_story_with_front_matter_is_read_as_a_specification
+   - criterion 19: tests/entry/test_check_story.py::test_a_place_finding_comes_before_the_fault_of_the_reader
+   - criterion 20: tests/entry/test_wiring.py::test_the_work_item_reader_is_the_frontmatter_reader and ::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer (uses `ast` through tests/source_search.py)
+   - criterion 21: tests/entry/test_check_story.py::test_the_module_runs_as_a_script_and_prints_the_usage_without_a_path (subprocess with `sys.executable`, `# noqa: S603` as in tests/test_layers.py)
+   - criterion 22: tests/entry/test_check_story.py::test_main_without_arguments_reads_argv_and_the_current_directory
+   - criterion 23: tests/entry/test_check_story.py::test_the_feature_file_is_looked_for_beside_the_story
+
+   Files created: tests/domain/test_story_place.py, tests/entry/__init__.py (empty, like tests/domain/__init__.py), tests/entry/test_check_story.py, tests/entry/test_wiring.py.
+
+   `make test` fails at collection, on purpose: 3 errors, one per new test module, because `check_story_place` in `factory.domain.story_form`, `factory.entry.check_story` and `factory.entry.wiring` do not exist yet. `make lint` is green. I skipped the type check, as the stage says.
+
+   The test stories use the form `# Story form / ## Description / ## Acceptance criteria / ## Journal`. On a correct story, the last criterion is on body line 11.
+
+   I interpreted no criterion beyond the Interface's own wording, so I have no questions.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
