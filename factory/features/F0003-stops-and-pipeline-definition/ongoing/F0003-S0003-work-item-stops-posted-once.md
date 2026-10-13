@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 42
 blocked: null
 comments_seen: 0
@@ -144,3 +144,45 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
    - Architecture: the DTOs and text are in the domain, the service is in the application and uses only the hosting and git interfaces from Boundaries. The service writes no state, which matches R22 and R27.
    - Scope: within F0003's scope item 3 and decisions 5 to 8. The texts of individual stops and the handlers are left to F0005 to F0009.
    No questions.
+3. tester: Wrote red tests for criteria 1 to 22. `make lint` is green. `make test` stops at collection on purpose: `factory.domain.post_texts` does not exist yet, and `StopPosted` / `WorkItemStop` cannot be imported from `factory.domain.stops`.
+
+   Mapping:
+   - criterion 1: tests/domain/test_work_item_stop.py::test_a_stop_with_branch_title_and_text_filled_is_accepted, ::test_a_blank_branch_is_rejected, ::test_a_blank_title_is_rejected, ::test_a_blank_text_is_rejected (each runs with empty, space and other whitespace)
+   - criterion 2: tests/domain/test_work_item_stop.py::test_a_branch_of_another_work_item_is_rejected
+   - criterion 3: tests/domain/test_work_item_stop.py::test_both_models_reject_an_unknown_field_and_an_assignment
+   - criterion 4: tests/domain/test_work_item_stop.py::test_the_pull_request_of_a_stop_is_a_positive_integer (-1, 0, 1), ::test_a_stop_accepts_no_pull_request, ::test_the_pull_request_of_a_posted_stop_is_a_positive_integer (-1, 0, 1)
+   - criterion 5: tests/domain/test_post_texts.py::test_the_description_of_a_pull_request_opened_for_a_stop_names_the_work_item
+   - criterion 6: tests/application/test_stop_posting.py::test_a_stop_with_a_pull_request_is_posted_there_without_opening_one_or_calling_git. "No git call" is checked by putting a `GitCli` on a directory that does not exist into the boundaries, so any git call would raise `GitError`.
+   - criterion 7: tests/application/test_stop_posting.py::test_a_stop_is_posted_on_its_pull_request_after_the_human_closed_it
+   - criterion 8: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_opens_a_draft_on_its_branch
+   - criterion 9: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_is_posted_on_the_draft_it_opened
+   - criterion 10: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_reuses_the_open_one_of_its_branch
+   - criterion 11: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_does_not_reuse_one_the_human_closed
+   - criterion 12: tests/application/test_stop_posting.py::test_no_pull_request_is_opened_for_a_branch_without_a_commit_beyond_main (two cases: missing, at-main)
+   - criterion 13: tests/application/test_stop_posting.py::test_the_posted_comment_is_the_factorys_with_the_stops_key
+   - criterion 14: tests/application/test_stop_posting.py::test_posting_the_same_stop_again_posts_nothing
+   - criterion 15: tests/application/test_stop_posting.py::test_a_stop_with_the_same_key_and_another_text_posts_nothing
+   - criterion 16: tests/application/test_stop_posting.py::test_a_stop_with_another_key_posts_again (two cases: another-n, another-kind)
+   - criterion 17: tests/application/test_stop_posting.py::test_a_stop_killed_after_its_post_is_not_posted_again_after_the_restart
+   - criterion 18: tests/application/test_stop_posting.py::test_a_stop_killed_after_its_post_opens_no_second_pull_request_after_the_restart
+   - criterion 19: tests/application/test_stop_posting.py::test_a_failed_post_keeps_the_opened_pull_request_and_the_retry_posts_once
+   - criterion 20: tests/application/test_stop_posting.py::test_a_failed_pull_request_creation_posts_nothing
+   - criterion 21: tests/application/test_stop_posting.py::test_posting_a_stop_leaves_the_checkout_as_it_was
+   - criterion 22: tests/application/test_stop_posting.py::test_a_git_error_reading_the_remote_branch_is_raised_and_opens_nothing
+
+   Files created:
+   - tests/domain/test_work_item_stop.py
+   - tests/domain/test_post_texts.py
+   - tests/application/test_stop_posting.py
+
+   Modules the test runner could not import:
+   - `factory.domain.post_texts` (missing)
+   - `StopPosted` and `WorkItemStop` from `factory.domain.stops`
+   - `StopService.post` does not exist yet either; the tests fail on it once the imports resolve.
+
+   In criteria 12 and 20, "nothing was posted" is asserted through `hosting.pull_requests() == []`: without a pull request there can be no comment.
+
+   No questions.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
