@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 11
 blocked: null
 comments_seen: 2
@@ -235,3 +235,4 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
     For criterion 23, `docs/project-guide.md` lines 98–105 describe what `changed_paths` and `status()` return, and the same table also covers `log`. They say that untracked files count, ignored ones do not, and a rename is a deletion plus an addition, and that the undo and the tick use these operations. I did not run `make check` myself. The factory runs it after this stage, and entries 8 and 10 report it green.
 
     Still open, and outside this ticket's criteria: the two edge cases from entry 8. A path removed with `git rm --cached` shows as "modified" in `changed_paths`, and unmerged paths show as "modified" in `status()`. Each one would need its own story if the human wants it exact.
+12. done (pull request merged); cost: 9 runs, 8.2 min, 64 turns, 176k tokens in (1122k more from cache), 34k out, $2.15
