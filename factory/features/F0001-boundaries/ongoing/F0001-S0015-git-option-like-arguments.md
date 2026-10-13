@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 17
 blocked: null
 comments_seen: 0
 round: 0
@@ -90,3 +90,9 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: `check_git_argument(value: str) -> None` in `factory/domain/git.py` is concrete, and the rules name every `GitCli` operation that takes a ref, branch, start point, commit or url. I compared the list with the public methods of `git_cli.py`. `fetch`, `remote_branches`, `status`, `commit` and `move` take no such value (`move`'s paths are already guarded by `check_repository_path`). The `LC_ALL=C` ordering relative to the environment, identity and isolation is stated. Every Interface comment has a criterion.
+   - Criteria: 1 and 2 test the function, with both the refusing and the accepting side. 3 to 8 each test one refusal and what stays unchanged (remote, directory, HEAD, no process started, `BEFORE_PUSH` not reached). 9 is the passing side for a hyphen inside a name. 10 tests the locale override. Each is testable by one test function (8 and 10 are parametrized). Each rule has its failing side.
+   - Demo: runnable as written. Its `Expect:` line is checkable: `rejected`, `refused`, `['human', 'one']`.
+   - Architecture: the rule is a pure function in the domain and the adapter calls it, as `check_repository_path` is used. This fits the layers and the git wrapper rule (R9).
+   - Scope: it is within F0001's git wrapper scope and not in its "Out of scope". The feature's decision 21 records the human's choice of refusal over `--end-of-options`.
