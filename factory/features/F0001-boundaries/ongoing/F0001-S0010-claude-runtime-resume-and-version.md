@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 10
 blocked: null
 comments_seen: 0
@@ -173,3 +173,26 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
    - Docs (criterion 18) are for the documenter stage.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`: `src/factory/adapters/claude_runtime.py` and `tests/adapters/test_claude_runtime_resume.py`.
+
+   1. Acceptance criteria: criteria 1–16 each have a test named in the tester's entry, and each test checks what its criterion says.
+      - `resume_budget` is tested on both sides of the 0.50 floor (2 → 0.50, 2.04 → 0.51), plus a case where a half cent rounds up (2.10 → 0.53).
+      - A second budget stop is tested with exit status 0 and 1, and a third step is scripted to show it is never played.
+      - Criterion 8 checks that the resume gets only what is left of the time limit (whole run under 2.9 s) and that the measures are `None`.
+      - The version query is tested on its failing sides: missing executable, exit status 1, no output, and over its limit.
+      - The structural fit to `AgentRuntime` is checked by mypy through the annotated assignment, and the test also checks that `AgentRuntime` is not in the MRO.
+      - The coder's entry reports `make check` green.
+   2. Architecture: all changes are in `factory.adapters`. Processes are started only through `run_process`, and the internal types are Pydantic models or typed values, with no `dict[str, Any]`.
+   3. Security: no secrets, no shell built from strings (argv is a list), and no suppression markers.
+   4. Quality:
+      - The main design, where each call goes through `_result` and `_resumed_result` combines the two, avoids repeating S0009's rules for a single call.
+      - The budget check in `_end_reason` comes after the time-limit check and before the exit status, as the Interface asks, and a comment explains why.
+      - The new public names have docstrings.
+   5. Ticket hygiene: the log gives the design decision and what was rejected, and the Assignment matches what was built.
+
+   Open, not findings:
+   - The branch in `_resume` where no time is left is not covered by a test. The coder named this edge case; it ends as `time_limit` with unknown measures, which follows R24.
+   - The intake noted that killing a call's children has no test here; S0004 covers that in `run_process`.
+   - The version query runs in the process's current directory, which the Interface does not name.
