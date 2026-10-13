@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 30
 blocked: null
 comments_seen: 0
@@ -240,3 +240,21 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
    - Ticket hygiene:
      - The coder's entry explains the main decision (faults come from pydantic's errors) and the alternative it rejected (walking the mapping against the model).
      - `Assignment` matches what was built, and criterion 24 still describes what the project guide must show.
+6. documenter: I wrote the work item file format into the project guide and updated the README. `make check` is green. I ran the guide's example and it printed `unknown key: colour` and then `None ['stage', 'attempts'] '# T\n'`.
+
+   Files changed:
+   - `docs/project-guide.md`: a new section, "Reading and writing a work item file". It covers criterion 24:
+     - the rule that every file format has one reader class and one writer class in `factory.adapters`, with the five operations, the file layout, and the front matter notation with an example;
+     - how `RuamelYamlHandler` and the reader's `detect`/`split`/`load` work, and why they do not use `frontmatter.loads`;
+     - the body normalisation, and a table of the fault messages with the order in which faults are reported.
+   - `README.md`: the status sentence now lists the work item file reader and writer.
+
+   Cross-read against the diff and found current:
+   - The "Errors" paragraph on `WorkItemFormatError`.
+   - "The data of a work item", including `ignored_keys` and the fault locations the reader uses. The reader names faults by those locations as the guide says.
+   - The architecture and wrapper rules in `CLAUDE.md`.
+   - `docs/operator-guide.md` is untouched by this story.
+
+   Stale but not touched: none. I found no findings for the coder. The code matches the Interface, and the public classes and the handler's methods have docstrings. The overriding methods inherit the interface's docstrings, which ruff accepts.
+
+   `make check`: check: green
