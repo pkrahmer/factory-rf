@@ -100,6 +100,12 @@ def check_git_argument(value: str) -> None:
         raise ValueError(f"not a git ref, branch or url: {value!r}")
 
 
+# The rules of `git check-ref-format --branch`, so that no other kind of ref passes as a branch.
+BRANCH_ALIASES = frozenset({"HEAD", "@"})
+FORBIDDEN_REF_CHARACTERS = frozenset("^~?[\\ ")
+FORBIDDEN_REF_SEQUENCES = ("..", "@{", "//")
+
+
 def check_branch_name(value: str) -> None:
     """Raise ValueError for a value that `git push` could read as anything but a branch name."""
     check_git_argument(value)
@@ -109,12 +115,6 @@ def check_branch_name(value: str) -> None:
     # `HEAD` and `@` name the checked-out branch, not a branch of that name.
     if value in BRANCH_ALIASES or not _is_valid_ref_name(value):
         raise ValueError(f"not a branch name git takes: {value!r}")
-
-
-# The rules of `git check-ref-format --branch`, so that no other kind of ref passes as a branch.
-BRANCH_ALIASES = frozenset({"HEAD", "@"})
-FORBIDDEN_REF_CHARACTERS = frozenset("^~?[\\ ")
-FORBIDDEN_REF_SEQUENCES = ("..", "@{", "//")
 
 
 def _is_valid_ref_name(value: str) -> bool:
