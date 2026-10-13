@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 45
 blocked: null
 comments_seen: 0
 round: 0
@@ -106,3 +106,19 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/application/pipeline_loading.py` names `PIPELINE_REF`, `PipelineLoader.__init__(boundaries)` and `load(ref)`. It also names the Boundaries members it uses (git.show_file, pipeline_reader, agent_definitions, clock, health) and the exact fault texts.
+   - Criteria: each one is testable by one test function. Every Interface rule has a criterion for its passing and its failing side:
+     - Reading at a ref: 1 and 2.
+     - Missing key, with a default taken instead: 3 and 6.
+     - Missing file: 7.
+     - Missing or unavailable agents: 10, 11 and 12.
+     - Stop raised at `origin/main` only: 4, 13 and 14.
+     - Stop cleared on success: 8.
+     - `GitError` propagating: 9.
+     - Failure of the health write: 15.
+     - Agents checked only after the text is valid: 16.
+     - Only the log and health status written: 5.
+   - Demo: the stub git, the agents directory and the Boundaries wiring are runnable. The Expect line gives the five lines, with the stamp form, that the output can be checked against.
+   - Architecture: the loader sits in `factory.application` and reaches git, the readers, the clock and the health status through `Boundaries`. It calls no tool itself.
+   - Scope: the story stays inside FEATURE.md's scope (`PipelineLoader`, the installed-agent check, the reported stop). The cross-key rules are left to S0007, and the tick's use of `load` to F0006.
