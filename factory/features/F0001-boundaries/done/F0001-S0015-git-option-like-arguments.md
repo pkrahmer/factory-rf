@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 17
 blocked: null
 comments_seen: 0
@@ -171,3 +171,4 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
    - It also uses `clone` with a path, `push('main')` and `log('origin/main')`. All three are values the rule accepts (criterion 2), and they ran normally.
    - Nothing in the output contradicts criteria 1 to 10.
    - Criteria 11 (`make check`) and 12 (docs) are not demo matters. The coder's and documenter's entries report `make check` green, and the factory runs it again.
+8. done (pull request merged); cost: 6 runs, 3.9 min, 34 turns, 167k tokens in (434k more from cache), 16k out, $1.50
