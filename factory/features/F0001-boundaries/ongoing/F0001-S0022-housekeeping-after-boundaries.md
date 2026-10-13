@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 26
 blocked: null
 comments_seen: 0
@@ -163,3 +163,24 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
    - Architecture: the layers are unchanged and no new tool call or marker was added. `RemoteBranch` is frozen and closed to unknown fields, like the other result models.
    - The coder's `__all__ = ["GitCli", "check_git_argument"]`: I accept it. Criterion 4 wraps the check by the name `factory.adapters.git_cli.check_git_argument`, and mypy's no-implicit-reexport refuses that name otherwise. The other two options would have needed a `noqa` marker, which is not allowed, or a test change, which R9 forbids. No other test imports anything except `GitCli` from the module, and the comment beside it gives the reason.
    - Ticket: the Assignment matches what was built, and the log explains the `__all__` decision and the options rejected. Criterion 10 (the docs criterion) still lists everything the documenter has to write: "(WE6.3)", the project guide's intro, the `RemoteBranch` mention, the README, the split of decisions 22 and 23, and the renamed test modules.
+6. documenter: Docs written for criterion 10. `make check` is green. I found no findings.
+
+   Files changed:
+   - `docs/operator-guide.md`: dropped "(WE6.3)" from the sentence on the unchecked `claude` flags. The meaning is unchanged.
+   - `docs/project-guide.md`:
+     - The intro now says the guide grows with each story and that `CLAUDE.md` holds the rules every change follows.
+     - The frozen result models sentence now names four models, including `RemoteBranch`.
+     - Both test-file mentions use `test_git_interface.py`. `test_hosting_protocol.py` was not mentioned in the guide.
+   - `README.md`: dropped "(partly written)" from the project guide link.
+   - `docs/decisions.md`: split the entry "A pushed branch is never read as a refspec" in two.
+     - The first keeps decision 22 (the refusal of `+`, `:` and `*`).
+     - The new entry "A pushed branch is named as a branch, `refs/heads/<branch>`" holds decision 23.
+     - Each entry keeps its date, its reasons and its rejected alternatives. Decision 23's entry now says "after decision 22 above" in place of "Extended the same day".
+
+   Cross-read and found current: the rest of `docs/project-guide.md` against the `GitCli` diff. It names no behaviour that the single-check refactor changed. The README and the operator guide are otherwise unchanged. I did not document `__all__` in `git_cli.py`, because it is an internal detail.
+
+   Stale but not touched, because it is unrelated to this story: `docs/decisions.md` still cites "(WE6.3)" in five other entries. The assignment only asked for the operator guide.
+
+   I ran no examples, because I wrote none.
+
+   `make check`: check: green

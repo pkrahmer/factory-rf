@@ -14,7 +14,7 @@ When it works, `make check` ends with the line `check: green`. There is nothing 
 ## Where to look next
 
 - `docs/operator-guide.md`: install, configure, the stops and what to do about each
-- `docs/project-guide.md`: the guide for agents working on this code (partly written)
+- `docs/project-guide.md`: the guide for agents working on this code
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `CLAUDE.md`: the rules every change follows (architecture, tests, checks)
 
