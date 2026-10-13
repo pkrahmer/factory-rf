@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 9
 blocked: null
 comments_seen: 2
@@ -97,8 +97,10 @@ Tests: `tests/adapters/test_claude_runtime.py`, `tests/adapters/claude_stand_in.
 17. With `executable="/no/such/claude"`, `run` raises `AgentRuntimeError` whose detail contains that path, and `reached(AGENT_RUN)` is 0.
 18. With a `state_directory` below a regular file, `run` raises `AgentRuntimeError` whose detail names that path, the stand-in is never called, and `reached(AGENT_RUN)` is 0.
 19. Among the modules of `src/factory`, exactly `factory.adapters.git_cli`, `factory.adapters.make_commands` and `factory.adapters.claude_runtime` import `factory.adapters.process`.
-20. make check stays green.
-21. docs: `docs/project-guide.md` describes the `claude -p` runtime so far (the flags, the files under the state directory, the environment with no inherited variable and no added `PATH`, the end reasons, unknown measures); `docs/operator-guide.md` says that the runtime uses the operator's own `claude` login and that the flags are v1's, to be checked against the pinned version (WE6.3).
+20. A reply whose `usage` has only `input_tokens` 10 and `output_tokens` 5 gives `tokens` with those two counts and cache-read and cache-creation counts of 0.
+21. A permission denial whose `tool_input` is `{"b": 1, "a": 2}` has the detail `{"a": 2, "b": 1}`.
+22. make check stays green.
+23. docs: `docs/project-guide.md` describes the `claude -p` runtime so far (the flags, the files under the state directory, the environment with no inherited variable and no added `PATH`, the end reasons, unknown measures); `docs/operator-guide.md` says that the runtime uses the operator's own `claude` login and that the flags are v1's, to be checked against the pinned version (WE6.3).
 
 ## Demo
 
@@ -139,3 +141,9 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
 
    Please answer, or say that I should write both criteria as proposed.
 3. human (pull request comment, 2026-10-13): Write both criteria as proposed, before the two closing ones: (1) a reply whose `usage` has only `input_tokens` 10 and `output_tokens` 5 gives `tokens` with those two counts and cache-read and cache-creation counts of 0; (2) a denial whose `tool_input` is `{"b": 1, "a": 2}` has the detail `{"a": 2, "b": 1}`. Both close a behaviour the Interface already states.
+4. intake: accepted. Checked again with the human's answer (log entry 3), which settles both questions of entry 2. I wrote exactly what that answer says, as new criteria 20 and 21 before the two closing ones. The old 20 and 21 are now 22 (`make check`) and 23 (`docs:`). The Assignment's meaning is unchanged, so I did not rewrite it.
+   - Interface: names concrete modules and signatures (`ClaudeCodeRuntime`, `ENTRY_DESCRIPTION`, the argument list, the files, the schema). Every behaviour it states now has a criterion. The cache counts defaulting to 0 is the new criterion 20. The sorted-JSON denial detail is the new criterion 21.
+   - Criteria: each can be tested by one test function. Every rule has a failing side: `died` and `no_result` (11, 12, 13), a missing executable (17), an unwritable state directory (18), `time_limit` (14), and files removed after a kill or an error (7).
+   - Demo: runnable with stand-in scripts written to a temp directory. Its `Expect:` line gives two exact output lines that can be checked.
+   - Architecture: the runtime sits in `factory.adapters`. The only process starter it imports is `factory.adapters.process`, and criterion 19 checks that.
+   - Scope: within F0001's agent-runtime scope. The budget resume and the version query are left to S0010. The guard hook command is left to F0004, and the environment scrubbing and OS user to F0010. All of these are in the feature's "Out of scope".
