@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 34
 blocked: null
 comments_seen: 2
@@ -263,3 +263,19 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
        - Quality: names and docstrings fit; comments say why (the `\n`-only split, rejecting a float cost, the strict-JSON constants). The writer sets the `Z` suffix and the cost string itself instead of relying on pydantic's JSON serialisation. That is a deliberate tie to the format text, not dead code.
        - Hygiene: the log names the main decision (the cost type check is a before-validator in the same pydantic pass, so the fault order holds) and what was rejected (an adapter pre-check; option B for the duration). Assignment and Interface match the code as of entry 7.
        - Open for the documenter: criterion 21. The Interface also says the file is strict JSON (`NaN`, `Infinity` and `-Infinity` are `not valid JSON`) and that a duration is finite. The line-format section is the natural place to say so.
+12. documenter: docs (round 1): wrote the documentation for criterion 21. `make check` is green.
+    - `docs/project-guide.md`: new section "Cost records", before "Sections of a Markdown body". It covers:
+      - where the sidecar sits (`cost_records_path`);
+      - the classes and interfaces;
+      - the record's rules (started vs completed, `ok`);
+      - unknown is `null`, never 0;
+      - the cost is a non-negative string;
+      - a run id appears once per file, so a record is completed by replacing its line;
+      - the line format with an example, strict JSON (including the finite duration, as the reviewer asked), and the operations table;
+      - the fault kinds, their order and the line numbers.
+    - `docs/decisions.md`: new entry "A cost is a string in the cost record file", with the rejected alternatives (a JSON number, integer micro-dollars).
+    - Checked by running them: the `parse` example prints `2 not valid JSON | line 2: not valid JSON`, and the two example lines in the guide parse and render back to identical text.
+    - Cross-read and found current: README (it doesn't mention cost records), `docs/operator-guide.md`, and the existing `COST_RECORDS_SUFFIX` and `cost_records_path` lines in the guide. No finding for the coder: the code matches the Interface.
+    - Stale but untouched: none seen.
+
+    `make check`: check: green
