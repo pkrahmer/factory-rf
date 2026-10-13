@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 33
 blocked: null
 comments_seen: 0
 round: 0
@@ -95,3 +95,9 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/story_form.py` names `FormFinding` and `check_story_form(document, form, *, folder)` with concrete signatures. All ten rules give message, line and order. `WorkItemDocument` (with `state` and `ignored_keys`), `required_sections` and the section constants exist in `factory.domain`, so the Interface can be built on them.
+   - Criteria: each is testable by one test function. Criteria 1 and 17 are the whole-story and ordering checks. Every rule has its failing side: title 3, sections 4, numbering 5, closing 6-8, smoke test 9-10, journal numbering 12, front matter 13, state 14, journal data 15, backlog entries 16. Criterion 2 covers both sides of the line limit (0, None, 1).
+   - Demo: both blocks run as written. I checked the line numbers of the first one by hand (10, 11 and 13) and the finding order matches the rules. Each `Expect:` line is checkable against the output.
+   - Architecture: pure domain code in `factory.domain` that imports only other domain modules. No I/O, no wrapper, no new dependency.
+   - Scope: this is kept thing 9 and decision 8 of the feature. The place check and the command stay with S0008, which is outside this story.
