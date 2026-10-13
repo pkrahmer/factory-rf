@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 28
 blocked: null
 comments_seen: 0
@@ -226,3 +226,4 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
    Cross-check against the acceptance criteria: the output contradicts none of 1–18. The rest of the criteria (the refusal cases, the `ValueError` paths, the constants, the absence of I/O imports) are not exercised by the demo. Their tests are named in the tester's entry, and the reviewer checked them. The factory runs `make check` itself after this stage.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 5.9 min, 40 turns, 128k tokens in (638k more from cache), 26k out, $1.45
