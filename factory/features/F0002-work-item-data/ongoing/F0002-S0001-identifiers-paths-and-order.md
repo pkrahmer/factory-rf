@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 28
 blocked: null
 comments_seen: 0
@@ -134,3 +134,25 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
    - Demo: both commands are runnable with `uv run python -c`, and each Expect line gives exact output to compare against.
    - Architecture: pure domain modules in `factory.domain`, with no I/O imports, and criterion 16 checks that with `ast`. This matches the layering in CLAUDE.md.
    - Scope: it matches FEATURE.md ("Identifier patterns... plain string order, with an acceptance sorting after the stories") and touches nothing under Out of scope. The acceptance's due order stays with F0009.
+3. tester: Wrote red tests for criteria 1–16 in two new files: tests/domain/test_identifiers.py and tests/domain/test_paths.py. tests/domain/test_name.py is unchanged.
+   - criterion 1: tests/domain/test_identifiers.py::test_id_and_name_types_accept_only_their_pattern (WorkItemId, FeatureId and Name through TypeAdapter, every listed case)
+   - criterion 2: tests/domain/test_identifiers.py::test_name_models_are_frozen_and_refuse_an_unknown_field (assignment through setattr, unknown field through a type[BaseModel] variable) and ::test_name_models_accept_only_hyphen_joined_lower_case_slugs (both models × the nine slugs)
+   - criterion 3: tests/domain/test_identifiers.py::test_work_item_file_name_parses_into_id_and_slug
+   - criterion 4: tests/domain/test_identifiers.py::test_malformed_work_item_file_name_parses_to_none
+   - criterion 5: tests/domain/test_identifiers.py::test_feature_directory_name_parses_into_id_and_slug and ::test_malformed_feature_directory_name_parses_to_none
+   - criterion 6: tests/domain/test_identifiers.py::test_kind_and_feature_of_a_work_item_come_from_its_id
+   - criterion 7: tests/domain/test_identifiers.py::test_functions_on_a_work_item_id_refuse_a_malformed_id (4 functions × 3 strings)
+   - criterion 8: tests/domain/test_identifiers.py::test_acceptance_sorts_after_the_stories_of_its_feature_whatever_the_slug
+   - criterion 9: tests/domain/test_identifiers.py::test_work_item_order_keeps_string_order_within_a_kind_and_across_features
+   - criterion 10: tests/domain/test_identifiers.py::test_branch_name_is_the_prefix_and_the_id and ::test_branch_that_is_not_a_work_item_branch_has_no_work_item
+   - criterion 11: tests/domain/test_paths.py::test_path_constants_have_their_stated_values (including REMOTE, MAIN_BRANCH and LABEL_PREFIX) and tests/domain/test_identifiers.py::test_id_patterns_are_the_stated_regular_expressions. WorkItemId and Name are covered by criterion 1's test.
+   - criterion 12: tests/domain/test_paths.py::test_work_item_path_lies_in_the_folder_of_its_feature_directory
+   - criterion 13: tests/domain/test_paths.py::test_cost_records_path_sits_beside_the_work_item and ::test_cost_records_path_refuses_a_path_that_is_not_markdown
+   - criterion 14: tests/domain/test_paths.py::test_folder_of_a_work_item_path_is_its_lifecycle_folder (3 folders × a story file and an acceptance file)
+   - criterion 15: tests/domain/test_paths.py::test_folder_of_a_path_that_is_no_work_item_is_none (drafts, ongoing, one level too deep, one too shallow, an `archive` folder, `docs/features/...`, the feature directory `f0002-x`, a sidecar, `.gitkeep`, README.md)
+   - criterion 16: tests/domain/test_paths.py::test_identity_modules_import_no_io_or_clock (uses the existing tests/source_search.py imported_modules/modules, which parse with ast)
+   Criteria 17 and 18 are the coder's and the documenter's.
+   make test result: 2 collection errors, as intended. The test runner could not import ACCEPTANCE_ID (and the rest of the new names) from factory.domain.identifiers, or BRANCH_PREFIX (and the rest) from factory.domain.paths. make lint is green. Nothing needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
