@@ -41,7 +41,7 @@ def required_sections(form: str) -> list[str]: ...
 - `insert_paragraph(body, heading, paragraph)` puts the paragraph (it may have several lines) directly under the heading line of the first such section, with one blank line between the heading and the paragraph and one blank line between the paragraph and what the section held before, whose own leading blank lines are dropped; nothing follows the paragraph when the rest of the body is empty. The result ends with a newline exactly when `body` did. It raises `WorkItemFormatError` with the fault `missing section: ## <heading>` when no section has the heading, a heading that appears only inside a block included, and `ValueError` when the paragraph is blank.
 - `required_sections(form)` is the headings of `sections(form)` in order, so a project that adds a `## ` section to its form makes that section required.
 
-Tests: `tests/domain/test_sections.py`.
+Tests: `tests/domain/test_sections.py`. A test that constructs a model with an unknown field does so through a variable typed `type[BaseModel]`, and one that assigns to a frozen field does so with `setattr` (`CLAUDE.md`, Tests).
 
 ## Acceptance criteria
 

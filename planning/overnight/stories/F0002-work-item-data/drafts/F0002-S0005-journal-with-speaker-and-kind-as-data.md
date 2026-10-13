@@ -26,6 +26,7 @@ def restore_state_and_journal(current: WorkItemDocument, baseline: WorkItemDocum
 
 `NewEntry` is frozen and forbids unknown fields. The rules; each has a criterion below:
 
+- `factory.domain.work_item` imports `JournalRecord` from this module, and the functions here take and return `WorkItemDocument`, so the two modules would import each other. This module therefore imports `factory.domain.work_item` only under `typing.TYPE_CHECKING` (with `from __future__ import annotations`), and uses `model_copy` and the document's attributes where it needs a document; importing either module first works.
 - `NewEntry.text` is stripped of surrounding whitespace and must not be blank afterwards; `on` is required when the speaker is `human` and refused for any other speaker.
 - `render_entry(number, entry)` is `"<number>. "`, then `"<YYYY-MM-DD> "` exactly when `on` is set, then `"<speaker>: "`, then the text. The speaker is shown as its name. Every line of the text after the first is indented by `len("<number>. ")` spaces, so by 3 spaces for the numbers 1 to 9, by 4 for 10 to 99 and by 5 for 100 to 999; a blank line stays empty. There is no final newline.
 - `append_entry` raises `WorkItemFormatError` with the fault `the document has no state` when `state` is `None` and with the fault `missing section: ## Journal` when the body has no `Journal` section outside a code fence. Otherwise it returns a document whose state is the old state with one more record, `JournalRecord(number=len(old journal) + 1, speaker=..., kind=...)`, and whose body has the rendered entry placed on the lines after the last non-blank line of the `Journal` section, or after one blank line under the heading when the section has no text. Entries follow one another with no blank line between them. Nothing else changes: not the other state fields, not `ignored_keys`, not another line of the body, and the result ends with a newline exactly when the body did. The input document is not changed.
@@ -33,7 +34,7 @@ def restore_state_and_journal(current: WorkItemDocument, baseline: WorkItemDocum
 - `last_record(document, speaker=..., kind=...)` is the last record of `state.journal` that matches every filter given, or `None`; with no filter it is the last record. It raises `WorkItemFormatError` with the fault `the document has no state` when `state` is `None`.
 - `restore_state_and_journal(current, baseline)` returns a document with the baseline's whole state; with a body that is the current body in which the first `Journal` section, from its heading line to its last non-blank line, is replaced by the baseline's first `Journal` section taken the same way; the lines between that block and the next section stay as they are in the current body; and with the current `ignored_keys`. When the current body has no `Journal` section, the baseline's block is added at the end of the body after one blank line and the body ends with a newline. It raises `WorkItemFormatError` with the fault `the document has no state` when the baseline's state is `None` and with `missing section: ## Journal` when the baseline's body has no `Journal` section.
 
-Tests: `tests/domain/test_journal.py`, `tests/adapters/test_journal_as_data.py`.
+Tests: `tests/domain/test_journal.py`, `tests/adapters/test_journal_as_data.py`. A test that constructs a model with an unknown field or a value of the wrong type (the kind `note`) does so through a variable typed `type[BaseModel]`, and one that assigns to a frozen field does so with `setattr` (`CLAUDE.md`, Tests).
 
 ## Acceptance criteria
 
@@ -54,8 +55,9 @@ Tests: `tests/domain/test_journal.py`, `tests/adapters/test_journal_as_data.py`.
 15. `restore_state_and_journal` returns the baseline's whole state: a current state with another stage, `attempts`, `blocked`, `claim`, `pull_request` and a longer journal is replaced field by field by the baseline's, while `ignored_keys` stays the current document's.
 16. `restore_state_and_journal` replaces the `Journal` section of the current body by the baseline's: an entry that was appended or changed in the current body is gone and the baseline's entries are back, while edits made elsewhere in the current body and the blank lines before the next section stay.
 17. `restore_state_and_journal` adds the baseline's `Journal` section at the end after one blank line, with a final newline, when the current body has none, and raises `WorkItemFormatError` with the fault `missing section: ## Journal` when the baseline's body has none.
-18. make check stays green.
-19. docs: `docs/project-guide.md` explains the journal: the visible format with its continuation indent, that only the human's entries are dated, that speaker and kind are data in the front matter and are never read from the text, and what the restore does; `docs/decisions.md` records why the journal's data sits in the front matter.
+18. `factory.domain.journal` and `factory.domain.work_item` can each be imported first in a fresh interpreter (a subprocess running `python -c "import factory.domain.journal"` and the same for `work_item`, both exit 0), and `factory.domain.journal` imports `factory.domain.work_item` only inside an `if TYPE_CHECKING:` block, found by parsing the module with `ast`.
+19. make check stays green.
+20. docs: `docs/project-guide.md` explains the journal: the visible format with its continuation indent, that only the human's entries are dated, that speaker and kind are data in the front matter and are never read from the text, and what the restore does; `docs/decisions.md` records why the journal's data sits in the front matter.
 
 ## Demo
 

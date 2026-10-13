@@ -56,7 +56,7 @@ class WorkItemState(BaseModel):               # fields in this order
     journal: list[JournalRecord] = []
 
 class WorkItemDocument(BaseModel):
-    state: WorkItemState | None
+    state: WorkItemState | None           # None for a document read as a specification (F0002-S0003)
     body: str
     ignored_keys: list[str] = []
 
@@ -69,28 +69,29 @@ Every model above is `ConfigDict(frozen=True, extra="forbid")`. `Name` is `facto
 - `comments_read` is sorted ascending with no repeats.
 - When `claim` is set, `claim.stage == stage`.
 - The `number`s of `journal` are 1, 2, 3 up to n in order.
+- Where an error is located (F0002-S0003 names a fault by it): the rules for `comments_read` and for `journal` are validations of their own field, so their errors are located at that field; the rule that `claim.stage` equals `stage` spans two keys, so it is a validation of the whole state and its error has no location.
 - A `Claim`'s `started_at` is converted to UTC; a naive time is refused. `lease_duration` is at least 1.
 - `WorkItemFormatError(fault, path)` carries both as attributes. Its message is `fault` when `path` is `None` and `<path>: <fault>` otherwise. It is a `FactoryError`.
-- `WorkItemDocument.state` is `None` only for a document read as a specification (F0002-S0003).
 
-Tests: `tests/domain/test_work_item.py`, `tests/domain/test_journal_records.py`, `tests/domain/test_work_item_errors.py`.
+Tests: `tests/domain/test_work_item.py`, `tests/domain/test_journal_records.py`, `tests/domain/test_work_item_errors.py`. A test that constructs a model without a required field, with an unknown field or with a value of the wrong type does so through a variable typed `type[BaseModel]`, and a test that assigns to a field does so with `setattr` (`CLAUDE.md`, Tests; the pydantic mypy plugin types the real constructor and frozen fields).
 
 ## Acceptance criteria
 
 1. `initial_state("intake")` has `stage == "intake"`, `blocked`, `pull_request`, `handed_over` and `claim` all `None`, `round`, `attempts` and `crashes` all 0, and `comments_read` and `journal` both `[]`; the field names of `WorkItemState`, in order, are `stage`, `blocked`, `round`, `attempts`, `crashes`, `pull_request`, `comments_read`, `handed_over`, `claim`, `journal`.
-2. `WorkItemState(stage="tests")` equals `initial_state("tests")`; `WorkItemState()` raises `ValidationError`; `WorkItemState(stage="Bad Stage")`, `WorkItemState(stage="")` and `initial_state("Bad Stage")` raise `ValidationError`.
-3. `blocked` accepts `None` and each of `question`, `attempts_cap`, `round_cap`, `crash_cap` and `send_back`, and refuses `asked` and the empty string.
-4. `round`, `attempts` and `crashes` accept 0 and refuse -1; `pull_request` accepts 1 and `None` and refuses 0 and -1.
+2. `WorkItemState(stage="tests")` equals `initial_state("tests")`; `WorkItemState()` (constructed through a variable typed `type[BaseModel]`, as `CLAUDE.md` says) raises `ValidationError`; `WorkItemState(stage="Bad Stage")`, `WorkItemState(stage="")` and `initial_state("Bad Stage")` raise `ValidationError`.
+3. `blocked` accepts `None` and each of `question`, `attempts_cap`, `round_cap`, `crash_cap` and `send_back`, and refuses `asked` and the empty string (constructed through a variable typed `type[BaseModel]`).
+4. `round`, `attempts` and `crashes` accept 0 and refuse -1; `pull_request` accepts 1 and `None` and refuses 0 and -1; `handed_over` accepts `approval` and `None` and refuses `Approval` and the empty string.
 5. `comments_read` accepts `[]`, `[3]` and `[3, 5]` and refuses `[5, 3]` (not ascending), `[3, 3]` (a repeat) and `[0]`.
 6. A state with a claim whose `stage` equals the state's `stage` is accepted; a claim for another stage is refused with `ValidationError`.
 7. `journal` accepts `[]` and records numbered 1, 2, 3 in order, and refuses records numbered `[2]`, `[1, 3]`, `[1, 1]` and `[2, 1]`.
-8. `JournalKind` accepts each of the twelve kinds listed in the Interface and refuses `comment_copied` and the empty string; `JournalRecord` refuses `number=0` and `speaker="Human"`; `HUMAN` is `"human"` and `FACTORY` is `"factory"`.
-9. `Claim` accepts `lease_duration=1` and refuses 0; it refuses a `started_at` without a time zone; a `started_at` with a UTC offset of two hours east (`timezone(timedelta(hours=2))`) is stored as the same instant in UTC, with a `utcoffset()` of zero; it refuses an `instance` or `stage` that is not a `Name`.
-10. `WorkItemState`, `Claim`, `JournalRecord` and `WorkItemDocument` each refuse an unknown field with `ValidationError` and refuse assignment to a field with `ValidationError`.
-11. `WorkItemDocument(state=None, body="x")` is valid and has `ignored_keys == []`; `WorkItemDocument(body="x")` without `state` raises `ValidationError`.
-12. `WorkItemFormatError("bad key", "a/b.md")` has `fault == "bad key"`, `path == "a/b.md"` and the message `a/b.md: bad key`; without a path the message is `bad key` and `path` is `None`; it is a subclass of `FactoryError`.
-13. make check stays green.
-14. docs: `docs/project-guide.md` describes a work item's data: the state's fields with their order and initial values, the claim, and that the journal's speaker and kind are data in the front matter.
+8. The location of an error (`ValidationError.errors()[0]["loc"]`, a state built with `model_validate` from a dict) is `("comments_read",)` for `comments_read: [5, 3]`, `("journal",)` for a journal numbered `[1, 3]`, `()` for a claim whose stage differs from the state's stage, and `("claim", "lease_duration")` for a claim with `lease_duration: 0`.
+9. `JournalKind` accepts each of the twelve kinds listed in the Interface and refuses `comment_copied` and the empty string; `JournalRecord` refuses `number=0` and `speaker="Human"`; `HUMAN` is `"human"` and `FACTORY` is `"factory"`.
+10. `Claim` accepts `lease_duration=1` and refuses 0; it refuses a `started_at` without a time zone; a `started_at` with a UTC offset of two hours east (`timezone(timedelta(hours=2))`) is stored as the same instant in UTC, with a `utcoffset()` of zero; it refuses an `instance` or `stage` that is not a `Name`.
+11. `WorkItemState`, `Claim`, `JournalRecord` and `WorkItemDocument` each refuse an unknown field with `ValidationError` (constructed through a variable typed `type[BaseModel]`) and refuse assignment to a field with `ValidationError` (assigned with `setattr`).
+12. `WorkItemDocument(state=None, body="x")` is valid and has `ignored_keys == []`; `WorkItemDocument(body="x")` without `state` (constructed through a variable typed `type[BaseModel]`) raises `ValidationError`.
+13. `WorkItemFormatError("bad key", "a/b.md")` has `fault == "bad key"`, `path == "a/b.md"` and the message `a/b.md: bad key`; without a path the message is `bad key` and `path` is `None`; it is a subclass of `FactoryError`.
+14. make check stays green.
+15. docs: `docs/project-guide.md` describes a work item's data: the state's fields with their order and initial values, the claim, and that the journal's speaker and kind are data in the front matter.
 
 ## Demo
 

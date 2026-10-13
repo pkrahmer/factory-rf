@@ -1171,3 +1171,11 @@ Changes the main session made after the sheet was written. They win over the sec
 - 2026-10-13 01:00: F0001's stories were renumbered (14 stories). The "created by" tags for F0001 in the tables above are stale; `stories/F0001-boundaries/FEATURE.md` is authoritative.
 - 2026-10-13 01:00: `factory.entry.wiring` grows with each feature (`build_boundaries`, `build_dispatcher`); see `skeleton-answers.md`, the answers to cross-check round 1's blockers.
 - 2026-10-13 01:00: every entry module's function is `main() -> int`, reading its arguments from `sys.argv` (`pyproject.toml`'s console scripts).
+
+Changes after the human's questionnaire 1 and F0002's rounds, 2026-10-13. They win over the sections above.
+
+- Q3, no run record: `factory.domain.run_record` (`RunRecord`), `RunRecordStore` in `factory.application.machine`, `factory.adapters.run_record_file` (`JsonRunRecordFile`), `Boundaries.run_record` and the run-record row of the names table are dropped. The board's "running since" is the claim's `started_at`. GH1.5 tests that the tick reads and writes no run record and no lock.
+- Q15 and decision 008 (factory-v2), v1.1 starts fresh: `V1_LIFECYCLE_FOLDERS` and every recognition of v1 work items (R26's refusal) are dropped. `ignored_keys` stays, as the keys `parse_specification` dropped, with no R26 reader. `WorkItemReader` refuses every unknown key as a `WorkItemFormatError`, with no special case for v1's `comments_seen`.
+- F0002, slug: a slug follows v1's rule, lower-case segments of letters and digits joined by single hyphens; both models refuse a slug that breaks it (F0002 decision 1).
+- F0002, cost record: `cost_usd` is unknown (`None`) or a finite value of at least 0.
+- F0002, R13: the work item adapter `factory.adapters.work_item_markdown` splits the file with python-frontmatter and reads and writes its YAML with ruamel.yaml through `RuamelYamlHandler(frontmatter.YAMLHandler)`, an adapter-internal class (F0002 decision 4). F0002's `FEATURE.md` and stories are authoritative for the exact rules.
