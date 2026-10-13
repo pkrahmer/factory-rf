@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 43
 blocked: null
 comments_seen: 0
@@ -307,3 +307,4 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
    - criteria 11, 12 and 18 (a missing key and an unknown key are both reported in one refusal)
 
    Nothing in the output contradicts any criterion.
+8. done (pull request merged); cost: 6 runs, 6.9 min, 45 turns, 165k tokens in (895k more from cache), 34k out, $1.93
