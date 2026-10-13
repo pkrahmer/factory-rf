@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 11
 blocked: null
 comments_seen: 2
@@ -194,3 +194,14 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
    - A path removed from the index with `git rm --cached` but still on disk is reported by `changed_paths` as "modified", even when its content is unchanged.
 
    `make check`: check: green
+9. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–21 has a test in `tests/domain/test_git_history.py` or `tests/adapters/test_git_cli_history.py`, and each test checks what its criterion says. The failing sides are covered: unknown key, assignment, `"renamed"`, a naive date, 39 characters and an uppercase id (1), and a missing ref or `since` (8). The coder's entry 8 reports `make check` green.
+      - Architecture: the DTOs are in `factory.domain.git`, the three operations are on the `Git` protocol in `factory.application.git`, and git runs only through `GitCli._run`. No `dict[str, Any]` crosses a boundary in `src`, and nothing new is imported.
+      - Security: arguments go in as lists, `--end-of-options` comes before user-supplied refs, and there are no suppression markers.
+      - Parsing, checked against git's formats:
+        - `log` uses NUL-separated fields with `-z --date-order`, so a commit always comes before its parents.
+        - `status` reads porcelain v2 `1` entries at field 8, `u` entries at field 10 and `?` entries, and takes the `branch.oid` and `branch.head` headers with their `(initial)` and `(detached)` placeholders.
+        - `changed_paths` combines `diff --name-status --no-renames <since>` with `ls-files --others --exclude-standard`.
+      - Quality: names and docstrings are fine, and the comments explain why.
+      - Two things in the diff are not the ticket's work: `CLAUDE.md` and `docs/runs/2026-10-12-overnight/night-log.md`. Both came from main through the merge 374ea1b (the human's commit 91e9581 and the run log), so I did not review them as the ticket's work.
+      - Not raised: the edge cases the coder reported in entry 8. `git rm --cached` of an unchanged file shows as "modified" in `changed_paths`, and unmerged entries count as "modified". No criterion covers either case. If the human wants either one exact, it needs its own story.
