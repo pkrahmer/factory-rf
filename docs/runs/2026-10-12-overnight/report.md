@@ -14,6 +14,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0004 The process wrapper | #4 | 6 | 4.3 | 7 (01:43 to 01:50) | $1.19 | 0 (first-pass) |
 | F0001-S0005 Git wrapper: fetch and refs | #5 | 6 | 7.6 | 10 (01:51 to 02:01) | $2.27 | 0 (first-pass) |
 | F0001-S0006 Git wrapper: clone, checkout, commit, push | #6 | 6 | 6.3 | 9 (02:02 to 02:11) | $1.95 | 0 (first-pass) |
+| F0001-S0007 Project commands and the make class | #7 | 8 | 4.9 | 9 (02:12 to 02:21) | $1.78 | 0 |
 
 ## Stops
 

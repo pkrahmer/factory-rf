@@ -70,3 +70,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 02:03 | Usage: 5-hour window 83% (resets 03:30), weekly 64%. Rule for the rest of this window: no new story starts at 92% or above; the next start waits for the reset. A story already running when the window runs dry may stall; after the reset the session answers its cap question to run again | | plan, sections 9 (usage limits) and 11 |
 | 02:11 | S0006 at accept: 23 behavioural criteria mapped, demo met its `Expect:` (a rejected push is a value, not forced), `make check` green in the container, diff within the story. Merged; archived | #6 | plan, section 8 (approval) |
 | 02:12 | Usage 85%. `F0001: start S0007` | | plan, section 8 (start) |
+| 02:21 | S0007 at accept: 24 behavioural criteria mapped, demos met both `Expect:` lines (make's status 2, `--no-print-directory`), `make check` green in the container, diff within the story. Merged; archived | #7 | plan, section 8 (approval) |
+| 02:22 | Usage 87%. `F0001: start S0008` | | plan, section 8 (start) |
