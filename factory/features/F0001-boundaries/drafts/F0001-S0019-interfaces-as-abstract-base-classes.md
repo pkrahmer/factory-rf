@@ -49,7 +49,7 @@ Rules:
 - The tests that asserted an implementation does not inherit its interface are rewritten to assert that it does; no test keeps an assertion that an interface is absent from an implementation's `__mro__`.
 - The posting search counts concrete classes only: the abstract `HostingService` is the interface, not an implementation of `post_comment`.
 
-Tests: `tests/application/test_interfaces.py` (new) for the interfaces; the six "fits without inheriting" tests in `tests/adapters/test_git_cli_reading.py`, `test_pygithub_hosting.py`, `test_fake_hosting.py`, `test_make_commands.py`, `test_fake_agent_runtime.py` and `test_claude_runtime_resume.py` are rewritten in place; `tests/test_hosting_fake_search.py` replaces its `Protocol` test by an abstract-class test.
+Tests: `tests/application/test_interfaces.py` (new) for the interfaces; the six "fits without inheriting" tests in `tests/adapters/test_git_cli_reading.py`, `test_pygithub_hosting.py`, `test_fake_hosting.py`, `test_make_commands.py`, `test_fake_agent_runtime.py` and `test_claude_runtime_resume.py` are rewritten in place; `tests/test_hosting_fake_search.py` replaces its `Protocol` test by an abstract-class test. mypy refuses a direct call of an abstract class, so the tests for criteria 7 and 8 call the interfaces and the incomplete subclass through a variable typed `Callable[[], object]` (or a parametrized argument typed `type[object]`), with no `type: ignore`.
 
 ## Acceptance criteria
 
@@ -57,7 +57,7 @@ Tests: `tests/application/test_interfaces.py` (new) for the interfaces; the six 
 2. No class in the four modules of `factory.application` derives from `typing.Protocol` (an `ast` search over the modules finds no base named `Protocol`).
 3. `Git.__abstractmethods__` is exactly the nineteen operations of `tests/application/test_git_protocol.py`'s `OPERATIONS`.
 4. `HostingService.__abstractmethods__` is exactly the ten operations of `tests/application/test_hosting_protocol.py`'s `OPERATIONS`, and each keeps the return type that test pins.
-5. `ProjectCommands.__abstractmethods__` is exactly `{"run"}`, and `AgentRuntime.__abstractmethods__` is exactly `{"run", "version"}`.
+5. `ProjectCommands.__abstractmethods__` is exactly `{"run"}`, and `AgentRuntime.__abstractmethods__` is exactly `{"run", "version"}`; none of the four interfaces has a public member (a name not starting with `_`) other than its abstract operations.
 6. The body of every abstract method in the four modules is a single docstring (an `ast` check: one statement, a string constant).
 7. Calling any of the four interfaces with no arguments raises `TypeError`.
 8. A subclass of `ProjectCommands` that defines no `run` raises `TypeError` when it is constructed, and one that defines `run` is constructed.
@@ -65,7 +65,7 @@ Tests: `tests/application/test_interfaces.py` (new) for the interfaces; the six 
 10. `PyGithubHostingService` and `FakeHostingService` are subclasses of `HostingService`, and the `hosting` fixture's object is an instance of it.
 11. `MakeProjectCommands` is a subclass of `ProjectCommands`.
 12. `ClaudeCodeRuntime` and `FakeAgentRuntime` are subclasses of `AgentRuntime`, and the `agent_runtime` fixture's object is an instance of it.
-13. No file under `tests/` asserts that an interface is not in an implementation's `__mro__` (a search for `not in` together with `__mro__` finds nothing).
+13. No file under `tests/` asserts that an interface is not in an implementation's `__mro__`: an `ast` search finds no comparison with `not in` whose right side is an attribute named `__mro__`.
 14. Exactly two concrete classes under `src/factory` define `post_comment`, `FakeHostingService` and `PyGithubHostingService`; the abstract `HostingService` is not counted, and no test class defines `post_comment`.
 15. make check stays green.
 16. docs: `docs/project-guide.md` says for each of the six implementations that it inherits its interface, an abstract base class, and no longer that it fits "structurally"; `docs/decisions.md` records that the factory's interfaces are abstract base classes its own implementations inherit, decided by the human on 2026-10-13, and that `typing.Protocol` is kept for shapes of code the factory does not own.
