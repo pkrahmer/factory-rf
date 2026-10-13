@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 18
 blocked: null
 comments_seen: 2
@@ -132,3 +132,18 @@ Expect: one line, `died None None None []`, and no traceback.
    Cross-read and found current against the diff: the resume paragraphs of the same section (sums over both calls, a call that reported none adds nothing; this matches criteria 6 and 8), the `AgentRunResult` paragraph, `README.md`, `docs/operator-guide.md`. The code matches the Interface and no finding for the coder. No examples were written; `make check` is green after the edit. Nothing stale seen that is unrelated to this story.
 
    `make check`: check: green
+9. demo: no findings.
+
+   I ran the one command under `## Demo` from the repository root, exactly as written. It used a stand-in `claude` that replies `{"subtype": "success", "is_error": false, "num_turns": -1}` and called `ClaudeCodeRuntime.run`. Exit status 0.
+
+   ```
+   died None None None []
+   ```
+
+   Expect: one line, `died None None None []`, and no traceback. Met: the output is exactly that line, with nothing on stderr.
+
+   Checked against the acceptance criteria:
+   - Criterion 1: the end reason is `died`, turns, tokens and cost are `None`, and `run` raised nothing.
+   - Criterion 5, the part this demo shows: the state directory is empty, so no run file is left.
+
+   The demo contradicts no criterion. Criteria 2 to 4 and 6 to 8 are not exercised by the demo; the tests named in log entry 5 cover them. Criteria 9 and 10 are the factory's `make check` and the documenter's change (log entry 8).
