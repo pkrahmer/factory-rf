@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 41
 blocked: null
 comments_seen: 0
@@ -194,3 +194,4 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
    - Line 6 lists the two lines with their stamps removed.
 
    Criteria check: the demo agrees with criteria 3 (the stop is in the status and `healthy` is false), 4 (one stamped line on standard output and in the log file, stamped with the clock's time), 10 (clear removes the stop and writes `stop cleared <reason>`) and 1/2 (built with keyword arguments only). It contradicts no criterion. The demo does not exercise the error paths (6–8, 12, 13), the replace-in-place rule (5) or the no-op clear (11); tests cover them, according to the tester's and reviewer's entries. I did not run `make check`, which the factory runs itself after this stage.
+8. done (pull request merged); cost: 6 runs, 5.6 min, 42 turns, 117k tokens in (638k more from cache), 23k out, $1.33
