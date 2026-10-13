@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 29
 blocked: null
 comments_seen: 0
@@ -160,3 +160,17 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I implemented the work item data types. All tests for criteria 1–13 pass, and `make check` is green with 99.56 % coverage. Commit 7e9893f.
+   - `src/factory/domain/errors.py`: added `WorkItemFormatError(fault, path=None)`. It is a `FactoryError`. Its message is `fault`, or `<path>: <fault>` when a path is given.
+   - `src/factory/domain/journal.py` (new): `HUMAN`, `FACTORY`, `Speaker = Name`, `JournalKind` (the twelve kinds) and the frozen, extra-forbidding `JournalRecord`.
+   - `src/factory/domain/work_item.py` (new): `Blocked`, `Claim`, `WorkItemState`, `WorkItemDocument` and `initial_state`.
+     - `Claim.started_at` is an `AwareDatetime` that a field validator converts to UTC, the same way `hosting.PullRequestComment` does.
+     - The `comments_read` and `journal` rules are field validators, so their errors are located at their own field.
+     - The rule that a claim's stage matches the state's stage is an after-model validator, so its error has an empty location.
+     - `initial_state` just builds `WorkItemState(stage=first_stage)`, so the defaults are the initial values. A first stage that is not a `Name` fails as a `ValidationError` through the model.
+   - Main design decision: each rule is a Pydantic validator on its type. I rejected a separate check function that the reader would call, because the Interface asks for rules that the types enforce, with error locations the reader can name.
+   - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+   - Both demo commands print exactly what their Expect lines say.
+   - Open: criterion 15 (`docs/project-guide.md`) is for the documenter. I noticed nothing outside this ticket.
+
+   `make check`: check: green
