@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 14
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The hosting-service fake
 
 ## Assignment (as of log entry 1)
@@ -103,3 +111,92 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted. Format check passed; nothing was changed in the story.
+   - Interface: `src/factory/adapters/fake_hosting.py` names the class, its constructor and the nine test operations with full signatures. The ten protocol operations are the signatures of S0002. Every behaviour in its comments and rules (numbering, url, created_at, post key, label replacement, kill point, failure injection) has a criterion.
+   - Criteria: each fits one test function. Every rule has its failing side: a missing pull request number (14, all 15 operations, which matches the eight protocol plus seven test operations that take a number), a missing comment id (13), a repeated key (11, 12), an invalid `fail_next` (16), injected failure (15), and no pull request found for closed or merged (3). The edge case of `delete_comment` with an id that belongs to another pull request is not stated; I take it as outside the rules, since the fake allows what GitHub would refuse unless a criterion says otherwise (decision 6).
+   - Demo: both blocks are runnable with `uv run python -c`. Each Expect line is checkable output: five lines in the first block and two in the second. The second relies on the `InjectedKill` text `injected kill at after-post` from S0001.
+   - Architecture: the fake sits in `factory.adapters`, satisfies the `HostingService` protocol structurally (criterion 18), and is the only fake of the hosting service (criterion 17). It imports only domain types, so the layering holds.
+   - Scope: within FEATURE.md ("the one fake (SI2.3)"). It does not touch wiring, the posting rules of handlers or the kill-point tests, all of which are out of scope.
+3. tester: wrote red tests for every acceptance criterion of the hosting-service fake.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_fake_hosting.py::test_created_pull_requests_are_open_numbered_and_carry_url_description_and_no_labels
+   - criterion 2: tests/adapters/test_fake_hosting.py::test_pull_requests_lists_every_state_ordered_by_number
+   - criterion 3: tests/adapters/test_fake_hosting.py::test_find_open_pull_request_returns_only_an_open_one
+   - criterion 4: tests/adapters/test_fake_hosting.py::test_human_close_and_merge_set_state_and_merge_commit
+   - criterion 5: tests/adapters/test_fake_hosting.py::test_close_and_reopen_toggle_the_state
+   - criterion 6: tests/adapters/test_fake_hosting.py::test_set_draft_and_set_description_change_the_pull_request
+   - criterion 7: tests/adapters/test_fake_hosting.py::test_set_labels_replaces_only_stage_labels
+   - criterion 8: tests/adapters/test_fake_hosting.py::test_comment_ids_rise_across_pull_requests_with_a_second_apart
+   - criterion 9: tests/adapters/test_fake_hosting.py::test_human_comments_are_not_factory_posts
+   - criterion 10: tests/adapters/test_fake_hosting.py::test_post_comment_adds_a_factory_post_with_marker_and_key
+   - criterion 11: tests/adapters/test_fake_hosting.py::test_a_repeated_key_is_not_posted_again
+   - criterion 12: tests/adapters/test_fake_hosting.py::test_after_post_kill_point_fires_after_the_post_and_not_for_a_repeat
+   - criterion 13: tests/adapters/test_fake_hosting.py::test_delete_comment_removes_it_and_refuses_an_unknown_id
+   - criterion 14: tests/adapters/test_fake_hosting.py::test_an_unknown_pull_request_number_is_refused (parametrized, one case per operation, 15 in all)
+   - criterion 15: tests/adapters/test_fake_hosting.py::test_fail_next_fails_that_many_calls_of_that_operation
+   - criterion 16: tests/adapters/test_fake_hosting.py::test_fail_next_refuses_an_unknown_operation_or_times_below_one (cases: unknown name, times=0) and ::test_fail_next_accepts_one_time (times=1)
+   - criterion 17: tests/test_hosting_fake_search.py::test_only_the_fake_and_the_pygithub_client_define_post_comment and ::test_no_test_class_defines_post_comment. Protocol classes are found by a `Protocol` base in the AST.
+   - criterion 18: tests/adapters/test_fake_hosting.py::test_the_fake_fits_the_protocol_without_inheriting_it. It assigns the fake to a variable annotated `HostingService`, so mypy checks the fit, and it asserts that `HostingService` is not in the MRO.
+   - criterion 19 (make check) and criterion 20 (docs) are not test functions. Criterion 19 is the gate the coder runs; criterion 20 belongs to the documenter.
+
+   Files: I created tests/adapters/test_fake_hosting.py and tests/test_hosting_fake_search.py. I added the `hosting` fixture to tests/conftest.py, which returns `FakeHostingService(kill_points)`. No existing fixture was changed.
+
+   Red run: `make test` stops when it loads conftest with `ModuleNotFoundError: No module named 'factory.adapters.fake_hosting'`. That is the only module the runner could not import. Because conftest imports the fake, the whole suite is red until the module exists. `make lint` is green.
+
+   Choices made inside the criteria: in criterion 14, operations that need a comment id or other arguments get valid ones, so only the pull request number is wrong. In criterion 12, "once per posted" is checked with a second post under a new key, which raises the reach count to 2. The test for criterion 8 also checks that the first comment's `tzinfo` is `UTC`. I left untested the case that the criteria leave open: `delete_comment` with an id that belongs to another pull request, as intake noted.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.fake_hosting'
+4. coder: built `FakeHostingService` in `src/factory/adapters/fake_hosting.py`. All tests pass and `make check` is green (coverage 99 %, the new module is fully covered). The second demo block prints `injected kill at after-post 1` / `already_posted 1` as expected.
+
+   What it does:
+   - Each pull request is a private mutable `_PullRequest` dataclass that holds its description, labels and comments. Callers get a frozen `PullRequestView` built fresh on each read, so the domain DTOs stay frozen and the test operations can change state in place.
+   - Comment ids come from one counter shared by all pull requests. `created_at` is 2026-10-12 UTC plus the id in seconds. Every comment, the human's and the factory's, goes through `PullRequestComment.from_body`, so `by_factory` and `key` are derived the same way as in the PyGithub client.
+   - `post_comment` follows `PyGithubHostingService.post_comment`: first the key check, then the post, then `KillPoint.AFTER_POST`. A repeated key reaches no kill point.
+   - Each of the ten protocol operations first checks for an injected failure and only then looks up the pull request number. So an injected failure has no effect at all, even for a number that does not exist. The test operations take no injected failures, as the interface says (`fail_next` names only the ten).
+   - `set_labels` uses the same `LABEL_PREFIX` filter as the PyGithub client.
+
+   Rejected: storing pull requests as `PullRequestView` and replacing them with `model_copy(update=...)`. The description, labels and comments would then need side dictionaries next to the view, and the state would be split across several places.
+
+   Refactor pass: I read the diff (one new file). Nothing to rename or simplify, so there is no refactor commit.
+
+   Noticed, not touched: `delete_comment` with an id that belongs to another pull request raises `HostingServiceError`, because it searches only the comments of the given pull request. No criterion covers this case, as intake noted. Criterion 20 (docs) is left for the documenter.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read every test against its criterion. Criteria 1–18 each have a test that checks what the criterion names. The failing sides of the Interface's rules are tested: an unknown pull request number for all 15 operations (criterion 14), an unknown comment id (13), a repeated key (11, 12), an injected failure that posts nothing (15), an unknown operation for `fail_next` (16), and `times` on both sides of its limit, 0 refused and 1 accepted (16). Criterion 17 checks every module under `src/factory` (`tests/source_search.py`) and every file under `tests/`, and leaves out `Protocol` classes. Criterion 18 relies on the variable annotated `HostingService` that mypy checks, and also checks the MRO. Per the coder's entry, the factory's `make check` after the coder was green.
+   - Architecture: `src/factory/adapters/fake_hosting.py` imports only `factory.domain`. It fits the protocol structurally without inheriting from it. It calls no tool, and no `dict[str, Any]` crosses a function boundary.
+   - Security: no suppression markers, no secrets (the commit id is `"a" * 40`), and no shell or file I/O.
+   - Quality: `post_comment` follows `PyGithubHostingService.post_comment` (key check, then post, then `AFTER_POST`). `set_labels` uses the shared `LABEL_PREFIX`. Comments go through `PullRequestComment.from_body`, as in the real client. Public names have docstrings and private ones have none.
+   - Ticket hygiene: the coder's entry explains the main decision (a private mutable `_PullRequest` with fresh frozen views) and what was rejected (`model_copy` with side dictionaries). `Assignment` matches what was built. Criterion 20 still says what the documenter must write.
+
+   Open, not a finding: `delete_comment` raises `HostingServiceError` when the id belongs to another pull request. No criterion states this case, as intake, the tester and the coder all noted.
+6. documenter: no findings.
+   - `docs/project-guide.md`: new subsection "The fake" under the hosting service (the `hosting` fixture and `FakeHostingService` as the only stand-in, the behaviour shared with the PyGithub client, numbering, url and `created_at`, the kill point, a table of the nine test operations, a short example). The two "fake follows in a later story" sentences were stale and now point to it.
+   - `README.md`: the status sentence lists the hosting fake.
+   - Cross-read and found current: the rest of the project guide's hosting section and the kill-points table (`AFTER_POST` already names the fake), `docs/decisions.md`, `docs/operator-guide.md`. The diff matches the Interface; I did not re-run the demo blocks, the coder ran the second one. `make check` is green.
+   - Not touched: nothing stale seen. Open, not a finding: `delete_comment` with an id from another pull request raises `HostingServiceError`; no criterion covers it, so the guide only says an unknown id raises.
+
+   `make check`: check: green
+7. demo: both commands met their Expect lines; no findings.
+
+   Command 1 (create, post twice with one key, count factory posts, human comment, list authors):
+   ```
+   1 open True
+   posted
+   already_posted
+   1
+   ['factory', 'human']
+   ```
+   Expected five lines: `1 open True`, `posted`, `already_posted`, `1`, `['factory', 'human']`. Met. Exit 0.
+
+   Command 2 (AFTER_POST armed, post raises InjectedKill after the comment is stored, rerun is a no-op):
+   ```
+   injected kill at after-post 1
+   already_posted 1
+   ```
+   Expected `injected kill at after-post 1`, then `already_posted 1`. Met. Exit 0.
+
+   Criteria cross-check: the output agrees with criterion 1 (number 1, open, draft true), 9 (human author on the human comment), 10 (factory post, counted by `factory_posts`), 11 (repeated key gives `already_posted`, count unchanged), 12 (kill after the post, comment already present, the repeat is `already_posted`) and 8 (`list_comments` oldest first). No criterion is contradicted. I did not run `make check` myself; the factory runs it after this stage.

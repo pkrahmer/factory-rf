@@ -16,7 +16,7 @@ The guide for agents working on `factory-rf`: how the code is laid out, where a 
 
 ## The hosting service
 
-The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` protocol in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. `PyGithubHostingService` (`factory.adapters.pygithub_hosting`) is the one client; the one fake follows in a later story. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
+The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` protocol in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. `PyGithubHostingService` (`factory.adapters.pygithub_hosting`) is the one client; `FakeHostingService` (`factory.adapters.fake_hosting`) is the one fake. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
 
 The ten operations:
 
@@ -45,7 +45,35 @@ Labels are a projection of the stage: they are written and never read back, so n
 - `set_labels` keeps the labels that do not start with `LABEL_PREFIX` and adds the given ones; the names it read are never returned.
 - `github` is imported by this module only. No module in `src/factory` imports another route to the hosting service (`requests`, `httpx`, `aiohttp`, `urllib3`, `urllib.request`, `http.client`, `socket`, `git`, `pygit2`, `dulwich`, `githubkit`) or contains the string `"gh"`; `tests/test_hosting_search.py` checks it.
 
-Tests do not call PyGithub. `tests/adapters/test_pygithub_hosting.py` uses the recording stand-ins of PyGithub's objects in `tests/adapters/pygithub_stand_ins.py`, passed in with `typing.cast`; the fake hosting service follows in a later story. A real call is first seen by the baseline run. Use a low-entropy literal such as `"a" * 40` for a commit id in a test, so that `make secrets` stays green.
+Tests do not call PyGithub. `tests/adapters/test_pygithub_hosting.py` uses the recording stand-ins of PyGithub's objects in `tests/adapters/pygithub_stand_ins.py`, passed in with `typing.cast`. A real call is first seen by the baseline run. Use a low-entropy literal such as `"a" * 40` for a commit id in a test, so that `make secrets` stays green.
+
+### The fake
+
+Tests use `FakeHostingService(kill_points=None)` (`factory.adapters.fake_hosting`), through the `hosting` fixture in `tests/conftest.py` (built with the test's `kill_points`), and nothing else in place of the hosting service. It satisfies `HostingService` structurally and does not inherit it (a test assigns it to a variable annotated `HostingService`, so mypy checks the fit). `tests/test_hosting_fake_search.py` checks that only the fake and the PyGithub client define `post_comment`, and that no test class does.
+
+It behaves as the PyGithub client does where a test can see it: a repeated post key returns `"already_posted"` and adds nothing, `merge_commit` is set only for a merged pull request, `set_labels` replaces only the labels that start with `LABEL_PREFIX` (others keep their order, the given ones come after), and every failing call raises `HostingServiceError`. `post_comment` reaches `KillPoint.AFTER_POST` after a `"posted"`, and not for `"already_posted"`.
+
+Numbering is predictable: pull requests from 1, comment ids from 1 across all pull requests, the url of pull request `n` is `https://fake.invalid/pull/<n>`, and the `created_at` of comment `i` is 2026-10-12 UTC plus `i` seconds. A number that does not exist raises `HostingServiceError` from every operation that takes one.
+
+The test operations act as the human or look at what the factory did:
+
+| Operation | Purpose |
+|---|---|
+| `add_human_comment(number, body, *, author="human")` | add a comment as written; returns its id |
+| `delete_comment(number, comment_id)` | remove a comment; an unknown id raises `HostingServiceError` |
+| `close_by_human(number)` | state `"closed"` |
+| `merge_by_human(number, merge_commit)` | state `"merged"` with that `merge_commit` |
+| `fail_next(operation, *, times=1)` | the next `times` calls of one of the ten operations raise `HostingServiceError(operation, "injected failure")` before any effect; an unknown name or `times` below 1 raises `ValueError` |
+| `factory_posts(number)` | the comments with `by_factory` true, in order (how a test counts posts) |
+| `labels(number)`, `description(number)` | what the factory wrote |
+| `pull_requests()` | every pull request, whatever its state, by number |
+
+```python
+pull = hosting.create_pull_request("work-item/F0001-S0001", "title", "body", draft=True)
+hosting.post_comment(pull.number, "Which option?", key)   # "posted"
+hosting.add_human_comment(pull.number, "(a)")
+assert len(hosting.factory_posts(pull.number)) == 1
+```
 
 ### Data
 
