@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 6
 blocked: null
 comments_seen: 0
@@ -218,3 +218,4 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
    - a non-fast-forward push returns `rejected` (15)
 
    The demo does not exercise the other criteria (hooks, unreachable remote, kill points, identity, `HumanClone`). The tests named in the tester's entry cover them.
+8. done (pull request merged); cost: 6 runs, 6.3 min, 45 turns, 162k tokens in (809k more from cache), 37k out, $1.95
