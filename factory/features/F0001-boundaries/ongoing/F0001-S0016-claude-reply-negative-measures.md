@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 18
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -79,3 +79,6 @@ Expect: one line, `died None None None []`, and no traceback.
    3. The Interface says the resumed sum is "tested in both directions", but criterion 6 covers only the first call reporting the measures. The reverse, where the first call reports none and the resumed call reports some, has no criterion. Either add that criterion, or reword the Interface to say that only the first-call-only direction is pinned here. I would add the criterion.
 
    Everything else I checked is fine: the Interface names the module and the rules, the Demo is runnable and its Expect line is checkable, the architecture matches (the change stays inside `factory.adapters`), and the scope matches FEATURE.md.
+3. human (pull request comment, 2026-10-13): 1. (a): add the Interface line "A budget-stop reply (`subtype` `error_max_budget_usd`) with a negative measure is such a reply too: the run is `died`, every measure `None`, and it is not resumed." and the criterion, before the two closing ones: "A first call that stops on its budget (`subtype` `error_max_budget_usd`) reporting `num_turns` -1 gives `died` with every measure `None`, and the stand-in was called once (no resume)." This is FEATURE.md decision 21.
+   2. (b): remove "unless the `time_limit` ended it" from the Interface. A call the `time_limit` ended has no measures taken from its output (decision 13), so this rule reads only a call that ended on its own; nothing about time-outs changes.
+   3. Add the criterion, before the two closing ones: "A run whose first call stops on its budget reporting no measures, and whose resumed call completes reporting `num_turns` 2, `total_cost_usd` 0.5 and tokens 4 and 1, has turns 2, cost 0.5 and tokens 4 and 1." Keep "tested in both directions" in the Interface.
