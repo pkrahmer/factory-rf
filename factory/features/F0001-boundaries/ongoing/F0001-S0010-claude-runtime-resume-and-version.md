@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 10
 blocked: null
 comments_seen: 0
@@ -146,3 +146,30 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Finished the `claude -p` runtime in `src/factory/adapters/claude_runtime.py`. The work is in commit ae7e0df, with a refactor in 1ae8504. `make check` is green and all of the tester's tests pass unchanged.
+
+   - Added `FINISH_MESSAGE`, `MINIMUM_RESUME_BUDGET`, `VERSION_TIME_LIMIT` and `resume_budget`. `resume_budget` takes a quarter of the budget, rounds it half up to cents and keeps it at 0.50 or more.
+   - `_end_reason` now gives `budget` when the reply's `subtype` is `error_max_budget_usd`. It checks this right after the time-limit check and before the exit status, so a budget stop is recognised whatever the exit status.
+   - When the first call ends with `budget`, `ClaudeCodeRuntime.run` calls `_resume` once:
+     - The resume uses the first call's arguments with three changes: `-p` is `FINISH_MESSAGE`, `--session-id` becomes `--resume`, and `--max-budget-usd` is the resume budget.
+     - Its time limit is what is left of `request.time_limit`, measured from the start of `run`.
+     - The resumed call's reply is read by the same S0009 rules, so a second budget stop ends as `budget` and no third call is ever made.
+   - `_resumed_result` adds up the measures of both calls:
+     - Turns and cost are added by `_add`, the token counts by `_add_tokens`; `None` adds nothing.
+     - When the resume is ended by the time limit, turns, cost and tokens are `None` (R24).
+     - The permission denials are joined, the first call's first.
+   - The run's `duration` is set once, after the last call. `KillPoint.AGENT_RUN` is reached once, after that.
+   - `version()` runs `<executable> --version` through `run_process`. It uses the current working directory, the inherited environment (`env=None`) and `version_time_limit`, and returns the first word of the first non-blank line. It raises `AgentRuntimeError` when the call cannot be started, times out, exits non-zero or prints nothing. `ClaudeCodeRuntime` now satisfies `AgentRuntime` structurally, as mypy confirms.
+
+   Design decision: each call goes through the existing `_result`, and the two results are then combined. I rejected a second parser that reads the raw replies of both calls together, because the S0009 rules for one call (killed calls have no measures, the decision only on `completed`) would have had to be repeated.
+
+   Edge case not covered by a test: if the first call used up the whole time limit without being killed, nothing is left for the resume. `ProcessRequest` refuses a limit of 0, so in that case the resume is skipped and the run ends as `time_limit` with unknown measures (`claude_runtime.py`, in `_resume`). It is the only new line coverage misses.
+
+   Refactor (1ae8504): `_result` no longer takes a duration, because the run sets it once. Nothing else needed changing.
+
+   Noticed, not touched:
+   - `_add` and `_add_tokens` both do the "`None` adds nothing" check. I kept them apart because `TokenCounts` has no `+`.
+   - The `cwd` of the version query is the process's current directory, which the interface does not name.
+   - Docs (criterion 18) are for the documenter stage.
+
+   `make check`: check: green
