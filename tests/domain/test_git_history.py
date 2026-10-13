@@ -8,8 +8,8 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from factory.domain.git import ChangedPath, ChangeKind, CommitInfo, WorkTreeStatus
 
-COMMIT = "0123456789abcdef0123456789abcdef01234567"
-PARENT = "89abcdef0123456789abcdef0123456789abcdef"
+COMMIT = "a" * 40
+PARENT = "b" * 40
 COMMITTED_AT = datetime(2026, 1, 2, 12, 0, tzinfo=UTC)
 
 

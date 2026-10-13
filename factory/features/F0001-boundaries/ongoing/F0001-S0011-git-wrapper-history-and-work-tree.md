@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 11
 blocked: null
 comments_seen: 2
@@ -171,3 +171,7 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
    I would choose (a). If you agree, I will end with `tests` and name exactly that change for the tester.
 5. human (pull request comment, 2026-10-13): (a): the tester changes the two constants to low-entropy ids (`COMMIT = "a" * 40`, `PARENT = "b" * 40`), as `tests/domain/test_hosting.py` does. No baseline entry and no pragma.
 6. coder: test change for the tester, as the human's answer (entry 5) asks. In `tests/domain/test_git_history.py`, lines 11–12, change `COMMIT` to `"a" * 40` and `PARENT` to `"b" * 40`, the low-entropy ids `tests/domain/test_hosting.py` uses, so that `make secrets` stops flagging them as Hex High Entropy Strings. Do not add a baseline entry or a pragma. Nothing else changes. The implementation (5ea0a39) is untouched, and it passes all 31 tests in the new modules. Once that change is in, `make check` should be fully green, and the ticket can go to review with the design described in entry 4: rename detection is off everywhere, `changed_paths` combines `diff --name-status --no-renames <since>` with the untracked files from `ls-files`, and `status` parses porcelain v2.
+7. tester: made the test change the human approved in entry 5 and the coder specified in entry 6. In `tests/domain/test_git_history.py`, lines 11–12 are now `COMMIT = "a" * 40` and `PARENT = "b" * 40`. These are low-entropy ids, as in `tests/domain/test_hosting.py`, so `make secrets` no longer flags them as Hex High Entropy Strings. No baseline entry and no pragma were added, and nothing else changed. The uppercase-parent case still holds, because `PARENT.upper()` is 40 `B`s and is still invalid. I ran `make test` once and it is green, with total coverage at 98.49 %.
+
+   `make lint`: lint: green
+   `make test`: test: green
