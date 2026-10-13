@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 7
 blocked: null
 comments_seen: 0
@@ -219,3 +219,20 @@ Expect: one line starting with `project command Check; ls failed:` that names th
    - I did not run the doc example, a short snippet of the same call as the demo.
 
    `make check`: check: green
+9. demo: demo (round 1): ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines and neither contradicts any acceptance criterion. No findings.
+
+   Command 1 (a Makefile in a temp directory; `run` for `check`, `lint` and `nope`):
+   ```
+   check passed 0 'check: green'
+   lint failed 2 'lint: red'
+   nope failed 2 ''
+   ```
+   Met. The output is the three lines expected, in order. The exit status decides the result (criteria 6, 7, 8). make sets the status to 2, not the recipe's `exit 3` (criterion 7). make's own `make: ***` lines are not taken as `last_line`: `lint` gives `'lint: red'` and the missing target gives `''` (criterion 15). Nothing was raised for the failed or missing target. The process exited 0.
+
+   Command 2 (`run('Check; ls', ...)`):
+   ```
+   project command Check; ls failed: invalid command name 'Check; ls'
+   ```
+   Met. It is one line starting with `project command Check; ls failed:`, and it names the invalid command name. The message format matches criteria 19 and 21. The process exited 0.
+
+   Criteria check: nothing in either output contradicts criteria 1–24. I did not run `make check` (criterion 25); the factory runs it after this stage, and entry 8 reports it green. Criterion 26 (docs) is outside what the demo shows. Still open from entries 5–8: no test covers a command name with a trailing newline. Only the human can ask the tester to add one; it does not block acceptance.
