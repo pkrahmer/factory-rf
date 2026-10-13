@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 24
 blocked: null
 comments_seen: 0
@@ -138,3 +138,9 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
    - Left alone: the explicit leading/trailing `/` check overlaps a little with the component split (an empty component would otherwise pass). I kept it explicit because it reads clearer. The docs (criterion 12) are the documenter's job.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Criteria 1–10: each has a test that checks what its criterion says. Criteria 1–3 in `tests/domain/test_git.py` cover the failing side of every Interface rule. The boundaries are tested on both sides: `HEAD` and `@` refused as a whole value, while `feature/HEAD` and `a@b` pass; `.lock` refused at the end of a component, while `x.lock.y` passes; `*` refused inside a name, not only at the end. Criteria 4–5 in `tests/adapters/test_git_cli_arguments.py` check that `BEFORE_PUSH` is not reached and that the remote's refs are unchanged. Criteria 6–10 in `tests/adapters/test_git_cli_branches.py` cover the local tag (`GitError`, nothing pushed), the remote tag left alone, the upstream after a push, the removal of `origin/keep`, and `a..b` as a `ValueError` with the refs unchanged. S0012's already-gone test is still there and covers removing `ALREADY_DELETED_MARKER`. The coder's entry reports the factory's `make check` as green.
+   - Architecture: the name rules are pure and live in `factory.domain.git` (no I/O, no git call). The command lines change only in `GitCli` (`src/factory/adapters/git_cli.py:280` and `:290`), which name only the source, `refs/heads/<branch>`, as decision 23 says. The local operations keep `check_git_argument`.
+   - Security: the git argv is built as a list, not a shell string. Names are validated before any process runs. No suppression markers, no secrets, no new dependencies.
+   - Quality: the helpers are small and private and have no docstrings, as CLAUDE.md allows. The comments say why. The removed marker leaves no dead code behind, and the `delete_remote_branch` docstring is still accurate.
+   - Ticket hygiene: the coder's entry records the main decision (porting git's rules into the domain rather than calling `git check-ref-format`) and what was rejected. The Assignment matches what was built. The docs criterion (12) still describes what the documenter has to write.
