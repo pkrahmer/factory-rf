@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 18
 blocked: null
 comments_seen: 2
@@ -147,3 +147,4 @@ Expect: one line, `died None None None []`, and no traceback.
    - Criterion 5, the part this demo shows: the state directory is empty, so no run file is left.
 
    The demo contradicts no criterion. Criteria 2 to 4 and 6 to 8 are not exercised by the demo; the tests named in log entry 5 cover them. Criteria 9 and 10 are the factory's `make check` and the documenter's change (log entry 8).
+10. done (pull request merged); cost: 7 runs, 3.9 min, 35 turns, 109k tokens in (360k more from cache), 12k out, $0.97
