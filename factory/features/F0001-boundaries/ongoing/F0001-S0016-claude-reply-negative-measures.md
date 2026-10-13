@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The claude runtime: a reply with impossible measures is a dead run, and the resumed sums are pinned
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
