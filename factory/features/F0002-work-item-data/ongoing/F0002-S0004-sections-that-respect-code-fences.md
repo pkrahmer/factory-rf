@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 31
 blocked: null
 comments_seen: 0
 round: 0
@@ -90,3 +90,9 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/sections.py` names the constants, the two frozen models and seven functions with signatures. Every behaviour in its comments (line splitting, fence open/close, heading and title rules, `section_text` trimming, `insert_paragraph` blank-line layout and trailing newline, `required_sections`) is stated as a rule. `WorkItemFormatError` already exists in `factory.domain.errors` (fault, path).
+   - Criteria: 1–16 are each testable by one test function from the examples given. Each rule has its failing side: not a heading (6), not a title (7), no matching section gives `None` (8, 9), a missing section raises `WorkItemFormatError` (13), a blank paragraph raises `ValueError` (14), a fence that is not closed (3, 5), and models that refuse unknown fields (16). 17 and 18 close the list as required.
+   - Demo: one runnable `uv run python -c` command. Its `Expect:` line gives four checkable outputs, including the exact list for the `Journal` insert.
+   - Architecture: pure domain code in `factory.domain`, with no I/O and no imports from higher layers. It matches the layer rules in `CLAUDE.md`.
+   - Scope: this covers the "Sections (SI1.3)" scope item of F0002 and decisions 5 and 6 of `FEATURE.md`. Nothing is taken from "Out of scope". The journal and the form check are left to S0005 and S0006.
