@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Build v1's decision rules 1, 2, 3, 4, 6 and 7 as one pure function over the pipeline definition, the work item's state and the agent's decision: a forward decision while the form had findings becomes a question to the human; a `question` blocks the work item; a rework (a decision other than the first of `next`) counts a round against the stage's `round_cap` and, past it, asks the human instead of looping; a rework at a stage with no `round_cap` simply moves; a forward decision with no findings moves to `next[0]`, with its checks still to be run by S0007 (rule 5, the red check, is S0007's). Rules are tried in the order 1, 2, 3, 4, 6, 7 as v1 numbers them. The function decides stage, `blocked`, `round` and the text of a question the factory itself adds to the journal; it never touches `attempts` or `crashes` (a rework and a stall are counted apart, kept thing 14). The factory's own question texts for the findings and the round cap are built here too. Covers kept things 1 (code decides what the decision means), 10 (a question always blocks) and 14.
+Build v1's decision rules 1, 2, 3, 4, 6 and 7 as one pure function over the pipeline definition, the work item's state and the agent's decision: a forward decision while the form has findings after the run (S0007 passes them) becomes a question to the human; a `question` blocks the work item; a rework (a decision other than the first of `next`) counts a round against the stage's `round_cap` and, past it, asks the human instead of looping; a rework at a stage with no `round_cap` simply moves; a forward decision with no findings moves to `next[0]`, with its checks still to be run by S0007 (rule 5, the red check, is S0007's). Rules are tried in the order 1, 2, 3, 4, 6, 7 as v1 numbers them. The function decides stage, `blocked`, `round` and the text of a question the factory itself adds to the journal; it never touches `attempts` or `crashes`; S0007 resets `crashes` on a forward move (a rework and a stall are counted apart, kept thing 14). The factory's own question texts for the findings and the round cap are built here too. Covers kept things 1 (code decides what the decision means), 10 (a question always blocks) and 14.
 
 ## Interface
 
@@ -31,7 +31,7 @@ def round_cap_question(rounds: int, cap: int) -> str: ...
 def findings_question(findings: Sequence[FormFinding]) -> str: ...
 ```
 
-Types: `Blocked` and `WorkItemState` from `factory.domain.work_item`, `FormFinding` from `factory.domain.story_form`, `PipelineDefinition` from `factory.domain.pipeline_definition`. `StageMove` is frozen and forbids unknown keys. A decision is "forward" when it equals `next[0]` of the state's stage, and a "rework" when it is another entry of `next`.
+Types: `Blocked` and `WorkItemState` from `factory.domain.work_item`, `FormFinding` from `factory.domain.story_form`, `PipelineDefinition` from `factory.domain.pipeline_definition`. `StageMove` is frozen and forbids unknown keys. A decision is "forward" when it equals `next[0]` of the state's stage, and a "rework" when it is another entry of `next`; this is the one rule for counting rounds (FEATURE decision 26), whatever the position of the stage the rework names in the pipeline definition. The interface sheet's `PipelineDefinition.position` is not used to count rounds.
 
 - The state's stage is looked up in `definition.stages`; a stage that is not there raises `ValueError` naming it. A decision that is neither in the stage's `next` nor `question` raises `ValueError` naming the decision.
 - Rule 1: a forward decision with a non-empty `findings` gives stage unchanged, `blocked="question"`, `round` unchanged, `question=findings_question(findings)`.
@@ -44,7 +44,7 @@ Types: `Blocked` and `WorkItemState` from `factory.domain.work_item`, `FormFindi
 - `round_cap_question(rounds, cap)` returns `This work item has now been sent back <rounds> times, more than <cap>. What should happen? Answer with a comment; close the pull request to discard the work item.`
 - `findings_question(findings)` returns `The work item's form has findings, so the stage cannot move forward: <1. m1 2. m2>. What should happen? Answer with a comment; the stage then runs again. Close the pull request to discard the work item.` where the numbered messages are numbered from 1 and joined by one space.
 
-Tests: `tests/domain/test_decisions.py` (grown), `tests/domain/test_post_texts.py` (grown). The pipeline definition is the fixture's: `doing` has `next` `review`, `tests` and no `round_cap`; `review` has `next` `docs`, `doing` and `round_cap` 3.
+Tests: `tests/domain/test_decision_rules.py` and `tests/domain/test_question_texts.py` (both new, so that the modules of S0004 and of F0003 stay as they are). `StageMove` refuses what its types refuse (a `rule` outside 1, 2, 3, 4, 6 and 7, a negative `round`, an unknown key), tested on both sides (criterion 16). The pipeline definition is the fixture's: `doing` has `next` `review`, `tests` and no `round_cap`; `review` has `next` `docs`, `doing` and `round_cap` 3.
 
 ## Acceptance criteria
 
@@ -60,11 +60,12 @@ Tests: `tests/domain/test_decisions.py` (grown), `tests/domain/test_post_texts.p
 10. A state whose `blocked` is `question` gives `blocked=None` for rules 3, 6 and 7: the move clears it.
 11. A decision that is not in the stage's `next` and is not `question` raises `ValueError` whose message names the decision.
 12. A state whose stage is not in the pipeline definition raises `ValueError` whose message names the stage.
-13. `StageMove` has exactly the fields `rule`, `stage`, `blocked`, `round` and `question`: it says nothing about `attempts` or `crashes`, which a move leaves as they are.
+13. `StageMove` has exactly the fields `rule`, `stage`, `blocked`, `round` and `question`: it says nothing about `attempts` or `crashes`, which the result commit handles (S0007).
 14. `round_cap_question(4, 3)` returns exactly `This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment; close the pull request to discard the work item.`
 15. `findings_question` for two findings with messages `a` and `b` returns exactly `The work item's form has findings, so the stage cannot move forward: 1. a 2. b. What should happen? Answer with a comment; the stage then runs again. Close the pull request to discard the work item.`
-16. `make check` stays green.
-17. docs: `docs/project-guide.md` lists the decision rules in their order (1, 2, 3, 4, 6, 7 here, 5 in the checks) with what each does to the stage, `blocked` and `round`, and says that a rework counts rounds and a stall counts attempts, apart; `docs/operator-guide.md` explains the two questions the factory asks by itself (the form findings, the round cap) and the answers it accepts.
+16. `StageMove` refuses what its types refuse, on both sides: `rule` 1, 2, 3, 4, 6 and 7 and `round` 0 are accepted, `rule` 5 and `round` -1 raise `ValidationError`, and an unknown key raises `ValidationError` (built through a variable typed `type[BaseModel]`).
+17. make check stays green.
+18. docs: `docs/project-guide.md` lists the decision rules in their order (1, 2, 3, 4, 6, 7 here, 5 in the checks) with what each does to the stage, `blocked` and `round`, and says that a rework counts rounds and a stall counts attempts, apart; `docs/operator-guide.md` explains the two questions the factory asks by itself (the form findings, the round cap) and the answers it accepts.
 
 ## Demo
 

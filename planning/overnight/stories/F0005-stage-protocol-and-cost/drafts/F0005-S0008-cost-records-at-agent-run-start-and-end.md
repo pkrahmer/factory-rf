@@ -57,11 +57,12 @@ Types: `CostRecord` from `factory.domain.cost_records`, `AgentRunResult` from `f
 - `begin` reads the sidecar in the work tree with `CostRecordReader.read(checkout / path)` (a missing file is `[]`), adds `CostRecord(run=<uuid4 hex>, work_item, stage, role, attempt=<the state's attempts>, status="started", started_at=Clock.now())` with every other field `None`, writes all records with `CostRecordWriter.write` and returns the `CostRun`.
 - `complete` replaces the run's record (same `run`) by `status="completed"`, `duration_seconds=<result.duration in seconds>`, `end_reason`, `turns`, `tokens` and `cost_usd` copied from the result as they are (`None` stays `None`, `Decimal("0")` stays `Decimal("0")`), writes all records and returns the new `CostRun`.
 - `write` writes `run.records` to `run.path`, replacing the file, whatever the file held.
-- `StageLauncher.launch` calls `begin` after it writes the run record and before the runtime runs, and `complete` right after the runtime returns; `LaunchedStage.cost` is the completed run.
+- `StageLauncher.launch` calls `begin` after it composes the request and right before the runtime runs, and `complete` right after the runtime returns; `LaunchedStage.cost` is the completed run.
 - `AfterAgent.process` calls `CostRecorder.write(launched.cost)` right after its undo and passes `cost=launched.cost` in every `StallContext`; `AgentAftermath.cost` is that run. `StageFinisher.finish` passes `aftermath.cost` in the `StallContext` of a red check. `StallService.stall` calls `CostRecorder.write(context.cost)` right after its undo when `context.cost` is not `None`.
 - No cost record is committed or pushed before the run: the stage-start commit holds the records of earlier stages only.
+- The sidecar is a file the factory rewrites itself, so S0005 leaves `cost_records_path(started.path)` out of the paths the entry says were undone (S0005 rule 5, FEATURE decision 27): an agent that wrote only inside its write paths gets an entry without the paragraph about undone changes, and the pushed sidecar holds the completed record.
 
-Tests: `tests/application/test_costs.py`; the stage, stall and result paths are driven through `StageRunner` and `StallService` with `FakeAgentRuntime` and an `ObservingRuntime` that reads the sidecar from the work tree and from `origin/<branch>` when it is called.
+Tests: `tests/application/test_costs.py`; the stage, stall and result paths are driven through `StageRunner` and `StallService` with `FakeAgentRuntime` and an `ObservingRuntime` (`tests/observing_runtime.py`, S0003) that reads the sidecar from the work tree and from `origin/<branch>` when it is called. `CostRun` and the models grown above refuse unknown keys (criterion 15).
 
 ## Acceptance criteria
 
@@ -69,17 +70,19 @@ Tests: `tests/application/test_costs.py`; the stage, stall and result paths are 
 2. A run id is 32 lowercase hexadecimal characters, differs between two runs of one work item, and the records of earlier stages stay in the file with the new record last.
 3. Nothing is pushed before the run: when the runtime is called, `origin/<branch>` holds no sidecar for a work item at its first stage, and holds the previous stage's sidecar unchanged for a later one.
 4. After a completed run the record has status `completed`, `duration_seconds` equal to the result's duration in seconds, and `end_reason`, `turns`, `tokens` and `cost_usd` equal to the result's.
-5. A result that ended `died` and reported no turns, tokens or cost gives a record with duration and end reason set and `turns`, `tokens` and `cost_usd` equal to `None`, not zero.
+5. A result that ended `died` or `time_limit` (parametrised) and reported no turns, tokens or cost gives a record with duration and end reason set and `turns`, `tokens` and `cost_usd` equal to `None`, not zero.
 6. A result that reported a cost of `Decimal("0")` and zero tokens gives a record with those zeros: a reported zero is not turned into unknown.
 7. After the run the file holds one record for the run, the completed one: the started record is replaced, not kept beside it.
 8. A run that starts after a stall (the state's `attempts` is 1) has a record with `attempt` equal to 1.
 9. The sidecar is written again after the undo: an agent that overwrites or deletes the sidecar file leaves, in the pushed commit, a file equal to the records in memory, the completed one included.
 10. The result commit of a stage that moves contains the sidecar with the completed record (GH4.1: created at the start, completed at the end, committed with the next commit).
-11. The stall commit of a run that ended `died` contains the sidecar with that run's record: `end_reason` `died`, cost and tokens `None` (GH4.2).
+11. The stall commit of a run that ended `died` or `time_limit` (parametrised) contains the sidecar with that run's record: `end_reason` as the run ended, duration set, cost and tokens `None` (GH4.2).
 12. The stall commit of a red check contains the run's record once, not twice.
 13. A failing run (`end_reason` other than `completed`) has its record in the commit like a completed run; `CostRecord.ok` is `False` for it.
-14. `make check` stays green.
-15. docs: `docs/project-guide.md` states when a cost record is created, completed and committed (at the run's start and end, with the stage's next commit, never pushed alone) and that unknown cost and tokens are `None`; `docs/decisions.md` records that the sidecar is rewritten from memory after every undo, and that a crashed stage's records are discarded with the stage (R24).
+14. An agent that writes only inside its write paths gets a journal entry without the paragraph `The factory undid changes outside the write paths`, although the undo reverted or deleted its sidecar; the pushed sidecar holds its completed record.
+15. `CostRun` is frozen and forbids unknown keys: assigning to `run` (through `setattr`, the field's name in a variable) and building it with an unknown field raise `ValidationError`; the same holds for `StallContext` built with an unknown field.
+16. make check stays green.
+17. docs: `docs/project-guide.md` states when a cost record is created, completed and committed (at the run's start and end, with the stage's next commit, never pushed alone) and that unknown cost and tokens are `None`; `docs/decisions.md` records that the sidecar is rewritten from memory after every undo, and that a crashed stage's records are discarded with the stage (R24).
 
 ## Demo
 

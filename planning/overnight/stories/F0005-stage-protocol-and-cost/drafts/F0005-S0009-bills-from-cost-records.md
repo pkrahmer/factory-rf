@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Compute the bill of a stage and of a work item from the cost records alone (SI1.2): every record counts, whatever its end reason (GH4.2), and a cost or token count that the runtime did not report is not in a sum and is not turned into zero. The cost line and the cost table are display text built from those sums and never read back. A bill service reads a work item's sidecar from the remote-tracking refs only, so a tick with an empty `work` volume, or a fresh clone, shows the same bills (GH4.5). A search test shows that no code under `src/factory` turns journal text into data (SI1.4). `factory-bill` prints the table and the cost line of one work item, or of every work item in flight; the console script entry `factory-bill = "factory.entry.bill:main"` belongs in `pyproject.toml`, which is outside the coder's write paths, so the human adds it. Covers SI1.2, SI1.4, GH4.5; keeps kept thing 20 (each story carries its bill, posted at the approval by F0007 and written at the archive).
+Compute the bill of a stage and of a work item from the cost records alone (SI1.2): every record counts, whatever its end reason (GH4.2), and a cost or token count that the runtime did not report is not in a sum and is not turned into zero. The cost line and the cost table are display text built from those sums and never read back. A bill service reads a work item's sidecar from the remote-tracking refs only, so a tick with an empty `work` volume, or a fresh clone, shows the same bills (GH4.5). A search test shows that no code under `src/factory` turns journal text into data (SI1.4). `factory-bill` prints the table and the cost line of one work item, or of every work item in flight; `pyproject.toml` already registers `factory-bill = "factory.entry.bill:main"`. Covers SI1.2, SI1.4, GH4.5; keeps kept thing 20 (each story carries its bill, posted at the approval by F0007 and written at the archive).
 
 ## Interface
 
@@ -48,7 +48,7 @@ class BillService:
 
 ```python
 def run(argv: Sequence[str], service: BillService, out: TextIO) -> int: ...
-def main() -> None: ...
+def main(argv: Sequence[str] | None = None) -> int: ...
 ```
 
 `src/factory/entry/wiring.py` (grown by this story)
@@ -56,6 +56,8 @@ def main() -> None: ...
 ```python
 def build_bill_service(checkout: Path) -> BillService: ...
 ```
+
+`build_bill_service` is added to the module's `__all__`, and `bill.py` imports it from `factory.entry.wiring` only (`tests/entry/test_wiring.py` lets no other entry module import the adapters).
 
 Types: `CostRecord` from `factory.domain.cost_records`, `TokenCounts` from `factory.domain.agent_runs`, `Git` from `factory.application.git`, `CostRecordReader` from `factory.application.files`. All models are frozen and forbid unknown keys. `build_bill_service` returns `BillService(GitCli(checkout), JsonLinesCostRecordReader())`.
 
@@ -66,10 +68,10 @@ Types: `CostRecord` from `factory.domain.cost_records`, `TokenCounts` from `fact
 - `BillService.for_work_item(work_item)` reads only remote-tracking refs: the ref is `origin/<branch of the work item>` when that ref exists, else `origin/main`. In that ref, `list_files` over `FEATURES_DIRECTORY` finds the first path ending in `.md` whose file name parses to the work item's id; none gives `None`. The sidecar is `cost_records_path(<that path>)` read with `show_file` and `CostRecordReader.parse`; an absent sidecar means no records. The result holds `total=bill(records)`, `stages=bills_by_stage(records)`, `line=cost_line(total)` and `table=cost_table(stages)`.
 - `BillService.in_flight()` returns the work item ids of the remote branches named like work item branches, sorted with `work_item_order`.
 - `run(argv, service, out)` with one id argument writes the work item's table, an empty line and `Cost: <line>` and returns 0; for an id that has no bill it writes `no work item <id>` and returns 1; for an argument that is not a work item id it writes `not a work item id: <argument>` and returns 2. With no argument it writes, for each id from `in_flight()` that has a bill, the id on its own line and then the same block, blocks separated by an empty line, and returns 0. With more than one argument it writes `usage: factory-bill [<work item id>]` and returns 2.
-- `main()` calls `run(sys.argv[1:], build_bill_service(Path.cwd()), sys.stdout)` and raises `SystemExit` with the returned status.
-- Nothing under `src/factory` turns journal text into data: the name `entry_text` is referenced only in `factory.domain.journal` and `factory.application.handlers.hand_over`; the name `JOURNAL` of `factory.domain.sections` is referenced only in `factory.domain.sections`, `factory.domain.journal`, `factory.domain.story_form` and `factory.adapters.work_item_markdown`.
+- `main(argv)` returns `run(sys.argv[1:] if argv is None else argv, build_bill_service(Path.cwd()), sys.stdout)`; the module runs `raise SystemExit(main())` under `if __name__ == "__main__"`.
+- Nothing under `src/factory` turns journal text into data. The search test parses every module with `modules()` of `tests/source_search.py` and applies one function, `violations(trees)`, to the real tree and to small trees built with `ast.parse` for the failing cases. A module references a name when it imports it (an `ast.ImportFrom` alias with that name), uses it as an `ast.Name`, or uses it as the attribute of an `ast.Attribute`. `entry_text` may be referenced only in `factory.domain.journal`, `factory.application.handlers.hand_over` and `factory.application.handlers.questions` (F0007 posts a recorded question from it). `JOURNAL` of `factory.domain.sections` may be referenced only in `factory.domain.sections`, `factory.domain.journal`, `factory.domain.story_form`, `factory.adapters.work_item_markdown` and `factory.application.opening` (S0002 adds a missing `## Journal` section with it). A string literal equal to `Journal` or to `## Journal` (found with `string_literals`) is allowed only in `factory.domain.sections`, so a call such as `section_text(body, "Journal")` fails the search too.
 
-Tests: `tests/domain/test_bills.py`, `tests/application/test_bill_service.py`, `tests/entry/test_bill.py`, and `tests/test_no_journal_reading.py` at the `tests/` root (it walks `src/factory` with `ast`). The service tests write sidecars with `JsonLinesCostRecordWriter` into work items pushed through `human.push_file`.
+Tests: `tests/domain/test_bills.py`, `tests/application/test_bill_service.py`, `tests/entry/test_bill.py`, and `tests/test_no_journal_reading.py` at the `tests/` root (it uses `tests/source_search.py`). `Bill`, `StageBill` and `WorkItemBill` refuse what their types refuse (a negative `runs`, `runs_cost_unknown` or `turns`, an unknown key), tested on both sides (criterion 22). The service tests write sidecars with `JsonLinesCostRecordWriter` into work items pushed through `human.push_file`.
 
 ## Acceptance criteria
 
@@ -90,10 +92,13 @@ Tests: `tests/domain/test_bills.py`, `tests/application/test_bill_service.py`, `
 15. `run` with one valid id prints the table, an empty line and `Cost: <line>` and returns 0.
 16. `run` returns 1 and prints `no work item <id>` for an id without a bill, returns 2 and prints `not a work item id: <argument>` for `F1`, and returns 2 and prints `usage: factory-bill [<work item id>]` for two arguments.
 17. `run` with no argument prints, for each in-flight work item that has a bill, its id and then its block, blocks separated by an empty line, and returns 0.
-18. `main()` run inside a clone of the remote with `sys.argv` set to the program name and one id prints that work item's block and exits with status 0 (`SystemExit`).
-19. The search test passes: `entry_text` and `JOURNAL` are referenced under `src/factory` only in the modules named in the Interface (SI1.4), and it fails when a module outside them references one (tested on a temporary copy of a source tree).
-20. `make check` stays green.
-21. docs: `docs/operator-guide.md` explains `factory-bill`, the cost table's columns and the cost line, including that an unknown cost is shown as `+ <n> unknown`; `docs/project-guide.md` states that bills are sums of the cost records and that no code reads data from the journal's text.
+18. `main()` run inside a clone of the remote with `sys.argv` set to the program name and one id prints that work item's block and returns 0; `main(["<id>"])` with a list uses that list instead of `sys.argv`.
+19. Running the module as a program (`runpy.run_module("factory.entry.bill", run_name="__main__")` inside the clone, `sys.argv` holding an id without a bill) prints `no work item <id>` and exits with `SystemExit` status 1.
+20. The search test passes on the real tree: `entry_text` and `JOURNAL` are referenced under `src/factory` only in the modules named in the Interface, and no string literal equal to `Journal` or `## Journal` stands outside `factory.domain.sections` (SI1.4).
+21. The search fails for a module outside the allow-list that references `entry_text` or `JOURNAL`, each of the three ways (parametrised): by `from factory.domain.journal import entry_text`, by the name `entry_text(document, 1)` and by the attribute `journal.entry_text(document, 1)`; and it fails for a module that holds the literal `"Journal"` or `"## Journal"`, as in `section_text(body, "Journal")` (tested on trees built with `ast.parse`).
+22. The models refuse what their types refuse, on both sides: `Bill` accepts `runs`, `runs_cost_unknown` and `turns` of 0 and refuses -1 for each; `Bill`, `StageBill` and `WorkItemBill` each refuse an unknown key (built through a variable typed `type[BaseModel]`).
+23. make check stays green.
+24. docs: `docs/operator-guide.md` explains `factory-bill`, the cost table's columns and the cost line, including that an unknown cost is shown as `+ <n> unknown`; `docs/project-guide.md` states that bills are sums of the cost records and that no code reads data from the journal's text, with the search test's rule (the allowed modules and the forbidden literal).
 
 ## Demo
 
