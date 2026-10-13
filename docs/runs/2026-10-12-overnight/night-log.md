@@ -72,3 +72,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 02:12 | Usage 85%. `F0001: start S0007` | | plan, section 8 (start) |
 | 02:21 | S0007 at accept: 24 behavioural criteria mapped, demos met both `Expect:` lines (make's status 2, `--no-print-directory`), `make check` green in the container, diff within the story. Merged; archived | #7 | plan, section 8 (approval) |
 | 02:22 | Usage 87%. `F0001: start S0008` | | plan, section 8 (start) |
+| 02:26 | S0008: the coder asked (a test passes an unknown keyword to a typed pydantic constructor, red under mypy). Answered (a) in its marker-free form: call through `type[BaseModel]`, as the domain test does | #8 | plan, section 8: the recommendation, without adding a marker |
+| 02:27 | `CLAUDE.md` Tests: one more line, construct a model through `type[BaseModel]` to test refused fields (learned from S0008's question); a tightening | | plan, section 8 |
