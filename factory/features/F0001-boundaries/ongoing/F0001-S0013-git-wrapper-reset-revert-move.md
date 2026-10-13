@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 13
 blocked: null
 comments_seen: 0
@@ -106,3 +106,17 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
 
    `make lint`: lint: green
    `make test`: FAILED tests/application/test_git_protocol.py::test_git_has_exactly_the_nineteen_operations_and_git_cli_has_each
+4. coder: Added `reset_to`, `revert_paths` and `move` to the `Git` protocol and to `GitCli`. `make check` is green and the demo prints the three lines it expects (`False base`, `base`, `True False`).
+      - `src/factory/application/git.py`: the protocol has the three new operations, nineteen in total, each with a docstring that gives its rule.
+      - `src/factory/domain/git.py`: new `check_repository_path(path)`, the pure path rule. It raises `ValueError` for an empty path, an absolute path or one with a `..` segment.
+      - `src/factory/adapters/git_cli.py`:
+        - `reset_to` resolves the ref, then runs `reset --hard <commit> --` and `clean --force -d`, which keeps ignored files.
+        - `revert_paths` checks every path before it touches any of them, then resolves the commit. A path that is a file at that commit is restored with `checkout <commit> -- <path>`, which updates the work tree and the index. Any other path is dropped from the index (`rm --cached --ignore-unmatch`) and its file is unlinked, so a path that exists nowhere is skipped.
+        - `move` creates the destination's parent folders, then runs `git mv -- source destination`. git itself refuses an untracked source or an existing destination, which raises `GitError`.
+      - Main decision: git resolves the ref or commit to an id before `reset` or `checkout` runs, through a new private `_resolve_or_raise`. `git reset` refuses `--end-of-options` after `--hard`, so a resolved commit id is how a ref that looks like an option stays safe. It also turns an unknown ref into a `GitError` before anything changes.
+      - Rejected: restoring with `git restore --source --staged --worktree`. It fails on a path missing at the commit and still needs the separate delete path, so it bought nothing.
+      - Refactor (6a3bf7f): `merge` now uses `_resolve_or_raise` for its unknown-ref check instead of a copy of the same code.
+      - Noticed, not touched: `revert_paths` with a path that is a directory at both the commit and in the work tree would make `git rm` fail without `-r`, which raises `GitError`. The rule only speaks of files, so I left it.
+      - Commits: 3cdcbe7 (feat), 6a3bf7f (refactor).
+
+   `make check`: check: green
