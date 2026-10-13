@@ -208,9 +208,9 @@ def _denials(reply: _Reply) -> list[PermissionDenial]:
     ]
 
 
-def _result(
-    request: AgentRunRequest, process: ProcessResult, duration: timedelta
-) -> AgentRunResult:
+def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
+    # The duration is the whole run's, so `run` sets it once the last call has ended.
+    duration = _ZERO
     reply = _parse_reply(process.stdout)
     end_reason = _end_reason(request, process, reply)
     # A killed call's output is cut short, so whatever it printed is not its measure.
@@ -306,7 +306,7 @@ class ClaudeCodeRuntime:
         try:
             self._write_files(request, files)
             arguments = _arguments(request, session, files)
-            result = _result(request, self._call(request, arguments, request.time_limit), _ZERO)
+            result = _result(request, self._call(request, arguments, request.time_limit))
             if result.end_reason == "budget":
                 result = self._resume(request, arguments, result, started)
             result = result.model_copy(update={"duration": _since(started)})
@@ -350,7 +350,7 @@ class ClaudeCodeRuntime:
             second = AgentRunResult(end_reason="time_limit", duration=_ZERO)
         else:
             resumed = _resume_arguments(arguments, request.agent.budget_usd)
-            second = _result(request, self._call(request, resumed, left), _ZERO)
+            second = _result(request, self._call(request, resumed, left))
         return _resumed_result(first, second)
 
     def _make_state_directory(self) -> None:
