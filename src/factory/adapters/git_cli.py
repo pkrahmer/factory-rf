@@ -12,6 +12,7 @@ from factory.domain.git import (
     CommitId,
     CommitInfo,
     GitOptions,
+    MergeOutcome,
     PushOutcome,
     RemoteBranch,
     WorkTreeStatus,
@@ -29,6 +30,8 @@ FATAL = 128
 LOG_FORMAT = "%H%x00%P%x00%an%x00%ct%x00%B"
 LOG_FIELDS = 5
 DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
+# What git says when a branch to delete is already gone from the remote.
+ALREADY_DELETED_MARKER = "remote ref does not exist"
 UNREACHABLE_MARKERS = (
     "Could not read from remote repository",
     "does not appear to be a git repository",
@@ -259,6 +262,49 @@ class GitCli:
             return "rejected"
         if _is_unreachable(result):
             return "unreachable"
+        raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+
+    def delete_remote_branch(self, branch: str) -> PushOutcome:
+        """Delete `branch` on the remote; already gone counts as deleted, like `push`'s values."""
+        arguments = ["push", "--porcelain", REMOTE, "--delete", branch]
+        result = self._execute(arguments)
+        if result.exit_status == 0 or ALREADY_DELETED_MARKER in result.stdout:
+            # A branch deleted elsewhere leaves a stale tracking ref that no push removes.
+            self._run(["update-ref", "-d", f"{REMOTE_PREFIX}{branch}"])
+            return "pushed"
+        if _is_rejected(result.stdout):
+            return "rejected"
+        if _is_unreachable(result):
+            return "unreachable"
+        raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+
+    def delete_branch(self, branch: str) -> None:
+        """Delete the local `branch` even when unmerged; a missing branch changes nothing."""
+        if self.resolve(f"refs/heads/{branch}") is None:
+            return
+        self._run(["branch", "--delete", "--force", branch])
+
+    def merge(self, ref: str, *, fast_forward_only: bool = False) -> MergeOutcome:
+        """Merge `ref` into `HEAD`; a conflict is aborted, any other refusal is a `GitError`."""
+        if self.resolve(ref) is None:
+            raise GitError(_command(["merge", ref]), None, f"unknown ref {ref}")
+        if self.is_ancestor(ref, "HEAD"):
+            return "up_to_date"
+        if self.is_ancestor("HEAD", ref):
+            self._run(["merge", "--quiet", "--ff-only", "--end-of-options", ref])
+            return "fast_forwarded"
+        if fast_forward_only:
+            return "not_fast_forward"
+        return self._merge_diverged(ref)
+
+    def _merge_diverged(self, ref: str) -> MergeOutcome:
+        arguments = ["merge", "--quiet", "--no-edit", "--no-gpg-sign", "--end-of-options", ref]
+        result = self._execute(arguments)
+        if result.exit_status == 0:
+            return "merged"
+        if self.resolve("MERGE_HEAD") is not None:
+            self._run(["merge", "--abort"])
+            return "conflict"
         raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
 
     def _untracked_paths(self) -> list[str]:
