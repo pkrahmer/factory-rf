@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 30
 blocked: null
 comments_seen: 0
@@ -219,3 +219,24 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
    Noticed but not touched: the overridden public methods carry no docstrings, because the interface's docstrings say what they do; ruff's D rules accept this.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read every test against criteria 1–22. Each test checks the criterion it is named after.
+     - Failing sides are covered: no front matter (six texts, including two thematic breaks, never closed and an indented closing line), not valid YAML, not a mapping, unknown, missing and invalid keys, invalid state, no state on render, a missing file and a file that is not UTF-8.
+     - Fault order is tested both ways: unknown key before missing stage (11), missing before invalid (13), field order rather than file order (14: `attempts: -1` comes before `blocked: asked` in the file, and `invalid blocked` is reported), and an invalid value before invalid state (15).
+     - The coder's entry reports `make check` green after commit 23f3115.
+   - Architecture:
+     - The ABCs `WorkItemReader` and `WorkItemWriter` are in `factory.application.files`; every operation is an `@abstractmethod` whose body is only a docstring.
+     - `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` inherit from them in `factory.adapters.work_item_markdown`. That module is the only one that imports python-frontmatter and ruamel.yaml.
+     - No `dict[str, Any]` crosses a function boundary, and no wiring was added.
+   - Security:
+     - The front matter is loaded with ruamel's `typ="safe"`.
+     - No shell is built from strings, and no suppression markers were added.
+     - `_NullAsWordRepresenter.add_representer` is called on a subclass, which gets its own copy of ruamel's representer table, so other ruamel users are unaffected.
+   - Quality:
+     - `_first_fault` takes faults from pydantic's own `errors()` ranking instead of re-checking keys, which avoids duplicating the domain's rules.
+     - Comments explain why, and the public classes and the handler's methods have docstrings. The overriding `parse`, `read`, `render` and so on inherit the interface's docstrings, which ruff's D rules accept for `@override`.
+   - Considered and not raised: `from pydantic_core import ErrorDetails` imports a package that `pyproject.toml` does not list directly. It is pydantic's public typing for `ValidationError.errors()`, and `pydantic==2.14.1` pins its version exactly (it is in `uv.lock`), so I did not count it as a new dependency.
+   - Ticket hygiene:
+     - The coder's entry explains the main decision (faults come from pydantic's errors) and the alternative it rejected (walking the mapping against the model).
+     - `Assignment` matches what was built, and criterion 24 still describes what the project guide must show.
