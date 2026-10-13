@@ -49,7 +49,7 @@ class MakeProjectCommands:
         """Run `make --no-print-directory <command>` and judge it by its exit status alone."""
         if time_limit <= timedelta(0):
             raise ValueError(f"time_limit must be positive, not {time_limit}")
-        if not _COMMAND_NAME.match(command):
+        if not _COMMAND_NAME.fullmatch(command):
             raise ProjectCommandError(command, f"invalid command name {command!r}")
         request = ProcessRequest(
             argv=[self._executable, "--no-print-directory", command],
