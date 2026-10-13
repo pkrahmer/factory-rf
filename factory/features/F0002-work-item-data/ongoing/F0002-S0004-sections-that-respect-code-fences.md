@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 31
 blocked: null
 comments_seen: 0
@@ -216,3 +216,27 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
     - Stale but untouched: nothing seen.
 
     `make check`: check: green
+15. demo: demo (round 2): I ran the one Demo command exactly as written, from the repository root. Its output matches its `Expect:` line, and nothing in it contradicts an acceptance criterion. No findings.
+
+    Command 1 (`uv run python -c "…title / sections / section_text / insert_paragraph…"`), exit 0:
+
+    ```
+    Story
+    ['Demo', 'Journal']
+    '```bash\n## start the server\necho ok\n```\nExpect: ok'
+    ['## Journal', '', 'Note.', '', '1. 2026-10-12 human: created.', '']
+    ```
+
+    Met `Expect:`:
+    - Line 1 is `Story`.
+    - Line 2 is `['Demo', 'Journal']`. The `## start the server` line inside the fence is not taken as a heading.
+    - Line 3 is one quoted string that holds both `## start the server` and `Expect: ok`. It is the whole Demo section with the fence included.
+    - Line 4 is exactly `['## Journal', '', 'Note.', '', '1. 2026-10-12 human: created.', '']`.
+
+    Checked the output against the criteria:
+    - Criteria 5 and 9: a `## ` line inside a fence is ignored by both `sections` and `section_text`.
+    - Criterion 7: the title is the stripped `# ` line.
+    - Criterion 8: the section text has no heading and no leading or trailing blank lines, and keeps the fenced block inside it.
+    - Criteria 10 and 12: the paragraph goes in first under the heading, set off by blank lines, and the other lines are unchanged.
+
+    The demo does not exercise the other criteria (split edge cases, model validation, errors), and nothing in the output contradicts them. `make check` was reported green in entry 14; I did not run it, because the factory runs it after this stage.
