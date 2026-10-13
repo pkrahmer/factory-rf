@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 20
 blocked: null
 comments_seen: 0
@@ -87,3 +87,23 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
    - No findings for the coder.
 
    `make check`: check: green
+7. demo: no findings. I ran the one Demo command from the repository root, and it matched its Expect line.
+
+   Command: `grep -c "until then nothing reaches a point" docs/project-guide.md; grep -c "not yet written" README.md; grep -c "Nothing is built yet" docs/operator-guide.md`
+   ```
+   0
+   0
+   0
+   ```
+   Expected three lines, each `0`, and got them. Each grep exits 1, which the Expect line names as the expected result. **Met.**
+
+   I checked each acceptance criterion against the files on the branch:
+   1. `docs/project-guide.md:335`, *Kill points*, now says "Each wrapper in the table calls `kill_points.reach(point)` at its point; no other code reaches one." The "nothing reaches a point" sentence is gone. Met.
+   2. `docs/project-guide.md:330`, the `AGENT_RUN` row, now says "the fake after the run's writes, `claude -p` after the last call and its result". This matches lines 292 and 313. Met.
+   3. `README.md:3`, the status sentence, names "the project commands (the make class)". It lists the git wrapper's operations: reading, clone, commit and push, branches and merge, and restoring the checkout with reset, revert and move. `README.md:16`, the operator-guide link, no longer says "not yet written". Met.
+   4. `docs/operator-guide.md:3`, the intro, says "Parts are built: …" and lists them, then says "There is no command to run yet". Met.
+   5. `docs/operator-guide.md`, *The agent runtime*: the old closing paragraph is gone. The stall rule appears once (line 13, "stops the work item as a stall"). The unknown cost, tokens and turns of a timed-out run appear once. "story" no longer appears anywhere in the file. Met.
+   6. `make check`: I did not run it at this stage; the factory runs it after this stage. The documenter's entry records it green.
+   7. The documenter's entry records the cross-read and the stale wording it left alone. That wording is outside this story's criteria.
+
+   Open: nothing.
