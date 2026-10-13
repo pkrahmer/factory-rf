@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 42
 blocked: null
 comments_seen: 0
@@ -186,3 +186,21 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built posting a work item's stop once on its pull request. `make check` is green and the Demo prints the five expected lines.
+
+   - `src/factory/domain/stops.py`: added `WorkItemStop` and `StopPosted`. Both are frozen with `extra="forbid"`. One shared field validator refuses a blank `branch`, `title` or `text`. A model validator requires `branch == branch_name(key.work_item)`. `pull_request` is `PositiveInt | None` on the stop and `PositiveInt` on the result, and `outcome` is `PostOutcome`.
+   - `src/factory/domain/post_texts.py`: new module with `opened_for_stop_description`.
+   - `src/factory/application/stops.py`: added `StopService.post`.
+     - When `stop.pull_request` is set, it posts there and calls neither git nor any lookup.
+     - Otherwise it reuses `find_open_pull_request(branch)`. When there is none, it first checks `resolve("origin/<branch>")`, then that the result is not an ancestor of `origin/main`, and only then calls `create_pull_request(..., draft=True)`. A failed check raises `HostingServiceError("create_pull_request", "branch <branch> is not on the remote with a commit beyond main")`.
+     - It then calls the keyed `post_comment`. `opened` is `stop.pull_request is None`.
+     - Nothing is caught and no state is written.
+   - Commits: c90ee70 (feat), 2914411 (refactor).
+
+   Main decision: `post` relies entirely on the hosting service's keyed `post_comment` to make a repeat a no-op. It keeps no record of its own before or after the post, so a kill between the post and the caller's state write needs no recovery path in this service. Rejected: listing the comments first to detect an earlier post. That would duplicate what the keyed post already guarantees and add a call that can fail.
+
+   Refactor: the first version had a private `_REMOTE = "origin/"` constant. The refactor replaced it with the existing `REMOTE` from `factory.domain.paths`, next to `MAIN_BRANCH`. Nothing else needed changing.
+
+   Noticed, not touched: the `StopService` docstring said "never to a pull request". I rewrote it because the class now posts to one. The class now covers two kinds of stop; splitting it would be a separate ticket.
+
+   `make check`: check: green
