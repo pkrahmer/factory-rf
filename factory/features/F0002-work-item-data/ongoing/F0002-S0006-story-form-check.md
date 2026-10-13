@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 33
 blocked: null
 comments_seen: 0
@@ -101,3 +101,26 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
    - Demo: both blocks run as written. I checked the line numbers of the first one by hand (10, 11 and 13) and the finding order matches the rules. Each `Expect:` line is checkable against the output.
    - Architecture: pure domain code in `factory.domain` that imports only other domain modules. No I/O, no wrapper, no new dependency.
    - Scope: this is kept thing 9 and decision 8 of the feature. The place check and the command stay with S0008, which is outside this story.
+3. tester: red tests for the story form check written in `tests/domain/test_story_form.py` (new file). Every test builds a story body from five default sections, then replaces or drops one section. The form requires Description, Interface, Acceptance criteria, Smoke test and Journal. Line numbers are looked up in the body and counted from 1.
+   - criterion 1: test_a_complete_backlog_story_gives_no_finding
+   - criterion 2: test_a_finding_takes_no_line_or_a_positive_one (None, 1), test_a_finding_refuses_line_zero, test_a_finding_is_frozen_and_refuses_an_unknown_field (setattr per field; unknown field through `type[BaseModel]`)
+   - criterion 3: test_a_body_without_a_title_line_has_no_title, test_a_title_line_inside_a_code_block_is_no_title
+   - criterion 4: test_each_missing_section_of_the_form_is_reported_in_the_forms_order, test_a_section_added_to_the_form_is_required, test_a_heading_only_inside_a_code_block_is_a_missing_section
+   - criterion 5: test_the_first_misnumbered_criterion_is_reported_on_its_line (1,2,4 / starting at 2 / 1,1), test_an_acceptance_criteria_section_without_items_gives_no_finding
+   - criterion 6: test_a_second_to_last_criterion_without_make_check_and_green_is_reported (lacks each), test_a_second_to_last_criterion_spread_over_two_lines_is_read_whole
+   - criterion 7: test_a_last_criterion_not_starting_with_docs_is_reported (`Docs: x`, `done`), test_a_last_criterion_starting_with_docs_gives_no_finding
+   - criterion 8: test_two_criteria_are_checked_for_both_closing_criteria, test_fewer_than_two_criteria_get_no_closing_finding (one item, none)
+   - criterion 9: test_a_smoke_test_without_a_code_block_is_reported_on_its_heading
+   - criterion 10: test_a_code_block_without_an_expect_line_is_reported_on_its_opening (prose, end of section, never closed; the test keeps only the Expect findings because an unclosed block also hides `## Journal`), test_blank_lines_may_stand_between_a_code_block_and_its_expect_line, test_of_two_code_blocks_only_the_one_without_expect_is_reported
+   - criterion 11: test_headings_and_comments_inside_a_smoke_test_block_leave_the_story_whole (the complete story gives []; without a real title, the only finding is the title finding, so `# comment` is not read as a title)
+   - criterion 12: test_the_first_misnumbered_journal_entry_is_reported_on_its_line, test_indented_lines_in_a_journal_entry_are_no_entries, test_a_journal_without_entries_gives_no_finding (done, state with 0 records)
+   - criterion 13: test_a_backlog_story_with_front_matter_is_reported_with_its_keys (the no-keys side is criterion 1's test)
+   - criterion 14: test_a_started_story_without_state_is_reported, test_a_started_story_with_a_state_has_one (in-progress and done each); a backlog story without state is criterion 1's test
+   - criterion 15: test_journal_data_and_text_that_disagree_are_reported (3 entries; no Journal section, against a form without Journal), test_journal_data_and_text_that_agree_give_no_finding, test_the_backlog_gets_no_finding_about_the_journal_data (backlog document with a 2-record state and no entries)
+   - criterion 16: test_a_backlog_story_with_journal_entries_is_reported_on_the_first, test_a_backlog_story_without_a_journal_section_has_no_entries, test_a_started_story_may_carry_journal_entries (an empty Journal section is criterion 1's test)
+   - criterion 17: test_a_backlog_story_gets_all_its_findings_in_the_order_of_the_rules (rules 1-7 and 10), test_a_started_story_gets_all_its_findings_in_the_order_of_the_rules (rules 1-6 and 9). No single story can break both rule 7/10 and rule 8/9, because they need different folders, so this criterion takes two tests.
+   - criteria 18 and 19: not tested here (the check gate and the docs).
+   `make test`: one collection error, `ModuleNotFoundError: No module named 'factory.domain.story_form'`. That module is the only one the test runner could not import. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
