@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 12
 blocked: null
 comments_seen: 0
@@ -144,3 +144,6 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
       - Quality: deciding from ancestry and `MERGE_HEAD` avoids parsing merge text. Moving the push failure classification into `_failed_push` (4366098) removes duplication. The public methods have docstrings. Comments say why: the stale tracking ref and the already-deleted marker.
       - Ticket hygiene: the log records the main decision and the rejected alternative (parsing git's merge messages). It also states the remaining reliance on git's English text for "remote ref does not exist". The same applies to the existing unreachable markers. Assignment matches what was built. Criterion 19 still describes what the project guide must say.
       - Noted, not a finding: `delete_remote_branch` passes `branch` without `--end-of-options`, the same as the existing `push`. Any branch name starting with `-` still ends in a `GitError` (`--delete` without refs dies), which the Interface allows.
+6. documenter: changed `docs/project-guide.md` only. In "The git wrapper" I added three rows to the method table (`delete_remote_branch`, `delete_branch`, `merge`). I added a subsection "Deleting and merging branches", placed after the push kill points, covering the remote-deletion outcomes (stale tracking ref, already-gone counts as pushed, no kill point), the five merge outcomes, the abort on a conflict, and which feature uses what (F0005 merges main into the work item's branch; F0007 deletes branches on merge or discard). I also updated the intro sentence, which said deleting and merging "follow in later stories". Cross-read: the rest of the project guide and README against the diff (the identity paragraph, the options table, the test-fixture paragraph) are current. The code matches the Interface and criteria; no findings. Nothing stale seen outside this story. `make check` is green.
+
+   `make check`: check: green
