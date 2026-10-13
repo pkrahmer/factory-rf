@@ -11,6 +11,8 @@ CommitId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
 
 PushOutcome = Literal["pushed", "rejected", "unreachable"]
 
+MergeOutcome = Literal["merged", "fast_forwarded", "up_to_date", "conflict", "not_fast_forward"]
+
 # A rename is a deletion plus an addition, so that no tool's rename detection shapes the answer.
 ChangeKind = Literal["added", "modified", "deleted"]
 

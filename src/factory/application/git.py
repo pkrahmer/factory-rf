@@ -6,6 +6,7 @@ from factory.domain.git import (
     ChangedPath,
     CommitId,
     CommitInfo,
+    MergeOutcome,
     PushOutcome,
     RemoteBranch,
     WorkTreeStatus,
@@ -84,4 +85,22 @@ class Git(Protocol):
 
     def push(self, branch: str) -> PushOutcome:
         """Push `branch` to the remote, never forced, and say how the remote took it."""
+        ...
+
+    def delete_remote_branch(self, branch: str) -> PushOutcome:
+        """Delete `branch` on the remote and its remote-tracking ref, and say how that went.
+
+        A branch already gone from the remote counts as `"pushed"`.
+        """
+        ...
+
+    def delete_branch(self, branch: str) -> None:
+        """Delete the local `branch`, merged or not; a missing branch is no error."""
+        ...
+
+    def merge(self, ref: str, *, fast_forward_only: bool = False) -> MergeOutcome:
+        """Merge `ref` into the checked-out branch, fast-forwarding where it can.
+
+        A conflict is aborted before `"conflict"` is returned, so nothing is left half done.
+        """
         ...
