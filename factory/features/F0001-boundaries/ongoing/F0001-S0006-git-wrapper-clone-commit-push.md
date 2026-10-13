@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 6
 blocked: null
 comments_seen: 0
 round: 0
@@ -130,3 +130,9 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`PushOutcome` in `domain/git.py`, `NothingToCommit` in `domain/errors.py`, `clone`/`checkout`/`commit`/`push` on `Git`, `HumanClone` in `tests/human_clone.py`, the `human` fixture). Each behaviour stated in its comments has a criterion: identity and environment precedence (11, 12), clone directory rules (1-3), checkout cases (4-8), commit staging, message and ignored paths (9, 10, 13), push outcomes and kill points (14-21), HumanClone merge methods (22, 23).
+   - Criteria: each is testable by one test function. Every rule has its failing side: a clone into a non-empty directory (2) or a missing url (3), an unknown branch or start point (7), a dirty tree that blocks checkout (8), nothing to commit (13), rejected for a non-fast-forward and for a hook (15, 16), unreachable (17), an unknown local branch (18), kill points not reached after a rejection (21).
+   - Demo: runnable as written (imports are complete). The Expect line gives four exact lines that can be compared with the output.
+   - Architecture: the new operations sit on the `Git` interface in `application` and are implemented in the `GitCli` adapter. The types go into `domain`. Tests mirror the package layout, and git is not faked.
+   - Scope: the story stays within F0001's scope (clone, check out, commit, push with its outcome). Deleting branches and merging are left to S0012, and reset, revert and move to S0013, as the feature lists them.
