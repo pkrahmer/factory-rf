@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 13
 blocked: null
 comments_seen: 2
@@ -144,3 +144,8 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
    1. tests/adapters/test_git_cli_restoring.py: no test covers criterion 12. Fix: the tester adds a test that calls `move("a.txt", "../x.txt")` and `move` with an absolute destination outside the checkout (under `tmp_path`). The test expects `ValueError` and checks that no folder was created outside the checkout. The coder routes this to `tests` (R9).
    2. src/factory/adapters/git_cli.py `move`: `mkdir(parents=True)` runs before any path check, so an unsafe destination creates folders outside the checkout. Fix: call `check_repository_path(source)` and `check_repository_path(destination)` before the `mkdir`.
    3. src/factory/application/git.py `Git.move` docstring: it does not state the new path rule. Fix: add that an absolute path or a `..` segment in either argument raises `ValueError` before anything is created, matching the `revert_paths` docstring.
+8. coder: The human's answer in entry 6 adds criterion 12, and no test covers it yet (reviewer finding 1). I did not touch the tests and did not change any code in this round. The new rule should first get a red test.
+      - Test change for the tester: in `tests/adapters/test_git_cli_restoring.py`, add a test for criterion 12. It calls `checkout.move("a.txt", "../x.txt")`, and `move` with an absolute destination outside the checkout under `tmp_path` (for example `str(tmp_path / "outside" / "x.txt")`). Both calls expect `ValueError`, and the test checks that no folder appeared outside the checkout.
+      - Open for the coder when the story comes back (findings 2 and 3):
+        - In `src/factory/adapters/git_cli.py` `move`, call `check_repository_path` on `source` and on `destination` before the `mkdir`.
+        - Add the path rule to the `Git.move` docstring in `src/factory/application/git.py`.
