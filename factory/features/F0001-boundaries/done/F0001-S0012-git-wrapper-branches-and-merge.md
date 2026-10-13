@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 12
 blocked: null
 comments_seen: 0
@@ -164,3 +164,4 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
    - The demo does not exercise the remote deletion, the fast-forward, the clean merge or the identity (criteria 1–6, 11–13, 15–17). The tests cover those, as the reviewer's entry records.
 
    Findings: none.
+8. done (pull request merged); cost: 6 runs, 6.4 min, 41 turns, 122k tokens in (657k more from cache), 24k out, $1.42
