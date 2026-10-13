@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 34
 blocked: null
 comments_seen: 0
 round: 0
@@ -157,3 +157,9 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures are named (`domain/errors.py`, `domain/cost_records.py`, `application/files.py`, `adapters/cost_records_jsonl.py`). Each comment-stated behaviour has a criterion: UTC conversion (4), `Z` suffix and key order (9), `ok` (5), the `invalid record:` wording (14), the message format (8). `TokenCounts` in `agent_runs.py` matches the story: `input` and `output` are required and the cache fields default to 0.
+   - Criteria: each can be tested by one test function. Every rule has its failing side: run pattern, attempt, duration, naive datetime, ids (4); started and completed field rules (2, 3); negative, NaN and infinite cost (7); duplicate run (10, 16); fault order (15); bad JSON, bad key and bad value cases (14).
+   - Demo: both commands can be run and every `Expect:` line can be checked against the output. The second demo shows that the blank first line counts in the line number.
+   - Architecture: the DTO and error are in domain, the ABCs in application, and the JSON-lines reader and writer in adapters, so the layers hold. Each ABC has one reader and one writer (R13, R15). The ABCs follow the project's interface convention.
+   - Scope: it stays inside the feature's cost-record sidecar item. When a record is created, completed or summed is left to F0005, as `FEATURE.md` says.
