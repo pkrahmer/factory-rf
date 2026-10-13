@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 38
 blocked: null
 comments_seen: 0
@@ -121,3 +121,4 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
    - Criterion 1: I did not run `make check` in this stage; the factory runs it after the demo. The documenter's entry reports it green.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 2.9 min, 35 turns, 62k tokens in (414k more from cache), 8k out, $0.55
