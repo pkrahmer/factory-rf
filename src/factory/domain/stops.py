@@ -1,9 +1,19 @@
-"""The stop of a repository or the machine, and the health status that holds the stops."""
+"""The stops of a repository, the machine and one work item, and the health status."""
 
 from datetime import UTC, datetime
 from typing import Literal, Self
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    PositiveInt,
+    field_validator,
+    model_validator,
+)
+
+from factory.domain.hosting import PostKey, PostOutcome
+from factory.domain.identifiers import branch_name
 
 RepositoryStopReason = Literal[
     "fetch_failed",
@@ -69,3 +79,39 @@ class HealthStatus(BaseModel):
     def healthy(self) -> bool:
         """True exactly when no stop is in force."""
         return not self.stops
+
+
+class WorkItemStop(BaseModel):
+    """A stop of one work item, posted once on its pull request under its key."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    key: PostKey
+    branch: str
+    title: str
+    pull_request: PositiveInt | None
+    text: str
+
+    @field_validator("branch", "title", "text")
+    @classmethod
+    def _is_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("must not be blank")
+        return value
+
+    @model_validator(mode="after")
+    def _branch_is_the_work_items(self) -> Self:
+        expected = branch_name(self.key.work_item)
+        if self.branch != expected:
+            raise ValueError(f"a stop of {self.key.work_item} belongs to the branch {expected}")
+        return self
+
+
+class StopPosted(BaseModel):
+    """Where a work item's stop was posted, and whether its pull request is new to the state."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    pull_request: PositiveInt
+    opened: bool
+    outcome: PostOutcome
