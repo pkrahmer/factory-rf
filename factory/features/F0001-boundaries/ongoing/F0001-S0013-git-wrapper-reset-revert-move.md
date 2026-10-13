@@ -1,16 +1,16 @@
 ---
-stage: review
+stage: doing
 pr: 13
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # The git wrapper: reset, revert and move
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 6)
 
-Finish the writing half of the git wrapper (R9): reset the work tree to a ref and clean it, revert chosen paths to their content at a commit, and move a file. These are the steps that later features build on: a stall or a crash reverts or resets (F0004, F0005, F0008), the tick resets the checkout to the remote (F0006), a merge or a discard moves the story file (F0007). With this story the `Git` protocol has the nineteen operations R9 asks for, and a test proves that `GitCli` has each of them and the protocol no other. This story and S0012 were split from one story to keep each within 26 criteria. Covers R9; keeps kept thing 13 (recover by construction: reset and clean make the checkout disposable) and kept thing 5 (the undo's revert is the wrapper's, the rules for what to revert are F0004's). The closing criterion needs the operations of S0011, which comes before this story in id order.
+Finish the writing half of the git wrapper (R9): reset the work tree to a ref and clean it, revert chosen paths to their content at a commit, and move a file. These are the steps that later features build on: a stall or a crash reverts or resets (F0004, F0005, F0008), the tick resets the checkout to the remote (F0006), a merge or a discard moves the story file (F0007). With this story the `Git` protocol has the nineteen operations R9 asks for, and a test proves that `GitCli` has each of them and the protocol no other. This story and S0012 were split from one story to keep each within 26 criteria. Covers R9; keeps kept thing 13 (recover by construction: reset and clean make the checkout disposable) and kept thing 5 (the undo's revert is the wrapper's, the rules for what to revert are F0004's). Per the human's answer in log entry 6, `move` follows the same path rule as `revert_paths`, so no folder is created outside the checkout. The closing criterion needs the operations of S0011, which comes before this story in id order.
 
 ## Interface
 
@@ -26,7 +26,7 @@ The rules, each with a criterion below:
 
 - `reset_to(ref)` runs `git reset --hard <ref>` and then `git clean -fd`: tracked files, staged or not, go back to `ref`, the current branch points at `ref`, and untracked files and directories are removed; ignored paths stay. An unknown `ref` is a `GitError` and changes nothing.
 - `revert_paths(commit, paths)` brings each path to its content at `commit` in the work tree and in the index when the file exists there, and deletes it from the work tree and the index when it does not exist at `commit` (a tracked or an untracked file); other paths are not touched; a path that is not there at either place is skipped. Each path is repository-relative with forward slashes; an absolute path, or one with a `..` segment, raises `ValueError` before any path is changed. An unknown `commit` is a `GitError`.
-- `move(source, destination)` runs `git mv`, creating the destination's parent directories; the move is staged as a rename. A `source` that is not tracked, or a `destination` that exists, is a `GitError`.
+- `move(source, destination)` runs `git mv`, creating the destination's parent directories; the move is staged as a rename. A `source` that is not tracked, or a `destination` that exists, is a `GitError`. An absolute `source` or `destination`, or one with a `..` segment, raises `ValueError` before anything is created (the same `check_repository_path` rule as `revert_paths`).
 - `Git` has exactly nineteen public operations: `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `changed_paths`, `status`, `clone`, `checkout`, `commit`, `push`, `delete_remote_branch`, `delete_branch`, `merge`, `reset_to`, `revert_paths` and `move`; `GitCli` has each of them.
 
 Tests: `tests/adapters/test_git_cli_restoring.py`, `tests/application/test_git_protocol.py`. The tests set up and verify with plain `git` through `run_git` (which starts git through `run_process`), and use the fixtures `remote`, `checkout` and `human`.
@@ -44,8 +44,9 @@ Tests: `tests/adapters/test_git_cli_restoring.py`, `tests/application/test_git_p
 9. `move("a.txt", "docs/new/a.txt")` creates the folders, the file is at the new path, and `git status` shows a rename; the content is unchanged.
 10. `move` raises `GitError` for a source that is not tracked and for a destination that already exists.
 11. `Git` has exactly the nineteen operations named in the rules, and `GitCli` has each of them (a test compares the public names of the protocol with that list and checks `hasattr` on `GitCli`).
-12. make check stays green.
-13. docs: `docs/project-guide.md` describes the operations of this story (reset and clean, revert of paths and the path rule, move) and lists the nineteen operations of the `Git` protocol with the feature that uses each.
+12. `move` raises `ValueError` for a `../x.txt` destination and for an absolute destination, and no folder appears outside the checkout.
+13. make check stays green.
+14. docs: `docs/project-guide.md` describes the operations of this story (reset and clean, revert of paths, move, and the path rule both of them follow) and lists the nineteen operations of the `Git` protocol with the feature that uses each.
 
 ## Demo
 
@@ -137,3 +138,9 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
    - `revert_paths` reads the whole blob through `show_file` only to test whether it exists, which reuses existing code.
    - `tests/application/test_git_protocol.py` imports `GitCli`, as the Interface places it.
 6. human (pull request comment, 2026-10-13): (a): add the rule and the criterion before the two closing ones as you worded them: `move` raises `ValueError` for an absolute `source` or `destination`, or one with a `..` segment, before anything is created; the test checks `../x.txt` and an absolute destination and that no folder appears outside the checkout. It reuses this story's `check_repository_path`.
+7. reviewer: Applied the human's answer (a) from entry 6 to the ticket. Assignment is now "as of log entry 6". The Interface rule for `move` now says: an absolute `source` or `destination`, or one with a `..` segment, raises `ValueError` before anything is created, using the same `check_repository_path` as `revert_paths`. The new criterion 12 is "`move` raises `ValueError` for a `../x.txt` destination and for an absolute destination, and no folder appears outside the checkout". The closing criteria become 13 (`make check`) and 14 (docs). The docs criterion now names the path rule for both revert and move. I re-read the rest of the diff against criteria 1–11, the architecture, security and quality. It holds as described in entry 5, so the only findings are the new rule.
+
+   Findings:
+   1. tests/adapters/test_git_cli_restoring.py: no test covers criterion 12. Fix: the tester adds a test that calls `move("a.txt", "../x.txt")` and `move` with an absolute destination outside the checkout (under `tmp_path`). The test expects `ValueError` and checks that no folder was created outside the checkout. The coder routes this to `tests` (R9).
+   2. src/factory/adapters/git_cli.py `move`: `mkdir(parents=True)` runs before any path check, so an unsafe destination creates folders outside the checkout. Fix: call `check_repository_path(source)` and `check_repository_path(destination)` before the `mkdir`.
+   3. src/factory/application/git.py `Git.move` docstring: it does not state the new path rule. Fix: add that an absolute path or a `..` segment in either argument raises `ValueError` before anything is created, matching the `revert_paths` docstring.
