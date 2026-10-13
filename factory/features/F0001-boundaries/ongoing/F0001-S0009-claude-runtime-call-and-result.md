@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 9
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -138,3 +138,4 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
    2. The Interface says a denial's detail is `json.dumps(tool_input, sort_keys=True)`. Criterion 8 uses a one-key input, so the sorting is never tested. Proposal: add a criterion, or extend criterion 8, so the denial's `tool_input` has two keys in non-alphabetical order (for example `{"b": 1, "a": 2}`) and the detail is `{"a": 2, "b": 1}`. I would choose this.
 
    Please answer, or say that I should write both criteria as proposed.
+3. human (pull request comment, 2026-10-13): Write both criteria as proposed, before the two closing ones: (1) a reply whose `usage` has only `input_tokens` 10 and `output_tokens` 5 gives `tokens` with those two counts and cache-read and cache-creation counts of 0; (2) a denial whose `tool_input` is `{"b": 1, "a": 2}` has the detail `{"a": 2, "b": 1}`. Both close a behaviour the Interface already states.
