@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 11
 blocked: null
 comments_seen: 0
@@ -121,3 +121,32 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
    - Demo: runnable with `GitCli`, `run_process` and `ProcessRequest` from the earlier stories. The `Expect:` line gives three concrete lines that can be compared.
    - Architecture: DTOs in the domain layer, the protocol in the application layer, and the implementation behind the git wrapper (R9, R7). No new dependency.
    - Scope: within the feature's git wrapper scope (log, changed paths, status). Nothing from "Out of scope".
+3. tester: red tests written for criteria 1–21. Criteria 22 (make check) and 23 (docs) are for later stages.
+   - criterion 1: tests/domain/test_git_history.py::test_history_models_forbid_unknown_keys_and_assignment (parametrized over the three models), ::test_change_kind_has_no_rename, ::test_committed_at_must_be_aware_and_is_converted_to_utc, ::test_commit_ids_are_forty_lowercase_hexadecimal_characters (39 characters, uppercase parent)
+   - criterion 2: tests/adapters/test_git_cli_history.py::test_log_returns_the_commits_newest_first_as_git_reports_them
+   - criterion 3: tests/adapters/test_git_cli_history.py::test_subject_is_only_the_first_line_of_the_message
+   - criterion 4: tests/adapters/test_git_cli_history.py::test_committed_at_is_the_committer_date_in_utc
+   - criterion 5: tests/adapters/test_git_cli_history.py::test_log_since_another_ref_returns_only_the_commits_not_reachable_from_it
+   - criterion 6: tests/adapters/test_git_cli_history.py::test_log_for_a_path_returns_only_the_commits_that_changed_it
+   - criterion 7: tests/adapters/test_git_cli_history.py::test_log_puts_a_merge_commit_with_two_parents_before_both
+   - criterion 8: tests/adapters/test_git_cli_history.py::test_a_ref_that_does_not_exist_is_a_git_error (log ref, log since, changed_paths since)
+   - criterion 9: tests/adapters/test_git_cli_history.py::test_changed_paths_lists_committed_additions_changes_and_deletions
+   - criterion 10: tests/adapters/test_git_cli_history.py::test_changed_paths_lists_staged_unstaged_and_untracked_but_not_ignored
+   - criterion 11: tests/adapters/test_git_cli_history.py::test_changed_paths_shows_a_rename_as_a_deletion_and_an_addition (git mv staged, git mv committed, delete and recreate)
+   - criterion 12: tests/adapters/test_git_cli_history.py::test_changed_paths_leaves_out_what_is_back_to_its_state_at_since
+   - criterion 13: tests/adapters/test_git_cli_history.py::test_paths_with_spaces_and_non_ascii_come_back_exactly_in_plain_order (checks both changed_paths and status; the untracked file under `a b/` is expected as the file path, not the directory)
+   - criterion 14: tests/adapters/test_git_cli_history.py::test_status_of_a_clean_checkout_names_the_branch_and_head
+   - criterion 15: tests/adapters/test_git_cli_history.py::test_status_lists_untracked_edited_staged_and_deleted_files
+   - criterion 16: tests/adapters/test_git_cli_history.py::test_status_lists_a_file_changed_staged_and_changed_again_once_as_modified
+   - criterion 17: tests/adapters/test_git_cli_history.py::test_status_lists_a_new_file_staged_and_edited_again_once_as_added
+   - criterion 18: tests/adapters/test_git_cli_history.py::test_status_shows_a_rename_as_a_deletion_and_an_addition
+   - criterion 19: tests/adapters/test_git_cli_history.py::test_status_with_a_detached_head_has_no_branch_and_names_the_commit
+   - criterion 20: tests/adapters/test_git_cli_history.py::test_status_without_commits_has_no_head_and_names_the_unborn_branch (unborn branch `trunk`)
+   - criterion 21: tests/adapters/test_git_cli_history.py::test_status_does_not_list_an_ignored_path
+
+   Files created: tests/domain/test_git_history.py, tests/adapters/test_git_cli_history.py. The adapter tests use local repositories in tmp_path, set up with `git init` through `run_git`, with no remote. They reach `GitCli` through a helper typed `-> Git`, so mypy also checks that the `Git` protocol has the three new operations. Criterion 4 needs `GIT_COMMITTER_DATE`, and `run_git` cannot pass an environment, so that one commit runs through `run_process` with an explicit environment. It does not use `subprocess`.
+
+   `make test`: both new modules fail at collection because `ChangedPath`, `ChangeKind`, `CommitInfo` and `WorkTreeStatus` are not in `factory.domain.git` yet. `make lint` is green. The type check was skipped as the stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
