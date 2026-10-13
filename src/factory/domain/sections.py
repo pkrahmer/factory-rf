@@ -72,7 +72,8 @@ def code_blocks(lines: Sequence[str]) -> list[CodeBlock]:
     return blocks
 
 
-def _lines_outside_blocks(lines: Sequence[str]) -> list[int]:
+def lines_outside_blocks(lines: Sequence[str]) -> list[int]:
+    """The indexes of the lines that lie outside every fenced block, in order."""
     inside: set[int] = set()
     for block in code_blocks(lines):
         last = len(lines) - 1 if block.end is None else block.end
@@ -83,7 +84,7 @@ def _lines_outside_blocks(lines: Sequence[str]) -> list[int]:
 def title(body: str) -> str | None:
     """The text of the first `# ` line outside the fenced blocks, if there is one."""
     lines = split_lines(body)
-    for index in _lines_outside_blocks(lines):
+    for index in lines_outside_blocks(lines):
         if lines[index].startswith(_TITLE_PREFIX):
             return lines[index][len(_TITLE_PREFIX) :].strip()
     return None
@@ -93,7 +94,7 @@ def sections(body: str) -> list[Section]:
     """The `## ` sections outside the fenced blocks, each up to the next heading."""
     lines = split_lines(body)
     starts = [
-        index for index in _lines_outside_blocks(lines) if lines[index].startswith(_HEADING_PREFIX)
+        index for index in lines_outside_blocks(lines) if lines[index].startswith(_HEADING_PREFIX)
     ]
     ends = [*starts[1:], len(lines)] if starts else []
     return [
