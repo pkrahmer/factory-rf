@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 14
 blocked: null
 comments_seen: 0
 round: 0
@@ -111,3 +111,9 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted. Format check passed; nothing was changed in the story.
+   - Interface: `src/factory/adapters/fake_hosting.py` names the class, its constructor and the nine test operations with full signatures. The ten protocol operations are the signatures of S0002. Every behaviour in its comments and rules (numbering, url, created_at, post key, label replacement, kill point, failure injection) has a criterion.
+   - Criteria: each fits one test function. Every rule has its failing side: a missing pull request number (14, all 15 operations, which matches the eight protocol plus seven test operations that take a number), a missing comment id (13), a repeated key (11, 12), an invalid `fail_next` (16), injected failure (15), and no pull request found for closed or merged (3). The edge case of `delete_comment` with an id that belongs to another pull request is not stated; I take it as outside the rules, since the fake allows what GitHub would refuse unless a criterion says otherwise (decision 6).
+   - Demo: both blocks are runnable with `uv run python -c`. Each Expect line is checkable output: five lines in the first block and two in the second. The second relies on the `InjectedKill` text `injected kill at after-post` from S0001.
+   - Architecture: the fake sits in `factory.adapters`, satisfies the `HostingService` protocol structurally (criterion 18), and is the only fake of the hosting service (criterion 17). It imports only domain types, so the layering holds.
+   - Scope: within FEATURE.md ("the one fake (SI2.3)"). It does not touch wiring, the posting rules of handlers or the kill-point tests, all of which are out of scope.
