@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 32
 blocked: null
 comments_seen: 0
@@ -218,3 +218,11 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
     - Group 5: the log records the main decision (find the section with `sections`; restore replaces from the heading to the last text line) and the rejected alternative (widening `sections.py`). `Assignment` matches what was built. Criterion 20 still says what the documenter must write.
 
     Still open, not a finding: if a continuation line of an entry opens a code fence and never closes it, the headings after it stay hidden (entries 4, 8, 10). No rule in the Interface covers this. If the human wants it handled, it belongs in a later story.
+12. documenter: round 2. The code matches the Interface and the criteria, so there are no findings. Docs written, `make check` green.
+    - `docs/project-guide.md`: replaced "functions not built yet" in "The journal's data" with a new section, "The journal's entries". It covers the visible format and continuation indent, that only the human's entries are dated, speaker and kind as data read with `last_record` and never from the text, `entry_text` for display only, what the restore does, the fault strings, the TYPE_CHECKING import rule and the known limit (an unclosed fence in a continuation line hides later headings). It includes the first demo command, which I ran; the output matches.
+    - `docs/decisions.md`: added a decision on why the journal's speaker and kind are data in the front matter. It gives the alternatives rejected.
+    - `README.md`: the one-line status now lists the journal.
+    - Cross-read and found current: `docs/operator-guide.md`, and the rest of `docs/project-guide.md` (the work item data, the reader and writer, and the sections).
+    - Stale but unrelated, not touched: none seen.
+
+    `make check`: check: green
