@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The git wrapper: push and delete_remote_branch act on branches only
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
