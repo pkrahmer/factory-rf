@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 6
 blocked: null
 comments_seen: 0
@@ -136,3 +136,42 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
    - Demo: runnable as written (imports are complete). The Expect line gives four exact lines that can be compared with the output.
    - Architecture: the new operations sit on the `Git` interface in `application` and are implemented in the `GitCli` adapter. The types go into `domain`. Tests mirror the package layout, and git is not faked.
    - Scope: the story stays within F0001's scope (clone, check out, commit, push with its outcome). Deleting branches and merging are left to S0012, and reset, revert and move to S0013, as the feature lists them.
+3. tester: wrote red tests for criteria 1–23, one test per criterion. Limits and boundaries are covered as parametrized cases where a criterion names them.
+   - criterion 1: tests/adapters/test_git_cli_writing.py::test_clone_creates_a_missing_directory_and_its_missing_parent
+   - criterion 2: tests/adapters/test_git_cli_writing.py::test_clone_works_into_an_empty_directory_and_refuses_one_with_a_file
+   - criterion 3: tests/adapters/test_git_cli_writing.py::test_clone_of_a_missing_url_raises
+   - criterion 4: tests/adapters/test_git_cli_writing.py::test_checkout_switches_to_an_existing_local_branch
+   - criterion 5: tests/adapters/test_git_cli_writing.py::test_checkout_with_a_start_point_creates_and_then_resets_the_branch
+   - criterion 6: tests/adapters/test_git_cli_writing.py::test_checkout_of_a_branch_only_on_the_remote_creates_it_at_the_remote_commit
+   - criterion 7: tests/adapters/test_git_cli_writing.py::test_checkout_of_an_unknown_branch_or_start_point_raises_and_stays (unknown-branch, unknown-start-point)
+   - criterion 8: tests/adapters/test_git_cli_writing.py::test_checkout_blocked_by_an_uncommitted_edit_raises_and_keeps_the_edit
+   - criterion 9: tests/adapters/test_git_cli_writing.py::test_commit_records_new_changed_and_deleted_files_but_not_ignored_ones
+   - criterion 10: tests/adapters/test_git_cli_writing.py::test_commit_stores_the_message_as_given
+   - criterion 11: tests/adapters/test_git_cli_writing.py::test_commit_carries_the_identity_of_the_options (process-environment, options-environment, global-configuration with another user.name and commit.gpgsign = true)
+   - criterion 12: tests/adapters/test_git_cli_writing.py::test_commit_without_options_carries_the_default_identity
+   - criterion 13: tests/adapters/test_git_cli_writing.py::test_commit_with_nothing_to_commit_raises_and_keeps_head (clean, only-ignored); tests/domain/test_errors.py::test_nothing_to_commit_is_a_git_error
+   - criterion 14: tests/adapters/test_git_cli_writing.py::test_push_of_a_new_branch_is_pushed
+   - criterion 15: tests/adapters/test_git_cli_writing.py::test_push_behind_another_clone_is_rejected
+   - criterion 16: tests/adapters/test_git_cli_writing.py::test_push_declined_by_a_remote_hook_is_rejected
+   - criterion 17: tests/adapters/test_git_cli_writing.py::test_push_to_a_removed_remote_is_unreachable
+   - criterion 18: tests/adapters/test_git_cli_writing.py::test_push_of_an_unknown_local_branch_raises
+   - criterion 19: tests/adapters/test_git_cli_writing.py::test_kill_before_push_leaves_the_remote_untouched
+   - criterion 20: tests/adapters/test_git_cli_writing.py::test_kill_after_push_comes_after_the_remote_has_the_commit
+   - criterion 21: tests/adapters/test_git_cli_writing.py::test_push_reaches_before_push_every_time_and_after_push_only_when_pushed
+   - criterion 22: tests/test_human_clone.py::test_merge_brings_the_branch_into_main_by_the_method (merge, squash, rebase)
+   - criterion 23: tests/test_human_clone.py::test_start_moves_the_story_and_push_file_writes_the_branch
+   - criteria 24 and 25 are not tests: 24 is the `make check` gate and 25 is the documenter's.
+
+   Files created: tests/adapters/test_git_cli_writing.py, tests/human_clone.py (`HumanClone` as the Interface specifies), tests/test_human_clone.py.
+   Files extended:
+   - tests/conftest.py: new fixture `human`; `remote` and `checkout` are unchanged.
+   - tests/git_support.py: new helper `remote_commit(remote, branch)`, which reads a branch of the bare remote with plain git through `run_process` and returns `None` when the branch is absent.
+   - tests/domain/test_errors.py: one new import and one new test; the existing tests are unchanged.
+
+   `HumanClone` drives `GitCli.clone`, `GitCli.checkout`, `GitCli.commit` and `GitCli.push`. For the merge methods it uses `run_git`: `merge --no-ff`, `merge --squash` followed by `GitCli.commit`, and a `rebase --force-rebase` followed by a fast-forward of `main`. Every push it makes must return `"pushed"`.
+
+   `make test` result: collection errors in tests/adapters/test_git_cli_writing.py and tests/domain/test_errors.py, because the runner cannot import `NothingToCommit` from `factory.domain.errors` yet. tests/test_human_clone.py collects but will fail because `GitCli` has no `clone`, `checkout`, `commit` or `push` yet.
+   `make lint` is green. I skipped the type check, as this stage allows: it cannot pass until the new `GitCli` methods exist.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!

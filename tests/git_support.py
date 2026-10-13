@@ -123,3 +123,15 @@ def write_executable(directory: Path, body: str) -> Path:
     path.write_text(f"#!{sys.executable}\n{body}\n", encoding="utf-8")
     path.chmod(0o755)
     return path
+
+
+def remote_commit(remote: Path, branch: str) -> str | None:
+    """The commit the bare `remote` holds as `branch`, or `None` when it has no such branch."""
+    result = run_process(
+        ProcessRequest(
+            argv=["git", "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}^{{commit}}"],
+            cwd=remote,
+            env=_environment(),
+        )
+    )
+    return result.stdout.strip() or None

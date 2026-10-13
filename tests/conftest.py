@@ -8,6 +8,7 @@ from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY, clone, make_remote
+from human_clone import HumanClone
 
 
 @pytest.fixture
@@ -27,3 +28,9 @@ def checkout(tmp_path: Path, remote: Path, kill_points: KillPoints) -> GitCli:
     """Return a `GitCli` on a fresh clone of `remote`, at `tmp_path / CHECKOUT`."""
     directory = clone(remote, tmp_path / CHECKOUT)
     return GitCli(directory, GitOptions(kill_points=kill_points, identity=TEST_IDENTITY))
+
+
+@pytest.fixture
+def human(tmp_path: Path, remote: Path) -> HumanClone:
+    """Return the human's own clone of `remote`, at `tmp_path / "human"`."""
+    return HumanClone(tmp_path / "human", remote)
