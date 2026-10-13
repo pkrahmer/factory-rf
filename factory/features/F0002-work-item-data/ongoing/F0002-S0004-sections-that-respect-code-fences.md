@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 31
+blocked: null
+comments_seen: 0
+round: 2
+attempts: 0
+---
 # Sections that respect code fences
 
 ## Assignment (as of log entry 1)
@@ -47,11 +55,11 @@ Tests: `tests/domain/test_sections.py`. A test that constructs a model with an u
 
 1. `split_lines` gives `["a", "b"]` for `"a\nb\n"` and for `"a\nb"`, `[]` for `""`, `[""]` for `"\n"` and `["a", ""]` for `"a\n\n"`.
 2. `code_blocks` of the lines `x`, three backticks followed by `python`, `a`, three backticks, `y`, three tildes, `b`, three tildes gives the blocks `(start=1, end=3)` and `(start=5, end=7)`; an opening and a closing line that are indented are recognised too.
-3. A block opened by four backticks is not closed by a line of three backticks and is closed by four or five; a tilde line does not close a backtick block; a closing run followed by text does not close; a block that is never closed has `end` `None` and holds every later line.
+3. A block opened by four backticks is not closed by a line of three backticks and is closed by four or five; a tilde line does not close a backtick block; a closing run followed by text does not close; a block that is never closed has `end` `None` and holds every later line; a line that starts with two backticks, two tildes or one backtick (inline code such as `` `x` is … ``) opens no block, so a `## ` line after it is still a heading.
 4. `sections` of the body `# T`, a blank line, `intro`, a blank line, `## A`, a blank line, `text`, a blank line, `## B` (lines 0 to 8) gives `Section(heading="A", start=4, end=8)` and `Section(heading="B", start=8, end=9)`; the lines before `## A` belong to no section.
 5. A `## ` line inside a block opened by backticks, inside one opened by tildes and inside one that is never closed is not a heading: for the lines `## A`, three backticks, `## B`, three backticks, `## C`, `sections` lists `A` from 0 to 4 and `C` from 4 to 5; with an unclosed block after `## A` only `A` is listed and it runs to the end.
 6. `### x`, ` ## x` (indented), `##x`, `##` and `# x` are not headings, and a heading's text is stripped of trailing whitespace.
-7. `title` returns the stripped text of the first `# ` line outside the blocks, `None` for a body without one, and ignores a `# comment` line inside a fenced block, `#x` and `## x`.
+7. `title` returns the stripped text of the first `# ` line outside the blocks, `None` for a body without one, and ignores a `# comment` line inside a fenced block, `#x`, `## x` and an indented ` # x`.
 8. `section_text` returns the text of a section without its heading and without leading and trailing blank lines, keeps the blank lines and fenced blocks inside it, returns `""` for a heading with no text, `None` for a missing heading and for a heading spelled in another case, and the first section when a heading occurs twice.
 9. `section_text` of a section that contains a fenced block with the lines `## x` and `# y` returns the whole section including the block, and `section_text` of a heading that occurs only inside a fenced block is `None`.
 10. `insert_paragraph("## Verdict\n\nAccepted.\n", "Verdict", "Reason.")` is `"## Verdict\n\nReason.\n\nAccepted.\n"`.
@@ -60,7 +68,7 @@ Tests: `tests/domain/test_sections.py`. A test that constructs a model with an u
 13. `insert_paragraph` raises `WorkItemFormatError` with the fault `missing section: ## Verdict` when no section is called `Verdict`, also when `## Verdict` occurs only inside a fenced block.
 14. `insert_paragraph` raises `ValueError` for the paragraphs `""` and `"  \n"`.
 15. `required_sections` of a form with a title, a comment line, the headings `## Description`, `## Interface`, a `### Sub` heading, a fenced block that holds `## Hidden`, and `## Journal` is `["Description", "Interface", "Journal"]`.
-16. `ACCEPTANCE_CRITERIA`, `SMOKE_TEST` and `JOURNAL` are `"Acceptance criteria"`, `"Smoke test"` and `"Journal"`; `Section` and `CodeBlock` are frozen and refuse an unknown field with `ValidationError`.
+16. `ACCEPTANCE_CRITERIA`, `SMOKE_TEST` and `JOURNAL` are `"Acceptance criteria"`, `"Smoke test"` and `"Journal"`; `Section` and `CodeBlock` are frozen and refuse an unknown field with `ValidationError`; their `start` and `end` accept `0` and refuse `-1` with `ValidationError`, and `CodeBlock.end` also accepts `None`.
 17. make check stays green.
 18. docs: `docs/project-guide.md` explains how sections are found (outside code fences, exact heading text, the three constants) and says that every module that needs a heading or a fenced block uses `factory.domain.sections`; `docs/decisions.md` records that headings inside fences are ignored, which v1 did not do.
 
@@ -82,3 +90,153 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/sections.py` names the constants, the two frozen models and seven functions with signatures. Every behaviour in its comments (line splitting, fence open/close, heading and title rules, `section_text` trimming, `insert_paragraph` blank-line layout and trailing newline, `required_sections`) is stated as a rule. `WorkItemFormatError` already exists in `factory.domain.errors` (fault, path).
+   - Criteria: 1–16 are each testable by one test function from the examples given. Each rule has its failing side: not a heading (6), not a title (7), no matching section gives `None` (8, 9), a missing section raises `WorkItemFormatError` (13), a blank paragraph raises `ValueError` (14), a fence that is not closed (3, 5), and models that refuse unknown fields (16). 17 and 18 close the list as required.
+   - Demo: one runnable `uv run python -c` command. Its `Expect:` line gives four checkable outputs, including the exact list for the `Journal` insert.
+   - Architecture: pure domain code in `factory.domain`, with no I/O and no imports from higher layers. It matches the layer rules in `CLAUDE.md`.
+   - Scope: this covers the "Sections (SI1.3)" scope item of F0002 and decisions 5 and 6 of `FEATURE.md`. Nothing is taken from "Out of scope". The journal and the form check are left to S0005 and S0006.
+3. tester: red tests written for criteria 1–16 in the new file `tests/domain/test_sections.py`.
+   - criterion 1: tests/domain/test_sections.py::test_split_lines_drops_only_an_empty_last_element (all five cases)
+   - criterion 2: ::test_backtick_and_tilde_blocks_are_found, ::test_indented_opening_and_closing_lines_are_recognised (space-indented opening line, tab-indented closing line)
+   - criterion 3: ::test_a_block_closes_only_at_a_run_of_its_own_character_at_least_as_long. Cases: four backticks not closed by three and closed by four or five; a tilde line inside a backtick block; a closing run followed by text; a run followed by trailing whitespace still closes; an unclosed block gives `end=None`.
+   - criterion 4: ::test_sections_run_from_heading_to_next_heading
+   - criterion 5: ::test_a_heading_inside_a_fenced_block_is_not_a_heading (backticks and tildes), ::test_a_heading_after_an_unclosed_block_is_not_a_heading
+   - criterion 6: ::test_lines_that_are_not_level_two_headings_open_no_section, ::test_a_heading_text_is_stripped_of_trailing_whitespace
+   - criterion 7: ::test_the_title_is_the_first_level_one_heading_outside_blocks (includes a `# comment` line inside a closed fence and inside an unclosed fence)
+   - criterion 8: ::test_section_text_is_the_trimmed_text_under_the_first_matching_heading (inner blank lines and a fence kept, empty section gives `""`, missing heading or another case gives `None`, a repeated heading gives the first one)
+   - criterion 9: ::test_section_text_keeps_a_fenced_block_with_heading_lines_whole
+   - criterion 10: ::test_a_paragraph_goes_first_under_the_heading
+   - criterion 11: ::test_a_paragraph_in_an_empty_section_or_a_body_without_final_newline
+   - criterion 12: ::test_a_paragraph_of_several_lines_goes_whole_under_the_first_heading (the body has another section before the target and a second `## Verdict` after it, and checks the exact full result)
+   - criterion 13: ::test_inserting_under_a_missing_heading_is_a_format_error (no such heading; heading only inside a fence)
+   - criterion 14: ::test_a_blank_paragraph_is_refused
+   - criterion 15: ::test_required_sections_are_the_form_headings_in_order (the "comment line" is an HTML comment `<!-- comment -->`)
+   - criterion 16: ::test_the_three_known_section_names, ::test_section_and_block_are_frozen_and_refuse_unknown_fields (construction through `type[BaseModel]`, assignment through `setattr`)
+
+   Interpretations: where a criterion leaves a detail open, the test applies the rule stated in the Interface:
+   - criterion 3: a closing run followed only by whitespace closes the block.
+   - criterion 7: an unclosed fence hides a later `# ` line.
+
+   Neither adds behaviour beyond the stated rules, so I raised no question.
+
+   `make test` fails at collection, as expected: `ModuleNotFoundError: No module named 'factory.domain.sections'` is the one module that could not be imported. `make lint` is green after `ruff format`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented `src/factory/domain/sections.py`. All tests in `tests/domain/test_sections.py` pass, and `make check` is green.
+      - What it contains: the three constants, the frozen `Section` and `CodeBlock` models (both forbid extra fields), and seven functions. `code_blocks` finds each opening run with a regex: three or more backticks or tildes after optional leading spaces or tabs. It then searches forward for the first line whose stripped content is the same character, repeated at least as many times as the opening run. If no such line exists, the block ends with `end=None` and the scan stops. `title` and `sections` look only at lines outside every block, because there is one private helper (`_lines_outside_blocks`) that both of them use. `section_text` and `insert_paragraph` both find their section through `sections`, so a heading that appears only inside a fence is missing for both. `insert_paragraph` rebuilds the line list as: the lines up to the heading, a blank line, the paragraph's lines, then (only if anything follows) a blank line and the rest with its leading blank lines dropped. It adds a final newline exactly when `body` ended with one.
+      - Main design decision: find the blocks first, then filter headings and the title by line index. I rejected a single scanner that tracks fence state while it looks for headings. With the two-step approach, `code_blocks` is the only place that knows the fence rules, and the story form check can reuse it later.
+      - Commits: 8dbbfd2 is the feature. 330214b is the refactor: both edges of a section's text are now trimmed with one helper (applied to the reversed list for the trailing edge) instead of a separate pop loop.
+      - The demo prints exactly the four expected outputs.
+      - Noticed but left alone: an info string after a backtick opening run may contain backticks under this rule. CommonMark forbids that, but the Interface does not ask for it.
+
+   `make check`: check: green
+5. reviewer: two stated rules have no test for their failing side, and no criterion asks for one. Both findings are against the story, not against the tester or the coder. The code in `src/factory/domain/sections.py` follows the Interface on both points.
+   1. `src/factory/domain/sections.py:16` (`_FENCE_OPENING`, `{3,}`) and `tests/domain/test_sections.py`: the Interface says a block opens at "three or more backticks or three or more tildes". Nothing tests the side below that limit, a run of two or of one. Every fence in the tests is `TICKS`/`TILDES` or longer, and no other test line starts with a backtick or tilde, so a pattern of `{1,}` would pass every test. That bug is real: a line starting with inline code like `` `x` is … `` would open an unclosed block and hide every later heading. Fix: add a criterion (for example, a line of two backticks or two tildes opens no block, and neither does a line starting with one backtick) and a test for it.
+   2. `src/factory/domain/sections.py:87` (`title`, `startswith` at column 0) and `tests/domain/test_sections.py::test_the_title_is_the_first_level_one_heading_outside_blocks`: the Interface says the title line starts with `# ` "at column 0". Criterion 7 rejects only `#x` and `## x` and never an indented ` # x`, so an implementation that strips the line first would pass. Fix: add the indented ` # x` case to criterion 7 and its test, the same way criterion 6 has ` ## x` for headings.
+   Groups 2–5 were not reviewed, since the review stops at the first failing group. I saw nothing there worth raising: the module is pure domain code that imports only `re`, `pydantic` and `factory.domain.errors`, and the coder's entry says `make check` was green.
+   Rejected as findings: a paragraph with leading blank lines gets an extra blank line from `insert_paragraph`, and an info string after a backtick fence may contain backticks. The Interface specifies neither, so neither is a defect against this story.
+6. coder: coder (round 1): no code change. Both review findings are missing tests, and I can't edit tests (R9), so the ticket goes to the tester.
+      - I ran `src/factory/domain/sections.py` on both cases and it already follows the Interface. `code_blocks(["``x", "~~", "`x` is", "## A"])` is `[]`, and `sections` still finds `## A` after a ```` `` ```` line. `title(" # x\n# y\n")` is `"y"`.
+      - Criteria: I extended two existing criteria with the Interface's own rules instead of adding new ones, so 17 and 18 stay last and keep their numbers.
+        - Criterion 3 now also says: a line that starts with two backticks, two tildes or one backtick opens no block, so a later `## ` line is still a heading.
+        - Criterion 7 now also says: an indented ` # x` is not a title.
+      - Test changes for the tester, in `tests/domain/test_sections.py`:
+        - (1) Add a test for criterion 3's new clause. Lines starting with ```` `` ````, `~~` and `` `x` is `` give no blocks from `code_blocks`, and a `## A` line after each one is still listed by `sections`.
+        - (2) Add an indented ` # x` line before a `# y` line to `test_the_title_is_the_first_level_one_heading_outside_blocks`, and expect `"y"`.
+      - Rejected: adding new criteria 17 and 18, which would renumber the closing two. Changing the code was also rejected, because the code was not at fault.
+7. tester: tester (round 1, approved test change): made the two test changes named in the coder's entry 6. Both are in `tests/domain/test_sections.py`, and nothing else changed.
+      - (1) Criterion 3's new clause: added `test_a_line_starting_with_a_short_run_opens_no_block`, parametrized over three lines: one starting with two backticks, `~~`, and `` `x` is inline code ``. For each, `code_blocks([line, "## A"])` is `[]`, and `sections` still lists `Section(heading="A", start=1, end=2)` after it.
+      - (2) Criterion 7: added the case `(" # x\n# y\n", "y")` to `test_the_title_is_the_first_level_one_heading_outside_blocks`, so an indented ` # x` is not a title.
+      - The code already behaves this way, so the new cases pass against the existing `src/factory/domain/sections.py`.
+      - `make test`: green, 99.63 % coverage. `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: coder (round 1): no code change. Both review findings from entry 5 are now covered by the tests the tester added in entry 7, and they pass against the existing `src/factory/domain/sections.py`.
+      - Finding 1 (runs shorter than three open no block): `tests/domain/test_sections.py::test_a_line_starting_with_a_short_run_opens_no_block` passes. `_FENCE_OPENING` requires `{3,}`.
+      - Finding 2 (an indented ` # x` is not a title): the new case in `test_the_title_is_the_first_level_one_heading_outside_blocks` passes, because `title` matches `# ` at column 0 without stripping the line first.
+      - Refactor: nothing to change. The diff is still the feature (8dbbfd2) and the refactor (330214b) from round 0. This round added no code, so there was no new diff to clean up.
+      - Still noticed but left alone, as in entry 4: an info string after a backtick fence may contain backticks. The Interface doesn't forbid it.
+
+      `make check`: check: green
+
+   `make check`: check: green
+9. reviewer: reviewer (round 1): one finding. It is against the story, not against the tester or the coder.
+   1. `src/factory/domain/sections.py:25-26,34-35` (`Section.start`/`end`, `CodeBlock.start`/`end` typed `NonNegativeInt`, as the Interface declares) and `tests/domain/test_sections.py`: nothing tests either side of the stated `≥ 0` limit, and no criterion asks for it. Every model built in the tests uses valid indices, so retyping any of the four fields as plain `int` would still pass every test. Other domain models in this project test the same limit on both sides (`tests/domain/test_work_item.py:95`, `tests/domain/test_kill_points.py:119`, `tests/domain/test_agent_runs.py:131`). Fix: add to criterion 16 that `Section` and `CodeBlock` accept `0` and refuse `-1` with `ValidationError` for `start` and `end` (for `CodeBlock.end`, `None` is also accepted). Then add a parametrized test for it.
+
+   The review stopped at group 1 (acceptance criteria), as the role skill requires, so groups 2–5 were not formally reviewed. I read them anyway and found nothing to raise. The module is pure domain code that imports only `re`, `pydantic` and `factory.domain.errors`. It has no I/O, no silencing markers and no dead code, and its docstrings are present. The log records the main decision (find the blocks first, then filter by index) and the alternative it rejected. Entry 8 says the factory's `make check` was green.
+
+   Checked and fine: criteria 1–15 each have a test that exercises them, including the two round-1 additions (`test_a_line_starting_with_a_short_run_opens_no_block` and the ` # x` title case). Criterion 16's frozen and unknown-field checks go through `type[BaseModel]` and `setattr`, as `CLAUDE.md` asks.
+
+   Considered but not raised as findings:
+   - A tilde block that is not closed by a backtick line is not tested; only the other direction is. The Interface states this rule once for both characters, and the code handles them with one symmetric check, so I left it out.
+   - Criteria 3 and 7 were extended by the coder in entry 6, not by the human. The additions only restate rules the Interface already gave ("three or more", "column 0"), so they do not change scope.
+10. coder: coder (round 2): no code change. The review finding in entry 9 is a missing test, and I can't edit tests (R9), so the ticket goes to the tester.
+       - Checked against `src/factory/domain/sections.py`: the code already follows the Interface. `Section(heading="A", start=0, end=0)`, `CodeBlock(start=0, end=0)` and `CodeBlock(start=0, end=None)` are accepted. Each of `Section.start`, `Section.end`, `CodeBlock.start` and `CodeBlock.end` set to `-1` raises `ValidationError`.
+       - Criterion: I extended criterion 16 with the Interface's own `NonNegativeInt` rule, so 17 and 18 stay last. It now also says that `start` and `end` accept `0` and refuse `-1` with `ValidationError`, and that `CodeBlock.end` also accepts `None`.
+       - Test change for the tester: add one parametrized test to `tests/domain/test_sections.py`. It should cover all four fields (`Section.start`, `Section.end`, `CodeBlock.start`, `CodeBlock.end`), check that each accepts `0` and refuses `-1` with `ValidationError`, and also check that `CodeBlock(start=0, end=None)` is accepted.
+       - Rejected: changing the code, because it was not at fault, and adding a new criterion, because that would renumber the closing two.
+11. tester: tester (round 2, approved test change): I made the test change the coder named in entry 10, and nothing else.
+       - Criterion 16 (non-negative indices): I added `tests/domain/test_sections.py::test_indices_are_not_negative`. It is one parametrized test over `Section.start`, `Section.end`, `CodeBlock.start` and `CodeBlock.end`. Each of the four fields accepts `0` and refuses `-1` with `ValidationError`, and `CodeBlock(start=0, end=None)` is accepted. The models are built through a variable typed `type[BaseModel]`, the same way `tests/domain/test_work_item.py` does it.
+       - The code already follows the `NonNegativeInt` rule, so the new cases pass against the existing `src/factory/domain/sections.py`.
+       - `make test`: green, 99.63 % coverage. `make lint`: green.
+
+    `make lint`: lint: green
+    `make test`: test: green
+12. coder: coder (round 2): no code change. The review finding in entry 9 is now covered by the test the tester added in entry 11, and it passes against the existing `src/factory/domain/sections.py`.
+       - Finding 1 (`Section` and `CodeBlock` indices must not be negative): `tests/domain/test_sections.py::test_indices_are_not_negative` passes. All four fields are typed `NonNegativeInt` as the Interface declares, and `CodeBlock.end` is `NonNegativeInt | None`.
+       - Refactor: nothing to change. The diff is still the feature (8dbbfd2) and the refactor (330214b) from round 0. This round added no code, so there was no new diff to clean up.
+       - Still noticed but left alone, as in entry 4: an info string after a backtick fence may contain backticks. The Interface doesn't forbid it.
+
+       `make check`: check: green
+
+    `make check`: check: green
+13. reviewer: reviewer (round 2): no findings.
+       - Group 1 (acceptance criteria): each of criteria 1–16 has a test in `tests/domain/test_sections.py`, and each test checks the criterion it is named after. Every limit the Interface states is tested on both sides:
+         - The opening run is "three or more": `test_a_line_starting_with_a_short_run_opens_no_block` covers runs of two and one, and every other fence is three or longer.
+         - The closing run is "at least as many": three does not close a four-backtick block; four and five do.
+         - The closing line has "nothing but whitespace" after the run: a run followed by text does not close; a run followed by trailing spaces does.
+         - Indices are `NonNegativeInt`: `test_indices_are_not_negative` covers `0` and `-1` for all four fields, and `None` for `CodeBlock.end`.
+         - Rules that must fail are tested failing too: not a heading (6), not a title, including the indented ` # x` (7), a missing or wrong-case heading gives `None` (8, 9), `WorkItemFormatError` with the exact fault, including a heading only inside a fence (13), `ValueError` for a blank paragraph (14), unknown fields and frozen assignment (16).
+         - Entry 12 says the factory's `make check` was green.
+       - Group 2 (architecture): `src/factory/domain/sections.py` is pure domain code. It imports only `re`, `collections.abc`, `pydantic` and `factory.domain.errors`. It has no I/O and no imports from higher layers. The models are Pydantic DTOs with `frozen=True, extra="forbid"`.
+       - Group 3 (security): no secrets and no silencing markers. Nothing is built from strings for a shell or SQL. The error messages carry only the heading text.
+       - Group 4 (quality): there is a module docstring and one on each public class and function, and none on private helpers. There is no dead code. `code_blocks` is the one place that holds the fence rules, and `_first_section` is the one lookup that `section_text` and `insert_paragraph` share.
+       - Group 5 (ticket hygiene): entry 4 records the main decision (find the blocks first, then filter by index) and what was rejected (a single stateful scanner). The Assignment and Interface match what was built. Criterion 18 still says what the documenter must write.
+       - Considered and not raised:
+         - An info string after a backtick fence may contain backticks. The Interface does not forbid this, and the coder noted it in entries 4, 8 and 12.
+         - A paragraph passed with leading blank lines is not trimmed. The Interface does not specify this case.
+14. documenter: docs (round 2): no findings; docs written for criterion 18, demo example run, `make check` green.
+    - `docs/project-guide.md`: new section "Sections of a Markdown body". It covers how sections are found (outside code fences, column-0 `## `, exact case-sensitive heading text, first section wins, the three constants, `required_sections` from the project's form) and the function table. It says `insert_paragraph` errors and that every module needing a heading or fenced block uses `factory.domain.sections`. It includes the story's demo command; I ran it and the output matches.
+    - `docs/decisions.md`: new entry "A heading inside a code fence is not a heading", which records that fenced headings are ignored (v1 did not), the alternative rejected, and the unclosed-block consequence.
+    - Cross-read: README and `docs/operator-guide.md` have nothing on sections or fences and are still current. The rest of `docs/project-guide.md` is not touched by this diff.
+    - Code vs. Interface: no contradiction found; module and public docstrings are present.
+    - Stale but untouched: nothing seen.
+
+    `make check`: check: green
+15. demo: demo (round 2): I ran the one Demo command exactly as written, from the repository root. Its output matches its `Expect:` line, and nothing in it contradicts an acceptance criterion. No findings.
+
+    Command 1 (`uv run python -c "…title / sections / section_text / insert_paragraph…"`), exit 0:
+
+    ```
+    Story
+    ['Demo', 'Journal']
+    '```bash\n## start the server\necho ok\n```\nExpect: ok'
+    ['## Journal', '', 'Note.', '', '1. 2026-10-12 human: created.', '']
+    ```
+
+    Met `Expect:`:
+    - Line 1 is `Story`.
+    - Line 2 is `['Demo', 'Journal']`. The `## start the server` line inside the fence is not taken as a heading.
+    - Line 3 is one quoted string that holds both `## start the server` and `Expect: ok`. It is the whole Demo section with the fence included.
+    - Line 4 is exactly `['## Journal', '', 'Note.', '', '1. 2026-10-12 human: created.', '']`.
+
+    Checked the output against the criteria:
+    - Criteria 5 and 9: a `## ` line inside a fence is ignored by both `sections` and `section_text`.
+    - Criterion 7: the title is the stripped `# ` line.
+    - Criterion 8: the section text has no heading and no leading or trailing blank lines, and keeps the fenced block inside it.
+    - Criteria 10 and 12: the paragraph goes in first under the heading, set off by blank lines, and the other lines are unchanged.
+
+    The demo does not exercise the other criteria (split edge cases, model validation, errors), and nothing in the output contradicts them. `make check` was reported green in entry 14; I did not run it, because the factory runs it after this stage.
