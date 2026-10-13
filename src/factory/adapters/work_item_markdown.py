@@ -8,7 +8,6 @@ from typing import override
 import frontmatter
 from frontmatter.default_handlers import YAMLHandler
 from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.error import YAMLError
@@ -16,6 +15,7 @@ from ruamel.yaml.nodes import ScalarNode
 from ruamel.yaml.representer import RoundTripRepresenter
 from ruamel.yaml.scalarstring import SingleQuotedScalarString
 
+from factory.adapters.validation_faults import first_fault
 from factory.application.files import WorkItemReader, WorkItemWriter
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.work_item import WorkItemDocument, WorkItemState
@@ -25,8 +25,6 @@ _AMBIGUOUS_WORDS = frozenset({"null", "true", "false", "yes", "no", "on", "off",
 _NULL_TAG = "tag:yaml.org,2002:null"
 # Wide enough that no value is ever folded onto a second line.
 _LINE_WIDTH = 4096
-# The rank of each kind of validation fault; the lowest is reported.
-_UNKNOWN_KEY, _MISSING_KEY, _INVALID_VALUE, _INVALID_STATE = range(4)
 
 
 class _NullAsWordRepresenter(RoundTripRepresenter):
@@ -99,43 +97,6 @@ def _normalised_body(body: str) -> str:
     return f"{stripped}\n" if stripped else ""
 
 
-def _key_path(location: tuple[int | str, ...]) -> str:
-    path = ""
-    for part in location:
-        if isinstance(part, int):
-            path += f"[{part}]"
-        else:
-            path += f".{part}" if path else part
-    return path
-
-
-def _rank(error: ErrorDetails) -> int:
-    if error["type"] == "extra_forbidden":
-        return _UNKNOWN_KEY
-    if error["type"] == "missing":
-        return _MISSING_KEY
-    if error["loc"]:
-        return _INVALID_VALUE
-    return _INVALID_STATE
-
-
-def _fault(error: ErrorDetails) -> str:
-    path = _key_path(error["loc"])
-    rank = _rank(error)
-    if rank == _UNKNOWN_KEY:
-        return f"unknown key: {path}"
-    if rank == _MISSING_KEY:
-        return f"missing key: {path}"
-    if rank == _INVALID_VALUE:
-        return f"invalid {path}: {error['msg']}"
-    return f"invalid state: {error['msg']}"
-
-
-def _first_fault(validation_error: ValidationError) -> str:
-    # `min` keeps the first of equal rank, and pydantic lists errors in the order of the fields.
-    return _fault(min(validation_error.errors(), key=_rank))
-
-
 class FrontmatterWorkItemReader(WorkItemReader):
     """Reads a work item file with python-frontmatter and ruamel.yaml."""
 
@@ -153,7 +114,7 @@ class FrontmatterWorkItemReader(WorkItemReader):
         try:
             state = WorkItemState.model_validate(values)
         except ValidationError as error:
-            raise WorkItemFormatError(_first_fault(error)) from error
+            raise WorkItemFormatError(first_fault(error, "state")) from error
         return WorkItemDocument(state=state, body=_normalised_body(body))
 
     @override

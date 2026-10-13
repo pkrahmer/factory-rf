@@ -539,6 +539,47 @@ print(spec.state, spec.ignored_keys, repr(spec.body))
 
 prints `unknown key: colour` and then `None ['stage', 'attempts'] '# T\n'`.
 
+## Cost records
+
+One agent run is one cost record: a JSON line in the sidecar file beside the work item, `cost_records_path(path)` (`<work item>.costs.jsonl`, see *Identity, order and places of work items*). This story is the format only: `CostRecord` (`factory.domain.cost_records`), the interfaces `CostRecordReader` and `CostRecordWriter` (`factory.application.files`), and `JsonLinesCostRecordReader` and `JsonLinesCostRecordWriter` (`factory.adapters.cost_records_jsonl`). When a record is created, completed or discarded, and how a bill is summed, are decided elsewhere (F0005). Wiring does not use the classes yet.
+
+A record has `run`, `work_item`, `stage`, `role`, `attempt`, `status` (`started` or `completed`), `started_at` (aware, stored in UTC), and the measures `duration_seconds`, `end_reason`, `turns`, `tokens` (`TokenCounts`), `cost_usd` and `image`. `CostRecord` is frozen and refuses unknown fields. `run` is 32 lowercase hexadecimal characters.
+
+- A `started` record has no duration, end reason, turns, tokens or cost. A `completed` record has `duration_seconds` and `end_reason`; its `turns`, `tokens` and `cost_usd` may be unknown. The rule spans fields, so its error has no field location and `parse` reports it as `invalid record: <reason>`.
+- A measure the runtime did not report is `null` in the file and `None` in the record, never 0 (a run the `time_limit` ended has `turns`, `tokens` and `cost_usd` unknown). A key that is absent when reading is `None` too.
+- `duration_seconds` is at least 0 and finite. `cost_usd` is at least 0 and finite, and is a JSON **string** (`"0.3450"`), because a float would round it and a `Decimal` keeps its digits. A JSON number or boolean for `cost_usd` is `invalid cost_usd`.
+- `ok` is true exactly when the status is `completed` and the end reason is `completed`.
+- A `run` appears once in a file. A record is completed by replacing its `started` line with the `completed` one (read, replace the record, `write` the whole file), never by appending a second line for the run.
+
+A line is one JSON object without spaces after `,` and `:`; keys are in field order, `tokens` in the order of `TokenCounts`, `started_at` ends in `Z`. The file is strict JSON: `NaN`, `Infinity` and `-Infinity` are `not valid JSON`. A completed line, then a started line:
+
+```json
+{"run":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","work_item":"F0002-S0007","stage":"tests","role":"tester","attempt":0,"status":"completed","started_at":"2026-10-12T00:00:00Z","duration_seconds":41.0,"end_reason":"completed","turns":7,"tokens":{"input":12,"output":3438,"cache_read":127336,"cache_creation":31343},"cost_usd":"0.3450","image":null}
+{"run":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","work_item":"F0002-S0007","stage":"tests","role":"tester","attempt":0,"status":"started","started_at":"2026-10-12T00:00:00Z","duration_seconds":null,"end_reason":null,"turns":null,"tokens":null,"cost_usd":null,"image":null}
+```
+
+| Operation | Does |
+|---|---|
+| `reader.parse(text)` | the records, in file order |
+| `reader.read(path)` | `parse` of the file as UTF-8; `[]` when the file does not exist |
+| `writer.render(records)` | one line per record, each ending in `\n`; `""` for none |
+| `writer.write(path, records)` | `render` as UTF-8 with `\n` line ends, replacing the file whole |
+
+`parse` ignores blank lines, which still count in line numbers. Of `run`, `work_item`, `stage`, `role`, `attempt`, `status` and `started_at`, each is required; the other keys may be absent. A fault is a `CostRecordFormatError(line, fault)` (a `FactoryError`; message `line <line>: <fault>`, both attributes), the line counted from 1, and the first fault ends the parse. The faults are `not valid JSON`, `not a JSON object`, `unknown key: <key>`, `missing key: <key>`, `invalid <key>: <reason>` and `invalid record: <reason>`; a key inside `tokens` is named after a dot (`tokens.output`). On one line they come in that order. Only a line with none of them can be `duplicate run: <run>`, the second line with a run seen before; `render` raises the same fault, with the line of the second record.
+
+```bash
+uv run python -c "
+from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
+from factory.domain.errors import CostRecordFormatError
+try:
+    JsonLinesCostRecordReader().parse('\n{not json}\n')
+except CostRecordFormatError as error:
+    print(error.line, error.fault, '|', error)
+"
+```
+
+prints `2 not valid JSON | line 2: not valid JSON`.
+
 ## Sections of a Markdown body
 
 `factory.domain.sections` is the one place that finds the title, the `## ` sections and the fenced code blocks of a Markdown body. It is pure: it works on text, and nothing reads a file. Every module that needs a heading or a fenced block uses it and does not look for `## ` itself.
