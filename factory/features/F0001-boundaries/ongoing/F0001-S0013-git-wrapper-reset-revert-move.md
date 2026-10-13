@@ -1,7 +1,7 @@
 ---
 stage: review
 pr: 13
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -120,3 +120,19 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
       - Commits: 3cdcbe7 (feat), 6a3bf7f (refactor).
 
    `make check`: check: green
+5. reviewer: Criteria 1–11 hold. Each one has a test that tests what it claims, and the coder's entry reports `make check` green. The architecture holds too: the path rule is a pure function in `factory.domain.git`, the protocol is in application and `GitCli` is in adapters. Before I pass or return this story I need one decision, because the gap is in the story's rules, not only in the code.
+
+   Question: should `move` follow the same path rule as `revert_paths`?
+   - What happens now: `src/factory/adapters/git_cli.py` `move` creates `(self._directory / destination).parent` with `mkdir(parents=True)` before git checks anything. So `move("a.txt", "../outside/x.txt")` or `move("a.txt", "/tmp/somewhere/x.txt")` creates folders outside the checkout. git then refuses the move and raises `GitError`, but the folders stay. This is the wrapper's only filesystem write that skips the boundary check this story introduces (`check_repository_path`).
+   - The Interface gives `move` no path rule, so no criterion covers this failing side. The coder cannot add the check without an untested rule (R9/R13), which is why I am asking rather than returning the story to `doing`.
+
+   Options:
+   - (a) Extend the story. Add a rule: "`move` raises `ValueError` for an absolute `source` or `destination`, or one with a `..` segment, before anything is created." Add a criterion before the two closing ones, for example: "`move` raises `ValueError` for `../x.txt` and for an absolute destination, and no folder is created outside the checkout." The tester writes that test, then the coder calls `check_repository_path` on both arguments before `mkdir`.
+   - (b) Accept it as it is. The callers (F0007) pass paths the factory builds, and git still refuses the move, so the only effect is empty folders. The story then passes to `docs` unchanged.
+
+   I would choose (a). The fix is one line per argument, it reuses this story's own path rule, and the wrapper stays a boundary that validates its input.
+
+   Nothing else is open. Smaller points I checked and accept:
+   - The empty-path refusal in `check_repository_path` goes beyond the rule, but it is defensive and harmless.
+   - `revert_paths` reads the whole blob through `show_file` only to test whether it exists, which reuses existing code.
+   - `tests/application/test_git_protocol.py` imports `GitCli`, as the Interface places it.
