@@ -425,6 +425,93 @@ print(initial_state('intake').model_dump())
 
 prints `{'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes': 0, 'pull_request': None, 'comments_read': [], 'handed_over': None, 'claim': None, 'journal': []}`.
 
+## Reading and writing a work item file
+
+Every file format the factory owns has one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`, and validates into Pydantic DTOs; no other module parses or renders that format. For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` (`factory.application.files`) and the classes are `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` (`factory.adapters.work_item_markdown`). That module is the only one that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`. Wiring does not use them yet.
+
+| Operation | Does |
+|---|---|
+| `reader.parse(text)` | `WorkItemDocument` with the state and the normalised body; the state is required |
+| `reader.parse_specification(text)` | `WorkItemDocument` with `state=None`, the body, and `ignored_keys`: for a file whose front matter the factory does not own (a story in the backlog), so its own `stage` can never skip a stage |
+| `reader.read(path)` | `parse` of the file read as UTF-8 |
+| `writer.render(document)` | the file text |
+| `writer.write(path, document)` | `render` written as UTF-8 with `\n` line ends, replacing an existing file |
+
+### The layout
+
+A file is a boundary line, the front matter, a boundary line and the body, split as python-frontmatter splits it. The reader first turns `\r\n` into `\n` and strips the whitespace around the whole text. A boundary line is three or more `-` and nothing else but whitespace (`---`, `----`, `--- `); `--- x`, `- - -` and an indented ` ---` are not. Front matter exists only when the text starts with a boundary line and a later line is one. Two `---` lines further down a body are thematic breaks, not front matter.
+
+The writer always writes all ten keys of `WorkItemState`, in field order:
+
+```yaml
+---
+stage: doing
+blocked: question
+round: 1
+attempts: 2
+crashes: 0
+pull_request: 12
+comments_read: [4, 9]
+handed_over: approval
+claim:
+  instance: factory-1
+  stage: doing
+  started_at: '2026-10-13T09:00:00Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+- number: 2
+  speaker: factory
+  kind: started
+---
+```
+
+The notation:
+
+- A missing value is `null`, an empty list `[]`, a non-empty `comments_read` a flow list, `claim` is `claim: null` when absent, `journal` a block list of mappings.
+- `started_at` is single-quoted UTC text in `isoformat()` form with the offset written as `Z`.
+- A name a YAML reader could take for null or a boolean (`null`, `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`) is single-quoted (`handed_over: 'true'`), so it reads back as the same text. Every other scalar is unquoted.
+
+`RuamelYamlHandler` subclasses python-frontmatter's `YAMLHandler` and overrides only `load` (ruamel.yaml's safe loader, keys converted with `str`) and `export`. The reader calls the handler's `detect`, `split` and `load` itself rather than `frontmatter.loads`, which would take two later `---` lines for front matter, return an unclosed text whole, drop front matter that is not a mapping and refuse a key named `content`.
+
+### The body
+
+`render` writes `---`, the front matter, `---`, an empty line, the body stripped of the whitespace around it, and a final `\n`; an empty body ends the text at the closing `---` and `\n`. `parse` and `parse_specification` strip the body the same way and add one final newline; an empty or blank body is `""`. So `parse(render(document))` equals `document` when the body is normalised.
+
+### Faults
+
+`parse` raises `WorkItemFormatError` with a `fault` that is, or starts with, one of these. A `<path>` is the top-level key, then nested keys after dots, and a list position in brackets: `attempts`, `claim.extra`, `comments_read[0]`, `journal[1].kind`.
+
+| Fault | When |
+|---|---|
+| `no front matter` | no opening boundary line, or front matter never closed |
+| `front matter is not valid YAML` | the YAML does not load |
+| `front matter is not a mapping` | it loads as a list or a scalar (empty, blank, comment-only or `null` front matter is an empty mapping) |
+| `unknown key: <path>` | a key `WorkItemState`, `Claim` or `JournalRecord` does not define |
+| `missing key: <path>` | `stage`, or a required key of a claim or journal record |
+| `invalid <path>: <reason>` | a value the model refuses; the first in the order of the state's fields |
+| `invalid state: <reason>` | every value is valid but a rule across keys is broken (the claim's stage differs from the state's) |
+
+When several faults exist, the first in this order is reported: structure, unknown key, missing key, invalid value, rule across keys. `parse_specification` raises only `front matter is not valid YAML` and `front matter is not a mapping`; a text with no front matter is a body with no ignored keys. `read` raises `WorkItemFormatError` with `path` set to `str(path)`: `cannot read: <reason>` for a file that is missing or not UTF-8, otherwise the fault of `parse`. `render` raises `the document has no state` for a document whose `state` is `None`.
+
+```bash
+uv run python -c "
+from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
+from factory.domain.errors import WorkItemFormatError
+reader = FrontmatterWorkItemReader()
+try:
+    reader.parse('---\nstage: tests\ncolour: 2\n---\n# T\n')
+except WorkItemFormatError as error:
+    print(error.fault)
+spec = reader.parse_specification('---\nstage: tests\nattempts: 1\n---\n\n\n# T\n')
+print(spec.state, spec.ignored_keys, repr(spec.body))
+"
+```
+
+prints `unknown key: colour` and then `None ['stage', 'attempts'] '# T\n'`.
+
 ## Kill points: testing a crash
 
 A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).

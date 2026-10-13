@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 30
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Reading and writing work items
 
 ## Assignment (as of log entry 1)
@@ -147,3 +155,145 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`factory.application.files`, `factory.adapters.work_item_markdown`), the ABCs and the three adapter classes with signatures. The file format rules (split, handler, notation, normalisation, fault list) are stated exactly. `WorkItemFormatError` and `WorkItemDocument` already exist in the domain, and both dependencies are already pinned in `pyproject.toml`.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion, and each failing side has one too: no front matter, bad YAML, not a mapping, unknown key, missing key, invalid value, invalid state, no state on render, unreadable file, non-UTF-8 file, never-closed front matter. The precedence of faults is covered by criteria 11, 13, 14 and 15. The body normalisation is covered by 4 and 7. The `str(key)` conversion is covered by 17.
+   - Demo: both blocks are runnable commands, and each `Expect:` line gives checkable output (fifteen lines, then the fault and the parse_specification result).
+   - Architecture: the reader and writer interfaces sit in `application`, and the python-frontmatter/ruamel.yaml adapters sit in `adapters`. Criterion 22 checks the import boundary. Wiring is left to a later story. This matches the layers and R13 in `CLAUDE.md`.
+   - Scope: the story is inside FEATURE.md ("one reader and one writer for the work item file (R13)"). It does not touch sections, journal, cost sidecar or form check, which are other stories. Decision 4 in FEATURE.md matches the story text.
+3. tester: wrote red tests for criteria 1–22 in one new file, tests/adapters/test_work_item_markdown.py.
+   - criterion 1: test_render_writes_a_full_state_in_the_fixed_notation
+   - criterion 2: test_render_of_an_initial_state_writes_all_ten_keys
+   - criterion 3: test_render_quotes_names_a_yaml_reader_could_read_as_null_or_boolean
+   - criterion 4: test_render_writes_the_body_stripped_after_an_empty_line (parametrized over the five bodies)
+   - criterion 5: test_render_refuses_a_document_without_state
+   - criterion 6: test_round_trip_splits_only_at_the_closing_line_of_the_front_matter
+   - criterion 7: test_parse_strips_the_body_and_keeps_one_final_newline
+   - criterion 8: test_parse_gives_initial_values_to_keys_left_out
+   - criterion 9: test_parse_reports_no_front_matter (six texts), test_parse_reports_front_matter_that_is_not_valid_yaml, test_parse_reports_front_matter_that_is_not_a_mapping
+   - criterion 10: test_parse_finds_the_front_matter_as_python_frontmatter_does
+   - criterion 11: test_parse_reports_an_unknown_key
+   - criterion 12: test_parse_reports_a_missing_key
+   - criterion 13: test_parse_reports_a_missing_key_before_an_invalid_value
+   - criterion 14: test_parse_reports_the_first_invalid_value
+   - criterion 15: test_parse_reports_broken_rules_of_a_field_and_across_keys
+   - criterion 16: test_front_matter_that_loads_as_nothing_is_an_empty_mapping
+   - criterion 17: test_parse_specification_drops_the_front_matter_and_names_its_keys
+   - criterion 18: test_parse_specification_of_a_text_without_front_matter_keeps_it_whole, test_parse_specification_refuses_front_matter_it_cannot_read
+   - criterion 19: test_read_returns_what_parse_returns_for_the_file_text
+   - criterion 20: test_read_reports_a_file_it_cannot_read (missing file, not UTF-8), test_read_reports_a_fault_of_the_file_with_its_path
+   - criterion 21: test_write_replaces_the_file_with_the_rendered_text
+   - criterion 22: test_reader_and_writer_implement_abstract_interfaces, test_handler_keeps_the_boundary_and_delimiters_of_the_yaml_handler, test_only_the_work_item_adapter_imports_frontmatter_and_ruamel (uses tests/source_search.py)
+
+   Criteria 23 (make check) and 24 (docs) are for later stages and have no test here.
+
+   Results:
+   - `make test` is red as intended. Collection fails with `ModuleNotFoundError: No module named 'factory.adapters.work_item_markdown'`, and `factory.application.files` does not exist yet either.
+   - `make lint` is green.
+   - I skipped the type check, as the stage allows.
+
+   No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built the work item file's one reader and one writer. All 62 tests in tests/adapters/test_work_item_markdown.py pass, and `make check` is green (total coverage 99.61 %). Both demos print exactly what their `Expect:` lines say. Commit 23f3115.
+
+   What I built:
+   - `src/factory/application/files.py`: the `WorkItemReader` (`parse`, `parse_specification`, `read`) and `WorkItemWriter` (`render`, `write`) ABCs. Every operation is abstract, with only a docstring as its body.
+   - `src/factory/adapters/work_item_markdown.py`:
+     - `RuamelYamlHandler(YAMLHandler)`: overrides only `load` and `export`, both marked `@override`.
+       - `load` reads with `YAML(typ="safe")`. Nothing gives `{}`, and keys go through `str(key)` in file order. A `YAMLError` becomes "front matter is not valid YAML", and any other value that is not a mapping becomes "front matter is not a mapping".
+       - `export` writes with `YAML(typ="rt")`, with a small representer subclass that writes None as `null`. The round-trip representer would write `claim:` instead; I used a subclass so that ruamel's class-level representer table stays untouched for everyone else.
+       - `export` converts values to the notation on its own: a mapping becomes a `CommentedMap` and keeps its order. A list with no mappings becomes a flow `CommentedSeq`, so `[4, 9]` and `[]` come out right, and a list of mappings stays a block list. A datetime becomes single-quoted UTC isoformat with `Z`. The words null/true/false/yes/no/on/off/y/n are single-quoted. The line width is 4096, so no value is folded.
+     - `FrontmatterWorkItemReader`: `_split` turns `\r\n` into `\n` and strips the text, then calls the handler's `detect` and `split`, where a `ValueError` means no front matter. `parse` validates with `WorkItemState.model_validate`. `parse_specification` returns the top-level keys as `ignored_keys`. `read` maps `OSError`/`UnicodeDecodeError` to "cannot read: …" and re-raises a `parse` fault with `path=str(path)`.
+     - `FrontmatterWorkItemWriter`: `render` uses `frontmatter.dumps(frontmatter.Post(body.strip(), None, **state.model_dump()), handler=…)` plus `"\n"`. `write` uses `write_text(..., encoding="utf-8", newline="\n")`.
+
+   Main decision: the fault comes from pydantic's own `ValidationError.errors()`, with no separate key check of my own.
+   - Each error gets a rank: `extra_forbidden` is an unknown key, `missing` is a missing key, an error with a location is an invalid value, and an error with an empty location is the model validator's spanning rule (invalid state).
+   - `min` by rank keeps the first error of equal rank, and pydantic lists errors in field order. That gives the precedence the story asks for.
+   - The location becomes a path like `journal[0].kind`.
+   - Alternative rejected: walking the loaded mapping against the model's fields before validating. It would duplicate the model's rules and could drift from them.
+
+   Refactor: I read the diff and nothing needed changing, so there is no refactor commit.
+
+   Noticed but not touched: the overridden public methods carry no docstrings, because the interface's docstrings say what they do; ruff's D rules accept this.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read every test against criteria 1–22. Each test checks the criterion it is named after.
+     - Failing sides are covered: no front matter (six texts, including two thematic breaks, never closed and an indented closing line), not valid YAML, not a mapping, unknown, missing and invalid keys, invalid state, no state on render, a missing file and a file that is not UTF-8.
+     - Fault order is tested both ways: unknown key before missing stage (11), missing before invalid (13), field order rather than file order (14: `attempts: -1` comes before `blocked: asked` in the file, and `invalid blocked` is reported), and an invalid value before invalid state (15).
+     - The coder's entry reports `make check` green after commit 23f3115.
+   - Architecture:
+     - The ABCs `WorkItemReader` and `WorkItemWriter` are in `factory.application.files`; every operation is an `@abstractmethod` whose body is only a docstring.
+     - `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` inherit from them in `factory.adapters.work_item_markdown`. That module is the only one that imports python-frontmatter and ruamel.yaml.
+     - No `dict[str, Any]` crosses a function boundary, and no wiring was added.
+   - Security:
+     - The front matter is loaded with ruamel's `typ="safe"`.
+     - No shell is built from strings, and no suppression markers were added.
+     - `_NullAsWordRepresenter.add_representer` is called on a subclass, which gets its own copy of ruamel's representer table, so other ruamel users are unaffected.
+   - Quality:
+     - `_first_fault` takes faults from pydantic's own `errors()` ranking instead of re-checking keys, which avoids duplicating the domain's rules.
+     - Comments explain why, and the public classes and the handler's methods have docstrings. The overriding `parse`, `read`, `render` and so on inherit the interface's docstrings, which ruff's D rules accept for `@override`.
+   - Considered and not raised: `from pydantic_core import ErrorDetails` imports a package that `pyproject.toml` does not list directly. It is pydantic's public typing for `ValidationError.errors()`, and `pydantic==2.14.1` pins its version exactly (it is in `uv.lock`), so I did not count it as a new dependency.
+   - Ticket hygiene:
+     - The coder's entry explains the main decision (faults come from pydantic's errors) and the alternative it rejected (walking the mapping against the model).
+     - `Assignment` matches what was built, and criterion 24 still describes what the project guide must show.
+6. documenter: I wrote the work item file format into the project guide and updated the README. `make check` is green. I ran the guide's example and it printed `unknown key: colour` and then `None ['stage', 'attempts'] '# T\n'`.
+
+   Files changed:
+   - `docs/project-guide.md`: a new section, "Reading and writing a work item file". It covers criterion 24:
+     - the rule that every file format has one reader class and one writer class in `factory.adapters`, with the five operations, the file layout, and the front matter notation with an example;
+     - how `RuamelYamlHandler` and the reader's `detect`/`split`/`load` work, and why they do not use `frontmatter.loads`;
+     - the body normalisation, and a table of the fault messages with the order in which faults are reported.
+   - `README.md`: the status sentence now lists the work item file reader and writer.
+
+   Cross-read against the diff and found current:
+   - The "Errors" paragraph on `WorkItemFormatError`.
+   - "The data of a work item", including `ignored_keys` and the fault locations the reader uses. The reader names faults by those locations as the guide says.
+   - The architecture and wrapper rules in `CLAUDE.md`.
+   - `docs/operator-guide.md` is untouched by this story.
+
+   Stale but not touched: none. I found no findings for the coder. The code matches the Interface, and the public classes and the handler's methods have docstrings. The overriding methods inherit the interface's docstrings, which ruff accepts.
+
+   `make check`: check: green
+7. demo: both commands ran from the repository root exactly as written. Both exited 0, and both outputs match their `Expect:` lines. No findings.
+
+   1. Render, then parse back, an `intake` state with `attempts: 1` and `comments_read: [4, 9]`:
+   ```
+   ---
+   stage: intake
+   blocked: null
+   round: 0
+   attempts: 1
+   crashes: 0
+   pull_request: null
+   comments_read: [4, 9]
+   handed_over: null
+   claim: null
+   journal: []
+   ---
+
+   # Title
+   1 [4, 9] '# Title\n'
+   ```
+   Met. The output is fifteen lines, as expected:
+   - the opening `---`;
+   - the ten keys in field order, with `blocked`, `pull_request`, `handed_over` and `claim` as `null`, the flow list `[4, 9]` and `journal: []`;
+   - the closing `---`, an empty line and `# Title`;
+   - the round-trip line `1 [4, 9] '# Title\n'`.
+
+   2. An unknown key, then `parse_specification`:
+   ```
+   unknown key: colour
+   None ['stage', 'attempts'] '# T\n'
+   ```
+   Met. The output is the two expected lines.
+
+   Against the acceptance criteria:
+   - The demo contradicts none of them.
+   - Command 1 is consistent with criteria 2 (ten keys in field order, `null` for missing values, counters as numbers, `[]` for an empty journal), 4 (an empty line after the closing `---`, the body stripped, one final newline) and 6/7 (the round trip gives back the state and the normalised body).
+   - Command 2 is consistent with criteria 11 (`unknown key: colour`) and 17 (`state` None, ignored keys in file order, the body normalised from `\n\n# T\n` to `# T\n`).
+
+   Open: nothing.
