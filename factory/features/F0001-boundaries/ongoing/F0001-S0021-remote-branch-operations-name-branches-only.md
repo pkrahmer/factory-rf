@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 24
 blocked: null
 comments_seen: 0
@@ -106,3 +106,20 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
    - Demo: runnable with the existing `GitCli` and `run_process` API. The seven expected lines match the code: `pushed`, `pushed`, four `refused`, and the ref list.
    - Architecture: the pure name rules sit in the domain, with no git call. The git command lines sit only in the `GitCli` wrapper. No new dependency or module.
    - Scope: this is within F0001's git wrapper (R9) and matches decision 23. No Out-of-scope item is touched.
+3. tester: wrote the tests for criteria 1–10. They fail on purpose and are the coder's specification.
+      - criterion 1: tests/domain/test_git.py::test_branch_name_that_git_would_not_take_as_a_branch_is_refused (parametrized over all 19 values)
+      - criterion 2: tests/domain/test_git.py::test_branch_name_with_a_star_inside_or_refspec_syntax_is_refused (`x*y`, `""`, `-x`, `+main`, `:main`, `main:other`)
+      - criterion 3: tests/domain/test_git.py::test_branch_name_that_git_takes_as_a_branch_is_accepted (all 8 values)
+      - criterion 4: tests/adapters/test_git_cli_arguments.py::test_push_of_a_negative_refspec_is_refused_before_anything_runs
+      - criterion 5: tests/adapters/test_git_cli_arguments.py::test_push_of_the_checked_out_branch_by_alias_is_refused_and_creates_nothing (`HEAD`, `@`; the remote's refs are compared before and after)
+      - criterion 6: tests/adapters/test_git_cli_branches.py::test_push_of_a_local_tag_without_a_local_branch_raises_and_pushes_nothing
+      - criterion 7: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_leaves_a_remote_tag_of_the_same_name. `HumanClone` has no tag method, so the tag is created and pushed with `run_git` in the human's clone at `tmp_path / "human"`.
+      - criterion 8: tests/adapters/test_git_cli_branches.py::test_push_of_a_new_branch_tracks_it_as_its_upstream
+      - criterion 9: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_removes_a_branch_the_human_pushed. The checkout fetches first, so `origin/keep` exists before the deletion.
+      - criterion 10: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_of_an_invalid_ref_name_raises. Changed from `GitError` to `ValueError`, with the human's permission in decision 23. It also asserts that the remote's refs are unchanged.
+      Files changed: tests/domain/test_git.py, tests/adapters/test_git_cli_arguments.py, tests/adapters/test_git_cli_branches.py. No new files. The existing S0020 tests are untouched.
+      Imports: every module imports; nothing failed to collect. The failures are wrong results: the current `check_branch_name` accepts the new values (for example `feature/.x`, `x.lock`, `feature/x.lock/y`, `a\x7fb`). Criteria 8 and 9 may already pass on the current code. They guard the `refs/heads/<branch>` change.
+      `make lint` is green. The type check was skipped, as this stage says.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_git.py::test_branch_name_that_git_would_not_take_as_a_branch_is_refused[a\x7fb]

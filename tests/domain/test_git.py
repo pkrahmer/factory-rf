@@ -80,3 +80,55 @@ def test_branch_name_that_git_push_reads_as_an_option_or_a_refspec_is_refused(va
 @pytest.mark.parametrize("value", ["main", "work-item/F0001-S0001", "feature/x", "a+b"])
 def test_branch_name_without_refspec_syntax_is_accepted(value: str) -> None:
     check_branch_name(value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "HEAD",
+        "@",
+        "^main",
+        "main~1",
+        "ma?n",
+        "ma[in",
+        "ma\\in",
+        "ma in",
+        "a\tb",
+        "a..b",
+        "a@{1}",
+        "/x",
+        "x/",
+        "a//b",
+        "x.",
+        "feature/.x",
+        "x.lock",
+        "feature/x.lock/y",
+        "a\x7fb",
+    ],
+)
+def test_branch_name_that_git_would_not_take_as_a_branch_is_refused(value: str) -> None:
+    with pytest.raises(ValueError):
+        check_branch_name(value)
+
+
+@pytest.mark.parametrize("value", ["x*y", "", "-x", "+main", ":main", "main:other"])
+def test_branch_name_with_a_star_inside_or_refspec_syntax_is_refused(value: str) -> None:
+    with pytest.raises(ValueError):
+        check_branch_name(value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "main",
+        "work-item/F0001-S0001",
+        "feature/x",
+        "a+b",
+        "a@b",
+        "release-1.2",
+        "feature/HEAD",
+        "x.lock.y",
+    ],
+)
+def test_branch_name_that_git_takes_as_a_branch_is_accepted(value: str) -> None:
+    check_branch_name(value)
