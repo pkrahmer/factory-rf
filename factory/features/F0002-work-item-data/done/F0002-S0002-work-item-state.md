@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 29
 blocked: null
 comments_seen: 0
@@ -204,3 +204,4 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
    It met its Expect line: two lines of `refused 1`. Each was refused with one error: `comments_read: [5, 3]` (criterion 5) and `blocked: 'asked'` (criterion 3).
 
    Criteria check: neither output contradicts any of criteria 1–15. Both commands exited 0.
+8. done (pull request merged); cost: 6 runs, 4.1 min, 38 turns, 104k tokens in (535k more from cache), 18k out, $1.12
