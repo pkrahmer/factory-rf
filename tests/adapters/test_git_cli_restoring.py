@@ -214,3 +214,26 @@ def test_move_refuses_an_unsafe_destination_before_creating_any_folder(
 
     assert sorted(path.name for path in tmp_path.iterdir()) == outside_before
     assert (directory / "a.txt").read_text(encoding="utf-8") == "a base\n"
+
+
+@pytest.mark.parametrize("source", ["../x.txt", "absolute"])
+def test_move_refuses_an_unsafe_source_and_changes_nothing(
+    tmp_path: Path, checkout: GitCli, source: str
+) -> None:
+    directory = tmp_path / CHECKOUT
+    _base(directory)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    write_files(outside, {"x.txt": "outside\n"})
+    write_files(tmp_path, {"x.txt": "outside\n"})
+    if source == "absolute":
+        source = str(outside / "x.txt")
+    status_before = _status(directory)
+    outside_before = sorted(path.relative_to(tmp_path) for path in tmp_path.rglob("*"))
+
+    with pytest.raises(ValueError, match=r".+"):
+        checkout.move(source, "b.txt")
+
+    assert _status(directory) == status_before
+    assert sorted(path.relative_to(tmp_path) for path in tmp_path.rglob("*")) == outside_before
+    assert (directory / "b.txt").read_text(encoding="utf-8") == "b base\n"

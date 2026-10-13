@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 19
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The boundaries' open failing sides: tests for behaviour already built
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
@@ -52,3 +60,63 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: no change; it names concrete modules and signatures (`MakeProjectCommands.run`, `GitCli.move`, `GitCli.status`, `FakeHostingService.delete_comment`) and the four test files. It also says how the unmerged state is made (plain `git merge` through `run_process` with an isolated environment).
+   - Criteria: each is testable by one function. Every behaviour the Interface states has one: the trailing-newline refusal (1), the unsafe source of `move` (2), the unmerged path listed once as "modified" (3), the comment of another pull request refused (4). Each rule has its failing side, since the story exists to test those sides. Criterion 1 also checks that the marker recipe did not run, and criteria 2 and 4 check that nothing changed.
+   - Demo: one runnable pytest command over the four named files. Its Expect line is checkable (the last line reads `<n> passed`, with no failed, error or skipped count).
+   - Architecture: tests only, in the adapters layer, using real git and the fake hosting service as CLAUDE.md prescribes. No dependency, no change to `factory/`.
+   - Scope: inside F0001. FEATURE.md's decision 21 keeps an unmerged path as "modified", so criterion 3 pins documented behaviour. Nothing is in Out of scope.
+3. tester: wrote one new test function for each of criteria 1–4. No existing parametrization was extended.
+   - criterion 1: tests/adapters/test_make_commands.py::test_command_name_with_a_trailing_newline_is_refused_before_starting. `run("check\n")` raises `ProjectCommandError`, and the marker file from the `touch` recipe does not exist afterwards.
+   - criterion 2: tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_source_and_changes_nothing, run for two sources: `../x.txt` and an absolute path `tmp_path/outside/x.txt`. Both files exist outside the checkout, so a refusal cannot come from a missing file. The test checks for `ValueError`, that `git status --porcelain` is unchanged, that the file list under `tmp_path` is unchanged, and that `b.txt` keeps its content.
+   - criterion 3: tests/adapters/test_git_cli_history.py::test_status_lists_a_path_left_unmerged_by_a_conflicting_merge_once_as_modified. The conflict is made with a plain `git merge` through `run_process`, using the isolated environment that `test_committed_at_is_the_committer_date_in_utc` builds. The test checks that the merge exits 1 and that `ls-files --unmerged` is not empty, then that `status().changes == [("file.txt", "modified")]`.
+   - criterion 4: tests/adapters/test_fake_hosting.py::test_delete_comment_refuses_a_comment_of_another_pull_request. With two pull requests, `delete_comment(first, <id of a comment on the second>)` raises `HostingServiceError`, and `list_comments` of both pull requests is unchanged.
+   - criteria 5 and 6 are for the coder's `make check` and for the documenter.
+   Files changed: the four test files named above; no new files. Every module imported fine.
+   `make test` is green and the four new tests pass on the first run. That is expected, because the story pins behaviour that is already built (the Assignment expects no code change). Nothing failed, so there is no finding for the coder. The coder only needs to confirm that `make check`, including mypy, is green. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: no code change. The story pins behaviour that is already built, and the tester's four new tests pass against the code as it stands:
+      - tests/adapters/test_make_commands.py::test_command_name_with_a_trailing_newline_is_refused_before_starting
+      - tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_source_and_changes_nothing
+      - tests/adapters/test_git_cli_history.py::test_status_lists_a_path_left_unmerged_by_a_conflicting_merge_once_as_modified
+      - tests/adapters/test_fake_hosting.py::test_delete_comment_refuses_a_comment_of_another_pull_request
+      I ran `make check` and it is green: lint, types (mypy --strict over the new tests), layers, sast, secrets, licenses, and test at 99.49 % coverage. The unmerged branch `u` in `_status_entry` (src/factory/adapters/git_cli.py) is now covered. I made no commits and did no refactor, because this branch has no coder diff to clean up. Criterion 6 (the `delete_comment` row in docs/project-guide.md) is for the documenter.
+      Noticed, not touched: the report still lists two uncovered spots in git_cli.py. One is line 122, the final `return None` in `_status_entry` for an entry kind that is neither `?`, `1` nor `u` (with renames off, git writes no `2` entries). The other is the partial branch 67->69 in `_commits_in_log`. claude_runtime.py has uncovered lines 360 and 381-382. Each is outside this story.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: tests only, 4 files (+78 lines), no change under src/. Reviewed `git diff main...HEAD -- . ':!factory'` against the criteria.
+      - criterion 1: tests/adapters/test_make_commands.py::test_command_name_with_a_trailing_newline_is_refused_before_starting. The Makefile has a `check: @touch <marker>` recipe. It asserts `ProjectCommandError` and that the marker is absent. The test tells the two matchers apart: `re.match` with `$` would accept "check\n" and make would run, while `fullmatch` (make_commands.py:53) refuses it.
+      - criterion 2: tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_source_and_changes_nothing, parametrized over `../x.txt` and an absolute path outside the checkout. Both files exist, so a refusal cannot come from a missing file. It asserts `ValueError`, an unchanged porcelain status, an unchanged file tree under tmp_path, and an untouched `b.txt`. `GitError` derives from `BoundaryError`, not `ValueError`, so if the source check in git_cli.py:341 were dropped, `git mv` would fail differently and the test would catch it.
+      - criterion 3: tests/adapters/test_git_cli_history.py::test_status_lists_a_path_left_unmerged_by_a_conflicting_merge_once_as_modified. It runs a plain `git merge` through `run_process` with the isolated environment, as the Interface prescribes. It checks exit 1 and a non-empty `ls-files --unmerged`, then that `changes == [("file.txt", "modified")]`, which pins both "exactly once" and the kind.
+      - criterion 4: tests/adapters/test_fake_hosting.py::test_delete_comment_refuses_a_comment_of_another_pull_request. It asserts `HostingServiceError`, and that `list_comments` is unchanged on both pull requests.
+      - criterion 5: the coder's entry reports `make check` green (99.49 % coverage).
+      - criterion 6: still accurate for the documenter: the `delete_comment` row in the project guide.
+      - Architecture and security: nothing applies. No new dependency, no suppression marker, no secrets. Test values follow CLAUDE.md (real git in tmp_path, the fake hosting service).
+      - Considered and rejected as a finding: the new merge test repeats the environment dict from `test_committed_at_is_the_committer_date_in_utc` (6 of its 7 keys) instead of sharing a helper. The Interface asks for exactly that environment, and pulling it out would mean changing a test this story did not write, which needs asking. A shared helper could come with a later story that touches both.
+6. documenter: no findings.
+   - Changed docs/project-guide.md, the `delete_comment` row of the fake's test-operations table. It now says that the id of a comment on another pull request counts as unknown and that comment is left alone (criterion 6).
+   - Cross-read against the diff, found current: docs/project-guide.md line 139 (unmerged paths in `status()` are "modified"). I found no stated rule in the docs that contradicts the trailing-newline refusal or the `move` source check. The diff is tests only, so nothing else could have gone stale.
+   - Stale but unrelated: none seen.
+   - `make check` is green (coverage 99.49 %). I ran no examples because I wrote none.
+
+   `make check`: check: green
+7. demo: no findings.
+      - Command 1, run from the repository root as written:
+        ```
+        uv run pytest --no-header -p no:cacheprovider tests/adapters/test_make_commands.py tests/adapters/test_git_cli_restoring.py tests/adapters/test_git_cli_history.py tests/adapters/test_fake_hosting.py
+        ```
+        Output (trimmed):
+        ```
+        ........................................................................ [ 69%]
+        ...............................                                          [100%]
+        103 passed in 2.59s
+        ```
+        Met its Expect line. The last line reads `103 passed in 2.59s`, with no failed, error or skipped count.
+      - Criteria cross-check:
+        - 1–4: the four new test functions named in entries 3–5 are in the files the command ran, and all of them passed.
+        - 5: `make check` was reported green by the coder and the documenter. The factory runs it again after this stage.
+        - 6: the `delete_comment` row of the fake's table, docs/project-guide.md:63, says that "the id of a comment on another pull request counts as unknown, and that comment is left alone".
+        - The demo contradicts no criterion.

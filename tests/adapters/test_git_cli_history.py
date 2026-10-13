@@ -342,3 +342,31 @@ def test_status_does_not_list_an_ignored_path(work: Path) -> None:
     write_files(work, {"ignored.txt": "x\n"})
 
     assert _git(work).status().changes == []
+
+
+def test_status_lists_a_path_left_unmerged_by_a_conflicting_merge_once_as_modified(
+    work: Path,
+) -> None:
+    _commit(work, {"file.txt": "base\n"}, "base")
+    run_git(work, "checkout", "-q", "-b", "other")
+    _commit(work, {"file.txt": "other\n"}, "other")
+    run_git(work, "checkout", "-q", "main")
+    _commit(work, {"file.txt": "main\n"}, "main")
+    environment = {
+        **os.environ,
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_AUTHOR_NAME": TEST_IDENTITY.name,
+        "GIT_AUTHOR_EMAIL": TEST_IDENTITY.email,
+        "GIT_COMMITTER_NAME": TEST_IDENTITY.name,
+        "GIT_COMMITTER_EMAIL": TEST_IDENTITY.email,
+    }
+    merge = run_process(
+        ProcessRequest(argv=["git", "merge", "-q", "other"], cwd=work, env=environment)
+    )
+    assert merge.exit_status == 1
+    assert run_git(work, "ls-files", "--unmerged") != ""
+
+    status = _git(work).status()
+
+    assert _pairs(status.changes) == [("file.txt", "modified")]

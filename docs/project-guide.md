@@ -60,7 +60,7 @@ The test operations act as the human or look at what the factory did:
 | Operation | Purpose |
 |---|---|
 | `add_human_comment(number, body, *, author="human")` | add a comment as written; returns its id |
-| `delete_comment(number, comment_id)` | remove a comment; an unknown id raises `HostingServiceError` |
+| `delete_comment(number, comment_id)` | remove a comment; an unknown id raises `HostingServiceError`; the id of a comment on another pull request counts as unknown, and that comment is left alone |
 | `close_by_human(number)` | state `"closed"` |
 | `merge_by_human(number, merge_commit)` | state `"merged"` with that `merge_commit` |
 | `fail_next(operation, *, times=1)` | the next `times` calls of one of the ten operations raise `HostingServiceError(operation, "injected failure")` before any effect; an unknown name or `times` below 1 raises `ValueError` |
