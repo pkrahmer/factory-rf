@@ -12,6 +12,7 @@ from factory.domain.sections import (
     Section,
     code_blocks,
     insert_paragraph,
+    opening_fence,
     required_sections,
     section_text,
     sections,
@@ -273,3 +274,18 @@ def test_indices_are_not_negative(
     else:
         with pytest.raises(ValidationError):
             model(**fields)
+
+
+@pytest.mark.parametrize(
+    ("line", "fence"),
+    [
+        ("  ````python", "````"),
+        ("~~~", "~~~"),
+        (TICKS, TICKS),
+        ("``x", None),
+        ("x " + TICKS, None),
+        ("", None),
+    ],
+)
+def test_opening_fence_is_the_run_a_line_opens_a_block_with(line: str, fence: str | None) -> None:
+    assert opening_fence(line) == fence

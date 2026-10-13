@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 37
 blocked: null
 comments_seen: 0
@@ -83,3 +83,22 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
    - Demo: runnable with `uv run python -c`. The Expect line is checkable: the body layout, `[]` and the repr of `entry_text`.
    - Architecture: the change is in `factory.domain` only, pure functions with no I/O. This fits the layering in CLAUDE.md, and no new dependency is involved.
    - Scope: within F0002's scope (journal, sections with code fences respected, form check). The story adds nothing from "Out of scope". Decision 15 in FEATURE.md records the human's choice.
+3. tester: Tests written for criteria 1–9. The tests are red on purpose. `make lint` is green.
+   - criterion 1: tests/domain/test_journal.py::test_render_entry_closes_a_block_the_entry_leaves_open (number 2 checks the full string, number 10 checks for the four-space closing line)
+   - criterion 2: tests/domain/test_journal.py::test_the_closing_line_repeats_the_opening_run_without_info_string (parametrized: four backticks with `python`, `~~~~~`, exactly three backticks)
+   - criterion 3: tests/domain/test_journal.py::test_only_the_last_unclosed_block_is_closed (a closed `~~~~` block, then an unclosed block of three backticks) and tests/domain/test_journal.py::test_a_fence_on_the_numbered_line_opens_no_block (the literal case from the criterion)
+   - criterion 4: tests/domain/test_journal.py::test_an_entry_without_an_open_block_gets_no_closing_line (parametrized over the four texts in the criterion)
+   - criterion 5: tests/domain/test_journal.py::test_an_entry_after_an_unclosed_fence_is_seen_by_the_form_check
+   - criterion 6: tests/domain/test_journal.py::test_a_section_after_an_unclosed_fence_entry_stays_a_section
+   - criterion 7: tests/domain/test_journal.py::test_entry_text_includes_the_closing_line (also checks that an entry without an open block, `created.`, comes back as given)
+   - criterion 8: tests/domain/test_journal.py::test_the_entry_text_and_the_journal_records_stay_as_given
+   - criterion 9: tests/domain/test_sections.py::test_opening_fence_is_the_run_a_line_opens_a_block_with (parametrized; I added exactly three backticks to the criterion's cases to cover the three-versus-two boundary, with `"``x"` as the refused side)
+
+   No new files. The new tests sit beside the existing ones in tests/domain/test_journal.py and tests/domain/test_sections.py. test_journal.py gets a `TICKS` constant, `UNCLOSED`/`UNCLOSED_TEXT` and the helpers `_tester` and `_with_unclosed_entry`. It now imports `check_story_form`.
+
+   What the test runner could not import: `opening_fence` from `factory.domain.sections`. Because of that, tests/domain/test_sections.py fails at collection and stops the run. The new journal tests import fine; they should then fail with wrong results until `render_entry` closes open blocks.
+
+   Open: the existing test `test_entry_text_returns_the_text_as_it_was_given` keeps its name. It still passes because its text has no fence, but under the new rule the name is only half true. Renaming it is not part of this ticket.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
