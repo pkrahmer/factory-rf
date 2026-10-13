@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 32
 blocked: null
 comments_seen: 0
@@ -163,3 +163,12 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
       (2) Add a test where the last entry is followed by blank lines and a `## After` section. It asserts that `entry_text` returns that entry's text with no trailing blank line.
       (3) Add the current body `"# T\n\nSpec.\n\n\n"` to the parametrization of `test_restore_adds_the_journal_when_the_current_body_has_none`. It expects exactly one blank line before `## Journal` and a final newline.
       Nothing else is open.
+7. tester: Test change from the coder's entry 6, which closes the reviewer's three findings in entry 5. I changed only tests/domain/test_journal.py:
+      (1) New test `test_entry_text_ignores_an_indented_number`. Entry 1's text is `created.\n2. not an entry`. The test checks that the rendered body holds `   2. not an entry`, that `entry_text(document, 1)` returns the whole text including that line, and that `entry_text(document, 2)` raises `no journal entry 2`. This covers the indented side of both "at column 0" rules.
+      (2) New test `test_entry_text_drops_the_blank_lines_before_the_next_section`. It appends two entries to a `Journal` section that is followed by blank lines and `## After`. It checks that the blank lines stay between the last entry and `## After`, and that `entry_text(document, 2)` returns `accepted` with no trailing blank line.
+      (3) Added the current body `"# T\n\nSpec.\n\n\n"` to the parametrization of `test_restore_adds_the_journal_when_the_current_body_has_none`. The existing assertion already expects exactly one blank line before `## Journal` and a final newline.
+      The code was not changed, and all three tests pass against the current `src/factory/domain/journal.py`, as the coder predicted.
+      `make test`: green, total coverage 99.66 %. `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green

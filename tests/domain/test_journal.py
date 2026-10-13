@@ -221,6 +221,32 @@ def test_entry_text_returns_only_the_entry_asked_for() -> None:
     assert entry_text(document, 10) == "entry 10"
 
 
+def test_entry_text_ignores_an_indented_number() -> None:
+    first = NewEntry(
+        speaker="human", kind="created", text="created.\n2. not an entry", on=CREATED_ON
+    )
+    document = append_entry(
+        WorkItemDocument(state=initial_state("intake"), body="# T\n\n## Journal\n"), first
+    )
+
+    assert "\n   2. not an entry\n" in document.body
+    assert entry_text(document, 1) == "created.\n2. not an entry"
+    with pytest.raises(WorkItemFormatError) as caught:
+        entry_text(document, 2)
+
+    assert _fault(caught) == "no journal entry 2"
+
+
+def test_entry_text_drops_the_blank_lines_before_the_next_section() -> None:
+    start = WorkItemDocument(
+        state=initial_state("intake"), body="# T\n\n## Journal\n\n\n## After\n\ntail\n"
+    )
+    document = append_entry(append_entry(start, CREATED), _result("accepted"))
+
+    assert "accepted\n\n\n## After" in document.body
+    assert entry_text(document, 2) == "accepted"
+
+
 def test_entry_text_refuses_a_missing_entry() -> None:
     document = append_entry(_created_document(), _result("accepted"))
 
@@ -348,7 +374,7 @@ def test_restore_puts_the_baseline_journal_back_and_keeps_other_edits() -> None:
     )
 
 
-@pytest.mark.parametrize("current_body", ["# T\n\nSpec.\n", "# T\n\nSpec."])
+@pytest.mark.parametrize("current_body", ["# T\n\nSpec.\n", "# T\n\nSpec.", "# T\n\nSpec.\n\n\n"])
 def test_restore_adds_the_journal_when_the_current_body_has_none(current_body: str) -> None:
     baseline = WorkItemDocument(
         state=WorkItemState(stage="intake", journal=_records(1)),
