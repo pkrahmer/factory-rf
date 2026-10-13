@@ -133,6 +133,14 @@ def _is_unreachable(result: ProcessResult) -> bool:
     return any(marker in result.stdout for marker in UNREACHABLE_MARKERS)
 
 
+def _failed_push(arguments: list[str], result: ProcessResult) -> PushOutcome:
+    if _is_rejected(result.stdout):
+        return "rejected"
+    if _is_unreachable(result):
+        return "unreachable"
+    raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+
+
 class GitCli:
     """Git in one working copy, run with the user's and the system's configuration ignored."""
 
@@ -258,11 +266,7 @@ class GitCli:
         if result.exit_status == 0:
             self._reach(KillPoint.AFTER_PUSH)
             return "pushed"
-        if _is_rejected(result.stdout):
-            return "rejected"
-        if _is_unreachable(result):
-            return "unreachable"
-        raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+        return _failed_push(arguments, result)
 
     def delete_remote_branch(self, branch: str) -> PushOutcome:
         """Delete `branch` on the remote; already gone counts as deleted, like `push`'s values."""
@@ -272,11 +276,7 @@ class GitCli:
             # A branch deleted elsewhere leaves a stale tracking ref that no push removes.
             self._run(["update-ref", "-d", f"{REMOTE_PREFIX}{branch}"])
             return "pushed"
-        if _is_rejected(result.stdout):
-            return "rejected"
-        if _is_unreachable(result):
-            return "unreachable"
-        raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+        return _failed_push(arguments, result)
 
     def delete_branch(self, branch: str) -> None:
         """Delete the local `branch` even when unmerged; a missing branch changes nothing."""
