@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 44
 blocked: null
 comments_seen: 0
@@ -239,3 +239,23 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
    Nothing stale and unrelated seen.
 
    `make check`: check: green
+9. demo: ran the one demo command from the repository root as written; it exited 0. No findings.
+
+   Command 1 (`uv run python -c "…"`, which builds a `FrontmatterAgentDefinitionReader` on a temporary agent home holding `coder.md`, `tester.md` and `README.md`):
+
+   ```
+   ['coder', 'tester']
+   sonnet ['Read', 'Write'] low 0.1 'Write the code.'
+   tools | invalid tools: Input should be a valid list
+   nobody
+   ```
+
+   Expect met: there are four lines. They are `['coder', 'tester']`, then `sonnet ['Read', 'Write'] low 0.1 'Write the code.'`, then a line that starts with `tools | invalid tools:`, then `nobody`.
+
+   I checked the output against the acceptance criteria and none is contradicted:
+   - `README.md` is left out of `names()` and the list is sorted (criterion 1).
+   - The coder definition has the expected model, tools, effort and budget. `budget_usd` prints as `0.1`, not a binary-float artefact, and the instructions are the trimmed body (criterion 3).
+   - `tools: Read` is reported with `key == "tools"` and a fault that starts with `invalid tools:` (criterion 10).
+   - `read('nobody')` raises `AgentDefinitionMissing` with `name == "nobody"` (criterion 13).
+
+   The demo does not exercise the other criteria; their tests are named in entry 3. Entries 6–8 report `make check` green.
