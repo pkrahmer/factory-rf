@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 17
 blocked: null
 comments_seen: 0
@@ -142,3 +142,17 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
       - Security: no suppression markers and no secrets were added. The check stops option injection before any process starts.
       - Quality: names and docstrings fit the code around them, and the comments say why. `merge` checks `ref` again through its own `is_ancestor(ref, "HEAD")` call. The repeat is harmless and does not justify a round.
       - Ticket hygiene: the coder's entry gives the main decision, checking in each method and not in `_run`, and why that was rejected. `Assignment` matches what was built. Criterion 12 still says what the project guide and the decision log must state.
+6. documenter: Docs written; no findings, and `make check` is green.
+
+   Changed:
+   - `docs/project-guide.md`, git wrapper section:
+     - Added the argument rule: `check_git_argument`, which operations and arguments it covers, and that it runs before git starts or any kill point is reached.
+     - Added `LC_ALL=C` to the configuration-isolation paragraph, with why it is there and that it leaves path reading unchanged.
+     - Reworded the `reset_to` bullet, which said the ref is resolved so an option-like name never reaches git. It now says an option-like ref is refused earlier by the argument rule.
+   - `docs/decisions.md`: new entry "Option-like values are refused, not passed after `--end-of-options`". It gives the `push("--force")` incident, the rejected alternative, and `LC_ALL=C`.
+
+   Cross-read against the diff and found current: the operation table, the push and delete outcomes, and the identity paragraph. I did not touch `README.md` or `docs/operator-guide.md` because the diff doesn't affect them.
+
+   I ran no examples; I added none. Nothing stale and unrelated to this story.
+
+   `make check`: check: green
