@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 34
 blocked: null
 comments_seen: 0
@@ -163,3 +163,28 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
    - Demo: both commands can be run and every `Expect:` line can be checked against the output. The second demo shows that the blank first line counts in the line number.
    - Architecture: the DTO and error are in domain, the ABCs in application, and the JSON-lines reader and writer in adapters, so the layers hold. Each ABC has one reader and one writer (R13, R15). The ABCs follow the project's interface convention.
    - Scope: it stays inside the feature's cost-record sidecar item. When a record is created, completed or summed is left to F0005, as `FEATURE.md` says.
+3. tester: wrote red tests for criteria 1–19, one or more test functions per criterion.
+      - criterion 1: tests/domain/test_cost_records.py::test_a_started_record_has_no_measures
+      - criterion 2: tests/domain/test_cost_records.py::test_a_started_record_with_a_measure_is_refused_as_a_whole (parametrized over the five measures; also asserts the error has no field location, `loc == ()`, as the Interface states)
+      - criterion 3: tests/domain/test_cost_records.py::test_a_completed_record_needs_duration_and_end_reason, ::test_a_completed_record_may_leave_turns_tokens_and_cost_unknown
+      - criterion 4: tests/domain/test_cost_records.py::test_record_fields_keep_their_limits (run 32/31/33/upper case, attempt 0/-1, duration 0.0/-0.1, naive started_at, bad ids; also turns 0/-1 because the Interface types it NonNegativeInt, per CLAUDE.md Tests), ::test_started_at_is_stored_in_utc
+      - criterion 5: tests/domain/test_cost_records.py::test_ok_only_for_a_run_that_completed
+      - criterion 6: tests/domain/test_cost_records.py::test_a_record_is_frozen_and_refuses_unknown_fields
+      - criterion 7: tests/domain/test_cost_records.py::test_a_cost_is_finite_and_not_negative
+      - criterion 8: tests/domain/test_cost_record_errors.py::test_a_cost_record_format_error_names_its_line_and_fault
+      - criterion 9: tests/adapters/test_cost_records_jsonl.py::test_render_writes_the_lines_of_the_format
+      - criterion 10: tests/adapters/test_cost_records_jsonl.py::test_render_keeps_the_order_with_one_line_per_record, ::test_render_of_no_records_is_empty, ::test_render_refuses_a_run_twice
+      - criterion 11: tests/adapters/test_cost_records_jsonl.py::test_parse_of_render_gives_the_records_back_with_unknowns_and_digits
+      - criterion 12: tests/adapters/test_cost_records_jsonl.py::test_parse_ignores_blank_lines, ::test_parse_counts_blank_lines_in_the_line_number
+      - criterion 13: tests/adapters/test_cost_records_jsonl.py::test_parse_of_the_required_keys_leaves_the_rest_unknown
+      - criterion 14: tests/adapters/test_cost_records_jsonl.py::test_parse_names_a_broken_line_and_its_fault (exact faults), ::test_parse_names_a_bad_value_and_its_key (fault prefixes). In every case the bad line is line 2, after a valid line.
+      - criterion 15: tests/adapters/test_cost_records_jsonl.py::test_parse_reports_the_first_fault_of_a_line, ::test_parse_reports_the_first_broken_line
+      - criterion 16: tests/adapters/test_cost_records_jsonl.py::test_parse_refuses_a_run_twice (duplicate on line 3, after a different run on line 2)
+      - criterion 17: tests/adapters/test_cost_records_jsonl.py::test_read_of_a_missing_file_is_no_records, ::test_read_parses_a_file, ::test_read_names_the_broken_line_of_a_file
+      - criterion 18: tests/adapters/test_cost_records_jsonl.py::test_write_leaves_the_rendered_text_and_reads_back, ::test_write_replaces_the_old_content_whole, ::test_write_of_no_records_leaves_an_empty_file
+      - criterion 19: tests/adapters/test_cost_records_jsonl.py::test_reader_and_writer_implement_abstract_interfaces
+      Files created: tests/domain/test_cost_records.py, tests/domain/test_cost_record_errors.py, tests/adapters/test_cost_records_jsonl.py.
+      `make test`: the 3 new modules fail at collection because the modules and names under test do not exist yet: factory.domain.cost_records, CostRecordFormatError in factory.domain.errors, CostRecordReader/CostRecordWriter in factory.application.files, factory.adapters.cost_records_jsonl. `make lint` is green. The type check was skipped, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
