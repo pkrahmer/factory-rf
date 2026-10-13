@@ -1,0 +1,10 @@
+---
+stage: feature
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014]
+---
+# Acceptance of Boundaries
