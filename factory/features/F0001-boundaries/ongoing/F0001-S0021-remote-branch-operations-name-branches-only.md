@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 24
 blocked: null
 comments_seen: 0
@@ -123,3 +123,18 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
 
    `make lint`: lint: green
    `make test`: FAILED tests/domain/test_git.py::test_branch_name_that_git_would_not_take_as_a_branch_is_refused[a\x7fb]
+4. coder: implemented; `make check` green; the demo prints the seven expected lines.
+   - `src/factory/domain/git.py`: `check_branch_name` still has its earlier refusals (empty, leading `-`, leading `+`, any `:`, any `*`). It now also refuses the whole values `HEAD` and `@` (`BRANCH_ALIASES`) and anything `git check-ref-format --branch` would refuse. It does this in the domain through the private helpers `_is_valid_ref_name`, `_is_forbidden_character` and `_is_valid_component`, which check:
+     - the characters `^ ~ ? [ \ space`, control characters and DEL;
+     - the sequences `..`, `@{` and `//`;
+     - a leading or trailing `/`, and a trailing `.`;
+     - a component that starts with `.` or ends with `.lock`.
+   - `src/factory/adapters/git_cli.py`:
+     - `push` runs `git push --porcelain --set-upstream origin refs/heads/<branch>`.
+     - `delete_remote_branch` runs `git push --porcelain origin --delete refs/heads/<branch>` and treats only exit 0 as `"pushed"`.
+     - `ALREADY_DELETED_MARKER` and its comment are removed.
+   - Commits: 3ecbe25 (feat), c3f992a (refactor: the rule constants are now declared before `check_branch_name`, which uses them).
+   - Design: the name rules are a hand-written port of git's rules in the domain. I rejected calling `git check-ref-format`, because the domain must not run a tool and the wrapper would need an extra process for each push. Only the source is qualified (no `:<dst>`), as decision 23 says.
+   - Left alone: the explicit leading/trailing `/` check overlaps a little with the component split (an empty component would otherwise pass). I kept it explicit because it reads clearer. The docs (criterion 12) are the documenter's job.
+
+   `make check`: check: green
