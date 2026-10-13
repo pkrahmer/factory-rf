@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 38
 blocked: null
 comments_seen: 0
@@ -66,3 +66,10 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: nothing to build, by design. This story only changes documentation. The Interface says "None: no code changes", the assignment says "the coder has nothing to build", and intake and the tester confirm it.
+      - Built: nothing. No commits, and no changes under `src/` or `tests/`.
+      - Refactor: nothing to refactor, because there is no diff.
+      - Checked: `make check` is green on the branch as handed over (coverage 99.64 %).
+      - Open: all of the work belongs to the documenter, from criterion 2 and the Demo: `docs/project-guide.md` (wiring sentence, "The state", "Cost records", "Errors"), the `README.md` status sentence, and the `docs/operator-guide.md` section "Checking a story before it starts". The coder does not write those files, so I left them alone.
+
+   `make check`: check: green
