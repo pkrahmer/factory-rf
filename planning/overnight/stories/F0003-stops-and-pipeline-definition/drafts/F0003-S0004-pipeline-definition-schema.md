@@ -37,7 +37,7 @@ class ProjectCommandDefinition(BaseModel):
     time_limit: PositiveInt = 10              # minutes
 
 class PipelineDefinition(BaseModel):
-    contract: str                             # required, "<major>.<minor>"
+    contract: str                             # required, quoted text; its form "<major>.<minor>" and its major are checked by S0007
     stages: dict[Name, StageDefinition]       # required; YAML order is the pipeline's order
     roles: dict[Name, RoleDefinition]         # required; a role's name is its agent definition's name
     project_commands: dict[Name, ProjectCommandDefinition] = {
@@ -51,7 +51,7 @@ class PipelineDefinition(BaseModel):
     def position(self, stage: str) -> int: ...                     # its index in stages
 ```
 
-`src/factory/application/files.py` (adds to F0002-S0002's module)
+`src/factory/application/files.py` (adds to F0002-S0003's module)
 
 ```python
 class PipelineDefinitionReader(ABC):
@@ -99,7 +99,7 @@ Rules:
 - Every limit above is a positive integer; stage, role and command names match `^[a-z][a-z0-9-]*$`; `contract` must be a string, so an unquoted `1.0` is a fault.
 - `PipelineDefinition` and the domain package import no `ruamel`, and neither does `factory.application`. No variable is named `yaml`, because the project's semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`. Each abstract method's body is its docstring alone.
 
-Tests: `tests/domain/test_pipeline_definition.py`, `tests/adapters/test_pipeline_yaml.py`, `tests/adapters/test_validation_faults.py`, `tests/application/test_pipeline_definition_reader.py`. The tests use `PIPELINE_YAML` from `tests/git_support.py`, which already holds the example definition and is the `remote` fixture's `factory/pipeline.yml`, and the minimal text above. Every accepting case is built on one of the two, with the case's change made by text replacement, so that the rules of S0007 do not refuse it: a lease of 1 is given together with a `time_limit` of 1, and a `round_cap` is given to the stage `doing`.
+Tests: `tests/domain/test_pipeline_definition.py`, `tests/adapters/test_pipeline_yaml.py`, `tests/adapters/test_validation_faults.py`, `tests/application/test_pipeline_definition_reader.py`. The tests use `PIPELINE_YAML` from `tests/git_support.py`, which already holds the example definition and is the `remote` fixture's `factory/pipeline.yml`, and the minimal text above. Every accepting case is built on one of the two, with the case's change made by text replacement, so that the load-time rules that come later do not refuse it: each accepting case keeps a stage `done` with no role and no `next`, keeps every name in a `next` and every stage's `role` naming a stage or role of the text, lists in `checks` and `reports` only commands of `project_commands`, and keeps every role's `time_limit` plus the `time_limit`s of its stage's checks and reports within its `lease_duration`. So the accepted lease of 1 (criterion 13) is given on the minimal text, whose stage `doing` has no checks, together with a `time_limit` of 1 for the coder (on `PIPELINE_YAML` the stage `doing` checks `check`, 10 minutes); the other accepted values of criterion 13 may use `PIPELINE_YAML`, and a `round_cap` is given to the stage `doing`. The test that `PipelineDefinitionReader` cannot be instantiated (criterion 22) calls it through a variable typed `type[object]` (`interface: type[object] = PipelineDefinitionReader`), as `tests/application/test_interfaces.py` does, because a direct call is a `mypy --strict` error (`abstract`).
 
 ## Acceptance criteria
 

@@ -35,6 +35,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 - Do not fake git. Tests use a real local bare remote and clones in a temporary directory (`tmp_path`).
 - No network, no sleeps, no files outside `tmp_path`.
 - Tests pass `mypy --strict` once the code exists: never use the value of a call to a function typed `-> None` (no `assert f() is None`); call it as a statement. To test that a Pydantic model refuses an unknown or a wrong-typed field, construct it through a variable typed `type[BaseModel]` (the pydantic mypy plugin types the real constructor); no `type: ignore`. Fake commit ids and other hex test values are low-entropy (`"a" * 40`), so `make secrets` stays green without a baseline entry.
+- Two more `mypy --strict` traps in tests: assign to a field of a frozen model with `setattr(instance, field, value)`, the field's name in a variable (a direct assignment is `misc`, a constant name is ruff's `B010`); and call an abstract class through a variable typed `type[object]` (`interface: type[object] = Git`), as `tests/application/test_interfaces.py` does (a direct call is `abstract`).
 - Every limit the Interface states is tested on both sides, also when no criterion spells out the refused side: a field typed `NonNegativeInt` gets a test with `-1` and one with `0`; "three or more" gets a test with two; "at column 0" gets an indented case. The reviewer counts an untested side as a finding.
 
 ## Docs

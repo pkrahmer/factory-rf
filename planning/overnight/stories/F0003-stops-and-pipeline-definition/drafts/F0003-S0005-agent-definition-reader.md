@@ -21,7 +21,7 @@ class AgentDefinitionInvalid(AgentDefinitionError):
     def __init__(self, name: str, fault: str, key: str) -> None: ...
 ```
 
-`src/factory/application/agent_runtime.py` (adds to F0001-S0007's module)
+`src/factory/application/agent_runtime.py` (adds to F0001-S0008's module)
 
 ```python
 class AgentDefinitionReader(ABC):
@@ -68,7 +68,7 @@ Rules for `FrontmatterAgentDefinitionReader`:
 - The reader constructs one `RuamelYamlHandler` and loads YAML only through it. No variable in the module is named `yaml`, because the project's semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`.
 - Each abstract method's body is its docstring alone.
 
-Tests: `tests/adapters/test_agent_files.py`, `tests/application/test_agent_definition_reader.py`; the existing tests of the work item reader stay unchanged. The tests write agent files into a directory in `tmp_path` and build the `boundaries` fixture's reader on it.
+Tests: `tests/adapters/test_agent_files.py`, `tests/application/test_agent_definition_reader.py`; the existing tests of the work item reader stay unchanged. The tests write agent files into a directory in `tmp_path` and build the `boundaries` fixture's reader on it. The test that `AgentDefinitionReader` cannot be instantiated (criterion 16) calls it through a variable typed `type[object]` (`interface: type[object] = AgentDefinitionReader`), as `tests/application/test_interfaces.py` does, because a direct call is a `mypy --strict` error (`abstract`).
 
 ## Acceptance criteria
 
