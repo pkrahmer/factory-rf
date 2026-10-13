@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 7
 blocked: null
 comments_seen: 0
@@ -236,3 +236,4 @@ Expect: one line starting with `project command Check; ls failed:` that names th
    Met. It is one line starting with `project command Check; ls failed:`, and it names the invalid command name. The message format matches criteria 19 and 21. The process exited 0.
 
    Criteria check: nothing in either output contradicts criteria 1–24. I did not run `make check` (criterion 25); the factory runs it after this stage, and entry 8 reports it green. Criterion 26 (docs) is outside what the demo shows. Still open from entries 5–8: no test covers a command name with a trailing newline. Only the human can ask the tester to add one; it does not block acceptance.
+10. done (pull request merged); cost: 8 runs, 4.9 min, 49 turns, 163k tokens in (701k more from cache), 26k out, $1.78
