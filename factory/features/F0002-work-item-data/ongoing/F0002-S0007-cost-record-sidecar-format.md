@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 34
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Cost record sidecar format
@@ -202,3 +202,8 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
       - Commits: 755a215 (feature), 9439b37 (refactor).
 
    `make check`: check: green
+5. reviewer: one finding, sent back. Criteria 1–19 each have a test that matches them, and the coder reported `make check` green. The limits the Interface states are tested on both sides. The layers hold: the DTO and error are in domain, the ABCs in application, the reader, writer and `validation_faults.py` in adapters. Security is clean and there are no silencing markers. Moving the fault ranking into `validation_faults.py` keeps the work item reader's behaviour.
+      1. `src/factory/adapters/cost_records_jsonl.py:20` and `:42`, with `src/factory/domain/cost_records.py:38`: the format says each line is one JSON object, but the reader and the writer both accept text that is not JSON. `json.loads` by default accepts the non-standard constants `NaN`, `Infinity` and `-Infinity`. `duration_seconds` is `NonNegativeFloat`, which allows `inf`. So a line with `"duration_seconds":Infinity` parses into a record when it should fail with `not valid JSON`. Going the other way, a record with `duration_seconds=float("inf")` renders a line that contains `Infinity`. `jq` and other strict JSON readers would refuse that file.
+         Fix, reader: give `json.loads` a `parse_constant` that raises, and report the line as `not valid JSON`. This stays inside the Interface.
+         Fix, writer: make `duration_seconds` finite in the domain (`Field(ge=0, allow_inf_nan=False)`, the same as `cost_usd`). This tightens the Interface and needs a criterion and a test for the refused side, so the coder should ask the human (`question`) whether to make that change, or to render with `allow_nan=False` and raise `CostRecordFormatError` instead.
+         The story has a gap here: it states no finiteness rule for `duration_seconds`, so no criterion covers the refused side.
