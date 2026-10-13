@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 30
 blocked: null
 comments_seen: 0
@@ -161,3 +161,38 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
    - Demo: both blocks are runnable commands, and each `Expect:` line gives checkable output (fifteen lines, then the fault and the parse_specification result).
    - Architecture: the reader and writer interfaces sit in `application`, and the python-frontmatter/ruamel.yaml adapters sit in `adapters`. Criterion 22 checks the import boundary. Wiring is left to a later story. This matches the layers and R13 in `CLAUDE.md`.
    - Scope: the story is inside FEATURE.md ("one reader and one writer for the work item file (R13)"). It does not touch sections, journal, cost sidecar or form check, which are other stories. Decision 4 in FEATURE.md matches the story text.
+3. tester: wrote red tests for criteria 1–22 in one new file, tests/adapters/test_work_item_markdown.py.
+   - criterion 1: test_render_writes_a_full_state_in_the_fixed_notation
+   - criterion 2: test_render_of_an_initial_state_writes_all_ten_keys
+   - criterion 3: test_render_quotes_names_a_yaml_reader_could_read_as_null_or_boolean
+   - criterion 4: test_render_writes_the_body_stripped_after_an_empty_line (parametrized over the five bodies)
+   - criterion 5: test_render_refuses_a_document_without_state
+   - criterion 6: test_round_trip_splits_only_at_the_closing_line_of_the_front_matter
+   - criterion 7: test_parse_strips_the_body_and_keeps_one_final_newline
+   - criterion 8: test_parse_gives_initial_values_to_keys_left_out
+   - criterion 9: test_parse_reports_no_front_matter (six texts), test_parse_reports_front_matter_that_is_not_valid_yaml, test_parse_reports_front_matter_that_is_not_a_mapping
+   - criterion 10: test_parse_finds_the_front_matter_as_python_frontmatter_does
+   - criterion 11: test_parse_reports_an_unknown_key
+   - criterion 12: test_parse_reports_a_missing_key
+   - criterion 13: test_parse_reports_a_missing_key_before_an_invalid_value
+   - criterion 14: test_parse_reports_the_first_invalid_value
+   - criterion 15: test_parse_reports_broken_rules_of_a_field_and_across_keys
+   - criterion 16: test_front_matter_that_loads_as_nothing_is_an_empty_mapping
+   - criterion 17: test_parse_specification_drops_the_front_matter_and_names_its_keys
+   - criterion 18: test_parse_specification_of_a_text_without_front_matter_keeps_it_whole, test_parse_specification_refuses_front_matter_it_cannot_read
+   - criterion 19: test_read_returns_what_parse_returns_for_the_file_text
+   - criterion 20: test_read_reports_a_file_it_cannot_read (missing file, not UTF-8), test_read_reports_a_fault_of_the_file_with_its_path
+   - criterion 21: test_write_replaces_the_file_with_the_rendered_text
+   - criterion 22: test_reader_and_writer_implement_abstract_interfaces, test_handler_keeps_the_boundary_and_delimiters_of_the_yaml_handler, test_only_the_work_item_adapter_imports_frontmatter_and_ruamel (uses tests/source_search.py)
+
+   Criteria 23 (make check) and 24 (docs) are for later stages and have no test here.
+
+   Results:
+   - `make test` is red as intended. Collection fails with `ModuleNotFoundError: No module named 'factory.adapters.work_item_markdown'`, and `factory.application.files` does not exist yet either.
+   - `make lint` is green.
+   - I skipped the type check, as the stage allows.
+
+   No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
