@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 45
 blocked: null
 comments_seen: 0
@@ -122,3 +122,30 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
    - Demo: the stub git, the agents directory and the Boundaries wiring are runnable. The Expect line gives the five lines, with the stamp form, that the output can be checked against.
    - Architecture: the loader sits in `factory.application` and reaches git, the readers, the clock and the health status through `Boundaries`. It calls no tool itself.
    - Scope: the story stays inside FEATURE.md's scope (`PipelineLoader`, the installed-agent check, the reported stop). The cross-key rules are left to S0007, and the tick's use of `load` to F0006.
+3. tester: Wrote the loader tests from the Interface and criteria 1–16. Criterion → test (all in tests/application/test_pipeline_loading.py):
+   - Interface `PIPELINE_REF`: test_the_pipeline_ref_is_main_on_the_remote
+   - criterion 1: test_load_reads_main_on_the_remote_not_the_work_tree
+   - criterion 2: test_load_at_a_branch_reads_the_file_on_that_branch
+   - criterion 3: test_a_definition_without_contract_is_refused_with_its_fault
+   - criterion 4: test_a_refusal_raises_one_stop_and_writes_its_line
+   - criterion 5: test_a_refusal_opens_no_pull_request_and_posts_nothing. There are no pull requests, so nothing can have been posted.
+   - criterion 6: test_a_missing_key_with_a_default_takes_the_default
+   - criterion 7: test_a_definition_missing_on_main_is_refused_and_stops. The file is removed in a second clone with `run_git` and pushed.
+   - criterion 8: test_a_successful_load_clears_the_stop_and_keeps_other_stops. The first load is refused because no agents are installed. Installing them makes the next load succeed.
+   - criterion 9: test_a_git_error_propagates_and_raises_no_stop, with two cases: a `GitCli` on a directory that does not exist, and `origin/nowhere`.
+   - criterion 10: test_roles_without_an_installed_agent_are_refused_in_role_order, with two cases: one missing role, and two missing roles in the order of `roles`.
+   - criterion 11: test_installed_agents_for_every_role_load_and_extra_agents_do_not_matter
+   - criterion 12: test_an_unavailable_agent_home_is_refused_and_stops
+   - criterion 13: test_a_refusal_at_another_ref_raises_but_changes_no_stop, with two cases: a missing `contract`, and an agent that is not installed.
+   - criterion 14: test_a_successful_load_at_another_ref_leaves_the_stop_in_place
+   - criterion 15: test_an_unwritable_health_status_raises_os_error_after_the_stop_line. A local `HealthStatusStore` refuses every write.
+   - criterion 16: test_the_agents_are_checked_only_when_the_text_is_valid
+
+   Files:
+   - Created tests/application/test_pipeline_loading.py.
+   - Extended tests/git_support.py with `AGENT_FILE` and `install_agents(agent_home, roles)`. The Interface names this helper for S0005's and S0007's loader tests.
+
+   `make test` stops at collection: `ModuleNotFoundError: No module named 'factory.application.pipeline_loading'`. That is the only module that could not be imported. `make lint` is green. No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
