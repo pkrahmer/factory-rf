@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 38
 blocked: null
 comments_seen: 0
@@ -88,3 +88,36 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
    - Stale but untouched: nothing.
 
    `make check`: check: green
+7. demo: I ran all three Demo commands from the repository root. All three met their `Expect:` lines and nothing contradicts a criterion, so there are no findings.
+
+   1. Stale sentences counted in `docs/project-guide.md`:
+   ```
+   $ grep -c "Wiring does not use them yet" docs/project-guide.md; grep -c "next story\|This story" docs/project-guide.md
+   0
+   0
+   ```
+   Met: two lines, `0` and `0`.
+
+   2. Error types in the "Errors" section:
+   ```
+   $ sed -n '/^## Errors/,/^## The hosting service/p' docs/project-guide.md | grep -o "CostRecordFormatError\|NothingToCommit" | sort -u
+   CostRecordFormatError
+   NothingToCommit
+   ```
+   Met: the two expected names.
+
+   3. Running the check command on this repository's v1 tree:
+   ```
+   $ uv run factory-check-story factory/features/F0002-work-item-data/done/F0002-S0008-the-story-check-command.md; echo "status $?"
+   cannot read factory/story-form.md: [Errno 2] No such file or directory: '/work/factory-rf/factory/story-form.md'
+   status 2
+   ```
+   Met: `cannot read factory/story-form.md: ...` and `status 2`.
+
+   Checked against the criteria:
+   - Criterion 2, project guide: `docs/project-guide.md:458` says that wiring uses the reader and not yet the writer, and names `build_work_item_reader` for the check command. "The state" (line 405) says "The work item reader names a fault by that location". "Cost records" (line 545) says "The classes cover the format only" and puts creation, completion and bills later, in F0005. Neither section names a story. "Errors" lists `CostRecordFormatError` and `NothingToCommit`.
+   - Criterion 2, README: the status sentence in `README.md:3` names the identifiers and paths of work items, the sections of a Markdown body, the story form check with its command, and the cost records.
+   - Criterion 2, operator guide: "Checking a story before it starts" in `docs/operator-guide.md` names the v1.1 layout (`factory/story-form.md`, `feature.md`, `backlog`/`in-progress`/`done`). It says this repository's `factory/` tree is v1's, so the command does not apply here until the tree moves to v1.1's layout, and it explains the exit 2 that command 3 shows. The example uses a placeholder path, and the guide says "`drafts` and `ongoing` are v1's folders and not work item locations".
+   - Criterion 1: I did not run `make check` in this stage; the factory runs it after the demo. The documenter's entry reports it green.
+
+   Open: nothing.
