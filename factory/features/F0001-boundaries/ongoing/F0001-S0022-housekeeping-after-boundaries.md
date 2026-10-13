@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 26
 blocked: null
 comments_seen: 0
@@ -184,3 +184,35 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
    I ran no examples, because I wrote none.
 
    `make check`: check: green
+7. demo: ran the demo with no findings.
+
+   Command 1 (`uv run python -c "…"`, which assigns to a frozen `RemoteBranch` and calls `check_branch_name` with 0x10 and 0x1f). It exited with 0:
+   ```
+   frozen
+   refused 0x10
+   refused 0x1f
+   ```
+   This meets its Expect line: the output is exactly the three expected lines.
+
+   Command 2 (`ls tests/application`):
+   ```
+   __init__.py
+   __pycache__
+   test_git_interface.py
+   test_hosting_interface.py
+   test_interfaces.py
+   ```
+   This meets its Expect line: `test_git_interface.py` and `test_hosting_interface.py` are listed, and no file name contains `protocol`.
+
+   Criteria cross-check:
+   - Nothing in the demo contradicts any acceptance criterion.
+   - Docs spot check (criterion 10):
+     - `docs/operator-guide.md` no longer contains "(WE6.3)".
+     - `README.md` no longer contains "(partly written)".
+     - The project guide no longer says "until then".
+     - The project guide's sentence on the frozen result models names `RemoteBranch`.
+     - `docs/decisions.md` has the two separate entries: "A pushed branch is never read as a refspec" and "A pushed branch is named as a branch, `refs/heads/<branch>`".
+   - The renamed modules (criterion 8):
+     - `git ls-files tests` lists no file with `protocol` in its name.
+     - `tests/test_test_names.py` passes.
+   - Old `test_*_protocol*.pyc` files are still in the local `tests/application/__pycache__`. They are untracked, git-ignored bytecode caches, not modules, so they are not a finding.
