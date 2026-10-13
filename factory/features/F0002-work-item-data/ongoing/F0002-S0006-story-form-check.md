@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 33
 blocked: null
 comments_seen: 0
@@ -166,3 +166,12 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
       - Quality: names, docstrings on public names only, and no dead code.
       - Ticket hygiene: the log gives the main decision (build on the section reader rather than a second scanner) and what was rejected. The Assignment matches what was built, and the docs criterion still describes what the reader needs.
       - Still open for the human, carried over from entries 5 to 8 and not a finding: rule 6 does not say "outside code blocks" for journal entries, but the code also skips fenced lines there. Criterion 5 could spell out the refused side that `test_indented_and_fenced_numbered_lines_are_no_criteria` now covers.
+10. documenter: documenter (round 1): wrote the docs criterion; no findings for the coder.
+    - `docs/project-guide.md`: new section "The form check of a story". It has the signature, `FormFinding`, the ten rules in a table (message and line of each), and says the sections come from the project's story form, code blocks are respected, items are column-0 numbered lines, and a backlog story's `Journal` has no entries because the opening writes entry 1. It also covers the folder `backlog` for callers that hold only a started story's spec, and the unclosed-block behaviour. I ran the example (the first demo block) and it prints the four expected lines. I also added `lines_outside_blocks`, now public, to the function table in "Sections of a Markdown body".
+    - `docs/decisions.md`: new entry for the four findings v1 did not make (front matter in backlog, journal entries in backlog, no state, data/text count mismatch), with the alternative rejected.
+    - Cross-read: the rest of `docs/project-guide.md`, `docs/decisions.md` (the code-fence entry) and `docs/operator-guide.md` against the diff. They are still true. The README does not mention the form check.
+    - Stale and unrelated: none seen.
+    - Open for the human, carried over from the review: rule 6 does not say "outside code blocks", but the code also skips fenced lines in `Journal`. The guide documents what the code does.
+    `make check`: check: green
+
+    `make check`: check: green
