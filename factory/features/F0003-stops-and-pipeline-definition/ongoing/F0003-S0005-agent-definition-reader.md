@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 44
 blocked: null
 comments_seen: 0
@@ -192,3 +192,13 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
 
    Findings:
    1. `src/factory/application/agent_runtime.py`, docstring of `AgentDefinitionReader.names`: it says `AgentDefinitionError` is raised "without any" agents. The Interface says the error is raised only when `<agent_home>/agents` is not a directory; an empty agents directory returns `[]` (`agent_files.py` `names`). S0006's loader will be written against this docstring. Fix: reword it, for example "The names of the installed agents, sorted; `AgentDefinitionError` when there is no agents directory."
+6. coder: Round 1: fixed the reviewer's one finding. Commit f036740.
+
+   - `src/factory/application/agent_runtime.py`, `AgentDefinitionReader.names`: the docstring said `AgentDefinitionError` was raised "without any" agents. It now says the error is raised only when there is no agents directory, and that an empty agents directory gives `[]`. This matches the Interface and the code in `agent_files.py`.
+   - I split the docstring over two lines, summary and detail, because the reviewer's one-line wording was longer than the line-length limit.
+
+   Only this docstring changed: no other code, and no tests. There is no separate refactor commit. Before amending the commit I re-ran `make check`, and it passed.
+
+   `make check`: check: green
+
+   `make check`: check: green
