@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 9
 blocked: null
 comments_seen: 2
@@ -224,3 +224,25 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
    - Ticket hygiene: the coder's entry explains the main decision and what was rejected (`suppress(OSError)`, and reading the reply with `json.loads` into a dict). The Assignment matches what was built, a single call with the resume and `version` left to S0010. Criterion 23 still describes what the documenter has to write.
 
    Open, not a finding: the reply models do not require non-negative numbers. A `claude` reply with a negative `num_turns` or token count would fail when the `AgentRunResult` or `TokenCounts` is built, and `run` would raise a raw `ValidationError` instead of returning `died`. The Interface does not cover this input, and the real tool does not produce it. It could be tightened together with S0010's work on the reply.
+8. documenter: I wrote the `claude -p` runtime documentation (criterion 23). `make check` is green. I found nothing in the code that contradicts the Interface, so there are no findings.
+
+   Files changed:
+   - `docs/project-guide.md`: new section "The `claude -p` runtime" under *The agent runtime*. It covers:
+     - the flags in order, and when `--effort` and `--settings` are left out;
+     - the files under the state directory and when they are removed;
+     - the environment: nothing inherited, no `PATH` added, `factory-guard` found only through the request's `PATH`;
+     - the end-reason rules;
+     - unknown measures, the cache counts defaulting to 0, and the sorted-key denial detail;
+     - the kill point and the two `AgentRuntimeError` cases;
+     - the stand-in tests.
+     I also changed the sentence that said the implementation "follows in later stories".
+   - `docs/operator-guide.md`: new section "The agent runtime". It says the runtime uses the operator's own `claude` login and holds no API key, and that the flags are v1's and not yet checked against the pinned version (WE6.3). It also says that a died, timed-out or no-result run is a stall, and that the cost and tokens of a timed-out run are shown as unknown.
+   - `README.md`: the status sentence now mentions the first half of the `claude -p` runtime.
+
+   Cross-read and found current: *Starting a process* (it already names the three wrappers), the kill-point table (`AGENT_RUN` is already listed for the two runtimes), the errors section, `docs/decisions.md`, and `src/factory/adapters/claude_runtime.py` against the Interface. I did not run any new example: I added no runnable code, only an argument layout. The coder already ran the story's Demo.
+
+   Stale but unrelated, left alone: nothing seen.
+
+   One point for later, not a finding: the reviewer noted that a reply with a negative number would raise a raw `ValidationError` instead of returning `died`. I left it out of the docs because the Interface does not cover it, and S0010 can tighten it.
+
+   `make check`: check: green
