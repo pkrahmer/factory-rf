@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 29
 blocked: null
 comments_seen: 0
@@ -180,3 +180,11 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
    - Security: nothing applies. The one suppression is `# noqa: DTZ001` in `tests/domain/test_work_item.py`, on the naive datetime the test builds on purpose. It is a lint rule, not one of the security markers, and the tester's entry explains it.
    - Quality: the names, fields, order and defaults match the Interface. The `comments_read` and `journal` rules are field validators and the claim/stage rule is an after-model validator, so the errors land where criterion 8 says. Docstrings follow `CLAUDE.md`: modules and public names have them, private validators do not, and the `Claim` docstring states that the lease is in minutes. Weighed and not raised: the `_to_utc` validator is now the third copy of the same one-liner, after `domain/git.py` and `domain/hosting.py`. It follows the existing idiom, and pulling it into a shared type would mean changing modules outside this story.
    - Ticket hygiene: the coder's entry gives the main decision (each rule is a validator on its type) and what was rejected (a separate check function). `Assignment` matches what was built, and criterion 15 still says what the documenter has to write in `docs/project-guide.md`.
+6. documenter: I documented the work item data types. I found no findings; the code matches the Interface and the criteria.
+   - `docs/project-guide.md`: new section "The data of a work item" (criterion 15). It covers the state's fields with their order and initial values in a table, `initial_state`, the three rules and where each error is located, the claim (minutes, UTC), and the journal record, whose speaker and kind are data in the front matter. It also covers `WorkItemDocument`, `WorkItemFormatError` and the demo command, which I ran and which printed the line shown. I added one line on `WorkItemFormatError` to the "Errors" section, which links to the new section.
+   - `README.md`: added the work item data types to the sentence listing what is built so far.
+   - Cross-read and current: the rest of `docs/project-guide.md`, `docs/operator-guide.md` and `docs/decisions.md`. Nothing there is touched by this diff.
+   - Stale but unrelated: nothing seen.
+   - `make check` is green (`check: green`).
+
+   `make check`: check: green
