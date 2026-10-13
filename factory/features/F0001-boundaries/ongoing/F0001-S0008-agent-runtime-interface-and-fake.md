@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 8
 blocked: null
 comments_seen: 2
@@ -278,3 +278,10 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
    Noticed, not touched: the diff against main also shows `CLAUDE.md` and `docs/runs/…/night-log.md`. Both come from the human's commits merged into this branch, not from this stage. Docs criterion 26 is left to the documenter.
 
    `make check`: check: green
+9. reviewer: no findings.
+      - Acceptance criteria: I read all 24 behavioural criteria against their tests and each test checks what its criterion says. Every Interface rule has its failing side tested: a budget of 0 and of -1; `allowed_decisions` without `question` (`[]` and `["doing"]`, and the error names `question`) and with a repeat; `time_limit` of `timedelta(0)` and of 1 s; relative and absolute `working_directory` and `root`; -1 and 0 for each token count; decision and entry present or missing for all five end reasons; an unknown keyword and an assignment for all seven models; the four escaping write and delete paths, each alongside a valid write and delete that must not happen; and an empty queue, where the request is still recorded. The coder's entry 8 says `make check` was green.
+      - Architecture: the DTOs are in `factory.domain.agent_runs` and do no I/O (`Path.is_absolute` is pure). The `AgentRuntime` Protocol is in `factory.application` and imports only the domain. The fake is in `factory.adapters` and fits the Protocol without inheriting from it, which mypy checks through the annotated variable in `tests/adapters/test_fake_agent_runtime.py`. No `dict[str, Any]` crosses a boundary.
+      - Security: no markers, no secrets, no shell. `_inside` rejects absolute paths and `..` segments before any write or delete, and `_apply` resolves every path before it touches the disk.
+      - Quality: every public name has a docstring, and the comments explain why (always being able to ask the human; checking paths first). `AgentRuntimeError` follows the same pattern as `ProjectCommandError`.
+      - Ticket hygiene: entry 8 gives the main decision (validate all paths first; per-path rollback rejected), the Assignment matches what was built, and docs criterion 26 still describes what the documenter has to write.
+      - Not under review: the `CLAUDE.md` and `docs/runs/…/night-log.md` lines in the diff come from the human's commit ae1cc73 ("CLAUDE.md: test refused fields through type[BaseModel]"), not from this ticket's work.
