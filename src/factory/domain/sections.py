@@ -55,16 +55,22 @@ def _closing_index(lines: Sequence[str], opening: int, fence: str) -> int | None
     return None
 
 
+def opening_fence(line: str) -> str | None:
+    """The run of backticks or tildes this line opens a block with, or None if it opens none."""
+    opening = _FENCE_OPENING.match(line)
+    return None if opening is None else opening.group(1)
+
+
 def code_blocks(lines: Sequence[str]) -> list[CodeBlock]:
     """The fenced code blocks among the lines, in order."""
     blocks: list[CodeBlock] = []
     index = 0
     while index < len(lines):
-        opening = _FENCE_OPENING.match(lines[index])
-        if opening is None:
+        fence = opening_fence(lines[index])
+        if fence is None:
             index += 1
             continue
-        end = _closing_index(lines, index, opening.group(1))
+        end = _closing_index(lines, index, fence)
         blocks.append(CodeBlock(start=index, end=end))
         if end is None:
             break
