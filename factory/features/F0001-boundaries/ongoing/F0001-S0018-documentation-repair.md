@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 20
 blocked: null
 comments_seen: 0
@@ -72,3 +72,9 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
       - Open: everything in criteria 1 to 5 and 7 is still to do, all of it for the documenter. The review stage has no code diff to read.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the ticket, so there is no code, test, architecture or security surface to review.
+      - Acceptance criteria: 1 to 5 are wording changes in `README.md`, `docs/project-guide.md` and `docs/operator-guide.md`. `CLAUDE.md` gives those files to the documenter stage, which comes after this one. Their check is the Demo's grep line, run by the documenter and the demo stage. The Interface is "None: documentation only", so no rule has a failing side that would need a test. I agree with the tester's decision not to pin documentation prose in pytest.
+      - Criterion 6: the coder's entry records `make check` green on the unchanged branch (coverage 99.49 %).
+      - Ticket hygiene: the tester's and coder's entries give the main decision (nothing to build) and what was rejected. `Assignment` still matches, since the work it describes is the documenter's and none of it is done yet. Criterion 7 still says what the documenter must do.
+      - Open for the documenter: all of criteria 1 to 5, and the cross-read of `README.md` and `docs/` in 7. The demo stage then checks the grep line: three lines, each `0`.
