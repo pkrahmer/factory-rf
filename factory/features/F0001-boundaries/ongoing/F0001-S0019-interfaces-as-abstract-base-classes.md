@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 16
 blocked: null
 comments_seen: 0
@@ -160,3 +160,21 @@ Expect: one line, `True True True True True True`.
    Findings for the coder: none. I did not re-run the two demo commands. They are what the docs criterion cites, and `make check` covers the same facts through the tests.
 
    `make check`: check: green
+7. demo: both commands ran from the repository root exactly as written and exited 0. Each output matches its `Expect:` line. No findings.
+
+   1. Interfaces are ABCs, and their abstract operation sets:
+   ```
+   [True, True, True, True]
+   19 10 ['run'] ['run', 'version']
+   ```
+   Met: `[True, True, True, True]` and `19 10 ['run'] ['run', 'version']`, as expected.
+
+   2. The six implementations inherit their interface:
+   ```
+   True True True True True True
+   ```
+   Met: one line, `True True True True True True`, as expected.
+
+   Against the acceptance criteria: the output supports criteria 1, 3 (count 19), 4 (count 10), 5 (exact sets for `ProjectCommands` and `AgentRuntime`) and 9–12 (subclass relations). It contradicts none of the others. The demo does not cover criteria 2, 6–8, 13 and 14 (ast searches, `TypeError` on construction, posting search); the tests the tester named cover them, and the factory's `make check` gate covers 15. Criterion 16 is in the docs and the documenter recorded it.
+
+   Open: none.
