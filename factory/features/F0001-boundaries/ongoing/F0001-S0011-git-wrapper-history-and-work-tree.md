@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 11
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -169,3 +169,4 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
    - (c) Add a `pragma: allowlist secret` comment to each line.
 
    I would choose (a). If you agree, I will end with `tests` and name exactly that change for the tester.
+5. human (pull request comment, 2026-10-13): (a): the tester changes the two constants to low-entropy ids (`COMMIT = "a" * 40`, `PARENT = "b" * 40`), as `tests/domain/test_hosting.py` does. No baseline entry and no pragma.
