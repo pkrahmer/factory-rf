@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 28
 blocked: null
 comments_seen: 0
@@ -202,3 +202,27 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
    - Stale but not touched: nothing.
 
    `make check`: check: green
+7. demo: both commands under `## Demo` ran from the repository root exactly as written. Both exited 0 and both printed exactly what their `Expect:` line says. No findings.
+
+   Command 1 (ids sorted by plain string order, then by `work_item_order`, then `branch_name`):
+   ```
+   ['F0001-S0010', 'F0002-A0001', 'F0002-S0001', 'F0002-S0002']
+   ['F0001-S0010', 'F0002-S0001', 'F0002-S0002', 'F0002-A0001']
+   work-item/F0002-S0001
+   ```
+   It meets its Expect line. Plain string order puts `F0002-A0001` first in its feature. `work_item_order` moves it behind the feature's stories (criterion 8). The branch is `work-item/<id>` (criterion 10). Parsing `F0002-S0002-2fa.md` and `F0002-S0001.md` gave the ids the line expects (criterion 3).
+
+   Command 2 (`work_item_path`, `cost_records_path`, `folder_of`):
+   ```
+   factory/features/F0002-work-item-data/in-progress/F0002-S0001-identifiers-paths-and-order.md
+   factory/features/F0002-work-item-data/in-progress/F0002-S0001-identifiers-paths-and-order.costs.jsonl
+   in-progress None None
+   ```
+   It meets its Expect line:
+   - the path has the form `factory/features/<dir>/<folder>/<file>` (criterion 12);
+   - the sidecar replaces the final `.md` with `.costs.jsonl` and sits beside the work item (criterion 13);
+   - `folder_of` gives `in-progress` for the work item (criterion 14), and `None` for the sidecar and for a path in a folder named `ongoing` (criterion 15).
+
+   Cross-check against the acceptance criteria: the output contradicts none of 1–18. The rest of the criteria (the refusal cases, the `ValueError` paths, the constants, the absence of I/O imports) are not exercised by the demo. Their tests are named in the tester's entry, and the reviewer checked them. The factory runs `make check` itself after this stage.
+
+   Open: nothing.
