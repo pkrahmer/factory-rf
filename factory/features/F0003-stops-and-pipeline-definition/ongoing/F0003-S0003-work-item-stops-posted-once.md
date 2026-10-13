@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 42
 blocked: null
 comments_seen: 0
@@ -216,3 +216,10 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
    `make check`: check: green
 
    `make check`: check: green
+7. reviewer: No findings. Round 1 fixed the finding from entry 5: `src/factory/application/stops.py:24` now names every boundary the service uses.
+
+   - Group 1 passes. Criteria 1 to 22 each have a test that checks what the criterion says. The failing side of each Interface rule is tested: a blank branch, title or text (empty, a space, other whitespace); a branch that belongs to another work item; unknown fields; assignment to a frozen field; `pull_request` at -1, 0 and 1, plus `None`; a remote branch that is missing or sits at main's tip; a `GitError` from reading the branch; and both `HostingServiceError` paths. "No git call" in criterion 6 is checked with a `GitCli` on a directory that does not exist. Criterion 14 re-posts with the recorded number. The repeat with `pull_request=None` is covered by criteria 17, 18 and 19. The coder's entry 6 reports `make check` green.
+   - Group 2 passes. `post` uses only the `Git` and `HostingService` interfaces through `Boundaries`, and their signatures match the calls: `resolve` returns `CommitId | None` and `is_ancestor` returns `bool`. The domain imports only from the domain. Nothing is wired outside `factory.entry`.
+   - Group 3 passes. No secrets, no markers that silence a check, no shell commands built from strings. The new models validate their input when they are built.
+   - Group 4 passes. The docstrings of the module, `WorkItemStop`, `StopPosted`, `post` and `opened_for_stop_description` describe what the code does. The comments explain why: the keyed post makes a repeat a no-op, and the branch check makes the fake fail the way production does. The code reuses `REMOTE` and `MAIN_BRANCH` from `factory.domain.paths`. There is no dead code.
+   - Group 5 passes. Entry 4 states the main decision: rely on the keyed `post_comment` alone. It also says what was rejected: listing comments first. The Assignment matches what was built. Criterion 24 still describes what the operator guide and the decision log need.
