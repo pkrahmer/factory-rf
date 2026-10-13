@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 46
 blocked: null
 comments_seen: 0
@@ -171,3 +171,22 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
    Noticed, not touched: the `_FAULT_SEPARATOR = "; "` constant is now defined both in the domain module and in the reader. The two join different things (rule faults and field faults), so I left them separate.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked:
+   - `src/factory/domain/pipeline_definition.py`: I read the after-validator and its eight rule functions against the nine rules in the Interface. One function, `_contract_faults`, covers rules 1 and 2, so the major is checked only when the form holds. I confirmed the fault texts match the Interface exactly. Faults are ordered by rule, then by stage or role in the text. Inside rule 5 they come as undefined role, then empty write paths, then an approval stage with a role. Rule 8 skips stages with no role or an undefined role, counts a command listed twice twice and counts an unknown command as nothing. The total may equal the lease.
+   - `src/factory/adapters/pipeline_yaml.py` (`_fault_of`): it returns `ctx["error"]` only for a single error with an empty location, and otherwise falls back to `all_faults` as before. Pydantic skips after-validators when a field is invalid, so field faults come first and alone (criterion 23).
+   - Criteria 1–24 each map to one test in `tests/adapters/test_pipeline_rules.py` or `tests/application/test_pipeline_loading_rules.py`, and each test asserts what its criterion names. Each limit in the Interface is tested on both sides:
+     - contract major refused (2, 0, 10, 02) and accepted (1.x, 01.0)
+     - contract form refused and accepted
+     - done stage missing, with a role, with a `next`
+     - write paths 0 and 1
+     - lease totals 60 and 61, for checks alone and for checks plus reports
+     - acceptance stage: unknown, a stage without a role, and a valid one
+   - Criterion 5: `PIPELINE_YAML.replace("done", "finished")` touches only the `done` stage and the `next` entries that name it (I checked `tests/git_support.py`), so no other rule adds a fault.
+   - The coder's entry reports the factory's `make check` green.
+   - Architecture: the rules are pure domain code (using `re` only), and the adapter only translates the error into a fault. No new dependency and no suppression markers.
+
+   Considered, not raised: the `"; "` separator constant now exists in both the domain module and the reader. They join different things (rule faults in the domain, field faults in the reader), and the domain constant is private, so the reader cannot import it.
+
+   Ticket hygiene: the log explains the main decision (small rule functions collected by one validator) and what was rejected. The Assignment matches what was built. Criterion 26 still says what the documenter must write.
