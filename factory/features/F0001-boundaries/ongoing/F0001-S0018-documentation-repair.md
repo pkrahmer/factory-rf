@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 20
 blocked: null
 comments_seen: 0
@@ -64,3 +64,11 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: no code written; this is a documentation-only story.
+      - Built: nothing. The Interface is "None: documentation only". The Assignment says the tester and coder stages have nothing to build, and the tester wrote no tests, so `make test` has no failing tests to implement against.
+      - Rejected: editing `README.md`, `docs/project-guide.md` and `docs/operator-guide.md` here. `CLAUDE.md` gives those files to the documenter stage ("the coder does not write them"), and criteria 1 to 5 and the cross-read in 7 belong to that stage.
+      - Refactor: not applicable. The branch has no diff outside `factory/`.
+      - Checked: `make check` is green on the unchanged branch (coverage 99.49 %).
+      - Open: everything in criteria 1 to 5 and 7 is still to do, all of it for the documenter. The review stage has no code diff to read.
+
+   `make check`: check: green
