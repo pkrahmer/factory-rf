@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 8
 blocked: null
 comments_seen: 2
@@ -295,3 +295,18 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
     - Stale text I saw but did not touch: none.
 
     `make check`: check: green
+11. demo: both commands met their `Expect:` lines. No findings.
+
+    1. The fake runtime applies a scripted run and records the request:
+    ```
+    True doing x = 1 1
+    ```
+    This met `Expect: True doing x = 1 1`. The scripted write is on disk under the working directory, the result is `ok` with decision `doing`, and one request was recorded. The command exited with status 0.
+
+    2. A request whose allowed decisions lack `question` is refused:
+    ```
+    rejected: True
+    ```
+    This met `Expect: rejected: True`. `AgentRunRequest` with `allowed_decisions=['review']` raised a `ValidationError` that names `question`. The command exited with status 0.
+
+    Read against the acceptance criteria: nothing in the demo contradicts any of them. Command 1 matches criteria 4 (a minimal request is accepted), 13 (`ok` is true for `completed`, and measures that were not given stay unset), 15 (the request is recorded) and 16 (the write creates the file and its folder) for the cases it covers. It also matches 21: the fake was built without kill points and returned the result. Command 2 matches criterion 5. The remaining criteria (the other validation rules, path escapes, kill points, version, the error message and the structural fit) are covered by the tests the reviewer checked in entry 9. Entries 8 and 10 report `make check` green.
