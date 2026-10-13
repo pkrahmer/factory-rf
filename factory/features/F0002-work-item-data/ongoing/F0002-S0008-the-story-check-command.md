@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 35
 blocked: null
 comments_seen: 2
@@ -209,3 +209,26 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
    - The code matches the Interface. I saw nothing stale that I left untouched.
 
    `make check`: check: green
+9. demo: no findings. I ran both Demo commands from the repository root exactly as written, and both meet their `Expect:` lines.
+
+   Command 1 (the `uv run python -c` script: a clean backlog story and one whose last criterion is `3. done.`):
+   ```
+   factory/features/F0009-demo/backlog/F0009-S0001-good.md: ok
+   0
+   factory/features/F0009-demo/backlog/F0009-S0002-bad.md:11: the last criterion must start with "docs:"
+   1
+   ```
+   Met: the output is the four expected lines, in order.
+
+   Command 2 (`uv run factory-check-story; echo "status $?"`):
+   ```
+   usage: factory-check-story <path>...
+   status 2
+   ```
+   Met. I ran it a second time with standard error discarded (`2>/dev/null`). Only `status 2` was left, so the usage line goes to standard error and nothing goes to standard output (criterion 11).
+
+   Criteria check:
+   - Nothing in the demo contradicts any acceptance criterion.
+   - Command 1 shows criterion 8 (`<path>: ok`, return 0) and criterion 9 (`<path>:<line>: <message>`, return 1, the line counted in the body).
+   - Command 2 shows criteria 11 and 21 through the console script that `pyproject.toml` already declares.
+   - I did not exercise the other criteria here. Tests cover them, as the tester's and the reviewer's entries record.
