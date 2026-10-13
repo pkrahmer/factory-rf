@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 16
 blocked: null
 comments_seen: 0
@@ -127,3 +127,17 @@ Expect: one line, `True True True True True True`.
 
    `make lint`: lint: green
    `make test`: FAILED tests/test_hosting_fake_search.py::test_only_the_fake_and_the_pygithub_client_define_post_comment
+4. coder: The four interfaces are now abstract base classes, and their six implementations inherit them. All of `make check` passes, including the tester's new and rewritten tests (99 % coverage). Commit 436c018.
+
+      Built:
+      - `src/factory/application/git.py`, `hosting.py`, `project_commands.py` and `agent_runtime.py`: the base changed from `typing.Protocol` to `abc.ABC`. Every operation has `@abstractmethod`, and each method body is its docstring alone (the trailing `...` is gone). No name, signature, return type or docstring changed.
+      - `src/factory/adapters/git_cli.py`, `pygithub_hosting.py`, `fake_hosting.py`, `make_commands.py`, `claude_runtime.py` and `fake_agent_runtime.py`: each class now inherits its interface (`class GitCli(Git):` and so on) and imports it from `factory.application.<module>`. Constructors are unchanged.
+
+      Main decision: this is a mechanical change of the base class and decorator only. No test or code needed anything beyond the Interface section. The layer contract (adapters may import application) still holds, and import-linter passes.
+      Rejected: putting an abstract-method guard or shared helper on the interfaces. The rules say an interface has no state and no public member besides its operations.
+
+      Refactor: I read the diff and found nothing to clean up, so there is no refactor commit.
+
+      Not touched: `docs/project-guide.md` and `docs/decisions.md`, which are criterion 16 and belong to the documenter stage. `CLAUDE.md` already states the decision.
+
+   `make check`: check: green
