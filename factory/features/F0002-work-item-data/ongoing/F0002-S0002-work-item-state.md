@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 29
 blocked: null
 comments_seen: 0
 round: 0
@@ -127,3 +127,9 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`domain/errors.py`, `domain/journal.py`, `domain/work_item.py`) with full signatures, field order and defaults. Every rule is listed and has a criterion.
+   - Criteria: each is testable by a test function without further decisions. Every rule has its failing side: unsorted, repeated and zero `comments_read` (5); claim stage mismatch (6); journal numbering (7); blocked, handed_over, counters and pull_request bounds (3, 4); naive `started_at` and `lease_duration` 0 (10); unknown fields and assignment (11); missing `state` (12); `Bad Stage` and the empty string for `stage` (2). The behaviours in the Interface comments are covered: the UTC conversion (10), the error locations (8) and the error message (13).
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: the dumped dict is given exactly, and the second shows two lines of `refused 1`.
+   - Architecture: pure domain types with no I/O, in `factory.domain`, with Pydantic DTOs. `Name` comes from the domain identifiers. Tests are placed under `tests/domain/`.
+   - Scope: within F0002's "state in the front matter (R15)". The reader and writer (S0003) and the journal functions (S0005) are left out.
