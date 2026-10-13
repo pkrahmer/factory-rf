@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 33
 blocked: null
 comments_seen: 0
@@ -124,3 +124,15 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the story form check. All tests in `tests/domain/test_story_form.py` pass and `make check` is green (coverage of the new module is 99 %).
+      - `src/factory/domain/story_form.py` (new): `FormFinding` (frozen, forbids unknown fields, `line: PositiveInt | None`) and `check_story_form(document, form, *, folder)`.
+        - The body is read once into a private `_Body`: its lines, its sections from `sections()`, and the set of lines outside fenced blocks.
+        - Numbered items (`^\d+\. ` at column 0, outside blocks) are collected per section into `_Item` ranges. Criteria and journal entries share this collection and the numbering rule. Each item runs to the next item or to the end of the section, which is how the closing-criteria rule reads an item spread over several lines.
+        - The rules run in the Interface's order. Rules 7 and 10 run for `backlog`; rules 8 and 9 for the other folders.
+      - `src/factory/domain/sections.py`: renamed `_lines_outside_blocks` to the public `lines_outside_blocks` (with a docstring) so the form check reuses it. The only behaviour change is that the name is now public.
+      - Main decision: build every rule on the section reader's view (sections, `code_blocks`, lines outside blocks). That way a heading, a `# ` line or a numbered line inside a fence can never count as structure. Rejected: a second line scanner with its own fence tracking inside story_form.py, which would duplicate `sections.py` and could drift from it.
+      - Refactor commit 1582a83: dropped the docstrings on the private models, as `CLAUDE.md` asks. Nothing else needed changing.
+      - Demo: both blocks print exactly the expected lines.
+      - Noticed, not touched: an unclosed smoke-test block runs to the end of the body and hides any later `## Journal`. The Interface accepts this, and the tests allow for it.
+
+   `make check`: check: green
