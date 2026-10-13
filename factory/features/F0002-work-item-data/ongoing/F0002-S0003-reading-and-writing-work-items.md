@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 30
 blocked: null
 comments_seen: 0
@@ -258,3 +258,42 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
    Stale but not touched: none. I found no findings for the coder. The code matches the Interface, and the public classes and the handler's methods have docstrings. The overriding methods inherit the interface's docstrings, which ruff accepts.
 
    `make check`: check: green
+7. demo: both commands ran from the repository root exactly as written. Both exited 0, and both outputs match their `Expect:` lines. No findings.
+
+   1. Render, then parse back, an `intake` state with `attempts: 1` and `comments_read: [4, 9]`:
+   ```
+   ---
+   stage: intake
+   blocked: null
+   round: 0
+   attempts: 1
+   crashes: 0
+   pull_request: null
+   comments_read: [4, 9]
+   handed_over: null
+   claim: null
+   journal: []
+   ---
+
+   # Title
+   1 [4, 9] '# Title\n'
+   ```
+   Met. The output is fifteen lines, as expected:
+   - the opening `---`;
+   - the ten keys in field order, with `blocked`, `pull_request`, `handed_over` and `claim` as `null`, the flow list `[4, 9]` and `journal: []`;
+   - the closing `---`, an empty line and `# Title`;
+   - the round-trip line `1 [4, 9] '# Title\n'`.
+
+   2. An unknown key, then `parse_specification`:
+   ```
+   unknown key: colour
+   None ['stage', 'attempts'] '# T\n'
+   ```
+   Met. The output is the two expected lines.
+
+   Against the acceptance criteria:
+   - The demo contradicts none of them.
+   - Command 1 is consistent with criteria 2 (ten keys in field order, `null` for missing values, counters as numbers, `[]` for an empty journal), 4 (an empty line after the closing `---`, the body stripped, one final newline) and 6/7 (the round trip gives back the state and the normalised body).
+   - Command 2 is consistent with criteria 11 (`unknown key: colour`) and 17 (`state` None, ignored keys in file order, the body normalised from `\n\n# T\n` to `# T\n`).
+
+   Open: nothing.
