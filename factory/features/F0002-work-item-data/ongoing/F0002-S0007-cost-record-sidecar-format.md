@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 34
-blocked: null
+blocked: question
 comments_seen: 0
 round: 1
 attempts: 0
@@ -207,3 +207,15 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
          Fix, reader: give `json.loads` a `parse_constant` that raises, and report the line as `not valid JSON`. This stays inside the Interface.
          Fix, writer: make `duration_seconds` finite in the domain (`Field(ge=0, allow_inf_nan=False)`, the same as `cost_usd`). This tightens the Interface and needs a criterion and a test for the refused side, so the coder should ask the human (`question`) whether to make that change, or to render with `allow_nan=False` and raise `CostRecordFormatError` instead.
          The story has a gap here: it states no finiteness rule for `duration_seconds`, so no criterion covers the refused side.
+6. coder: coder (round 1): fixed the reader side of the review finding. The writer side changes the Interface, so I am asking before doing it.
+
+   Done (dfd95fb): in `src/factory/adapters/cost_records_jsonl.py`, `json.loads` now gets a `parse_constant` that raises. A line with `NaN`, `Infinity` or `-Infinity` (for example `"duration_seconds":Infinity`) is now reported as `not valid JSON` instead of becoming a record. This stays inside the Interface. `make check` is green. No test covers this yet, because the criteria do not name the case.
+
+   Open question: `duration_seconds` is typed `NonNegativeFloat`, which accepts `float("inf")`. `render` then writes a line that contains `Infinity`, which is not JSON. There are two ways to close this:
+     A. (my choice) Make `duration_seconds` finite in the domain with `Field(ge=0, allow_inf_nan=False)`, the same way `cost_usd` already works. Two criteria would change:
+        - criterion 4 becomes "`duration_seconds` accepts 0.0 and refuses -0.1, `float('inf')` and `float('nan')`";
+        - criterion 14 also requires a line with `"duration_seconds":Infinity` to give `not valid JSON`.
+        An infinite duration is never a real measure, and this keeps both the record and the file strict JSON.
+     B. Leave the type alone and render with `allow_nan=False`, so `render` raises `CostRecordFormatError(line, "not valid JSON")` for such a record. This adds a second fault to `render` beyond `duplicate run`, and the record itself can still hold a value that cannot be written to the file.
+
+   If you choose A (or B), I will end with `tests` and name the test changes so the tester adds them, then implement the domain change.
