@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 43
 blocked: null
 comments_seen: 0
 round: 0
@@ -168,3 +168,9 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/errors.py`, `domain/pipeline_definition.py`, `application/files.py`, `adapters/pipeline_yaml.py`, `adapters/validation_faults.py`, `application/boundaries.py`). I checked that `Name`, `validation_faults.first_fault`, `Boundaries` and `PIPELINE_YAML` in `tests/git_support.py` exist. Every behaviour in the Interface comments has a criterion: fault ranking (18, 19), YAML order (1, 5), the `project_commands` replace-not-merge rule (9), and the defaults (6 to 8).
+   - Criteria: each is testable by one test function. Every rule has its failing side: positive-int limits at 0 and -1 plus the accepted 1 (13), name pattern (14), wrong types and the unquoted contract (15), missing keys (11), unknown keys (12), invalid YAML and repeated key (16), non-mapping top level (17), unknown `role_of` stage (4).
+   - Demo: runnable as written. The `Expect:` line gives four exact output lines.
+   - Architecture: the schema is in domain, the reader interface in application, ruamel only in the adapter (criterion 23), and the reader is wired through `Boundaries`. This matches CLAUDE.md.
+   - Scope: this is the schema half of ST8.1 and R30. The cross-key rules (S0007), the stop report (S0006) and a writer are excluded, as `FEATURE.md` says.
