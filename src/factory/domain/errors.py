@@ -44,3 +44,16 @@ class FetchFailed(GitError):
 
 class NothingToCommit(GitError):
     """A commit was asked for, but no change was staged."""
+
+
+class ProjectCommandError(BoundaryError):
+    """A project command could not be started; a red or timed-out command is a result."""
+
+    command: str
+    detail: str
+
+    def __init__(self, command: str, detail: str) -> None:
+        """Name the command and why it could not be started."""
+        super().__init__(f"project command {command} failed: {detail}")
+        self.command = command
+        self.detail = detail
