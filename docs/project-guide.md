@@ -166,7 +166,7 @@ Known limits: after the kill, the output is read without a limit, so a descendan
 
 ## The agent runtime
 
-The factory reaches an agent only through the `AgentRuntime` protocol (`factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation follows in later stories; until then the fake is the only implementation.
+The factory reaches an agent only through the `AgentRuntime` protocol (`factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation is `ClaudeCodeRuntime` (below); it has `run` only so far and satisfies the protocol once `version` is added. Until then the fake is the only complete implementation.
 
 `AgentRunRequest` holds:
 
@@ -178,6 +178,36 @@ The factory reaches an agent only through the `AgentRuntime` protocol (`factory.
 `AgentRunResult` holds `end_reason`, `decision`, `entry`, `duration`, `turns`, `tokens` (`TokenCounts`: `input`, `output`, `cache_read`, `cache_creation`, none negative), `cost_usd` and `permission_denials`. `end_reason` is one of `completed`, `no_result`, `time_limit`, `budget` and `died`. `decision` and `entry` are set exactly when the run is `completed`, and `ok` is true exactly then. A measure the runtime did not report is `None`, never 0: unknown is unknown.
 
 A run that dies, reaches its `time_limit` or exhausts its budget is a result with an end reason, not an exception; for the caller it is a stall. `AgentRuntimeError` is for a runtime that cannot be used at all. See `docs/decisions.md`.
+
+### The `claude -p` runtime
+
+`ClaudeCodeRuntime(executable, state_directory, kill_points=None)` (`factory.adapters.claude_runtime`) runs an agent as one `claude -p` call under the operator's own login. So far it makes one call: the budget resume, the `time_limit` across two calls and `version` are not built, which is why it does not yet satisfy `AgentRuntime`. It starts the process through `run_process`, and with `git_cli` and `make_commands` it is one of the three modules that import `factory.adapters.process` (`tests/test_wrapper_search.py`).
+
+The arguments, in this order (`<session>` is a new `uuid4` per run):
+
+```text
+-p <prompt>  --model <model>  [--effort <effort>]  --tools <tools joined with commas>
+--session-id <session>  --append-system-prompt-file <state_directory>/instructions-<session>.md
+[--settings <state_directory>/hooks-<session>.json]  --permission-mode auto  --permission-prompts none
+--strict-mcp-config  --max-budget-usd <budget as plain decimal>  --output-format json  --json-schema <schema>
+```
+
+`--effort` is left out when the agent has none; `--settings` when the request has no guard; `--tools` is always there, with an empty value for an empty list. The flags are v1's, not yet checked against the pinned `claude`. The schema asks for an object with `decision` (an enum of `allowed_decisions`, in the request's order) and `entry` (described by `ENTRY_DESCRIPTION`), both required, nothing else.
+
+Files under `state_directory` (created with its parents when missing), written before the call and removed when the run ends, whether by a result, `InjectedKill` or `AgentRuntimeError`:
+
+- `instructions-<session>.md`: the agent's instructions.
+- With a guard only: `guard-<session>.json` (the `GuardSettings` as JSON) and `hooks-<session>.json`, a `PreToolUse` hook on `Edit|Write` whose command is `factory-guard --settings <guard file, shell-quoted>`. The `factory-guard` command itself is not built yet.
+
+Environment: the call gets `request.environment` plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1` and `PYTHONDONTWRITEBYTECODE=1`. Nothing is inherited from the factory's process and no `PATH` is added; `factory-guard` is found only if the request's own `PATH` holds it. The call runs in `request.working_directory`, and `request.os_user` is not used yet.
+
+End reason, first rule that applies: `time_limit` when the time limit ended the call (it is killed with its children); `died` when the exit status is not 0, the output is not a JSON object with a string `subtype` and a boolean `is_error`, or `is_error` is true; `completed` when `structured_output` has a `decision` from `allowed_decisions` and a non-blank `entry`; otherwise `no_result`. A reply with `subtype` `error_max_budget_usd` is not treated specially yet.
+
+Measures: `duration` is what the factory measured around the call; the JSON's own durations are ignored. `turns`, `cost_usd` (`Decimal(str(total_cost_usd))`), `tokens` and `permission_denials` come from the JSON when it parses, and are `None` for any field it lacks, and for all of them after a `time_limit`. `tokens` is known only when both `input_tokens` and `output_tokens` are present; the cache counts default to 0. A denial's `detail` is its `tool_input` as JSON with sorted keys. A reply with the wrong type in a field it carries does not parse and counts as `died`.
+
+Kill point: `KillPoint.AGENT_RUN` is reached after the call and the result, whatever the end reason, and not when the call could not be started. A missing executable or an unwritable state directory raises `AgentRuntimeError` naming the cause.
+
+Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
 
 ### The fake
 
