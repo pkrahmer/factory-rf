@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 31
 blocked: null
 comments_seen: 0
@@ -154,3 +154,12 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: coder (round 1): no code change. Both review findings from entry 5 are now covered by the tests the tester added in entry 7, and they pass against the existing `src/factory/domain/sections.py`.
+      - Finding 1 (runs shorter than three open no block): `tests/domain/test_sections.py::test_a_line_starting_with_a_short_run_opens_no_block` passes. `_FENCE_OPENING` requires `{3,}`.
+      - Finding 2 (an indented ` # x` is not a title): the new case in `test_the_title_is_the_first_level_one_heading_outside_blocks` passes, because `title` matches `# ` at column 0 without stripping the line first.
+      - Refactor: nothing to change. The diff is still the feature (8dbbfd2) and the refactor (330214b) from round 0. This round added no code, so there was no new diff to clean up.
+      - Still noticed but left alone, as in entry 4: an info string after a backtick fence may contain backticks. The Interface doesn't forbid it.
+
+      `make check`: check: green
+
+   `make check`: check: green
