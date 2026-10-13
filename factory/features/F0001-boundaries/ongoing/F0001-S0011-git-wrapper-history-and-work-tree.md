@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 11
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -150,3 +150,22 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implementation committed (5ea0a39). All 31 new tests pass, and lint, types, layers, sast, licenses and test are green. `make check` is still red, because `make secrets` (detect-secrets) flags two lines in the tester's file: `tests/domain/test_git_history.py:11` (`COMMIT = "0123456789abcdef…"`) and `:12` (`PARENT = "89abcdef…"`), both as "Hex High Entropy String".
+
+   What I built:
+   - `src/factory/domain/git.py`: `ChangeKind`, `ChangedPath`, `CommitInfo` (whose validator converts `committed_at` to UTC) and `WorkTreeStatus`. All three are frozen and forbid unknown keys.
+   - `src/factory/application/git.py`: the `log`, `changed_paths` and `status` operations on the `Git` protocol.
+   - `src/factory/adapters/git_cli.py`:
+     - `log` runs `git log -z --date-order` with a NUL-separated format. The subject is the first line of `%B`, and the date comes from `%ct`.
+     - `changed_paths` combines `diff --name-status -z --no-renames <since>` with `ls-files --others --exclude-standard`.
+     - `status` parses `status --porcelain=v2 -z --branch --untracked-files=all --no-renames`.
+   - Main design decision: turn git's rename detection off everywhere, so that a rename is always a deletion plus an addition. The alternative I rejected was building a temporary index and running `git add -A` into it to get the net difference. It is exact, but it writes objects into the repository just to read a state.
+
+   Noticed but not touched: an untracked path that diff also reports as deleted (a file removed from the index with `git rm --cached` but still on disk) is reported as "modified", even if its content is unchanged.
+
+   Question: making `make secrets` green requires one of the following, and each is on the "Not without asking" list.
+   - (a) The tester changes the two constants in `tests/domain/test_git_history.py` to low-entropy ids, such as `COMMIT = "a" * 40` and `PARENT = "b" * 40`, as `tests/domain/test_hosting.py` already does.
+   - (b) Add the two lines to `.secrets.baseline`.
+   - (c) Add a `pragma: allowlist secret` comment to each line.
+
+   I would choose (a). If you agree, I will end with `tests` and name exactly that change for the tester.
