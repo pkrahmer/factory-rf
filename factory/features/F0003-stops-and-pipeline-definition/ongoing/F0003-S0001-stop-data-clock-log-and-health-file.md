@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 40
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Stop data, the clock, the factory log and the health file
@@ -211,3 +211,13 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
         - The docs criterion (26) is left to the documenter.
 
    `make check`: check: green
+5. reviewer: one finding, in group 1 (acceptance criteria). It is a gap in the story, not a fault of the tester or the coder.
+
+   1. `src/factory/adapters/health_file.py:47-49`, Interface rule on `JsonHealthStatusFile.write` ("no temporary file stays behind") together with criterion 22. No criterion covers the failing side of this rule. A write that fails after `mkstemp` should leave no `.health.json.*.tmp` behind, but nothing tests that, and the `except BaseException` cleanup branch is never run (the coder's entry says so too). The failure can be produced without mocking. When `health.json` is a directory, `os.replace` raises `IsADirectoryError`. That is exactly the directory case criterion 22 skips ("where no write is tried"). It also means the Interface's "the next `write` replaces it" is not true for a directory at the path. Fix: the human adds a criterion before 25: "When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory." The Interface sentence should also say that a directory at the path is not replaced but fails the write. The tester then writes the test. The coder should end with `question` to the human, because R9 forbids the coder from adding the criterion or the test.
+
+   Checked and fine:
+   - Criteria 1–24: each has a test that tests what it is named after.
+   - Both sides of the detail, scope, reason, naive-time, duplicate-reason and naive-start rules are covered.
+   - The coder's `make check` was green.
+
+   Because the review stops at the first failing group, I did not report on architecture, security, quality or hygiene. A first read found nothing there.
