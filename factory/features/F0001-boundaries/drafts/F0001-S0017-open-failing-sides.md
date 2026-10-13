@@ -31,7 +31,7 @@ Tests:
 - `tests/adapters/test_git_cli_history.py`
 - `tests/adapters/test_fake_hosting.py`
 
-The tests use the existing fixtures. The unmerged state is made with plain `git merge` through `run_git`, because `GitCli.merge` aborts a conflict.
+The tests use the existing fixtures. The unmerged state is made with a plain `git merge` through `run_process`, with an isolated environment as `test_committed_at_is_the_committer_date_in_utc` builds it, because `run_git` asserts exit 0 (a conflicting merge exits 1) and `GitCli.merge` aborts a conflict. Each criterion gets a new test function; no existing parametrization is extended.
 
 ## Acceptance criteria
 
@@ -40,14 +40,14 @@ The tests use the existing fixtures. The unmerged state is made with plain `git 
 3. After a conflicting `git merge` left in progress (run with plain git), `status()` lists the conflicting path exactly once, as `"modified"`.
 4. With two pull requests on the fake, `delete_comment(first, <id of a comment on the second>)` raises `HostingServiceError`, and the comments of both pull requests are unchanged.
 5. make check stays green.
-6. docs: none. Every behaviour is already in `docs/project-guide.md`, except the cross-pull-request case of `delete_comment`. The documenter adds "an id of another pull request's comment counts as unknown" to the fake's table.
+6. docs: the table of the fake's test operations in `docs/project-guide.md` says that `delete_comment` counts the id of another pull request's comment as unknown; the other three behaviours are already documented.
 
 ## Demo
 
 ```bash
-uv run pytest -q --no-header -p no:cacheprovider tests/adapters/test_make_commands.py tests/adapters/test_git_cli_restoring.py tests/adapters/test_git_cli_history.py tests/adapters/test_fake_hosting.py
+uv run pytest --no-header -p no:cacheprovider tests/adapters/test_make_commands.py tests/adapters/test_git_cli_restoring.py tests/adapters/test_git_cli_history.py tests/adapters/test_fake_hosting.py
 ```
-Expect: the summary line reports only passed tests, and no failure or error.
+Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `skipped` count.
 
 ## Log (append only)
 

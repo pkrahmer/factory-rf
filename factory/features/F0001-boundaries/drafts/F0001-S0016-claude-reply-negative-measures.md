@@ -6,7 +6,7 @@
 
 FEATURE.md decision 12 says a dead, timed-out or over-budget run is a result with an end reason, never an exception. `AgentRuntimeError` is only for a run that cannot be started. The feature acceptance found that `ClaudeCodeRuntime.run` breaks this for one reply. A JSON reply with a valid `subtype` and `is_error` but a negative `num_turns` or token count parses, and then building the `AgentRunResult` fails, so `run` raises a raw `pydantic_core.ValidationError`. The S0009 reviewer noted it, and the acceptance reproduced it.
 
-This story makes such a reply count as a reply that does not parse. The run is `died`, every measure is `None` (R24: nothing invented), and the run files are removed and the kill point reached as for every other `died`. A negative `total_cost_usd` gets the same treatment, because a total that subtracts is no measure either. `AgentRunResult` itself does not bound `cost_usd`, so this rule is the runtime's. The human should confirm the cost part when refining.
+This story makes such a reply count as a reply that does not parse. The run is `died`, every measure is `None` (R24: nothing invented), and the run files are removed and the kill point reached as for every other `died`. A negative `total_cost_usd` gets the same treatment, because a total that subtracts is no measure either. `AgentRunResult` itself does not bound `cost_usd`, so this rule is the runtime's.
 
 It also pins one rule of S0010 that branch coverage shows untested: in a resumed run, a measure that only the first call reported is kept as the first call's.
 
@@ -29,7 +29,7 @@ Tests: `tests/adapters/test_claude_runtime.py` and `tests/adapters/test_claude_r
 ## Acceptance criteria
 
 1. A reply with `num_turns` -1 gives a result with `end_reason` `died` and `turns`, `tokens` and `cost_usd` `None`; `run` raises nothing.
-2. A reply whose `usage.input_tokens` is -1 gives `died` with every measure `None`; so does one whose `usage.cache_read_input_tokens` is -1.
+2. A reply in which one of `usage.input_tokens`, `usage.output_tokens`, `usage.cache_read_input_tokens` or `usage.cache_creation_input_tokens` is -1, the others valid, gives `died` with every measure `None` (one parametrized test).
 3. A reply with `total_cost_usd` -0.01 gives `died` with every measure `None`.
 4. A completed reply with `num_turns` 0, all four token counts 0 and `total_cost_usd` 0 gives `completed` with turns 0, tokens of 0 and cost 0.
 5. After a reply with negative measures, no run file is left under the state directory, and `KillPoint.AGENT_RUN` was reached once.

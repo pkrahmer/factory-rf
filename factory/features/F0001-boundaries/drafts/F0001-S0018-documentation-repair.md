@@ -4,7 +4,7 @@
 
 ## Assignment (as of log entry 1)
 
-Each F0001 story kept its own part of the documentation true. Read as a whole, though, four places are stale or doubled. No code changes, so this story is the documenter's alone. The tester and coder stages have nothing to build, and the human may prefer to make these few edits in a commit of their own and drop the story.
+Each F0001 story kept its own part of the documentation true. Read as a whole, though, four places are stale or doubled. No code changes, so this story is the documenter's alone. The tester and coder stages have nothing to build.
 
 1. **`docs/project-guide.md`, *Kill points*.**
    - "This story built only the seam. A wrapper calls `kill_points.reach(point)` at its point in its own story; until then nothing reaches a point." This is false now: all four points are reached by their wrappers. It is also ticket language in the docs.
@@ -35,7 +35,7 @@ None: documentation only.
 ```bash
 grep -c "until then nothing reaches a point" docs/project-guide.md; grep -c "not yet written" README.md; grep -c "Nothing is built yet" docs/operator-guide.md
 ```
-Expect: three lines, each `0`.
+Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is the expected result, not an error.
 
 ## Log (append only)
 
