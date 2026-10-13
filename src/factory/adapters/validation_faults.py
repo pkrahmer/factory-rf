@@ -1,9 +1,9 @@
-"""The one fault a file reader reports for a pydantic validation error, in the readers' order."""
+"""The faults a file reader reports for a pydantic validation error, in the readers' order."""
 
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
-# The rank of each kind of validation fault; the lowest is reported.
+# The rank of each kind of validation fault; the lowest comes first.
 _UNKNOWN_KEY, _MISSING_KEY, _INVALID_VALUE, _INVALID_WHOLE = range(4)
 
 
@@ -39,7 +39,13 @@ def _fault(error: ErrorDetails, whole: str) -> str:
     return f"invalid {whole}: {error['msg']}"
 
 
+def all_faults(validation_error: ValidationError, whole: str) -> list[str]:
+    """Every fault, ranked: unknown key, missing key, invalid value, then invalid `whole`."""
+    # The sort is stable, so faults of one rank keep pydantic's order, which is the fields' order.
+    ranked = sorted(validation_error.errors(), key=_rank)
+    return [_fault(error, whole) for error in ranked]
+
+
 def first_fault(validation_error: ValidationError, whole: str) -> str:
-    """The first fault: unknown key, missing key, invalid value, then invalid `whole`."""
-    # `min` keeps the first of equal rank, and pydantic lists errors in the order of the fields.
-    return _fault(min(validation_error.errors(), key=_rank), whole)
+    """The first fault of `all_faults`."""
+    return all_faults(validation_error, whole)[0]
