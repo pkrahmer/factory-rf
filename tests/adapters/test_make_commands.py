@@ -192,10 +192,8 @@ def test_executable_that_cannot_start_is_an_error(tmp_path: Path) -> None:
     assert caught.value.detail != ""
 
 
-def test_make_class_fits_the_interface_without_inheriting(tmp_path: Path) -> None:
-    commands: ProjectCommands = MakeProjectCommands(tmp_path)
-
-    assert ProjectCommands not in type(commands).__mro__
+def test_make_class_inherits_the_project_commands_interface() -> None:
+    assert issubclass(MakeProjectCommands, ProjectCommands)
 
 
 def test_outer_make_variables_do_not_reach_the_command(

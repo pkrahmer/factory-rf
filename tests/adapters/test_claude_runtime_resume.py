@@ -387,8 +387,5 @@ def test_version_query_sees_the_processes_environment(
     assert _calls(tmp_path)[0].environment.get("FACTORY_VERSION_PROBE") == "seen"
 
 
-def test_claude_runtime_fits_the_agent_runtime_protocol_structurally(tmp_path: Path) -> None:
-    runtime: AgentRuntime = ClaudeCodeRuntime(str(tmp_path / "claude"), tmp_path / "state")
-
-    assert AgentRuntime not in type(runtime).__mro__
-    assert AgentRuntime not in ClaudeCodeRuntime.__mro__
+def test_claude_runtime_inherits_the_agent_runtime_interface() -> None:
+    assert issubclass(ClaudeCodeRuntime, AgentRuntime)

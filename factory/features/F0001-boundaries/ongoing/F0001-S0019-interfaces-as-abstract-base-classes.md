@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 16
 blocked: null
 comments_seen: 0
@@ -99,3 +99,31 @@ Expect: one line, `True True True True True True`.
    - Demo: both commands are runnable one-liners, and each `Expect:` line gives exact output to compare.
    - Architecture: matches CLAUDE.md (interfaces as ABCs in `factory.application`, implementations in `factory.adapters` inheriting them, layer contract unchanged).
    - Scope: within F0001 Boundaries. It is listed in FEATURE.md as S0019, decision 20 records it, and nothing out of scope is touched.
+3. tester: Wrote tests for criteria 1–14 and rewrote the six "fits without inheriting" tests and the posting search in place.
+
+   Mapping:
+   - criterion 1: tests/application/test_interfaces.py::test_each_interface_is_an_abstract_base_class (parametrized over the four interfaces)
+   - criterion 2: tests/application/test_interfaces.py::test_no_class_in_the_interface_modules_derives_from_protocol
+   - criterion 3: tests/application/test_interfaces.py::test_git_abstract_methods_are_exactly_its_nineteen_operations (imports `OPERATIONS` from tests/application/test_git_protocol.py)
+   - criterion 4: tests/application/test_interfaces.py::test_hosting_abstract_methods_are_its_ten_operations_with_their_return_types (imports `OPERATIONS` from tests/application/test_hosting_protocol.py)
+   - criterion 5: tests/application/test_interfaces.py::test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract and ::test_an_interface_has_no_public_member_but_its_abstract_operations
+   - criterion 6: tests/application/test_interfaces.py::test_every_abstract_method_body_is_its_docstring_alone
+   - criterion 7: tests/application/test_interfaces.py::test_an_interface_cannot_be_instantiated (parameter typed `type[object]`)
+   - criterion 8: tests/application/test_interfaces.py::test_a_subclass_must_implement_every_operation_to_be_constructed (incomplete subclass called through a `Callable[[], object]`)
+   - criterion 9: tests/adapters/test_git_cli_reading.py::test_git_cli_inherits_the_git_interface (uses the `checkout` fixture)
+   - criterion 10: tests/adapters/test_pygithub_hosting.py::test_client_inherits_the_hosting_service_interface and tests/adapters/test_fake_hosting.py::test_the_fake_inherits_the_hosting_service_interface (uses the `hosting` fixture)
+   - criterion 11: tests/adapters/test_make_commands.py::test_make_class_inherits_the_project_commands_interface
+   - criterion 12: tests/adapters/test_fake_agent_runtime.py::test_fake_inherits_the_agent_runtime_interface (uses the `agent_runtime` fixture) and tests/adapters/test_claude_runtime_resume.py::test_claude_runtime_inherits_the_agent_runtime_interface
+   - criterion 14: tests/test_hosting_fake_search.py::test_only_the_fake_and_the_pygithub_client_define_post_comment and ::test_no_test_class_defines_post_comment. The `_is_protocol` exclusion is now `_is_abstract`: it skips a class whose base is `ABC`.
+   - criterion 13: tests/application/test_interfaces.py::test_no_test_asserts_an_interface_is_absent_from_an_mro
+
+   Files: created tests/application/test_interfaces.py. Changed tests/adapters/test_git_cli_reading.py, test_pygithub_hosting.py (also dropped its module-level `STRUCTURAL_FIT`, which only that test used), test_fake_hosting.py, test_make_commands.py, test_fake_agent_runtime.py, test_claude_runtime_resume.py and tests/test_hosting_fake_search.py.
+
+   Red as intended: every module imports. The failures are wrong results because the interfaces are still `Protocol`s. That covers the ABC, abstract-methods and docstring-body checks, the incomplete subclass that can still be constructed, the subclass checks, and the posting search, which now finds `HostingService` itself. `make lint` is green. I skipped the type check as the stage says.
+
+   Rejected: a separate test for criterion 6 that every interface function is decorated. Criteria 3 to 5 already pin the abstract set and the public members exactly.
+
+   Open: none.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/test_hosting_fake_search.py::test_only_the_fake_and_the_pygithub_client_define_post_comment

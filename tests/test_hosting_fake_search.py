@@ -8,10 +8,10 @@ from source_search import modules
 TESTS = Path(__file__).parent
 
 
-def _is_protocol(node: ast.ClassDef) -> bool:
+def _is_abstract(node: ast.ClassDef) -> bool:
     return any(
-        (isinstance(base, ast.Name) and base.id == "Protocol")
-        or (isinstance(base, ast.Attribute) and base.attr == "Protocol")
+        (isinstance(base, ast.Name) and base.id == "ABC")
+        or (isinstance(base, ast.Attribute) and base.attr == "ABC")
         for base in node.bases
     )
 
@@ -21,7 +21,7 @@ def _posting_classes(tree: ast.Module) -> set[str]:
         node.name
         for node in ast.walk(tree)
         if isinstance(node, ast.ClassDef)
-        and not _is_protocol(node)
+        and not _is_abstract(node)
         and any(
             isinstance(member, ast.FunctionDef | ast.AsyncFunctionDef)
             and member.name == "post_comment"

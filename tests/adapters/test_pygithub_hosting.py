@@ -45,9 +45,6 @@ def _comment(id: int, body: str, created_at: datetime = CREATED) -> StandInComme
     return StandInComment(id=id, user=StandInUser("someone"), body=body, created_at=created_at)
 
 
-STRUCTURAL_FIT: HostingService = _service(StandInRepository())
-
-
 @pytest.mark.parametrize("draft", [True, False])
 def test_create_pull_request_opens_against_main_and_returns_the_view(draft: bool) -> None:
     repository = StandInRepository()
@@ -353,6 +350,6 @@ def test_constructor_touches_nothing_on_the_repository() -> None:
     PyGithubHostingService(cast(Repository, Untouchable()))
 
 
-def test_client_fits_the_interface_without_inheriting_it() -> None:
-    assert HostingService not in PyGithubHostingService.__mro__
-    assert isinstance(STRUCTURAL_FIT, PyGithubHostingService)
+def test_client_inherits_the_hosting_service_interface() -> None:
+    assert issubclass(PyGithubHostingService, HostingService)
+    assert isinstance(_service(StandInRepository()), HostingService)

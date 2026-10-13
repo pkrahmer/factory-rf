@@ -290,8 +290,6 @@ def test_fail_next_accepts_one_time(hosting: FakeHostingService) -> None:
     hosting.fail_next("post_comment", times=1)
 
 
-def test_the_fake_fits_the_protocol_without_inheriting_it() -> None:
-    hosting: HostingService = FakeHostingService()
-
-    assert HostingService not in type(hosting).__mro__
-    assert isinstance(hosting, FakeHostingService)
+def test_the_fake_inherits_the_hosting_service_interface(hosting: FakeHostingService) -> None:
+    assert issubclass(FakeHostingService, HostingService)
+    assert isinstance(hosting, HostingService)
