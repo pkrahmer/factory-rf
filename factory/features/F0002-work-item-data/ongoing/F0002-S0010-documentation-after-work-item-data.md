@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 38
 blocked: null
 comments_seen: 0
@@ -58,3 +58,11 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
    - Demo: all three commands are runnable. I checked the first against docs/project-guide.md. "Wiring does not use them yet" is at line 456, "next story" at line 403 and "This story" at line 543, so the Demo's two counts match the three spots the assignment repairs. Each Expect line is checkable, and the grep exit-1 case is stated.
    - Architecture: there are no layer or interface changes. Only docs are touched, and the documenter owns them.
    - Scope: this is within F0002 (it is listed in FEATURE.md as proposed by the feature acceptance). Decision 17 covers the v1-tree statement. Nothing in "Out of scope" is touched.
+3. tester: no tests written, by design. This story only changes documentation. The Interface is "None: no code changes", the assignment says "The tester writes no tests", and intake confirmed this.
+      - criterion 1 (`make check` stays green): this is the stage gate, and the factory's checks cover it. No test function is needed.
+      - criterion 2 (docs): the documenter checks it, along with the Demo's grep commands. It describes the wording of the prose, not behaviour that pytest could check. The project does not test prose in docs, and a test here would only pin the text.
+      - Files created: none. Modules the test runner could not import: none. I did not run `make test` because no new tests exist to fail. `make lint` is green.
+      - Open: nothing for the coder to build. The next stage with real work is the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
