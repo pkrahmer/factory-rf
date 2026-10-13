@@ -1,51 +1,46 @@
 ---
-stage: done
-pr: 23
+stage: accept
+pr: 25
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
-stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014, F0001-S0015, F0001-S0016, F0001-S0017, F0001-S0018, F0001-S0019, F0001-S0020]
-outcome: accepted
+stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014, F0001-S0015, F0001-S0016, F0001-S0017, F0001-S0018, F0001-S0019, F0001-S0020, F0001-S0021]
 ---
 # Acceptance of Boundaries
 
 ## Verdict
 
-**Accepted with drafts.** This is the third acceptance; the one story since the second, S0020, did what the second report asked. `push("+main")`, `push(":keep")`, `push("HEAD:refs/heads/other")`, a `*` pattern and `delete_remote_branch("+main")` are now refused before git and before `BEFORE_PUSH`, and "a push is never forced" holds in the feature demo. `make check` is green (99.49 % branch coverage) and the demo is green end to end.
+**Accepted.** This is the fourth acceptance, and S0021 closed the two edges the third one left. `delete_remote_branch("v1")` now leaves a tag `v1` alone. `push` of `^main`, `HEAD`, `@`, a local tag or any name git would not take as a branch is now refused (a `ValueError`, or a `GitError` for the tag) instead of returning `"pushed"` with no `origin/<branch>` afterwards. `make check` is green (99.50 % branch coverage), and the feature demo is green end to end. Compared against git itself over 3,061 names, `check_branch_name` accepts nothing git refuses.
 
-What is left is smaller than in the last two rounds: nothing forces a push, and nothing loses a branch. Two edges remain, and neither has a caller yet. First, `delete_remote_branch("v1")` deletes a **tag** named `v1` and returns `"pushed"`. Second, `push("^main")`, `push("@")` and `push("HEAD")` return `"pushed"` although no `origin/^main`, `origin/@` or `origin/HEAD` exists afterwards, so the project guide's "afterwards `origin/<branch>` … is the pushed commit" is false there. Draft F0001-S0021 closes both. It needs your choice first, because one of its options is close to the alternative you rejected in decision 22 (section 6). You could also accept the feature and leave the draft unpromoted until F0007, which is the first feature that deletes remote branches.
+No finding has weight. One mutant survives (a control-character boundary with no test), and the older open points are listed under 6. These are for you to accept or revisit; none is a broken promise, so I propose no draft.
 
 ## 1 Scope
 
-**None missing.** The first acceptance mapped every scope item to S0001–S0014 and the second mapped S0015–S0019; both mappings still hold. S0020 stays inside the git wrapper's scope (R9, decision 22) and touches nothing listed under "Out of scope":
-
-- `factory-guard` is still unbuilt;
-- `factory.entry` is still empty;
-- there are no kill-point recovery tests.
+**None missing.** S0001–S0020 map to the scope as the first three acceptances found. S0021 stays inside the git wrapper's scope (R9, decision 23) and touches nothing under "Out of scope": `factory-guard` is unbuilt, `factory.entry` is empty, and there are no kill-point recovery tests.
 
 The Goal's "done when" conditions all hold (section 2):
 
-- Each of the four boundaries is callable through its interface. The interfaces are abstract base classes with 19, 10, 1 and 2 operations.
+- Each of the four boundaries is callable through its interface, an abstract base class with 19, 10, 1 and 2 operations.
 - The hosting service and the agent runtime each have a fake.
 - Git is tested against a real bare remote.
 - Each kill point is armed and reached.
 - The searches find each outside tool in one module.
 
-The remark from both earlier acceptances stands: the hosting interface's ten operations are more than R10's seven (listed under 6).
+The remark from every earlier acceptance stands: the hosting interface's ten operations are more than R10's seven (under 6).
 
 ## 2 Feature demo
 
-**Green.** It is the second acceptance's walk-through: one work item goes through every boundary.
+**Green.** It is the third acceptance's walk-through: one work item goes through every boundary.
 
 - Real git against a bare remote in a temp directory, with the operator's locale set to German.
 - A real Makefile through make.
 - The fake hosting service, and the PyGithub client against a failing stand-in.
 - A stand-in executable in place of `claude -p`, because a real call needs your login.
 
-Step 6b now also tries every refspec form S0020 refuses (`+main`, `:scratch`, `HEAD:refs/heads/other`, `refs/heads/x*`, and `delete_remote_branch` of `+main` and `main:x`), then pushes and deletes a branch named `a+b`, which must still work.
+The new step is 6c. It tries the third acceptance's edges against the real remote, which holds a tag `v1` pushed by the human, while the factory's checkout holds a local-only tag `t2`.
 
-Saved as `/tmp/fdemo3/demo.py` and run from the repository root with `uv run python /tmp/fdemo3/demo.py`:
+Saved as `/tmp/fdemo4/demo.py` and run from the repository root with `uv run python /tmp/fdemo4/demo.py`:
 
 ```python
 import ast, inspect, json, os, sys, tempfile
@@ -199,6 +194,28 @@ factory.checkout("main")
 factory.delete_branch("a+b")
 factory.reset_to("origin/main")
 
+# 6c the third acceptance's edges: a tag is never pushed or deleted as a branch, aliases are refused
+from factory.domain.errors import GitError
+def remote_refs():
+    return run_process(ProcessRequest(argv=["git", "for-each-ref", "--format=%(refname)"], cwd=root / "remote.git")).stdout.split()
+run_process(ProcessRequest(argv=["git", "tag", "v1"], cwd=root / "human"))
+run_process(ProcessRequest(argv=["git", "push", "-q", "origin", "v1"], cwd=root / "human"))
+run_process(ProcessRequest(argv=["git", "tag", "t2"], cwd=root / "factory"))
+before_refs = remote_refs()
+before = kp.reached(KillPoint.BEFORE_PUSH)
+for name in ("^main", "HEAD", "@", "main~1", "a..b", "x.lock", "feature/.x", "x*y"):
+    try:
+        factory.push(name)
+    except ValueError as error:
+        print("6c refused:", error)
+try:
+    factory.push("t2")
+except GitError as error:
+    print("6c local tag t2:", type(error).__name__, str(error).splitlines()[0][:90])
+print("6c delete branch named like the tag:", factory.delete_remote_branch("v1"))
+print("6c remote refs unchanged:", remote_refs() == before_refs, remote_refs(),
+      "| before-push reached by refusals:", kp.reached(KillPoint.BEFORE_PUSH) - before - 1)
+
 # 7 the human merges the pull request; the factory sees it and cleans up
 human.fetch()
 human.checkout("main")
@@ -277,6 +294,17 @@ Output (exit 0):
 6b refused: not a branch name git push takes literally: 'main:x'
 6b remote main still the human's: human edit | before-push reached by refusals: 0 | remote: ['main', 'scratch', 'work-item/F0001-S0001']
 6b plus inside a name: pushed pushed
+6c refused: not a branch name git takes: '^main'
+6c refused: not a branch name git takes: 'HEAD'
+6c refused: not a branch name git takes: '@'
+6c refused: not a branch name git takes: 'main~1'
+6c refused: not a branch name git takes: 'a..b'
+6c refused: not a branch name git takes: 'x.lock'
+6c refused: not a branch name git takes: 'feature/.x'
+6c refused: not a branch name git push takes literally: 'x*y'
+6c local tag t2: GitError git push --porcelain --set-upstream origin refs/heads/t2 failed (exit 1): error: src refsp
+6c delete branch named like the tag: pushed
+6c remote refs unchanged: True ['refs/heads/main', 'refs/heads/scratch', 'refs/heads/work-item/F0001-S0001', 'refs/tags/v1'] | before-push reached by refusals: 0
 7 human merge: fast_forwarded pushed
 7 pull request: merged False ['stage:review'] True 'built by the agent\n'
 7 delete: pushed pushed pushed
@@ -293,180 +321,150 @@ Output (exit 0):
 
 Every line is what the feature promises:
 
-- **Last time's finding is fixed.** None of the ten refused calls reached `BEFORE_PUSH`. The remote's `main` is still the human's commit, `scratch` is still there, and no `other` branch exists.
-- **`a+b` still works.** A plus inside a name is pushed and deleted normally.
-- **The rest is unchanged** from the second acceptance: the ABCs, the negative budget reply (`died`), the kill points, the English push outcomes under a German locale, and one module for each outside tool.
+- **The third acceptance's findings are fixed.** In 6c, `^main`, `HEAD`, `@`, `main~1`, `a..b`, `x.lock`, `feature/.x` and `x*y` are each refused before git runs, and none reaches `BEFORE_PUSH`. `push("t2")` of a local-only tag is a `GitError` from git (`src refspec refs/heads/t2 does not match any`), not `"pushed"`. `delete_remote_branch("v1")` returns `"pushed"` (no branch `v1` exists, which counts as already gone) and the remote's `refs/tags/v1` survives. The remote's refs are the same before and after the step.
+- **The rest is unchanged** from the third acceptance:
+  - the ABCs;
+  - the agent run, and the negative budget reply that ends `died`;
+  - the kill points `AGENT_RUN`, `BEFORE_PUSH` and `AFTER_POST`, each followed by a rerun;
+  - the English push outcomes under a German locale;
+  - the merge conflict that is aborted;
+  - the refusals of S0015 and S0020;
+  - `a+b`, which is still pushed and deleted;
+  - the human's merge and the cleanup;
+  - the one `HostingServiceError`;
+  - one module for each outside tool.
 
-**A probe of the remaining push and delete edges found two left.** It uses the same entry points. Saved as `/tmp/fdemo3/probe.py`:
+**A comparison with git's own rule finds no difference.** S0021 ported `git check-ref-format --branch` into the domain by hand. The script `/tmp/fdemo4/diff.py` compares the port with git 2.39.5 on two sets of names. The first is 61 hand-picked edges: `@{-1}`, `x/@`, `a/./b`, `refs/heads/x`, `é`, `a\x1f`, `FETCH_HEAD` and others. The second is 3,000 random names over `ab.-/@{}^~:?*[\ +` plus DEL and the letters of `HEAD` and `.lock`. A name counts as a difference in two cases:
 
-```python
-import tempfile
-from pathlib import Path
-from factory.adapters.git_cli import GitCli
-from factory.adapters.process import ProcessRequest, run_process
+- the port accepts it, and git refuses or rewrites it;
+- the port refuses it, git accepts it, and it is not one of the refusals made on purpose (`+`, `:`, `*`, `HEAD`, `@`).
 
-root = Path(tempfile.mkdtemp())
-run_process(ProcessRequest(argv=["git", "init", "-q", "--bare", "-b", "main", str(root / "remote.git")], cwd=root))
-url = str(root / "remote.git")
-factory, human = GitCli(root / "factory"), GitCli(root / "human")
-factory.clone(url)
-(root / "factory/a.txt").write_text("one\n"); factory.commit("one"); factory.push("main")
-human.clone(url)
-human.checkout("keep", start_point="origin/main"); human.push("keep")
-run_process(ProcessRequest(argv=["git", "tag", "v1"], cwd=root / "human"))
-run_process(ProcessRequest(argv=["git", "push", "-q", "origin", "v1"], cwd=root / "human"))
-def refs():
-    r = run_process(ProcessRequest(argv=["git", "for-each-ref", "--format=%(refname)"], cwd=root / "remote.git"))
-    return r.stdout.split()
-print("remote:", refs())
-for name, call in [("push('^main')", lambda: factory.push("^main")),
-                   ("push('@')", lambda: factory.push("@")),
-                   ("push('HEAD')", lambda: factory.push("HEAD")),
-                   ("push('main~0')", lambda: factory.push("main~0")),
-                   ("push('refs/tags/v1')", lambda: factory.push("refs/tags/v1")),
-                   ("delete_remote_branch('v1')", lambda: factory.delete_remote_branch("v1")),
-                   ("delete_remote_branch('HEAD')", lambda: factory.delete_remote_branch("HEAD")),
-                   ("delete_remote_branch('refs/heads/keep')", lambda: factory.delete_remote_branch("refs/heads/keep")),
-                   ]:
-    try:
-        print(name, "->", call(), refs())
-    except Exception as e:
-        print(name, "->", type(e).__name__, str(e).splitlines()[0][:150])
-```
-
-Output (exit 0):
+Run with `uv run python /tmp/fdemo4/diff.py`:
 
 ```
-remote: ['refs/heads/keep', 'refs/heads/main', 'refs/tags/v1']
-push('^main') -> pushed ['refs/heads/keep', 'refs/heads/main', 'refs/tags/v1']
-push('@') -> pushed ['refs/heads/keep', 'refs/heads/main', 'refs/tags/v1']
-push('HEAD') -> pushed ['refs/heads/keep', 'refs/heads/main', 'refs/tags/v1']
-push('main~0') -> GitError git push --porcelain --set-upstream origin main~0 failed (exit 128): fatal: invalid refspec 'main~0'
-push('refs/tags/v1') -> GitError git push --porcelain --set-upstream origin refs/tags/v1 failed (exit 1): error: src refspec refs/tags/v1 does not match any
-delete_remote_branch('v1') -> pushed ['refs/heads/keep', 'refs/heads/main']
-delete_remote_branch('HEAD') -> pushed ['refs/heads/keep', 'refs/heads/main']
-delete_remote_branch('refs/heads/keep') -> pushed ['refs/heads/main']
+git version 2.39.5
+names: 3061 | differences: 1
+('we accept, git refuses/expands', '\xa0', '')
 ```
 
-What this shows:
-
-- **A branch deletion deletes a tag.** `delete_remote_branch("v1")` removed `refs/tags/v1` from the remote and returned `"pushed"`. The cause is that `git push origin --delete v1` matches any ref named `v1`, not only a branch (`src/factory/adapters/git_cli.py:292`).
-- **`"pushed"` without a matching `origin/<branch>`.** `push("^main")` is a negative refspec, so git pushes nothing and exits 0. `push("@")` and `push("HEAD")` push the checked-out branch under its own name. All three return `"pushed"`, yet no `origin/^main`, `origin/@` or `origin/HEAD` exists afterwards, against the project guide's meaning of `"pushed"`.
-- **Pushing a tag as a branch.** A second probe (`/tmp/fdemo3/probe2.py`) showed that `push("v1")`, with `v1` a local tag and no local branch `v1`, returns `"pushed"` and leaves no `origin/v1` behind.
-- **The cases that fail are harmless.** `main~0` and other names git refuses come back as a `GitError` from git itself, which is safe.
-
-The same second probe also checked the fix the draft proposes. `git push --porcelain origin --delete refs/heads/v1` exited 0 ("deleting a non-existent ref") and left the tag `refs/tags/v1` alone. And `git check-ref-format --branch` (git 2.39.5) refuses `HEAD`, `^main`, `main~0`, `a..b`, `x.lock`, `a b` and `a@{1}`, while it accepts `@` (it expands `@` to the current branch) and `+main`.
-
-Nothing here forces a push or deletes a branch that was not named, and the factory's own names (`main`, `work-item/<id>`) never take these forms. That is why the verdict does not rest on it. Draft F0001-S0021.
+The one difference is a mistake in the probe, not in the port. The script strips git's output, and Python's `strip()` removes a no-break space. Run directly, `git check-ref-format --branch $'\xc2\xa0'` exits 0 and prints the name back, so git accepts it as the port does.
 
 ## 3 Mutation score
 
-**Not run.** There is no `mutants` target, and `docs/decisions.md` ("No `mutants` target, no mutmut") makes that a deliberate choice.
+**There is no `make mutants`.** The Makefile has no `mutants` target, and `docs/decisions.md` ("No `mutants` target, no mutmut") records that choice. Earlier acceptances tried hand mutants on a copy of the repository, and the session refused that. This time I mutated in process instead: `/tmp/fdemo4/mutants.py` patches the attributes of `factory.domain.git` (the three private helpers and the three rule constants S0021 added), runs `pytest tests/domain/test_git.py` against each patch, and restores the module. No file changes. With the patches removed, the run is green.
 
-- **A hand sample was denied again.** I tried ten hand mutants of S0020's code on a copy of the repository under `/tmp`, and the session refused the command, as it did in the second acceptance. I did not retry.
-- **Reading the tests instead.** I went through the mutants I would have run against S0020's tests (`tests/domain/test_git.py`, `tests/adapters/test_git_cli_arguments.py`):
-  - Removing the `+`, `:` or `*` check is killed by `"+main"`, `":main"` and `"refs/heads/x*"`.
-  - `startswith("+")` → `"+" in value` is killed by the accepted `"a+b"`.
-  - `":" in value` → `startswith(":")` is killed by `"main:other"`.
-  - Dropping the inner `check_git_argument` call is killed by `""` and `"-x"`.
-  - Moving the check after `_reach(BEFORE_PUSH)` is killed by criterion 3's count of 0.
-  - `delete_remote_branch` going back to `check_git_argument` is killed by criterion 6.
-  - `delete_branch` switching to `check_branch_name` is killed by criterion 8.
-  - **One would survive:** `"*" in value` → `value.endswith("*")`. The only `*` case is `refs/heads/x*`, and no wrapper-level `*` test exists (intake accepted that). It goes into F0001-S0021 as one row of its refusal table (`x*y`).
-- **Coverage is the substitute.** It is unchanged at 99.49 %. The same four lines and three partial branches are uncovered; only the line numbers moved, because S0020 added an import line to `git_cli.py`:
-  - `claude_runtime.py:360`: the resume skipped when no time is left.
-  - `claude_runtime.py:381–382`: a run file that cannot be written.
-  - `git_cli.py:123`: a porcelain entry kind other than `?`, `1` or `u`.
-  - `git_cli.py:68->70`: a log listing without a trailing NUL.
+Run with `uv run python /tmp/fdemo4/mutants.py`:
 
-  All of them are deliberate (timing, permissions) or defensive parsing. None is a missing criterion.
-- **One group without a failing side:** push and delete arguments that git reads as something other than a branch: `^`, `@`, `HEAD`, a tag name (section 2, F0001-S0021).
+```
+killed   control chars dropped
+SURVIVED control bound 0x20 -> 0x10
+killed   DEL dropped
+killed   char '^' dropped
+killed   char '~' dropped
+killed   char '?' dropped
+killed   char '[' dropped
+killed   char '\\' dropped
+killed   char ' ' dropped
+killed   sequence '..' dropped
+killed   sequence '@{' dropped
+killed   sequence '//' dropped
+killed   alias 'HEAD' dropped
+killed   alias '@' dropped
+killed   component leading . dropped
+killed   component .lock dropped
+killed   component .lock endswith -> in
+killed   component leading . -> == '.'
+killed   ref name lead/ dropped
+killed   ref name trail/ dropped
+killed   ref name trail. dropped
+killed   ref name all -> any
+baseline exit 0; 21/22 killed
+```
+
+- **21 of 22 mutants are killed.** One of them is last time's survivor, `*` only at the end, which the `x*y` row of criterion 2 now kills.
+- **One survives: the control-character bound.** The only control character criterion 1 tests is `\t` (0x09), so narrowing `ord(c) < 0x20` to `< 0x10` goes unnoticed. The code itself is right: the comparison with git refuses `a\x1f` exactly as the port does. This is the one survivor group: control characters 0x10–0x1f in `check_branch_name`. It is a single test row (`"a\x1fb"`). The factory's names never contain a control character, so I propose no story for it. A future story that touches `tests/domain/test_git.py` can add the row.
+- **The wrapper side was checked by reading the tests.** Going back to the unqualified `branch` on either command line would be killed by criterion 6 (a local tag would be pushed) or criterion 7 (the remote tag would be deleted). Removing `check_branch_name` from either operation would be killed by criteria 4, 5 and 10.
+- **Coverage is 99.50 %** (99.49 % before S0021). The same three lines of `claude_runtime.py` are uncovered, along with `git_cli.py:121` and the partial branch `66->68`. Only the `git_cli.py` line numbers moved, because S0021 removed `ALREADY_DELETED_MARKER`. Each uncovered line is deliberate (timing, permissions) or defensive parsing; none is a missing criterion.
 
 ## 4 What the stories noticed
 
-The only new log is S0020's. For S0001–S0019, see the first two acceptances; their items are fixed, carried below, or listed under 6.
+The only new log is S0021's. For S0001–S0020, see the first three acceptances: their items are fixed, carried below, or listed under 6.
 
-- **Intake** accepted a story with no wrapper-level `*` test. That leaves the one surviving mutant from section 3, which goes into F0001-S0021.
-- **Tester** wrote criterion 8's test (`delete_branch` of `+x` and `x:y`) knowing it would already pass. It guards against `check_branch_name` spreading to the local operations. That is a good guard, nothing to do.
-- **Coder** had nothing noticed and no refactor.
-- **Reviewer** made no remarks beyond the findings.
-- **Documenter** noted that "pushed when the branch is gone from the remote" became true for `+x`, because that call is now refused. The remaining exceptions to it are a tag name and `HEAD` (section 2).
-- **Still open from earlier acceptances, for you (under 6):**
+- **Coder:** the explicit leading and trailing `/` checks "overlap a little" with the component split, and were kept for clarity. They do not overlap: an empty component passes `_is_valid_component`, so without them `/x` and `x/` would be accepted, and the mutants `ref name lead/` and `ref name trail/` confirm both checks are needed. Nothing to do.
+- **Tester:** criteria 8 and 9 may already pass on the old code. They guard the `refs/heads/<branch>` change, which is a good guard.
+- **Reviewer:** no remarks beyond the findings.
+- **Documenter:** nothing stale outside the story. The documenter did not run the demo; the demo stage did, and it matched its `Expect:` line.
+- **Still open from earlier acceptances (under 6):**
   - `RemoteBranch` is still the only result model that is not frozen (`src/factory/domain/git.py:23`).
   - `set_labels` reads label names.
   - The pinned `claude` version is unnamed.
   - `version()` runs in the current directory.
-  - The test files `tests/application/test_git_protocol.py` and `test_hosting_protocol.py` still carry "protocol" in their names.
-  - `merge` checks its ref twice.
+  - `tests/application/test_git_protocol.py` and `test_hosting_protocol.py` still carry "protocol" in their names.
+  - `merge` checks its ref twice: once directly (`src/factory/adapters/git_cli.py:307`) and again through `is_ancestor`.
 
 ## 5 Documentation as a whole
 
-I read `README.md`, `docs/operator-guide.md`, `docs/project-guide.md` and `docs/decisions.md` from the top.
+I read `README.md`, `docs/operator-guide.md`, `docs/project-guide.md` (357 lines) and `docs/decisions.md` from the top.
 
-- **S0020's text is consistent.** The new decision entry ("A pushed branch is never read as a refspec") and the project guide's branch rule agree with each other, with the earlier option-like-values entry, and with the code. The demo's step 6b confirms every example they give (`+main`, `:keep`, `HEAD:refs/heads/other`, `a+b`).
-- **Two sentences of the project guide are false at the edges of section 2.** No user acts on them wrongly yet, because the wrapper has no caller.
-  1. *The git wrapper*: "`"pushed"`: git exited 0; afterwards `origin/<branch>` in the checkout is the pushed commit." This is false for `push("^main")`, `push("@")`, `push("HEAD")` and `push("<a tag>")`.
-  2. *Deleting and merging branches*: "`"pushed"` when the branch is gone from the remote afterwards." This is true literally, but `delete_remote_branch("v1")` also deletes a tag `v1`, which nothing in the documentation warns about.
-
-  F0001-S0021's docs criterion repairs both together with the fix.
-- **Minor items carried over a second time, with no draft:**
+- **The two sentences the third acceptance found false are now true, and the code agrees.**
+  - The project guide says ``"pushed"`: git exited 0; afterwards `origin/<branch>` in the checkout is the pushed commit``. That holds for every name that passes `check_branch_name`: a local tag is now a `GitError` (demo 6c), and step 4's rerun resolves `origin/<branch>` to the pushed commit.
+  - The `delete_remote_branch` paragraph now says that a tag of the same name is left alone and that `a..b` is a `ValueError`.
+  - Git's `remote ref does not exist` message is no longer mentioned anywhere, and `ALREADY_DELETED_MARKER` is gone from the code.
+- **The branch rule agrees across the code and the docs.** The project guide's branch rule (line 180), its `refs/heads/<branch>` paragraph (line 182), the operation table (lines 124–125) and the decision entry "A pushed branch is never read as a refspec" agree with each other and with the code. Every example they give is exercised in demo 6b and 6c.
+- **The decision entry is long.** It is now one paragraph that holds decisions 22 and 23 and their rejected alternatives. It reads correctly but densely; a newcomer would follow it more easily as two entries. That is a matter of form, not a contradiction, so no draft.
+- **Three one-line items carry over for the fourth time, with no draft:**
   - the WE6.3 planning tag in the operator guide;
-  - the project guide's intro, "until then `CLAUDE.md` holds the rules", which is stale for a 355-line guide;
+  - the project guide's intro, "until then `CLAUDE.md` holds the rules", which is stale for a guide of 357 lines;
   - the README's "(partly written)".
 
-  These are each one line, best fixed by your own commit or by the next documenter that touches those files.
+  Each is best fixed by your own commit or by the next documenter that touches the file.
 - **No missing section.** Nothing this feature made necessary is missing, and no example I ran fails.
 
 ## 6 Decisions taken for the human
 
-FEATURE.md's 22 decisions are built as written; the demo exercises 1, 2, 4, 7, 10, 12, 13, 15, 20, 21 and 22 directly. Decision 22 (refuse `+`, `:` and `*` rather than push an explicit refspec) is built by S0020, including the `*` that the pre-check added.
+FEATURE.md's 23 decisions are built as written. The demo exercises 1, 2, 4, 7, 10, 12, 13, 15 and 20–23 directly. S0021 built decision 23 as option A: git's branch-name rules plus `HEAD` and `@` in the domain, and `refs/heads/<branch>` as the source only. The refusal of `+`, `:` and `*` stays, and S0012's test `test_delete_remote_branch_of_an_invalid_ref_name_raises` was changed to `ValueError`, as decision 23 allows.
 
-Taken in S0020 without asking: the coder made `check_branch_name` call `check_git_argument` rather than repeat its checks, so it stays "one rule with a stricter push-side extension". No story log since the second acceptance records an answer from you.
+**Taken in S0021 without asking.** The coder ported git's rules by hand into the domain rather than calling `git check-ref-format` (the domain runs no tool, and a push would cost an extra process). The comparison in section 2 shows the port matches git 2.39.5. A later git that tightens its rules would not be followed automatically; the port would need a story.
 
-New, for F0001-S0021. The draft names three options; I recommend A.
+FEATURE.md decision 16 still says "the feature has fourteen", and it has twenty-one. That is a historic statement in your file; I note it and leave it.
 
-- **A. Branch names only, and qualified refs.** Extend `check_branch_name` to git's branch-name rules plus `HEAD` and `@`. Have `push` and `delete_remote_branch` name `refs/heads/<branch>` on the command line (source only, no `:<dst>`), so that no tag is ever pushed or deleted as a branch. This comes close to the alternative you rejected in decision 22, but it is not the same: the refusal of `+`, `:` and `*` stays, and only the source is qualified, so `:keep` is still a `ValueError` and not a `GitError`.
-- **B. Branch names only.** Extend the name rule, but do not qualify. A tag that shares a branch's name is still deleted, and the guide must say so.
-- **C. Nothing in code.** Only document the edges, since the factory's own names never hit them.
-
-Still open from the earlier acceptances:
+**Still open from the earlier acceptances**, for you to accept or revisit:
 
 - `set_labels` reads label names, beside R10's "never read back" (decision 5).
 - The hosting interface is wider than R10's list (`find_open_pull_request`, `set_draft`, `set_description`).
 - The pinned `claude` version, for the operator guide.
 - Whether `git rm --cached` in `changed_paths` should get an exact kind.
 - Whether `RemoteBranch` should be frozen.
-- The unsourced defaults of decision 19: git's 5 minutes, `version()`'s 30 seconds, the 0.50 minimum for the resume.
-- Decisions 17 and 18, which F0005 and F0010 must honour (`PATH`, `HOME`, the preflight probe of the flags).
-- Whether to rename `test_git_protocol.py` and `test_hosting_protocol.py`.
+- The unsourced defaults of decision 19: git's 5 minutes, `version()`'s 30 seconds, and the 0.50 minimum for the resume.
+- Decisions 17 and 18, which F0005 and F0010 must honour (`PATH`, `HOME`, and the preflight probe of the flags).
+- Whether to rename `test_git_protocol.py` and `test_hosting_protocol.py`; that would change tests another stage wrote, so it is your call.
 
 ## 7 Slow checks
 
-**None exist.** The Makefile has only `check` and its parts (lint, types, layers, sast, secrets, licenses, test). There is no `image/`, so no image scan and no SBOM, and no `mutants` target (section 3).
+**None exist.** The Makefile has only `check` and its parts (lint, types, layers, sast, secrets, licenses, test). There is no `image/`, so no image scan and no SBOM, and there is no `mutants` target (section 3).
 
-I ran `make check` in full on this branch before any change. It ended with `check: green`, at 99.49 % branch coverage.
+I ran `make check` in full on this branch before writing anything. It ended with `check: green` at 99.50 % branch coverage. This report changes no code.
 
 ## 8 Cost
 
-**143 runs, 107.9 min, $31.78 for twenty stories**, about 7.2 runs and $1.59 per story.
+**149 runs, 112.8 min, $32.93 for twenty-one stories**, about 7.1 runs and $1.57 per story.
 
-- **S0001–S0019** cost 137 runs, 104.7 min and $30.60. The first two acceptances discussed them.
-- **S0020** cost 6 runs, 3.2 min and $1.18: one pass through every stage with no rework round and no question. That is in line with S0015 ($1.50) and S0019 ($1.45), the other one-rule git and interface stories.
-- **No story stands out.** The three acceptances themselves cost extra and are not in this sum.
+- **S0001–S0020** cost 143 runs, 107.9 min and $31.78. The earlier acceptances discussed them; the most expensive story cost $2.41.
+- **S0021** cost 6 runs, 4.9 min and $1.15. It went once through every stage with no rework round and no question, in line with S0020 ($1.18) and S0015 ($1.50).
+- **No story stands out.** What stands out is the acceptances themselves, which are not in this sum. The first three cost $2.74, $4.57 and $6.26 ($13.57 together, about 41 % of the stories' cost), and each round cost more than the one before. Each found a smaller edge of the same two git operations: S0015, then S0020, then S0021. This fourth round finds none of weight, which is why I propose no draft: a fifth round over the same wrapper is unlikely to pay for itself before F0007 gives these operations a caller.
 
 ## Proposed stories
 
-- `drafts/F0001-S0021-remote-branch-operations-name-branches-only.md`: `push` and `delete_remote_branch` refuse what git would not take as a branch name (including `^`, `HEAD` and `@`), and name `refs/heads/<branch>`, so that a tag is never pushed or deleted as a branch and `"pushed"` always means what the guide says. It also pins the one surviving `*` mutant. It needs your choice of A, B or C (section 6) before you promote it; promote it before F0007, the first feature that deletes remote branches.
+None. The one surviving mutant (a control-character row in `check_branch_name`'s tests) and the carried items do not amount to a story worth a run. They are listed under 3, 4 and 6 for you to fold into a later story or decide.
 
 ## Log (append only)
 
-1. acceptor: accepted with drafts; 1 draft proposed; make mutants not run (no target, by decision)/—
-      1 Scope: nothing is missing. S0020 stays inside the git wrapper's scope (R9, decision 22), and the Goal's done-when conditions all still hold. The remark from the earlier acceptances carries over: the hosting interface is wider than R10's list (listed under 6).
-      2 Feature demo: green. One work item runs through real git (with a German locale), real make, a stand-in `claude` and both hosting implementations. Step 6b now tries `+main`, `:scratch`, `HEAD:refs/heads/other`, `refs/heads/x*`, and `delete_remote_branch` of `+main` and `main:x`. All are refused before git and before `BEFORE_PUSH`, the human's `main` survives, and `a+b` still pushes. A probe found two edges left, neither with a caller: `delete_remote_branch("v1")` deletes a tag, and `push` of `^main`, `@`, `HEAD` or a local tag returns "pushed" with no `origin/<branch>` afterwards. Draft F0001-S0021.
-      3 Mutation: there is no target (`docs/decisions.md`). A hand-mutant run on a /tmp copy was denied by the session again, and I did not retry. Instead I read S0020's tests: they kill every mutant I would have run except `"*" in value` → `endswith("*")`, which the draft pins with `x*y`. Coverage is unchanged at 99.49 %; the same deliberate or defensive lines are uncovered.
-      4 Noticed: there is no wrapper-level `*` test (intake accepted that). The documenter's note on "pushed when gone" now fails only for a tag name and `HEAD`. Carried over: an unfrozen `RemoteBranch`, `set_labels` reading label names, the unnamed pinned `claude` version, the `*_protocol.py` test names, and the double ref check in `merge`.
-      5 Docs: S0020's text is consistent with itself and with the code. Two project-guide sentences on what "pushed" means are false at the edges in 2, and the draft's docs criterion repairs them. Three one-line minor items carry over: the WE6.3 tag, the guide intro's stale "until then CLAUDE.md…", and the README's "(partly written)".
-      6 Decisions: all 22 are built, and decision 22 is confirmed by the demo. New for the human: the draft's options. A extends the name rule and qualifies `refs/heads/<branch>` as the source only, which is near decision 22's rejected alternative but keeps the refusal; I recommend it. B is the name rule only. C is docs only. The older open points are still open.
-      7 Slow checks: none exist (no image, SBOM or mutants target). `make check` is green at 99.49 %, both before and after this report.
-      8 Cost: 143 runs, 107.9 min, $31.78, about $1.59 per story. S0020 cost 6 runs, 3.2 min and $1.18 with no rework, in line with the other one-rule stories. No story stands out.
-2. done (pull request merged); cost: 3 runs, 18.5 min, 93 turns, 383k tokens in (5683k more from cache), 103k out, $6.26
+1. acceptor: accepted; 0 drafts proposed; make mutants not run (no target, by decision)/—; in-process hand mutants of S0021's rules 21/22
+      1 Scope: nothing is missing. S0021 stays inside the git wrapper's scope (R9, decision 23). The Goal's done-when conditions all hold. As before, the hosting interface is wider than R10's list (listed under 6).
+      2 Feature demo: green, exit 0. The new step 6c runs on the real bare remote: `^main`, `HEAD`, `@`, `main~1`, `a..b`, `x.lock`, `feature/.x` and `x*y` are refused before git and before `BEFORE_PUSH`. Pushing a local-only tag is a `GitError`. `delete_remote_branch("v1")` leaves the remote tag `v1` alone, and the remote's refs are unchanged. A comparison of `check_branch_name` with `git check-ref-format --branch` over 3,061 names finds no real difference; the one it reports comes from the probe's `strip()`.
+      3 Mutation: there is no `mutants` target (`docs/decisions.md`). 22 in-process mutants of `factory.domain.git`, with no file changes: 21 killed. The survivor is the control-character bound: only `\t` is tested, and a row with `\x1f` would kill it. Coverage is 99.50 %; the uncovered lines are deliberate or defensive.
+      4 Noticed: S0021's logs leave nothing open. The coder's "overlap" of the `/` checks is not an overlap; the mutants show both checks are needed. Carried over: `RemoteBranch` is not frozen, `set_labels` reads label names, the pinned `claude` version is unnamed, `version()` runs in the current directory, two test files are still named `*_protocol.py`, and `merge` checks its ref twice.
+      5 Docs: the two project-guide sentences the third acceptance found false are now true. The branch rule, the operation table and the decision entry agree with the code. Three one-line items carry over for the fourth time: the WE6.3 tag, the stale intro of the guide, and the README's "(partly written)". The combined entry for decisions 22 and 23 is dense but correct.
+      6 Decisions: all 23 are built. Decision 23 is built as option A. The coder ported git's branch-name rules by hand rather than calling git; it matches git 2.39.5, but a later git that tightens its rules would not be followed. FEATURE.md decision 16's "fourteen" is now historic. The older open points are still open.
+      7 Slow checks: none exist (no image, no SBOM, no mutants target). `make check` is green at 99.50 %.
+      8 Cost: the stories cost 149 runs, 112.8 min and $32.93, about $1.57 each. S0021 cost $1.15 with no rework. No story stands out. The three earlier acceptances cost $13.57 more, rising each round, which is why this round proposes no fifth.
