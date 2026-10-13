@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 16
 blocked: null
 comments_seen: 0
@@ -149,3 +149,14 @@ Expect: one line, `True True True True True True`.
    - Security: no subprocess, string-built commands, secrets or suppression markers added.
    - Quality: the diff is mechanical. The rewritten tests drop the now-unused `STRUCTURAL_FIT` and the `tmp_path` parameter, and leave no dead code.
    - Ticket hygiene: the Assignment matches what was built. The coder's entry gives the main decision (base class and decorator only) and what was rejected (shared helpers on the interfaces). Criterion 16 still describes what the documenter has to write in docs/project-guide.md and docs/decisions.md.
+6. documenter: criterion 16 written; `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`: the six implementation notes (`PyGithubHostingService`, `FakeHostingService`, `GitCli`, `MakeProjectCommands`, `ClaudeCodeRuntime`, `FakeAgentRuntime`) now say the class inherits its interface, an abstract base class. The "satisfies structurally, does not inherit" wording is gone. The four interface sections call the interfaces abstract base classes instead of protocols.
+   - `docs/decisions.md`: new entry "Interfaces are abstract base classes that the factory's own implementations inherit". It records the human's decision of 2026-10-13 and says `typing.Protocol` stays for shapes of code the factory does not own. It lists the rejected alternatives.
+
+   Cross-read and found current: `README.md`, `docs/operator-guide.md`, and the rest of `project-guide.md` against the diff. No operation, signature or constructor changed. A grep finds no remaining "structural" or "protocol" wording, except in the test file names `test_git_protocol.py` and `test_hosting_protocol.py`, which are still correct as written.
+
+   Findings for the coder: none. I did not re-run the two demo commands. They are what the docs criterion cites, and `make check` covers the same facts through the tests.
+
+   `make check`: check: green
