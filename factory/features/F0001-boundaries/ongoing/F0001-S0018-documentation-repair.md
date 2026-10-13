@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Documentation repair after Boundaries
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
