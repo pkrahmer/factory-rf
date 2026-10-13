@@ -18,12 +18,15 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0008 Agent-runtime interface, DTOs and fake | #8 | 9 | 6.1 | 10 (02:22 to 02:32) | $1.96 | 1 (coder: a test vs the pydantic mypy plugin) |
 | F0001-S0009 The `claude -p` runtime: call and result | #9 | 7 | 6.5 | 11 (02:33 to 02:44) | $2.02 | 1 (intake: two criteria the Interface implied) |
 | F0001-S0010 The `claude -p` runtime: resume and version | #10 | 6 | 5.9 | 11 (03:39 to 03:50) | $2.00 | 0 (first-pass) |
+| F0001-S0011 Git wrapper: history and work tree | #11 | 9 | 8.2 | 14 (03:51 to 04:05) | $2.15 | 1 (coder: test commit ids flagged by detect-secrets) |
 
 ## Stops
 
 - S0001, coder at doing: tests used `assert reach(...) is None` against a `-> None` function, red under `mypy --strict`. Answered (a), the tester fixed six lines; `CLAUDE.md` got a test rule to prevent it.
 - S0001, reviewer at review: a rule without its failing side for an already armed point. Answered (a), one criterion and one test added.
 - S0008, coder at doing: a test passed an unknown keyword to a typed pydantic constructor. Answered (a) without a marker; `CLAUDE.md` got a second test rule.
+- S0009, intake: two behaviours of the Interface without criteria. Answered: write both.
+- S0011, coder at doing: random-looking commit ids in a test failed `make secrets`. Answered (a) low-entropy ids; `CLAUDE.md` got a third test rule.
 
 ## Fixes made
 

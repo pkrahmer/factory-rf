@@ -83,3 +83,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 03:50 | S0010 at accept: 16 behavioural criteria mapped, demos met both `Expect:` lines, `make check` green in the container, diff within the story. Merged; archived | #10 | plan, section 8 (approval) |
 | 03:51 | `F0001: start S0011` | | plan, section 8 (start) |
 | 03:56 | S0011: the coder asked (two random-looking commit ids in a test fail `make secrets`). Answered (a): low-entropy ids, no baseline entry, no pragma. `CLAUDE.md` Tests gets the matching line (a tightening) | #11 | plan, section 8: the recommendation loosens nothing |
+| 04:05 | S0011 at accept: 21 behavioural criteria mapped, demo met its `Expect:`, `make check` green in the container, no `.secrets.baseline` change, diff within the story. Merged; archived | #11 | plan, section 8 (approval) |
+| 04:06 | `F0001: start S0012` | | plan, section 8 (start) |
