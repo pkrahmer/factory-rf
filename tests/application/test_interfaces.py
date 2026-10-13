@@ -10,8 +10,8 @@ from typing import get_type_hints
 
 import pytest
 
-from application.test_git_protocol import OPERATIONS as GIT_OPERATIONS
-from application.test_hosting_protocol import OPERATIONS as HOSTING_OPERATIONS
+from application.test_git_interface import OPERATIONS as GIT_OPERATIONS
+from application.test_hosting_interface import OPERATIONS as HOSTING_OPERATIONS
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.git import Git
 from factory.application.hosting import HostingService

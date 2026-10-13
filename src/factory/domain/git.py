@@ -23,6 +23,8 @@ GIT_TIME_LIMIT = timedelta(minutes=5)
 class RemoteBranch(BaseModel):
     """A branch as the remote holds it: its name without the remote's prefix, and its commit."""
 
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
     name: str
     commit: CommitId
 

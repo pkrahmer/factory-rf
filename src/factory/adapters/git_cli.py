@@ -25,6 +25,9 @@ from factory.domain.git import (
 from factory.domain.kill_points import KillPoint
 from factory.domain.paths import REMOTE
 
+# The argument check is exported: every public operation passes it once, at this one name.
+__all__ = ["GitCli", "check_git_argument"]
+
 OUTPUT_TAIL_LINES = 30
 REMOTE_PREFIX = f"refs/remotes/{REMOTE}/"
 # The exit status by which `rev-parse --verify --quiet` and `merge-base --is-ancestor` say "no".
@@ -171,18 +174,12 @@ class GitCli(Git):
     def resolve(self, ref: str) -> CommitId | None:
         """The commit id `ref` points to, or `None` when there is no such ref."""
         check_git_argument(ref)
-        result = self._run(
-            ["rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], accepted=(0, ANSWER_NO)
-        )
-        if result.exit_status == ANSWER_NO:
-            return None
-        return result.stdout.strip()
+        return self._resolve_unchecked(ref)
 
     def show_file(self, ref: str, path: str) -> str | None:
         """The text of `path` at `ref`, or `None` when it is absent or not a file."""
         check_git_argument(ref)
-        listing = self._run(["ls-tree", "-z", ref, "--", path]).stdout
-        blob = _blob_in_listing(listing, path)
+        blob = self._blob(ref, path)
         if blob is None:
             return None
         return self._run(["cat-file", "blob", blob]).stdout
@@ -198,10 +195,7 @@ class GitCli(Git):
         """Whether `ancestor` is reachable from `descendant`."""
         check_git_argument(ancestor)
         check_git_argument(descendant)
-        result = self._run(
-            ["merge-base", "--is-ancestor", ancestor, descendant], accepted=(0, ANSWER_NO)
-        )
-        return result.exit_status == 0
+        return self._is_ancestor_unchecked(ancestor, descendant)
 
     def log(
         self, ref: str, *, since: str | None = None, path: str | None = None
@@ -298,7 +292,7 @@ class GitCli(Git):
     def delete_branch(self, branch: str) -> None:
         """Delete the local `branch` even when unmerged; a missing branch changes nothing."""
         check_git_argument(branch)
-        if self.resolve(f"refs/heads/{branch}") is None:
+        if self._resolve_unchecked(f"refs/heads/{branch}") is None:
             return
         self._run(["branch", "--delete", "--force", branch])
 
@@ -306,9 +300,9 @@ class GitCli(Git):
         """Merge `ref` into `HEAD`; a conflict is aborted, any other refusal is a `GitError`."""
         check_git_argument(ref)
         self._resolve_or_raise(ref, "merge")
-        if self.is_ancestor(ref, "HEAD"):
+        if self._is_ancestor_unchecked(ref, "HEAD"):
             return "up_to_date"
-        if self.is_ancestor("HEAD", ref):
+        if self._is_ancestor_unchecked("HEAD", ref):
             self._run(["merge", "--quiet", "--ff-only", "--end-of-options", ref])
             return "fast_forwarded"
         if fast_forward_only:
@@ -330,7 +324,7 @@ class GitCli(Git):
             check_repository_path(path)
         commit_id = self._resolve_or_raise(commit, "checkout")
         for path in paths:
-            if self.show_file(commit_id, path) is None:
+            if self._blob(commit_id, path) is None:
                 self._delete_path(path)
             else:
                 self._run(["checkout", "--quiet", commit_id, "--", path])
@@ -342,11 +336,31 @@ class GitCli(Git):
         (self._directory / destination).parent.mkdir(parents=True, exist_ok=True)
         self._run(["mv", "--", source, destination])
 
+    # The helpers below take arguments their public caller has already checked.
+
     def _resolve_or_raise(self, ref: str, command: str) -> CommitId:
-        commit = self.resolve(ref)
+        commit = self._resolve_unchecked(ref)
         if commit is None:
             raise GitError(_command([command, ref]), None, f"unknown ref {ref}")
         return commit
+
+    def _resolve_unchecked(self, ref: str) -> CommitId | None:
+        result = self._run(
+            ["rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], accepted=(0, ANSWER_NO)
+        )
+        if result.exit_status == ANSWER_NO:
+            return None
+        return result.stdout.strip()
+
+    def _is_ancestor_unchecked(self, ancestor: str, descendant: str) -> bool:
+        result = self._run(
+            ["merge-base", "--is-ancestor", ancestor, descendant], accepted=(0, ANSWER_NO)
+        )
+        return result.exit_status == 0
+
+    def _blob(self, ref: str, path: str) -> str | None:
+        listing = self._run(["ls-tree", "-z", ref, "--", path]).stdout
+        return _blob_in_listing(listing, path)
 
     def _delete_path(self, path: str) -> None:
         self._run(["rm", "--quiet", "--cached", "--ignore-unmatch", "--", path])
@@ -359,7 +373,7 @@ class GitCli(Git):
         result = self._execute(arguments)
         if result.exit_status == 0:
             return "merged"
-        if self.resolve("MERGE_HEAD") is not None:
+        if self._resolve_unchecked("MERGE_HEAD") is not None:
             self._run(["merge", "--abort"])
             return "conflict"
         raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))

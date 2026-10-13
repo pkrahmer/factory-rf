@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 26
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Housekeeping after Boundaries: one frozen model, one check, honest test names and documents
 
 ## Assignment (as of log entry 1)
@@ -87,3 +95,124 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
 ## Log (append only)
 
 1. 2026-10-13 human: created.
+2. intake: accepted
+   - Interface: `RemoteBranch` is given with `frozen=True, extra="forbid"` and its fields. The `GitCli` paragraph names the operations, the helpers to introduce (`_resolve_or_raise`, `delete_branch`, `merge`'s MERGE_HEAD check, `revert_paths`) and the public methods that keep their checks. The test file moves and the import lines are named.
+   - Criteria: each one fits a single test function. Criteria 1 to 3 cover `RemoteBranch`: frozen, closed to unknown fields, and still constructible and comparable. Criteria 4 and 5 count the checks, parametrized and with the conflict case apart. Criterion 6 keeps the public checks. Criterion 7 covers both sides of the 0x10 boundary: 0x10 and 0x1f are refused, 0x20 is refused as a space, and 0x21 is accepted. Criterion 8 is a file-name search. Criteria 9 and 10 close the list in the required order. Every rule has its failing side tested (criteria 6 and 7).
+   - Demo: the commands run. The `\x10` and `\x1f` escapes reach Python intact through bash double quotes, and Python reads them as control characters. The Expect line names three exact output lines and the listing, so the output can be checked against it.
+   - Architecture: the changes sit in `domain.git`, `adapters.git_cli` and the tests, so the layering is kept. The count tests wrap `check_git_argument` through `monkeypatch`, with no mock of the code under test. The `RemoteBranch` test follows the `type[BaseModel]` rule.
+   - Scope: this is the fourth acceptance's housekeeping, which the human chose in Q27 and recorded as decision 24 in FEATURE.md. The test changes beyond this story's own are limited to those the human allowed. No new dependency, no marker, and no change to `factory/`.
+3. tester: Wrote the tests for criteria 1–8, renamed the two test modules and changed the import lines in `test_interfaces.py`.
+
+   Mapping:
+   - criterion 1: tests/domain/test_git.py::test_remote_branch_refuses_assignment (assigns through `setattr`, like the existing frozen-model tests, so mypy stays clean)
+   - criterion 2: tests/domain/test_git.py::test_remote_branch_refuses_an_unknown_field (constructs through a variable typed `type[BaseModel]`)
+   - criterion 3: tests/domain/test_git.py::test_remote_branch_constructs_and_equal_instances_compare_equal
+   - criterion 4: tests/adapters/test_git_cli_arguments.py::test_operation_checks_its_argument_once (parametrized: merge returns "up_to_date"; reset_to, revert_paths and delete_branch return None). The helper `_count_checks` wraps `factory.adapters.git_cli.check_git_argument` through monkeypatch and still calls the real check.
+   - criterion 5: tests/adapters/test_git_cli_arguments.py::test_conflicting_merge_checks_its_argument_once. The human pushes `shared.txt` to main, the checkout commits a different `shared.txt` and fetches. Counting starts only after that, so the setup's own checks are not counted.
+   - criterion 6: tests/adapters/test_git_cli_arguments.py::test_public_reading_operations_still_refuse_an_option_like_ref (parametrized, on the `checkout` fixture)
+   - criterion 7: new rows in tests/domain/test_git.py. `"a\x10b"`, `"a\x1fb"` and `"a b"` were added to test_branch_name_that_git_would_not_take_as_a_branch_is_refused, and `"a!b"` to test_branch_name_that_git_takes_as_a_branch_is_accepted. The ticket asked for these as rows, so there is no new function.
+   - criterion 8: tests/test_test_names.py::test_no_test_module_is_named_after_a_protocol
+
+   Files:
+   - created: tests/test_test_names.py
+   - renamed (content unchanged): tests/application/test_git_protocol.py → test_git_interface.py, tests/application/test_hosting_protocol.py → test_hosting_interface.py
+   - changed: tests/application/test_interfaces.py (the two import lines only), tests/domain/test_git.py, tests/adapters/test_git_cli_arguments.py
+
+   `make test` is red, with no import or collection errors. Each module under test imports; the tests fail on wrong results. The RemoteBranch tests fail because the model is not frozen and accepts unknown fields. The check-count tests fail because GitCli checks its arguments more than once. The new criterion 7 rows and the criterion 6 and 8 tests already pass: they guard behaviour that exists. `make lint` is green. I skipped the type check, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_git.py::test_remote_branch_refuses_an_unknown_field
+4. coder: Implemented the code side of the housekeeping. `make check` is green (commit "fix(git): freeze RemoteBranch and check each GitCli argument once").
+
+   - `src/factory/domain/git.py`: `RemoteBranch` now has `model_config = ConfigDict(frozen=True, extra="forbid")` (criteria 1–3).
+   - `src/factory/adapters/git_cli.py`: added three private helpers that run git without checking the arguments, because their public callers have already checked them:
+     - `_resolve_unchecked` runs `rev-parse --verify`.
+     - `_is_ancestor_unchecked` runs `merge-base --is-ancestor`.
+     - `_blob` runs `ls-tree` and finds the blob.
+   - The public `resolve`, `is_ancestor` and `show_file` keep their checks and now delegate to these helpers (criterion 6).
+   - These callers now use the helpers instead of the public methods: `_resolve_or_raise`, `delete_branch`, the `MERGE_HEAD` check in `_merge_diverged`, `merge`'s two ancestry tests and `revert_paths`'s per-path read. Each operation now checks each argument once, as its first statements (criteria 4 and 5). No outcome changes.
+   - Criterion 7's rows and criterion 8 already passed against the existing code.
+
+   Decision: the counting test reads `git_cli.check_git_argument`, and mypy's no-implicit-reexport refused that attribute. I added `__all__ = ["GitCli", "check_git_argument"]` to `git_cli.py`, with a one-line comment saying why.
+   - Rejected: `check_git_argument as check_git_argument`, because ruff PLC0414 refuses it.
+   - Rejected: a `noqa`, because no marker is allowed outside `process.py`.
+   - Rejected: changing the test (R9).
+
+   The reviewer may want to judge whether exporting the check through `__all__` is acceptable. It is the first `__all__` in `src/factory`.
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   Not done here: criterion 10's documents (the operator guide's "(WE6.3)", the project guide's intro and the RemoteBranch and test-file names in it, the README's "(partly written)", and the split of decisions 22 and 23 in `docs/decisions.md`). `CLAUDE.md` gives these to the documenter stage. I did not write them.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked:
+   - Acceptance criteria:
+     - Criteria 1–3 are covered by `tests/domain/test_git.py`. The unknown-field test goes through `type[BaseModel]`.
+     - Criteria 4 and 5 are covered by `tests/adapters/test_git_cli_arguments.py`. The wrapper still calls the real check, and counting starts only after the setup.
+     - Criterion 6 is covered in the same file: both arguments of `is_ancestor` are refused.
+     - Criterion 7: the rows 0x10, 0x1f and 0x20 are refused and the row 0x21 is accepted, so both sides of the boundary are tested.
+     - Criterion 8: `tests/test_test_names.py` covers it.
+     - The coder's entry reports `make check` green.
+   - Code: in `src/factory/adapters/git_cli.py` no public `GitCli` method calls another public method any more.
+     - `merge`, `reset_to`, `revert_paths` and `delete_branch` each check their argument once, as their first statement, then use `_resolve_unchecked`, `_is_ancestor_unchecked` and `_blob`.
+     - `_merge_diverged` checks `MERGE_HEAD` through `_resolve_unchecked`.
+     - The public `resolve`, `show_file` and `is_ancestor` keep their checks.
+     - Each operation returns the same results as before.
+   - Architecture: the layers are unchanged and no new tool call or marker was added. `RemoteBranch` is frozen and closed to unknown fields, like the other result models.
+   - The coder's `__all__ = ["GitCli", "check_git_argument"]`: I accept it. Criterion 4 wraps the check by the name `factory.adapters.git_cli.check_git_argument`, and mypy's no-implicit-reexport refuses that name otherwise. The other two options would have needed a `noqa` marker, which is not allowed, or a test change, which R9 forbids. No other test imports anything except `GitCli` from the module, and the comment beside it gives the reason.
+   - Ticket: the Assignment matches what was built, and the log explains the `__all__` decision and the options rejected. Criterion 10 (the docs criterion) still lists everything the documenter has to write: "(WE6.3)", the project guide's intro, the `RemoteBranch` mention, the README, the split of decisions 22 and 23, and the renamed test modules.
+6. documenter: Docs written for criterion 10. `make check` is green. I found no findings.
+
+   Files changed:
+   - `docs/operator-guide.md`: dropped "(WE6.3)" from the sentence on the unchecked `claude` flags. The meaning is unchanged.
+   - `docs/project-guide.md`:
+     - The intro now says the guide grows with each story and that `CLAUDE.md` holds the rules every change follows.
+     - The frozen result models sentence now names four models, including `RemoteBranch`.
+     - Both test-file mentions use `test_git_interface.py`. `test_hosting_protocol.py` was not mentioned in the guide.
+   - `README.md`: dropped "(partly written)" from the project guide link.
+   - `docs/decisions.md`: split the entry "A pushed branch is never read as a refspec" in two.
+     - The first keeps decision 22 (the refusal of `+`, `:` and `*`).
+     - The new entry "A pushed branch is named as a branch, `refs/heads/<branch>`" holds decision 23.
+     - Each entry keeps its date, its reasons and its rejected alternatives. Decision 23's entry now says "after decision 22 above" in place of "Extended the same day".
+
+   Cross-read and found current: the rest of `docs/project-guide.md` against the `GitCli` diff. It names no behaviour that the single-check refactor changed. The README and the operator guide are otherwise unchanged. I did not document `__all__` in `git_cli.py`, because it is an internal detail.
+
+   Stale but not touched, because it is unrelated to this story: `docs/decisions.md` still cites "(WE6.3)" in five other entries. The assignment only asked for the operator guide.
+
+   I ran no examples, because I wrote none.
+
+   `make check`: check: green
+7. demo: ran the demo with no findings.
+
+   Command 1 (`uv run python -c "…"`, which assigns to a frozen `RemoteBranch` and calls `check_branch_name` with 0x10 and 0x1f). It exited with 0:
+   ```
+   frozen
+   refused 0x10
+   refused 0x1f
+   ```
+   This meets its Expect line: the output is exactly the three expected lines.
+
+   Command 2 (`ls tests/application`):
+   ```
+   __init__.py
+   __pycache__
+   test_git_interface.py
+   test_hosting_interface.py
+   test_interfaces.py
+   ```
+   This meets its Expect line: `test_git_interface.py` and `test_hosting_interface.py` are listed, and no file name contains `protocol`.
+
+   Criteria cross-check:
+   - Nothing in the demo contradicts any acceptance criterion.
+   - Docs spot check (criterion 10):
+     - `docs/operator-guide.md` no longer contains "(WE6.3)".
+     - `README.md` no longer contains "(partly written)".
+     - The project guide no longer says "until then".
+     - The project guide's sentence on the frozen result models names `RemoteBranch`.
+     - `docs/decisions.md` has the two separate entries: "A pushed branch is never read as a refspec" and "A pushed branch is named as a branch, `refs/heads/<branch>`".
+   - The renamed modules (criterion 8):
+     - `git ls-files tests` lists no file with `protocol` in its name.
+     - `tests/test_test_names.py` passes.
+   - Old `test_*_protocol*.pyc` files are still in the local `tests/application/__pycache__`. They are untracked, git-ignored bytecode caches, not modules, so they are not a finding.
