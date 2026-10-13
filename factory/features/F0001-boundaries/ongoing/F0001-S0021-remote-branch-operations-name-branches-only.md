@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 24
 blocked: null
 comments_seen: 0
@@ -156,3 +156,21 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
    - Nothing stale seen outside this story.
 
    `make check`: check: green
+7. demo: ran the one demo command from the repository root as written. It met its `Expect:` line. No findings.
+
+   ```
+   pushed
+   pushed
+   refused ^main
+   refused HEAD
+   refused @
+   refused main~1
+   ['refs/heads/main', 'refs/tags/v1']
+   ```
+
+   - Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refused @`, `refused main~1`, `['refs/heads/main', 'refs/tags/v1']`. Met: the output has exactly these seven lines, in this order.
+   - Checked against the acceptance criteria:
+     - Criterion 7: `delete_remote_branch('v1')` returned `pushed`, and the remote tag `refs/tags/v1` survived.
+     - Criteria 1, 4 and 5: `^main`, `HEAD`, `@` and `main~1` were each refused with `ValueError`, and the remote gained no branch. Its only branch is `refs/heads/main`.
+     - Criterion 8 (in part): the push of `main` returned `pushed`.
+     - The demo contradicts no criterion. It does not exercise criteria 2, 3, 6, 9 and 10; the tests listed in the tester's entry cover them.
