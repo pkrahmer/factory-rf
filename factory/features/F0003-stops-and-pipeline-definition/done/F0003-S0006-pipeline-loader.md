@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 45
 blocked: null
 comments_seen: 0
@@ -214,3 +214,4 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
    - Criterion 11 (the definition loads once every role has an agent).
 
    The demo does not exercise the other criteria (ref handling, missing file, `GitError`, `OSError`). Those are covered by tests/application/test_pipeline_loading.py, as the earlier entries record.
+8. done (pull request merged); cost: 6 runs, 5.0 min, 43 turns, 141k tokens in (774k more from cache), 22k out, $1.52
