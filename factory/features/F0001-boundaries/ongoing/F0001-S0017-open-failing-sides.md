@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 19
 blocked: null
 comments_seen: 0
@@ -96,3 +96,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - criterion 6: still accurate for the documenter: the `delete_comment` row in the project guide.
       - Architecture and security: nothing applies. No new dependency, no suppression marker, no secrets. Test values follow CLAUDE.md (real git in tmp_path, the fake hosting service).
       - Considered and rejected as a finding: the new merge test repeats the environment dict from `test_committed_at_is_the_committer_date_in_utc` (6 of its 7 keys) instead of sharing a helper. The Interface asks for exactly that environment, and pulling it out would mean changing a test this story did not write, which needs asking. A shared helper could come with a later story that touches both.
+6. documenter: no findings.
+   - Changed docs/project-guide.md, the `delete_comment` row of the fake's test-operations table. It now says that the id of a comment on another pull request counts as unknown and that comment is left alone (criterion 6).
+   - Cross-read against the diff, found current: docs/project-guide.md line 139 (unmerged paths in `status()` are "modified"). I found no stated rule in the docs that contradicts the trailing-newline refusal or the `move` source check. The diff is tests only, so nothing else could have gone stale.
+   - Stale but unrelated: none seen.
+   - `make check` is green (coverage 99.49 %). I ran no examples because I wrote none.
+
+   `make check`: check: green
