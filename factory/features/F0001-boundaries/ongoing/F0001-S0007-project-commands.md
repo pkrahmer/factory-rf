@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 7
 blocked: null
 comments_seen: 0
@@ -210,3 +210,12 @@ Expect: one line starting with `project command Check; ls failed:` that names th
       - Security: the command runs from an argv list with no shell, and the name is validated before anything starts. The diff adds no suppression markers and no secrets.
       - Quality: the status mapping and the name pattern each exist once, in the domain, and the adapter reuses them. Docstrings are present and accurate. `kill_points` is stored but never used, which the Interface allows explicitly so that wiring stays uniform.
       - Ticket hygiene: the Assignment matches what was built. Criterion 26 still describes what the documenter must write in `docs/project-guide.md` and `docs/operator-guide.md`.
+8. documenter: docs (round 1): wrote the documentation for criterion 26; `make check` is green.
+   - `docs/project-guide.md`: added a "Project commands" section. It covers the `ProjectCommands` protocol and its single `run`, `MakeProjectCommands`, `--no-print-directory` and the three removed make variables, the exit status as the only judgment (make sets 2), the 30-line tail, `last_line`, the name check and `ProjectCommandError`, and the generic `CheckResult` with no layer names. It also says how a project declares its own layers check: a make target of its own, which the factory sees only as a `CheckResult`. Also added `ProjectCommandError` to the Errors section.
+   - `docs/operator-guide.md`: added a note that the make targets `check`, `lint` and `test` are what the factory calls, how each is judged, and that a missing target counts as failed.
+   - Cross-read: README and `docs/decisions.md` have nothing on project commands and needed no change. I checked the rest of the project guide against the diff and found it current.
+   - Findings against the code: none. The trailing-newline name is already fixed with `fullmatch`. Still open from entries 5 to 7: no test covers `"check\n"`; only the human can ask for it.
+   - Stale text seen but not touched: the operator guide's opening sentence says "Nothing is built yet". It is unrelated to this story.
+   - I did not run the doc example, a short snippet of the same call as the demo.
+
+   `make check`: check: green
