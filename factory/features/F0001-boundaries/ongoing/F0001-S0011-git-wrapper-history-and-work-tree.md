@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 11
 blocked: null
 comments_seen: 2
@@ -205,3 +205,10 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
       - Quality: names and docstrings are fine, and the comments explain why.
       - Two things in the diff are not the ticket's work: `CLAUDE.md` and `docs/runs/2026-10-12-overnight/night-log.md`. Both came from main through the merge 374ea1b (the human's commit 91e9581 and the run log), so I did not review them as the ticket's work.
       - Not raised: the edge cases the coder reported in entry 8. `git rm --cached` of an unchanged file shows as "modified" in `changed_paths`, and unmerged entries count as "modified". No criterion covers either case. If the human wants either one exact, it needs its own story.
+10. documenter: changed `docs/project-guide.md`, section "The git wrapper": the operation count is now thirteen (nine reading, four writing). Added table rows for `log`, `changed_paths` and `status`: what they return, and that untracked files count, ignored ones do not, and a rename is a deletion plus an addition. Added a paragraph on the three models (frozen, unknown keys forbidden, aware UTC dates, 40-hex ids) and one saying the undo (`changed_paths`) and the tick (`status()`) use them. Added the two edge cases from the coder's entry 8 (`git rm --cached` shows as "modified", unmerged paths are "modified"), so the reader is not surprised.
+
+    Cross-read: the rest of the git wrapper section, README, `docs/operator-guide.md` and `docs/decisions.md` for stale names. I found nothing to fix. `make check` is green. I did not re-run the Demo (the coder did). The code matches the Interface, so I have no findings.
+
+    Stale but untouched: nothing seen.
+
+    `make check`: check: green
