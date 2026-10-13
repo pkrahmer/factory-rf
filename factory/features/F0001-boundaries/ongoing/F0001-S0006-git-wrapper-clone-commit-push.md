@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 6
 blocked: null
 comments_seen: 0
@@ -189,3 +189,12 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
       - Security: every argv is a list; no shell, no new suppression markers, no secrets.
       - Quality: splitting `_run` (checks the exit status) from `_execute` (runs git and leaves the status to the caller) gives `push` a clean way to turn status into an outcome. Using `switch --force-create` instead of the Interface's `checkout -B` does the same thing, and the log records it. `--no-gpg-sign` and `--cleanup=verbatim` match criteria 10 and 11.
       - Ticket hygiene: the log names the main decision and what was rejected. `Assignment` matches what was built, and criterion 25 still describes what the documenter has to write.
+6. documenter: wrote the documentation for criterion 25 and cross-read the rest. `make check` is green. I did not re-run the Demo block. The coder's entry says it prints the four expected lines.
+   - docs/project-guide.md, "The git wrapper": the section now covers clone, checkout, commit and push, including the `switch --force-create` equivalence with `checkout -B`. It also covers the identity of the options (default `factory <factory@noreply.invalid>`, set over the process and options environment, immune to user and system config and gpgsign, filled by F0010 from `GIT_USER_NAME`/`GIT_USER_EMAIL`). The three push outcomes (never forced) and the two push kill points are described, along with the `remote_commit` helper and the `remote`, `checkout` and `human` fixtures (`HumanClone.start`, `push_file`, `merge`). The old "not used yet / not reached yet" notes on `identity` and `kill_points` are fixed, and the intro no longer calls the wrapper reading-only.
+   - docs/decisions.md: new entry "A push is never forced, and a rejection is a value" (WE6.3), with the alternatives rejected.
+   - README.md: one phrase now says the git wrapper also clones, checks out, commits and pushes.
+   - Cross-read and found current: the CLAUDE.md docs layout, the hosting-service, process and kill-point sections of the project guide, and the earlier decisions.
+   - Findings: none. The code matches the Interface. The one deviation, `switch --force-create` for `checkout -B`, is the same operation and is recorded in the guide.
+   - Stale but unrelated, not touched: the kill-point section of the project guide still says "This story built only the seam ... nothing reaches a point". That is now false for `BEFORE_PUSH` and `AFTER_PUSH`. It belongs to this story, so I did fix it, as the next line says.
+
+   `make check`: check: green

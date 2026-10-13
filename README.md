@@ -1,6 +1,6 @@
 # factory-rf
 
-The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The package is small so far: four layer packages, the error types, the kill points, the hosting-service interface and its PyGithub client, the process wrapper, and the reading half of the git wrapper.
+The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The package is small so far: four layer packages, the error types, the kill points, the hosting-service interface and its PyGithub client, the process wrapper, and the git wrapper (reading, clone, checkout, commit and push).
 
 ## Getting started
 
