@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 19
 blocked: null
 comments_seen: 0
 round: 0
@@ -60,3 +60,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: no change; it names concrete modules and signatures (`MakeProjectCommands.run`, `GitCli.move`, `GitCli.status`, `FakeHostingService.delete_comment`) and the four test files. It also says how the unmerged state is made (plain `git merge` through `run_process` with an isolated environment).
+   - Criteria: each is testable by one function. Every behaviour the Interface states has one: the trailing-newline refusal (1), the unsafe source of `move` (2), the unmerged path listed once as "modified" (3), the comment of another pull request refused (4). Each rule has its failing side, since the story exists to test those sides. Criterion 1 also checks that the marker recipe did not run, and criteria 2 and 4 check that nothing changed.
+   - Demo: one runnable pytest command over the four named files. Its Expect line is checkable (the last line reads `<n> passed`, with no failed, error or skipped count).
+   - Architecture: tests only, in the adapters layer, using real git and the fake hosting service as CLAUDE.md prescribes. No dependency, no change to `factory/`.
+   - Scope: inside F0001. FEATURE.md's decision 21 keeps an unmerged path as "modified", so criterion 3 pins documented behaviour. Nothing is in Out of scope.
