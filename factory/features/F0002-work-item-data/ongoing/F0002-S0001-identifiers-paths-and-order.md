@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 28
 blocked: null
 comments_seen: 0
@@ -176,3 +176,16 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
       - Noticed but not touched: nothing.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1–16 each have a test in tests/domain/test_identifiers.py or tests/domain/test_paths.py, and each test checks what its criterion says. Every rule is tested on its failing side too:
+        - slugs refused by the models (2) and by the parsers (4, 5);
+        - `ValueError` for all 4 id functions × 3 malformed strings (7);
+        - `None` from `work_item_of_branch` (10);
+        - a non-`.md` path in `cost_records_path` (13);
+        - `folder_of` on every non-work-item shape the criterion lists (15).
+        The frozen check uses `setattr`, and the unknown-field check goes through a `type[BaseModel]` variable, as CLAUDE.md asks. Criterion 16 uses the existing tests/source_search.py `imported_modules`, which parses with `ast`. The coder's entry reports `make check` green.
+      - Architecture: both modules stay in `factory.domain` and import only `re`, `typing`, pydantic and each other: no I/O, no clock. F0001's five definitions keep their values; `REMOTE` only moved within paths.py.
+      - The coder's main decision checks out. The Interface puts `BRANCH_PREFIX` in paths and has `folder_of` call the parsers in identifiers, which would be an import cycle. The coder defined the constant in identifiers (with a comment saying why) and re-exported it as `paths.BRANCH_PREFIX`, which has the stated value. I accept this: the public interface is unchanged and `from factory.domain.paths import BRANCH_PREFIX` works. The rejected options are fine too: PLC0415 refuses a deferred import, and copying the regexes would be duplication.
+      - Security: no subprocess, shell, secrets or suppression markers. The parsers use `re.fullmatch`, so a trailing newline cannot slip through.
+      - Quality: public names have docstrings and comments explain why. The private `_WORK_ITEM_ID` repeats the pattern of `WorkItemId`; this is deliberate and explained in the log (F0001's definition is kept exactly as written).
+      - Ticket hygiene: the log gives the main decision and the alternatives it rejected. The Assignment matches what was built. Criterion 18 still names what the documenter has to write: the spellings in project-guide.md and the reason for the sort key in decisions.md.
