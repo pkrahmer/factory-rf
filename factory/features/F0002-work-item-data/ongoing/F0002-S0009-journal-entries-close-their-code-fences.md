@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 37
 blocked: null
 comments_seen: 0
 round: 0
@@ -77,3 +77,9 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
 ## Log (append only)
 
 1. 2026-10-13 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.sections.opening_fence`, `factory.domain.journal.render_entry` and `entry_text`). The rules say how the closing line is built: indent, same character, same count, no info string. Each rule maps to a criterion.
+   - Criteria: each is testable by one test function with literal inputs and outputs (1 to 9). The rules have their failing sides: unclosed vs closed (2, 3, 4), a first-line fence that opens no block (3, 4), two backticks that are no fence and an indented or empty line (4, 9), and the two-digit indent (1). Criteria 10 and 11 close the list as required.
+   - Demo: runnable with `uv run python -c`. The Expect line is checkable: the body layout, `[]` and the repr of `entry_text`.
+   - Architecture: the change is in `factory.domain` only, pure functions with no I/O. This fits the layering in CLAUDE.md, and no new dependency is involved.
+   - Scope: within F0002's scope (journal, sections with code fences respected, form check). The story adds nothing from "Out of scope". Decision 15 in FEATURE.md records the human's choice.
