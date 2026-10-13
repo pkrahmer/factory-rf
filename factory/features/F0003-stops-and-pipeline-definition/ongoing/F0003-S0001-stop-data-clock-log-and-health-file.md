@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 40
 blocked: null
 comments_seen: 2
@@ -262,3 +262,12 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
     - Security: there are no secrets and no shell or SQL. The only markers in the diff are `# noqa: DTZ001` on the tests' deliberately naive datetimes; earlier tests use the same marker (`tests/domain/test_hosting.py`, `tests/domain/test_work_item.py`), and it is not a security marker. `except BaseException` in `write` re-raises after the cleanup.
     - Quality: names are clear and each function does one thing. Comments explain why: standard output comes first, the replace is atomic, and a damaged file reads as healthy. Module, class and `__init__` docstrings are present, and the `@override` methods take their docstrings from the interface. There is no dead code.
     - Hygiene: the log gives the main decision (a temporary file in the same directory plus `os.replace`) and what was rejected (writing in place). The Assignment matches what was built, and docs criterion 27 still says what the operator guide and the decision log must cover.
+12. documenter: docs (round 1): I wrote the documentation for criterion 27 and found nothing for the coder.
+    - `docs/operator-guide.md`: new section "The factory log and the health status file". It covers the time-stamped line format (`YYYY-MM-DDTHH:MM:SSZ`, UTC, whole seconds, one stamp per call, example lines), `health.json` in the state directory (one stop per reason, scope rules, the seven reasons), a missing or damaged file reading as healthy until the next stop, the atomic write, and a directory at the path failing the write.
+    - `docs/decisions.md`: new entry "A damaged health file reads as healthy, and the file is replaced atomically", with the reasons and the rejected alternatives (writing in place, raising on a damaged file).
+    - `docs/project-guide.md`: new section "Stops, the clock and the factory log". It names the models, the three interfaces, their implementations and the `clock` fixture, and says that the service and the wiring belong to S0002.
+    - Cross-read against the diff: the Interface, the rules and the code in `stops.py`, `factory_log.py`, `health_file.py`, `clock.py` and `machine.py` agree with the text. README needed no change, because nothing is runnable yet. The operator-guide intro still says nothing else is started, which is still true. The example log lines are the demo's output; I did not run the demo again.
+    - Stale text that is unrelated to this story: none seen.
+    - `make check` is green.
+
+    `make check`: check: green
