@@ -197,3 +197,20 @@ def test_move_refuses_an_untracked_source_or_an_existing_destination(
 
     assert (directory / "a.txt").read_text(encoding="utf-8") == "a base\n"
     assert (directory / "b.txt").read_text(encoding="utf-8") == "b base\n"
+
+
+@pytest.mark.parametrize("destination", ["../x.txt", "absolute"])
+def test_move_refuses_an_unsafe_destination_before_creating_any_folder(
+    tmp_path: Path, checkout: GitCli, destination: str
+) -> None:
+    directory = tmp_path / CHECKOUT
+    _base(directory)
+    if destination == "absolute":
+        destination = str(tmp_path / "outside" / "x.txt")
+    outside_before = sorted(path.name for path in tmp_path.iterdir())
+
+    with pytest.raises(ValueError, match=r".+"):
+        checkout.move("a.txt", destination)
+
+    assert sorted(path.name for path in tmp_path.iterdir()) == outside_before
+    assert (directory / "a.txt").read_text(encoding="utf-8") == "a base\n"

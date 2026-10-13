@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 13
 blocked: null
 comments_seen: 2
@@ -149,3 +149,12 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
       - Open for the coder when the story comes back (findings 2 and 3):
         - In `src/factory/adapters/git_cli.py` `move`, call `check_repository_path` on `source` and on `destination` before the `mkdir`.
         - Add the path rule to the `Git.move` docstring in `src/factory/application/git.py`.
+9. tester: tester (approved test change, entries 6–8): I added the criterion-12 test that the coder's entry 8 names. I did not touch any other test.
+      - criterion 12: tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_destination_before_creating_any_folder. It is parametrized with two destinations: `../x.txt`, and an absolute `tmp_path/outside/x.txt` that lies outside the checkout. Each call to `checkout.move("a.txt", destination)` must raise `ValueError`. The test then checks that the top-level entries of `tmp_path`, the folder that holds the checkout, are the same as before the call, so no `outside` folder and no `x.txt` appear. It also checks that `a.txt` is still in place.
+      - Why: the human chose option (a) in entry 6, and entry 7 added it to the Interface and as criterion 12.
+      - `make test`: it fails as intended, on both parametrized cases only. `move` does not check its paths yet: git refuses the move and raises `GitError` instead of `ValueError`, and the absolute case also creates the `outside` folder. Every module imports.
+      - `make lint`: green.
+      - Open for the coder: reviewer findings 2 and 3 from entry 7. First, call `check_repository_path` on `source` and on `destination` in `GitCli.move` before the `mkdir`. Second, add the path rule to the `Git.move` docstring.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_destination_before_creating_any_folder[absolute]
