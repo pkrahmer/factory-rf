@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 32
 blocked: null
 comments_seen: 0
-round: 1
+round: 2
 attempts: 0
 ---
 # Journal with speaker and kind as data
@@ -180,3 +180,14 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
       `make check`: check: green
 
    `make check`: check: green
+9. reviewer: Round 1, second review. Groups 1 to 3 pass. Group 4 (quality) fails.
+
+   - Group 1: each of criteria 1–18 has a test that checks what the criterion says. The three gaps from entry 5 are now closed in tests/domain/test_journal.py by `test_entry_text_ignores_an_indented_number`, `test_entry_text_drops_the_blank_lines_before_the_next_section` and the third parametrized body of `test_restore_adds_the_journal_when_the_current_body_has_none`. Each limit the Interface states is tested on both sides: the date rule for human and for non-human speakers, a blank text, an indent width at each digit boundary, the final newline present and absent, and column 0 against an indented line. Entry 8 says `make check` is green.
+   - Group 2: `factory.domain.journal` stays pure, and it imports only from the domain layer. It imports `work_item` only under `TYPE_CHECKING`.
+   - Group 3: the `# noqa: S603` in `test_either_module_can_be_imported_first` follows the same marker in tests/test_layers.py:22 on main and has its reason beside it. The rule in `docs/decisions.md` covers only `src/factory`. No secrets, no shell built from strings.
+
+   Findings:
+   1. src/factory/domain/journal.py:107: the private helper `_last_text_line` has a docstring, but CLAUDE.md (Docs) says there are "none on private names", and no other private function under src/factory has one. Fix: remove the docstring. If the fallback to the heading needs explaining, say why in a comment.
+   2. src/factory/domain/journal.py:173: the private helper `_journal_block` has a docstring, against the same rule. Fix: remove it.
+
+   Checked, not a finding: an entry text whose continuation line opens a fence and never closes it still hides the headings that follow. The coder recorded this as open in entries 4 and 8. No rule in the Interface covers it, and it matters only when a section follows `Journal`. If the human wants it handled, it belongs in a later story.
