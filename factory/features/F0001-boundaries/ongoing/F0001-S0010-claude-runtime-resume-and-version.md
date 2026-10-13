@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 10
 blocked: null
 comments_seen: 0
 round: 0
@@ -113,3 +113,9 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete module `src/factory/adapters/claude_runtime.py`, constants, `resume_budget`, the `ClaudeCodeRuntime` constructor, `run` and `version`, with the rules listed one by one.
+   - Criteria: 18 criteria, each testable by one test function. Each rule has its failing side. Budget: the resumed call also over budget gives `budget` and no third call (5), with exit status 1 on the resumed call too. Time limit: a first call ended by `time_limit` is not resumed (7), and a resumed call ended by `time_limit` gives unknown measures (8). Version: a missing executable, exit 1, empty output (13) and the limit (14). Unknown measures are covered by 9. The kill point is covered by 11, rounding by 1, and the shared environment by 15. Gap noted, not a blocker: killing the call's children is stated in the rules but not tested here; S0004 covers process-group kill.
+   - Demo: both commands are runnable with the stand-in script. The Expect lines are checkable: `2.1.289`, then `completed doing 8 3.25 10 5`, then the list of budgets.
+   - Architecture: the module sits in `factory.adapters`, reached through the `AgentRuntime` protocol and `run_process`. Fit is by structural typing, so no layer is crossed.
+   - Scope: within the feature's scope ("claude -p implementation with the budget resume, the time_limit and the version query"). Nothing falls under "Out of scope". The stand-in is used and the real `claude` is not.
