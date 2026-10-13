@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 32
 blocked: null
 comments_seen: 0
 round: 0
@@ -102,3 +102,9 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete module `src/factory/domain/journal.py` with full signatures for `NewEntry`, `render_entry`, `append_entry`, `entry_text`, `last_record` and `restore_state_and_journal`. The exact fault strings and the TYPE_CHECKING import rule are stated. Every behaviour in the Interface (strip, date rule, indent width, placement, newline handling, text recovery, restore body layout) has a criterion.
+   - Criteria: each is testable by one test function without further decisions. Both sides of every rule are covered. For `NewEntry`, criteria 1 and 2 cover valid and invalid input. `append_entry` fails on no state and on a missing or fenced `Journal` section (9). `entry_text` fails with `no journal entry 7` and with a missing section (11). `last_record` and the restore fail on a missing state (13). The restore fails on a baseline without the section (17). Filters have a no-match case (12).
+   - Demo: both commands are runnable. I counted the first one's expected output as ten lines, and the second one's expected output matches the restore rule.
+   - Architecture: the domain module is pure, reads no file and depends only on S0002 to S0004 pieces. The circular import is handled by an explicit TYPE_CHECKING rule that criterion 18 tests.
+   - Scope: the story is within FEATURE.md scope (SI1.1, the journal, the restore) and touches nothing listed under Out of scope.
