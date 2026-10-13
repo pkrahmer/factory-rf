@@ -105,6 +105,16 @@ def _status_entry(entry: str) -> ChangedPath | None:
     return None
 
 
+def _status_header(entries: list[str], name: str, placeholder: str) -> str | None:
+    # Porcelain v2 headers read "# <name> <value>"; git writes `placeholder` for no value.
+    prefix = f"# {name} "
+    for entry in entries:
+        if entry.startswith(prefix):
+            value = entry.removeprefix(prefix)
+            return None if value == placeholder else value
+    return None
+
+
 def _sorted_changes(changes: dict[str, ChangeKind]) -> list[ChangedPath]:
     return [ChangedPath(path=path, change=changes[path]) for path in sorted(changes)]
 
@@ -200,21 +210,17 @@ class GitCli:
         listing = self._run(
             ["status", "--porcelain=v2", "-z", "--branch", "--untracked-files=all", "--no-renames"]
         ).stdout
-        branch: str | None = None
-        head: str | None = None
+        entries = [entry for entry in listing.split("\0") if entry]
         changes: dict[str, ChangeKind] = {}
-        for entry in filter(None, listing.split("\0")):
-            if entry.startswith("# branch.oid "):
-                oid = entry.removeprefix("# branch.oid ")
-                head = None if oid == "(initial)" else oid
-            elif entry.startswith("# branch.head "):
-                name = entry.removeprefix("# branch.head ")
-                branch = None if name == "(detached)" else name
-            else:
-                change = _status_entry(entry)
-                if change is not None:
-                    changes[change.path] = change.change
-        return WorkTreeStatus(branch=branch, head=head, changes=_sorted_changes(changes))
+        for entry in entries:
+            change = _status_entry(entry)
+            if change is not None:
+                changes[change.path] = change.change
+        return WorkTreeStatus(
+            branch=_status_header(entries, "branch.head", "(detached)"),
+            head=_status_header(entries, "branch.oid", "(initial)"),
+            changes=_sorted_changes(changes),
+        )
 
     def clone(self, url: str) -> None:
         """Clone `url` into the bound directory, creating its missing parents."""
