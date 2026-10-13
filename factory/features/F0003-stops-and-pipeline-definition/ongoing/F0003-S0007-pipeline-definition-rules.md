@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 46
 blocked: null
 comments_seen: 0
@@ -116,3 +116,40 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
    - Architecture: the rules are pure domain validation; the reader only translates the error to a fault; the loader is unchanged. This fits the four layers and the one-reader-per-format rule.
    - Scope: within F0003's "load-time validation" scope and kept decisions 18 and 19. The installed-agent rule belongs to S0006, and nothing here is in "Out of scope".
    - Note for the tester, not a question: criterion 5 needs a text where `done` is absent without leaving other stages' `next: [done]` unknown, or else rule 4 adds faults. Rename `done` consistently in the text.
+3. tester: Wrote red tests for the load-time rules of the pipeline definition. Every case starts from `PIPELINE_YAML` and changes it by text replacement. The adapter tests check that each changed line occurs exactly once before they replace it.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_pipeline_rules.py::test_the_test_pipeline_definition_passes_every_rule
+   - criterion 2: tests/adapters/test_pipeline_rules.py::test_a_contract_major_other_than_one_is_refused (2.0, 0.9, 10.0, 02.0)
+   - criterion 3: tests/adapters/test_pipeline_rules.py::test_a_contract_of_major_one_is_accepted_for_any_minor (1.0, 1.7, 1.10, 01.0)
+   - criterion 4: tests/adapters/test_pipeline_rules.py::test_a_contract_without_major_and_minor_is_refused (1, 1.0.0, v1.0, 1.x)
+   - criterion 5: tests/adapters/test_pipeline_rules.py::test_a_definition_without_a_done_stage_is_refused (renames `done` to `finished` everywhere, as intake suggested, so no `next` becomes unknown)
+   - criterion 6: tests/adapters/test_pipeline_rules.py::test_a_done_stage_with_a_role_or_a_next_is_refused
+   - criterion 7: tests/adapters/test_pipeline_rules.py::test_a_next_naming_an_unknown_stage_is_refused
+   - criterion 8: tests/adapters/test_pipeline_rules.py::test_every_unknown_next_is_a_fault_of_its_own_in_the_order_of_the_text
+   - criterion 9: tests/adapters/test_pipeline_rules.py::test_a_stage_with_an_undefined_role_is_refused
+   - criterion 10: tests/adapters/test_pipeline_rules.py::test_a_role_needs_at_least_one_write_path (0 and 1 paths)
+   - criterion 11: tests/adapters/test_pipeline_rules.py::test_an_approval_stage_with_a_role_is_refused
+   - criterion 12: tests/adapters/test_pipeline_rules.py::test_the_role_checks_report_undefined_roles_then_empty_paths_then_approval_roles
+   - criterion 13: tests/adapters/test_pipeline_rules.py::test_a_reserved_stage_name_is_refused and ::test_a_reserved_role_name_is_refused (human, factory, question each)
+   - criterion 14: tests/adapters/test_pipeline_rules.py::test_checks_and_reports_must_name_project_commands
+   - criterion 15: tests/adapters/test_pipeline_rules.py::test_a_role_time_limit_and_its_stage_checks_must_fit_the_lease (50 accepted, 51 refused)
+   - criterion 16: tests/adapters/test_pipeline_rules.py::test_the_time_limits_of_checks_and_reports_both_count (45 accepted, 46 refused)
+   - criterion 17: tests/adapters/test_pipeline_rules.py::test_each_role_is_measured_against_its_own_lease
+   - criterion 18: tests/adapters/test_pipeline_rules.py::test_a_role_used_by_two_stages_is_measured_at_each_stage (adds stage `extra: {role: coder, next: [done]}`)
+   - criterion 19: tests/adapters/test_pipeline_rules.py::test_a_command_listed_twice_counts_twice
+   - criterion 20: tests/adapters/test_pipeline_rules.py::test_unknown_commands_and_stages_without_a_role_add_no_minutes (two cases)
+   - criterion 21: tests/adapters/test_pipeline_rules.py::test_the_acceptance_stage_must_be_a_stage_with_a_role (nowhere, approval, acceptance)
+   - criterion 22: tests/adapters/test_pipeline_rules.py::test_faults_of_two_rules_are_reported_together_in_the_order_of_the_rules
+   - criterion 23: tests/adapters/test_pipeline_rules.py::test_the_rules_run_only_when_every_field_is_valid
+   - criterion 24: tests/application/test_pipeline_loading_rules.py::test_a_definition_the_rules_refuse_is_one_reported_stop (four cases: unknown next, empty write paths, major 2, time limit over the lease). It checks the raised fault and that the health status holds exactly one stop with (`pipeline_definition_invalid`, fault).
+   - criteria 25 and 26: not tests (`make check`, docs).
+
+   Files created: tests/adapters/test_pipeline_rules.py, tests/application/test_pipeline_loading_rules.py.
+
+   The test runner imported every module; nothing failed to import. The tests fail on wrong results: the rules don't exist yet, so the refusing cases raise nothing or give a different fault. The accepting cases pass already.
+
+   `make lint` is green. I didn't run the type check, as this stage skips it.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_pipeline_loading_rules.py::test_a_definition_the_rules_refuse_is_one_reported_stop[  coder: {write_paths: ["src/*"]}-  coder: {time_limit: 51, write_paths: ["src/*"]}-role coder at stage doing: 61 min exceed lease_duration 60 min]
