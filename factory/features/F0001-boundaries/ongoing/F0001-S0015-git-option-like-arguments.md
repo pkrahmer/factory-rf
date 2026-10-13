@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 17
 blocked: null
 comments_seen: 0
@@ -156,3 +156,18 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
    I ran no examples; I added none. Nothing stale and unrelated to this story.
 
    `make check`: check: green
+7. demo: ran the one Demo command from the repository root, exactly as written. No findings.
+
+   Command 1 (diverged `main`: plain push, then `push('--force')`, then the human's view of `origin/main`):
+   ```
+   rejected
+   refused
+   ['human', 'one']
+   ```
+   Met its `Expect:` line. The three lines are `rejected`, `refused` and `['human', 'one']`, and the human's commit is still the remote's tip.
+
+   Read against the acceptance criteria:
+   - The demo matches criterion 3. `push('--force')` raises `ValueError`, and the remote's `main` stays at the human's commit, so nothing was force-pushed.
+   - It also uses `clone` with a path, `push('main')` and `log('origin/main')`. All three are values the rule accepts (criterion 2), and they ran normally.
+   - Nothing in the output contradicts criteria 1 to 10.
+   - Criteria 11 (`make check`) and 12 (docs) are not demo matters. The coder's and documenter's entries report `make check` green, and the factory runs it again.
