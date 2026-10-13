@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 32
 blocked: null
 comments_seen: 0
@@ -108,3 +108,32 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
    - Demo: both commands are runnable. I counted the first one's expected output as ten lines, and the second one's expected output matches the restore rule.
    - Architecture: the domain module is pure, reads no file and depends only on S0002 to S0004 pieces. The circular import is handled by an explicit TYPE_CHECKING rule that criterion 18 tests.
    - Scope: the story is within FEATURE.md scope (SI1.1, the journal, the restore) and touches nothing listed under Out of scope.
+3. tester: Wrote red tests for every acceptance criterion against the Interface of `factory.domain.journal`.
+   - criterion 1: tests/domain/test_journal.py::test_a_new_entry_strips_its_text_and_needs_a_date_only_from_the_human
+   - criterion 2: tests/domain/test_journal.py::test_a_new_entry_refuses_invalid_values (parametrized: human without `on`, factory with `on`, intake with `on`, `""`, `"  \n"`, speaker `Intake`, kind `note`, unknown field, all through `type[BaseModel]`), ::test_a_new_entry_is_frozen (`setattr`)
+   - criterion 3: tests/domain/test_journal.py::test_render_entry_writes_number_date_speaker_and_text
+   - criterion 4: tests/domain/test_journal.py::test_render_entry_indents_continuation_lines_and_keeps_blank_lines_empty, ::test_the_continuation_indent_is_the_width_of_the_number (boundaries 1, 9, 10, 99, 100 and 999 → 3, 3, 4, 4, 5, 5)
+   - criterion 5: tests/domain/test_journal.py::test_append_entry_writes_the_first_entry_under_the_heading_and_its_record
+   - criterion 6: tests/domain/test_journal.py::test_append_entry_puts_the_next_entry_directly_under_the_last, ::test_append_entry_numbers_the_tenth_entry_ten
+   - criterion 7: tests/domain/test_journal.py::test_append_entry_changes_nothing_else (parametrized with and without a final newline; checks the other state fields, `ignored_keys` and that the input is unchanged)
+   - criterion 8: tests/domain/test_journal.py::test_an_entry_with_a_heading_and_a_fence_adds_no_section
+   - criterion 9: tests/domain/test_journal.py::test_append_entry_refuses_a_document_without_state, ::test_append_entry_refuses_a_body_without_a_journal_section (no section; `## Journal` only inside a fence)
+   - criterion 10: tests/domain/test_journal.py::test_entry_text_returns_the_text_as_it_was_given
+   - criterion 11: tests/domain/test_journal.py::test_entry_text_returns_only_the_entry_asked_for (ten entries; entry 1 has two lines), ::test_entry_text_refuses_a_missing_entry, ::test_entry_text_refuses_a_body_without_a_journal_section
+   - criterion 12: tests/domain/test_journal.py::test_last_record_without_a_filter_is_the_last_record, ::test_last_record_is_the_last_that_matches_every_filter, ::test_last_record_is_none_when_nothing_matches
+   - criterion 13: tests/domain/test_journal.py::test_last_record_refuses_a_document_without_state, ::test_restore_refuses_a_baseline_without_state
+   - criterion 14: tests/adapters/test_journal_as_data.py::test_a_changed_speaker_in_the_text_changes_no_record
+   - criterion 15: tests/domain/test_journal.py::test_restore_returns_the_baseline_state_and_the_current_ignored_keys
+   - criterion 16: tests/domain/test_journal.py::test_restore_puts_the_baseline_journal_back_and_keeps_other_edits (two blank lines before `## After` in the current body stay)
+   - criterion 17: tests/domain/test_journal.py::test_restore_adds_the_journal_when_the_current_body_has_none (current body with and without a final newline), ::test_restore_refuses_a_baseline_without_a_journal_section
+   - criterion 18: tests/domain/test_journal.py::test_either_module_can_be_imported_first (one subprocess per module), ::test_the_journal_imports_the_work_item_only_for_type_checking (uses `ast` through `tests/source_search.py`)
+   - criteria 19 and 20 are for the coder and the documenter.
+
+   Files created: tests/domain/test_journal.py, tests/adapters/test_journal_as_data.py.
+
+   `make test`: both new modules fail at collection with an import error because `NewEntry`, `render_entry`, `append_entry`, `entry_text`, `last_record` and `restore_state_and_journal` don't exist yet in `factory.domain.journal`. That is the expected failure. `make lint` is green. I skipped the type check, as this stage's skill says.
+
+   To keep the new-entry tests valid, I kept the 20-character speaker `Intake Agent` out of `NewEntry` and only edited it into the rendered text.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
