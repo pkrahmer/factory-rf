@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 8
 blocked: null
 comments_seen: 2
@@ -285,3 +285,13 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
       - Quality: every public name has a docstring, and the comments explain why (always being able to ask the human; checking paths first). `AgentRuntimeError` follows the same pattern as `ProjectCommandError`.
       - Ticket hygiene: entry 8 gives the main decision (validate all paths first; per-path rollback rejected), the Assignment matches what was built, and docs criterion 26 still describes what the documenter has to write.
       - Not under review: the `CLAUDE.md` and `docs/runs/…/night-log.md` lines in the diff come from the human's commit ae1cc73 ("CLAUDE.md: test refused fields through type[BaseModel]"), not from this ticket's work.
+10. documenter: wrote the agent-runtime documentation (criterion 26). `make check` is green.
+    - `docs/project-guide.md`: added a section "The agent runtime". It covers the protocol, the request and result DTOs, the five end reasons, unknown measures as `None`, and `question` always allowed. It also covers the fake (`ScriptedRun`, the order of what `run` does, the `agent_runtime` fixture) with a short example. Also added `AgentRuntimeError` to the Errors section.
+    - `docs/decisions.md`: added the entry on why a dead, timed-out or over-budget run is a result and not an error (WE6.3). It gives the alternatives rejected.
+    - `README.md`: the status sentence now names the agent-runtime interface and its fake.
+    - Ran the fake example against the code; it prints `True True`.
+    - Cross-read against the diff: the Kill points section (the `AGENT_RUN` row and the "built only the seam" text) is still true, so I left it. `docs/operator-guide.md` has nothing to correct.
+    - No findings: the code matches the Interface and the docs criterion.
+    - Stale text I saw but did not touch: none.
+
+    `make check`: check: green
