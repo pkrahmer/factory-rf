@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 11
 blocked: null
 comments_seen: 0
 round: 0
@@ -115,3 +115,9 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules (`src/factory/domain/git.py`, `src/factory/application/git.py`) with full signatures for the three DTOs and the three `Git` operations. Test files are named.
+   - Criteria: 23 criteria, each testable by one test function. Every rule in the Interface has one. Frozen and unknown-key models, no "renamed", naive/offset/39-char/uppercase ids: 1. Subject, committer date and ordering: 2–4 and 7. `since` and `path`: 5–6. A missing ref or `since` is a `GitError` (the failing side): 8. Net difference, untracked, ignored, rename, add-then-delete, restore: 9–12. Sorting and non-ASCII paths: 13. `status` branch, head, detached, unborn, kinds, staged and unstaged listed once, ignored: 14–21.
+   - Demo: runnable with `GitCli`, `run_process` and `ProcessRequest` from the earlier stories. The `Expect:` line gives three concrete lines that can be compared.
+   - Architecture: DTOs in the domain layer, the protocol in the application layer, and the implementation behind the git wrapper (R9, R7). No new dependency.
+   - Scope: within the feature's git wrapper scope (log, changed paths, status). Nothing from "Out of scope".
