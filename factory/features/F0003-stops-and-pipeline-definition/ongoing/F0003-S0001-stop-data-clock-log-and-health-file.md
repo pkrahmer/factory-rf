@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 40
-blocked: null
+blocked: question
 comments_seen: 0
 round: 1
 attempts: 0
@@ -221,3 +221,13 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
    - The coder's `make check` was green.
 
    Because the review stops at the first failing group, I did not report on architecture, security, quality or hygiene. A first read found nothing there.
+6. coder: coder (round 1): the review's one finding needs a criterion and a test that I am not allowed to add (R9, R13), so I am asking. I changed no code.
+
+   The finding is that the failing side of the Interface rule "no temporary file stays behind" is untested. When `health.json` is a directory, `JsonHealthStatusFile.write` raises `IsADirectoryError` from `os.replace`. The code already handles this case: `src/factory/adapters/health_file.py:36-43` deletes the temporary file in `except BaseException` and re-raises. No test runs that branch, though, and the Interface's "the next `write` replaces it" is wrong for a directory at the path.
+
+   Question: should the ticket get the criterion the reviewer proposes?
+
+   Options:
+   - (a) Yes (my choice). Add a criterion before 25: "When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory." Also add a sentence to the Interface's `JsonHealthStatusFile` rule: "a directory at the path is not replaced; `write` raises `OSError` and removes its temporary file." After your answer I end with `tests` so the tester writes that one test. The code should pass it as it stands.
+   - (b) No. Accept the uncovered branch, because coverage is 99.5 %. The only change would be to drop "and the next `write` replaces it" for the directory case from the Interface wording. No test or code changes.
+   - (c) Remove the cleanup branch and let a failed write leave its temporary file. I advise against this: it breaks the Interface rule.
