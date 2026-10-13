@@ -17,6 +17,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0007 Project commands and the make class | #7 | 8 | 4.9 | 9 (02:12 to 02:21) | $1.78 | 0 |
 | F0001-S0008 Agent-runtime interface, DTOs and fake | #8 | 9 | 6.1 | 10 (02:22 to 02:32) | $1.96 | 1 (coder: a test vs the pydantic mypy plugin) |
 | F0001-S0009 The `claude -p` runtime: call and result | #9 | 7 | 6.5 | 11 (02:33 to 02:44) | $2.02 | 1 (intake: two criteria the Interface implied) |
+| F0001-S0010 The `claude -p` runtime: resume and version | #10 | 6 | 5.9 | 11 (03:39 to 03:50) | $2.00 | 0 (first-pass) |
 
 ## Stops
 
