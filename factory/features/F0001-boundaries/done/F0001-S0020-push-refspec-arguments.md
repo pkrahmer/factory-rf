@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 22
 blocked: null
 comments_seen: 0
@@ -148,3 +148,4 @@ Expect: four lines: `rejected`, `refused +main`, `refused :main`, `['human', 'on
    - It agrees with the `:` rule from criteria 1 and 4: `:main` is refused, and the remote branch survives.
    - The plain `push('main')` still returns `rejected`, so a normal push is never forced.
    - Nothing in the output contradicts any other criterion.
+8. done (pull request merged); cost: 6 runs, 3.2 min, 32 turns, 140k tokens in (359k more from cache), 11k out, $1.18
