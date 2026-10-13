@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 44
 blocked: null
 comments_seen: 0
@@ -138,3 +138,31 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
    - Demo: runnable with `uv run python -c`. The Expect line gives four checkable lines, including the `tools | invalid tools:` prefix.
    - Architecture: the interface sits in application, the reader in adapters, the errors in domain, and the wiring through `Boundaries`. The one YAML handler, the semgrep naming rule and the ABC convention are all respected.
    - Scope: inside F0003 ("the agent definition reader that tells which agents are installed and reads one"). Refusing runtime-inapplicable keys stays with F0010, and the loader with S0006.
+3. tester: Wrote the red tests for the agent definition reader, one per criterion.
+
+   - criterion 1: tests/adapters/test_agent_files.py::test_names_are_the_sorted_agent_file_stems_alone (leaves out notes.txt, a `nested.md` directory, sub/deep.md, README.md and Coder.md)
+   - criterion 2: tests/adapters/test_agent_files.py::test_names_without_an_agents_directory_is_an_error (two cases: absent, regular file)
+   - criterion 3: tests/adapters/test_agent_files.py::test_an_agent_file_is_read_into_its_definition
+   - criterion 4: tests/adapters/test_agent_files.py::test_effort_left_out_is_none_and_tools_may_be_empty
+   - criterion 5: tests/adapters/test_agent_files.py::test_a_key_the_reader_does_not_interpret_is_left_aside
+   - criterion 6: tests/adapters/test_agent_files.py::test_front_matter_is_read_as_yaml_one_point_two
+   - criterion 7: tests/adapters/test_agent_files.py::test_a_line_of_hyphens_in_the_body_belongs_to_the_instructions
+   - criterion 8: tests/adapters/test_agent_files.py::test_a_file_that_is_not_an_agent_file_is_invalid_as_a_whole (four cases)
+   - criterion 9: tests/adapters/test_agent_files.py::test_a_required_key_left_out_is_named (three cases)
+   - criterion 10: tests/adapters/test_agent_files.py::test_a_value_of_the_wrong_type_is_named_with_its_key (three cases)
+   - criterion 11: tests/adapters/test_agent_files.py::test_a_budget_that_is_not_a_positive_number_is_refused (0, -1, high, true) and ::test_a_budget_of_one_cent_is_accepted (0.01)
+   - criterion 12: tests/adapters/test_agent_files.py::test_a_missing_key_is_reported_before_an_invalid_value
+   - criterion 13: tests/adapters/test_agent_files.py::test_an_agent_without_a_file_is_missing (nobody; coder.md as a directory)
+   - criterion 14: tests/adapters/test_agent_files.py::test_a_name_that_is_not_an_agent_name_is_missing_without_reading_a_file (`../x`, `a/b`, `Coder`). The test puts valid agent files at `<agent_home>/x.md`, `agents/a/b.md` and `agents/Coder.md`, so reading any of them would return a definition instead of raising.
+   - criterion 15: tests/application/test_agent_definition_reader.py::test_agent_definition_errors_carry_name_fault_and_key
+   - criterion 16: tests/application/test_agent_definition_reader.py::test_agent_definition_reader_is_abstract_with_names_and_read, ::test_agent_definition_reader_methods_are_their_docstrings_alone, ::test_frontmatter_reader_implements_the_agent_definition_reader
+   - Boundaries field (Interface): tests/application/test_agent_definition_reader.py::test_boundaries_hand_out_a_frontmatter_reader_on_the_agent_home
+
+   Files: created tests/adapters/test_agent_files.py and tests/application/test_agent_definition_reader.py. Changed tests/conftest.py: a new `agent_home` fixture (`tmp_path / "agent-home"`, nothing created in it), and the `boundaries` fixture now passes `agent_definitions=FrontmatterAgentDefinitionReader(agent_home)`, as the Interface says. The adapter tests build the reader directly on `agent_home` so they don't need a git checkout. Only the boundaries test goes through the fixture.
+
+   Not tested: `split_front_matter` on its own. No criterion names it, and the existing work item reader tests are unchanged.
+
+   `make test` result: conftest fails to import with ModuleNotFoundError: No module named 'factory.adapters.agent_files', so every test is red for the right reason until that module exists. Also not importable yet: `factory.application.agent_runtime.AgentDefinitionReader` and `factory.domain.errors.AgentDefinitionError/Missing/Invalid`. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.agent_files'
