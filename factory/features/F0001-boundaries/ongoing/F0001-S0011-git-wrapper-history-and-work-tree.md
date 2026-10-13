@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 11
 blocked: null
 comments_seen: 2
@@ -212,3 +212,26 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
     Stale but untouched: nothing seen.
 
     `make check`: check: green
+11. demo: no findings.
+
+    I ran the single Demo command from the repository root exactly as written. It exited with code 0.
+
+    ```
+    ['second commit', 'first commit']
+    [('a.txt', 'modified'), ('b.txt', 'added')]
+    main [('a.txt', 'modified'), ('b.txt', 'added')]
+    ```
+
+    The output matches the `Expect:` line on all three lines:
+    - `log('HEAD')` returns the subjects newest first.
+    - `changed_paths('HEAD~1')` lists the unstaged edit as "modified" and the untracked file as "added", sorted by path.
+    - `status()` names the branch `main` and lists the same two changes.
+
+    I read the acceptance criteria again. Nothing in the Demo contradicts any of them:
+    - Criterion 2 (newest first) and criterion 10 (unstaged and untracked count in `changed_paths`) hold.
+    - Criteria 14 and 15 hold for the branch name, the untracked file as "added" and the unstaged edit as "modified".
+    - Criterion 13 holds: the lists are in plain string order.
+
+    For criterion 23, `docs/project-guide.md` lines 98–105 describe what `changed_paths` and `status()` return, and the same table also covers `log`. They say that untracked files count, ignored ones do not, and a rename is a deletion plus an addition, and that the undo and the tick use these operations. I did not run `make check` myself. The factory runs it after this stage, and entries 8 and 10 report it green.
+
+    Still open, and outside this ticket's criteria: the two edge cases from entry 8. A path removed with `git rm --cached` shows as "modified" in `changed_paths`, and unmerged paths show as "modified" in `status()`. Each one would need its own story if the human wants it exact.
