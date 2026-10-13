@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 14
 blocked: null
 comments_seen: 0
@@ -164,3 +164,12 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
    Noticed, not touched: `delete_comment` with an id that belongs to another pull request raises `HostingServiceError`, because it searches only the comments of the given pull request. No criterion covers this case, as intake noted. Criterion 20 (docs) is left for the documenter.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read every test against its criterion. Criteria 1–18 each have a test that checks what the criterion names. The failing sides of the Interface's rules are tested: an unknown pull request number for all 15 operations (criterion 14), an unknown comment id (13), a repeated key (11, 12), an injected failure that posts nothing (15), an unknown operation for `fail_next` (16), and `times` on both sides of its limit, 0 refused and 1 accepted (16). Criterion 17 checks every module under `src/factory` (`tests/source_search.py`) and every file under `tests/`, and leaves out `Protocol` classes. Criterion 18 relies on the variable annotated `HostingService` that mypy checks, and also checks the MRO. Per the coder's entry, the factory's `make check` after the coder was green.
+   - Architecture: `src/factory/adapters/fake_hosting.py` imports only `factory.domain`. It fits the protocol structurally without inheriting from it. It calls no tool, and no `dict[str, Any]` crosses a function boundary.
+   - Security: no suppression markers, no secrets (the commit id is `"a" * 40`), and no shell or file I/O.
+   - Quality: `post_comment` follows `PyGithubHostingService.post_comment` (key check, then post, then `AFTER_POST`). `set_labels` uses the shared `LABEL_PREFIX`. Comments go through `PullRequestComment.from_body`, as in the real client. Public names have docstrings and private ones have none.
+   - Ticket hygiene: the coder's entry explains the main decision (a private mutable `_PullRequest` with fresh frozen views) and what was rejected (`model_copy` with side dictionaries). `Assignment` matches what was built. Criterion 20 still says what the documenter must write.
+
+   Open, not a finding: `delete_comment` raises `HostingServiceError` when the id belongs to another pull request. No criterion states this case, as intake, the tester and the coder all noted.
