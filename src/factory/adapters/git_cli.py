@@ -18,6 +18,7 @@ from factory.domain.git import (
     PushOutcome,
     RemoteBranch,
     WorkTreeStatus,
+    check_branch_name,
     check_git_argument,
     check_repository_path,
 )
@@ -276,7 +277,7 @@ class GitCli(Git):
 
     def push(self, branch: str) -> PushOutcome:
         """Push `branch` without force; a refusal or an unreachable remote is a value."""
-        check_git_argument(branch)
+        check_branch_name(branch)
         self._reach(KillPoint.BEFORE_PUSH)
         arguments = ["push", "--porcelain", "--set-upstream", REMOTE, branch]
         result = self._execute(arguments)
@@ -287,7 +288,7 @@ class GitCli(Git):
 
     def delete_remote_branch(self, branch: str) -> PushOutcome:
         """Delete `branch` on the remote; already gone counts as deleted, like `push`'s values."""
-        check_git_argument(branch)
+        check_branch_name(branch)
         arguments = ["push", "--porcelain", REMOTE, "--delete", branch]
         result = self._execute(arguments)
         if result.exit_status == 0 or ALREADY_DELETED_MARKER in result.stdout:
