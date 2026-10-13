@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 25
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014, F0001-S0015, F0001-S0016, F0001-S0017, F0001-S0018, F0001-S0019, F0001-S0020, F0001-S0021]
+outcome: accepted
 ---
 # Acceptance of Boundaries
 
@@ -468,3 +469,4 @@ None. The one surviving mutant (a control-character row in `check_branch_name`'s
       6 Decisions: all 23 are built. Decision 23 is built as option A. The coder ported git's branch-name rules by hand rather than calling git; it matches git 2.39.5, but a later git that tightens its rules would not be followed. FEATURE.md decision 16's "fourteen" is now historic. The older open points are still open.
       7 Slow checks: none exist (no image, no SBOM, no mutants target). `make check` is green at 99.50 %.
       8 Cost: the stories cost 149 runs, 112.8 min and $32.93, about $1.57 each. S0021 cost $1.15 with no rework. No story stands out. The three earlier acceptances cost $13.57 more, rising each round, which is why this round proposes no fifth.
+2. done (pull request merged); cost: 4 runs, 22.5 min, 119 turns, 449k tokens in (6849k more from cache), 122k out, $7.41
