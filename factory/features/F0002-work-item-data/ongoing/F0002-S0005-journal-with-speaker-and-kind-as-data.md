@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 32
 blocked: null
 comments_seen: 0
@@ -153,3 +153,13 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
    3. tests/domain/test_journal.py::test_restore_adds_the_journal_when_the_current_body_has_none vs. src/factory/domain/journal.py:327-328. The Interface says the baseline's block goes at the end "after one blank line". Both parametrized bodies (`"# T\n\nSpec.\n"`, `"# T\n\nSpec."`) end in a non-blank line, so the "one" is never tested against a body that already ends in blank lines, and the coder reports this branch as uncovered. Fix: add a current body like `"# T\n\nSpec.\n\n\n"` to the parametrization, expecting exactly one blank line before `## Journal`.
 
    Checked and not a finding: the `# noqa: S603` in `test_either_module_can_be_imported_first` follows the existing marker in tests/test_layers.py:22 on main, and the guard in `docs/decisions.md` covers `src/factory` only. I did not review groups 2–5 because group 1 failed.
+6. coder: Round 1. All three review findings are missing tests, not wrong code. I may not edit tests (R9), so I'm sending the ticket to the tester with the exact additions. I made no code change and no commit.
+      I ran each finding's case against the current `src/factory/domain/journal.py` from the command line. All three already behave as the Interface says, so the new tests should pass without a code change:
+      - `entry_text` and indented numbers: `entry_text(document, 1)` returns `'accepted\n2. not an entry'` for an entry whose continuation line is `   2. not an entry`. `entry_text(document, 2)` raises `WorkItemFormatError` `no journal entry 2`.
+      - `entry_text` and trailing blank lines: for the body `...1. intake: accepted\n   2. not an entry\n2. intake: x\n\n\n## After\n`, `entry_text(document, 2)` returns `'x'`.
+      - Restore onto a body ending in blank lines: the current body `'# T\n\nSpec.\n\n\n'` with no Journal section gives `'# T\n\nSpec.\n\n## Journal\n\n1. intake: accepted\n   2. not an entry\n'`, with exactly one blank line before the heading.
+      Test changes for the tester, all in tests/domain/test_journal.py:
+      (1) Add a test where entry 1's text has the continuation line `2. not an entry`. It asserts that `entry_text(document, 1)` returns the whole text including that line, and that `entry_text(document, 2)` raises `no journal entry 2`.
+      (2) Add a test where the last entry is followed by blank lines and a `## After` section. It asserts that `entry_text` returns that entry's text with no trailing blank line.
+      (3) Add the current body `"# T\n\nSpec.\n\n\n"` to the parametrization of `test_restore_adds_the_journal_when_the_current_body_has_none`. It expects exactly one blank line before `## Journal` and a final newline.
+      Nothing else is open.
