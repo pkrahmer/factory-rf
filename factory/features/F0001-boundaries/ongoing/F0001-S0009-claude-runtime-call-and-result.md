@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 9
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -131,3 +131,10 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: Intake checked S0009 and cannot accept it yet. The format check passed. The Interface, the Demo, the architecture and the scope are fine. Two behaviours stated in the Interface have no criterion that tests them:
+
+   1. The Interface says `tokens` is known when `input_tokens` and `output_tokens` are both present, "the cache counts default to 0". Criterion 8 gives all four counts. Criterion 10 only covers `tokens` being `None`. Nothing tests a `usage` with just input and output tokens, which should give cache counts of 0. Two coders could read the default two ways, for example `None` or a missing count, and both would pass. Proposal: add a criterion, before the two closing ones, saying that a reply whose `usage` has only `input_tokens` 10 and `output_tokens` 5 gives `tokens` with those two counts and cache-read and cache-creation counts of 0. I would choose this.
+
+   2. The Interface says a denial's detail is `json.dumps(tool_input, sort_keys=True)`. Criterion 8 uses a one-key input, so the sorting is never tested. Proposal: add a criterion, or extend criterion 8, so the denial's `tool_input` has two keys in non-alphabetical order (for example `{"b": 1, "a": 2}`) and the detail is `{"a": 2, "b": 1}`. I would choose this.
+
+   Please answer, or say that I should write both criteria as proposed.
