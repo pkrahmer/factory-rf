@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 31
 blocked: null
 comments_seen: 0
@@ -208,3 +208,11 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
        - Considered and not raised:
          - An info string after a backtick fence may contain backticks. The Interface does not forbid this, and the coder noted it in entries 4, 8 and 12.
          - A paragraph passed with leading blank lines is not trimmed. The Interface does not specify this case.
+14. documenter: docs (round 2): no findings; docs written for criterion 18, demo example run, `make check` green.
+    - `docs/project-guide.md`: new section "Sections of a Markdown body". It covers how sections are found (outside code fences, column-0 `## `, exact case-sensitive heading text, first section wins, the three constants, `required_sections` from the project's form) and the function table. It says `insert_paragraph` errors and that every module needing a heading or fenced block uses `factory.domain.sections`. It includes the story's demo command; I ran it and the output matches.
+    - `docs/decisions.md`: new entry "A heading inside a code fence is not a heading", which records that fenced headings are ignored (v1 did not), the alternative rejected, and the unclosed-block consequence.
+    - Cross-read: README and `docs/operator-guide.md` have nothing on sections or fences and are still current. The rest of `docs/project-guide.md` is not touched by this diff.
+    - Code vs. Interface: no contradiction found; module and public docstrings are present.
+    - Stale but untouched: nothing seen.
+
+    `make check`: check: green
