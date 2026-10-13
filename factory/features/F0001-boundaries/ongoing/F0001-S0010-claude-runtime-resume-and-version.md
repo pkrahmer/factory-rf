@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 10
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The claude agent runtime: the budget resume and the version
 
 ## Assignment (as of log entry 1)
@@ -105,3 +113,130 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete module `src/factory/adapters/claude_runtime.py`, constants, `resume_budget`, the `ClaudeCodeRuntime` constructor, `run` and `version`, with the rules listed one by one.
+   - Criteria: 18 criteria, each testable by one test function. Each rule has its failing side. Budget: the resumed call also over budget gives `budget` and no third call (5), with exit status 1 on the resumed call too. Time limit: a first call ended by `time_limit` is not resumed (7), and a resumed call ended by `time_limit` gives unknown measures (8). Version: a missing executable, exit 1, empty output (13) and the limit (14). Unknown measures are covered by 9. The kill point is covered by 11, rounding by 1, and the shared environment by 15. Gap noted, not a blocker: killing the call's children is stated in the rules but not tested here; S0004 covers process-group kill.
+   - Demo: both commands are runnable with the stand-in script. The Expect lines are checkable: `2.1.289`, then `completed doing 8 3.25 10 5`, then the list of budgets.
+   - Architecture: the module sits in `factory.adapters`, reached through the `AgentRuntime` protocol and `run_process`. Fit is by structural typing, so no layer is crossed.
+   - Scope: within the feature's scope ("claude -p implementation with the budget resume, the time_limit and the version query"). Nothing falls under "Out of scope". The stand-in is used and the real `claude` is not.
+3. tester: Wrote the red tests for the budget resume, the shared time_limit, the added-up measures and the version query of the `claude -p` runtime. All of them are in one new file, `tests/adapters/test_claude_runtime_resume.py`. It uses the S0009 stand-in from `tests/adapters/claude_stand_in.py` without changes, since no new helper was needed.
+
+   Criterion → test (all in tests/adapters/test_claude_runtime_resume.py):
+   - criterion 1: test_resume_budget_is_a_quarter_at_least_fifty_cents_rounded_half_up (parametrized over all 8 values; checks the Decimal value and its string, e.g. `1.00`)
+   - criterion 2: test_budget_stop_resumes_the_same_session_with_the_finish_message
+   - criterion 3: test_resumed_call_sees_the_same_run_files_and_none_is_left
+   - criterion 4: test_completed_resume_adds_up_the_measures_and_joins_the_denials
+   - criterion 5: test_resume_still_over_budget_ends_as_budget_without_a_third_call (parametrized: the resumed call exits 0 or 1; a third step is scripted to show it is never played)
+   - criterion 6: test_budget_stop_with_exit_status_1_is_resumed
+   - criterion 7: test_first_call_ended_by_the_time_limit_is_not_resumed
+   - criterion 8: test_resume_gets_what_is_left_of_the_time_limit_and_unknown_measures
+   - criterion 9: test_measures_a_call_did_not_report_add_nothing (parametrized: only the resumed call reported / neither did)
+   - criterion 10: test_duration_covers_both_calls
+   - criterion 11: test_armed_kill_point_fires_only_after_the_resumed_call, test_unarmed_kill_point_is_reached_once_for_a_resumed_run
+   - criterion 12: test_version_is_the_first_word_of_the_first_non_blank_line (parametrized: first line / after blank lines; also checks that the argv is exactly `--version`)
+   - criterion 13: test_version_that_cannot_be_read_is_a_runtime_error (parametrized: missing executable, exit status 1, prints nothing)
+   - criterion 14: test_version_query_over_its_limit_is_a_runtime_error (also checks that VERSION_TIME_LIMIT is 30 s)
+   - criterion 15: test_version_query_sees_the_processes_environment
+   - criterion 16: test_claude_runtime_fits_the_agent_runtime_protocol_structurally. It assigns the runtime to a variable annotated `AgentRuntime`, which mypy checks, and it asserts that `AgentRuntime` is not in the MRO. It does not use `issubclass`, because that raises TypeError on a protocol that is not runtime_checkable.
+   - criteria 17 and 18 are not tests: `make check` is the gate, and the docs criterion is for the docs stage.
+
+   Note for the coder on criterion 8: the test also asserts that the whole run takes under 2.9 s. That is the observable form of "the resumed call's limit was what was left": a resume given the whole 2 s again would end near 3 s.
+
+   `make test`: collection error in the new module. The test runner could not import `FINISH_MESSAGE` from `factory.adapters.claude_runtime`; `resume_budget`, `VERSION_TIME_LIMIT`, the `version_time_limit` keyword and `version()` are missing too. `make lint` is green. I did not run the type check, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Finished the `claude -p` runtime in `src/factory/adapters/claude_runtime.py`. The work is in commit ae7e0df, with a refactor in 1ae8504. `make check` is green and all of the tester's tests pass unchanged.
+
+   - Added `FINISH_MESSAGE`, `MINIMUM_RESUME_BUDGET`, `VERSION_TIME_LIMIT` and `resume_budget`. `resume_budget` takes a quarter of the budget, rounds it half up to cents and keeps it at 0.50 or more.
+   - `_end_reason` now gives `budget` when the reply's `subtype` is `error_max_budget_usd`. It checks this right after the time-limit check and before the exit status, so a budget stop is recognised whatever the exit status.
+   - When the first call ends with `budget`, `ClaudeCodeRuntime.run` calls `_resume` once:
+     - The resume uses the first call's arguments with three changes: `-p` is `FINISH_MESSAGE`, `--session-id` becomes `--resume`, and `--max-budget-usd` is the resume budget.
+     - Its time limit is what is left of `request.time_limit`, measured from the start of `run`.
+     - The resumed call's reply is read by the same S0009 rules, so a second budget stop ends as `budget` and no third call is ever made.
+   - `_resumed_result` adds up the measures of both calls:
+     - Turns and cost are added by `_add`, the token counts by `_add_tokens`; `None` adds nothing.
+     - When the resume is ended by the time limit, turns, cost and tokens are `None` (R24).
+     - The permission denials are joined, the first call's first.
+   - The run's `duration` is set once, after the last call. `KillPoint.AGENT_RUN` is reached once, after that.
+   - `version()` runs `<executable> --version` through `run_process`. It uses the current working directory, the inherited environment (`env=None`) and `version_time_limit`, and returns the first word of the first non-blank line. It raises `AgentRuntimeError` when the call cannot be started, times out, exits non-zero or prints nothing. `ClaudeCodeRuntime` now satisfies `AgentRuntime` structurally, as mypy confirms.
+
+   Design decision: each call goes through the existing `_result`, and the two results are then combined. I rejected a second parser that reads the raw replies of both calls together, because the S0009 rules for one call (killed calls have no measures, the decision only on `completed`) would have had to be repeated.
+
+   Edge case not covered by a test: if the first call used up the whole time limit without being killed, nothing is left for the resume. `ProcessRequest` refuses a limit of 0, so in that case the resume is skipped and the run ends as `time_limit` with unknown measures (`claude_runtime.py`, in `_resume`). It is the only new line coverage misses.
+
+   Refactor (1ae8504): `_result` no longer takes a duration, because the run sets it once. Nothing else needed changing.
+
+   Noticed, not touched:
+   - `_add` and `_add_tokens` both do the "`None` adds nothing" check. I kept them apart because `TokenCounts` has no `+`.
+   - The `cwd` of the version query is the process's current directory, which the interface does not name.
+   - Docs (criterion 18) are for the documenter stage.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`: `src/factory/adapters/claude_runtime.py` and `tests/adapters/test_claude_runtime_resume.py`.
+
+   1. Acceptance criteria: criteria 1–16 each have a test named in the tester's entry, and each test checks what its criterion says.
+      - `resume_budget` is tested on both sides of the 0.50 floor (2 → 0.50, 2.04 → 0.51), plus a case where a half cent rounds up (2.10 → 0.53).
+      - A second budget stop is tested with exit status 0 and 1, and a third step is scripted to show it is never played.
+      - Criterion 8 checks that the resume gets only what is left of the time limit (whole run under 2.9 s) and that the measures are `None`.
+      - The version query is tested on its failing sides: missing executable, exit status 1, no output, and over its limit.
+      - The structural fit to `AgentRuntime` is checked by mypy through the annotated assignment, and the test also checks that `AgentRuntime` is not in the MRO.
+      - The coder's entry reports `make check` green.
+   2. Architecture: all changes are in `factory.adapters`. Processes are started only through `run_process`, and the internal types are Pydantic models or typed values, with no `dict[str, Any]`.
+   3. Security: no secrets, no shell built from strings (argv is a list), and no suppression markers.
+   4. Quality:
+      - The main design, where each call goes through `_result` and `_resumed_result` combines the two, avoids repeating S0009's rules for a single call.
+      - The budget check in `_end_reason` comes after the time-limit check and before the exit status, as the Interface asks, and a comment explains why.
+      - The new public names have docstrings.
+   5. Ticket hygiene: the log gives the design decision and what was rejected, and the Assignment matches what was built.
+
+   Open, not findings:
+   - The branch in `_resume` where no time is left is not covered by a test. The coder named this edge case; it ends as `time_limit` with unknown measures, which follows R24.
+   - The intake noted that killing a call's children has no test here; S0004 covers that in `run_process`.
+   - The version query runs in the process's current directory, which the Interface does not name.
+6. documenter: wrote the documentation for the budget resume, the shared `time_limit`, the added-up measures and the version query. `make check` is green. I wrote no new runnable examples.
+
+   Files changed:
+   - `docs/project-guide.md`: in "The agent runtime", the `ClaudeCodeRuntime` text no longer says it lacks `version` or the resume, and now says it satisfies `AgentRuntime` structurally. The new constructor argument `version_time_limit` is listed.
+     - The end-reason rule now says `error_max_budget_usd` is `budget`, checked after `time_limit` and before the exit status.
+     - The kill point is described as reached once, after the last call.
+     - New paragraphs cover the resume arguments and `resume_budget`, the one `time_limit` across both calls (including the skipped resume when no time is left), the summed measures, and `version()`.
+     - The summed measures are `None` after a resumed call ended by the `time_limit` (R24). `FINISH_MESSAGE` asks for `question` where v1 asked for `stuck`.
+   - `docs/operator-guide.md`: says which `claude` version is read and that the preflight comparison comes with F0010. It also says what a budget stop costs (one resume at a quarter of the budget, at least 0.50 USD) and what a `time_limit` does (kills the run, no resume, unknown measures).
+   - `README.md`: the status sentence now says the `claude -p` runtime is complete.
+
+   Cross-read and found current: `docs/decisions.md`, and the rest of `docs/project-guide.md` (the kill points table and the fake).
+
+   Findings for the coder: none. The code matches the Interface.
+
+   Stale text I saw but did not touch: none.
+
+   Gap in the operator guide: "which `claude` version is expected" has no pinned number, because the ticket and the code name none. The guide says the pinned version is the one the flags were written for. A human decision on the version, with the morning observation of the exit status on a budget stop, would let that sentence name it.
+
+   `make check`: check: green
+7. demo: both commands under `## Demo` ran from the repository root exactly as written. Both exited 0 and both met their `Expect:` lines. No findings.
+
+   Command 1 (stand-in `claude`: version query, then a run whose first call stops on its budget and whose resumed call completes):
+   ```
+   2.1.289
+   completed doing 8 3.25 10 5
+   ```
+   Met the Expect line: `2.1.289`, then `completed doing 8 3.25 10 5`.
+   - The version is the first word of `2.1.289 (Claude Code)` (criterion 12).
+   - The first call's `error_max_budget_usd` led to one resume, and the resumed call took the `--resume` branch of the stand-in (criteria 2 and 4).
+   - Turns are 5 + 3 = 8 and cost is 3.0 + 0.25 = 3.25 (criterion 4).
+   - The first call reported no tokens, so the tokens are the resumed call's, 10 and 5 (criterion 9).
+
+   Command 2 (`resume_budget`):
+   ```
+   ['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']
+   ```
+   Met the Expect line exactly. It agrees with criterion 1 for those values: a quarter of the budget, never below 0.50, rounded to cents.
+
+   I read the acceptance criteria again against this output and found nothing in it that contradicts any of them. The demo does not exercise the time limit, the kill point, a second budget stop or the version errors (criteria 5, 7, 8, 10, 11, 13 to 15). The tester's entry names a test for each of them.
+
+   Open, carried over from earlier entries, not findings:
+   - The operator guide names no pinned `claude` version, because the ticket names none. That needs a decision from the human.
+   - No test covers the branch in `_resume` where no time is left.

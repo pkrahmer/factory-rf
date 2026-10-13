@@ -5,7 +5,7 @@ import shlex
 import time
 import uuid
 from datetime import timedelta
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, JsonValue, StrictBool, ValidationError
@@ -35,6 +35,11 @@ SWITCHES = {
 }
 GUARD_COMMAND = "factory-guard"
 GUARDED_TOOLS = "Edit|Write"
+BUDGET_SUBTYPE = "error_max_budget_usd"
+FINISH_MESSAGE = "Finish now: give your decision (question if the work is not done) and your entry."
+MINIMUM_RESUME_BUDGET = Decimal("0.50")
+VERSION_TIME_LIMIT = timedelta(seconds=30)
+CENT = Decimal("0.01")
 
 
 class _Usage(BaseModel):
@@ -93,6 +98,13 @@ class _RunFiles(BaseModel):
             path.unlink(missing_ok=True)
 
 
+_ZERO = timedelta(0)
+
+
+def _since(started: float) -> timedelta:
+    return timedelta(seconds=time.monotonic() - started)
+
+
 def _parse_reply(stdout: str) -> _Reply | None:
     try:
         return _Reply.model_validate_json(stdout)
@@ -144,11 +156,28 @@ def _arguments(request: AgentRunRequest, session: str, files: _RunFiles) -> list
     return arguments
 
 
+def resume_budget(budget: Decimal) -> Decimal:
+    """The budget of a call that resumes a session its budget stopped: a quarter, at least 0.50."""
+    quarter = (budget / 4).quantize(CENT, rounding=ROUND_HALF_UP)
+    return max(quarter, MINIMUM_RESUME_BUDGET)
+
+
+def _resume_arguments(arguments: list[str], budget: Decimal) -> list[str]:
+    resumed = list(arguments)
+    resumed[resumed.index("-p") + 1] = FINISH_MESSAGE
+    resumed[resumed.index("--session-id")] = "--resume"
+    resumed[resumed.index("--max-budget-usd") + 1] = format(resume_budget(budget), "f")
+    return resumed
+
+
 def _end_reason(
     request: AgentRunRequest, process: ProcessResult, reply: _Reply | None
 ) -> EndReason:
     if process.timed_out:
         return "time_limit"
+    # `claude` may exit non-zero on a budget stop; the reply still says why it stopped.
+    if reply is not None and reply.subtype == BUDGET_SUBTYPE:
+        return "budget"
     if process.exit_status != 0 or reply is None or reply.is_error:
         return "died"
     output = reply.structured_output
@@ -179,9 +208,9 @@ def _denials(reply: _Reply) -> list[PermissionDenial]:
     ]
 
 
-def _result(
-    request: AgentRunRequest, process: ProcessResult, duration: timedelta
-) -> AgentRunResult:
+def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
+    # The duration is the whole run's, so `run` sets it once the last call has ended.
+    duration = _ZERO
     reply = _parse_reply(process.stdout)
     end_reason = _end_reason(request, process, reply)
     # A killed call's output is cut short, so whatever it printed is not its measure.
@@ -201,20 +230,73 @@ def _result(
     )
 
 
+def _add[T: (int, Decimal)](first: T | None, second: T | None) -> T | None:
+    if first is None:
+        return second
+    if second is None:
+        return first
+    return first + second
+
+
+def _add_tokens(first: TokenCounts | None, second: TokenCounts | None) -> TokenCounts | None:
+    if first is None:
+        return second
+    if second is None:
+        return first
+    return TokenCounts(
+        input=first.input + second.input,
+        output=first.output + second.output,
+        cache_read=first.cache_read + second.cache_read,
+        cache_creation=first.cache_creation + second.cache_creation,
+    )
+
+
+def _resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunResult:
+    denials = [*first.permission_denials, *second.permission_denials]
+    # R24: a resume the time limit ended has no measures, and the first call's alone are partial.
+    if second.end_reason == "time_limit":
+        return second.model_copy(update={"permission_denials": denials})
+    return second.model_copy(
+        update={
+            "turns": _add(first.turns, second.turns),
+            "cost_usd": _add(first.cost_usd, second.cost_usd),
+            "tokens": _add_tokens(first.tokens, second.tokens),
+            "permission_denials": denials,
+        }
+    )
+
+
+def _first_word(output: str) -> str | None:
+    for line in output.splitlines():
+        if line.strip():
+            return line.split()[0]
+    return None
+
+
 class ClaudeCodeRuntime:
-    """Runs an agent as one `claude -p` call, with only the environment the request gives."""
+    """Runs an agent as a `claude -p` call, with only the environment the request gives.
+
+    A call stopped by its budget is resumed once to get the agent's decision and entry.
+    """
 
     def __init__(
-        self, executable: str, state_directory: Path, kill_points: KillPoints | None = None
+        self,
+        executable: str,
+        state_directory: Path,
+        kill_points: KillPoints | None = None,
+        *,
+        version_time_limit: timedelta = VERSION_TIME_LIMIT,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`."""
         self._executable = executable
         self._state_directory = state_directory
         self._kill_points = kill_points
+        self._version_time_limit = version_time_limit
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Run the agent of `request` as one call and turn the JSON it prints into a result.
+        """Run the agent of `request` and turn the JSON it prints into a result.
 
+        A budget stop resumes the session once within what is left of the time limit.
         A call that cannot be started, or whose files cannot be written, is `AgentRuntimeError`.
         """
         started = time.monotonic()
@@ -223,13 +305,53 @@ class ClaudeCodeRuntime:
         self._make_state_directory()
         try:
             self._write_files(request, files)
-            process = self._call(request, _arguments(request, session, files))
-            result = _result(request, process, timedelta(seconds=time.monotonic() - started))
+            arguments = _arguments(request, session, files)
+            result = _result(request, self._call(request, arguments, request.time_limit))
+            if result.end_reason == "budget":
+                result = self._resume(request, arguments, result, started)
+            result = result.model_copy(update={"duration": _since(started)})
             if self._kill_points is not None:
                 self._kill_points.reach(KillPoint.AGENT_RUN)
             return result
         finally:
             files.remove()
+
+    def version(self) -> str:
+        """The version `claude --version` prints, such as `2.1.289`.
+
+        A call that cannot be started, fails, reaches its limit or prints nothing is
+        `AgentRuntimeError`.
+        """
+        process_request = ProcessRequest(
+            argv=[self._executable, "--version"],
+            cwd=Path.cwd(),
+            time_limit=self._version_time_limit,
+        )
+        try:
+            process = run_process(process_request)
+        except OSError as exc:
+            raise AgentRuntimeError(f"cannot start {self._executable}: {exc}") from exc
+        if process.timed_out or process.exit_status != 0:
+            raise AgentRuntimeError(f"{self._executable} --version failed: {process.stderr}")
+        version = _first_word(process.stdout)
+        if version is None:
+            raise AgentRuntimeError(f"{self._executable} --version printed nothing")
+        return version
+
+    def _resume(
+        self,
+        request: AgentRunRequest,
+        arguments: list[str],
+        first: AgentRunResult,
+        started: float,
+    ) -> AgentRunResult:
+        left = request.time_limit - _since(started)
+        if left <= _ZERO:
+            second = AgentRunResult(end_reason="time_limit", duration=_ZERO)
+        else:
+            resumed = _resume_arguments(arguments, request.agent.budget_usd)
+            second = _result(request, self._call(request, resumed, left))
+        return _resumed_result(first, second)
 
     def _make_state_directory(self) -> None:
         try:
@@ -249,12 +371,14 @@ class ClaudeCodeRuntime:
         except OSError as exc:
             raise self._state_error(exc) from exc
 
-    def _call(self, request: AgentRunRequest, arguments: list[str]) -> ProcessResult:
+    def _call(
+        self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
+    ) -> ProcessResult:
         process_request = ProcessRequest(
             argv=[self._executable, *arguments],
             cwd=request.working_directory,
             env={**request.environment, **SWITCHES},
-            time_limit=request.time_limit,
+            time_limit=time_limit,
         )
         try:
             return run_process(process_request)
