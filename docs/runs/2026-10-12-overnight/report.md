@@ -13,6 +13,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0003 PyGithub client and its one error type | #3 | 6 | 8.1 | 11 (01:32 to 01:43) | $1.54 | 0 (first-pass) |
 | F0001-S0004 The process wrapper | #4 | 6 | 4.3 | 7 (01:43 to 01:50) | $1.19 | 0 (first-pass) |
 | F0001-S0005 Git wrapper: fetch and refs | #5 | 6 | 7.6 | 10 (01:51 to 02:01) | $2.27 | 0 (first-pass) |
+| F0001-S0006 Git wrapper: clone, checkout, commit, push | #6 | 6 | 6.3 | 9 (02:02 to 02:11) | $1.95 | 0 (first-pass) |
 
 ## Stops
 
@@ -44,6 +45,7 @@ Conditions: run 4 ticked every 2 minutes fixed; tonight the pause starts at 15 s
 
 - Start (23:17): 5-hour window 1% used, resets 03:30; weekly 53% used, resets 05:00.
 - 00:46: 5-hour window 57%, weekly 61%.
+- 02:03: 83%, weekly 64%. 02:11: 85%.
 
 ## What needs the operator
 
