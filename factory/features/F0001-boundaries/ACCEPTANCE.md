@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 23
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014, F0001-S0015, F0001-S0016, F0001-S0017, F0001-S0018, F0001-S0019, F0001-S0020]
+outcome: accepted
 ---
 # Acceptance of Boundaries
 
@@ -468,3 +469,4 @@ I ran `make check` in full on this branch before any change. It ended with `chec
       6 Decisions: all 22 are built, and decision 22 is confirmed by the demo. New for the human: the draft's options. A extends the name rule and qualifies `refs/heads/<branch>` as the source only, which is near decision 22's rejected alternative but keeps the refusal; I recommend it. B is the name rule only. C is docs only. The older open points are still open.
       7 Slow checks: none exist (no image, SBOM or mutants target). `make check` is green at 99.49 %, both before and after this report.
       8 Cost: 143 runs, 107.9 min, $31.78, about $1.59 per story. S0020 cost 6 runs, 3.2 min and $1.18 with no rework, in line with the other one-rule stories. No story stands out.
+2. done (pull request merged); cost: 3 runs, 18.5 min, 93 turns, 383k tokens in (5683k more from cache), 103k out, $6.26
