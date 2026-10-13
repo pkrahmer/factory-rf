@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 12
 blocked: null
 comments_seen: 0
@@ -147,3 +147,20 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
 6. documenter: changed `docs/project-guide.md` only. In "The git wrapper" I added three rows to the method table (`delete_remote_branch`, `delete_branch`, `merge`). I added a subsection "Deleting and merging branches", placed after the push kill points, covering the remote-deletion outcomes (stale tracking ref, already-gone counts as pushed, no kill point), the five merge outcomes, the abort on a conflict, and which feature uses what (F0005 merges main into the work item's branch; F0007 deletes branches on merge or discard). I also updated the intro sentence, which said deleting and merging "follow in later stories". Cross-read: the rest of the project guide and README against the diff (the identity paragraph, the options table, the test-fixture paragraph) are current. The code matches the Interface and criteria; no findings. Nothing stale seen outside this story. `make check` is green.
 
    `make check`: check: green
+7. demo: I ran the single `## Demo` command from the repository root exactly as written. It exited with 0.
+
+   ```
+   conflict []
+   ''
+   up_to_date
+   ```
+
+   - It met its `Expect:` line: there are three lines, `conflict []`, `''` and `up_to_date`.
+   - Checked against the acceptance criteria, the demo contradicts none of them:
+     - The conflicting merge returned `"conflict"` and left a clean work tree (criterion 14).
+     - `delete_branch` removed `other`, which had a commit that `main` lacks (criterion 7).
+     - Deleting `other` a second time raised nothing (criterion 9).
+     - Merging `main` into itself returned `"up_to_date"` (criterion 10).
+   - The demo does not exercise the remote deletion, the fast-forward, the clean merge or the identity (criteria 1–6, 11–13, 15–17). The tests cover those, as the reviewer's entry records.
+
+   Findings: none.
