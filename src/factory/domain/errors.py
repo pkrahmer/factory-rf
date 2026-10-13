@@ -68,3 +68,16 @@ class AgentRuntimeError(BoundaryError):
         """Say why the agent runtime failed."""
         super().__init__(f"agent runtime failed: {detail}")
         self.detail = detail
+
+
+class WorkItemFormatError(FactoryError):
+    """A work item file cannot be read: its fault and, where known, its path."""
+
+    fault: str
+    path: str | None
+
+    def __init__(self, fault: str, path: str | None = None) -> None:
+        """Name the fault and the file it was found in."""
+        super().__init__(fault if path is None else f"{path}: {fault}")
+        self.fault = fault
+        self.path = path

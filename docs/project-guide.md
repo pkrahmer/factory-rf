@@ -14,6 +14,8 @@ The guide for agents working on `factory-rf`: how the code is laid out, where a 
 
 `AgentRuntimeError(detail)` is its fourth subtype, for the agent runtime. The message is `agent runtime failed: <detail>`; `detail` is an attribute. A run that dies, hits its `time_limit` or runs out of budget is a result, not this error (see *The agent runtime*).
 
+`WorkItemFormatError(fault, path=None)` is a `FactoryError` for a work item file that cannot be read (see *The data of a work item*).
+
 ## The hosting service
 
 The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` interface (an abstract base class) in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. `PyGithubHostingService` (`factory.adapters.pygithub_hosting`) is the one client; `FakeHostingService` (`factory.adapters.fake_hosting`) is the one fake. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
@@ -368,6 +370,60 @@ print(sorted(ids, key=work_item_order))
 ```
 
 prints `['F0001-S0010', 'F0002-S0001', 'F0002-S0002', 'F0002-A0001']`.
+
+## The data of a work item
+
+A work item file is a front matter and a body. Three pure domain modules hold the front matter's data as frozen Pydantic models that refuse unknown fields; none reads or writes a file. Every rule with one right answer is a validation of these types, so the reader and the writer only translate.
+
+### The state
+
+`factory.domain.work_item.WorkItemState` is the front matter. Its fields, in the order they are written, with their initial values:
+
+| Field | Type | Initial |
+|---|---|---|
+| `stage` | `Name` | the first stage (no default) |
+| `blocked` | `question`, `attempts_cap`, `round_cap`, `crash_cap`, `send_back` or `None` | `None` |
+| `round` | integer ≥ 0 | 0 |
+| `attempts` | integer ≥ 0 | 0 |
+| `crashes` | integer ≥ 0 | 0 |
+| `pull_request` | integer ≥ 1 or `None` | `None` |
+| `comments_read` | ids of the comments already read | `[]` |
+| `handed_over` | `Name` or `None` (the hand-over marker) | `None` |
+| `claim` | `Claim` or `None` | `None` |
+| `journal` | list of `JournalRecord` | `[]` |
+
+`initial_state(first_stage)` is the state of a story just started: `WorkItemState(stage=first_stage)`. A `first_stage` that is not a `Name` raises `pydantic.ValidationError`.
+
+Rules the state enforces:
+
+- `comments_read` ascends with no repeats.
+- A `claim` is for the state's own `stage`.
+- The `journal`'s numbers are 1, 2, 3 up to n in order.
+
+The first two are validations of their own field, so their error is located at that field (`("comments_read",)`, `("journal",)`). The claim rule spans two fields, so its error has an empty location (`()`). The reader of the next story names a fault by that location.
+
+### The claim
+
+`Claim` is an instance's hold on a work item: `instance` and `stage` (both `Name`), `started_at` and `lease_duration` in minutes (at least 1). `started_at` must carry a time zone and is stored in UTC.
+
+### The journal's data
+
+`factory.domain.journal.JournalRecord` is the one element the front matter lists for each journal entry: `number` (≥ 1), `speaker` (a `Name`; `HUMAN` is `"human"` and `FACTORY` is `"factory"`) and `kind`. So the speaker and kind of every entry are data in the front matter, beside the entry text in the body. `JournalKind` is one of `created`, `started`, `result`, `question`, `comment`, `close`, `stall`, `crash`, `expiry`, `move_back`, `send_back`, `done`. The functions that append and read entries are not built yet.
+
+### The document and its error
+
+`WorkItemDocument(state, body, ignored_keys=[])` pairs a state with the body text. `state` is required but may be `None`, for a file read as a specification. `ignored_keys` lists front matter keys the reader did not use.
+
+`factory.domain.errors.WorkItemFormatError(fault, path=None)` is the `FactoryError` for a work item file that cannot be read. Both are attributes; the message is `fault`, or `<path>: <fault>` with a path.
+
+```bash
+uv run python -c "
+from factory.domain.work_item import initial_state
+print(initial_state('intake').model_dump())
+"
+```
+
+prints `{'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes': 0, 'pull_request': None, 'comments_read': [], 'handed_over': None, 'claim': None, 'journal': []}`.
 
 ## Kill points: testing a crash
 
