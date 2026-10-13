@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 37
 blocked: null
 comments_seen: 0
@@ -119,3 +119,15 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
       - Quality: the `fence is None` guard in `_closing_line` cannot fire. I accepted it as narrowing for mypy, because an `assert` would trip bandit. The coder's entry gives this reason. The comment says why the block is closed, and the docstrings of `render_entry` and `entry_text` describe the new behaviour.
       - Ticket: the log records the main decision (read the rendered lines, not the raw text) and what was rejected. The Assignment matches the code, and criterion 11 still describes what the documenter has to write.
       - Open, outside this diff: the existing test name `test_entry_text_returns_the_text_as_it_was_given` is now only half true, as the tester and the coder both noted. Renaming it would be a separate change.
+6. documenter: wrote the documentation for criterion 11. `make check` is green.
+   - `docs/project-guide.md`, "The journal's entries":
+     - The Format bullet says that an entry whose text leaves a block open gets a closing line (the indent and the opening run, no info string). It also says the numbered first line opens no block, and that `NewEntry.text` and the journal records stay as given.
+     - `entry_text` is described as returning the text as rendered, closing line included, no longer "as it was given".
+     - The "Known limit" bullet is removed.
+   - `docs/project-guide.md`, "Sections of a Markdown body": `opening_fence` is added to the function table.
+   - `docs/decisions.md`: new entry "A journal entry closes the code block its text leaves open". It gives the reason and the two rejected alternatives: `NewEntry` refusing the text, and the form check counting entries inside blocks.
+   - Cross-read against the diff and found current: the form-check rule 9 row in the project guide, the operator guide's finding table for the entry count, and the README. The diff matches the Interface and the criteria, so there are no findings for the coder.
+   - I did not run the demo from the ticket. Only `make check` was run.
+   - Stale but not touched: the example `entry_text` output in the project guide has no fenced entry, so it is still correct.
+
+   `make check`: check: green
