@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Raising and clearing the stops of the repository and the machine
 
 ## Assignment (as of log entry 1)
