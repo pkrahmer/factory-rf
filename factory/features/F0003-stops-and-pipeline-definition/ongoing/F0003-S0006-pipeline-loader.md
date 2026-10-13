@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 45
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Loading the pipeline definition: installed agents and a reported stop
 
 ## Assignment (as of log entry 1)
@@ -98,3 +106,111 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/application/pipeline_loading.py` names `PIPELINE_REF`, `PipelineLoader.__init__(boundaries)` and `load(ref)`. It also names the Boundaries members it uses (git.show_file, pipeline_reader, agent_definitions, clock, health) and the exact fault texts.
+   - Criteria: each one is testable by one test function. Every Interface rule has a criterion for its passing and its failing side:
+     - Reading at a ref: 1 and 2.
+     - Missing key, with a default taken instead: 3 and 6.
+     - Missing file: 7.
+     - Missing or unavailable agents: 10, 11 and 12.
+     - Stop raised at `origin/main` only: 4, 13 and 14.
+     - Stop cleared on success: 8.
+     - `GitError` propagating: 9.
+     - Failure of the health write: 15.
+     - Agents checked only after the text is valid: 16.
+     - Only the log and health status written: 5.
+   - Demo: the stub git, the agents directory and the Boundaries wiring are runnable. The Expect line gives the five lines, with the stamp form, that the output can be checked against.
+   - Architecture: the loader sits in `factory.application` and reaches git, the readers, the clock and the health status through `Boundaries`. It calls no tool itself.
+   - Scope: the story stays inside FEATURE.md's scope (`PipelineLoader`, the installed-agent check, the reported stop). The cross-key rules are left to S0007, and the tick's use of `load` to F0006.
+3. tester: Wrote the loader tests from the Interface and criteria 1–16. Criterion → test (all in tests/application/test_pipeline_loading.py):
+   - Interface `PIPELINE_REF`: test_the_pipeline_ref_is_main_on_the_remote
+   - criterion 1: test_load_reads_main_on_the_remote_not_the_work_tree
+   - criterion 2: test_load_at_a_branch_reads_the_file_on_that_branch
+   - criterion 3: test_a_definition_without_contract_is_refused_with_its_fault
+   - criterion 4: test_a_refusal_raises_one_stop_and_writes_its_line
+   - criterion 5: test_a_refusal_opens_no_pull_request_and_posts_nothing. There are no pull requests, so nothing can have been posted.
+   - criterion 6: test_a_missing_key_with_a_default_takes_the_default
+   - criterion 7: test_a_definition_missing_on_main_is_refused_and_stops. The file is removed in a second clone with `run_git` and pushed.
+   - criterion 8: test_a_successful_load_clears_the_stop_and_keeps_other_stops. The first load is refused because no agents are installed. Installing them makes the next load succeed.
+   - criterion 9: test_a_git_error_propagates_and_raises_no_stop, with two cases: a `GitCli` on a directory that does not exist, and `origin/nowhere`.
+   - criterion 10: test_roles_without_an_installed_agent_are_refused_in_role_order, with two cases: one missing role, and two missing roles in the order of `roles`.
+   - criterion 11: test_installed_agents_for_every_role_load_and_extra_agents_do_not_matter
+   - criterion 12: test_an_unavailable_agent_home_is_refused_and_stops
+   - criterion 13: test_a_refusal_at_another_ref_raises_but_changes_no_stop, with two cases: a missing `contract`, and an agent that is not installed.
+   - criterion 14: test_a_successful_load_at_another_ref_leaves_the_stop_in_place
+   - criterion 15: test_an_unwritable_health_status_raises_os_error_after_the_stop_line. A local `HealthStatusStore` refuses every write.
+   - criterion 16: test_the_agents_are_checked_only_when_the_text_is_valid
+
+   Files:
+   - Created tests/application/test_pipeline_loading.py.
+   - Extended tests/git_support.py with `AGENT_FILE` and `install_agents(agent_home, roles)`. The Interface names this helper for S0005's and S0007's loader tests.
+
+   `make test` stops at collection: `ModuleNotFoundError: No module named 'factory.application.pipeline_loading'`. That is the only module that could not be imported. `make lint` is green. No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built `PipelineLoader` in src/factory/application/pipeline_loading.py (commit 78bd024). `make check` is green and all tests in tests/application/test_pipeline_loading.py pass.
+   - `PIPELINE_REF` is built from `REMOTE` and `MAIN_BRANCH` of factory.domain.paths.
+   - `load(ref)` works in this order:
+     1. It reads the file with `git.show_file`. `None` is turned into the fault `factory/pipeline.yml is missing at <ref>`.
+     2. It parses the text with `pipeline_reader.parse`.
+     3. Only then does it check the agents. An `AgentDefinitionError` from `names()` becomes `agent home unavailable: <error.fault>`. Each role in `roles` that is not installed gives one fault, in role order, joined by `; `.
+   - The stop is handled in one place in `load`. When `ref == PIPELINE_REF`, a `PipelineDefinitionInvalid` first calls `StopService.raise_stop` and is then re-raised; an `OSError` from the stop's writes propagates in its place. A success at that ref calls `clear_stop("pipeline_definition_invalid")`.
+   - `GitError` is not caught, so it propagates and raises no stop.
+
+   Design decision: the reading and checking live in a private `_read`, and the stop is decided once in `load` around that one call. I rejected raising the stop at each refusal site: that would repeat the ref check three times and make it easy to miss a site.
+
+   Refactor pass: I read the diff and found nothing to change, so there is no separate refactor commit.
+
+   Not touched: nothing noticed outside the ticket.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: every one of criteria 1–16 has a matching test in tests/application/test_pipeline_loading.py, and each test checks its criterion. The coder's entry reports `make check` green.
+     - Work tree versus `origin/main`: criterion 1 edits the checkout's work-tree file, criterion 2 pushes to a branch.
+     - Stop raised once with the correct `at` and log line: criterion 4 advances the clock by 5 s first.
+     - Nothing posted: criterion 5. The fake only posts on an existing pull request, so an empty `pull_requests()` also means nothing was posted.
+     - Default taken: criterion 6. `crash_cap: 2\n` is present in PIPELINE_YAML and no role sets `lease_duration`.
+     - Clear keeps other stops: criterion 8 keeps `fetch_failed`.
+     - `GitError` cases: criterion 9 covers both, a missing directory and an unknown ref.
+     - Role order with two missing roles: criterion 10.
+     - Both sides of the `ref == PIPELINE_REF` rule: refusal raises the stop (4, 7, 10, 12) and success clears it (8); at another ref neither happens (13, 14).
+     - `OSError` from the stop's writes, after the stop line: criterion 15.
+     - Agents checked only when the text is valid: criterion 16.
+   - Architecture: src/factory/application/pipeline_loading.py imports only factory.application and factory.domain. It reaches git, the readers, the clock, the log and the health status through `Boundaries` and `StopService`, and calls no tool.
+   - Security: no secrets, no suppression markers, no command or SQL built from strings.
+   - Quality: one design point. `load` decides the stop once, around the private `_read`. `GitError` is not caught, so it propagates without a stop. The module, class and public-method docstrings are present and say what each one does. The test helper `install_agents` in tests/git_support.py is small and named by the Interface.
+   - Ticket hygiene: the coder's entry states the main decision and the alternative rejected (raising the stop at each refusal site). The Assignment matches what was built. Criterion 18 still describes what the operator guide, the project guide and the decision log need.
+6. documenter: wrote the documentation for the pipeline loader; no findings. `make check` is green.
+   - docs/operator-guide.md: new section "The stop `pipeline_definition_invalid`". It says the stop comes from the load of `origin/main` only, its detail is the fault, and it clears itself at the next successful load of `origin/main`. It has the log line and a table of the four faults (file missing, text fault, agent not installed, agent home unavailable). It also covers agents being checked only when the text is valid, `GitError` raising no stop, and an `OSError` replacing the fault. What the tick does while the stop stands is left to F0006.
+   - docs/project-guide.md: new subsection "The pipeline loader". It states that only the loader raises and clears this stop, that a load at another ref changes no stop, that `WritePathService.at` parses the definition directly, and how the tests are set up. I also changed the agent reader's sentence that said S0006 "will" use `names()` to say `PipelineLoader` uses it.
+   - docs/decisions.md: new entry that the stop belongs to the definition on `origin/main`, with the alternatives rejected.
+   - Cross-read and found current: README.md, the rest of the operator guide (stop lines, health file, agent files) and the "Stops" and "Boundaries" sections of the project guide, all checked against the diff.
+   - I did not run the ticket's demo script. I ran no new examples, because none of my docs contain a runnable one.
+   - Docstrings in `pipeline_loading.py` are present. Nothing stale seen that is unrelated.
+
+   `make check`: check: green
+7. demo: ran the single `## Demo` command from the repository root exactly as written. It exited with status 0 and there are no findings.
+
+   Command 1 (`uv run python -c "…"`: the stub git, an agent home holding only `coder.md`, then `load()`, then `tester.md` is installed and `load()` runs again):
+   ```
+   2026-10-12T12:00:00Z stop repository pipeline_definition_invalid: role tester: agent is not installed
+   role tester: agent is not installed
+   ['pipeline_definition_invalid']
+   2026-10-12T12:00:00Z stop cleared pipeline_definition_invalid
+   tests True
+   ```
+   Met its `Expect:` line. There are five lines, in the expected order:
+   - The stop line. Its stamp has the form `YYYY-MM-DDTHH:MM:SSZ` and starts with `2026-10-12T`.
+   - The fault `role tester: agent is not installed`.
+   - `['pipeline_definition_invalid']` in the health status.
+   - The cleared line.
+   - `tests True`.
+
+   Checked against the acceptance criteria. The demo agrees with every criterion it touches and contradicts none:
+   - Criterion 10 (the missing role is named with the exact fault text).
+   - Criterion 4 (one stop, its line in the factory log).
+   - Criterion 8 (the stop is cleared after a successful load, the health status is healthy again).
+   - Criterion 11 (the definition loads once every role has an agent).
+
+   The demo does not exercise the other criteria (ref handling, missing file, `GitError`, `OSError`). Those are covered by tests/application/test_pipeline_loading.py, as the earlier entries record.

@@ -2,6 +2,7 @@
 
 import os
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, run_process
@@ -53,6 +54,8 @@ STORY_FORM = """\
 
 ## Journal
 """
+
+AGENT_FILE = "---\nmodel: sonnet\ntools: [Read, Write]\nbudget_usd: 1\n---\nDo the work.\n"
 
 REMOTE_FILES = {
     "factory/pipeline.yml": PIPELINE_YAML,
@@ -135,3 +138,11 @@ def remote_commit(remote: Path, branch: str) -> str | None:
         )
     )
     return result.stdout.strip() or None
+
+
+def install_agents(agent_home: Path, roles: Iterable[str]) -> None:
+    """Write a valid agent file `<agent_home>/agents/<role>.md` for each of `roles`."""
+    agents = agent_home / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    for role in roles:
+        (agents / f"{role}.md").write_text(AGENT_FILE, encoding="utf-8")
