@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 44
 blocked: null
 comments_seen: 0
@@ -202,3 +202,26 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
    `make check`: check: green
 
    `make check`: check: green
+7. reviewer: no findings; passed on to docs.
+
+   Round 1 fix: the docstring of `AgentDefinitionReader.names` in `src/factory/application/agent_runtime.py` now says `AgentDefinitionError` is raised only when there is no agents directory, and that an empty directory gives `[]`. That matches the Interface and `agent_files.py` `names`. Entry 5's finding is closed.
+
+   What I checked again across the whole diff:
+   - **Criteria.** Criteria 1–16 each have a test that checks what the criterion says, and both sides of every Interface rule are tested:
+     - an absent agents directory and one that is a regular file, against the populated case;
+     - `budget_usd` at 0, -1, `high` and `true`, against 0.01;
+     - a missing key ranked before an invalid value;
+     - a bad name refused before any read, with decoy files at `agent_home/x.md`, `agents/a/b.md` and `agents/Coder.md`;
+     - `coder.md` as a directory, and `nobody` absent.
+     The coder's entry reports `make check` green.
+   - **Architecture.**
+     - The errors are in domain, the ABC in application and the reader in adapters, and every import points downward.
+     - The ABC's methods have docstring-only bodies, and `FrontmatterAgentDefinitionReader` inherits it.
+     - `Boundaries` is built only in `tests/conftest.py`, so the new field needs no other wiring.
+     - YAML is loaded only through the one `RuamelYamlHandler`, and no variable is named `yaml`.
+   - **Security.** No suppression markers and no secrets. The name is validated as a `Name` before any path is built.
+   - **Quality.**
+     - `split_front_matter` is the old `_split` moved without changes, and the work item reader tests are untouched.
+     - `first_error` takes `min` by `_rank`, which picks the same error as the first element of the old stable sort, so `first_fault` returns what it did before. The reported key and fault come from that same error.
+     - Comments explain why, and the public names have their docstrings.
+   - **Ticket hygiene.** The log names the main decision (key and fault both come from `first_error`) and what was rejected (re-ranking inside `agent_files.py`). The Assignment matches what was built, and criterion 18 still describes what the documenter has to write.
