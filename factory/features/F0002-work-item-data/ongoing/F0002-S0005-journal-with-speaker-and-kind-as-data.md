@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 32
 blocked: null
 comments_seen: 0
@@ -226,3 +226,36 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
     - Stale but unrelated, not touched: none seen.
 
     `make check`: check: green
+13. demo: Demo round 2: I ran both `## Demo` commands from the repository root exactly as written. Both exited 0. I piped the output through `cat -A` to check line ends and indentation.
+
+    Command 1 (append_entry, last_record, entry_text):
+    ```
+    # T
+
+    ## Journal
+
+    1. 2026-10-12 human: created.
+    2. intake: accepted
+       Every criterion is testable.
+    2 intake result
+    accepted
+    Every criterion is testable.
+    ```
+    Met its Expect line: ten lines in the expected order. The continuation line is indented by exactly three spaces and carries no trailing spaces. The human entry has a date and the intake entry has none.
+
+    Command 2 (restore_state_and_journal):
+    ```
+    intake True
+    # T
+
+    Spec changed.
+
+    ## Journal
+
+    1. 2026-10-12 human: created.
+    ```
+    Met its Expect line: the stage is back to `intake` and the whole state equals the baseline's. The body edit `Spec changed.` stays, the forged entry `2. intake: forged` is gone, and the body ends with a newline.
+
+    Criteria check: the demo contradicts none of the acceptance criteria. It matches criteria 3–7 (render format, continuation indent, entries placed directly under each other, final newline), 10 (entry_text returns the original text), 12 (last_record with `speaker=`), 15 (the baseline's whole state comes back) and 16 (the Journal section is replaced and edits elsewhere stay).
+
+    No findings. Nothing is open from the demo.
