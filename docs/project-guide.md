@@ -683,9 +683,58 @@ After rule 1 passes, rules 2 to 5 are independent and reported in that order. `l
 
 ### Boundaries
 
-`Boundaries` (`factory.application.boundaries`) is the frozen dataclass of the interfaces that wiring hands to services: `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `cost_reader`, `cost_writer`, `clock`, `log`, `health`, and `checkout` (the checkout root, a `Path`). It is not a DTO. It takes keyword arguments only, so a positional call is a `TypeError`, and assigning to a field raises `FrozenInstanceError`. A later story that needs another interface adds a field. Building the concrete adapters is `factory.entry.wiring`'s; it does not do so yet.
+`Boundaries` (`factory.application.boundaries`) is the frozen dataclass of the interfaces that wiring hands to services: `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `pipeline_reader`, `cost_reader`, `cost_writer`, `clock`, `log`, `health`, and `checkout` (the checkout root, a `Path`). It is not a DTO. It takes keyword arguments only, so a positional call is a `TypeError`, and assigning to a field raises `FrozenInstanceError`. A later story that needs another interface adds a field. Building the concrete adapters is `factory.entry.wiring`'s; it does not do so yet.
 
 In tests use the `boundaries` fixture in `tests/conftest.py`: the real git wrapper, project commands, readers, writers, `TimestampedFactoryLog` at `<tmp_path>/state/factory.log` and `JsonHealthStatusFile` at `<tmp_path>/state/health.json`, with the fakes for the hosting service and the agent runtime and the `clock` fixture. A test that needs other parts uses `dataclasses.replace(boundaries, health=...)` and never calls `Boundaries(...)`, so a story that adds a required field changes only the fixture. Only the test of the keyword-only rule calls it directly, through a variable typed `Callable[..., Boundaries]` (a positional call is a `mypy --strict` error); the test of the frozen rule assigns with `setattr` and the field's name in a variable. An unwritable destination is a `JsonHealthStatusFile` or `TimestampedFactoryLog` whose path lies below a regular file; read standard output with `capsys`.
+
+## The pipeline definition
+
+The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.parse(text)` (`factory.adapters.pipeline_yaml`, the `PipelineDefinitionReader` interface in `factory.application.files`, `Boundaries.pipeline_reader`) into a `PipelineDefinition` (`factory.domain.pipeline_definition`). The reader is the only one of this format and nothing writes it. The text is loaded in ruamel.yaml's safe mode, so only plain data is built and a key repeated in one mapping is refused. `PIPELINE_YAML` in `tests/git_support.py` is the example definition.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `contract` | the contract version, a quoted text such as `'1.0'`; an unquoted `1.0` is a number and is refused | required |
+| `stages` | name to `StageDefinition`; the order in the file is the pipeline's order | required |
+| `roles` | name to `RoleDefinition`; a role's name is its agent definition's name | required |
+| `project_commands` | name to `ProjectCommandDefinition` | `check`, `lint` and `test`, each with `time_limit` 10 |
+| `attempts_cap` | attempts before the human is asked | 2 |
+| `crash_cap` | crashes before the human is asked | 2 |
+| `acceptance_stage` | the stage of the feature acceptance | none |
+
+A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward move), `approval` (the human decides), `checks` (project commands run after the agent), `reports` (project commands run after green, recorded only) and `round_cap` (none: no cap). A role has `write_paths` (required; `{work_item}` is the work item's own file and `{feature}` its feature directory, the constants `WORK_ITEM_PLACEHOLDER` and `FEATURE_PLACEHOLDER`), `lease_duration` (60 minutes) and `time_limit` (40 minutes, the agent run's). A project command has `time_limit` (10 minutes). Every limit is a positive integer; stage, role and command names match `^[a-z][a-z0-9-]*$`.
+
+- A key with a default may be left out and takes it. A stage with nothing to say is written `done: {}`; `done:` alone is null and is refused (`invalid stages.done: ...`).
+- Unknown keys are refused at every level, so a misspelt key is never ignored.
+- A given `project_commands` replaces the default set as a whole; it does not merge. `lint: {}` takes `time_limit` 10.
+- A name that breaks the pattern is reported at the path of its key: `invalid stages.<name>.[key]: ...`, likewise `roles.<name>.[key]` and `project_commands.<name>.[key]`.
+- The methods: `first_stage()`, `role_of(stage)` (`None` for a stage without a role, `KeyError` for an unknown stage) and `position(stage)` (index in `stages`; `ValueError` for an unknown one, not specified).
+- Not checked here, by later stories: a `next` naming no stage, the contract's form and major version, and `time_limit`s that must fit inside `lease_duration`. `first_stage()` on an empty `stages` raises `StopIteration` until then.
+
+### Faults
+
+`parse` raises only `PipelineDefinitionInvalid(fault)` (a `FactoryError`; the message is the fault). The faults are `not valid YAML: <problem>` (the repeated key is named in the problem; ruamel's problem text can span several lines), `the pipeline definition must be a mapping` (a list, a string or an empty text) and the spellings of `all_faults` in `factory.adapters.validation_faults`, the same module the work item reader uses: `unknown key: <path>`, `missing key: <path>` and `invalid <path>: <message>`. A `<path>` has dots between keys and `[n]` for a list position (`roles.coder.write_paths`). A text with several faults is refused once, with all of them joined by `; ` in the order unknown key, missing key, invalid value (`unknown key: x; missing key: contract`).
+
+```bash
+uv run python -c "
+from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.domain.errors import PipelineDefinitionInvalid
+TEXT = '''contract: '1.0'
+roles:
+  coder: {write_paths: ['src/*']}
+stages:
+  doing: {role: coder, next: [done]}
+  done: {}
+'''
+definition = RuamelPipelineDefinitionReader().parse(TEXT)
+print(definition.first_stage(), definition.roles['coder'].lease_duration, sorted(definition.project_commands))
+try:
+    RuamelPipelineDefinitionReader().parse(TEXT.replace('contract', 'contrakt'))
+except PipelineDefinitionInvalid as error:
+    print(error.fault)
+"
+```
+
+prints `doing 60 ['check', 'lint', 'test']` and then `unknown key: contrakt; missing key: contract`.
 
 ## Kill points: testing a crash
 

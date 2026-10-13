@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 43
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The pipeline definition schema and its defaults
 
 ## Assignment (as of log entry 1)
@@ -160,3 +168,142 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/errors.py`, `domain/pipeline_definition.py`, `application/files.py`, `adapters/pipeline_yaml.py`, `adapters/validation_faults.py`, `application/boundaries.py`). I checked that `Name`, `validation_faults.first_fault`, `Boundaries` and `PIPELINE_YAML` in `tests/git_support.py` exist. Every behaviour in the Interface comments has a criterion: fault ranking (18, 19), YAML order (1, 5), the `project_commands` replace-not-merge rule (9), and the defaults (6 to 8).
+   - Criteria: each is testable by one test function. Every rule has its failing side: positive-int limits at 0 and -1 plus the accepted 1 (13), name pattern (14), wrong types and the unquoted contract (15), missing keys (11), unknown keys (12), invalid YAML and repeated key (16), non-mapping top level (17), unknown `role_of` stage (4).
+   - Demo: runnable as written. The `Expect:` line gives four exact output lines.
+   - Architecture: the schema is in domain, the reader interface in application, ruamel only in the adapter (criterion 23), and the reader is wired through `Boundaries`. This matches CLAUDE.md.
+   - Scope: this is the schema half of ST8.1 and R30. The cross-key rules (S0007), the stop report (S0006) and a writer are excluded, as `FEATURE.md` says.
+3. tester: Wrote the tests for the pipeline definition schema, its reader, `all_faults` and the reader interface. `make lint` is green. `make test` is red on purpose: pytest cannot load `tests/conftest.py`, because the `boundaries` fixture now imports `RuamelPipelineDefinitionReader` from `factory.adapters.pipeline_yaml`, which does not exist yet (`ModuleNotFoundError`). Until the coder builds the module, every test errors at collection.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_pipeline_yaml.py::test_example_definition_is_read_in_its_order
+   - criterion 2: tests/adapters/test_pipeline_yaml.py::test_first_stage_is_the_first_stage_of_the_text
+   - criterion 3: tests/adapters/test_pipeline_yaml.py::test_role_of_a_stage_is_its_role_or_none
+   - criterion 4: tests/adapters/test_pipeline_yaml.py::test_role_of_an_unknown_stage_raises_key_error
+   - criterion 5: tests/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages (intake 0, tests 1, done 8)
+   - criterion 6: tests/adapters/test_pipeline_yaml.py::test_left_out_keys_with_defaults_take_them
+   - criterion 7: tests/adapters/test_pipeline_yaml.py::test_an_empty_stage_takes_every_default
+   - criterion 8: tests/adapters/test_pipeline_yaml.py::test_left_out_project_commands_are_check_lint_and_test
+   - criterion 9: tests/adapters/test_pipeline_yaml.py::test_given_project_commands_replace_the_default_set, ::test_an_empty_project_command_takes_the_default_time_limit
+   - criterion 10: tests/adapters/test_pipeline_yaml.py::test_given_values_replace_the_defaults
+   - criterion 11: tests/adapters/test_pipeline_yaml.py::test_a_text_without_contract_is_refused, ::test_a_text_without_stages_is_refused, ::test_a_text_without_roles_is_refused, ::test_a_role_without_write_paths_is_refused
+   - criterion 12: tests/adapters/test_pipeline_yaml.py::test_an_unknown_key_is_refused_by_its_path (top-level, stage, role)
+   - criterion 13: tests/adapters/test_pipeline_yaml.py::test_a_limit_below_one_is_refused (6 paths × 0 and -1), ::test_a_limit_of_one_is_accepted (6 paths, all on the minimal text; the lease case sets the coder's time_limit to 1)
+   - criterion 14: tests/adapters/test_pipeline_yaml.py::test_a_name_that_breaks_the_pattern_is_refused_naming_it, ::test_a_well_formed_name_is_accepted_for_stage_role_and_command
+   - criterion 15: tests/adapters/test_pipeline_yaml.py::test_a_value_of_the_wrong_type_is_refused_by_its_path
+   - criterion 16: tests/adapters/test_pipeline_yaml.py::test_a_text_that_is_not_yaml_is_refused, ::test_a_repeated_key_is_refused_naming_it
+   - criterion 17: tests/adapters/test_pipeline_yaml.py::test_a_text_that_is_not_a_mapping_is_refused (list, string, empty)
+   - criterion 18: tests/adapters/test_pipeline_yaml.py::test_several_faults_are_refused_once_in_rank_order
+   - criterion 19: tests/adapters/test_validation_faults.py::test_all_faults_ranks_unknown_then_missing_then_invalid
+   - criterion 20: tests/domain/test_pipeline_definition.py::test_pipeline_definition_invalid_carries_its_fault_as_message
+   - criterion 21: tests/domain/test_pipeline_definition.py::test_write_path_placeholders_are_spelled_in_braces
+   - criterion 22: tests/application/test_pipeline_definition_reader.py::test_pipeline_definition_reader_is_abstract_with_parse_alone, ::test_pipeline_definition_reader_parse_body_is_its_docstring_alone, ::test_ruamel_reader_implements_the_pipeline_definition_reader
+   - criterion 23: the existing tests/adapters/test_work_item_markdown.py::test_only_the_work_item_adapter_imports_frontmatter_and_ruamel, unchanged
+   - criteria 24 and 25: `make check` and the docs belong to the coder and the documenter, so they have no tests here.
+
+   Extra tests drawn from the Interface's own rules, not from any criterion:
+   - tests/adapters/test_validation_faults.py::test_all_faults_keeps_pydantic_order_within_one_rank checks that faults of one rank stay in pydantic's order.
+   - tests/adapters/test_pipeline_yaml.py::test_a_name_value_that_breaks_the_pattern_is_refused tests the refused side of the `Name`-typed values `role`, `next[0]` and `acceptance_stage`. CLAUDE.md wants both sides of every limit the Interface states; criterion 1 covers the accepted side.
+   - tests/adapters/test_pipeline_yaml.py::test_a_python_tag_is_refused_as_a_pipeline_definition_fault checks that a text using a Python tag raises `PipelineDefinitionInvalid` and nothing else, because the Interface says safe mode and that this is the only exception. It does not check the fault's wording.
+   - tests/application/test_pipeline_definition_reader.py::test_boundaries_hand_out_the_ruamel_pipeline_reader checks the new `Boundaries.pipeline_reader` field.
+
+   Files:
+   - created: tests/domain/test_pipeline_definition.py, tests/adapters/test_pipeline_yaml.py, tests/adapters/test_validation_faults.py, tests/application/test_pipeline_definition_reader.py
+   - changed: tests/conftest.py. The `boundaries` fixture passes `pipeline_reader=RuamelPipelineDefinitionReader()`, as the Interface says for `boundaries.py`.
+
+   Modules and names the tests need that do not exist yet: `factory.adapters.pipeline_yaml`, `factory.domain.pipeline_definition`, `factory.domain.errors.PipelineDefinitionInvalid`, `factory.application.files.PipelineDefinitionReader`, `factory.adapters.validation_faults.all_faults` and the `Boundaries.pipeline_reader` field. Nothing in the criteria needed interpreting, so there is no open question.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.pipeline_yaml'
+4. coder: Built the pipeline definition schema and its reader. `make check` is green, and the demo prints the four expected lines. Commit 3293ffd.
+
+   What I built:
+   - `src/factory/domain/pipeline_definition.py`: the two placeholders, `RoleDefinition`, `StageDefinition`, `ProjectCommandDefinition` and `PipelineDefinition`, with `first_stage`, `role_of` and `position`. Every model is frozen with `extra="forbid"`, so a misspelt key is refused at every level. Names use the existing `identifiers.Name`.
+   - `src/factory/domain/errors.py`: `PipelineDefinitionInvalid(FactoryError)`. Its message is the fault.
+   - `src/factory/application/files.py`: the `PipelineDefinitionReader` abstract base class. Its one method, `parse`, has a docstring as its whole body.
+   - `src/factory/application/boundaries.py`: the new field `pipeline_reader`.
+   - `src/factory/adapters/validation_faults.py`: `all_faults`, a stable sort of pydantic's errors by the existing `_rank`, so faults of one rank keep pydantic's order. `first_fault` now returns `all_faults(...)[0]`, so the two cannot drift apart. The work item reader's behaviour is unchanged and its tests stay green.
+   - `src/factory/adapters/pipeline_yaml.py`: `RuamelPipelineDefinitionReader`. It loads with `YAML(typ="safe")`; on a duplicate key or a Python tag ruamel raises `YAMLError`, which becomes `not valid YAML: <problem>`. A top level that is not a dict, `None` for an empty text included, becomes the mapping fault. Otherwise all the faults are joined by `; `.
+
+   Main decision: the default `project_commands` comes from a `Field(default_factory=...)` rather than the literal dict the Interface sketches. A given dict still replaces the default set as a whole, so the behaviour is the same, and no mutable model instances are shared as a class default. I rejected a custom validator that would merge the given commands with the defaults, because the Interface says a given set replaces them.
+
+   Refactor: I read the diff and found nothing to rename or simplify, so there is no refactor commit.
+
+   Noticed, not touched:
+   - The fault for unreadable YAML carries ruamel's full multi-line problem text, including its "To suppress this check see: …" hint. The Interface asks for `<problem>`, which this is. S0006, which reports a refusal as a stop, may want to shorten it.
+   - `position` of an unknown stage raises `ValueError` (from `list.index`). The Interface does not say what it should raise, and no test covers it.
+   - `role_of` on a stage whose role is not defined raises `KeyError`. S0007's load-time rules will rule that case out.
+   - Pydantic's lax mode accepts `true` as the integer 1 for a limit. No test covers it, and the Interface does not ask for strict mode.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read every test against its criterion. Criteria 1–22 are each covered by the tests the tester's entry maps. Criterion 23 is covered by the unchanged `test_only_the_work_item_adapter_imports_frontmatter_and_ruamel`, and `ruamel` is imported only in `src/factory/adapters/` (`work_item_markdown.py`, `pipeline_yaml.py`). Both sides of each boundary are tested:
+     - every limit at 0 and -1 (refused) and at 1 (accepted)
+     - the name pattern: refused for stage, role and command keys, accepted for `smoke-test` and `a1`, and refused for the name values `role`, `next[0]` and `acceptance_stage`
+     - missing, unknown and wrong-type keys, invalid YAML, a repeated key, a Python tag, and a top level that is not a mapping
+     - several faults in rank order
+
+     The coder's entry reports the factory's `make check` as green.
+   - Architecture:
+     - `factory.domain.pipeline_definition` imports only pydantic and `identifiers.Name`.
+     - `PipelineDefinitionReader` in `factory.application.files` is an ABC whose one abstract method's body is its docstring alone.
+     - `RuamelPipelineDefinitionReader` inherits it.
+     - ruamel stays in the adapter.
+     - `Boundaries` is built only in `tests/conftest.py`, which wires the new field.
+   - Security: `YAML(typ="safe")` is used. Every `YAMLError` and `ValidationError` becomes `PipelineDefinitionInvalid`. No variable is named `yaml`, and the diff adds no suppression markers.
+   - Quality:
+     - `all_faults` is a stable sort over the existing `_rank`/`_fault`, and `first_fault` now delegates to it, so the two cannot drift apart.
+     - Defining the default `project_commands` with `default_factory` behaves the same as the literal in the Interface.
+     - Public names carry docstrings, and the comments say why.
+   - Ticket hygiene: the log names the main decision (`default_factory`) and the alternative it rejected (a merging validator). The Assignment matches the code. Docs criterion 25 matches the real fault spelling for a bad name (`stages.<name>.[key]`, from `_key_path`).
+
+   Open, already in the coder's entry and outside this story's criteria:
+   - Pydantic's lax mode coerces, for example, `true` or `"3"` to an int limit.
+   - `position` of an unknown stage raises `ValueError`.
+   - `first_stage` on an empty `stages` raises `StopIteration`. S0007's load-time rules are the natural place for this.
+6. documenter: no findings.
+
+   Files changed:
+   - `docs/project-guide.md`: new section *The pipeline definition*. It covers the keys and their defaults, the required keys, quoted `contract`, unknown keys refused, a given `project_commands` replacing the default set, `done: {}` against a null `done:`, and the `stages.<name>.[key]` path for a bad name (and the same for roles and commands). It also covers the placeholders and the three methods. Its *Faults* subsection lists the spellings of `all_faults` and says all faults are joined by `; ` in the order unknown key, missing key, invalid value. It ends with a runnable example. The `Boundaries` field list now includes `pipeline_reader`.
+   - `docs/decisions.md`: new entry saying the schema forbids unknown keys, with the reason and the alternatives rejected.
+
+   I ran the example and it printed the lines the guide states. I also ran the cases behind the stated faults: null `done:`, a bad stage or role name, and an unquoted contract. `make check` is green.
+
+   Cross-read and found current: `README.md` and `docs/operator-guide.md`. The operator guide's mention of the `pipeline_definition_invalid` stop is consistent, because reporting a refusal as a stop is S0006.
+
+   Behaviour the code leaves open, which I documented as unspecified rather than as a finding. The Interface does not say what these should do, and S0007 may settle them:
+   - `position` of an unknown stage raises `ValueError`.
+   - `first_stage` on empty `stages` raises `StopIteration`.
+   - Pydantic's lax mode accepts `true` or `"3"` as an int limit.
+
+   Nothing stale was left untouched.
+
+   `make check`: check: green
+7. demo: no findings.
+
+   I ran the one command under `## Demo` from the repository root, exactly as written. It exited 0.
+
+   ```
+   tests ['tests', 'doing', 'done'] 2
+   90 60 40
+   2 2 ['check', 'lint', 'test']
+   True True
+   ```
+
+   Met its `Expect:` line. There are four lines and each matches exactly:
+   - the first stage, the stage order and `position('done')`
+   - the given `lease_duration` of 90 for the tester, and the defaults 60 and 40 for the coder
+   - the defaults for `attempts_cap`, `crash_cap` and `project_commands`
+   - the misspelt `contrakt` refused with both `missing key: contract` and `unknown key: contrakt` in the one fault
+
+   Against the acceptance criteria, the output agrees with:
+   - criterion 2 (`first_stage`)
+   - criterion 5 (`position` is the index in YAML order)
+   - criterion 6 (a left-out key with a default takes it)
+   - criterion 8 (the default command set)
+   - criterion 10 (a given value replaces the default)
+   - criteria 11, 12 and 18 (a missing key and an unknown key are both reported in one refusal)
+
+   Nothing in the output contradicts any criterion.

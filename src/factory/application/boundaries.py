@@ -7,6 +7,7 @@ from factory.application.agent_runtime import AgentRuntime
 from factory.application.files import (
     CostRecordReader,
     CostRecordWriter,
+    PipelineDefinitionReader,
     WorkItemReader,
     WorkItemWriter,
 )
@@ -29,6 +30,7 @@ class Boundaries:
     work_item_writer: WorkItemWriter
     cost_reader: CostRecordReader
     cost_writer: CostRecordWriter
+    pipeline_reader: PipelineDefinitionReader
     clock: Clock
     log: FactoryLog
     health: HealthStatusStore

@@ -94,3 +94,14 @@ class CostRecordFormatError(FactoryError):
         super().__init__(f"line {line}: {fault}")
         self.line = line
         self.fault = fault
+
+
+class PipelineDefinitionInvalid(FactoryError):
+    """The pipeline definition cannot be read: every fault, joined in one text."""
+
+    fault: str
+
+    def __init__(self, fault: str) -> None:
+        """Name the fault; it is the whole message."""
+        super().__init__(fault)
+        self.fault = fault

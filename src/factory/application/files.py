@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from factory.domain.cost_records import CostRecord
+from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
 
 
@@ -58,3 +59,11 @@ class CostRecordWriter(ABC):
     @abstractmethod
     def write(self, path: Path, records: Sequence[CostRecord]) -> None:
         """Write the text of `render` to `path` as UTF-8, replacing an existing file."""
+
+
+class PipelineDefinitionReader(ABC):
+    """Reads the pipeline definition; every fault raises `PipelineDefinitionInvalid`."""
+
+    @abstractmethod
+    def parse(self, text: str) -> PipelineDefinition:
+        """The definition of a text, its left-out keys at their defaults and all faults named."""
