@@ -1,6 +1,7 @@
 """The git values the factory reasons about."""
 
 from datetime import UTC, datetime, timedelta
+from pathlib import PurePosixPath
 from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, field_validator
@@ -81,3 +82,12 @@ class WorkTreeStatus(BaseModel):
     branch: str | None
     head: CommitId | None
     changes: list[ChangedPath]
+
+
+def check_repository_path(path: str) -> None:
+    """Raise `ValueError` unless `path` is relative to the repository and stays inside it."""
+    pure = PurePosixPath(path)
+    if not path or pure.is_absolute():
+        raise ValueError(f"not a repository-relative path: {path!r}")
+    if ".." in pure.parts:
+        raise ValueError(f"path leaves the repository: {path!r}")
