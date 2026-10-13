@@ -1,6 +1,6 @@
 # factory-rf
 
-The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The package is small so far: four layer packages, the error types, the kill points, the hosting-service interface with its PyGithub client and its fake, the process wrapper, and the git wrapper (reading, clone, checkout, commit and push), the agent-runtime interface with its fake, and the `claude -p` runtime (the call, the budget resume and the version query).
+The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The package is small so far: four layer packages, the error types, the kill points, the hosting-service interface with its PyGithub client and its fake, the process wrapper, the git wrapper (reading, clone, commit and push, branches and merge, and restoring the checkout with reset, revert and move), the project commands (the make class), the agent-runtime interface with its fake, and the `claude -p` runtime (the call, the budget resume and the version query).
 
 ## Getting started
 
@@ -13,7 +13,7 @@ When it works, `make check` ends with the line `check: green`. There is nothing 
 
 ## Where to look next
 
-- `docs/operator-guide.md`: install, configure, the stops and what to do about each (not yet written)
+- `docs/operator-guide.md`: install, configure, the stops and what to do about each
 - `docs/project-guide.md`: the guide for agents working on this code (partly written)
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `CLAUDE.md`: the rules every change follows (architecture, tests, checks)

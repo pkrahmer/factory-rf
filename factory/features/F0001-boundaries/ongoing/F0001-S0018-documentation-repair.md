@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 20
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Documentation repair after Boundaries
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
@@ -40,3 +48,62 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: "None: documentation only". There is no comment stating behaviour and no rule with a failing side, so steps 3's requirements are vacuous.
+   - Criteria: 1 to 5 each name one file and one checkable wording change (the stale phrases can be found with grep, and the replacements are named). 6 and 7 are the two closing criteria. 7 is open-ended ("anything else F0001 left stale"), but it is the documenter's standing docs criterion and not a build decision.
+   - Demo: one runnable grep line. Its Expect line is checkable: three lines, each `0`, and the exit status 1 is explained.
+   - Architecture: no code, layers or dependencies change. Only `README.md` and `docs/` are touched, and the documenter's lane covers them.
+   - Scope: documentation repair across F0001's stories, listed as S0018 in FEATURE.md. Decision 21 says the repair runs through the pipeline. It is not in "Out of scope".
+   - Note for the next stage: the assignment says there is nothing for the tester and coder to build.
+3. tester: no tests written; this is a documentation-only story.
+   - The Interface is "None: documentation only", and the Assignment says the tester and coder stages have nothing to build. Criteria 1 to 5 are wording changes in `README.md`, `docs/project-guide.md` and `docs/operator-guide.md`. Their check is the Demo's grep line, which the documenter and the demo stage run.
+   - Rejected: pytest tests that grep the docs for phrases. Tests would then pin documentation prose, which is the documenter's to word. Nothing in the criteria asks for that, and it would break the rule that tests do not name tickets or criteria.
+   - Criterion mapping: 1 to 5 go to the documenter and the Demo grep; 6 is `make check`, unchanged by this stage; 7 is the documenter's cross-read.
+   - Files created: none. Modules the test runner could not import: none, since no new tests exist. `make lint` is green.
+   - Next: the coder stage has no code to write and can hand straight on to the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: no code written; this is a documentation-only story.
+      - Built: nothing. The Interface is "None: documentation only". The Assignment says the tester and coder stages have nothing to build, and the tester wrote no tests, so `make test` has no failing tests to implement against.
+      - Rejected: editing `README.md`, `docs/project-guide.md` and `docs/operator-guide.md` here. `CLAUDE.md` gives those files to the documenter stage ("the coder does not write them"), and criteria 1 to 5 and the cross-read in 7 belong to that stage.
+      - Refactor: not applicable. The branch has no diff outside `factory/`.
+      - Checked: `make check` is green on the unchanged branch (coverage 99.49 %).
+      - Open: everything in criteria 1 to 5 and 7 is still to do, all of it for the documenter. The review stage has no code diff to read.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the ticket, so there is no code, test, architecture or security surface to review.
+      - Acceptance criteria: 1 to 5 are wording changes in `README.md`, `docs/project-guide.md` and `docs/operator-guide.md`. `CLAUDE.md` gives those files to the documenter stage, which comes after this one. Their check is the Demo's grep line, run by the documenter and the demo stage. The Interface is "None: documentation only", so no rule has a failing side that would need a test. I agree with the tester's decision not to pin documentation prose in pytest.
+      - Criterion 6: the coder's entry records `make check` green on the unchanged branch (coverage 99.49 %).
+      - Ticket hygiene: the tester's and coder's entries give the main decision (nothing to build) and what was rejected. `Assignment` still matches, since the work it describes is the documenter's and none of it is done yet. Criterion 7 still says what the documenter must do.
+      - Open for the documenter: all of criteria 1 to 5, and the cross-read of `README.md` and `docs/` in 7. The demo stage then checks the grep line: three lines, each `0`.
+6. documenter: the four repairs are made and the Demo grep prints 0, 0, 0 (each grep exits 1, as expected). `make check` is green.
+   - `docs/project-guide.md`, *Kill points*: the "built only the seam / until then nothing reaches a point" sentence is replaced by "each wrapper in the table reaches its point; no other code reaches one". The `AGENT_RUN` row now says the fake reaches it after the run's writes and `claude -p` after the last call and its result, matching the runtime sections.
+   - `README.md`: the status sentence now names the project commands (the make class). It lists the git wrapper's operations as reading, clone, commit and push, branches and merge, and restoring the checkout (reset, revert, move). "(not yet written)" is removed from the operator-guide link.
+   - `docs/operator-guide.md`, intro: "Nothing is built yet" is replaced by what is built (git, build commands, `claude -p` runtime, hosting-service client) and "there is no command to run yet". *The agent runtime*: the closing paragraph is deleted. The stall rule is now one sentence in the paragraph before it and says "work item". The unknown cost of a timed-out run was already stated once there.
+   - Cross-read against the code and each other: `docs/decisions.md` and the rest of `docs/project-guide.md` read as current. I did not check them line by line against the code.
+   - Stale, but outside this story and left alone: the README's "(partly written)" on `docs/project-guide.md` is vague but not wrong. The project guide's hosting-service and `ProjectCommands` sections say the pipeline's use "comes from F0005/F0010", which was true when written and is still correct.
+   - No findings for the coder.
+
+   `make check`: check: green
+7. demo: no findings. I ran the one Demo command from the repository root, and it matched its Expect line.
+
+   Command: `grep -c "until then nothing reaches a point" docs/project-guide.md; grep -c "not yet written" README.md; grep -c "Nothing is built yet" docs/operator-guide.md`
+   ```
+   0
+   0
+   0
+   ```
+   Expected three lines, each `0`, and got them. Each grep exits 1, which the Expect line names as the expected result. **Met.**
+
+   I checked each acceptance criterion against the files on the branch:
+   1. `docs/project-guide.md:335`, *Kill points*, now says "Each wrapper in the table calls `kill_points.reach(point)` at its point; no other code reaches one." The "nothing reaches a point" sentence is gone. Met.
+   2. `docs/project-guide.md:330`, the `AGENT_RUN` row, now says "the fake after the run's writes, `claude -p` after the last call and its result". This matches lines 292 and 313. Met.
+   3. `README.md:3`, the status sentence, names "the project commands (the make class)". It lists the git wrapper's operations: reading, clone, commit and push, branches and merge, and restoring the checkout with reset, revert and move. `README.md:16`, the operator-guide link, no longer says "not yet written". Met.
+   4. `docs/operator-guide.md:3`, the intro, says "Parts are built: …" and lists them, then says "There is no command to run yet". Met.
+   5. `docs/operator-guide.md`, *The agent runtime*: the old closing paragraph is gone. The stall rule appears once (line 13, "stops the work item as a stall"). The unknown cost, tokens and turns of a timed-out run appear once. "story" no longer appears anywhere in the file. Met.
+   6. `make check`: I did not run it at this stage; the factory runs it after this stage. The documenter's entry records it green.
+   7. The documenter's entry records the cross-read and the stale wording it left alone. That wording is outside this story's criteria.
+
+   Open: nothing.
