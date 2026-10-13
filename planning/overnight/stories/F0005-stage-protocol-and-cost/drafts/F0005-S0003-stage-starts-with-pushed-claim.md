@@ -19,9 +19,12 @@ class RunRecord(BaseModel):
 `src/factory/application/machine.py` (grown by this story)
 
 ```python
-class RunRecordStore(Protocol):
+class RunRecordStore(ABC):
+    @abstractmethod
     def read(self) -> RunRecord | None: ...
+    @abstractmethod
     def write(self, record: RunRecord) -> None: ...
+    @abstractmethod
     def clear(self) -> None: ...
 ```
 

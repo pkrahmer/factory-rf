@@ -9,23 +9,28 @@ Build the one reader and the one writer of the work item file (R13): a Markdown 
 `src/factory/application/files.py`
 
 ```python
-class WorkItemReader(Protocol):
+class WorkItemReader(ABC):
+    @abstractmethod
     def parse(self, text: str) -> WorkItemDocument: ...
+    @abstractmethod
     def parse_specification(self, text: str) -> WorkItemDocument: ...
+    @abstractmethod
     def read(self, path: Path) -> WorkItemDocument: ...
 
-class WorkItemWriter(Protocol):
+class WorkItemWriter(ABC):
+    @abstractmethod
     def render(self, document: WorkItemDocument) -> str: ...
+    @abstractmethod
     def write(self, path: Path, document: WorkItemDocument) -> None: ...
 ```
 
 `src/factory/adapters/work_item_markdown.py`
 
 ```python
-class FrontmatterWorkItemReader:        # satisfies WorkItemReader structurally, no inheritance
+class FrontmatterWorkItemReader(WorkItemReader):
     def __init__(self) -> None: ...
 
-class FrontmatterWorkItemWriter:        # satisfies WorkItemWriter structurally, no inheritance
+class FrontmatterWorkItemWriter(WorkItemWriter):
     def __init__(self) -> None: ...
 ```
 
@@ -87,7 +92,7 @@ Tests: `tests/adapters/test_work_item_markdown.py`.
 13. `read(path)` of a file in `tmp_path` returns the same document as `parse` of its text.
 14. `read(path)` of a missing file raises `WorkItemFormatError` with a fault starting with `cannot read` and `path` equal to `str(path)`; of a file with an unknown key it raises the `unknown key` fault with `path` equal to `str(path)`.
 15. `write(path, document)` leaves a file whose bytes are the UTF-8 encoding of `render(document)`, with `\n` line ends, replaces a file that exists, and `read(path)` gives back the document.
-16. `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` are not subclasses of their protocols, and the tests annotate the instances as `WorkItemReader` and `WorkItemWriter`, so `make check` (mypy) proves they satisfy them; no module of `factory.domain`, `factory.application` or `factory.entry` imports `frontmatter`, found by parsing every module's imports with `ast`.
+16. `WorkItemReader` and `WorkItemWriter` are abstract base classes whose every operation is abstract, and `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` are subclasses of them; no module of `factory.domain`, `factory.application` or `factory.entry` imports `frontmatter`, found by parsing every module's imports with `ast`.
 17. make check stays green.
 18. docs: `docs/project-guide.md` shows the file format of a work item (the front matter's notation with an example, the body normalisation, the fault messages of the reader) and says that every file format has one reader and one writer class in `factory.adapters`.
 

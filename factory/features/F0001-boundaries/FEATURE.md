@@ -38,6 +38,11 @@ Every outside party is reached through one boundary: the git command-line tool t
 - S0012 — The git wrapper: branches and merge
 - S0013 — The git wrapper: reset, revert and move
 - S0014 — The hosting-service fake
+- S0015 — The git wrapper: no argument is read as an option, and git speaks one language (proposed by the feature acceptance)
+- S0016 — The claude runtime: a reply with impossible measures is a dead run, and the resumed sums are pinned (proposed by the feature acceptance)
+- S0017 — The boundaries' open failing sides: tests for behaviour already built (proposed by the feature acceptance)
+- S0018 — Documentation repair after Boundaries (proposed by the feature acceptance)
+- S0019 — The four interfaces as abstract base classes
 
 ## Decisions taken for the human
 
@@ -62,3 +67,4 @@ Product and design decisions taken while writing the stories, for the human to r
 17. The hook command in the guard settings file is the bare `factory-guard`, found through the `PATH` of the request's environment; the runtime adds no `PATH` to an environment it must not inherit. A request whose environment lacks a `PATH` with `factory-guard` has a guard that cannot start, and Claude Code treats a hook that fails to start as not blocking. The same holds for `HOME`: `claude -p` under the operator's login needs it to find that login, and the runtime adds none. F0005 and F0010 must give the request such a `PATH` and a `HOME`, and F0010's preflight should probe them. (S0009, story text)
 18. The `claude -p` flags and the exit status of a budget stop are not checked against the pinned `claude`, because no stand-in can show them. They are a morning observation, tied to F0010's preflight probe (ST5.3), which should run the exact argument list of S0009 once against the pinned `claude`, because a flag it rejects would make every real run end `died` with no text that says why. (S0009 and S0010, story text)
 19. Defaults without a source in the handover or run-facts, for the human to confirm: a git `time_limit` of 5 minutes (S0005), a `version()` limit of 30 seconds (S0010), a minimum resume budget of 0.50 (S0010; run-facts gives only "a quarter more"). (S0005, S0010, story text)
+20. The factory's interfaces are abstract base classes (`abc.ABC` with `@abstractmethod` operations), and its own implementations inherit them; `typing.Protocol` is kept only for shapes of code the factory does not own. Decided by the human on 2026-10-13, after the feature was accepted with protocols. (S0019, story text)

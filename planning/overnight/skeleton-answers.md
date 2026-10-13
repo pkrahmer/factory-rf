@@ -1,5 +1,7 @@
 # Working answers to the skeleton's open questions
 
+> 2026-10-13 morning, the human's decision, binding on everything below and on every later story: interfaces are abstract base classes and the factory's implementations inherit them (`CLAUDE.md`, Architecture; `interfaces.md`, Amendments). Where an answer below says "protocol", read "abstract base class".
+
 The main session's answers, taken unattended on 2026-10-12 under the plan's rule: take the plan's default or the simplest reading consistent with the handover and decisions 001 to 007, and list each for the morning. They bind the interface sheet and the drafters. Numbers follow `skeleton.md`'s open questions.
 
 1. **Expiry of another instance's lease** is handled as a crash: the stage reruns from its stage-start commit, no attempt is charged, `crashes` rises by one. It posts a note on the work item's pull request. The note says "retrying" only when the rerun will happen, and never at the crash cap, where it asks the human (ST1.4). A crash of the instance's own stage (same name) posts no note; it adds a journal entry with the rerun's stage-start commit.

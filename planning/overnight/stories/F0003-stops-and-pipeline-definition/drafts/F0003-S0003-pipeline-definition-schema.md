@@ -54,7 +54,8 @@ class PipelineDefinition(BaseModel):
 `src/factory/application/files.py` (adds to F0002-S0002's module)
 
 ```python
-class PipelineDefinitionReader(Protocol):
+class PipelineDefinitionReader(ABC):
+    @abstractmethod
     def parse(self, text: str) -> PipelineDefinition: ...    # PipelineDefinitionInvalid, naming the fault
 ```
 

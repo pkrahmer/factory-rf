@@ -49,7 +49,8 @@ def error_report_text(event_key: str, error: str, remote_state: CommitId, cap: i
 `src/factory/application/dispatcher.py`
 
 ```python
-class Handler(Protocol):
+class Handler(ABC):
+    @abstractmethod
     def handle(self, event: Event) -> None: ...    # any Exception it raises is a counted error (R28)
 
 DispatchOutcome = Literal["handled", "error", "reported", "capped"]

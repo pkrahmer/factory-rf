@@ -40,22 +40,26 @@ class CostRecord(BaseModel):
 `src/factory/application/files.py` (adds to the module of F0002-S0003)
 
 ```python
-class CostRecordReader(Protocol):
+class CostRecordReader(ABC):
+    @abstractmethod
     def parse(self, text: str) -> list[CostRecord]: ...
+    @abstractmethod
     def read(self, path: Path) -> list[CostRecord]: ...
 
-class CostRecordWriter(Protocol):
+class CostRecordWriter(ABC):
+    @abstractmethod
     def render(self, records: Sequence[CostRecord]) -> str: ...
+    @abstractmethod
     def write(self, path: Path, records: Sequence[CostRecord]) -> None: ...
 ```
 
 `src/factory/adapters/cost_records_jsonl.py`
 
 ```python
-class JsonLinesCostRecordReader:        # satisfies CostRecordReader structurally
+class JsonLinesCostRecordReader(CostRecordReader):
     def __init__(self) -> None: ...
 
-class JsonLinesCostRecordWriter:        # satisfies CostRecordWriter structurally
+class JsonLinesCostRecordWriter(CostRecordWriter):
     def __init__(self) -> None: ...
 ```
 
@@ -96,7 +100,7 @@ Tests: `tests/domain/test_cost_records.py`, `tests/domain/test_cost_record_error
 13. `parse` of two lines with the same `run` raises `CostRecordFormatError` with the number of the second line and the fault `duplicate run: ` followed by the run.
 14. `read(path)` returns `[]` for a file that does not exist, the parsed records for a file in `tmp_path`, and raises `CostRecordFormatError` with the line number for a file with a broken line.
 15. `write(path, records)` leaves a file whose bytes are the UTF-8 encoding of `render(records)`, replaces the old content whole, leaves an empty file for `[]`, and `read(path)` gives the records back.
-16. `JsonLinesCostRecordReader` and `JsonLinesCostRecordWriter` are not subclasses of their protocols, and the tests annotate the instances as `CostRecordReader` and `CostRecordWriter`, so `make check` (mypy) proves they satisfy them.
+16. `CostRecordReader` and `CostRecordWriter` are abstract base classes whose every operation is abstract, and `JsonLinesCostRecordReader` and `JsonLinesCostRecordWriter` are subclasses of them.
 17. make check stays green.
 18. docs: `docs/project-guide.md` describes the sidecar file (where it sits, the line format with an example, that an unknown measure is `null` and never 0, that the cost is a string, that a run id is unique in a file); `docs/decisions.md` records why a cost is a string.
 

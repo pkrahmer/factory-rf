@@ -20,8 +20,10 @@ class PreflightStamp(BaseModel):
 PROBE_COMMAND = "lint"
 PROBE_TIME_LIMIT = timedelta(minutes=10)
 
-class PreflightStampStore(Protocol):
+class PreflightStampStore(ABC):
+    @abstractmethod
     def read(self) -> PreflightStamp | None: ...          # missing or unreadable: None (a cache)
+    @abstractmethod
     def write(self, stamp: PreflightStamp) -> None: ...
 
 class Preflight:

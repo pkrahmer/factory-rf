@@ -30,14 +30,18 @@ class HealthStatus(BaseModel):                # the file the health check reads
 `src/factory/application/machine.py`
 
 ```python
-class Clock(Protocol):
+class Clock(ABC):
+    @abstractmethod
     def now(self) -> datetime: ...                    # aware, UTC
 
-class FactoryLog(Protocol):
+class FactoryLog(ABC):
+    @abstractmethod
     def line(self, text: str) -> None: ...            # time-stamped, to standard output and the factory log file
 
-class HealthStatusStore(Protocol):
+class HealthStatusStore(ABC):
+    @abstractmethod
     def read(self) -> HealthStatus: ...               # a missing file is HealthStatus()
+    @abstractmethod
     def write(self, status: HealthStatus) -> None: ...
 ```
 

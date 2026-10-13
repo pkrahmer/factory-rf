@@ -39,6 +39,7 @@ Only the folder `C:\Dev\Projects\factory-rf\planning\overnight\stories\{{FID}}-{
 - Size: one story must fit the coder's $4 budget with one resume and a 60-minute lease. Split rather than exceed 26 criteria.
 - Nothing writes a file named `FEATURE.md` except the human: if v1.1's own template needs a feature form, name it `FEATURE-FORM.md` or say in the Assignment that the human adds it.
 - Tests use a real local bare git remote in `tmp_path` for git, and the one fake for the hosting service; the agent runtime is faked through its interface.
+- Interfaces are abstract base classes (`class X(ABC):`, every operation `@abstractmethod`), and every implementation the story writes inherits its interface, fakes included (`CLAUDE.md`, Architecture). Never write `typing.Protocol` for the factory's own interfaces, and never a criterion that an implementation does not inherit.
 
 ## From conditions to criteria
 

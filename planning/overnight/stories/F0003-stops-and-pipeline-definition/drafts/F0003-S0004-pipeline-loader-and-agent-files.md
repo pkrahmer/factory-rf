@@ -24,8 +24,10 @@ class AgentDefinitionInvalid(AgentDefinitionError):
 `src/factory/application/agent_runtime.py` (adds to F0001-S0007's module)
 
 ```python
-class AgentDefinitionReader(Protocol):
+class AgentDefinitionReader(ABC):
+    @abstractmethod
     def names(self) -> list[str]: ...                 # installed agents, sorted; AgentDefinitionError
+    @abstractmethod
     def read(self, name: str) -> AgentDefinition: ... # AgentDefinitionMissing; AgentDefinitionInvalid
 ```
 

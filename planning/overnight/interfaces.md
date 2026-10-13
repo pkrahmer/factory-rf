@@ -1163,6 +1163,8 @@ Every name in this sheet that renames a v1 word, so that drafters can check them
 
 ## Amendments during the night
 
+- 2026-10-13 morning, the human's decision: every interface in this sheet written as `typing.Protocol` is an abstract base class (`abc.ABC`, each operation an `@abstractmethod` with a docstring-only body), and every implementation the factory writes, fakes included, inherits it. `Protocol` stays only for shapes of code the factory does not own. F0001's four interfaces are converted by F0001-S0019; the drafts of F0002 to F0011 were converted the same morning. See `CLAUDE.md`, Architecture.
+
 Changes the main session made after the sheet was written. They win over the sections above.
 
 - 2026-10-13 01:00, from F0001 round 1: `GitCli(..., *, identity: GitIdentity | None = None, environment: Mapping[str, str] | None = None)`. `GitIdentity(name: str, email: str)` is a frozen Pydantic model in `factory.domain.git`. The identity comes from the instance's settings (`GIT_USER_NAME`, `GIT_USER_EMAIL`), and the extra environment carries the factory process's credential settings. Git still ignores the system and global configuration.
