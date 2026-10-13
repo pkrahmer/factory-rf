@@ -65,3 +65,5 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 01:43 | `F0001: start S0004` | | plan, section 8 (start) |
 | 01:50 | S0004 at accept: 14 behavioural criteria mapped, demos met both `Expect:` lines, diff within the story; the process module carries exactly the four allowed markers. `make check` red on the Windows host (mypy for win32: `os.killpg`, `signal.SIGKILL`) and green in a clone inside v1's container, the platform the factory targets; approval checks run in the container from now on. Merged; archived | #4 | plan, section 8 (approval) |
 | 01:51 | `F0001: start S0005` | | plan, section 8 (start) |
+| 02:01 | S0005 at accept: all 23 behavioural criteria mapped to tests, demos met both `Expect:` lines, `make check` green in the container, diff within the story. Merged; archived | #5 | plan, section 8 (approval) |
+| 02:02 | `F0001: start S0006` | | plan, section 8 (start) |
