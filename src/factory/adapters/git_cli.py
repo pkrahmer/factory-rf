@@ -288,8 +288,7 @@ class GitCli:
 
     def merge(self, ref: str, *, fast_forward_only: bool = False) -> MergeOutcome:
         """Merge `ref` into `HEAD`; a conflict is aborted, any other refusal is a `GitError`."""
-        if self.resolve(ref) is None:
-            raise GitError(_command(["merge", ref]), None, f"unknown ref {ref}")
+        self._resolve_or_raise(ref, "merge")
         if self.is_ancestor(ref, "HEAD"):
             return "up_to_date"
         if self.is_ancestor("HEAD", ref):
