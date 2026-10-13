@@ -98,3 +98,11 @@ def check_git_argument(value: str) -> None:
     # No ref, branch name or remote url starts with a dash, so refusing one loses nothing.
     if not value or value.startswith("-"):
         raise ValueError(f"not a git ref, branch or url: {value!r}")
+
+
+def check_branch_name(value: str) -> None:
+    """Raise ValueError for a branch name that `git push` could read as an option or a refspec."""
+    check_git_argument(value)
+    # A leading `+` forces, a `:` names another ref or deletes one, a `*` is a pattern.
+    if value.startswith("+") or ":" in value or "*" in value:
+        raise ValueError(f"not a branch name git push takes literally: {value!r}")
