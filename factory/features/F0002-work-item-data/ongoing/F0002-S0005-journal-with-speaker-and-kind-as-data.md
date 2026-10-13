@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 32
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Journal with speaker and kind as data
@@ -146,3 +146,10 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
       - Noticed, not touched: two defensive lines are not covered by the tests: the trailing-blank trim in `_entry_lines` and the trailing-blank strip in the restore. A text whose continuation line holds an unclosed fence would still swallow later headings, because the indent does not neutralise a fence. No criterion asks for this.
 
    `make check`: check: green
+5. reviewer: Checklist group 1 (acceptance criteria and limits) fails. The code in `src/factory/domain/journal.py` behaves as the Interface says on every path I traced, and each of criteria 1–18 has a test that checks what the criterion says. But three rules the Interface states have no test for their other side. CLAUDE.md (Tests) counts each untested side as a finding. None of the three has a criterion, so these are gaps in the story as well as in the tests. The coder may not edit tests (R9), so the fix goes through the tester or a question to the human.
+
+   1. tests/domain/test_journal.py (criterion 11 tests) vs. `_entry_lines` in src/factory/domain/journal.py:276-287. The Interface says `entry_text` finds the entry whose `"<number>. "` is "at column 0" and ends it at the next line "that starts with a number at column 0". No test has an indented case for either rule. Fix: add a test with an entry whose text has a continuation line such as `2. not an entry`, rendered as `   2. not an entry`. `entry_text(document, 2)` must then raise `no journal entry 2` (or return the real entry 2), and `entry_text(document, 1)` must return the whole text, including that line.
+   2. tests/domain/test_journal.py vs. src/factory/domain/journal.py:285-286. The Interface says `entry_text` returns the entry "without trailing blank lines", but every test has the `Journal` section at the end of the body, so the trimming loop is never run. The coder's entry says these lines are uncovered. Fix: add an `entry_text` case where the last entry is followed by blank lines and another section (`...\n2. intake: accepted\n\n## After\n`) and assert the result has no trailing blank line.
+   3. tests/domain/test_journal.py::test_restore_adds_the_journal_when_the_current_body_has_none vs. src/factory/domain/journal.py:327-328. The Interface says the baseline's block goes at the end "after one blank line". Both parametrized bodies (`"# T\n\nSpec.\n"`, `"# T\n\nSpec."`) end in a non-blank line, so the "one" is never tested against a body that already ends in blank lines, and the coder reports this branch as uncovered. Fix: add a current body like `"# T\n\nSpec.\n\n\n"` to the parametrization, expecting exactly one blank line before `## Journal`.
+
+   Checked and not a finding: the `# noqa: S603` in `test_either_module_can_be_imported_first` follows the existing marker in tests/test_layers.py:22 on main, and the guard in `docs/decisions.md` covers `src/factory` only. I did not review groups 2–5 because group 1 failed.
