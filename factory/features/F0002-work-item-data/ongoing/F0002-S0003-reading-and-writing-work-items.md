@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 30
 blocked: null
 comments_seen: 0
@@ -196,3 +196,26 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built the work item file's one reader and one writer. All 62 tests in tests/adapters/test_work_item_markdown.py pass, and `make check` is green (total coverage 99.61 %). Both demos print exactly what their `Expect:` lines say. Commit 23f3115.
+
+   What I built:
+   - `src/factory/application/files.py`: the `WorkItemReader` (`parse`, `parse_specification`, `read`) and `WorkItemWriter` (`render`, `write`) ABCs. Every operation is abstract, with only a docstring as its body.
+   - `src/factory/adapters/work_item_markdown.py`:
+     - `RuamelYamlHandler(YAMLHandler)`: overrides only `load` and `export`, both marked `@override`.
+       - `load` reads with `YAML(typ="safe")`. Nothing gives `{}`, and keys go through `str(key)` in file order. A `YAMLError` becomes "front matter is not valid YAML", and any other value that is not a mapping becomes "front matter is not a mapping".
+       - `export` writes with `YAML(typ="rt")`, with a small representer subclass that writes None as `null`. The round-trip representer would write `claim:` instead; I used a subclass so that ruamel's class-level representer table stays untouched for everyone else.
+       - `export` converts values to the notation on its own: a mapping becomes a `CommentedMap` and keeps its order. A list with no mappings becomes a flow `CommentedSeq`, so `[4, 9]` and `[]` come out right, and a list of mappings stays a block list. A datetime becomes single-quoted UTC isoformat with `Z`. The words null/true/false/yes/no/on/off/y/n are single-quoted. The line width is 4096, so no value is folded.
+     - `FrontmatterWorkItemReader`: `_split` turns `\r\n` into `\n` and strips the text, then calls the handler's `detect` and `split`, where a `ValueError` means no front matter. `parse` validates with `WorkItemState.model_validate`. `parse_specification` returns the top-level keys as `ignored_keys`. `read` maps `OSError`/`UnicodeDecodeError` to "cannot read: …" and re-raises a `parse` fault with `path=str(path)`.
+     - `FrontmatterWorkItemWriter`: `render` uses `frontmatter.dumps(frontmatter.Post(body.strip(), None, **state.model_dump()), handler=…)` plus `"\n"`. `write` uses `write_text(..., encoding="utf-8", newline="\n")`.
+
+   Main decision: the fault comes from pydantic's own `ValidationError.errors()`, with no separate key check of my own.
+   - Each error gets a rank: `extra_forbidden` is an unknown key, `missing` is a missing key, an error with a location is an invalid value, and an error with an empty location is the model validator's spanning rule (invalid state).
+   - `min` by rank keeps the first error of equal rank, and pydantic lists errors in field order. That gives the precedence the story asks for.
+   - The location becomes a path like `journal[0].kind`.
+   - Alternative rejected: walking the loaded mapping against the model's fields before validating. It would duplicate the model's rules and could drift from them.
+
+   Refactor: I read the diff and nothing needed changing, so there is no refactor commit.
+
+   Noticed but not touched: the overridden public methods carry no docstrings, because the interface's docstrings say what they do; ruff's D rules accept this.
+
+   `make check`: check: green
