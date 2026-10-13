@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 31
 blocked: null
 comments_seen: 0
@@ -240,3 +240,4 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
     - Criteria 10 and 12: the paragraph goes in first under the heading, set off by blank lines, and the other lines are unchanged.
 
     The demo does not exercise the other criteria (split edge cases, model validation, errors), and nothing in the output contradicts them. `make check` was reported green in entry 14; I did not run it, because the factory runs it after this stage.
+16. done (pull request merged); cost: 14 runs, 11.0 min, 77 turns, 226k tokens in (1006k more from cache), 35k out, $2.51
