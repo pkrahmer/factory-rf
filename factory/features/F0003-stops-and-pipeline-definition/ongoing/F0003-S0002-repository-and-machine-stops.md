@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 41
 blocked: null
 comments_seen: 0
@@ -110,3 +110,30 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
    - Demo: runnable. It calls only S0001 classes and the new ones. The `Expect:` line gives six output lines that I checked against the script's prints, and the stamps are checkable with a regex and a 5 s offset.
    - Architecture: `Boundaries` and `StopService` sit in `factory.application` and import only interfaces and domain types. Wiring stays in `factory.entry`, and the story builds none.
    - Scope: this is S0002 of F0003, the repository and machine side of stops. Work item stops, the health check command and the pipeline definition are other stories or out of scope, and none of them is touched.
+3. tester: I wrote red tests for criteria 1–13. Each criterion maps to one test function, and criterion 11 has two.
+   - criterion 1: tests/application/test_boundaries.py::test_boundaries_refuse_positional_arguments (calls `Boundaries` through `Callable[..., Boundaries]` with the fixture's field values in order)
+   - criterion 2: tests/application/test_boundaries.py::test_boundaries_refuse_assignment_to_a_field (`setattr` on `checkout`)
+   - criterion 3: tests/application/test_stops.py::test_a_raised_stop_is_in_the_health_status
+   - criterion 4: tests/application/test_stops.py::test_a_raised_stop_writes_one_stamped_line_to_output_and_log_file (the clock is advanced by 7.987654 s, so the expected stamp is `2026-10-12T12:00:07Z`)
+   - criterion 5: tests/application/test_stops.py::test_a_stop_of_a_known_reason_replaces_it_in_place_and_a_new_reason_is_appended (A, B, A' gives `[A', B]`, then a new reason C gives `[A', B, C]`)
+   - criterion 6: tests/application/test_stops.py::test_a_stop_reaches_the_log_when_the_health_status_cannot_be_written
+   - criterion 7: tests/application/test_stops.py::test_a_stop_reaches_the_health_status_when_the_log_file_cannot_be_written
+   - criterion 8: tests/application/test_stops.py::test_the_log_error_is_raised_when_neither_destination_can_be_written (the `filename` is the log's blocking file or a path below it, and is neither the health file's blocker nor a path below that)
+   - criterion 9: tests/application/test_stops.py::test_a_raised_stop_opens_no_pull_request
+   - criterion 10: tests/application/test_stops.py::test_clearing_a_stop_removes_only_it_and_writes_the_cleared_line
+   - criterion 11: tests/application/test_stops.py::test_clearing_a_reason_that_is_not_stopped_does_nothing (no line, and neither the log file nor the health file exists afterwards) and ::test_clearing_a_reason_that_is_not_stopped_keeps_the_other_stops_silently (the Interface rule "no write, no line" when other stops are present)
+   - criterion 12: tests/application/test_stops.py::test_clearing_raises_and_writes_no_line_when_the_health_status_cannot_be_written
+   - criterion 13: tests/application/test_stops.py::test_clearing_removes_the_stop_and_raises_when_the_log_file_cannot_be_written
+
+   Why criterion 12 uses a fake: the Interface's recipe for an unwritable destination is a `JsonHealthStatusFile` below a regular file, but such a file reads as `HealthStatus()`, so there would be no stop to clear. The test therefore uses `_UnwritableHealth`, a small `HealthStatusStore` defined in the test module. It returns a status that holds the stop and raises `OSError` on every write. The other unwritable destinations follow the Interface's recipe.
+
+   Files:
+   - created: tests/application/test_boundaries.py and tests/application/test_stops.py
+   - changed: tests/conftest.py, which gains the `boundaries` fixture built exactly as the Interface says. Its parameters after `checkout` are keyword-only to satisfy ruff's PLR0917.
+
+   What fails, and why: conftest imports `factory.application.boundaries` at the top, so `make test` stops while loading conftest with `ModuleNotFoundError: No module named 'factory.application.boundaries'`. The whole suite is blocked until the coder creates that module. `factory.application.stops` is missing as well.
+
+   Checks: `make lint` is green. I skipped the type check as this stage says.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.application.boundaries'
