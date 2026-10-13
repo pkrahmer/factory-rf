@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 35
 blocked: null
 comments_seen: 2
@@ -71,8 +71,9 @@ Tests: `tests/domain/test_story_place.py`, `tests/entry/__init__.py` (new), `tes
 20. `build_work_item_reader()` returns a `FrontmatterWorkItemReader`, and no module of `factory.entry` other than `factory.entry.wiring` imports from `factory.adapters`, found by parsing the imports with `ast`.
 21. Running `python -m factory.entry.check_story` with no argument in a subprocess exits with the status 2 and prints the usage line to standard error.
 22. `main()` without arguments takes the paths from `sys.argv[1:]` and resolves them and `factory/story-form.md` against the current directory: with `sys.argv` set to `["factory-check-story", <path>]` and the current directory changed to a `tmp_path` that holds a story form, a feature file and a clean backlog story, it prints `<path>: ok` and returns 0.
-23. make check stays green.
-24. docs: `docs/operator-guide.md` explains how to check a story before starting it with `uv run factory-check-story <path>...` (the form `uv run python -m factory.entry.check_story <path>...` works too), the output, the three exit statuses, which reader a story gets by its folder and by whether it has front matter, and the findings with what to do about each; `docs/project-guide.md` lists the placement rules.
+23. `main` for a backlog story whose feature directory has no `feature.md` prints `<path>: the feature file feature.md is missing in factory/features/<directory>` and returns 1; once the file exists the same story prints `<path>: ok`.
+24. make check stays green.
+25. docs: `docs/operator-guide.md` explains how to check a story before starting it with `uv run factory-check-story <path>...` (the form `uv run python -m factory.entry.check_story <path>...` works too), the output, the three exit statuses, which reader a story gets by its folder and by whether it has front matter, and the findings with what to do about each; `docs/project-guide.md` lists the placement rules.
 
 ## Demo
 
@@ -104,3 +105,9 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
 1. 2026-10-12 human: created.
 2. intake: 1. The Interface says `main` passes `feature_file_exists` as true when `factory/features/<directory>/feature.md` exists under `root`. No criterion tests `main` on the other side. Criterion 6 tests only `check_story_place` called directly. Criteria 8, 22 and the Demo always have the feature file, so a `main` that always passes `True`, or one that looks in the wrong folder, would pass every test. Proposed addition, before the two closing criteria: "`main` for a backlog story whose feature directory has no `feature.md` prints `<path>: the feature file feature.md is missing in factory/features/<directory>` and returns 1; once the file exists the same story prints `<path>: ok`." I would choose this one. Everything else checks out and I would accept the story once it is added: the Interface is concrete, the other rules have a criterion for the failing side, the Demo is runnable (the line 11 expectation counts correctly), the architecture matches (only wiring imports adapters), and the story is in scope for the feature.
 3. human (pull request comment, 2026-10-13): Yes: add your criterion, as you worded it, before the two closing ones: "`main` for a backlog story whose feature directory has no `feature.md` prints `<path>: the feature file feature.md is missing in factory/features/<directory>` and returns 1; once the file exists the same story prints `<path>: ok`." It is the failing side of the Interface's own `feature_file_exists` rule.
+4. intake: accepted. Carried in the human's answer (log entry 3): I added criterion 23, worded as the human approved it, before the two closing criteria. They are now 24 (`make check`) and 25 (`docs:`). The meaning of the task is unchanged, so I left the Assignment alone.
+   - Interface: `check_story_place`, `build_work_item_reader` and `main` have concrete modules and signatures. Every behaviour stated in the Interface has a criterion.
+   - Criteria: each is testable by one test function. Each rule has a criterion for its failing side. The `feature_file_exists` side in `main` is now covered by criterion 23, which was the gap in entry 2.
+   - Demo: both blocks are runnable. Each `Expect:` line can be checked against the output.
+   - Architecture: only `factory.entry.wiring` imports adapters, and criterion 20 checks that. The placement rules are a pure function in `factory.domain`.
+   - Scope: the story is within the feature's scope ("The story form check ... and its command") and touches nothing in "Out of scope".
