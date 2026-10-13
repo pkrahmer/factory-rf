@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 41
 blocked: null
 comments_seen: 0
 round: 0
@@ -104,3 +104,9 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `Boundaries` (frozen, kw_only, twelve named fields) and `StopService` (`raise_stop`, `clear_stop`) are in concrete modules, `application/boundaries.py` and `application/stops.py`. They have signatures, `OSError` contracts and the fixture recipe, including the mypy-safe ways to test keyword-only and frozen.
+   - Criteria: every criterion is testable by one test function. Each Interface behaviour has one: the replace-in-place and append order (5), the line format and stamp (4, 10), the silent no-op (11), and the write order and error propagation. Each failing side has a criterion: health unwritable (6, 12), log unwritable (7, 13), both unwritable with the log's `OSError` winning (8), and positional and mutation attempts (1, 2).
+   - Demo: runnable. It calls only S0001 classes and the new ones. The `Expect:` line gives six output lines that I checked against the script's prints, and the stamps are checkable with a regex and a 5 s offset.
+   - Architecture: `Boundaries` and `StopService` sit in `factory.application` and import only interfaces and domain types. Wiring stays in `factory.entry`, and the story builds none.
+   - Scope: this is S0002 of F0003, the repository and machine side of stops. Work item stops, the health check command and the pipeline definition are other stories or out of scope, and none of them is touched.
