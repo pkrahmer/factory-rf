@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 6
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The git wrapper: clone, checkout, commit and push
 
 ## Assignment (as of log entry 1)
@@ -122,3 +130,91 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`PushOutcome` in `domain/git.py`, `NothingToCommit` in `domain/errors.py`, `clone`/`checkout`/`commit`/`push` on `Git`, `HumanClone` in `tests/human_clone.py`, the `human` fixture). Each behaviour stated in its comments has a criterion: identity and environment precedence (11, 12), clone directory rules (1-3), checkout cases (4-8), commit staging, message and ignored paths (9, 10, 13), push outcomes and kill points (14-21), HumanClone merge methods (22, 23).
+   - Criteria: each is testable by one test function. Every rule has its failing side: a clone into a non-empty directory (2) or a missing url (3), an unknown branch or start point (7), a dirty tree that blocks checkout (8), nothing to commit (13), rejected for a non-fast-forward and for a hook (15, 16), unreachable (17), an unknown local branch (18), kill points not reached after a rejection (21).
+   - Demo: runnable as written (imports are complete). The Expect line gives four exact lines that can be compared with the output.
+   - Architecture: the new operations sit on the `Git` interface in `application` and are implemented in the `GitCli` adapter. The types go into `domain`. Tests mirror the package layout, and git is not faked.
+   - Scope: the story stays within F0001's scope (clone, check out, commit, push with its outcome). Deleting branches and merging are left to S0012, and reset, revert and move to S0013, as the feature lists them.
+3. tester: wrote red tests for criteria 1–23, one test per criterion. Limits and boundaries are covered as parametrized cases where a criterion names them.
+   - criterion 1: tests/adapters/test_git_cli_writing.py::test_clone_creates_a_missing_directory_and_its_missing_parent
+   - criterion 2: tests/adapters/test_git_cli_writing.py::test_clone_works_into_an_empty_directory_and_refuses_one_with_a_file
+   - criterion 3: tests/adapters/test_git_cli_writing.py::test_clone_of_a_missing_url_raises
+   - criterion 4: tests/adapters/test_git_cli_writing.py::test_checkout_switches_to_an_existing_local_branch
+   - criterion 5: tests/adapters/test_git_cli_writing.py::test_checkout_with_a_start_point_creates_and_then_resets_the_branch
+   - criterion 6: tests/adapters/test_git_cli_writing.py::test_checkout_of_a_branch_only_on_the_remote_creates_it_at_the_remote_commit
+   - criterion 7: tests/adapters/test_git_cli_writing.py::test_checkout_of_an_unknown_branch_or_start_point_raises_and_stays (unknown-branch, unknown-start-point)
+   - criterion 8: tests/adapters/test_git_cli_writing.py::test_checkout_blocked_by_an_uncommitted_edit_raises_and_keeps_the_edit
+   - criterion 9: tests/adapters/test_git_cli_writing.py::test_commit_records_new_changed_and_deleted_files_but_not_ignored_ones
+   - criterion 10: tests/adapters/test_git_cli_writing.py::test_commit_stores_the_message_as_given
+   - criterion 11: tests/adapters/test_git_cli_writing.py::test_commit_carries_the_identity_of_the_options (process-environment, options-environment, global-configuration with another user.name and commit.gpgsign = true)
+   - criterion 12: tests/adapters/test_git_cli_writing.py::test_commit_without_options_carries_the_default_identity
+   - criterion 13: tests/adapters/test_git_cli_writing.py::test_commit_with_nothing_to_commit_raises_and_keeps_head (clean, only-ignored); tests/domain/test_errors.py::test_nothing_to_commit_is_a_git_error
+   - criterion 14: tests/adapters/test_git_cli_writing.py::test_push_of_a_new_branch_is_pushed
+   - criterion 15: tests/adapters/test_git_cli_writing.py::test_push_behind_another_clone_is_rejected
+   - criterion 16: tests/adapters/test_git_cli_writing.py::test_push_declined_by_a_remote_hook_is_rejected
+   - criterion 17: tests/adapters/test_git_cli_writing.py::test_push_to_a_removed_remote_is_unreachable
+   - criterion 18: tests/adapters/test_git_cli_writing.py::test_push_of_an_unknown_local_branch_raises
+   - criterion 19: tests/adapters/test_git_cli_writing.py::test_kill_before_push_leaves_the_remote_untouched
+   - criterion 20: tests/adapters/test_git_cli_writing.py::test_kill_after_push_comes_after_the_remote_has_the_commit
+   - criterion 21: tests/adapters/test_git_cli_writing.py::test_push_reaches_before_push_every_time_and_after_push_only_when_pushed
+   - criterion 22: tests/test_human_clone.py::test_merge_brings_the_branch_into_main_by_the_method (merge, squash, rebase)
+   - criterion 23: tests/test_human_clone.py::test_start_moves_the_story_and_push_file_writes_the_branch
+   - criteria 24 and 25 are not tests: 24 is the `make check` gate and 25 is the documenter's.
+
+   Files created: tests/adapters/test_git_cli_writing.py, tests/human_clone.py (`HumanClone` as the Interface specifies), tests/test_human_clone.py.
+   Files extended:
+   - tests/conftest.py: new fixture `human`; `remote` and `checkout` are unchanged.
+   - tests/git_support.py: new helper `remote_commit(remote, branch)`, which reads a branch of the bare remote with plain git through `run_process` and returns `None` when the branch is absent.
+   - tests/domain/test_errors.py: one new import and one new test; the existing tests are unchanged.
+
+   `HumanClone` drives `GitCli.clone`, `GitCli.checkout`, `GitCli.commit` and `GitCli.push`. For the merge methods it uses `run_git`: `merge --no-ff`, `merge --squash` followed by `GitCli.commit`, and a `rebase --force-rebase` followed by a fast-forward of `main`. Every push it makes must return `"pushed"`.
+
+   `make test` result: collection errors in tests/adapters/test_git_cli_writing.py and tests/domain/test_errors.py, because the runner cannot import `NothingToCommit` from `factory.domain.errors` yet. tests/test_human_clone.py collects but will fail because `GitCli` has no `clone`, `checkout`, `commit` or `push` yet.
+   `make lint` is green. I skipped the type check, as this stage allows: it cannot pass until the new `GitCli` methods exist.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented clone, checkout, commit and push on the git wrapper; make check green (coverage 100 %), demo prints the four expected lines. No test changed.
+      - src/factory/domain/git.py: `PushOutcome`; src/factory/domain/errors.py: `NothingToCommit(GitError)`; src/factory/application/git.py: the four operations on `Git` with docstrings.
+      - src/factory/adapters/git_cli.py: `clone` creates missing parents and runs `git clone <url> <dir>` from the parent (git itself refuses a non-empty directory → `GitError`). `checkout` uses `git switch` (no path ambiguity, DWIM creates a branch that exists only on `origin`) and `git switch --force-create <branch> <start>` for a start point, the equivalent of `checkout -B`. `commit` runs `add --all`, then `diff --cached --quiet` → `NothingToCommit` when nothing is staged, else `commit --cleanup=verbatim --no-gpg-sign --message`, returning `HEAD`. `push` reaches BEFORE_PUSH, runs `push --porcelain --set-upstream origin <branch>`; exit 0 → `pushed` + AFTER_PUSH; a `!` ref line → `rejected`; exit 128 with one of the four markers → `unreachable`; else `GitError`. The environment sets GIT_AUTHOR_*/GIT_COMMITTER_* from the options' identity after the process and options environment, before the unchanged config isolation.
+      - Design: split the old `_run` into `_execute` (runs git, raises only when git never finished) and `_run` (checks the exit status), plus a `cwd` override for clone; push reads its outcome from `_execute`. Rejected: an "accept any status" flag on `_run`, which blurs its contract.
+      - Refactor pass: read the diff as a reviewer; nothing to change, so no refactor commit.
+      - Noticed, not touched: the interface text names `git checkout -B`; `switch --force-create` is the same operation. A branch created from `origin/main` first tracks `origin/main` until its first push sets its own upstream. Criterion 25 (docs) is the documenter's.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–23 has a test named after it, and each test checks what its criterion says, using plain `git` through `run_git`/`remote_commit` rather than other `GitCli` methods. The Interface's rules all have their failing side tested: clone into a directory holding a file and clone of a missing url (2, 3); unknown branch or start point (7); an uncommitted edit that blocks checkout (8); nothing to commit, both clean and with only ignored files (13); rejection by non-fast-forward and by a `pre-receive` hook (15, 16); unreachable remote (17); any other push failure (18); `AFTER_PUSH` not reached after a rejection (21). The coder's entry reports `make check` green with 100 % coverage.
+      - Architecture: `PushOutcome` and `NothingToCommit` are in `domain`; the four operations are on the `Git` protocol in `application`; the implementation is in `GitCli` in `adapters`, and every git call still goes through `run_process`. The identity variables are set after the process and options environment and before the unchanged config isolation, so neither the environment nor the global config can override them. Tests follow the package layout. `HumanClone` and its test sit at the `tests/` root because they are outside the layers.
+      - Security: every argv is a list; no shell, no new suppression markers, no secrets.
+      - Quality: splitting `_run` (checks the exit status) from `_execute` (runs git and leaves the status to the caller) gives `push` a clean way to turn status into an outcome. Using `switch --force-create` instead of the Interface's `checkout -B` does the same thing, and the log records it. `--no-gpg-sign` and `--cleanup=verbatim` match criteria 10 and 11.
+      - Ticket hygiene: the log names the main decision and what was rejected. `Assignment` matches what was built, and criterion 25 still describes what the documenter has to write.
+6. documenter: wrote the documentation for criterion 25 and cross-read the rest. `make check` is green. I did not re-run the Demo block. The coder's entry says it prints the four expected lines.
+   - docs/project-guide.md, "The git wrapper": the section now covers clone, checkout, commit and push, including the `switch --force-create` equivalence with `checkout -B`. It also covers the identity of the options (default `factory <factory@noreply.invalid>`, set over the process and options environment, immune to user and system config and gpgsign, filled by F0010 from `GIT_USER_NAME`/`GIT_USER_EMAIL`). The three push outcomes (never forced) and the two push kill points are described, along with the `remote_commit` helper and the `remote`, `checkout` and `human` fixtures (`HumanClone.start`, `push_file`, `merge`). The old "not used yet / not reached yet" notes on `identity` and `kill_points` are fixed, and the intro no longer calls the wrapper reading-only.
+   - docs/decisions.md: new entry "A push is never forced, and a rejection is a value" (WE6.3), with the alternatives rejected.
+   - README.md: one phrase now says the git wrapper also clones, checks out, commits and pushes.
+   - Cross-read and found current: the CLAUDE.md docs layout, the hosting-service, process and kill-point sections of the project guide, and the earlier decisions.
+   - Findings: none. The code matches the Interface. The one deviation, `switch --force-create` for `checkout -B`, is the same operation and is recorded in the guide.
+   - Stale but unrelated, not touched: the kill-point section of the project guide still says "This story built only the seam ... nothing reaches a point". That is now false for `BEFORE_PUSH` and `AFTER_PUSH`. It belongs to this story, so I did fix it, as the next line says.
+
+   `make check`: check: green
+7. demo: ran the one Demo command from the repository root exactly as written. It exited 0 and met its Expect line. No findings.
+
+   Command 1 (`uv run python -c "…"`: two clones push to the same branch, then an empty commit, then compare `origin/<branch>` with `HEAD`):
+   ```
+   first pushed
+   second rejected
+   nothing to commit
+   True
+   ```
+   Expect: four lines, `first pushed`, `second rejected`, `nothing to commit`, `True`. **Met.** The second clone's push came back as the value `rejected`: no exception was raised and nothing was forced. The empty commit raised `NothingToCommit`. After the push, `origin/work-item/F0001-S0001` in the first clone is its `HEAD`.
+
+   Checked against the acceptance criteria: the output contradicts none of them.
+   - clone into a directory that does not exist (1)
+   - `checkout` with `start_point="origin/main"` creates the branch (5)
+   - `commit` returns the commit id (9)
+   - nothing to commit raises `NothingToCommit` (13)
+   - pushing a new branch returns `pushed`, and `origin/<branch>` updates (14)
+   - a non-fast-forward push returns `rejected` (15)
+
+   The demo does not exercise the other criteria (hooks, unreachable remote, kill points, identity, `HumanClone`). The tests named in the tester's entry cover them.

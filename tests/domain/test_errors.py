@@ -6,6 +6,7 @@ from factory.domain.errors import (
     FetchFailed,
     GitError,
     HostingServiceError,
+    NothingToCommit,
 )
 
 
@@ -40,3 +41,7 @@ def test_git_error_carries_command_status_and_tail_in_its_message() -> None:
     )
     assert issubclass(FetchFailed, GitError)
     assert issubclass(GitError, BoundaryError)
+
+
+def test_nothing_to_commit_is_a_git_error() -> None:
+    assert issubclass(NothingToCommit, GitError)

@@ -1,13 +1,15 @@
 """The git values the factory reasons about."""
 
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from factory.domain.kill_points import KillPoints
 
 CommitId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+
+PushOutcome = Literal["pushed", "rejected", "unreachable"]
 
 GIT_TIME_LIMIT = timedelta(minutes=5)
 
