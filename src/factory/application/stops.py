@@ -1,14 +1,27 @@
-"""Raising and clearing the stops of the repository and the machine."""
+"""Raising and clearing the stops of the repository and the machine; posting a work item's."""
 
 from factory.application.boundaries import Boundaries
-from factory.domain.stops import HealthStatus, RepositoryStop, RepositoryStopReason
+from factory.domain.errors import HostingServiceError
+from factory.domain.paths import MAIN_BRANCH, REMOTE
+from factory.domain.post_texts import opened_for_stop_description
+from factory.domain.stops import (
+    HealthStatus,
+    RepositoryStop,
+    RepositoryStopReason,
+    StopPosted,
+    WorkItemStop,
+)
 
 
 class StopService:
-    """Reports a stop to the factory log and the health status, never to a pull request."""
+    """Reports the stops of the repository, the machine and one work item.
+
+    A stop of the repository or the machine goes to the factory log and the health status;
+    a stop of one work item goes to that work item's pull request.
+    """
 
     def __init__(self, boundaries: Boundaries) -> None:
-        """Report through the log and the health status store of `boundaries`."""
+        """Report through the log, health status, hosting service and git of `boundaries`."""
         self._boundaries = boundaries
 
     def raise_stop(self, stop: RepositoryStop) -> None:
@@ -35,6 +48,39 @@ class StopService:
         # The status first: no line may say a stop is cleared that is still in force.
         self._boundaries.health.write(_without_stop(status, reason))
         self._boundaries.log.line(f"stop cleared {reason}")
+
+    def post(self, stop: WorkItemStop) -> StopPosted:
+        """Post the stop once on its pull request, opening a draft first when there is none.
+
+        Writes no state: the caller records the number when `opened` is true.
+        Raises `HostingServiceError` and `GitError`.
+        """
+        number = stop.pull_request
+        if number is None:
+            number = self._open_pull_request_of(stop)
+        # The key alone makes a repeat a no-op, so a post before or after the state write is safe.
+        outcome = self._boundaries.hosting.post_comment(number, stop.text, stop.key)
+        return StopPosted(pull_request=number, opened=stop.pull_request is None, outcome=outcome)
+
+    def _open_pull_request_of(self, stop: WorkItemStop) -> int:
+        hosting = self._boundaries.hosting
+        found = hosting.find_open_pull_request(stop.branch)
+        if found is not None:
+            return found.number
+        self._require_commit_beyond_main(stop.branch)
+        description = opened_for_stop_description(stop.key.work_item)
+        return hosting.create_pull_request(stop.branch, stop.title, description, draft=True).number
+
+    def _require_commit_beyond_main(self, branch: str) -> None:
+        # The hosting service refuses a pull request without such a commit; refusing it here
+        # makes the fake and the production service fail alike.
+        git = self._boundaries.git
+        tip = git.resolve(f"{REMOTE}/{branch}")
+        if tip is None or git.is_ancestor(tip, f"{REMOTE}/{MAIN_BRANCH}"):
+            raise HostingServiceError(
+                "create_pull_request",
+                f"branch {branch} is not on the remote with a commit beyond main",
+            )
 
 
 def _with_stop(status: HealthStatus, stop: RepositoryStop) -> HealthStatus:

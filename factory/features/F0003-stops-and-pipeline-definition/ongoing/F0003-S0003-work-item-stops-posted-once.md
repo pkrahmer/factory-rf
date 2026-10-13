@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 42
+blocked: null
+comments_seen: 0
+round: 1
+attempts: 0
+---
 # Work item stops on the pull request, posted once
 
 ## Assignment (as of log entry 1)
@@ -129,3 +137,122 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory/domain/stops.py` models, `factory/domain/post_texts.py`, `StopService.post` with its errors). Each behaviour in its comments (the description text, `opened` semantics, the key deciding repeats) has a criterion: 5, 9/10, 14 to 16.
+   - Criteria: each is testable by one test function. Each rule has both sides. Blank fields are rejected (1) and filled ones accepted (1). The branch must match (2). Positive integers are tested at 0, -1 and 1 (4). A set pull request number is not looked up (6, 7). An open pull request is reused (10) and a closed one is not (11). The branch check refuses when the branch is missing or at main's tip (12) and passes when it is beyond main (8, 9). A GitError is raised (22), as is a HostingServiceError (19, 20). The kill and restart cases are covered (17, 18).
+   - Demo: runnable as written, with a StubGit and None placeholders for the unused boundaries. The Expect line gives five concrete lines that can be compared with the output.
+   - Architecture: the DTOs and text are in the domain, the service is in the application and uses only the hosting and git interfaces from Boundaries. The service writes no state, which matches R22 and R27.
+   - Scope: within F0003's scope item 3 and decisions 5 to 8. The texts of individual stops and the handlers are left to F0005 to F0009.
+   No questions.
+3. tester: Wrote red tests for criteria 1 to 22. `make lint` is green. `make test` stops at collection on purpose: `factory.domain.post_texts` does not exist yet, and `StopPosted` / `WorkItemStop` cannot be imported from `factory.domain.stops`.
+
+   Mapping:
+   - criterion 1: tests/domain/test_work_item_stop.py::test_a_stop_with_branch_title_and_text_filled_is_accepted, ::test_a_blank_branch_is_rejected, ::test_a_blank_title_is_rejected, ::test_a_blank_text_is_rejected (each runs with empty, space and other whitespace)
+   - criterion 2: tests/domain/test_work_item_stop.py::test_a_branch_of_another_work_item_is_rejected
+   - criterion 3: tests/domain/test_work_item_stop.py::test_both_models_reject_an_unknown_field_and_an_assignment
+   - criterion 4: tests/domain/test_work_item_stop.py::test_the_pull_request_of_a_stop_is_a_positive_integer (-1, 0, 1), ::test_a_stop_accepts_no_pull_request, ::test_the_pull_request_of_a_posted_stop_is_a_positive_integer (-1, 0, 1)
+   - criterion 5: tests/domain/test_post_texts.py::test_the_description_of_a_pull_request_opened_for_a_stop_names_the_work_item
+   - criterion 6: tests/application/test_stop_posting.py::test_a_stop_with_a_pull_request_is_posted_there_without_opening_one_or_calling_git. "No git call" is checked by putting a `GitCli` on a directory that does not exist into the boundaries, so any git call would raise `GitError`.
+   - criterion 7: tests/application/test_stop_posting.py::test_a_stop_is_posted_on_its_pull_request_after_the_human_closed_it
+   - criterion 8: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_opens_a_draft_on_its_branch
+   - criterion 9: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_is_posted_on_the_draft_it_opened
+   - criterion 10: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_reuses_the_open_one_of_its_branch
+   - criterion 11: tests/application/test_stop_posting.py::test_a_stop_without_a_pull_request_does_not_reuse_one_the_human_closed
+   - criterion 12: tests/application/test_stop_posting.py::test_no_pull_request_is_opened_for_a_branch_without_a_commit_beyond_main (two cases: missing, at-main)
+   - criterion 13: tests/application/test_stop_posting.py::test_the_posted_comment_is_the_factorys_with_the_stops_key
+   - criterion 14: tests/application/test_stop_posting.py::test_posting_the_same_stop_again_posts_nothing
+   - criterion 15: tests/application/test_stop_posting.py::test_a_stop_with_the_same_key_and_another_text_posts_nothing
+   - criterion 16: tests/application/test_stop_posting.py::test_a_stop_with_another_key_posts_again (two cases: another-n, another-kind)
+   - criterion 17: tests/application/test_stop_posting.py::test_a_stop_killed_after_its_post_is_not_posted_again_after_the_restart
+   - criterion 18: tests/application/test_stop_posting.py::test_a_stop_killed_after_its_post_opens_no_second_pull_request_after_the_restart
+   - criterion 19: tests/application/test_stop_posting.py::test_a_failed_post_keeps_the_opened_pull_request_and_the_retry_posts_once
+   - criterion 20: tests/application/test_stop_posting.py::test_a_failed_pull_request_creation_posts_nothing
+   - criterion 21: tests/application/test_stop_posting.py::test_posting_a_stop_leaves_the_checkout_as_it_was
+   - criterion 22: tests/application/test_stop_posting.py::test_a_git_error_reading_the_remote_branch_is_raised_and_opens_nothing
+
+   Files created:
+   - tests/domain/test_work_item_stop.py
+   - tests/domain/test_post_texts.py
+   - tests/application/test_stop_posting.py
+
+   Modules the test runner could not import:
+   - `factory.domain.post_texts` (missing)
+   - `StopPosted` and `WorkItemStop` from `factory.domain.stops`
+   - `StopService.post` does not exist yet either; the tests fail on it once the imports resolve.
+
+   In criteria 12 and 20, "nothing was posted" is asserted through `hosting.pull_requests() == []`: without a pull request there can be no comment.
+
+   No questions.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built posting a work item's stop once on its pull request. `make check` is green and the Demo prints the five expected lines.
+
+   - `src/factory/domain/stops.py`: added `WorkItemStop` and `StopPosted`. Both are frozen with `extra="forbid"`. One shared field validator refuses a blank `branch`, `title` or `text`. A model validator requires `branch == branch_name(key.work_item)`. `pull_request` is `PositiveInt | None` on the stop and `PositiveInt` on the result, and `outcome` is `PostOutcome`.
+   - `src/factory/domain/post_texts.py`: new module with `opened_for_stop_description`.
+   - `src/factory/application/stops.py`: added `StopService.post`.
+     - When `stop.pull_request` is set, it posts there and calls neither git nor any lookup.
+     - Otherwise it reuses `find_open_pull_request(branch)`. When there is none, it first checks `resolve("origin/<branch>")`, then that the result is not an ancestor of `origin/main`, and only then calls `create_pull_request(..., draft=True)`. A failed check raises `HostingServiceError("create_pull_request", "branch <branch> is not on the remote with a commit beyond main")`.
+     - It then calls the keyed `post_comment`. `opened` is `stop.pull_request is None`.
+     - Nothing is caught and no state is written.
+   - Commits: c90ee70 (feat), 2914411 (refactor).
+
+   Main decision: `post` relies entirely on the hosting service's keyed `post_comment` to make a repeat a no-op. It keeps no record of its own before or after the post, so a kill between the post and the caller's state write needs no recovery path in this service. Rejected: listing the comments first to detect an earlier post. That would duplicate what the keyed post already guarantees and add a call that can fail.
+
+   Refactor: the first version had a private `_REMOTE = "origin/"` constant. The refactor replaced it with the existing `REMOTE` from `factory.domain.paths`, next to `MAIN_BRANCH`. Nothing else needed changing.
+
+   Noticed, not touched: the `StopService` docstring said "never to a pull request". I rewrote it because the class now posts to one. The class now covers two kinds of stop; splitting it would be a separate ticket.
+
+   `make check`: check: green
+5. reviewer: Groups 1 to 3 pass. Criteria 1 to 22 each have a test that checks what the criterion says. Each rule in the Interface has its failing side tested: blank fields, a foreign branch, unknown fields, assignment, `pull_request` at -1, 0 and 1, a missing branch and a branch at main's tip, GitError, and both HostingServiceError paths. Criterion 6 checks for "no git call" by using a GitCli on a missing directory. Criterion 14 posts the second time with the recorded number instead of `None`. The repeat with `None` is covered by 17, 18 and 19, so I accept that. The coder's entry says `make check` is green. The layers hold: the application imports only from the domain and uses the `Git` and hosting interfaces through `Boundaries`. Nothing is silenced and there are no secrets. Group 4 has one finding:
+
+   1. `src/factory/application/stops.py:24` (`StopService.__init__`): the docstring still says "Report through the log and the health status store of `boundaries`". `post` now also posts through `boundaries.hosting` and reads `boundaries.git`, so the docstring is wrong. The coder updated the class docstring for this reason but missed this one. Fix: reword it to cover the hosting service and git as well, e.g. "Report through the log, health status, hosting service and git of `boundaries`."
+6. coder: Round 1. Fixed the reviewer's one finding and nothing else.
+
+   - `src/factory/application/stops.py:24`: the docstring of `StopService.__init__` now reads "Report through the log, health status, hosting service and git of `boundaries`." It names every boundary the service uses, including the two that `post` uses. Commit 7fc337f.
+
+   Refactor: none needed. The change is a single docstring line.
+
+   `make check`: check: green
+
+   `make check`: check: green
+7. reviewer: No findings. Round 1 fixed the finding from entry 5: `src/factory/application/stops.py:24` now names every boundary the service uses.
+
+   - Group 1 passes. Criteria 1 to 22 each have a test that checks what the criterion says. The failing side of each Interface rule is tested: a blank branch, title or text (empty, a space, other whitespace); a branch that belongs to another work item; unknown fields; assignment to a frozen field; `pull_request` at -1, 0 and 1, plus `None`; a remote branch that is missing or sits at main's tip; a `GitError` from reading the branch; and both `HostingServiceError` paths. "No git call" in criterion 6 is checked with a `GitCli` on a directory that does not exist. Criterion 14 re-posts with the recorded number. The repeat with `pull_request=None` is covered by criteria 17, 18 and 19. The coder's entry 6 reports `make check` green.
+   - Group 2 passes. `post` uses only the `Git` and `HostingService` interfaces through `Boundaries`, and their signatures match the calls: `resolve` returns `CommitId | None` and `is_ancestor` returns `bool`. The domain imports only from the domain. Nothing is wired outside `factory.entry`.
+   - Group 3 passes. No secrets, no markers that silence a check, no shell commands built from strings. The new models validate their input when they are built.
+   - Group 4 passes. The docstrings of the module, `WorkItemStop`, `StopPosted`, `post` and `opened_for_stop_description` describe what the code does. The comments explain why: the keyed post makes a repeat a no-op, and the branch check makes the fake fail the way production does. The code reuses `REMOTE` and `MAIN_BRANCH` from `factory.domain.paths`. There is no dead code.
+   - Group 5 passes. Entry 4 states the main decision: rely on the keyed `post_comment` alone. It also says what was rejected: listing comments first. The Assignment matches what was built. Criterion 24 still describes what the operator guide and the decision log need.
+8. documenter: wrote the documentation for criterion 24 and fixed one stale sentence. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "Stops of one work item". It covers the single comment on the pull request and its marker and key. It says a draft pull request is opened first when there is none, and only when the branch is on the remote with a commit beyond `main`. It says a restart never repeats a stop. It also says which pull request is reused or posted on, and that the caller records the number.
+   - `docs/decisions.md`: new entry. Stops are keyed posts, so the order of the post and the state write does not matter. The branch is checked before the pull request is opened, so the fake and production refuse the same case. Alternatives rejected are listed.
+   - `docs/project-guide.md`: the `StopService` paragraph said it "never reaches a pull request". It now says this holds for repository and machine stops, and describes `post`, `WorkItemStop` and `StopPosted`.
+
+   Cross-read and found current: `README.md`, the operator guide's other sections, and the post-key and marker section of the project guide. The marker and key format shown in the new section matches `render_post`. The stop description text matches `opened_for_stop_description`.
+
+   I did not run the examples. The new section has no runnable commands.
+
+   No findings for the coder. The docstrings and the Interface match the code. I saw nothing stale that is unrelated to this story.
+
+   `make check`: check: green
+9. demo: I ran the single Demo command from the repository root exactly as written. It exited with 0 and its output matches the `Expect:` line. No findings.
+
+   Command 1 (`uv run python -c "…"`: post a stop twice on the fake hosting service, then kill it at `AFTER_POST` and post again after the restart):
+   ```
+   True posted already_posted
+   1 True work-item/F0001-S0001
+   1 True
+   killed at after-post
+   already_posted 1 1
+   ```
+   Expect: five lines, `True posted already_posted`, `1 True work-item/F0001-S0001`, `1 True`, `killed at after-post`, `already_posted 1 1`. **Met**: all five lines match exactly.
+
+   Checked against the acceptance criteria:
+   - The first post with `pull_request=None` opened exactly one draft pull request on the stop's branch and posted on it with `opened=True` (criteria 8 and 9).
+   - The repeat posted nothing (criterion 14).
+   - The one factory post carries the stop's key (criterion 13).
+   - After the kill at `AFTER_POST`, the restarted post returned `already_posted`. One pull request and one post remain (criteria 17 and 18).
+
+   Nothing in the demo goes against any other criterion. The demo does not exercise the branch check (criterion 12). `StubGit` always reports a commit beyond main, so only the passing side of the check runs. That side's result is as the criteria require. The refusing side is covered by the tests listed in entry 3.
