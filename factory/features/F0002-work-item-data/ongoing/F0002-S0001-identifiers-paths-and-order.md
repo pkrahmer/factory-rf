@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 28
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Identifiers, paths and order
 
 ## Assignment (as of log entry 1)
@@ -120,3 +128,101 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: both modules are named with concrete signatures. The constants, patterns, models and functions are listed, and F0001's five definitions are marked as existing and unchanged. The test files are named.
+   - Criteria: 18 criteria, each testable by one test function. Every rule has its failing side. Slugs: 2 and 4 to 5. `ValueError` on malformed ids: 7. `None` from `work_item_of_branch`: 10. `cost_records_path` on a non-`.md` path: 13. `folder_of` returning `None`: 15. Criterion 11 pins the constants. Criteria 8 and 9 test the order through sorting, not the tuple value; that is enough, because the order is the behaviour.
+   - Demo: both commands are runnable with `uv run python -c`, and each Expect line gives exact output to compare against.
+   - Architecture: pure domain modules in `factory.domain`, with no I/O imports, and criterion 16 checks that with `ast`. This matches the layering in CLAUDE.md.
+   - Scope: it matches FEATURE.md ("Identifier patterns... plain string order, with an acceptance sorting after the stories") and touches nothing under Out of scope. The acceptance's due order stays with F0009.
+3. tester: Wrote red tests for criteria 1–16 in two new files: tests/domain/test_identifiers.py and tests/domain/test_paths.py. tests/domain/test_name.py is unchanged.
+   - criterion 1: tests/domain/test_identifiers.py::test_id_and_name_types_accept_only_their_pattern (WorkItemId, FeatureId and Name through TypeAdapter, every listed case)
+   - criterion 2: tests/domain/test_identifiers.py::test_name_models_are_frozen_and_refuse_an_unknown_field (assignment through setattr, unknown field through a type[BaseModel] variable) and ::test_name_models_accept_only_hyphen_joined_lower_case_slugs (both models × the nine slugs)
+   - criterion 3: tests/domain/test_identifiers.py::test_work_item_file_name_parses_into_id_and_slug
+   - criterion 4: tests/domain/test_identifiers.py::test_malformed_work_item_file_name_parses_to_none
+   - criterion 5: tests/domain/test_identifiers.py::test_feature_directory_name_parses_into_id_and_slug and ::test_malformed_feature_directory_name_parses_to_none
+   - criterion 6: tests/domain/test_identifiers.py::test_kind_and_feature_of_a_work_item_come_from_its_id
+   - criterion 7: tests/domain/test_identifiers.py::test_functions_on_a_work_item_id_refuse_a_malformed_id (4 functions × 3 strings)
+   - criterion 8: tests/domain/test_identifiers.py::test_acceptance_sorts_after_the_stories_of_its_feature_whatever_the_slug
+   - criterion 9: tests/domain/test_identifiers.py::test_work_item_order_keeps_string_order_within_a_kind_and_across_features
+   - criterion 10: tests/domain/test_identifiers.py::test_branch_name_is_the_prefix_and_the_id and ::test_branch_that_is_not_a_work_item_branch_has_no_work_item
+   - criterion 11: tests/domain/test_paths.py::test_path_constants_have_their_stated_values (including REMOTE, MAIN_BRANCH and LABEL_PREFIX) and tests/domain/test_identifiers.py::test_id_patterns_are_the_stated_regular_expressions. WorkItemId and Name are covered by criterion 1's test.
+   - criterion 12: tests/domain/test_paths.py::test_work_item_path_lies_in_the_folder_of_its_feature_directory
+   - criterion 13: tests/domain/test_paths.py::test_cost_records_path_sits_beside_the_work_item and ::test_cost_records_path_refuses_a_path_that_is_not_markdown
+   - criterion 14: tests/domain/test_paths.py::test_folder_of_a_work_item_path_is_its_lifecycle_folder (3 folders × a story file and an acceptance file)
+   - criterion 15: tests/domain/test_paths.py::test_folder_of_a_path_that_is_no_work_item_is_none (drafts, ongoing, one level too deep, one too shallow, an `archive` folder, `docs/features/...`, the feature directory `f0002-x`, a sidecar, `.gitkeep`, README.md)
+   - criterion 16: tests/domain/test_paths.py::test_identity_modules_import_no_io_or_clock (uses the existing tests/source_search.py imported_modules/modules, which parse with ast)
+   Criteria 17 and 18 are the coder's and the documenter's.
+   make test result: 2 collection errors, as intended. The test runner could not import ACCEPTANCE_ID (and the rest of the new names) from factory.domain.identifiers, or BRANCH_PREFIX (and the rest) from factory.domain.paths. make lint is green. Nothing needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented criteria 1–16. `make check` is green: all tests pass and total coverage is 99.5 %. Commit 917668d.
+      - `src/factory/domain/identifiers.py`:
+        - adds `FEATURE_ID`, `STORY_ID`, `ACCEPTANCE_ID`, `FeatureId`, a `Slug` type (`[a-z0-9]+(-[a-z0-9]+)*`), and the frozen, extra-forbidding models `WorkItemFileName` and `FeatureDirectoryName`;
+        - adds `parse_work_item_file_name` and `parse_feature_directory_name`. They use `re.fullmatch`, so a trailing newline cannot slip through the way it can with `$`. They return None and never raise;
+        - adds `is_acceptance`, `feature_of`, `work_item_order` (feature, 0 or 1, id), `branch_name` and `work_item_of_branch`. Each function that takes an id checks it in the private `_checked` and raises `ValueError` if it is malformed;
+        - F0001's `WorkItemId` and `Name` are unchanged.
+      - `src/factory/domain/paths.py`: adds the constants from the Interface and `work_item_path`, `cost_records_path` (`ValueError` if the path does not end in `.md`) and `folder_of`. `folder_of` checks the exact shape `factory/features/<dir>/<folder>/<file>`, parses the directory and the file, and then accepts only a lifecycle folder. F0001's `REMOTE`, `MAIN_BRANCH` and `LABEL_PREFIX` are unchanged.
+      - Main decision: the Interface creates an import cycle. `branch_name` in identifiers needs `BRANCH_PREFIX` from paths, and `folder_of` in paths needs the parsers in identifiers. I made paths depend on identifiers only:
+        - `BRANCH_PREFIX = "work-item/"` is now defined in identifiers, with a comment saying why;
+        - paths exposes it as `BRANCH_PREFIX = identifiers.BRANCH_PREFIX`, so `from factory.domain.paths import BRANCH_PREFIX` works and has the stated value.
+      - Rejected alternatives:
+        - a deferred import inside `folder_of` (ruff PLC0415 refuses it);
+        - `import X as X` re-export (ruff PLC0414 refuses it);
+        - copying the id and slug regexes into paths (duplication).
+      - For the reviewer: the spec puts the definition of `BRANCH_PREFIX` in paths; it is in identifiers instead. If the human wants the definition in paths, the cycle has to be broken another way, for example by moving `folder_of`'s parsing into a third domain module.
+      - Refactor pass: I read the diff and found nothing to change. One duplication is deliberate: the private `_WORK_ITEM_ID` fragment repeats the body of `WorkItemId`'s pattern. I kept F0001's definition spelled exactly as it was rather than building it from the fragment.
+      - Both demo commands print the expected output.
+      - Noticed but not touched: nothing.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1–16 each have a test in tests/domain/test_identifiers.py or tests/domain/test_paths.py, and each test checks what its criterion says. Every rule is tested on its failing side too:
+        - slugs refused by the models (2) and by the parsers (4, 5);
+        - `ValueError` for all 4 id functions × 3 malformed strings (7);
+        - `None` from `work_item_of_branch` (10);
+        - a non-`.md` path in `cost_records_path` (13);
+        - `folder_of` on every non-work-item shape the criterion lists (15).
+        The frozen check uses `setattr`, and the unknown-field check goes through a `type[BaseModel]` variable, as CLAUDE.md asks. Criterion 16 uses the existing tests/source_search.py `imported_modules`, which parses with `ast`. The coder's entry reports `make check` green.
+      - Architecture: both modules stay in `factory.domain` and import only `re`, `typing`, pydantic and each other: no I/O, no clock. F0001's five definitions keep their values; `REMOTE` only moved within paths.py.
+      - The coder's main decision checks out. The Interface puts `BRANCH_PREFIX` in paths and has `folder_of` call the parsers in identifiers, which would be an import cycle. The coder defined the constant in identifiers (with a comment saying why) and re-exported it as `paths.BRANCH_PREFIX`, which has the stated value. I accept this: the public interface is unchanged and `from factory.domain.paths import BRANCH_PREFIX` works. The rejected options are fine too: PLC0415 refuses a deferred import, and copying the regexes would be duplication.
+      - Security: no subprocess, shell, secrets or suppression markers. The parsers use `re.fullmatch`, so a trailing newline cannot slip through.
+      - Quality: public names have docstrings and comments explain why. The private `_WORK_ITEM_ID` repeats the pattern of `WorkItemId`; this is deliberate and explained in the log (F0001's definition is kept exactly as written).
+      - Ticket hygiene: the log gives the main decision and the alternatives it rejected. The Assignment matches what was built. Criterion 18 still names what the documenter has to write: the spellings in project-guide.md and the reason for the sort key in decisions.md.
+6. documenter: wrote the two items of criterion 18. `make check` is green and the sort example I added prints the expected line.
+   - `docs/project-guide.md`: new section "Identity, order and places of work items", placed before "Kill points". It covers:
+     - the id and name types, the file and directory name rules, and the branch form `work-item/<id>`;
+     - the sort rule for acceptances;
+     - a table of the spellings: lifecycle folders, branch prefix, feature file, sidecar suffix, and the other tree constants;
+     - `work_item_path`, `cost_records_path` and `folder_of`;
+     - one runnable example.
+   - `docs/decisions.md`: new entry saying why the acceptance rule is a sort key (`work_item_order`) and not a property of the alphabet. It lists the rejected alternatives and records why `BRANCH_PREFIX` is defined in `identifiers` and re-exported by `paths` (an import cycle otherwise).
+   - Cross-read and found current: README.md and docs/operator-guide.md. The existing lines in the project guide on `LABEL_PREFIX` and `MAIN_BRANCH`, and on `work-item/<id>` branches, agree with the code.
+   - Findings for the coder: none. The `BRANCH_PREFIX` placement differs from the Interface text; the reviewer accepted it and I documented the actual state.
+   - Stale but not touched: nothing.
+
+   `make check`: check: green
+7. demo: both commands under `## Demo` ran from the repository root exactly as written. Both exited 0 and both printed exactly what their `Expect:` line says. No findings.
+
+   Command 1 (ids sorted by plain string order, then by `work_item_order`, then `branch_name`):
+   ```
+   ['F0001-S0010', 'F0002-A0001', 'F0002-S0001', 'F0002-S0002']
+   ['F0001-S0010', 'F0002-S0001', 'F0002-S0002', 'F0002-A0001']
+   work-item/F0002-S0001
+   ```
+   It meets its Expect line. Plain string order puts `F0002-A0001` first in its feature. `work_item_order` moves it behind the feature's stories (criterion 8). The branch is `work-item/<id>` (criterion 10). Parsing `F0002-S0002-2fa.md` and `F0002-S0001.md` gave the ids the line expects (criterion 3).
+
+   Command 2 (`work_item_path`, `cost_records_path`, `folder_of`):
+   ```
+   factory/features/F0002-work-item-data/in-progress/F0002-S0001-identifiers-paths-and-order.md
+   factory/features/F0002-work-item-data/in-progress/F0002-S0001-identifiers-paths-and-order.costs.jsonl
+   in-progress None None
+   ```
+   It meets its Expect line:
+   - the path has the form `factory/features/<dir>/<folder>/<file>` (criterion 12);
+   - the sidecar replaces the final `.md` with `.costs.jsonl` and sits beside the work item (criterion 13);
+   - `folder_of` gives `in-progress` for the work item (criterion 14), and `None` for the sidecar and for a path in a folder named `ongoing` (criterion 15).
+
+   Cross-check against the acceptance criteria: the output contradicts none of 1–18. The rest of the criteria (the refusal cases, the `ValueError` paths, the constants, the absence of I/O imports) are not exercised by the demo. Their tests are named in the tester's entry, and the reviewer checked them. The factory runs `make check` itself after this stage.
+
+   Open: nothing.
