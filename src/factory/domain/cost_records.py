@@ -9,7 +9,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    NonNegativeFloat,
     NonNegativeInt,
     StringConstraints,
     field_validator,
@@ -20,6 +19,7 @@ from factory.domain.agent_runs import EndReason, TokenCounts
 from factory.domain.identifiers import Name, WorkItemId
 
 RunId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
+Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 Cost = Annotated[Decimal, Field(ge=0, allow_inf_nan=False)]
 
 
@@ -35,7 +35,7 @@ class CostRecord(BaseModel):
     attempt: NonNegativeInt
     status: Literal["started", "completed"]
     started_at: AwareDatetime
-    duration_seconds: NonNegativeFloat | None = None
+    duration_seconds: Duration | None = None
     end_reason: EndReason | None = None
     turns: NonNegativeInt | None = None
     tokens: TokenCounts | None = None
