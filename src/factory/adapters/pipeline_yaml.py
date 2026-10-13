@@ -33,5 +33,12 @@ class RuamelPipelineDefinitionReader(PipelineDefinitionReader):
         try:
             return PipelineDefinition.model_validate(loaded)
         except ValidationError as error:
-            faults = all_faults(error, "pipeline definition")
-            raise PipelineDefinitionInvalid(_FAULT_SEPARATOR.join(faults)) from error
+            raise PipelineDefinitionInvalid(_fault_of(error)) from error
+
+
+def _fault_of(error: ValidationError) -> str:
+    details = error.errors()
+    # The rules across keys run only once every field is valid, so their error comes alone.
+    if len(details) == 1 and not details[0]["loc"] and "error" in details[0].get("ctx", {}):
+        return str(details[0]["ctx"]["error"])
+    return _FAULT_SEPARATOR.join(all_faults(error, "pipeline definition"))
