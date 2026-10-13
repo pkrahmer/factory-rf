@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 8
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -247,3 +247,4 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
    (b) I give `ScriptedRun` a hand-written `__init__(self, **data: object)` so that the plugin does not generate the typed one. That would make every typed construction of `ScriptedRun` untyped just to suit one test, so I reject it.
 
    I recommend (a). Once you answer, I will end with `tests` and name that one-line change. I skipped the refactor step because `make check` is not green yet. I will do it on the next run.
+5. human (pull request comment, 2026-10-13): (a), in its second form: the tester calls through `model: type[BaseModel] = ScriptedRun`, as the domain test does, so no `type: ignore` marker is added. No code change; `ScriptedRun` keeps its typed constructor.
