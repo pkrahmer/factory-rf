@@ -79,3 +79,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 02:35 | S0009: intake asked for two criteria the Interface implies (cache counts default 0; sorted denial detail). Answered: write both as proposed | #9 | plan, section 8: closes Interface behaviours, no decision touched |
 | 02:44 | S0009 at accept: 21 behavioural criteria mapped (two added at intake), demo met its `Expect:`, `make check` green in the container, diff within the story. Merged; archived | #9 | plan, section 8 (approval) |
 | 02:45 | Usage 93% of the 5-hour window (resets 03:30): no new start. S0010 waits; the heartbeat at 03:37 starts it after the reset. Nothing is in progress in the factory | | plan, sections 9 and 11; rule of 02:03 |
+| 03:39 | Heartbeat after the reset: the 5-hour window is at 0%, weekly 65% (resets 05:00). `F0001: start S0010`. The planning cut-off (03:30) has passed: only F0001 is built from here | | plan, sections 3 (cut-off), 8 (start) |
