@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 20
 blocked: null
 comments_seen: 0
@@ -78,3 +78,12 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
       - Criterion 6: the coder's entry records `make check` green on the unchanged branch (coverage 99.49 %).
       - Ticket hygiene: the tester's and coder's entries give the main decision (nothing to build) and what was rejected. `Assignment` still matches, since the work it describes is the documenter's and none of it is done yet. Criterion 7 still says what the documenter must do.
       - Open for the documenter: all of criteria 1 to 5, and the cross-read of `README.md` and `docs/` in 7. The demo stage then checks the grep line: three lines, each `0`.
+6. documenter: the four repairs are made and the Demo grep prints 0, 0, 0 (each grep exits 1, as expected). `make check` is green.
+   - `docs/project-guide.md`, *Kill points*: the "built only the seam / until then nothing reaches a point" sentence is replaced by "each wrapper in the table reaches its point; no other code reaches one". The `AGENT_RUN` row now says the fake reaches it after the run's writes and `claude -p` after the last call and its result, matching the runtime sections.
+   - `README.md`: the status sentence now names the project commands (the make class). It lists the git wrapper's operations as reading, clone, commit and push, branches and merge, and restoring the checkout (reset, revert, move). "(not yet written)" is removed from the operator-guide link.
+   - `docs/operator-guide.md`, intro: "Nothing is built yet" is replaced by what is built (git, build commands, `claude -p` runtime, hosting-service client) and "there is no command to run yet". *The agent runtime*: the closing paragraph is deleted. The stall rule is now one sentence in the paragraph before it and says "work item". The unknown cost of a timed-out run was already stated once there.
+   - Cross-read against the code and each other: `docs/decisions.md` and the rest of `docs/project-guide.md` read as current. I did not check them line by line against the code.
+   - Stale, but outside this story and left alone: the README's "(partly written)" on `docs/project-guide.md` is vague but not wrong. The project guide's hosting-service and `ProjectCommands` sections say the pipeline's use "comes from F0005/F0010", which was true when written and is still correct.
+   - No findings for the coder.
+
+   `make check`: check: green

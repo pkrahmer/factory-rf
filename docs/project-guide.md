@@ -327,12 +327,12 @@ There are four points, the members of `KillPoint`:
 
 | Point | Value | Reached by |
 |---|---|---|
-| `AGENT_RUN` | `agent-run` | the two agent runtimes, while an agent runs |
+| `AGENT_RUN` | `agent-run` | the two agent runtimes: the fake after the run's writes, `claude -p` after the last call and its result |
 | `BEFORE_PUSH` | `before-push` | the git wrapper, before a push |
 | `AFTER_PUSH` | `after-push` | the git wrapper, after a push |
 | `AFTER_POST` | `after-post` | the fake hosting service and the PyGithub client, after posting |
 
-This story built only the seam. A wrapper calls `kill_points.reach(point)` at its point in its own story; until then nothing reaches a point.
+Each wrapper in the table calls `kill_points.reach(point)` at its point; no other code reaches one.
 
 A new `KillPoints` is inert. In a test, use the `kill_points` fixture from `tests/conftest.py`, which returns a new `KillPoints()` for each test, and hand it to the wrapper under test:
 
