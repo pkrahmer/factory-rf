@@ -708,11 +708,35 @@ A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward
 - A given `project_commands` replaces the default set as a whole; it does not merge. `lint: {}` takes `time_limit` 10.
 - A name that breaks the pattern is reported at the path of its key: `invalid stages.<name>.[key]: ...`, likewise `roles.<name>.[key]` and `project_commands.<name>.[key]`.
 - The methods: `first_stage()`, `role_of(stage)` (`None` for a stage without a role, `KeyError` for an unknown stage) and `position(stage)` (index in `stages`; `ValueError` for an unknown one, not specified).
-- Not checked here, by later stories: a `next` naming no stage, the contract's form and major version, and `time_limit`s that must fit inside `lease_duration`. `first_stage()` on an empty `stages` raises `StopIteration` until then.
+- The rules that look across keys run at load, see "The rules of the definition" below. `first_stage()` is safe on a loaded definition, because rule 3 requires the stage `done`.
 
 ### Faults
 
-`parse` raises only `PipelineDefinitionInvalid(fault)` (a `FactoryError`; the message is the fault). The faults are `not valid YAML: <problem>` (the repeated key is named in the problem; ruamel's problem text can span several lines), `the pipeline definition must be a mapping` (a list, a string or an empty text) and the spellings of `all_faults` in `factory.adapters.validation_faults`, the same module the work item reader uses: `unknown key: <path>`, `missing key: <path>` and `invalid <path>: <message>`. A `<path>` has dots between keys and `[n]` for a list position (`roles.coder.write_paths`). A text with several faults is refused once, with all of them joined by `; ` in the order unknown key, missing key, invalid value (`unknown key: x; missing key: contract`).
+`parse` raises only `PipelineDefinitionInvalid(fault)` (a `FactoryError`; the message is the fault). The faults are `not valid YAML: <problem>` (the repeated key is named in the problem; ruamel's problem text can span several lines), `the pipeline definition must be a mapping` (a list, a string or an empty text) and the spellings of `all_faults` in `factory.adapters.validation_faults`, the same module the work item reader uses: `unknown key: <path>`, `missing key: <path>` and `invalid <path>: <message>`. A `<path>` has dots between keys and `[n]` for a list position (`roles.coder.write_paths`). A text with several faults is refused once, with all of them joined by `; ` in the order unknown key, missing key, invalid value (`unknown key: x; missing key: contract`). The rules below run only when every field is valid, so the field faults come first and alone.
+
+### The rules of the definition
+
+`PipelineDefinition` has one validator that applies nine rules, so every reader and every ref gets them. It collects the faults of all rules and refuses once, with the faults joined by `; ` in the order of the rules and, inside a rule, in the order of the stages or roles in the text. The reader reports the validator's message as the `fault`, without pydantic's `Value error, ` prefix.
+
+**The contract.** `contract` is `<digits>.<digits>`. The major, compared as an integer, must be `CONTRACT_MAJOR` (1): `01.0` is read, `2.0`, `0.9` and `10.0` are not. Any minor is read (`1.0`, `1.7`, `1.10`).
+
+**The lease.** For each stage with a role, the role's `time_limit` plus the `time_limit` of each command in the stage's `checks` and each in its `reports` must be at most the role's `lease_duration`. A command listed twice counts twice; a name that is no project command counts nothing; a stage without a role (an approval, `done`) is not measured. A role used by two stages is measured at each. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits the lease of 60; a stage with two checks and a report adds up to 70 and does not.
+
+The faults, in the order of the rules (`<s>` a stage, `<t>` a stage name, `<r>` a role, `<c>` a project command):
+
+| Rule | Fault |
+|---|---|
+| 1 | `contract must look like <major>.<minor>, got '<contract>'` |
+| 2 | `contract major <major> is not supported (this factory reads major 1)`, `<major>` as written |
+| 3 | `stages must hold a stage named done`; `stage done must have no role and no next` |
+| 4 | `stage <s>: next names unknown stage <t>`, once for each unknown name |
+| 5 | in this order: `stage <s>: role <r> is not defined in roles`; `role <r>: write_paths is empty`; `stage <s>: an approval stage has no role` |
+| 6 | `stage name <n> is reserved`; `role name <n> is reserved` (`human`, `factory`, `question`) |
+| 7 | `stage <s>: check <c> is not a project command`; `stage <s>: report <c> is not a project command` |
+| 8 | `role <r> at stage <s>: <total> min exceed lease_duration <lease> min` |
+| 9 | `acceptance_stage <t> is not a stage with a role` |
+
+Tests: `tests/adapters/test_pipeline_rules.py` (through the reader, comparing `fault`) and `tests/application/test_pipeline_loading_rules.py` (each refusal is one reported stop).
 
 ```bash
 uv run python -c "

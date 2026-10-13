@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 46
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Load-time rules of the pipeline definition
 
 ## Assignment (as of log entry 1)
@@ -101,3 +109,125 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete module (`src/factory/domain/pipeline_definition.py`, the `PipelineDefinition` after-validator, `CONTRACT_MAJOR`, `DONE_STAGE`, `RESERVED_NAMES`) and the reader change in `src/factory/adapters/pipeline_yaml.py` (fault taken from `ctx["error"]`, prefix dropped). Every rule has its exact fault text and ordering.
+   - Criteria: each is testable by one test function. Every rule has a refused and an accepted side: contract major (2, 3), contract form (4), done (5, 6), next (7, 8), role/write paths/approval (9, 10, 11, 12), reserved names (13), commands (14), time limit equal/over (15, 16), lease per role and per stage, doubles, unknown names and role-less stages (17 to 20), acceptance stage (21), multiple faults (22), field faults first (23), loader stops (24). The Interface comments (ordering, joining with "; ", integer major, `02` kept as written) are each covered.
+   - Demo: runnable as written. Each Expect line gives the exact output. It is consistent with the rules, assuming `checks` and `reports` default to empty, so 61 + 0 = 61 in the time limit case.
+   - Architecture: the rules are pure domain validation; the reader only translates the error to a fault; the loader is unchanged. This fits the four layers and the one-reader-per-format rule.
+   - Scope: within F0003's "load-time validation" scope and kept decisions 18 and 19. The installed-agent rule belongs to S0006, and nothing here is in "Out of scope".
+   - Note for the tester, not a question: criterion 5 needs a text where `done` is absent without leaving other stages' `next: [done]` unknown, or else rule 4 adds faults. Rename `done` consistently in the text.
+3. tester: Wrote red tests for the load-time rules of the pipeline definition. Every case starts from `PIPELINE_YAML` and changes it by text replacement. The adapter tests check that each changed line occurs exactly once before they replace it.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_pipeline_rules.py::test_the_test_pipeline_definition_passes_every_rule
+   - criterion 2: tests/adapters/test_pipeline_rules.py::test_a_contract_major_other_than_one_is_refused (2.0, 0.9, 10.0, 02.0)
+   - criterion 3: tests/adapters/test_pipeline_rules.py::test_a_contract_of_major_one_is_accepted_for_any_minor (1.0, 1.7, 1.10, 01.0)
+   - criterion 4: tests/adapters/test_pipeline_rules.py::test_a_contract_without_major_and_minor_is_refused (1, 1.0.0, v1.0, 1.x)
+   - criterion 5: tests/adapters/test_pipeline_rules.py::test_a_definition_without_a_done_stage_is_refused (renames `done` to `finished` everywhere, as intake suggested, so no `next` becomes unknown)
+   - criterion 6: tests/adapters/test_pipeline_rules.py::test_a_done_stage_with_a_role_or_a_next_is_refused
+   - criterion 7: tests/adapters/test_pipeline_rules.py::test_a_next_naming_an_unknown_stage_is_refused
+   - criterion 8: tests/adapters/test_pipeline_rules.py::test_every_unknown_next_is_a_fault_of_its_own_in_the_order_of_the_text
+   - criterion 9: tests/adapters/test_pipeline_rules.py::test_a_stage_with_an_undefined_role_is_refused
+   - criterion 10: tests/adapters/test_pipeline_rules.py::test_a_role_needs_at_least_one_write_path (0 and 1 paths)
+   - criterion 11: tests/adapters/test_pipeline_rules.py::test_an_approval_stage_with_a_role_is_refused
+   - criterion 12: tests/adapters/test_pipeline_rules.py::test_the_role_checks_report_undefined_roles_then_empty_paths_then_approval_roles
+   - criterion 13: tests/adapters/test_pipeline_rules.py::test_a_reserved_stage_name_is_refused and ::test_a_reserved_role_name_is_refused (human, factory, question each)
+   - criterion 14: tests/adapters/test_pipeline_rules.py::test_checks_and_reports_must_name_project_commands
+   - criterion 15: tests/adapters/test_pipeline_rules.py::test_a_role_time_limit_and_its_stage_checks_must_fit_the_lease (50 accepted, 51 refused)
+   - criterion 16: tests/adapters/test_pipeline_rules.py::test_the_time_limits_of_checks_and_reports_both_count (45 accepted, 46 refused)
+   - criterion 17: tests/adapters/test_pipeline_rules.py::test_each_role_is_measured_against_its_own_lease
+   - criterion 18: tests/adapters/test_pipeline_rules.py::test_a_role_used_by_two_stages_is_measured_at_each_stage (adds stage `extra: {role: coder, next: [done]}`)
+   - criterion 19: tests/adapters/test_pipeline_rules.py::test_a_command_listed_twice_counts_twice
+   - criterion 20: tests/adapters/test_pipeline_rules.py::test_unknown_commands_and_stages_without_a_role_add_no_minutes (two cases)
+   - criterion 21: tests/adapters/test_pipeline_rules.py::test_the_acceptance_stage_must_be_a_stage_with_a_role (nowhere, approval, acceptance)
+   - criterion 22: tests/adapters/test_pipeline_rules.py::test_faults_of_two_rules_are_reported_together_in_the_order_of_the_rules
+   - criterion 23: tests/adapters/test_pipeline_rules.py::test_the_rules_run_only_when_every_field_is_valid
+   - criterion 24: tests/application/test_pipeline_loading_rules.py::test_a_definition_the_rules_refuse_is_one_reported_stop (four cases: unknown next, empty write paths, major 2, time limit over the lease). It checks the raised fault and that the health status holds exactly one stop with (`pipeline_definition_invalid`, fault).
+   - criteria 25 and 26: not tests (`make check`, docs).
+
+   Files created: tests/adapters/test_pipeline_rules.py, tests/application/test_pipeline_loading_rules.py.
+
+   The test runner imported every module; nothing failed to import. The tests fail on wrong results: the rules don't exist yet, so the refusing cases raise nothing or give a different fault. The accepting cases pass already.
+
+   `make lint` is green. I didn't run the type check, as this stage skips it.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_pipeline_loading_rules.py::test_a_definition_the_rules_refuse_is_one_reported_stop[  coder: {write_paths: ["src/*"]}-  coder: {time_limit: 51, write_paths: ["src/*"]}-role coder at stage doing: 61 min exceed lease_duration 60 min]
+4. coder: Added the load-time rules of the pipeline definition. `make check` is green, all tests pass without any test change, and the Demo prints its five expected lines.
+
+   What I built:
+   - `src/factory/domain/pipeline_definition.py`
+     - Adds `CONTRACT_MAJOR`, `DONE_STAGE` and `RESERVED_NAMES`.
+     - Adds an after-mode `model_validator` on `PipelineDefinition`. It runs a tuple `_RULES` of eight private rule functions, each returning a list of faults. Rules 1 and 2 share `_contract_faults`, because the major is checked only when the form holds.
+     - It joins every fault with "; " and raises one `ValueError`.
+     - The order follows the Interface: by rule, then by stage or role in the text. Rule 5 lists its three checks in the order given.
+     - The lease rule counts the minutes of a role's run plus its stage's checks and reports in `_minutes_at_stage`. Repeated names count again and unknown names count nothing. It skips stages with no role and stages whose role is undefined.
+   - `src/factory/adapters/pipeline_yaml.py`: the new `_fault_of` returns `ctx["error"]` as written when the validation error is the single model-level error (empty location). Otherwise it falls back to `all_faults` as before. Field faults therefore still come first and alone, because pydantic does not run the after-validator when a field is invalid.
+
+   Main decision: each rule is a small module-level function and the validator only collects their results. I rejected one large validator method because its ordering and branching would be hard to review against the nine rules. I also rejected raising pydantic's `PydanticCustomError` with a custom type. The reader would then have to know that type, while `ctx["error"]` is what the Interface names.
+
+   Refactor (commit ede5c91): checks and reports now share one loop in `_command_faults`, and the role lookup in `_lease_faults` is plainer. Behaviour is unchanged.
+
+   Noticed, not touched: the `_FAULT_SEPARATOR = "; "` constant is now defined both in the domain module and in the reader. The two join different things (rule faults and field faults), so I left them separate.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked:
+   - `src/factory/domain/pipeline_definition.py`: I read the after-validator and its eight rule functions against the nine rules in the Interface. One function, `_contract_faults`, covers rules 1 and 2, so the major is checked only when the form holds. I confirmed the fault texts match the Interface exactly. Faults are ordered by rule, then by stage or role in the text. Inside rule 5 they come as undefined role, then empty write paths, then an approval stage with a role. Rule 8 skips stages with no role or an undefined role, counts a command listed twice twice and counts an unknown command as nothing. The total may equal the lease.
+   - `src/factory/adapters/pipeline_yaml.py` (`_fault_of`): it returns `ctx["error"]` only for a single error with an empty location, and otherwise falls back to `all_faults` as before. Pydantic skips after-validators when a field is invalid, so field faults come first and alone (criterion 23).
+   - Criteria 1–24 each map to one test in `tests/adapters/test_pipeline_rules.py` or `tests/application/test_pipeline_loading_rules.py`, and each test asserts what its criterion names. Each limit in the Interface is tested on both sides:
+     - contract major refused (2, 0, 10, 02) and accepted (1.x, 01.0)
+     - contract form refused and accepted
+     - done stage missing, with a role, with a `next`
+     - write paths 0 and 1
+     - lease totals 60 and 61, for checks alone and for checks plus reports
+     - acceptance stage: unknown, a stage without a role, and a valid one
+   - Criterion 5: `PIPELINE_YAML.replace("done", "finished")` touches only the `done` stage and the `next` entries that name it (I checked `tests/git_support.py`), so no other rule adds a fault.
+   - The coder's entry reports the factory's `make check` green.
+   - Architecture: the rules are pure domain code (using `re` only), and the adapter only translates the error into a fault. No new dependency and no suppression markers.
+
+   Considered, not raised: the `"; "` separator constant now exists in both the domain module and the reader. They join different things (rule faults in the domain, field faults in the reader), and the domain constant is private, so the reader cannot import it.
+
+   Ticket hygiene: the log explains the main decision (small rule functions collected by one validator) and what was rejected. The Assignment matches what was built. Criterion 26 still says what the documenter must write.
+6. documenter: wrote the documentation for the load-time rules of the pipeline definition. `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`
+     - New section "The rules of the definition". It covers the contract version (major must be 1, any minor is read, `01.0` is read), the lease rule with the 40+10+10=60 default example and a two-checks-plus-report counter-example, and a table of every fault in rule order.
+     - Replaced the stale "Not checked here, by later stories" bullet in "The pipeline definition". Added a note in "Faults" that the rules run only after the field faults are clear.
+   - `docs/operator-guide.md`: a row in the `pipeline_definition_invalid` faults table for the cross-key faults. It gives examples and points to the project guide's "The rules of the definition".
+   - `docs/decisions.md`: new entry. The rules refuse at load, the faults of one text are reported together, field faults come first, and the alternatives I rejected.
+
+   Cross-read and found current: the README, and the loader, agent and work item sections of the project guide.
+
+   Stale but not touched: none.
+
+   Findings: none. The code matches the Interface and the criteria.
+
+   I did not run the project-guide example code. I added no new example, and the existing one is unchanged and still valid.
+
+   `make check`: check: green
+7. demo: I ran the one Demo command exactly as written from the repository root. Its output met its `Expect:` line, and I found nothing to report.
+
+   Command 1 (`uv run python -c "…"`, which parses five variants of a minimal definition through `RuamelPipelineDefinitionReader`):
+
+   ```
+   next -> stage doing: next names unknown stage ship
+   contract -> contract major 2 is not supported (this factory reads major 1)
+   write paths -> role coder: write_paths is empty
+   time limit -> role coder at stage doing: 61 min exceed lease_duration 60 min
+   fits accepted
+   ```
+
+   The output met its `Expect:` line. It printed exactly five lines, in the expected order, and each matched its expected text character for character.
+
+   I checked the output against every acceptance criterion and none is contradicted:
+   - **Criterion 7:** the unknown `next` gives exactly the fault the Interface specifies.
+   - **Criteria 2 and 24 (ST8.4):** contract major 2 is refused with the major as written.
+   - **Criterion 10 (ST8.3):** the role with empty write paths is refused and names the role.
+   - **Criterion 15 (ST8.5, GH1.4):** a time limit of 61 against the default lease of 60 is refused. A time limit of 60, equal to the lease, is accepted. This also confirms that checks and reports default to nothing and add no minutes.
+
+   The other variants keep `done` with no role and no `next`, keep the contract at `1.0`, and use no reserved names, so they raised no extra faults. That fits the single-fault output shown.
+
+   Open: none.
