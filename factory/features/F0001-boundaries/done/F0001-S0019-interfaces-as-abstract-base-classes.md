@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 16
 blocked: null
 comments_seen: 0
@@ -178,3 +178,4 @@ Expect: one line, `True True True True True True`.
    Against the acceptance criteria: the output supports criteria 1, 3 (count 19), 4 (count 10), 5 (exact sets for `ProjectCommands` and `AgentRuntime`) and 9–12 (subclass relations). It contradicts none of the others. The demo does not cover criteria 2, 6–8, 13 and 14 (ast searches, `TypeError` on construction, posting search); the tests the tester named cover them, and the factory's `make check` gate covers 15. Criterion 16 is in the docs and the documenter recorded it.
 
    Open: none.
+8. done (pull request merged); cost: 6 runs, 5.0 min, 37 turns, 156k tokens in (497k more from cache), 17k out, $1.45
