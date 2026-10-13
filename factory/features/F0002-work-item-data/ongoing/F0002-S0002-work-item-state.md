@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 29
 blocked: null
 comments_seen: 0
@@ -188,3 +188,19 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
    - `make check` is green (`check: green`).
 
    `make check`: check: green
+7. demo: I ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines, and I found no findings.
+
+   1. Initial state dump:
+   ```
+   {'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes': 0, 'pull_request': None, 'comments_read': [], 'handed_over': None, 'claim': None, 'journal': []}
+   ```
+   It met its Expect line: one line, identical to the expected dict. The keys are in the order criterion 1 requires, with its initial values.
+
+   2. Invalid states refused:
+   ```
+   refused 1
+   refused 1
+   ```
+   It met its Expect line: two lines of `refused 1`. Each was refused with one error: `comments_read: [5, 3]` (criterion 5) and `blocked: 'asked'` (criterion 3).
+
+   Criteria check: neither output contradicts any of criteria 1–15. Both commands exited 0.
