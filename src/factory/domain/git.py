@@ -1,15 +1,18 @@
 """The git values the factory reasons about."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from factory.domain.kill_points import KillPoints
 
 CommitId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
 
 PushOutcome = Literal["pushed", "rejected", "unreachable"]
+
+# A rename is a deletion plus an addition, so that no tool's rename detection shapes the answer.
+ChangeKind = Literal["added", "modified", "deleted"]
 
 GIT_TIME_LIMIT = timedelta(minutes=5)
 
@@ -40,3 +43,39 @@ class GitOptions(BaseModel):
     kill_points: KillPoints | None = None
     executable: str = "git"
     time_limit: timedelta = GIT_TIME_LIMIT
+
+
+class ChangedPath(BaseModel):
+    """A path that differs from the state it is compared with, and how."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    path: str
+    change: ChangeKind
+
+
+class CommitInfo(BaseModel):
+    """One commit of a log: its id, parents, subject, author and committer date in UTC."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    commit: CommitId
+    parents: list[CommitId]
+    subject: str
+    author: str
+    committed_at: AwareDatetime
+
+    @field_validator("committed_at")
+    @classmethod
+    def _in_utc(cls, value: datetime) -> datetime:
+        return value.astimezone(UTC)
+
+
+class WorkTreeStatus(BaseModel):
+    """The checked-out branch, the commit HEAD points to and what differs from it."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    branch: str | None
+    head: CommitId | None
+    changes: list[ChangedPath]

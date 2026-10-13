@@ -1,11 +1,21 @@
 """The git wrapper: the one class that runs the git command-line tool."""
 
 import os
+from datetime import UTC, datetime
 from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.domain.errors import FetchFailed, GitError, NothingToCommit
-from factory.domain.git import CommitId, GitOptions, PushOutcome, RemoteBranch
+from factory.domain.git import (
+    ChangedPath,
+    ChangeKind,
+    CommitId,
+    CommitInfo,
+    GitOptions,
+    PushOutcome,
+    RemoteBranch,
+    WorkTreeStatus,
+)
 from factory.domain.kill_points import KillPoint
 from factory.domain.paths import REMOTE
 
@@ -15,6 +25,10 @@ REMOTE_PREFIX = f"refs/remotes/{REMOTE}/"
 ANSWER_NO = 1
 # The exit status by which git says it could not talk to the remote at all.
 FATAL = 128
+# One log record is id, parents, author, committer timestamp and message, each ended by NUL.
+LOG_FORMAT = "%H%x00%P%x00%an%x00%ct%x00%B"
+LOG_FIELDS = 5
+DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
 UNREACHABLE_MARKERS = (
     "Could not read from remote repository",
     "does not appear to be a git repository",
@@ -39,6 +53,70 @@ def _blob_in_listing(listing: str, path: str) -> str | None:
         if entry_path == path and kind == "blob":
             return blob
     return None
+
+
+def _commits_in_log(listing: str) -> list[CommitInfo]:
+    fields = listing.split("\0")
+    if fields and fields[-1] == "":
+        fields.pop()
+    commits = []
+    for start in range(0, len(fields), LOG_FIELDS):
+        commit, parents, author, timestamp, message = fields[start : start + LOG_FIELDS]
+        commits.append(
+            CommitInfo(
+                commit=commit,
+                parents=parents.split(),
+                subject=message.split("\n", 1)[0],
+                author=author,
+                committed_at=datetime.fromtimestamp(int(timestamp), UTC),
+            )
+        )
+    return commits
+
+
+def _changes_in_diff(listing: str) -> dict[str, ChangeKind]:
+    # `diff --name-status -z` alternates a status letter and the path, each ended by NUL.
+    fields = [field for field in listing.split("\0") if field]
+    return {
+        path: DIFF_KINDS.get(status[0], "modified")
+        for status, path in zip(fields[0::2], fields[1::2], strict=True)
+    }
+
+
+def _status_change(staged: str, unstaged: str) -> ChangeKind:
+    if "D" in (staged, unstaged):
+        return "deleted"
+    if staged == "A":
+        return "added"
+    return "modified"
+
+
+def _status_entry(entry: str) -> ChangedPath | None:
+    # Porcelain v2: "1 XY ... <path>" is a change, "u XY ... <path>" an unmerged path,
+    # "? <path>" an untracked one; with renames off no "2" entries appear.
+    kind = entry[0]
+    if kind == "?":
+        return ChangedPath(path=entry[2:], change="added")
+    if kind == "1":
+        fields = entry.split(" ", 8)
+        return ChangedPath(path=fields[8], change=_status_change(fields[1][0], fields[1][1]))
+    if kind == "u":
+        return ChangedPath(path=entry.split(" ", 10)[10], change="modified")
+    return None
+
+
+def _status_header(entries: list[str], name: str, placeholder: str) -> str | None:
+    # Porcelain v2 headers read "# <name> <value>"; git writes `placeholder` for no value.
+    prefix = f"# {name} "
+    for entry in entries:
+        if entry.startswith(prefix):
+            value = entry.removeprefix(prefix)
+            return None if value == placeholder else value
+    return None
+
+
+def _sorted_changes(changes: dict[str, ChangeKind]) -> list[ChangedPath]:
+    return [ChangedPath(path=path, change=changes[path]) for path in sorted(changes)]
 
 
 def _is_rejected(porcelain: str) -> bool:
@@ -106,6 +184,44 @@ class GitCli:
         )
         return result.exit_status == 0
 
+    def log(
+        self, ref: str, *, since: str | None = None, path: str | None = None
+    ) -> list[CommitInfo]:
+        """The commits reachable from `ref` and not from `since`, touching `path` if given."""
+        revisions = [ref] if since is None else [ref, f"^{since}"]
+        paths = [] if path is None else [path]
+        arguments = ["log", "-z", "--date-order", f"--format={LOG_FORMAT}", "--end-of-options"]
+        listing = self._run([*arguments, *revisions, "--", *paths]).stdout
+        return _commits_in_log(listing)
+
+    def changed_paths(self, since: str) -> list[ChangedPath]:
+        """The tracked paths that differ from `since`, and the untracked ones as added."""
+        diff = self._run(
+            ["diff", "--name-status", "-z", "--no-renames", "--end-of-options", since, "--"]
+        ).stdout
+        changes = _changes_in_diff(diff)
+        for path in self._untracked_paths():
+            # A path dropped from the index but still on disk is a change, not a deletion.
+            changes[path] = "modified" if path in changes else "added"
+        return _sorted_changes(changes)
+
+    def status(self) -> WorkTreeStatus:
+        """The branch (`None` when detached), `HEAD` (`None` before the first commit), changes."""
+        listing = self._run(
+            ["status", "--porcelain=v2", "-z", "--branch", "--untracked-files=all", "--no-renames"]
+        ).stdout
+        entries = [entry for entry in listing.split("\0") if entry]
+        changes: dict[str, ChangeKind] = {}
+        for entry in entries:
+            change = _status_entry(entry)
+            if change is not None:
+                changes[change.path] = change.change
+        return WorkTreeStatus(
+            branch=_status_header(entries, "branch.head", "(detached)"),
+            head=_status_header(entries, "branch.oid", "(initial)"),
+            changes=_sorted_changes(changes),
+        )
+
     def clone(self, url: str) -> None:
         """Clone `url` into the bound directory, creating its missing parents."""
         parent = self._directory.parent
@@ -144,6 +260,10 @@ class GitCli:
         if _is_unreachable(result):
             return "unreachable"
         raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+
+    def _untracked_paths(self) -> list[str]:
+        listing = self._run(["ls-files", "--others", "--exclude-standard", "-z"]).stdout
+        return [path for path in listing.split("\0") if path]
 
     def _reach(self, point: KillPoint) -> None:
         if self._options.kill_points is not None:

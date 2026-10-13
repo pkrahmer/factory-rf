@@ -2,7 +2,14 @@
 
 from typing import Protocol
 
-from factory.domain.git import CommitId, PushOutcome, RemoteBranch
+from factory.domain.git import (
+    ChangedPath,
+    CommitId,
+    CommitInfo,
+    PushOutcome,
+    RemoteBranch,
+    WorkTreeStatus,
+)
 
 
 class Git(Protocol):
@@ -33,6 +40,28 @@ class Git(Protocol):
 
     def is_ancestor(self, ancestor: str, descendant: str) -> bool:
         """Whether `ancestor` is reachable from `descendant`, a commit being its own ancestor."""
+        ...
+
+    def log(
+        self, ref: str, *, since: str | None = None, path: str | None = None
+    ) -> list[CommitInfo]:
+        """The commits reachable from `ref`, newest first and each before its parents.
+
+        With `since`, only those not reachable from `since`; with `path`, only those that
+        changed it or anything under it.
+        """
+        ...
+
+    def changed_paths(self, since: str) -> list[ChangedPath]:
+        """The paths whose content differs between the commit `since` and the work tree.
+
+        Committed, staged, unstaged and untracked changes count, ignored files do not; a
+        rename is a deletion plus an addition. Sorted by path.
+        """
+        ...
+
+    def status(self) -> WorkTreeStatus:
+        """The checked-out branch, `HEAD`, and every path that differs from `HEAD`, sorted."""
         ...
 
     def clone(self, url: str) -> None:

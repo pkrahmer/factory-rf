@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 11
+blocked: null
+comments_seen: 2
+round: 0
+attempts: 0
+---
 # The git wrapper: history and work tree
 
 ## Assignment (as of log entry 1)
@@ -107,3 +115,123 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules (`src/factory/domain/git.py`, `src/factory/application/git.py`) with full signatures for the three DTOs and the three `Git` operations. Test files are named.
+   - Criteria: 23 criteria, each testable by one test function. Every rule in the Interface has one. Frozen and unknown-key models, no "renamed", naive/offset/39-char/uppercase ids: 1. Subject, committer date and ordering: 2–4 and 7. `since` and `path`: 5–6. A missing ref or `since` is a `GitError` (the failing side): 8. Net difference, untracked, ignored, rename, add-then-delete, restore: 9–12. Sorting and non-ASCII paths: 13. `status` branch, head, detached, unborn, kinds, staged and unstaged listed once, ignored: 14–21.
+   - Demo: runnable with `GitCli`, `run_process` and `ProcessRequest` from the earlier stories. The `Expect:` line gives three concrete lines that can be compared.
+   - Architecture: DTOs in the domain layer, the protocol in the application layer, and the implementation behind the git wrapper (R9, R7). No new dependency.
+   - Scope: within the feature's git wrapper scope (log, changed paths, status). Nothing from "Out of scope".
+3. tester: red tests written for criteria 1–21. Criteria 22 (make check) and 23 (docs) are for later stages.
+   - criterion 1: tests/domain/test_git_history.py::test_history_models_forbid_unknown_keys_and_assignment (parametrized over the three models), ::test_change_kind_has_no_rename, ::test_committed_at_must_be_aware_and_is_converted_to_utc, ::test_commit_ids_are_forty_lowercase_hexadecimal_characters (39 characters, uppercase parent)
+   - criterion 2: tests/adapters/test_git_cli_history.py::test_log_returns_the_commits_newest_first_as_git_reports_them
+   - criterion 3: tests/adapters/test_git_cli_history.py::test_subject_is_only_the_first_line_of_the_message
+   - criterion 4: tests/adapters/test_git_cli_history.py::test_committed_at_is_the_committer_date_in_utc
+   - criterion 5: tests/adapters/test_git_cli_history.py::test_log_since_another_ref_returns_only_the_commits_not_reachable_from_it
+   - criterion 6: tests/adapters/test_git_cli_history.py::test_log_for_a_path_returns_only_the_commits_that_changed_it
+   - criterion 7: tests/adapters/test_git_cli_history.py::test_log_puts_a_merge_commit_with_two_parents_before_both
+   - criterion 8: tests/adapters/test_git_cli_history.py::test_a_ref_that_does_not_exist_is_a_git_error (log ref, log since, changed_paths since)
+   - criterion 9: tests/adapters/test_git_cli_history.py::test_changed_paths_lists_committed_additions_changes_and_deletions
+   - criterion 10: tests/adapters/test_git_cli_history.py::test_changed_paths_lists_staged_unstaged_and_untracked_but_not_ignored
+   - criterion 11: tests/adapters/test_git_cli_history.py::test_changed_paths_shows_a_rename_as_a_deletion_and_an_addition (git mv staged, git mv committed, delete and recreate)
+   - criterion 12: tests/adapters/test_git_cli_history.py::test_changed_paths_leaves_out_what_is_back_to_its_state_at_since
+   - criterion 13: tests/adapters/test_git_cli_history.py::test_paths_with_spaces_and_non_ascii_come_back_exactly_in_plain_order (checks both changed_paths and status; the untracked file under `a b/` is expected as the file path, not the directory)
+   - criterion 14: tests/adapters/test_git_cli_history.py::test_status_of_a_clean_checkout_names_the_branch_and_head
+   - criterion 15: tests/adapters/test_git_cli_history.py::test_status_lists_untracked_edited_staged_and_deleted_files
+   - criterion 16: tests/adapters/test_git_cli_history.py::test_status_lists_a_file_changed_staged_and_changed_again_once_as_modified
+   - criterion 17: tests/adapters/test_git_cli_history.py::test_status_lists_a_new_file_staged_and_edited_again_once_as_added
+   - criterion 18: tests/adapters/test_git_cli_history.py::test_status_shows_a_rename_as_a_deletion_and_an_addition
+   - criterion 19: tests/adapters/test_git_cli_history.py::test_status_with_a_detached_head_has_no_branch_and_names_the_commit
+   - criterion 20: tests/adapters/test_git_cli_history.py::test_status_without_commits_has_no_head_and_names_the_unborn_branch (unborn branch `trunk`)
+   - criterion 21: tests/adapters/test_git_cli_history.py::test_status_does_not_list_an_ignored_path
+
+   Files created: tests/domain/test_git_history.py, tests/adapters/test_git_cli_history.py. The adapter tests use local repositories in tmp_path, set up with `git init` through `run_git`, with no remote. They reach `GitCli` through a helper typed `-> Git`, so mypy also checks that the `Git` protocol has the three new operations. Criterion 4 needs `GIT_COMMITTER_DATE`, and `run_git` cannot pass an environment, so that one commit runs through `run_process` with an explicit environment. It does not use `subprocess`.
+
+   `make test`: both new modules fail at collection because `ChangedPath`, `ChangeKind`, `CommitInfo` and `WorkTreeStatus` are not in `factory.domain.git` yet. `make lint` is green. The type check was skipped as the stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implementation committed (5ea0a39). All 31 new tests pass, and lint, types, layers, sast, licenses and test are green. `make check` is still red, because `make secrets` (detect-secrets) flags two lines in the tester's file: `tests/domain/test_git_history.py:11` (`COMMIT = "0123456789abcdef…"`) and `:12` (`PARENT = "89abcdef…"`), both as "Hex High Entropy String".
+
+   What I built:
+   - `src/factory/domain/git.py`: `ChangeKind`, `ChangedPath`, `CommitInfo` (whose validator converts `committed_at` to UTC) and `WorkTreeStatus`. All three are frozen and forbid unknown keys.
+   - `src/factory/application/git.py`: the `log`, `changed_paths` and `status` operations on the `Git` protocol.
+   - `src/factory/adapters/git_cli.py`:
+     - `log` runs `git log -z --date-order` with a NUL-separated format. The subject is the first line of `%B`, and the date comes from `%ct`.
+     - `changed_paths` combines `diff --name-status -z --no-renames <since>` with `ls-files --others --exclude-standard`.
+     - `status` parses `status --porcelain=v2 -z --branch --untracked-files=all --no-renames`.
+   - Main design decision: turn git's rename detection off everywhere, so that a rename is always a deletion plus an addition. The alternative I rejected was building a temporary index and running `git add -A` into it to get the net difference. It is exact, but it writes objects into the repository just to read a state.
+
+   Noticed but not touched: an untracked path that diff also reports as deleted (a file removed from the index with `git rm --cached` but still on disk) is reported as "modified", even if its content is unchanged.
+
+   Question: making `make secrets` green requires one of the following, and each is on the "Not without asking" list.
+   - (a) The tester changes the two constants in `tests/domain/test_git_history.py` to low-entropy ids, such as `COMMIT = "a" * 40` and `PARENT = "b" * 40`, as `tests/domain/test_hosting.py` already does.
+   - (b) Add the two lines to `.secrets.baseline`.
+   - (c) Add a `pragma: allowlist secret` comment to each line.
+
+   I would choose (a). If you agree, I will end with `tests` and name exactly that change for the tester.
+5. human (pull request comment, 2026-10-13): (a): the tester changes the two constants to low-entropy ids (`COMMIT = "a" * 40`, `PARENT = "b" * 40`), as `tests/domain/test_hosting.py` does. No baseline entry and no pragma.
+6. coder: test change for the tester, as the human's answer (entry 5) asks. In `tests/domain/test_git_history.py`, lines 11–12, change `COMMIT` to `"a" * 40` and `PARENT` to `"b" * 40`, the low-entropy ids `tests/domain/test_hosting.py` uses, so that `make secrets` stops flagging them as Hex High Entropy Strings. Do not add a baseline entry or a pragma. Nothing else changes. The implementation (5ea0a39) is untouched, and it passes all 31 tests in the new modules. Once that change is in, `make check` should be fully green, and the ticket can go to review with the design described in entry 4: rename detection is off everywhere, `changed_paths` combines `diff --name-status --no-renames <since>` with the untracked files from `ls-files`, and `status` parses porcelain v2.
+7. tester: made the test change the human approved in entry 5 and the coder specified in entry 6. In `tests/domain/test_git_history.py`, lines 11–12 are now `COMMIT = "a" * 40` and `PARENT = "b" * 40`. These are low-entropy ids, as in `tests/domain/test_hosting.py`, so `make secrets` no longer flags them as Hex High Entropy Strings. No baseline entry and no pragma were added, and nothing else changed. The uppercase-parent case still holds, because `PARENT.upper()` is 40 `B`s and is still invalid. I ran `make test` once and it is green, with total coverage at 98.49 %.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: the tester's change from entry 7 is in. `make check` is fully green: lint, types, layers, sast, secrets, licenses and test all pass, with total coverage at 98.78 %. I also ran the Demo, and it prints the three expected lines.
+
+   What I built (feature commit 5ea0a39, described in entry 4):
+   - `src/factory/domain/git.py`: `ChangeKind`, `ChangedPath`, `CommitInfo` (its validator converts `committed_at` to UTC) and `WorkTreeStatus`. All three models are frozen and forbid unknown keys.
+   - `src/factory/application/git.py`: the `log`, `changed_paths` and `status` operations on the `Git` protocol.
+   - `src/factory/adapters/git_cli.py`:
+     - `log` runs `git log -z --date-order` with a NUL-separated format. The subject is the first line of `%B`, and the date comes from `%ct`.
+     - `changed_paths` combines `diff --name-status -z --no-renames <since>` with `ls-files --others --exclude-standard`.
+     - `status` parses `status --porcelain=v2 -z --branch --untracked-files=all --no-renames`.
+
+   Main design decision: rename detection is off everywhere, so a rename is always a deletion plus an addition. I rejected a temporary index filled with `git add -A`. It would give the net difference exactly, but it writes objects into the repository just to read a state.
+
+   Refactor (c176e75): `status()` used to parse the branch and head headers in the same loop that collects the changes. Those headers now come from a new helper, `_status_header`, so the loop only gathers changes. Behaviour and tests are unchanged.
+
+   Noticed but not touched:
+   - Unmerged paths (porcelain `u` entries) are reported as "modified". No test covers that branch.
+   - A path removed from the index with `git rm --cached` but still on disk is reported by `changed_paths` as "modified", even when its content is unchanged.
+
+   `make check`: check: green
+9. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–21 has a test in `tests/domain/test_git_history.py` or `tests/adapters/test_git_cli_history.py`, and each test checks what its criterion says. The failing sides are covered: unknown key, assignment, `"renamed"`, a naive date, 39 characters and an uppercase id (1), and a missing ref or `since` (8). The coder's entry 8 reports `make check` green.
+      - Architecture: the DTOs are in `factory.domain.git`, the three operations are on the `Git` protocol in `factory.application.git`, and git runs only through `GitCli._run`. No `dict[str, Any]` crosses a boundary in `src`, and nothing new is imported.
+      - Security: arguments go in as lists, `--end-of-options` comes before user-supplied refs, and there are no suppression markers.
+      - Parsing, checked against git's formats:
+        - `log` uses NUL-separated fields with `-z --date-order`, so a commit always comes before its parents.
+        - `status` reads porcelain v2 `1` entries at field 8, `u` entries at field 10 and `?` entries, and takes the `branch.oid` and `branch.head` headers with their `(initial)` and `(detached)` placeholders.
+        - `changed_paths` combines `diff --name-status --no-renames <since>` with `ls-files --others --exclude-standard`.
+      - Quality: names and docstrings are fine, and the comments explain why.
+      - Two things in the diff are not the ticket's work: `CLAUDE.md` and `docs/runs/2026-10-12-overnight/night-log.md`. Both came from main through the merge 374ea1b (the human's commit 91e9581 and the run log), so I did not review them as the ticket's work.
+      - Not raised: the edge cases the coder reported in entry 8. `git rm --cached` of an unchanged file shows as "modified" in `changed_paths`, and unmerged entries count as "modified". No criterion covers either case. If the human wants either one exact, it needs its own story.
+10. documenter: changed `docs/project-guide.md`, section "The git wrapper": the operation count is now thirteen (nine reading, four writing). Added table rows for `log`, `changed_paths` and `status`: what they return, and that untracked files count, ignored ones do not, and a rename is a deletion plus an addition. Added a paragraph on the three models (frozen, unknown keys forbidden, aware UTC dates, 40-hex ids) and one saying the undo (`changed_paths`) and the tick (`status()`) use them. Added the two edge cases from the coder's entry 8 (`git rm --cached` shows as "modified", unmerged paths are "modified"), so the reader is not surprised.
+
+    Cross-read: the rest of the git wrapper section, README, `docs/operator-guide.md` and `docs/decisions.md` for stale names. I found nothing to fix. `make check` is green. I did not re-run the Demo (the coder did). The code matches the Interface, so I have no findings.
+
+    Stale but untouched: nothing seen.
+
+    `make check`: check: green
+11. demo: no findings.
+
+    I ran the single Demo command from the repository root exactly as written. It exited with code 0.
+
+    ```
+    ['second commit', 'first commit']
+    [('a.txt', 'modified'), ('b.txt', 'added')]
+    main [('a.txt', 'modified'), ('b.txt', 'added')]
+    ```
+
+    The output matches the `Expect:` line on all three lines:
+    - `log('HEAD')` returns the subjects newest first.
+    - `changed_paths('HEAD~1')` lists the unstaged edit as "modified" and the untracked file as "added", sorted by path.
+    - `status()` names the branch `main` and lists the same two changes.
+
+    I read the acceptance criteria again. Nothing in the Demo contradicts any of them:
+    - Criterion 2 (newest first) and criterion 10 (unstaged and untracked count in `changed_paths`) hold.
+    - Criteria 14 and 15 hold for the branch name, the untracked file as "added" and the unstaged edit as "modified".
+    - Criterion 13 holds: the lists are in plain string order.
+
+    For criterion 23, `docs/project-guide.md` lines 98–105 describe what `changed_paths` and `status()` return, and the same table also covers `log`. They say that untracked files count, ignored ones do not, and a rename is a deletion plus an addition, and that the undo and the tick use these operations. I did not run `make check` myself. The factory runs it after this stage, and entries 8 and 10 report it green.
+
+    Still open, and outside this ticket's criteria: the two edge cases from entry 8. A path removed with `git rm --cached` shows as "modified" in `changed_paths`, and unmerged paths show as "modified" in `status()`. Each one would need its own story if the human wants it exact.
