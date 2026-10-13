@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 38
 blocked: null
 comments_seen: 0
@@ -73,3 +73,9 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
       - Open: all of the work belongs to the documenter, from criterion 2 and the Demo: `docs/project-guide.md` (wiring sentence, "The state", "Cost records", "Errors"), the `README.md` status sentence, and the `docs/operator-guide.md` section "Checking a story before it starts". The coder does not write those files, so I left them alone.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch's four commits change only the ticket file. That is what a documentation-only story should look like at this stage: the Interface is "None: no code changes", and the tester and the coder both had nothing to do, by design.
+      - 1. Acceptance criteria: criterion 1 (`make check` stays green) is the stage gate. The coder's entry says `make check` was green on the branch as handed over. Criterion 2 is the docs criterion, which the documenter writes next. No rule has a failing side, so no test is missing.
+      - 2. Architecture, 3. Security, 4. Quality: there is nothing to judge, because there is no code, test or configuration diff.
+      - 5. Ticket hygiene: the log explains why no tests and no code exist. `Assignment` matches what was built (nothing so far; the docs work is still to come). Criterion 2 still says what a reader must know once the story is done: the project guide's wiring, "The state", "Cost records" and "Errors" fixes, the README status topics, and the operator guide's statements about layout and v1 folders. The Demo's grep commands check them.
+      - Open: all of the work is the documenter's, from criterion 2 and the Demo.
