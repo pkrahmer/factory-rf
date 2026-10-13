@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 11
 blocked: null
 comments_seen: 2
@@ -175,3 +175,22 @@ Expect: three lines: `['second commit', 'first commit']`, then `[('a.txt', 'modi
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: the tester's change from entry 7 is in. `make check` is fully green: lint, types, layers, sast, secrets, licenses and test all pass, with total coverage at 98.78 %. I also ran the Demo, and it prints the three expected lines.
+
+   What I built (feature commit 5ea0a39, described in entry 4):
+   - `src/factory/domain/git.py`: `ChangeKind`, `ChangedPath`, `CommitInfo` (its validator converts `committed_at` to UTC) and `WorkTreeStatus`. All three models are frozen and forbid unknown keys.
+   - `src/factory/application/git.py`: the `log`, `changed_paths` and `status` operations on the `Git` protocol.
+   - `src/factory/adapters/git_cli.py`:
+     - `log` runs `git log -z --date-order` with a NUL-separated format. The subject is the first line of `%B`, and the date comes from `%ct`.
+     - `changed_paths` combines `diff --name-status -z --no-renames <since>` with `ls-files --others --exclude-standard`.
+     - `status` parses `status --porcelain=v2 -z --branch --untracked-files=all --no-renames`.
+
+   Main design decision: rename detection is off everywhere, so a rename is always a deletion plus an addition. I rejected a temporary index filled with `git add -A`. It would give the net difference exactly, but it writes objects into the repository just to read a state.
+
+   Refactor (c176e75): `status()` used to parse the branch and head headers in the same loop that collects the changes. Those headers now come from a new helper, `_status_header`, so the loop only gathers changes. Behaviour and tests are unchanged.
+
+   Noticed but not touched:
+   - Unmerged paths (porcelain `u` entries) are reported as "modified". No test covers that branch.
+   - A path removed from the index with `git rm --cached` but still on disk is reported by `changed_paths` as "modified", even when its content is unchanged.
+
+   `make check`: check: green
