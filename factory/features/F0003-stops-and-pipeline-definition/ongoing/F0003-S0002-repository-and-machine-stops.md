@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 41
 blocked: null
 comments_seen: 0
@@ -137,3 +137,19 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.application.boundaries'
+4. coder: I implemented `Boundaries` and `StopService`, and `make check` is green. The tester's tests are unchanged.
+   - `src/factory/application/boundaries.py`: `Boundaries` is a `@dataclass(frozen=True, kw_only=True)` with the twelve fields the Interface lists. It imports only application interfaces and `Path`.
+   - `src/factory/application/stops.py`:
+     - `StopService.raise_stop` writes the line `stop <scope> <reason>: <detail>` through `boundaries.log`. It then reads the health status and writes it back with the stop: a stop with a known reason is replaced where it stood, and a new reason is appended. Each write sits in its own `try`, and the first `OSError` is raised once both have been tried. The log is tried first, so the log's error wins when both fail.
+     - `clear_stop` does nothing when the status holds no stop of that reason. Otherwise it writes the status without that stop first and then the line `stop cleared <reason>`. An `OSError` from the health write therefore stops it before the line.
+   - Commits:
+     - `61b20ec` feat(application): boundaries and the stop service
+     - `d5bfeaa` refactor(application): `_with_stop` now decides between replacing and appending by checking the reason. Before, it checked whether the stop was in the list.
+
+   Design: the replace-or-append rule lives in two private helpers in `application/stops.py`. I rejected adding public methods to `HealthStatus` in `factory.domain.stops`. That would put a domain API in this story's diff that only this service uses. If later stories need the rule elsewhere, it can move to the domain then.
+
+   Noticed, not touched: `HealthStatusStore.read()` is documented as never raising. `raise_stop` still reads inside the health `try`, so a store that breaks this contract with an `OSError` cannot lose the line. `clear_stop` lets a read error propagate before anything is written, which matches "nothing else is done".
+
+   Open: none. The docs criterion (15) is the documenter's.
+
+   `make check`: check: green
