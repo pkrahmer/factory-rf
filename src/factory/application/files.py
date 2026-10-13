@@ -1,8 +1,10 @@
 """The interfaces through which the factory reads and writes its files."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from pathlib import Path
 
+from factory.domain.cost_records import CostRecord
 from factory.domain.work_item import WorkItemDocument
 
 
@@ -31,4 +33,28 @@ class WorkItemWriter(ABC):
 
     @abstractmethod
     def write(self, path: Path, document: WorkItemDocument) -> None:
+        """Write the text of `render` to `path` as UTF-8, replacing an existing file."""
+
+
+class CostRecordReader(ABC):
+    """Reads a cost record file; every fault raises `CostRecordFormatError`."""
+
+    @abstractmethod
+    def parse(self, text: str) -> list[CostRecord]:
+        """The records of a text in file order, blank lines ignored."""
+
+    @abstractmethod
+    def read(self, path: Path) -> list[CostRecord]:
+        """The records of the file at `path`, read as UTF-8; `[]` when there is no file."""
+
+
+class CostRecordWriter(ABC):
+    """Writes a cost record file, one line per record."""
+
+    @abstractmethod
+    def render(self, records: Sequence[CostRecord]) -> str:
+        """The text of `records` in their order; a repeated run raises `CostRecordFormatError`."""
+
+    @abstractmethod
+    def write(self, path: Path, records: Sequence[CostRecord]) -> None:
         """Write the text of `render` to `path` as UTF-8, replacing an existing file."""

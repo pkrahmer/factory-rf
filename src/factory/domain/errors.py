@@ -81,3 +81,16 @@ class WorkItemFormatError(FactoryError):
         super().__init__(fault if path is None else f"{path}: {fault}")
         self.fault = fault
         self.path = path
+
+
+class CostRecordFormatError(FactoryError):
+    """A cost record file cannot be read or written: the line and its fault."""
+
+    line: int
+    fault: str
+
+    def __init__(self, line: int, fault: str) -> None:
+        """Name the line, counted from 1, and its fault."""
+        super().__init__(f"line {line}: {fault}")
+        self.line = line
+        self.fault = fault
