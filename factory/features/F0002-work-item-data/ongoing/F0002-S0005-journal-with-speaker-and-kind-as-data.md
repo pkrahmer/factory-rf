@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 32
 blocked: null
 comments_seen: 0
@@ -137,3 +137,12 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the journal in `src/factory/domain/journal.py` (commits d82bc08 feat, 321e24a refactor). It adds `NewEntry`, `render_entry`, `append_entry`, `entry_text`, `last_record` and `restore_state_and_journal`. All tests in tests/domain/test_journal.py and tests/adapters/test_journal_as_data.py pass, `make check` is green, and both demos print exactly the expected output.
+      - Import cycle: the module uses `from __future__ import annotations` and imports `WorkItemDocument` and `WorkItemState` only under `TYPE_CHECKING`. It builds documents with `model_copy`, so it never needs those classes at runtime. `date`, `Speaker` and `JournalKind` stay runtime imports because Pydantic resolves `NewEntry`'s fields from them.
+      - Main design decision: every function finds the `Journal` section with `sections`/`split_lines` from `factory.domain.sections`, through two small helpers. `_journal_section` raises `missing section: ## Journal` and `_last_text_line` finds the section's last non-blank line, or its heading when the section has no text. `append_entry` inserts after that line (with a leading blank line when the section is empty). The restore replaces heading-to-last-text-line, so the blank lines before the next section stay where they were. Rejected alternative: making `sections._first_section` public or adding a journal-specific helper to `sections.py`. That would have widened another story's module for one caller.
+      - `entry_text` ends an entry at the next line whose first character is a digit, which is "starts with a number at column 0" from the Interface. It removes the continuation indent with `removeprefix`, so blank lines stay empty.
+      - Restore without a `Journal` section in the current body: trailing blank lines of the current body are dropped before the one blank line and the block. That keeps exactly one blank line, as the Interface says.
+      - Refactor: replaced a one-character regex for "next entry starts" with `str.isdigit` on the first character. Nothing else needed changing.
+      - Noticed, not touched: two defensive lines are not covered by the tests: the trailing-blank trim in `_entry_lines` and the trailing-blank strip in the restore. A text whose continuation line holds an unclosed fence would still swallow later headings, because the indent does not neutralise a fence. No criterion asks for this.
+
+   `make check`: check: green
