@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 7
 blocked: null
 comments_seen: 0
@@ -171,3 +171,14 @@ Expect: one line starting with `project command Check; ls failed:` that names th
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the project-commands interface and the make class. All tester tests pass without changes, and `make check` is green with 100 % branch coverage.
+      - `src/factory/domain/checks.py`: contains `OUTPUT_TAIL_LINES`, `CheckStatus`, `COMMAND_NAME_PATTERN`, `CommandName`, `status_of(exit_status)` and `CheckResult`. `CheckResult` is frozen and forbids unknown keys. An after-validator rejects any status that differs from `status_of(exit_status)`, and `passed` is true only for "passed".
+      - `src/factory/domain/errors.py`: adds `ProjectCommandError(BoundaryError)`, whose message is `project command <command> failed: <detail>`.
+      - `src/factory/application/project_commands.py`: the `ProjectCommands` Protocol with a single `run` operation.
+      - `src/factory/adapters/make_commands.py`: `MakeProjectCommands`. It checks `time_limit` (raises ValueError) and then the command name (raises ProjectCommandError) before starting anything. It then runs `<executable> --no-print-directory <command>` through `run_process` with `merge_stderr=True`, using `os.environ` minus MAKELEVEL, MAKEFLAGS and MFLAGS. An `OSError` at start becomes `ProjectCommandError(command, str(exc))`. The status comes from the exit status only, through `status_of`. `output_tail` is the last 30 lines. `last_line` is the last line that is not blank and does not start with `make:` or `make[`. `kill_points` is stored and never reached.
+      Main decision: the status mapping `status_of` lives in the domain, and the adapter reuses it together with the domain's command-name pattern, so the rule and the regex each exist once. Rejected: a second regex and an inline status mapping in the adapter, which would duplicate the model's validation.
+      Both demo blocks run and print exactly what their Expect lines say.
+      Refactor pass: I read the diff and found nothing to change; the clean-up (sharing the pattern) went into the feature commit. There is therefore no separate refactor commit.
+      Not touched: the docs for criterion 26 (`docs/project-guide.md` and `docs/operator-guide.md`) are the documenter's job.
+
+   `make check`: check: green
