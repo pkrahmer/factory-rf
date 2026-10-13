@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 26
 blocked: null
 comments_seen: 0
@@ -122,3 +122,26 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
 
    `make lint`: lint: green
    `make test`: FAILED tests/domain/test_git.py::test_remote_branch_refuses_an_unknown_field
+4. coder: Implemented the code side of the housekeeping. `make check` is green (commit "fix(git): freeze RemoteBranch and check each GitCli argument once").
+
+   - `src/factory/domain/git.py`: `RemoteBranch` now has `model_config = ConfigDict(frozen=True, extra="forbid")` (criteria 1–3).
+   - `src/factory/adapters/git_cli.py`: added three private helpers that run git without checking the arguments, because their public callers have already checked them:
+     - `_resolve_unchecked` runs `rev-parse --verify`.
+     - `_is_ancestor_unchecked` runs `merge-base --is-ancestor`.
+     - `_blob` runs `ls-tree` and finds the blob.
+   - The public `resolve`, `is_ancestor` and `show_file` keep their checks and now delegate to these helpers (criterion 6).
+   - These callers now use the helpers instead of the public methods: `_resolve_or_raise`, `delete_branch`, the `MERGE_HEAD` check in `_merge_diverged`, `merge`'s two ancestry tests and `revert_paths`'s per-path read. Each operation now checks each argument once, as its first statements (criteria 4 and 5). No outcome changes.
+   - Criterion 7's rows and criterion 8 already passed against the existing code.
+
+   Decision: the counting test reads `git_cli.check_git_argument`, and mypy's no-implicit-reexport refused that attribute. I added `__all__ = ["GitCli", "check_git_argument"]` to `git_cli.py`, with a one-line comment saying why.
+   - Rejected: `check_git_argument as check_git_argument`, because ruff PLC0414 refuses it.
+   - Rejected: a `noqa`, because no marker is allowed outside `process.py`.
+   - Rejected: changing the test (R9).
+
+   The reviewer may want to judge whether exporting the check through `__all__` is acceptable. It is the first `__all__` in `src/factory`.
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   Not done here: criterion 10's documents (the operator guide's "(WE6.3)", the project guide's intro and the RemoteBranch and test-file names in it, the README's "(partly written)", and the split of decisions 22 and 23 in `docs/decisions.md`). `CLAUDE.md` gives these to the documenter stage. I did not write them.
+
+   `make check`: check: green
