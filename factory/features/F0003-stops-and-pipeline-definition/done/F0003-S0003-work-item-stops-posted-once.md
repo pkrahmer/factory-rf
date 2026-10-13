@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 42
 blocked: null
 comments_seen: 0
@@ -256,3 +256,4 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
    - After the kill at `AFTER_POST`, the restarted post returned `already_posted`. One pull request and one post remain (criteria 17 and 18).
 
    Nothing in the demo goes against any other criterion. The demo does not exercise the branch check (criterion 12). `StubGit` always reports a commit beyond main, so only the passing side of the check runs. That side's result is as the criteria require. The refusing side is covered by the tests listed in entry 3.
+10. done (pull request merged); cost: 8 runs, 7.8 min, 58 turns, 193k tokens in (1097k more from cache), 28k out, $2.13
