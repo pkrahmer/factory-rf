@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 40
 blocked: null
 comments_seen: 2
@@ -239,3 +239,9 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
       - The Assignment heading now reads "as of log entry 7". The Assignment text itself is unchanged.
       - Test change for the tester: add one test in `tests/adapters/test_health_file.py` for criterion 25. It makes `health.json` a directory, calls `write`, expects `OSError`, and then checks that the parent directory holds only `health.json`.
       - The code should pass that test as it is: the `except BaseException` cleanup in `src/factory/adapters/health_file.py` already removes the temporary file and re-raises.
+9. tester: tester (test change approved by the human, entries 7 and 8): I added the one test for the new criterion 25. No other test changed.
+      - criterion 25: tests/adapters/test_health_file.py::test_a_directory_at_the_path_fails_the_write_and_leaves_no_temporary_file. It makes `health.json` a directory, expects `OSError` from `write`, then checks that the parent directory lists only `health.json` and that it is still a directory, so the directory was not replaced.
+      - Result: the test passes against the existing code, which is what entry 8 expected, because the `except BaseException` cleanup removes the temporary file. `make test` is green and coverage rose to 99.66 %. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green

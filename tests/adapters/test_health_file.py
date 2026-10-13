@@ -100,3 +100,17 @@ def test_a_write_leaves_only_the_health_file_in_its_directory(tmp_path: Path) ->
     health.write(STATUS)
 
     assert [path.name for path in directory.iterdir()] == ["health.json"]
+
+
+def test_a_directory_at_the_path_fails_the_write_and_leaves_no_temporary_file(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "health.json"
+    path.mkdir()
+    health = JsonHealthStatusFile(path)
+
+    with pytest.raises(OSError, match=r"."):
+        health.write(STATUS)
+
+    assert [entry.name for entry in tmp_path.iterdir()] == ["health.json"]
+    assert path.is_dir()
