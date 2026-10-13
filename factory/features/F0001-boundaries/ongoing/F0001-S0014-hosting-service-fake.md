@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 14
 blocked: null
 comments_seen: 0
@@ -180,3 +180,23 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
    - Not touched: nothing stale seen. Open, not a finding: `delete_comment` with an id from another pull request raises `HostingServiceError`; no criterion covers it, so the guide only says an unknown id raises.
 
    `make check`: check: green
+7. demo: both commands met their Expect lines; no findings.
+
+   Command 1 (create, post twice with one key, count factory posts, human comment, list authors):
+   ```
+   1 open True
+   posted
+   already_posted
+   1
+   ['factory', 'human']
+   ```
+   Expected five lines: `1 open True`, `posted`, `already_posted`, `1`, `['factory', 'human']`. Met. Exit 0.
+
+   Command 2 (AFTER_POST armed, post raises InjectedKill after the comment is stored, rerun is a no-op):
+   ```
+   injected kill at after-post 1
+   already_posted 1
+   ```
+   Expected `injected kill at after-post 1`, then `already_posted 1`. Met. Exit 0.
+
+   Criteria cross-check: the output agrees with criterion 1 (number 1, open, draft true), 9 (human author on the human comment), 10 (factory post, counted by `factory_posts`), 11 (repeated key gives `already_posted`, count unchanged), 12 (kill after the post, comment already present, the repeat is `already_posted`) and 8 (`list_comments` oldest first). No criterion is contradicted. I did not run `make check` myself; the factory runs it after this stage.
