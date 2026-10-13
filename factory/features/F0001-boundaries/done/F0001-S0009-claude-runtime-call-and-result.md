@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 9
 blocked: null
 comments_seen: 2
@@ -263,3 +263,4 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
    - The output that is not JSON gives `died`, with every measure `None` rather than 0 (criteria 10 and 12).
    - Both stand-ins ran under an empty request environment, so no `PATH` was given, and the shebang's absolute interpreter path still started them (criterion 5).
    - The other criteria (flags, files, time limit, kill point, errors) are outside what this command exercises. The tests cover them, as the earlier entries say.
+10. done (pull request merged); cost: 7 runs, 6.5 min, 50 turns, 178k tokens in (924k more from cache), 35k out, $2.02
