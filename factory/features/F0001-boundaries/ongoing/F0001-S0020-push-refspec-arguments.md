@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 22
 blocked: null
 comments_seen: 0
@@ -124,3 +124,11 @@ Expect: four lines: `rejected`, `refused +main`, `refused :main`, `['human', 'on
    - Security: there are no markers, secrets or string-built commands. The error message quotes only the refused value.
    - Quality: the function has a docstring, and its comment gives the reason for each refused character. There is no duplication and no dead code.
    - Ticket hygiene: the log names decision 22 and the rejected explicit-refspec alternative. Assignment matches what was built. Criterion 10 still states what the documenter must write.
+6. documenter: no findings; code matches the Interface.
+   - `docs/project-guide.md` (git wrapper section): added the branch rule after the argument rule. It names `check_branch_name`, `push` and `delete_remote_branch`. It gives the reasons (`+` forces, `:` names another ref or deletes one, `*` is a pattern), says `a+b` is fine, says a refusal is a `ValueError` before git and before `BEFORE_PUSH`, and says the local operations keep `check_git_argument`.
+   - `docs/decisions.md`: new entry "A pushed branch is never read as a refspec", placed after the option-like values entry. It records the three push cases and the `delete_remote_branch` case, that `+main` is a name git allows, and the rejected alternative (an explicit `refs/heads/<b>:refs/heads/<b>` refspec).
+   - Cross-read against the diff and found current: README, `docs/operator-guide.md`, and the project guide's push, `delete_remote_branch` and kill-point text. Its line "pushed when the branch is gone from the remote" is now true for `+x` too, because that call is refused.
+   - Nothing stale left untouched. I ran no new examples: the docs add prose only, and the ticket's demo was run by the coder.
+   - `make check` is green.
+
+   `make check`: check: green
