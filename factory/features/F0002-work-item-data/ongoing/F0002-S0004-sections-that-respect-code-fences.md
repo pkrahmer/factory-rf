@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 31
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Sections that respect code fences
@@ -132,3 +132,8 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
       - Noticed but left alone: an info string after a backtick opening run may contain backticks under this rule. CommonMark forbids that, but the Interface does not ask for it.
 
    `make check`: check: green
+5. reviewer: two stated rules have no test for their failing side, and no criterion asks for one. Both findings are against the story, not against the tester or the coder. The code in `src/factory/domain/sections.py` follows the Interface on both points.
+   1. `src/factory/domain/sections.py:16` (`_FENCE_OPENING`, `{3,}`) and `tests/domain/test_sections.py`: the Interface says a block opens at "three or more backticks or three or more tildes". Nothing tests the side below that limit, a run of two or of one. Every fence in the tests is `TICKS`/`TILDES` or longer, and no other test line starts with a backtick or tilde, so a pattern of `{1,}` would pass every test. That bug is real: a line starting with inline code like `` `x` is … `` would open an unclosed block and hide every later heading. Fix: add a criterion (for example, a line of two backticks or two tildes opens no block, and neither does a line starting with one backtick) and a test for it.
+   2. `src/factory/domain/sections.py:87` (`title`, `startswith` at column 0) and `tests/domain/test_sections.py::test_the_title_is_the_first_level_one_heading_outside_blocks`: the Interface says the title line starts with `# ` "at column 0". Criterion 7 rejects only `#x` and `## x` and never an indented ` # x`, so an implementation that strips the line first would pass. Fix: add the indented ` # x` case to criterion 7 and its test, the same way criterion 6 has ` ## x` for headings.
+   Groups 2–5 were not reviewed, since the review stops at the first failing group. I saw nothing there worth raising: the module is pure domain code that imports only `re`, `pydantic` and `factory.domain.errors`, and the coder's entry says `make check` was green.
+   Rejected as findings: a paragraph with leading blank lines gets an extra blank line from `insert_paragraph`, and an info string after a backtick fence may contain backticks. The Interface specifies neither, so neither is a defect against this story.
