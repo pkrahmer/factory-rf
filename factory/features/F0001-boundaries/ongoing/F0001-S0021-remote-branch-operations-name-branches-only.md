@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 24
 blocked: null
 comments_seen: 0
 round: 0
@@ -100,3 +100,9 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: `check_branch_name` in `src/factory/domain/git.py` has its signature and a complete rule list. `GitCli.push` and `delete_remote_branch` have their exact git command lines (`refs/heads/<branch>`, source only), the kept outcomes and kill points, and the removal of `ALREADY_DELETED_MARKER`. The tests' files and fixtures are named.
+   - Criteria: 1 to 3 cover every rule of the function, with the passing and the failing side. They include `*` inside a name, `HEAD` and `@` only as a whole value, and `.lock` only at the end of a component. 4 to 6 cover the refusals in `push` and the tag case. 7 to 10 cover `delete_remote_branch`: the tag survives, the `refs/heads` upstream, the checkout's `origin/keep` removed, and `a..b` now a `ValueError`. Criterion 10 names the S0012 test to change, and decision 23 records the human's permission. Each is testable by one test function. The unchanged "already gone returns pushed" rule keeps S0012's existing test.
+   - Demo: runnable with the existing `GitCli` and `run_process` API. The seven expected lines match the code: `pushed`, `pushed`, four `refused`, and the ref list.
+   - Architecture: the pure name rules sit in the domain, with no git call. The git command lines sit only in the `GitCli` wrapper. No new dependency or module.
+   - Scope: this is within F0001's git wrapper (R9) and matches decision 23. No Out-of-scope item is touched.
