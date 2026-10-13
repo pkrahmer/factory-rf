@@ -38,10 +38,11 @@ class StopService:
 
 
 def _with_stop(status: HealthStatus, stop: RepositoryStop) -> HealthStatus:
-    stops = [stop if known.reason == stop.reason else known for known in status.stops]
-    if stop not in stops:
-        stops.append(stop)
-    return HealthStatus(stops=stops)
+    if any(known.reason == stop.reason for known in status.stops):
+        return HealthStatus(
+            stops=[stop if known.reason == stop.reason else known for known in status.stops]
+        )
+    return HealthStatus(stops=[*status.stops, stop])
 
 
 def _without_stop(status: HealthStatus, reason: RepositoryStopReason) -> HealthStatus:
