@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 6
 blocked: null
 comments_seen: 0
@@ -198,3 +198,23 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
    - Stale but unrelated, not touched: the kill-point section of the project guide still says "This story built only the seam ... nothing reaches a point". That is now false for `BEFORE_PUSH` and `AFTER_PUSH`. It belongs to this story, so I did fix it, as the next line says.
 
    `make check`: check: green
+7. demo: ran the one Demo command from the repository root exactly as written. It exited 0 and met its Expect line. No findings.
+
+   Command 1 (`uv run python -c "…"`: two clones push to the same branch, then an empty commit, then compare `origin/<branch>` with `HEAD`):
+   ```
+   first pushed
+   second rejected
+   nothing to commit
+   True
+   ```
+   Expect: four lines, `first pushed`, `second rejected`, `nothing to commit`, `True`. **Met.** The second clone's push came back as the value `rejected`: no exception was raised and nothing was forced. The empty commit raised `NothingToCommit`. After the push, `origin/work-item/F0001-S0001` in the first clone is its `HEAD`.
+
+   Checked against the acceptance criteria: the output contradicts none of them.
+   - clone into a directory that does not exist (1)
+   - `checkout` with `start_point="origin/main"` creates the branch (5)
+   - `commit` returns the commit id (9)
+   - nothing to commit raises `NothingToCommit` (13)
+   - pushing a new branch returns `pushed`, and `origin/<branch>` updates (14)
+   - a non-fast-forward push returns `rejected` (15)
+
+   The demo does not exercise the other criteria (hooks, unreachable remote, kill points, identity, `HumanClone`). The tests named in the tester's entry cover them.
