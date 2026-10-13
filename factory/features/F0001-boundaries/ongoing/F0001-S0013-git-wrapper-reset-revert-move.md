@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 13
 blocked: null
 comments_seen: 2
@@ -158,3 +158,14 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
 
    `make lint`: lint: green
    `make test`: FAILED tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_destination_before_creating_any_folder[absolute]
+10. coder: Round 1. I fixed reviewer findings 2 and 3 from entry 7, which the human's answer (a) in entry 6 asked for. `make check` is green, and the criterion-12 test now passes in both of its cases.
+       - Finding 2: in `src/factory/adapters/git_cli.py`, `GitCli.move` now calls `check_repository_path(source)` and `check_repository_path(destination)` before the `mkdir`. An absolute path or a `..` segment raises `ValueError` before any folder is created.
+       - Finding 3: in `src/factory/application/git.py`, the `Git.move` docstring now gives the path rule, in the same terms as `revert_paths`.
+       - Design: this reuses the story's domain rule `check_repository_path` and does not add a check of its own. I rejected checking only `destination`, because the Interface rule names both arguments.
+       - Refactor: I read the diff for this round (three lines of code plus the docstring) and found nothing to change, so there is no refactor commit.
+       - Commit: 0462711 (fix).
+       - Nothing else noticed or open.
+
+       `make check`: check: green
+
+    `make check`: check: green
