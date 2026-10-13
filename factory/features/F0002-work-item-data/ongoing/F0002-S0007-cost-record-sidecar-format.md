@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 34
 blocked: null
 comments_seen: 2
@@ -237,3 +237,13 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
    - In `src/factory/domain/cost_records.py`, change `duration_seconds` to `Field(ge=0, allow_inf_nan=False)`, the same as `cost_usd`.
    - The reader change from dfd95fb (a `parse_constant` that raises) stays as it is.
    - I did not run `make check` in this run because no code changed.
+9. tester: tester (round 1, approved test change): I made the two test changes from entry 8, as the human decided in entry 7.
+      - `tests/domain/test_cost_records.py::test_record_fields_keep_their_limits`: added two refused cases for `duration_seconds`, `float("inf")` and `float("nan")`. They sit next to the existing 0.0 (accepted) and -0.1 (refused) cases and follow the new criterion 4.
+      - `tests/adapters/test_cost_records_jsonl.py::test_parse_names_a_broken_line_and_its_fault`: added the case `infinite-duration`. Line 2 is a completed record whose `"duration_seconds"` is `Infinity` (written with `json.dumps`, which emits the constant), and the expected fault is exactly `not valid JSON`. This follows the extended criterion 14.
+      `make test` has one failure: `test_record_fields_keep_their_limits[duration_seconds-inf-False]`. It stays red until the coder changes the domain to `Field(ge=0, allow_inf_nan=False)`. The other two new cases already pass:
+      - The NaN case passes because `ge=0` already refuses NaN.
+      - The parse case passes because of the reader's `parse_constant` change in dfd95fb.
+      `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_cost_records.py::test_record_fields_keep_their_limits[duration_seconds-inf-False]

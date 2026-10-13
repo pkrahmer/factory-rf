@@ -182,6 +182,7 @@ def test_parse_of_the_required_keys_leaves_the_rest_unknown() -> None:
     ("line", "fault"),
     [
         ("{not json}", "not valid JSON"),
+        (_line({**COMPLETED, "duration_seconds": float("inf")}), "not valid JSON"),
         ("[1, 2]", "not a JSON object"),
         (_line({**REQUIRED, "extra": 1}), "unknown key: extra"),
         (
@@ -193,6 +194,7 @@ def test_parse_of_the_required_keys_leaves_the_rest_unknown() -> None:
     ],
     ids=[
         "not-json",
+        "infinite-duration",
         "list",
         "extra-key",
         "extra-token-key",

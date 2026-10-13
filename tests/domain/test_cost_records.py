@@ -94,6 +94,8 @@ def test_a_completed_record_may_leave_turns_tokens_and_cost_unknown() -> None:
         ("attempt", -1, False),
         ("duration_seconds", 0.0, True),
         ("duration_seconds", -0.1, False),
+        ("duration_seconds", float("inf"), False),
+        ("duration_seconds", float("nan"), False),
         ("turns", 0, True),
         ("turns", -1, False),
         ("started_at", datetime(2026, 10, 12, 8, 30), False),
