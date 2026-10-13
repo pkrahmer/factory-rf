@@ -15,11 +15,13 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0005 Git wrapper: fetch and refs | #5 | 6 | 7.6 | 10 (01:51 to 02:01) | $2.27 | 0 (first-pass) |
 | F0001-S0006 Git wrapper: clone, checkout, commit, push | #6 | 6 | 6.3 | 9 (02:02 to 02:11) | $1.95 | 0 (first-pass) |
 | F0001-S0007 Project commands and the make class | #7 | 8 | 4.9 | 9 (02:12 to 02:21) | $1.78 | 0 |
+| F0001-S0008 Agent-runtime interface, DTOs and fake | #8 | 9 | 6.1 | 10 (02:22 to 02:32) | $1.96 | 1 (coder: a test vs the pydantic mypy plugin) |
 
 ## Stops
 
 - S0001, coder at doing: tests used `assert reach(...) is None` against a `-> None` function, red under `mypy --strict`. Answered (a), the tester fixed six lines; `CLAUDE.md` got a test rule to prevent it.
 - S0001, reviewer at review: a rule without its failing side for an already armed point. Answered (a), one criterion and one test added.
+- S0008, coder at doing: a test passed an unknown keyword to a typed pydantic constructor. Answered (a) without a marker; `CLAUDE.md` got a second test rule.
 
 ## Fixes made
 
@@ -46,7 +48,7 @@ Conditions: run 4 ticked every 2 minutes fixed; tonight the pause starts at 15 s
 
 - Start (23:17): 5-hour window 1% used, resets 03:30; weekly 53% used, resets 05:00.
 - 00:46: 5-hour window 57%, weekly 61%.
-- 02:03: 83%, weekly 64%. 02:11: 85%.
+- 02:03: 83%, weekly 64%. 02:11: 85%. 02:32: 90%.
 
 ## What needs the operator
 
