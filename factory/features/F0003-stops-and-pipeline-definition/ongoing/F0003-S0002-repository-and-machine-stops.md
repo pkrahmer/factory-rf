@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 41
 blocked: null
 comments_seen: 0
@@ -174,3 +174,23 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
    - I did not run the demo script. The log line examples in the operator guide use the demo's format.
 
    `make check`: check: green
+7. demo: the one command under `## Demo` ran from the repository root with exit code 0. Its output matches its `Expect:` line, and I found no findings.
+
+   Command 1 (the `uv run python -c` script that raises and then clears `fetch_failed`):
+   ```
+   2026-10-12T12:00:07Z stop repository fetch_failed: origin unreachable
+   ['fetch_failed'] False
+   2026-10-12T12:00:12Z stop cleared fetch_failed
+   [] True
+   2 True
+   ['stop repository fetch_failed: origin unreachable', 'stop cleared fetch_failed']
+   ```
+   It met its `Expect:` line. There are six lines:
+   - Line 1 is the stop line. Its stamp is `YYYY-MM-DDTHH:MM:SSZ`, starts with `2026-10-12T`, and is the clock's time cut to whole seconds.
+   - Line 2 is `['fetch_failed'] False`.
+   - Line 3 is the cleared line, with a stamp 5 seconds after the first (12:00:12).
+   - Line 4 is `[] True`.
+   - Line 5 is `2 True`.
+   - Line 6 lists the two lines with their stamps removed.
+
+   Criteria check: the demo agrees with criteria 3 (the stop is in the status and `healthy` is false), 4 (one stamped line on standard output and in the log file, stamped with the clock's time), 10 (clear removes the stop and writes `stop cleared <reason>`) and 1/2 (built with keyword arguments only). It contradicts no criterion. The demo does not exercise the error paths (6–8, 12, 13), the replace-in-place rule (5) or the no-op clear (11); tests cover them, according to the tester's and reviewer's entries. I did not run `make check`, which the factory runs itself after this stage.
