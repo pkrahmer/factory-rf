@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 34
 blocked: null
 comments_seen: 0
@@ -188,3 +188,17 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the cost record and its JSON-lines sidecar format. `make check` is green and both demos print what their `Expect:` lines say.
+      - Built:
+        - `src/factory/domain/cost_records.py`: `CostRecord`. It is frozen, forbids unknown fields and converts `started_at` to UTC. `run` uses the `RunId` pattern. `cost_usd` is a `Decimal` with `ge=0` and `allow_inf_nan=False`. A model validator applies the started/completed rule to the whole record, so its error has `loc == ()`. `ok` is true only for a completed record whose end reason is `completed`.
+        - `CostRecordFormatError(line, fault)` added to `src/factory/domain/errors.py`.
+        - `CostRecordReader` and `CostRecordWriter` ABCs added to `src/factory/application/files.py`.
+        - `src/factory/adapters/cost_records_jsonl.py`: `JsonLinesCostRecordReader` and `JsonLinesCostRecordWriter`. Parsing checks JSON, then that the line is an object, then validates with pydantic, then checks for a duplicate run. Rendering writes `model_dump(mode="json")` in field order, `started_at` with `Z`, `cost_usd` as `str(Decimal)` and separators without spaces.
+      - Main decision: "the cost is a string or null" is a before-validator on `CostRecord.cost_usd`. It accepts only `Decimal`, `str` or `None` and refuses every int, float or bool. Because the check runs inside the same pydantic pass, a wrong-typed cost ranks as an invalid value in field order and the fixed fault order on a line holds without special cases. It also means Python code can never hand the record a float cost.
+      - Rejected: a type check on the cost in the adapter before validation. It would have reported `invalid cost_usd` ahead of an unknown or missing key on the same line, which breaks the required fault order, or it would have needed a second ranking pass.
+      - `parse` splits on `\n` only, not with `splitlines`. `splitlines` also breaks at characters such as U+2028, which can appear unescaped in a JSON string, and that would shift the line numbers.
+      - Refactor (9439b37): `work_item_markdown.py` had the same pydantic fault-ranking code (`_key_path`, `_rank`, `_fault`, `_first_fault`). I moved it to the new `src/factory/adapters/validation_faults.py` as `first_fault(error, whole)`, where `whole` is `"state"` for work items and `"record"` for cost records. The work item reader's behaviour is unchanged and its tests stay green. I also put the duplicate-run check used by both `parse` and `render` into one helper, `_check_new_run`.
+      - Not touched: the docs criterion (21) is the documenter's job.
+      - Commits: 755a215 (feature), 9439b37 (refactor).
+
+   `make check`: check: green
