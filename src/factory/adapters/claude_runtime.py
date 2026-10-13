@@ -61,8 +61,6 @@ class _StructuredOutput(BaseModel):
 
 
 class _Reply(BaseModel):
-    """The JSON object `claude -p --output-format json` prints, as far as the factory reads it."""
-
     model_config = ConfigDict(frozen=True, extra="ignore")
 
     subtype: str
@@ -76,8 +74,6 @@ class _Reply(BaseModel):
 
 
 class _RunFiles(BaseModel):
-    """The files one run writes under the state directory, by session."""
-
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     instructions: Path
@@ -239,9 +235,10 @@ class ClaudeCodeRuntime:
         try:
             self._state_directory.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            raise AgentRuntimeError(
-                f"cannot write the state directory {self._state_directory}: {exc}"
-            ) from exc
+            raise self._state_error(exc) from exc
+
+    def _state_error(self, exc: OSError) -> AgentRuntimeError:
+        return AgentRuntimeError(f"cannot write the state directory {self._state_directory}: {exc}")
 
     def _write_files(self, request: AgentRunRequest, files: _RunFiles) -> None:
         try:
@@ -250,9 +247,7 @@ class ClaudeCodeRuntime:
                 files.guard.write_text(request.guard.model_dump_json(), encoding="utf-8")
                 files.hooks.write_text(_hook_settings(files.guard), encoding="utf-8")
         except OSError as exc:
-            raise AgentRuntimeError(
-                f"cannot write the state directory {self._state_directory}: {exc}"
-            ) from exc
+            raise self._state_error(exc) from exc
 
     def _call(self, request: AgentRunRequest, arguments: list[str]) -> ProcessResult:
         process_request = ProcessRequest(
