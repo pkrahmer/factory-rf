@@ -35,8 +35,6 @@ FATAL = 128
 LOG_FORMAT = "%H%x00%P%x00%an%x00%ct%x00%B"
 LOG_FIELDS = 5
 DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
-# What git says when a branch to delete is already gone from the remote.
-ALREADY_DELETED_MARKER = "remote ref does not exist"
 UNREACHABLE_MARKERS = (
     "Could not read from remote repository",
     "does not appear to be a git repository",
@@ -279,7 +277,7 @@ class GitCli(Git):
         """Push `branch` without force; a refusal or an unreachable remote is a value."""
         check_branch_name(branch)
         self._reach(KillPoint.BEFORE_PUSH)
-        arguments = ["push", "--porcelain", "--set-upstream", REMOTE, branch]
+        arguments = ["push", "--porcelain", "--set-upstream", REMOTE, f"refs/heads/{branch}"]
         result = self._execute(arguments)
         if result.exit_status == 0:
             self._reach(KillPoint.AFTER_PUSH)
@@ -289,9 +287,9 @@ class GitCli(Git):
     def delete_remote_branch(self, branch: str) -> PushOutcome:
         """Delete `branch` on the remote; already gone counts as deleted, like `push`'s values."""
         check_branch_name(branch)
-        arguments = ["push", "--porcelain", REMOTE, "--delete", branch]
+        arguments = ["push", "--porcelain", REMOTE, "--delete", f"refs/heads/{branch}"]
         result = self._execute(arguments)
-        if result.exit_status == 0 or ALREADY_DELETED_MARKER in result.stdout:
+        if result.exit_status == 0:
             # A branch deleted elsewhere leaves a stale tracking ref that no push removes.
             self._run(["update-ref", "-d", f"{REMOTE_PREFIX}{branch}"])
             return "pushed"

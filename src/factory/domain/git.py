@@ -101,8 +101,35 @@ def check_git_argument(value: str) -> None:
 
 
 def check_branch_name(value: str) -> None:
-    """Raise ValueError for a branch name that `git push` could read as an option or a refspec."""
+    """Raise ValueError for a value that `git push` could read as anything but a branch name."""
     check_git_argument(value)
     # A leading `+` forces, a `:` names another ref or deletes one, a `*` is a pattern.
     if value.startswith("+") or ":" in value or "*" in value:
         raise ValueError(f"not a branch name git push takes literally: {value!r}")
+    # `HEAD` and `@` name the checked-out branch, not a branch of that name.
+    if value in BRANCH_ALIASES or not _is_valid_ref_name(value):
+        raise ValueError(f"not a branch name git takes: {value!r}")
+
+
+# The rules of `git check-ref-format --branch`, so that no other kind of ref passes as a branch.
+BRANCH_ALIASES = frozenset({"HEAD", "@"})
+FORBIDDEN_REF_CHARACTERS = frozenset("^~?[\\ ")
+FORBIDDEN_REF_SEQUENCES = ("..", "@{", "//")
+
+
+def _is_valid_ref_name(value: str) -> bool:
+    if any(_is_forbidden_character(character) for character in value):
+        return False
+    if any(sequence in value for sequence in FORBIDDEN_REF_SEQUENCES):
+        return False
+    if value.startswith("/") or value.endswith("/") or value.endswith("."):
+        return False
+    return all(_is_valid_component(component) for component in value.split("/"))
+
+
+def _is_forbidden_character(character: str) -> bool:
+    return character in FORBIDDEN_REF_CHARACTERS or ord(character) < 0x20 or ord(character) == 0x7F
+
+
+def _is_valid_component(component: str) -> bool:
+    return not component.startswith(".") and not component.endswith(".lock")
