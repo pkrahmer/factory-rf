@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 45
 blocked: null
 comments_seen: 0
@@ -181,3 +181,12 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
    - Security: no secrets, no suppression markers, no command or SQL built from strings.
    - Quality: one design point. `load` decides the stop once, around the private `_read`. `GitError` is not caught, so it propagates without a stop. The module, class and public-method docstrings are present and say what each one does. The test helper `install_agents` in tests/git_support.py is small and named by the Interface.
    - Ticket hygiene: the coder's entry states the main decision and the alternative rejected (raising the stop at each refusal site). The Assignment matches what was built. Criterion 18 still describes what the operator guide, the project guide and the decision log need.
+6. documenter: wrote the documentation for the pipeline loader; no findings. `make check` is green.
+   - docs/operator-guide.md: new section "The stop `pipeline_definition_invalid`". It says the stop comes from the load of `origin/main` only, its detail is the fault, and it clears itself at the next successful load of `origin/main`. It has the log line and a table of the four faults (file missing, text fault, agent not installed, agent home unavailable). It also covers agents being checked only when the text is valid, `GitError` raising no stop, and an `OSError` replacing the fault. What the tick does while the stop stands is left to F0006.
+   - docs/project-guide.md: new subsection "The pipeline loader". It states that only the loader raises and clears this stop, that a load at another ref changes no stop, that `WritePathService.at` parses the definition directly, and how the tests are set up. I also changed the agent reader's sentence that said S0006 "will" use `names()` to say `PipelineLoader` uses it.
+   - docs/decisions.md: new entry that the stop belongs to the definition on `origin/main`, with the alternatives rejected.
+   - Cross-read and found current: README.md, the rest of the operator guide (stop lines, health file, agent files) and the "Stops" and "Boundaries" sections of the project guide, all checked against the diff.
+   - I did not run the ticket's demo script. I ran no new examples, because none of my docs contain a runnable one.
+   - Docstrings in `pipeline_loading.py` are present. Nothing stale seen that is unrelated.
+
+   `make check`: check: green
