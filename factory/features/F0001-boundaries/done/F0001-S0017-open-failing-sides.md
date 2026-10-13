@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 19
 blocked: null
 comments_seen: 0
@@ -120,3 +120,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
         - 5: `make check` was reported green by the coder and the documenter. The factory runs it again after this stage.
         - 6: the `delete_comment` row of the fake's table, docs/project-guide.md:63, says that "the id of a comment on another pull request counts as unknown, and that comment is left alone".
         - The demo contradicts no criterion.
+8. done (pull request merged); cost: 6 runs, 3.3 min, 33 turns, 80k tokens in (380k more from cache), 10k out, $0.80
