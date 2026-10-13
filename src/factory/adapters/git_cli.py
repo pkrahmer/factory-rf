@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.application.git import Git
 from factory.domain.errors import FetchFailed, GitError, NothingToCommit
 from factory.domain.git import (
     ChangedPath,
@@ -143,7 +144,7 @@ def _failed_push(arguments: list[str], result: ProcessResult) -> PushOutcome:
     raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
 
 
-class GitCli:
+class GitCli(Git):
     """Git in one working copy, run with the user's and the system's configuration ignored."""
 
     def __init__(self, directory: Path, options: GitOptions | None = None) -> None:

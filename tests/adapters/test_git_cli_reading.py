@@ -329,11 +329,9 @@ def test_is_ancestor_raises_for_an_unknown_ref(
         checkout.is_ancestor(ancestor, descendant)
 
 
-def test_git_cli_fits_the_git_interface_without_inheriting_it(checkout: GitCli) -> None:
-    git: Git = checkout
-
-    assert Git not in GitCli.__mro__
-    assert git.resolve("origin/main") is not None
+def test_git_cli_inherits_the_git_interface(checkout: GitCli) -> None:
+    assert issubclass(GitCli, Git)
+    assert isinstance(checkout, Git)
 
 
 @pytest.mark.parametrize(

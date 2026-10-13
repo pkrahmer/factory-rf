@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
+from factory.application.hosting import HostingService
 from factory.domain.errors import HostingServiceError
 from factory.domain.git import CommitId
 from factory.domain.hosting import (
@@ -59,7 +60,7 @@ class _PullRequest:
         )
 
 
-class FakeHostingService:
+class FakeHostingService(HostingService):
     """The hosting service in memory, with the operations a test uses to act as the human."""
 
     def __init__(self, kill_points: KillPoints | None = None) -> None:

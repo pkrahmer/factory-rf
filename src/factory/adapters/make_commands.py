@@ -6,6 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, run_process
+from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import COMMAND_NAME_PATTERN, OUTPUT_TAIL_LINES, CheckResult, status_of
 from factory.domain.errors import ProjectCommandError
 from factory.domain.kill_points import KillPoints
@@ -34,7 +35,7 @@ def _last_line(lines: list[str]) -> str:
     return ""
 
 
-class MakeProjectCommands:
+class MakeProjectCommands(ProjectCommands):
     """Runs `make <command>` in the project's directory, where its Makefile is."""
 
     def __init__(

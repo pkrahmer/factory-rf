@@ -11,6 +11,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, JsonValue, StrictBool, ValidationError
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
     AgentRunRequest,
     AgentRunResult,
@@ -273,7 +274,7 @@ def _first_word(output: str) -> str | None:
     return None
 
 
-class ClaudeCodeRuntime:
+class ClaudeCodeRuntime(AgentRuntime):
     """Runs an agent as a `claude -p` call, with only the environment the request gives.
 
     A call stopped by its budget is resumed once to get the agent's decision and entry.

@@ -148,11 +148,9 @@ def test_version_is_the_one_given_at_construction() -> None:
     assert FakeAgentRuntime(version="2.1.289").version() == "2.1.289"
 
 
-def test_fake_fits_the_agent_runtime_protocol_without_inheriting() -> None:
-    runtime: AgentRuntime = FakeAgentRuntime()
-
-    assert AgentRuntime not in type(runtime).__mro__
-    assert runtime.version() == "fake"
+def test_fake_inherits_the_agent_runtime_interface(agent_runtime: FakeAgentRuntime) -> None:
+    assert issubclass(FakeAgentRuntime, AgentRuntime)
+    assert isinstance(agent_runtime, AgentRuntime)
 
 
 def test_scripted_run_forbids_unknown_keys_and_is_frozen() -> None:

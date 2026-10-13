@@ -16,7 +16,7 @@ The guide for agents working on `factory-rf`: how the code is laid out, where a 
 
 ## The hosting service
 
-The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` protocol in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. `PyGithubHostingService` (`factory.adapters.pygithub_hosting`) is the one client; `FakeHostingService` (`factory.adapters.fake_hosting`) is the one fake. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
+The factory reaches the hosting service (pull requests and their comments) only through the `HostingService` interface (an abstract base class) in `factory.application.hosting`. Nothing else may call it, and the application layer knows no concrete client. `PyGithubHostingService` (`factory.adapters.pygithub_hosting`) is the one client; `FakeHostingService` (`factory.adapters.fake_hosting`) is the one fake. Build comments from the service's data with `PullRequestComment.from_body`, so that `by_factory` and `key` always agree with the body.
 
 The ten operations:
 
@@ -36,7 +36,7 @@ Labels are a projection of the stage: they are written and never read back, so n
 
 ### The PyGithub client
 
-`PyGithubHostingService(repository, kill_points=None)` implements the ten operations on a PyGithub `Repository`. It satisfies `HostingService` structurally and does not inherit it. The constructor reads nothing from the repository. Wiring that builds the `Repository` from the token comes with `factory.entry.wiring` (F0002 onward, token in F0010).
+`PyGithubHostingService(repository, kill_points=None)` implements the ten operations on a PyGithub `Repository`. It inherits `HostingService`, an abstract base class. The constructor reads nothing from the repository. Wiring that builds the `Repository` from the token comes with `factory.entry.wiring` (F0002 onward, token in F0010).
 
 - Every failing call raises `HostingServiceError(operation, detail)`: a `github.GithubException` or an `OSError` (a connection error is one) inside any of the ten operations is re-raised with the operation's name and `str(error)` as detail, chained to the original. Any other exception, and `InjectedKill`, passes through unchanged.
 - `post_comment` lists the comments first and returns `"already_posted"` without posting when one has the same key; otherwise it posts `render_post(text, key)`, reaches `KillPoint.AFTER_POST` and returns `"posted"`.
@@ -49,7 +49,7 @@ Tests do not call PyGithub. `tests/adapters/test_pygithub_hosting.py` uses the r
 
 ### The fake
 
-Tests use `FakeHostingService(kill_points=None)` (`factory.adapters.fake_hosting`), through the `hosting` fixture in `tests/conftest.py` (built with the test's `kill_points`), and nothing else in place of the hosting service. It satisfies `HostingService` structurally and does not inherit it (a test assigns it to a variable annotated `HostingService`, so mypy checks the fit). `tests/test_hosting_fake_search.py` checks that only the fake and the PyGithub client define `post_comment`, and that no test class does.
+Tests use `FakeHostingService(kill_points=None)` (`factory.adapters.fake_hosting`), through the `hosting` fixture in `tests/conftest.py` (built with the test's `kill_points`), and nothing else in place of the hosting service. It inherits `HostingService`, an abstract base class, so Python refuses a fake that leaves an operation out. `tests/test_hosting_fake_search.py` checks that only the fake and the PyGithub client define `post_comment`, and that no test class does.
 
 It behaves as the PyGithub client does where a test can see it: a repeated post key returns `"already_posted"` and adds nothing, `merge_commit` is set only for a merged pull request, `set_labels` replaces only the labels that start with `LABEL_PREFIX` (others keep their order, the given ones come after), and every failing call raises `HostingServiceError`. `post_comment` reaches `KillPoint.AFTER_POST` after a `"posted"`, and not for `"already_posted"`.
 
@@ -94,7 +94,7 @@ Why: see `docs/decisions.md`.
 
 ## The git wrapper
 
-Git is reached only through the `Git` protocol (`factory.application.git`) and its one implementation `GitCli` (`factory.adapters.git_cli`), which satisfies the protocol structurally and does not inherit it. Every command goes through `run_process`; no other module starts git. It reads, and it writes the first things: clone, checkout, commit and push. It deletes branches and merges, and it restores the checkout: reset, revert and move (all below).
+Git is reached only through the `Git` interface (`factory.application.git`, an abstract base class) and its one implementation `GitCli` (`factory.adapters.git_cli`), which inherits it. Every command goes through `run_process`; no other module starts git. It reads, and it writes the first things: clone, checkout, commit and push. It deletes branches and merges, and it restores the checkout: reset, revert and move (all below).
 
 `GitCli(directory, options=None)` works in `directory`. `options` is a `GitOptions` (`factory.domain.git`; frozen, unknown keys forbidden), and `None` means `GitOptions()`:
 
@@ -108,7 +108,7 @@ Git is reached only through the `Git` protocol (`factory.application.git`) and i
 
 F0010's wiring fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the token for the factory's own pushes, so that the agent run never receives it.
 
-The nineteen operations of the `Git` protocol (`tests/application/test_git_protocol.py` checks that the protocol has exactly these and that `GitCli` has each):
+The nineteen operations of the `Git` interface (`tests/application/test_git_protocol.py` checks that the interface has exactly these and that `GitCli` has each):
 
 | Operation | Returns |
 |---|---|
@@ -198,7 +198,7 @@ The `human` fixture (`HumanClone` in `tests/human_clone.py`) is a second clone o
 
 ## Project commands
 
-The factory reaches a project's build only through the `ProjectCommands` protocol (`factory.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. `MakeProjectCommands(directory, kill_points=None, *, executable="make")` (`factory.adapters.make_commands`) is the first implementation. It satisfies the protocol structurally and does not inherit it. The string `"make"` appears in no other module under `src/factory`; `tests/test_make_search.py` checks it. The pipeline uses the results from F0005, the preflight's probe from F0010.
+The factory reaches a project's build only through the `ProjectCommands` interface (an abstract base class, `factory.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. `MakeProjectCommands(directory, kill_points=None, *, executable="make")` (`factory.adapters.make_commands`) is the first implementation. It inherits `ProjectCommands`. The string `"make"` appears in no other module under `src/factory`; `tests/test_make_search.py` checks it. The pipeline uses the results from F0005, the preflight's probe from F0010.
 
 `run` starts `<executable> --no-print-directory <command>` in `directory` through `run_process`, with stderr merged into stdout. The environment is the current one less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. Without that, a run inside `make check` (where `MAKELEVEL` is set) would print `make[N]: Entering directory` lines that a run on its own does not. `directory` is where make finds the project's Makefile.
 
@@ -248,7 +248,7 @@ Known limits: after the kill, the output is read without a limit, so a descendan
 
 ## The agent runtime
 
-The factory reaches an agent only through the `AgentRuntime` protocol (`factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation is `ClaudeCodeRuntime` (below); it satisfies the protocol structurally, without inheriting from it (a test assigns it to a variable annotated `AgentRuntime`, so mypy checks the fit). The fake is the other implementation.
+The factory reaches an agent only through the `AgentRuntime` interface (an abstract base class, `factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation is `ClaudeCodeRuntime` (below); it inherits `AgentRuntime`. The fake is the other implementation.
 
 `AgentRunRequest` holds:
 
@@ -301,7 +301,7 @@ Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_sta
 
 ### The fake
 
-`FakeAgentRuntime(kill_points=None, version="fake")` (`factory.adapters.fake_agent_runtime`) is what every stage test uses. It satisfies `AgentRuntime` structurally and does not inherit from it. The `agent_runtime` fixture in `tests/conftest.py` builds one with the test's `kill_points`.
+`FakeAgentRuntime(kill_points=None, version="fake")` (`factory.adapters.fake_agent_runtime`) is what every stage test uses. It inherits `AgentRuntime`, an abstract base class. The `agent_runtime` fixture in `tests/conftest.py` builds one with the test's `kill_points`.
 
 A test queues `ScriptedRun`s (`writes`: path to UTF-8 text, `deletes`, `result`, `kill`) with `queue`. Each `run` call:
 
