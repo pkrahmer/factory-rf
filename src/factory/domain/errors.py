@@ -40,3 +40,7 @@ class GitError(BoundaryError):
 
 class FetchFailed(GitError):
     """Fetching from the remote failed."""
+
+
+class NothingToCommit(GitError):
+    """A commit was asked for, but no change was staged."""

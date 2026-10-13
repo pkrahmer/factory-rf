@@ -2,7 +2,7 @@
 
 from typing import Protocol
 
-from factory.domain.git import CommitId, RemoteBranch
+from factory.domain.git import CommitId, PushOutcome, RemoteBranch
 
 
 class Git(Protocol):
@@ -33,4 +33,26 @@ class Git(Protocol):
 
     def is_ancestor(self, ancestor: str, descendant: str) -> bool:
         """Whether `ancestor` is reachable from `descendant`, a commit being its own ancestor."""
+        ...
+
+    def clone(self, url: str) -> None:
+        """Clone `url` into the working copy's directory, which must be missing or empty."""
+        ...
+
+    def checkout(self, branch: str, *, start_point: str | None = None) -> None:
+        """Switch to `branch`; with `start_point`, create it there or reset it to it.
+
+        A branch that exists only on the remote is created at the remote's commit.
+        """
+        ...
+
+    def commit(self, message: str) -> CommitId:
+        """Stage every change, commit it with `message` as given and return the new commit.
+
+        Raises `NothingToCommit` when there is no change to commit.
+        """
+        ...
+
+    def push(self, branch: str) -> PushOutcome:
+        """Push `branch` to the remote, never forced, and say how the remote took it."""
         ...
