@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 18
 blocked: null
 comments_seen: 2
@@ -29,7 +29,8 @@ Covers R12 and R24; restores decision 12.
 
 No new public names. `src/factory/adapters/claude_runtime.py`, the reading of one call's reply:
 
-- A reply whose `num_turns`, `usage.input_tokens`, `usage.output_tokens`, `usage.cache_read_input_tokens`, `usage.cache_creation_input_tokens` or `total_cost_usd` is negative is a reply that does not parse. The call's end reason is `died` unless the `time_limit` ended it, and its turns, tokens and cost are `None`. Zero is a valid value for each.
+- A reply whose `num_turns`, `usage.input_tokens`, `usage.output_tokens`, `usage.cache_read_input_tokens`, `usage.cache_creation_input_tokens` or `total_cost_usd` is negative is a reply that does not parse. The call's end reason is `died`, and its turns, tokens and cost are `None`. Zero is a valid value for each.
+- A budget-stop reply (`subtype` `error_max_budget_usd`) with a negative measure is such a reply too: the run is `died`, every measure `None`, and it is not resumed.
 - For a resumed run, a measure is the sum over both calls, and a call that reported none adds nothing. This is unchanged and is now tested in both directions.
 
 Tests: `tests/adapters/test_claude_runtime.py` and `tests/adapters/test_claude_runtime_resume.py`, with the stand-in of `tests/adapters/claude_stand_in.py`.
@@ -42,8 +43,10 @@ Tests: `tests/adapters/test_claude_runtime.py` and `tests/adapters/test_claude_r
 4. A completed reply with `num_turns` 0, all four token counts 0 and `total_cost_usd` 0 gives `completed` with turns 0, tokens of 0 and cost 0.
 5. After a reply with negative measures, no run file is left under the state directory, and `KillPoint.AGENT_RUN` was reached once.
 6. A run whose first call stops on its budget reporting `num_turns` 5, `total_cost_usd` 3.0 and tokens 10 and 5, and whose resumed call completes reporting no measures, has turns 5, cost 3.0 and tokens 10 and 5.
-7. make check stays green.
-8. docs: the `claude -p` runtime section of `docs/project-guide.md` says that a reply with a negative measure counts as `died` with unknown measures, beside the existing sentence on a reply with a wrong-typed field.
+7. A first call that stops on its budget (`subtype` `error_max_budget_usd`) reporting `num_turns` -1 gives `died` with every measure `None`, and the stand-in was called once (no resume).
+8. A run whose first call stops on its budget reporting no measures, and whose resumed call completes reporting `num_turns` 2, `total_cost_usd` 0.5 and tokens 4 and 1, has turns 2, cost 0.5 and tokens 4 and 1.
+9. make check stays green.
+10. docs: the `claude -p` runtime section of `docs/project-guide.md` says that a reply with a negative measure counts as `died` with unknown measures, beside the existing sentence on a reply with a wrong-typed field.
 
 ## Demo
 
@@ -82,3 +85,9 @@ Expect: one line, `died None None None []`, and no traceback.
 3. human (pull request comment, 2026-10-13): 1. (a): add the Interface line "A budget-stop reply (`subtype` `error_max_budget_usd`) with a negative measure is such a reply too: the run is `died`, every measure `None`, and it is not resumed." and the criterion, before the two closing ones: "A first call that stops on its budget (`subtype` `error_max_budget_usd`) reporting `num_turns` -1 gives `died` with every measure `None`, and the stand-in was called once (no resume)." This is FEATURE.md decision 21.
    2. (b): remove "unless the `time_limit` ended it" from the Interface. A call the `time_limit` ended has no measures taken from its output (decision 13), so this rule reads only a call that ended on its own; nothing about time-outs changes.
    3. Add the criterion, before the two closing ones: "A run whose first call stops on its budget reporting no measures, and whose resumed call completes reporting `num_turns` 2, `total_cost_usd` 0.5 and tokens 4 and 1, has turns 2, cost 0.5 and tokens 4 and 1." Keep "tested in both directions" in the Interface.
+4. intake: accepted. I carried in the human's answer (log entry 3) and wrote exactly it into the story: (1) an Interface line for the budget-stop reply with a negative measure (`died`, every measure `None`, not resumed) and a new criterion 7; (2) removed "unless the `time_limit` ended it" from the Interface; (3) a new criterion 8 for the first call reporting no measures and the resumed call reporting some. The closing criteria are now 9 (`make check`) and 10 (`docs:`). The Assignment is unchanged, because its meaning did not change.
+   - Interface: names `src/factory/adapters/claude_runtime.py`, no new public names. Each rule is stated for both sides: negative is `died` with `None` measures, zero is valid. The resumed sums are stated, and "tested in both directions" is now backed by criteria 6 and 8.
+   - Criteria: each is testable by one test function. The failing sides are covered by criteria 1, 2, 3 and 7, the passing zero side by 4, the cleanup and kill point by 5, and the resumed sums by 6 and 8.
+   - Demo: the command is runnable and its Expect line (`died None None None []`, no traceback) can be checked against the output.
+   - Architecture: the change stays inside `factory.adapters`, with no new layer or dependency.
+   - Scope: within F0001 and not in its "Out of scope". It matches FEATURE.md decisions 12, 13 and 21.
