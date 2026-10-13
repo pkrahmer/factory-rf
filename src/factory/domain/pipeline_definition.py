@@ -150,16 +150,12 @@ def _reserved_name_faults(definition: PipelineDefinition) -> list[str]:
 def _command_faults(definition: PipelineDefinition) -> list[str]:
     faults: list[str] = []
     for name, stage in definition.stages.items():
-        faults += [
-            f"stage {name}: check {command} is not a project command"
-            for command in stage.checks
-            if command not in definition.project_commands
-        ]
-        faults += [
-            f"stage {name}: report {command} is not a project command"
-            for command in stage.reports
-            if command not in definition.project_commands
-        ]
+        for kind, commands in (("check", stage.checks), ("report", stage.reports)):
+            faults += [
+                f"stage {name}: {kind} {command} is not a project command"
+                for command in commands
+                if command not in definition.project_commands
+            ]
     return faults
 
 
@@ -176,9 +172,9 @@ def _lease_faults(definition: PipelineDefinition) -> list[str]:
     # claimant could take the work item over while the stage is still running.
     faults: list[str] = []
     for name, stage in definition.stages.items():
-        role = definition.roles.get(stage.role) if stage.role is not None else None
-        if role is None:
+        if stage.role is None or stage.role not in definition.roles:
             continue
+        role = definition.roles[stage.role]
         total = _minutes_at_stage(definition, stage, role)
         if total > role.lease_duration:
             faults.append(
