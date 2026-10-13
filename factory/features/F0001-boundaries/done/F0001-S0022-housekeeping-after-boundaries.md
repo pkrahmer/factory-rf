@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 26
 blocked: null
 comments_seen: 0
@@ -216,3 +216,4 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
      - `git ls-files tests` lists no file with `protocol` in its name.
      - `tests/test_test_names.py` passes.
    - Old `test_*_protocol*.pyc` files are still in the local `tests/application/__pycache__`. They are untracked, git-ignored bytecode caches, not modules, so they are not a finding.
+8. done (pull request merged); cost: 6 runs, 5.6 min, 42 turns, 162k tokens in (607k more from cache), 18k out, $1.54
