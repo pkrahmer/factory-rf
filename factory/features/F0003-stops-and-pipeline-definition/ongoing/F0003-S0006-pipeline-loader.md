@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 45
 blocked: null
 comments_seen: 0
@@ -149,3 +149,19 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built `PipelineLoader` in src/factory/application/pipeline_loading.py (commit 78bd024). `make check` is green and all tests in tests/application/test_pipeline_loading.py pass.
+   - `PIPELINE_REF` is built from `REMOTE` and `MAIN_BRANCH` of factory.domain.paths.
+   - `load(ref)` works in this order:
+     1. It reads the file with `git.show_file`. `None` is turned into the fault `factory/pipeline.yml is missing at <ref>`.
+     2. It parses the text with `pipeline_reader.parse`.
+     3. Only then does it check the agents. An `AgentDefinitionError` from `names()` becomes `agent home unavailable: <error.fault>`. Each role in `roles` that is not installed gives one fault, in role order, joined by `; `.
+   - The stop is handled in one place in `load`. When `ref == PIPELINE_REF`, a `PipelineDefinitionInvalid` first calls `StopService.raise_stop` and is then re-raised; an `OSError` from the stop's writes propagates in its place. A success at that ref calls `clear_stop("pipeline_definition_invalid")`.
+   - `GitError` is not caught, so it propagates and raises no stop.
+
+   Design decision: the reading and checking live in a private `_read`, and the stop is decided once in `load` around that one call. I rejected raising the stop at each refusal site: that would repeat the ref check three times and make it easy to miss a site.
+
+   Refactor pass: I read the diff and found nothing to change, so there is no separate refactor commit.
+
+   Not touched: nothing noticed outside the ticket.
+
+   `make check`: check: green
