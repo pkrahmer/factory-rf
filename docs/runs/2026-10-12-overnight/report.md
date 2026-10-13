@@ -19,6 +19,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0009 The `claude -p` runtime: call and result | #9 | 7 | 6.5 | 11 (02:33 to 02:44) | $2.02 | 1 (intake: two criteria the Interface implied) |
 | F0001-S0010 The `claude -p` runtime: resume and version | #10 | 6 | 5.9 | 11 (03:39 to 03:50) | $2.00 | 0 (first-pass) |
 | F0001-S0011 Git wrapper: history and work tree | #11 | 9 | 8.2 | 14 (03:51 to 04:05) | $2.15 | 1 (coder: test commit ids flagged by detect-secrets) |
+| F0001-S0012 Git wrapper: branches and merge | #12 | 6 | 6.4 | 9 (04:06 to 04:15) | $1.42 | 0 (first-pass) |
 
 ## Stops
 
