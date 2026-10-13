@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 9
 blocked: null
 comments_seen: 2
@@ -147,3 +147,40 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
    - Demo: runnable with stand-in scripts written to a temp directory. Its `Expect:` line gives two exact output lines that can be checked.
    - Architecture: the runtime sits in `factory.adapters`. The only process starter it imports is `factory.adapters.process`, and criterion 19 checks that.
    - Scope: within F0001's agent-runtime scope. The budget resume and the version query are left to S0010. The guard hook command is left to F0004, and the environment scrubbing and OS user to F0010. All of these are in the feature's "Out of scope".
+5. tester: I wrote red tests for every criterion of the `claude -p` runtime. They use a stand-in executable; the real `claude` is never run.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_claude_runtime.py::test_call_passes_every_flag_in_order
+   - criterion 2: tests/adapters/test_claude_runtime.py::test_call_without_effort_guard_or_tools_leaves_those_flags_out
+   - criterion 3: tests/adapters/test_claude_runtime.py::test_json_schema_asks_for_an_allowed_decision_and_an_entry
+   - criterion 4: tests/adapters/test_claude_runtime.py::test_call_runs_in_the_requests_working_directory
+   - criterion 5: tests/adapters/test_claude_runtime.py::test_call_gets_only_the_requests_environment_and_the_switches
+   - criterion 6: tests/adapters/test_claude_runtime.py::test_call_sees_instructions_guard_and_hooks_files (parametrized over a state directory with and without a space)
+   - criterion 7: tests/adapters/test_claude_runtime.py::test_run_files_are_removed_after_a_result, ::test_run_files_are_removed_after_an_injected_kill, ::test_run_files_are_removed_after_a_missing_executable
+   - criterion 8: tests/adapters/test_claude_runtime.py::test_success_reply_gives_decision_entry_and_measures
+   - criterion 9: tests/adapters/test_claude_runtime.py::test_duration_is_measured_by_the_factory
+   - criterion 10: tests/adapters/test_claude_runtime.py::test_measures_missing_from_the_reply_are_unknown, ::test_usage_with_input_tokens_only_gives_unknown_tokens
+   - criterion 11: tests/adapters/test_claude_runtime.py::test_reply_without_a_usable_decision_is_no_result (parametrized: no structured_output, decision not allowed, blank entry)
+   - criterion 12: tests/adapters/test_claude_runtime.py::test_failed_call_died (exit status 1, not JSON), ::test_error_reply_died_with_its_cost
+   - criterion 13: tests/adapters/test_claude_runtime.py::test_reply_without_a_required_field_died (parametrized: subtype, is_error)
+   - criterion 14: tests/adapters/test_claude_runtime.py::test_call_over_its_time_limit_is_killed_with_unknown_measures
+   - criterion 15: tests/adapters/test_claude_runtime.py::test_armed_kill_point_fires_after_the_calls_writes (parametrized: completed, died)
+   - criterion 16: tests/adapters/test_claude_runtime.py::test_unarmed_kill_point_is_reached_once
+   - criterion 17: tests/adapters/test_claude_runtime.py::test_missing_executable_is_a_runtime_error
+   - criterion 18: tests/adapters/test_claude_runtime.py::test_unwritable_state_directory_is_a_runtime_error (checks that the detail contains `str(state_directory)`)
+   - criterion 19: tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module
+   - criterion 20: tests/adapters/test_claude_runtime.py::test_cache_counts_default_to_zero
+   - criterion 21: tests/adapters/test_claude_runtime.py::test_denial_detail_is_json_with_sorted_keys
+   - criteria 22 and 23: the factory's check and the documenter stage; no test.
+
+   Files I created:
+   - tests/adapters/claude_stand_in.py: `write_stand_in(directory, steps)`, `read_calls(directory)`, and the Pydantic models `Step` (writes, wait_seconds, stdout, stderr, exit_status) and `StandInCall` (arguments, environment, working_directory, files). The stand-in records each call to `calls.jsonl` before it plays its step. The recorded files are every file named in the arguments, plus the guard file named after `--settings` inside the hooks file's command.
+   - tests/adapters/test_claude_runtime.py
+   - tests/test_wrapper_search.py
+
+   Red as intended: `make test` stops at collection with `ModuleNotFoundError: No module named 'factory.adapters.claude_runtime'`. That is the only module the runner could not import. Once the module exists, test_wrapper_search fails on a wrong result until claude_runtime imports `factory.adapters.process`. `make lint` is green.
+
+   A choice the coder should know about: the leftover-file checks look for files matching `instructions-*.md`, `guard-*.json` and `hooks-*.json` in the state directory. They do not require the directory to be empty.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
