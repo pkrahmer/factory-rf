@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 22
 blocked: null
 comments_seen: 0
@@ -132,3 +132,19 @@ Expect: four lines: `rejected`, `refused +main`, `refused :main`, `['human', 'on
    - `make check` is green.
 
    `make check`: check: green
+7. demo: ran the one `## Demo` command from the repository root, exactly as written. No findings.
+
+   Command 1 (`uv run python -c "…"`: a bare remote with clones `a` and `b`, `main` diverged, then `push('main')`, `push('+main')`, `push(':main')`, and `b` fetches and lists):
+   ```
+   rejected
+   refused +main
+   refused :main
+   ['human', 'one'] ['main']
+   ```
+   It met its `Expect:` line. The output is the four expected lines in order. The human's commit is still the remote tip, and `main` still exists on the remote.
+
+   Criteria cross-check:
+   - The demo agrees with criterion 3: `+main` is refused, and the remote's `main` stays at the human's commit.
+   - It agrees with the `:` rule from criteria 1 and 4: `:main` is refused, and the remote branch survives.
+   - The plain `push('main')` still returns `rejected`, so a normal push is never forced.
+   - Nothing in the output contradicts any other criterion.
