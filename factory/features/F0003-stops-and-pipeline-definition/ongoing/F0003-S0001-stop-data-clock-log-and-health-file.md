@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 40
 blocked: null
 comments_seen: 2
@@ -8,7 +8,7 @@ attempts: 0
 ---
 # Stop data, the clock, the factory log and the health file
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 7)
 
 Build the data and the three machine stores behind every stop of the repository or the machine (R27): `RepositoryStop` and `HealthStatus`, the health status file that the container's health check will read, and a factory log whose every line carries a UTC time stamp (ST3.4). The story creates the `Clock`, `FactoryLog` and `HealthStatusStore` abstract base classes and their first implementations (`SystemClock`, `ManualClock`, `TimestampedFactoryLog`, `JsonHealthStatusFile`); each implementation inherits its interface. The service that raises and clears a stop with them (`StopService`) and `Boundaries`, the holder of the interfaces that wiring hands to services, are S0002. Covers ST3.4 and the data side of R27 (repository and machine); keeps kept thing 12 (a stop is reported, never carried past). The health check command, the container and the entrypoint's own stops are F0010 (ST3.3).
 
@@ -91,7 +91,7 @@ Rules:
 - `ManualClock(start)` refuses a naive `start` with `ValueError`; `now()` is `start` converted to UTC plus every `advance`. `SystemClock.now()` is `datetime.now(UTC)`.
 - `TimestampedFactoryLog.line(text)` splits `text` with `str.splitlines()` (an empty `text` counts as one empty line, so `line("")` writes `<stamp> ` once, and `line("a\n")` writes one line) and, for each line, writes `<stamp> <line>` and a newline to standard output, then appends the same line to the file at `path` (UTF-8, line end `\n`). The stamp has the form `YYYY-MM-DDTHH:MM:SSZ`: the time of `clock.now()` converted to UTC, whole seconds only (a fraction is dropped, not rounded). The clock is read once per call, so all lines of one call carry one stamp.
 - `TimestampedFactoryLog` and `JsonHealthStatusFile` create the missing parent directories of their path before they write. An `OSError` of a write is not caught; the line has reached standard output before the file is written.
-- `JsonHealthStatusFile.write` stores `status.model_dump_json()` by writing a temporary file in the same directory and replacing the target with `os.replace`, so a reader never sees half a file and no temporary file stays behind. `read` returns the stored status back equal. A file that does not exist, cannot be read (an `OSError`, such as a directory at the path, or bytes that are not UTF-8), is not JSON or is not a valid `HealthStatus` reads as `HealthStatus()`, and the next `write` replaces it: a hand edit or a lost file never stops the factory from raising its stop again.
+- `JsonHealthStatusFile.write` stores `status.model_dump_json()` by writing a temporary file in the same directory and replacing the target with `os.replace`, so a reader never sees half a file and no temporary file stays behind. `read` returns the stored status back equal. A file that does not exist, cannot be read (an `OSError`, such as a directory at the path, or bytes that are not UTF-8), is not JSON or is not a valid `HealthStatus` reads as `HealthStatus()`, and the next `write` replaces it: a hand edit or a lost file never stops the factory from raising its stop again. A directory at the path is not replaced; `write` raises `OSError` and removes its temporary file.
 - Each abstract method's body is its docstring alone, and every implementation inherits its interface.
 
 Tests: `tests/domain/test_stops.py`, `tests/application/test_machine.py`, `tests/adapters/test_clock.py`, `tests/adapters/test_factory_log.py`, `tests/adapters/test_health_file.py`. This story adds to `tests/conftest.py` the fixture `clock`, a `ManualClock` started at `datetime(2026, 10, 12, 12, 0, tzinfo=UTC)`. The refusal of an unknown field is tested through a variable typed `type[BaseModel]`, as `CLAUDE.md` asks. A test of a non-UTC clock uses a small test class that inherits `Clock`. The standard output of the log is read with `capsys`. The refusal of an assignment to a frozen model's field assigns with `setattr(instance, field, value)`, the field's name in a variable, because a direct assignment is a `mypy --strict` error under the pydantic plugin (`misc`, the property is read-only) and `setattr` with a constant name is ruff's `B010`. The test that the three interfaces cannot be instantiated (criterion 24) calls each through a variable typed `type[object]`, as `tests/application/test_interfaces.py` does, because a direct call such as `Clock()` is a `mypy --strict` error (`abstract`).
@@ -122,8 +122,9 @@ Tests: `tests/domain/test_stops.py`, `tests/application/test_machine.py`, `tests
 22. `JsonHealthStatusFile.read()` returns `HealthStatus()` for a file that holds `not json`, for one that holds `{"stops": [], "extra": 1}`, for an empty file and for one that holds the bytes `b"\xff\xfe"`, and in these four cases a `write` afterwards replaces the file and `read()` then returns what was written; it also returns `HealthStatus()` when the path is a directory, where no `write` is tried (one test, five cases).
 23. After `JsonHealthStatusFile.write`, the directory of the file holds the one file `health.json` and no other file.
 24. `Clock`, `FactoryLog` and `HealthStatusStore` are abstract base classes that cannot be instantiated, whose abstract methods are exactly `now`; `line`; and `read` and `write`, each with a body that is its docstring alone; `SystemClock` and `ManualClock` inherit `Clock`, `TimestampedFactoryLog` inherits `FactoryLog` and `JsonHealthStatusFile` inherits `HealthStatusStore`.
-25. `make check` stays green.
-26. docs: `docs/operator-guide.md` explains the health status file (`health.json` in the state directory, one stop per reason, a missing or damaged file reads as healthy until the next stop is raised) and the time-stamped line format (`YYYY-MM-DDTHH:MM:SSZ`, UTC, whole seconds, one stamp per call); `docs/decisions.md` records that a damaged health file reads as healthy because every stop is raised again while its fault lasts, and that the file is replaced atomically.
+25. When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory.
+26. `make check` stays green.
+27. docs: `docs/operator-guide.md` explains the health status file (`health.json` in the state directory, one stop per reason, a missing or damaged file reads as healthy until the next stop is raised) and the time-stamped line format (`YYYY-MM-DDTHH:MM:SSZ`, UTC, whole seconds, one stamp per call); `docs/decisions.md` records that a damaged health file reads as healthy because every stop is raised again while its fault lasts, and that the file is replaced atomically.
 
 ## Demo
 
@@ -232,3 +233,9 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
    - (b) No. Accept the uncovered branch, because coverage is 99.5 %. The only change would be to drop "and the next `write` replaces it" for the directory case from the Interface wording. No test or code changes.
    - (c) Remove the cleanup branch and let a failed write leave its temporary file. I advise against this: it breaks the Interface rule.
 7. human (pull request comment, 2026-10-13): (a): add the criterion before 25 as you worded it ("When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory.") and the Interface sentence ("a directory at the path is not replaced; `write` raises `OSError` and removes its temporary file."). It is the failing side of the Interface's own rule. End with `tests` so the tester adds the one test.
+8. coder: coder (round 1): following the human's answer (a) in entry 7, I edited the ticket text and changed no code. A test is needed, so the ticket goes to the tester.
+      - Criterion 25 is new and sits before the two closing criteria, which are now 26 and 27: "When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory."
+      - The `JsonHealthStatusFile` rule in the Interface now ends with: "A directory at the path is not replaced; `write` raises `OSError` and removes its temporary file."
+      - The Assignment heading now reads "as of log entry 7". The Assignment text itself is unchanged.
+      - Test change for the tester: add one test in `tests/adapters/test_health_file.py` for criterion 25. It makes `health.json` a directory, calls `write`, expects `OSError`, and then checks that the parent directory holds only `health.json`.
+      - The code should pass that test as it is: the `except BaseException` cleanup in `src/factory/adapters/health_file.py` already removes the temporary file and re-raises.
