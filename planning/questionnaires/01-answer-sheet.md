@@ -216,11 +216,11 @@ v1.1 refuses to work beside a v1 work item in progress: a repository stop that n
 **Question.** Is a v1 work item recognised by either the `ongoing/` folder or the `comments_seen` key?
 
 **Options**
-- [x] **A. Either sign (Recommended).** Catches v1's files where v1 put them and a v1 file moved by hand into `in-progress/`. Con: two rules to test.
+- [ ] **A. Either sign (Recommended).** Catches v1's files where v1 put them and a v1 file moved by hand into `in-progress/`. Con: two rules to test.
 - [ ] **B. The folder only.** Simpler. Con: a v1 file moved into `in-progress/` fails the strict reader as a counted error instead of a stop that names it.
 - [ ] **C. The key only.** Con: a v1 work item in `ongoing/` is never seen, so never refused, though R26 is about exactly that case.
 
-Note:
+Note: v1 is not used anywhere in production, assume everything starts fresh with v1.1
 
 #### Q16: WE6.3 as an observation
 
@@ -298,7 +298,7 @@ R29 pins every tool, and the preflight compares the agent runtime's version with
 - [ ] **B. The current release.** Taken at the morning build. Con: a flag F0001 uses may have changed; only Q22's probe would show it.
 - [ ] **C. The human names one.** In the answer.
 
-Note:
+Note: A, but make note that we need a repeatable/reusable maintenance feature that updates versions and stack without breaking the system. this is built after the whole system is done and this particular update would then be the first try of it.
 
 #### Q22: A preflight probe of the agent run's flags, `PATH` and `HOME`
 
@@ -410,7 +410,7 @@ Note:
 
 **If Q6 is B (state first, no key), answer this instead:** Is the error-cap report recorded in the work item before it is posted?
 
-- [ ] **A. Recorded, then posted (Recommended).** The report survives a restart as state, and a restart cannot repeat it. Con: a commit per report.
+- [X] **A. Recorded, then posted (Recommended).** The report survives a restart as state, and a restart cannot repeat it. Con: a commit per report.
 - [ ] **B. Tick status on disk.** The counts and the reported flag kept on a volume. Con: state the remote does not hold.
 
 Note:
