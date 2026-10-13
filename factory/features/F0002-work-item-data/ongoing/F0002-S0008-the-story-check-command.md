@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 35
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -102,3 +102,4 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface says `main` passes `feature_file_exists` as true when `factory/features/<directory>/feature.md` exists under `root`. No criterion tests `main` on the other side. Criterion 6 tests only `check_story_place` called directly. Criteria 8, 22 and the Demo always have the feature file, so a `main` that always passes `True`, or one that looks in the wrong folder, would pass every test. Proposed addition, before the two closing criteria: "`main` for a backlog story whose feature directory has no `feature.md` prints `<path>: the feature file feature.md is missing in factory/features/<directory>` and returns 1; once the file exists the same story prints `<path>: ok`." I would choose this one. Everything else checks out and I would accept the story once it is added: the Interface is concrete, the other rules have a criterion for the failing side, the Demo is runnable (the line 11 expectation counts correctly), the architecture matches (only wiring imports adapters), and the story is in scope for the feature.
