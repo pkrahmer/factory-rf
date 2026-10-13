@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 29
 blocked: null
 comments_seen: 0
@@ -174,3 +174,9 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
    - Open: criterion 15 (`docs/project-guide.md`) is for the documenter. I noticed nothing outside this ticket.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: criteria 1–13 each have a test that checks what the criterion says, and the coder's entry reports `make check` green. Every rule's failing side is tested: a stage that is not a `Name` or is missing (2), the wrong `blocked` values (3), the boundaries of the counters, `pull_request` and `handed_over` (4), unsorted, repeated and zero `comments_read` (5), a claim for another stage (6), the four bad journal numberings (7), the four error locations (8), unknown kinds, `number=0` and a bad speaker (9), `lease_duration` 1/0, a naive start and names that are not a `Name` (10), unknown fields and assignment on all four models (11), a missing `state` (12), and the message with and without a path (13). Models built with a wrong or missing field go through `type[BaseModel]`, and assignment goes through `setattr`, as `CLAUDE.md` asks.
+   - Architecture: `domain/journal.py` and `domain/work_item.py` are pure Pydantic types in `factory.domain`, with no I/O, clock or tool, and import only `factory.domain.identifiers`. `WorkItemFormatError` extends the existing `FactoryError` hierarchy.
+   - Security: nothing applies. The one suppression is `# noqa: DTZ001` in `tests/domain/test_work_item.py`, on the naive datetime the test builds on purpose. It is a lint rule, not one of the security markers, and the tester's entry explains it.
+   - Quality: the names, fields, order and defaults match the Interface. The `comments_read` and `journal` rules are field validators and the claim/stage rule is an after-model validator, so the errors land where criterion 8 says. Docstrings follow `CLAUDE.md`: modules and public names have them, private validators do not, and the `Claim` docstring states that the lease is in minutes. Weighed and not raised: the `_to_utc` validator is now the third copy of the same one-liner, after `domain/git.py` and `domain/hosting.py`. It follows the existing idiom, and pulling it into a shared type would mean changing modules outside this story.
+   - Ticket hygiene: the coder's entry gives the main decision (each rule is a validator on its type) and what was rejected (a separate check function). `Assignment` matches what was built, and criterion 15 still says what the documenter has to write in `docs/project-guide.md`.
