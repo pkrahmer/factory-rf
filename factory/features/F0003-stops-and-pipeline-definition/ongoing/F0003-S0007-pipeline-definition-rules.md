@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 46
 blocked: null
 comments_seen: 0
 round: 0
@@ -109,3 +109,10 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete module (`src/factory/domain/pipeline_definition.py`, the `PipelineDefinition` after-validator, `CONTRACT_MAJOR`, `DONE_STAGE`, `RESERVED_NAMES`) and the reader change in `src/factory/adapters/pipeline_yaml.py` (fault taken from `ctx["error"]`, prefix dropped). Every rule has its exact fault text and ordering.
+   - Criteria: each is testable by one test function. Every rule has a refused and an accepted side: contract major (2, 3), contract form (4), done (5, 6), next (7, 8), role/write paths/approval (9, 10, 11, 12), reserved names (13), commands (14), time limit equal/over (15, 16), lease per role and per stage, doubles, unknown names and role-less stages (17 to 20), acceptance stage (21), multiple faults (22), field faults first (23), loader stops (24). The Interface comments (ordering, joining with "; ", integer major, `02` kept as written) are each covered.
+   - Demo: runnable as written. Each Expect line gives the exact output. It is consistent with the rules, assuming `checks` and `reports` default to empty, so 61 + 0 = 61 in the time limit case.
+   - Architecture: the rules are pure domain validation; the reader only translates the error to a fault; the loader is unchanged. This fits the four layers and the one-reader-per-format rule.
+   - Scope: within F0003's "load-time validation" scope and kept decisions 18 and 19. The installed-agent rule belongs to S0006, and nothing here is in "Out of scope".
+   - Note for the tester, not a question: criterion 5 needs a text where `done` is absent without leaving other stages' `next: [done]` unknown, or else rule 4 adds faults. Rename `done` consistently in the text.
