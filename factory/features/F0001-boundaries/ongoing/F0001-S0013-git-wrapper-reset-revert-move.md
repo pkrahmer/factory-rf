@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 13
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -136,3 +136,4 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
    - The empty-path refusal in `check_repository_path` goes beyond the rule, but it is defensive and harmless.
    - `revert_paths` reads the whole blob through `show_file` only to test whether it exists, which reuses existing code.
    - `tests/application/test_git_protocol.py` imports `GitCli`, as the Interface places it.
+6. human (pull request comment, 2026-10-13): (a): add the rule and the criterion before the two closing ones as you worded them: `move` raises `ValueError` for an absolute `source` or `destination`, or one with a `..` segment, before anything is created; the test checks `../x.txt` and an absolute destination and that no folder appears outside the checkout. It reuses this story's `check_repository_path`.
