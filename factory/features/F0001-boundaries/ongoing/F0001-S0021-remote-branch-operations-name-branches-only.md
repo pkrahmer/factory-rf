@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 24
 blocked: null
 comments_seen: 0
@@ -144,3 +144,15 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
    - Security: the git argv is built as a list, not a shell string. Names are validated before any process runs. No suppression markers, no secrets, no new dependencies.
    - Quality: the helpers are small and private and have no docstrings, as CLAUDE.md allows. The comments say why. The removed marker leaves no dead code behind, and the `delete_remote_branch` docstring is still accurate.
    - Ticket hygiene: the coder's entry records the main decision (porting git's rules into the domain rather than calling `git check-ref-format`) and what was rejected. The Assignment matches what was built. The docs criterion (12) still describes what the documenter has to write.
+6. documenter: wrote criterion 12; `make check` green. No code findings: the diff matches the Interface.
+   - `docs/project-guide.md`:
+     - The operation table and the push paragraph now show `refs/heads/<branch>` in both command lines.
+     - The push outcomes say a local tag is no branch (`push("v1")` is a `GitError`).
+     - The `delete_remote_branch` text drops the `remote ref does not exist` wording, says a remote tag is left alone, and says `a..b` is now a `ValueError`.
+     - The branch rule names the added refusals: `HEAD`, `@`, and git's branch-name rules with `^main` as the example. It also explains why `refs/heads/<branch>` is named, as the source only.
+   - `docs/decisions.md`: the entry "A pushed branch is never read as a refspec" records the extension (decision 23) and why it is not the explicit `refs/heads/<b>:refs/heads/<b>` that decision 22 rejected.
+   - Cross-read and found current: the push outcome meanings, the kill points, the sentence on the local operations, `README.md` and `docs/operator-guide.md`. The latter two don't mention these operations.
+   - I did not run the demo script. The new sentences come from the Interface, the ticket log and the diff.
+   - Nothing stale seen outside this story.
+
+   `make check`: check: green
