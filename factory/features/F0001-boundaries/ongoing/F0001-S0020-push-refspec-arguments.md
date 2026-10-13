@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 22
 blocked: null
 comments_seen: 0
@@ -118,3 +118,9 @@ Expect: four lines: `rejected`, `refused +main`, `refused :main`, `['human', 'on
    - Open: criterion 10 (docs in `docs/project-guide.md` and `docs/decisions.md`) is the documenter's. I did not write it.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Criteria: criteria 1 to 8 each have a test that targets them. These are `tests/domain/test_git.py` (refused and accepted tables) and `tests/adapters/test_git_cli_arguments.py` (`+main` with a diverged `main`, `:keep`, `HEAD:refs/heads/other`, `delete_remote_branch` of `+main` and `main:x`, `push("a+b")`, and `delete_branch` of `+x` and `x:y`). The wrapper tests use the real bare remote. Their asserts check the remote's state, and criterion 3 also checks that `BEFORE_PUSH` was reached 0 times on the same `kill_points` that the `checkout` fixture uses. The failing side of each rule (`+`, `:`, `*`, empty, `-`) is tested in the domain. The `*` rule has no wrapper-level test, which intake accepted. The coder's entry records `make check` green.
+   - Architecture: `check_branch_name` is pure and sits in `factory.domain.git`, beside `check_git_argument`, which it reuses. `GitCli.push` and `GitCli.delete_remote_branch` call it as their first statement, before `_reach(BEFORE_PUSH)` and before any process. The local operations are untouched.
+   - Security: there are no markers, secrets or string-built commands. The error message quotes only the refused value.
+   - Quality: the function has a docstring, and its comment gives the reason for each refused character. There is no duplication and no dead code.
+   - Ticket hygiene: the log names decision 22 and the rejected explicit-refspec alternative. Assignment matches what was built. Criterion 10 still states what the documenter must write.
