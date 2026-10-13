@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 43
 blocked: null
 comments_seen: 0
@@ -174,3 +174,45 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
    - Demo: runnable as written. The `Expect:` line gives four exact output lines.
    - Architecture: the schema is in domain, the reader interface in application, ruamel only in the adapter (criterion 23), and the reader is wired through `Boundaries`. This matches CLAUDE.md.
    - Scope: this is the schema half of ST8.1 and R30. The cross-key rules (S0007), the stop report (S0006) and a writer are excluded, as `FEATURE.md` says.
+3. tester: Wrote the tests for the pipeline definition schema, its reader, `all_faults` and the reader interface. `make lint` is green. `make test` is red on purpose: pytest cannot load `tests/conftest.py`, because the `boundaries` fixture now imports `RuamelPipelineDefinitionReader` from `factory.adapters.pipeline_yaml`, which does not exist yet (`ModuleNotFoundError`). Until the coder builds the module, every test errors at collection.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_pipeline_yaml.py::test_example_definition_is_read_in_its_order
+   - criterion 2: tests/adapters/test_pipeline_yaml.py::test_first_stage_is_the_first_stage_of_the_text
+   - criterion 3: tests/adapters/test_pipeline_yaml.py::test_role_of_a_stage_is_its_role_or_none
+   - criterion 4: tests/adapters/test_pipeline_yaml.py::test_role_of_an_unknown_stage_raises_key_error
+   - criterion 5: tests/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages (intake 0, tests 1, done 8)
+   - criterion 6: tests/adapters/test_pipeline_yaml.py::test_left_out_keys_with_defaults_take_them
+   - criterion 7: tests/adapters/test_pipeline_yaml.py::test_an_empty_stage_takes_every_default
+   - criterion 8: tests/adapters/test_pipeline_yaml.py::test_left_out_project_commands_are_check_lint_and_test
+   - criterion 9: tests/adapters/test_pipeline_yaml.py::test_given_project_commands_replace_the_default_set, ::test_an_empty_project_command_takes_the_default_time_limit
+   - criterion 10: tests/adapters/test_pipeline_yaml.py::test_given_values_replace_the_defaults
+   - criterion 11: tests/adapters/test_pipeline_yaml.py::test_a_text_without_contract_is_refused, ::test_a_text_without_stages_is_refused, ::test_a_text_without_roles_is_refused, ::test_a_role_without_write_paths_is_refused
+   - criterion 12: tests/adapters/test_pipeline_yaml.py::test_an_unknown_key_is_refused_by_its_path (top-level, stage, role)
+   - criterion 13: tests/adapters/test_pipeline_yaml.py::test_a_limit_below_one_is_refused (6 paths × 0 and -1), ::test_a_limit_of_one_is_accepted (6 paths, all on the minimal text; the lease case sets the coder's time_limit to 1)
+   - criterion 14: tests/adapters/test_pipeline_yaml.py::test_a_name_that_breaks_the_pattern_is_refused_naming_it, ::test_a_well_formed_name_is_accepted_for_stage_role_and_command
+   - criterion 15: tests/adapters/test_pipeline_yaml.py::test_a_value_of_the_wrong_type_is_refused_by_its_path
+   - criterion 16: tests/adapters/test_pipeline_yaml.py::test_a_text_that_is_not_yaml_is_refused, ::test_a_repeated_key_is_refused_naming_it
+   - criterion 17: tests/adapters/test_pipeline_yaml.py::test_a_text_that_is_not_a_mapping_is_refused (list, string, empty)
+   - criterion 18: tests/adapters/test_pipeline_yaml.py::test_several_faults_are_refused_once_in_rank_order
+   - criterion 19: tests/adapters/test_validation_faults.py::test_all_faults_ranks_unknown_then_missing_then_invalid
+   - criterion 20: tests/domain/test_pipeline_definition.py::test_pipeline_definition_invalid_carries_its_fault_as_message
+   - criterion 21: tests/domain/test_pipeline_definition.py::test_write_path_placeholders_are_spelled_in_braces
+   - criterion 22: tests/application/test_pipeline_definition_reader.py::test_pipeline_definition_reader_is_abstract_with_parse_alone, ::test_pipeline_definition_reader_parse_body_is_its_docstring_alone, ::test_ruamel_reader_implements_the_pipeline_definition_reader
+   - criterion 23: the existing tests/adapters/test_work_item_markdown.py::test_only_the_work_item_adapter_imports_frontmatter_and_ruamel, unchanged
+   - criteria 24 and 25: `make check` and the docs belong to the coder and the documenter, so they have no tests here.
+
+   Extra tests drawn from the Interface's own rules, not from any criterion:
+   - tests/adapters/test_validation_faults.py::test_all_faults_keeps_pydantic_order_within_one_rank checks that faults of one rank stay in pydantic's order.
+   - tests/adapters/test_pipeline_yaml.py::test_a_name_value_that_breaks_the_pattern_is_refused tests the refused side of the `Name`-typed values `role`, `next[0]` and `acceptance_stage`. CLAUDE.md wants both sides of every limit the Interface states; criterion 1 covers the accepted side.
+   - tests/adapters/test_pipeline_yaml.py::test_a_python_tag_is_refused_as_a_pipeline_definition_fault checks that a text using a Python tag raises `PipelineDefinitionInvalid` and nothing else, because the Interface says safe mode and that this is the only exception. It does not check the fault's wording.
+   - tests/application/test_pipeline_definition_reader.py::test_boundaries_hand_out_the_ruamel_pipeline_reader checks the new `Boundaries.pipeline_reader` field.
+
+   Files:
+   - created: tests/domain/test_pipeline_definition.py, tests/adapters/test_pipeline_yaml.py, tests/adapters/test_validation_faults.py, tests/application/test_pipeline_definition_reader.py
+   - changed: tests/conftest.py. The `boundaries` fixture passes `pipeline_reader=RuamelPipelineDefinitionReader()`, as the Interface says for `boundaries.py`.
+
+   Modules and names the tests need that do not exist yet: `factory.adapters.pipeline_yaml`, `factory.domain.pipeline_definition`, `factory.domain.errors.PipelineDefinitionInvalid`, `factory.application.files.PipelineDefinitionReader`, `factory.adapters.validation_faults.all_faults` and the `Boundaries.pipeline_reader` field. Nothing in the criteria needed interpreting, so there is no open question.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.pipeline_yaml'

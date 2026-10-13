@@ -13,6 +13,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.domain.git import GitOptions
@@ -85,6 +86,7 @@ def boundaries(
         work_item_writer=FrontmatterWorkItemWriter(),
         cost_reader=JsonLinesCostRecordReader(),
         cost_writer=JsonLinesCostRecordWriter(),
+        pipeline_reader=RuamelPipelineDefinitionReader(),
         clock=clock,
         log=TimestampedFactoryLog(state / "factory.log", clock),
         health=JsonHealthStatusFile(state / "health.json"),
