@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 44
 blocked: null
 comments_seen: 0
@@ -259,3 +259,4 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
    - `read('nobody')` raises `AgentDefinitionMissing` with `name == "nobody"` (criterion 13).
 
    The demo does not exercise the other criteria; their tests are named in entry 3. Entries 6–8 report `make check` green.
+10. done (pull request merged); cost: 8 runs, 6.8 min, 55 turns, 186k tokens in (908k more from cache), 30k out, $2.02
