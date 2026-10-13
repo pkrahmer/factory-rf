@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 37
 blocked: null
 comments_seen: 0
@@ -164,3 +164,4 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
      - 4: entry 1, which has no fence, is unchanged.
      - The demo contradicts no criterion. It does not exercise criteria 2, 3, 8 and 9 directly; tests cover those (log entries 3 and 5).
    - I did not run `make check` myself. The factory runs it after this stage.
+8. done (pull request merged); cost: 6 runs, 3.9 min, 33 turns, 157k tokens in (413k more from cache), 14k out, $1.36
