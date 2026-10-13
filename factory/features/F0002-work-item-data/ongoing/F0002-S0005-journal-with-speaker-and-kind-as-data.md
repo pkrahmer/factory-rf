@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 32
 blocked: null
 comments_seen: 0
@@ -199,3 +199,22 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
        - Still open from entries 4 and 8, not touched: if a continuation line in an entry opens a fence and never closes it, the headings after it stay hidden. No rule in the Interface covers this.
 
     `make check`: check: green
+11. reviewer: Round 2 review: no findings.
+
+    - The round-2 change (commit f72edc8) fixes both findings from entry 9. The private helpers `_last_text_line` (src/factory/domain/journal.py:106) and `_journal_block` (:172) no longer have docstrings. The comment at :110 says why an empty section ends at its heading. No private name under the diff has a docstring now, and every public class and function has one.
+    - Group 1: each of criteria 1–18 has a test in tests/domain/test_journal.py or tests/adapters/test_journal_as_data.py that checks what the criterion says. Every rule in the Interface is tested on both sides:
+      - the date rule for human and for non-human speakers;
+      - blank text;
+      - indent width at 1/9, 10/99 and 100/999;
+      - final newline present and absent;
+      - an entry number at column 0 and an indented one;
+      - trailing blank lines before a next section;
+      - the restore onto a body that already ends in blank lines;
+      - every fault string.
+      Entry 10 says `make check` is green.
+    - Group 2: `factory.domain.journal` stays pure. It imports only from the domain layer, and imports `work_item` only under `TYPE_CHECKING`.
+    - Group 3: the diff has no secrets and builds no shell or SQL from strings. The only marker is `# noqa: S603` in the test's subprocess call, with its reason beside it, following tests/test_layers.py on main.
+    - Group 4: names say what things are and each helper does one thing. The diff has no dead code, uses `sections`/`split_lines` from `factory.domain.sections` instead of re-parsing, and its comments say why.
+    - Group 5: the log records the main decision (find the section with `sections`; restore replaces from the heading to the last text line) and the rejected alternative (widening `sections.py`). `Assignment` matches what was built. Criterion 20 still says what the documenter must write.
+
+    Still open, not a finding: if a continuation line of an entry opens a code fence and never closes it, the headings after it stay hidden (entries 4, 8, 10). No rule in the Interface covers this. If the human wants it handled, it belongs in a later story.
