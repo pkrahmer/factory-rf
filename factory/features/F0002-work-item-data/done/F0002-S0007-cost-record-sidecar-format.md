@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 34
 blocked: null
 comments_seen: 2
@@ -296,3 +296,4 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
     Met its Expect: the blank first line counts toward the line number.
 
     Checked against the criteria: nothing in the output contradicts criteria 1–19. As an extra check outside the demo, I rendered one started record on its own. It gives the same line as example line 2 of the ticket (`started_at` `2026-10-12T00:00:00Z` in the `Z` form, every unknown measure `null`), which agrees with criterion 9. I did not run `make check` myself (criterion 20); the factory runs it after this stage. Nothing is open.
+14. done (pull request merged); cost: 11 runs, 11.6 min, 80 turns, 245k tokens in (1452k more from cache), 49k out, $3.01
