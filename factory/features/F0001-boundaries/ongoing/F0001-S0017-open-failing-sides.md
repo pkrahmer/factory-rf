@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 19
 blocked: null
 comments_seen: 0
@@ -66,3 +66,14 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: one runnable pytest command over the four named files. Its Expect line is checkable (the last line reads `<n> passed`, with no failed, error or skipped count).
    - Architecture: tests only, in the adapters layer, using real git and the fake hosting service as CLAUDE.md prescribes. No dependency, no change to `factory/`.
    - Scope: inside F0001. FEATURE.md's decision 21 keeps an unmerged path as "modified", so criterion 3 pins documented behaviour. Nothing is in Out of scope.
+3. tester: wrote one new test function for each of criteria 1–4. No existing parametrization was extended.
+   - criterion 1: tests/adapters/test_make_commands.py::test_command_name_with_a_trailing_newline_is_refused_before_starting. `run("check\n")` raises `ProjectCommandError`, and the marker file from the `touch` recipe does not exist afterwards.
+   - criterion 2: tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_source_and_changes_nothing, run for two sources: `../x.txt` and an absolute path `tmp_path/outside/x.txt`. Both files exist outside the checkout, so a refusal cannot come from a missing file. The test checks for `ValueError`, that `git status --porcelain` is unchanged, that the file list under `tmp_path` is unchanged, and that `b.txt` keeps its content.
+   - criterion 3: tests/adapters/test_git_cli_history.py::test_status_lists_a_path_left_unmerged_by_a_conflicting_merge_once_as_modified. The conflict is made with a plain `git merge` through `run_process`, using the isolated environment that `test_committed_at_is_the_committer_date_in_utc` builds. The test checks that the merge exits 1 and that `ls-files --unmerged` is not empty, then that `status().changes == [("file.txt", "modified")]`.
+   - criterion 4: tests/adapters/test_fake_hosting.py::test_delete_comment_refuses_a_comment_of_another_pull_request. With two pull requests, `delete_comment(first, <id of a comment on the second>)` raises `HostingServiceError`, and `list_comments` of both pull requests is unchanged.
+   - criteria 5 and 6 are for the coder's `make check` and for the documenter.
+   Files changed: the four test files named above; no new files. Every module imported fine.
+   `make test` is green and the four new tests pass on the first run. That is expected, because the story pins behaviour that is already built (the Assignment expects no code change). Nothing failed, so there is no finding for the coder. The coder only needs to confirm that `make check`, including mypy, is green. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green

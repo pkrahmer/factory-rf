@@ -207,3 +207,13 @@ def test_outer_make_variables_do_not_reach_the_command(
     result = commands.run("level", time_limit=LIMIT)
 
     assert result.output_tail.splitlines() == ["ok", "0"]
+
+
+def test_command_name_with_a_trailing_newline_is_refused_before_starting(tmp_path: Path) -> None:
+    marker = tmp_path / "started"
+    commands = _commands(tmp_path, ("check", f"@touch {marker}"))
+
+    with pytest.raises(ProjectCommandError):
+        commands.run("check\n", time_limit=LIMIT)
+
+    assert not marker.exists()

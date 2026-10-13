@@ -230,6 +230,23 @@ def test_delete_comment_removes_it_and_refuses_an_unknown_id(
         hosting.delete_comment(pull.number, 99)
 
 
+def test_delete_comment_refuses_a_comment_of_another_pull_request(
+    hosting: FakeHostingService,
+) -> None:
+    first = _open(hosting, "work-item/F0001-S0001")
+    second = _open(hosting, "work-item/F0001-S0002")
+    hosting.add_human_comment(first.number, "on the first")
+    foreign = hosting.add_human_comment(second.number, "on the second")
+    first_before = hosting.list_comments(first.number)
+    second_before = hosting.list_comments(second.number)
+
+    with pytest.raises(HostingServiceError):
+        hosting.delete_comment(first.number, foreign)
+
+    assert hosting.list_comments(first.number) == first_before
+    assert hosting.list_comments(second.number) == second_before
+
+
 @pytest.mark.parametrize(
     ("operation", "arguments"),
     [
