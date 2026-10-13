@@ -5,7 +5,18 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
-from factory.domain.paths import LifecycleFolder
+from factory.domain.identifiers import (
+    feature_of,
+    is_acceptance,
+    parse_feature_directory_name,
+    parse_work_item_file_name,
+)
+from factory.domain.paths import (
+    FEATURE_FILE_NAME,
+    FEATURES_DIRECTORY,
+    LIFECYCLE_FOLDERS,
+    LifecycleFolder,
+)
 from factory.domain.sections import (
     ACCEPTANCE_CRITERIA,
     JOURNAL,
@@ -23,6 +34,10 @@ from factory.domain.work_item import WorkItemDocument
 _NUMBERED_ITEM = re.compile(r"^(\d+)\. ")
 _DOCS_PREFIX = "docs:"
 _EXPECT_PREFIX = "Expect:"
+_NOT_A_LOCATION = (
+    f"not a work item location: expected {FEATURES_DIRECTORY}/<feature>/"
+    f"<{'|'.join(LIFECYCLE_FOLDERS)}>/<file>.md"
+)
 
 
 class FormFinding(BaseModel):
@@ -201,4 +216,49 @@ def check_story_form(
         findings += _check_backlog(document, entries)
     else:
         findings += _check_started(document, entries)
+    return findings
+
+
+def _story_id_of_file_name(name: str) -> str | None:
+    parsed = parse_work_item_file_name(name)
+    if parsed is None or is_acceptance(parsed.id):
+        return None
+    return parsed.id
+
+
+def lifecycle_folder_of_location(path: str) -> LifecycleFolder | None:
+    """Return the lifecycle folder of a path in a work item location, whatever its names."""
+    parts = path.split("/")
+    if len(parts) != 5 or "/".join(parts[:2]) != FEATURES_DIRECTORY:
+        return None
+    for folder in LIFECYCLE_FOLDERS:
+        if parts[3] == folder:
+            return folder
+    return None
+
+
+def _finding(message: str) -> FormFinding:
+    return FormFinding(line=None, message=message)
+
+
+def check_story_place(path: str, *, feature_file_exists: bool) -> list[FormFinding]:
+    """Return every finding against where a story file sits, given its repository path."""
+    if lifecycle_folder_of_location(path) is None:
+        return [_finding(_NOT_A_LOCATION)]
+    _, _, directory, _, name = path.split("/")
+    story = _story_id_of_file_name(name)
+    feature = parse_feature_directory_name(directory)
+    findings: list[FormFinding] = []
+    if story is None:
+        findings.append(_finding(f'the file name "{name}" is not F0000-S0000[-slug].md'))
+    if feature is None:
+        findings.append(_finding(f'the feature directory "{directory}" is not F0000[-slug]'))
+    if story is not None and feature is not None and feature_of(story) != feature.id:
+        message = f"the story {story} is in the directory of feature {feature.id}"
+        findings.append(_finding(message))
+    if not feature_file_exists:
+        message = (
+            f"the feature file {FEATURE_FILE_NAME} is missing in {FEATURES_DIRECTORY}/{directory}"
+        )
+        findings.append(_finding(message))
     return findings
