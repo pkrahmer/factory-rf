@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The git wrapper: no argument is read as an option, and git speaks one language
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
