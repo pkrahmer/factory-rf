@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 8
 blocked: null
 comments_seen: 2
@@ -262,3 +262,19 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: The tester's change from entry 7 is in, and `make check` now passes in full: lint, types, layers, sast, secrets, licenses, and test with 100 % coverage. The feature code is unchanged since commit "feat(agent-runtime): DTOs, protocol and fake runtime". This run only added the refactor step that I skipped in the earlier runs.
+
+   What I built (entry 4 has the details):
+   - `src/factory/domain/identifiers.py`: adds `Name`.
+   - `src/factory/domain/errors.py`: adds `AgentRuntimeError`.
+   - `src/factory/domain/agent_runs.py`: the DTOs. They are frozen and refuse unknown keys. A shared `AbsolutePath` type covers `working_directory` and `GuardSettings.root`. Field validators require `question`, forbid repeats and require a positive `time_limit`. A model validator links `decision` and `entry` to `completed`.
+   - `src/factory/application/agent_runtime.py`: the `AgentRuntime` Protocol.
+   - `src/factory/adapters/fake_agent_runtime.py`: `ScriptedRun` and `FakeAgentRuntime`.
+
+   Main design decision: the fake checks every write and delete path before it touches the disk, so a bad path changes nothing. The alternative was to check each path as it is applied and roll back on failure. I rejected it because it is more code and still leaves partial state if the rollback fails.
+
+   Refactor (commit "refactor(agent-runtime): move applying a scripted run out of run"): `run` now does five steps in order: record the request, take the oldest queued run, apply it, maybe kill, return the result. The path checks and the file writes and deletes moved together into the private helper `_apply`. Behaviour is the same and no test changed.
+
+   Noticed, not touched: the diff against main also shows `CLAUDE.md` and `docs/runs/…/night-log.md`. Both come from the human's commits merged into this branch, not from this stage. Docs criterion 26 is left to the documenter.
+
+   `make check`: check: green
