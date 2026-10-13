@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 40
 blocked: null
 comments_seen: 2
@@ -245,3 +245,13 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: coder (round 1): the review's one finding (entry 5) is now resolved, and I changed no code in this run.
+       - The tester's new test for criterion 25, `tests/adapters/test_health_file.py::test_a_directory_at_the_path_fails_the_write_and_leaves_no_temporary_file`, passes against the existing `src/factory/adapters/health_file.py`. The `except BaseException` cleanup in `write` removes the temporary file and re-raises the `OSError` from `os.replace`.
+       - `src/factory/adapters/health_file.py` is now at 100 % coverage. The cleanup branch, which entry 4 reported as uncovered, is now run by the new test. Total coverage is 99.66 %.
+       - Refactor: none. The diff since the last refactor commit (d683e40) has no code changes.
+       - Ticket: the Interface sentence and criterion 25 were already added in entry 8. The Assignment is unchanged.
+       - Open: the docs criterion (27) is left to the documenter.
+
+       `make check`: check: green
+
+    `make check`: check: green
