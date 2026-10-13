@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 46
 blocked: null
 comments_seen: 0
@@ -153,3 +153,21 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
 
    `make lint`: lint: green
    `make test`: FAILED tests/application/test_pipeline_loading_rules.py::test_a_definition_the_rules_refuse_is_one_reported_stop[  coder: {write_paths: ["src/*"]}-  coder: {time_limit: 51, write_paths: ["src/*"]}-role coder at stage doing: 61 min exceed lease_duration 60 min]
+4. coder: Added the load-time rules of the pipeline definition. `make check` is green, all tests pass without any test change, and the Demo prints its five expected lines.
+
+   What I built:
+   - `src/factory/domain/pipeline_definition.py`
+     - Adds `CONTRACT_MAJOR`, `DONE_STAGE` and `RESERVED_NAMES`.
+     - Adds an after-mode `model_validator` on `PipelineDefinition`. It runs a tuple `_RULES` of eight private rule functions, each returning a list of faults. Rules 1 and 2 share `_contract_faults`, because the major is checked only when the form holds.
+     - It joins every fault with "; " and raises one `ValueError`.
+     - The order follows the Interface: by rule, then by stage or role in the text. Rule 5 lists its three checks in the order given.
+     - The lease rule counts the minutes of a role's run plus its stage's checks and reports in `_minutes_at_stage`. Repeated names count again and unknown names count nothing. It skips stages with no role and stages whose role is undefined.
+   - `src/factory/adapters/pipeline_yaml.py`: the new `_fault_of` returns `ctx["error"]` as written when the validation error is the single model-level error (empty location). Otherwise it falls back to `all_faults` as before. Field faults therefore still come first and alone, because pydantic does not run the after-validator when a field is invalid.
+
+   Main decision: each rule is a small module-level function and the validator only collects their results. I rejected one large validator method because its ordering and branching would be hard to review against the nine rules. I also rejected raising pydantic's `PydanticCustomError` with a custom type. The reader would then have to know that type, while `ctx["error"]` is what the Interface names.
+
+   Refactor (commit ede5c91): checks and reports now share one loop in `_command_faults`, and the role lookup in `_lease_faults` is plainer. Behaviour is unchanged.
+
+   Noticed, not touched: the `_FAULT_SEPARATOR = "; "` constant is now defined both in the domain module and in the reader. The two join different things (rule faults and field faults), so I left them separate.
+
+   `make check`: check: green
