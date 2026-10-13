@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 37
 blocked: null
 comments_seen: 0
@@ -102,3 +102,12 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented in commit a7172fc. `make check` is green with 99.64 % coverage.
+   - `src/factory/domain/sections.py`: added `opening_fence(line)`, which returns the backtick or tilde run that `_FENCE_OPENING` matches, or None when the line opens no block. `code_blocks` now uses it, so there is still one fence rule.
+   - `src/factory/domain/journal.py`: `render_entry` builds the rendered lines first (the numbered first line, then the indented continuation lines). A new private `_closing_line` runs `code_blocks` over them. When the last block has `end=None`, it adds the indent plus `opening_fence` of that block's opening line. The numbered first line never matches the fence pattern, so a fence on it opens no block, as the rules require. `entry_text` has no code change; its docstring now says it returns the text as rendered, the closing fence line included.
+   - Main decision: `render_entry` checks the lines as they will appear in the body, with prefix and indent, not the raw text. That way the closing line comes from the same `code_blocks` reading the form check uses, so the two cannot disagree. Rejected: checking `entry.text` on its own. Its first line has no number in front, so a fence there would wrongly count as opening a block (see criterion 3).
+   - `_closing_line` keeps a `fence is None` guard. It never fires, because a block's opening line always has a fence; it is there only because `opening_fence` returns `str | None` for mypy.
+   - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+   - Noticed, not touched: as the tester also notes, the existing test name `test_entry_text_returns_the_text_as_it_was_given` is now only half true. Docs for criterion 11 (`docs/project-guide.md` and `docs/decisions.md`) are the documenter's work.
+
+   `make check`: check: green
