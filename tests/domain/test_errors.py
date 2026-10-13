@@ -7,6 +7,7 @@ from factory.domain.errors import (
     GitError,
     HostingServiceError,
     NothingToCommit,
+    ProjectCommandError,
 )
 
 
@@ -45,3 +46,12 @@ def test_git_error_carries_command_status_and_tail_in_its_message() -> None:
 
 def test_nothing_to_commit_is_a_git_error() -> None:
     assert issubclass(NothingToCommit, GitError)
+
+
+def test_project_command_error_names_command_and_detail() -> None:
+    error = ProjectCommandError("check", "boom")
+
+    assert error.command == "check"
+    assert error.detail == "boom"
+    assert str(error) == "project command check failed: boom"
+    assert issubclass(ProjectCommandError, BoundaryError)
