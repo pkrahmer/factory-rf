@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 31
 blocked: null
 comments_seen: 0
@@ -124,3 +124,11 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented `src/factory/domain/sections.py`. All tests in `tests/domain/test_sections.py` pass, and `make check` is green.
+      - What it contains: the three constants, the frozen `Section` and `CodeBlock` models (both forbid extra fields), and seven functions. `code_blocks` finds each opening run with a regex: three or more backticks or tildes after optional leading spaces or tabs. It then searches forward for the first line whose stripped content is the same character, repeated at least as many times as the opening run. If no such line exists, the block ends with `end=None` and the scan stops. `title` and `sections` look only at lines outside every block, because there is one private helper (`_lines_outside_blocks`) that both of them use. `section_text` and `insert_paragraph` both find their section through `sections`, so a heading that appears only inside a fence is missing for both. `insert_paragraph` rebuilds the line list as: the lines up to the heading, a blank line, the paragraph's lines, then (only if anything follows) a blank line and the rest with its leading blank lines dropped. It adds a final newline exactly when `body` ended with one.
+      - Main design decision: find the blocks first, then filter headings and the title by line index. I rejected a single scanner that tracks fence state while it looks for headings. With the two-step approach, `code_blocks` is the only place that knows the fence rules, and the story form check can reuse it later.
+      - Commits: 8dbbfd2 is the feature. 330214b is the refactor: both edges of a section's text are now trimmed with one helper (applied to the reversed list for the trailing edge) instead of a separate pop loop.
+      - The demo prints exactly the four expected outputs.
+      - Noticed but left alone: an info string after a backtick opening run may contain backticks under this rule. CommonMark forbids that, but the Interface does not ask for it.
+
+   `make check`: check: green
