@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 6
 blocked: null
 comments_seen: 0
@@ -183,3 +183,9 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
       - Noticed, not touched: the interface text names `git checkout -B`; `switch --force-create` is the same operation. A branch created from `origin/main` first tracks `origin/main` until its first push sets its own upstream. Criterion 25 (docs) is the documenter's.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–23 has a test named after it, and each test checks what its criterion says, using plain `git` through `run_git`/`remote_commit` rather than other `GitCli` methods. The Interface's rules all have their failing side tested: clone into a directory holding a file and clone of a missing url (2, 3); unknown branch or start point (7); an uncommitted edit that blocks checkout (8); nothing to commit, both clean and with only ignored files (13); rejection by non-fast-forward and by a `pre-receive` hook (15, 16); unreachable remote (17); any other push failure (18); `AFTER_PUSH` not reached after a rejection (21). The coder's entry reports `make check` green with 100 % coverage.
+      - Architecture: `PushOutcome` and `NothingToCommit` are in `domain`; the four operations are on the `Git` protocol in `application`; the implementation is in `GitCli` in `adapters`, and every git call still goes through `run_process`. The identity variables are set after the process and options environment and before the unchanged config isolation, so neither the environment nor the global config can override them. Tests follow the package layout. `HumanClone` and its test sit at the `tests/` root because they are outside the layers.
+      - Security: every argv is a list; no shell, no new suppression markers, no secrets.
+      - Quality: splitting `_run` (checks the exit status) from `_execute` (runs git and leaves the status to the caller) gives `push` a clean way to turn status into an outcome. Using `switch --force-create` instead of the Interface's `checkout -B` does the same thing, and the log records it. `--no-gpg-sign` and `--cleanup=verbatim` match criteria 10 and 11.
+      - Ticket hygiene: the log names the main decision and what was rejected. `Assignment` matches what was built, and criterion 25 still describes what the documenter has to write.
