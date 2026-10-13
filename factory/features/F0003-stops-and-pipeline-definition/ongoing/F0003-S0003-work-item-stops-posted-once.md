@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 42
 blocked: null
 comments_seen: 0
 round: 0
@@ -137,3 +137,10 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory/domain/stops.py` models, `factory/domain/post_texts.py`, `StopService.post` with its errors). Each behaviour in its comments (the description text, `opened` semantics, the key deciding repeats) has a criterion: 5, 9/10, 14 to 16.
+   - Criteria: each is testable by one test function. Each rule has both sides. Blank fields are rejected (1) and filled ones accepted (1). The branch must match (2). Positive integers are tested at 0, -1 and 1 (4). A set pull request number is not looked up (6, 7). An open pull request is reused (10) and a closed one is not (11). The branch check refuses when the branch is missing or at main's tip (12) and passes when it is beyond main (8, 9). A GitError is raised (22), as is a HostingServiceError (19, 20). The kill and restart cases are covered (17, 18).
+   - Demo: runnable as written, with a StubGit and None placeholders for the unused boundaries. The Expect line gives five concrete lines that can be compared with the output.
+   - Architecture: the DTOs and text are in the domain, the service is in the application and uses only the hosting and git interfaces from Boundaries. The service writes no state, which matches R22 and R27.
+   - Scope: within F0003's scope item 3 and decisions 5 to 8. The texts of individual stops and the handlers are left to F0005 to F0009.
+   No questions.
