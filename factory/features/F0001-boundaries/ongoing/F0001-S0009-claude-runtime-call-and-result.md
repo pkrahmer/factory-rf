@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 9
 blocked: null
 comments_seen: 2
@@ -246,3 +246,20 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
    One point for later, not a finding: the reviewer noted that a reply with a negative number would raise a raw `ValidationError` instead of returning `died`. I left it out of the docs because the Interface does not cover it, and S0010 can tighten it.
 
    `make check`: check: green
+9. demo: I ran the one Demo command from the repository root, exactly as written. It matched its `Expect:` line, so there are no findings.
+
+   Command 1 (the `uv run python -c` script: two stand-in executables, `good` and `bad`, each run through `ClaudeCodeRuntime(...).run` with an empty environment):
+
+   ```text
+   good completed doing 3 0.25 (10, 5)
+   bad died None None None None
+   ```
+
+   Exit status 0. This met the `Expect:` line: the two lines are exactly `good completed doing 3 0.25 (10, 5)` and then `bad died None None None None`.
+
+   Checked against the acceptance criteria:
+   - No criterion is contradicted.
+   - The `good` reply has a valid `structured_output`. It gives `completed` with the decision, `turns` 3, `cost_usd` 0.25 as a `Decimal`, and the input and output tokens (criteria 8 and 20). The demo prints only input and output, so the cache counts of 0 are not shown.
+   - The output that is not JSON gives `died`, with every measure `None` rather than 0 (criteria 10 and 12).
+   - Both stand-ins ran under an empty request environment, so no `PATH` was given, and the shebang's absolute interpreter path still started them (criterion 5).
+   - The other criteria (flags, files, time limit, kill point, errors) are outside what this command exercises. The tests cover them, as the earlier entries say.
