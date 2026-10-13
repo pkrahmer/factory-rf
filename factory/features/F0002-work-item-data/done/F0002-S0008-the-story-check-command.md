@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 35
 blocked: null
 comments_seen: 2
@@ -232,3 +232,4 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
    - Command 1 shows criterion 8 (`<path>: ok`, return 0) and criterion 9 (`<path>:<line>: <message>`, return 1, the line counted in the body).
    - Command 2 shows criteria 11 and 21 through the console script that `pyproject.toml` already declares.
    - I did not exercise the other criteria here. Tests cover them, as the tester's and the reviewer's entries record.
+10. done (pull request merged); cost: 7 runs, 7.2 min, 58 turns, 173k tokens in (1246k more from cache), 32k out, $2.00
