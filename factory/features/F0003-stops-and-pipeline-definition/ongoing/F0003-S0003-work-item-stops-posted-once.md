@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 42
 blocked: null
 comments_seen: 0
@@ -207,3 +207,12 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
 5. reviewer: Groups 1 to 3 pass. Criteria 1 to 22 each have a test that checks what the criterion says. Each rule in the Interface has its failing side tested: blank fields, a foreign branch, unknown fields, assignment, `pull_request` at -1, 0 and 1, a missing branch and a branch at main's tip, GitError, and both HostingServiceError paths. Criterion 6 checks for "no git call" by using a GitCli on a missing directory. Criterion 14 posts the second time with the recorded number instead of `None`. The repeat with `None` is covered by 17, 18 and 19, so I accept that. The coder's entry says `make check` is green. The layers hold: the application imports only from the domain and uses the `Git` and hosting interfaces through `Boundaries`. Nothing is silenced and there are no secrets. Group 4 has one finding:
 
    1. `src/factory/application/stops.py:24` (`StopService.__init__`): the docstring still says "Report through the log and the health status store of `boundaries`". `post` now also posts through `boundaries.hosting` and reads `boundaries.git`, so the docstring is wrong. The coder updated the class docstring for this reason but missed this one. Fix: reword it to cover the hosting service and git as well, e.g. "Report through the log, health status, hosting service and git of `boundaries`."
+6. coder: Round 1. Fixed the reviewer's one finding and nothing else.
+
+   - `src/factory/application/stops.py:24`: the docstring of `StopService.__init__` now reads "Report through the log, health status, hosting service and git of `boundaries`." It names every boundary the service uses, including the two that `post` uses. Commit 7fc337f.
+
+   Refactor: none needed. The change is a single docstring line.
+
+   `make check`: check: green
+
+   `make check`: check: green
