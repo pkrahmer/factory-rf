@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 28
 blocked: null
 comments_seen: 0
@@ -156,3 +156,23 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented criteria 1–16. `make check` is green: all tests pass and total coverage is 99.5 %. Commit 917668d.
+      - `src/factory/domain/identifiers.py`:
+        - adds `FEATURE_ID`, `STORY_ID`, `ACCEPTANCE_ID`, `FeatureId`, a `Slug` type (`[a-z0-9]+(-[a-z0-9]+)*`), and the frozen, extra-forbidding models `WorkItemFileName` and `FeatureDirectoryName`;
+        - adds `parse_work_item_file_name` and `parse_feature_directory_name`. They use `re.fullmatch`, so a trailing newline cannot slip through the way it can with `$`. They return None and never raise;
+        - adds `is_acceptance`, `feature_of`, `work_item_order` (feature, 0 or 1, id), `branch_name` and `work_item_of_branch`. Each function that takes an id checks it in the private `_checked` and raises `ValueError` if it is malformed;
+        - F0001's `WorkItemId` and `Name` are unchanged.
+      - `src/factory/domain/paths.py`: adds the constants from the Interface and `work_item_path`, `cost_records_path` (`ValueError` if the path does not end in `.md`) and `folder_of`. `folder_of` checks the exact shape `factory/features/<dir>/<folder>/<file>`, parses the directory and the file, and then accepts only a lifecycle folder. F0001's `REMOTE`, `MAIN_BRANCH` and `LABEL_PREFIX` are unchanged.
+      - Main decision: the Interface creates an import cycle. `branch_name` in identifiers needs `BRANCH_PREFIX` from paths, and `folder_of` in paths needs the parsers in identifiers. I made paths depend on identifiers only:
+        - `BRANCH_PREFIX = "work-item/"` is now defined in identifiers, with a comment saying why;
+        - paths exposes it as `BRANCH_PREFIX = identifiers.BRANCH_PREFIX`, so `from factory.domain.paths import BRANCH_PREFIX` works and has the stated value.
+      - Rejected alternatives:
+        - a deferred import inside `folder_of` (ruff PLC0415 refuses it);
+        - `import X as X` re-export (ruff PLC0414 refuses it);
+        - copying the id and slug regexes into paths (duplication).
+      - For the reviewer: the spec puts the definition of `BRANCH_PREFIX` in paths; it is in identifiers instead. If the human wants the definition in paths, the cycle has to be broken another way, for example by moving `folder_of`'s parsing into a third domain module.
+      - Refactor pass: I read the diff and found nothing to change. One duplication is deliberate: the private `_WORK_ITEM_ID` fragment repeats the body of `WorkItemId`'s pattern. I kept F0001's definition spelled exactly as it was rather than building it from the fragment.
+      - Both demo commands print the expected output.
+      - Noticed but not touched: nothing.
+
+   `make check`: check: green
