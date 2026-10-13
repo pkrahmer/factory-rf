@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 34
 blocked: null
 comments_seen: 2
@@ -8,7 +8,7 @@ attempts: 0
 ---
 # Cost record sidecar format
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 7)
 
 Build the cost record and the file it lives in: one JSON line per agent run, in a sidecar file beside the work item (`cost_records_path`), read and written by one reader class and one writer class (R15, R13). A record is created when an agent run starts (status `started`) and completed when it ends (status `completed`, with the end reason, duration and, when the runtime reported them, turns, tokens and cost). A measure the runtime did not report is unknown and is kept as `null`, never written as zero (R24); the cost is a JSON string so that no float can round it. Reading and writing are pure format work: when a record is created, completed or discarded, and how a bill is summed, belong to F0005. The story covers R15 (cost records as one JSON line each in a sidecar file) and R13 for this format, and keeps kept thing 20 (every agent run is measured and attributed to a work item and a stage). It uses `TokenCounts` and `EndReason` from `factory.domain.agent_runs` (F0001-S0008) and the ids of `factory.domain.identifiers` (`WorkItemId` and `Name`, built by F0001).
 
@@ -34,7 +34,7 @@ class CostRecord(BaseModel):
     attempt: NonNegativeInt
     status: Literal["started", "completed"]
     started_at: AwareDatetime
-    duration_seconds: NonNegativeFloat | None = None
+    duration_seconds: float | None = None     # not negative, finite
     end_reason: EndReason | None = None
     turns: NonNegativeInt | None = None
     tokens: TokenCounts | None = None
@@ -75,6 +75,7 @@ class JsonLinesCostRecordWriter(CostRecordWriter):
 
 - A `started` record has `duration_seconds`, `end_reason`, `turns`, `tokens` and `cost_usd` all `None`. A `completed` record has `duration_seconds` and `end_reason` set; its `turns`, `tokens` and `cost_usd` may be `None`, which means unknown.
 - `run` matches `^[0-9a-f]{32}$`.
+- `duration_seconds`, when set, is at least 0 and finite: `0.0` is a duration, `-0.1`, `float("inf")` and `float("nan")` are refused.
 - `cost_usd`, when set, is at least 0 and finite: `Decimal("0")` is a cost, `Decimal("-0.01")`, `Decimal("NaN")` and `Decimal("Infinity")` are refused (F0001 treats a negative cost from the runtime as a reply that does not parse).
 - The started/completed rule spans several fields, so it is a validation of the whole record and its error has no field location; `parse` reports it as `invalid record: <reason>`.
 - `ok` is true exactly when `status` is `completed` and `end_reason` is `completed`.
@@ -88,7 +89,7 @@ The file format. A line is one JSON object, without spaces after `,` and `:`. Th
 ```
 
 - `render(records)` writes one such line per record, in the order given, each ending with `\n`; the keys are in the order of the fields and the keys of `tokens` in the order of `TokenCounts`; an unknown value is `null`; `cost_usd` is the string of the `Decimal`; `render([])` is `""`. It raises `CostRecordFormatError` with the line number (counted from 1) of the second of two records that have the same `run` and the fault `duplicate run: <run>`.
-- `parse(text)` reads each line that is not blank as one record; blank lines are ignored but count in the line numbers. `run`, `work_item`, `stage`, `role`, `attempt`, `status` and `started_at` are required; the other keys may be absent and are then `None`. It raises `CostRecordFormatError` with the number of the offending line and a fault that is one of: `not valid JSON`; `not a JSON object`; `unknown key: <key>`; `missing key: <key>`; `invalid <key>: <reason>` for a bad value, where `<key>` names a key inside `tokens` after a dot (`tokens.extra`, `tokens.output`, `tokens.input`); or `invalid record: <reason>` for a rule that spans keys. A JSON number or boolean for `cost_usd` is an `invalid cost_usd` fault: the cost is a string or `null`; so is a string that is not a finite decimal number of at least 0. The lines are judged in file order and the first fault ends the parse. On one line the faults come in this order: not valid JSON, not a JSON object, unknown key, missing key, invalid value, invalid record; only a line without any of them can be a `duplicate run: <run>` (the second line with a `run` seen before).
+- `parse(text)` reads each line that is not blank as one record; blank lines are ignored but count in the line numbers. `run`, `work_item`, `stage`, `role`, `attempt`, `status` and `started_at` are required; the other keys may be absent and are then `None`. It raises `CostRecordFormatError` with the number of the offending line and a fault that is one of: `not valid JSON` (also for the non-standard constants `NaN`, `Infinity` and `-Infinity`); `not a JSON object`; `unknown key: <key>`; `missing key: <key>`; `invalid <key>: <reason>` for a bad value, where `<key>` names a key inside `tokens` after a dot (`tokens.extra`, `tokens.output`, `tokens.input`); or `invalid record: <reason>` for a rule that spans keys. A JSON number or boolean for `cost_usd` is an `invalid cost_usd` fault: the cost is a string or `null`; so is a string that is not a finite decimal number of at least 0. The lines are judged in file order and the first fault ends the parse. On one line the faults come in this order: not valid JSON, not a JSON object, unknown key, missing key, invalid value, invalid record; only a line without any of them can be a `duplicate run: <run>` (the second line with a `run` seen before).
 - `read(path)` is `parse` of the file read as UTF-8, and `[]` for a file that does not exist. `write(path, records)` writes the text of `render` as UTF-8 with `\n` line ends and replaces the file whole, an empty file for no records.
 
 Tests: `tests/domain/test_cost_records.py`, `tests/domain/test_cost_record_errors.py`, `tests/adapters/test_cost_records_jsonl.py`. A test builds a run id from one repeated hexadecimal digit (`"a" * 32`, `"b" * 32`, `"c" * 32`), not as random hexadecimal text, so `make secrets` finds nothing. A test that constructs a model with an unknown field does so through a variable typed `type[BaseModel]`, and one that assigns to a frozen field does so with `setattr` (`CLAUDE.md`, Tests).
@@ -98,7 +99,7 @@ Tests: `tests/domain/test_cost_records.py`, `tests/domain/test_cost_record_error
 1. `CostRecord` with `run="a" * 32`, a work item, stage, role, attempt 0, `status="started"` and a `started_at` is valid, and its `duration_seconds`, `end_reason`, `turns`, `tokens`, `cost_usd` and `image` are all `None`.
 2. A `started` record with any one of `duration_seconds`, `end_reason`, `turns`, `tokens` or `cost_usd` set raises `ValidationError`.
 3. A `completed` record without `duration_seconds`, or without `end_reason`, raises `ValidationError`; a `completed` record with `turns`, `tokens` and `cost_usd` all `None` is valid.
-4. `run` of 31 characters, of 33 characters and with an upper-case letter raises `ValidationError`; `attempt` accepts 0 and refuses -1; `duration_seconds` accepts 0.0 and refuses -0.1; a naive `started_at` is refused; a `started_at` with a UTC offset of two hours east (`timezone(timedelta(hours=2))`) is stored as the same instant in UTC; `work_item` `F0002-X0001`, `stage` `Tests` and `role` `Tester` are refused.
+4. `run` of 31 characters, of 33 characters and with an upper-case letter raises `ValidationError`; `attempt` accepts 0 and refuses -1; `duration_seconds` accepts 0.0 and refuses -0.1, `float('inf')` and `float('nan')`; a naive `started_at` is refused; a `started_at` with a UTC offset of two hours east (`timezone(timedelta(hours=2))`) is stored as the same instant in UTC; `work_item` `F0002-X0001`, `stage` `Tests` and `role` `Tester` are refused.
 5. `ok` is true only for `completed` with the end reason `completed`; it is false for `completed` with each of `no_result`, `time_limit`, `budget` and `died`, and for `started`.
 6. `CostRecord` is frozen and refuses an unknown field with `ValidationError` (constructed through a variable typed `type[BaseModel]`).
 7. A `completed` record accepts a `cost_usd` of `Decimal("0")` and `Decimal("0.3450")` and refuses `Decimal("-0.01")`, `Decimal("NaN")` and `Decimal("Infinity")` with `ValidationError`.
@@ -108,7 +109,7 @@ Tests: `tests/domain/test_cost_records.py`, `tests/domain/test_cost_record_error
 11. `parse(render(records))` equals `records` for a started record, a completed record with a cost of `Decimal("0.3450")` and tokens, and a `time_limit` record whose `turns`, `tokens` and `cost_usd` are unknown: the unknown values come back as `None`, not 0, and the cost keeps its digits.
 12. `parse` ignores blank and whitespace-only lines, and an error after a blank line reports the line number counted over all lines.
 13. `parse` of a started line that holds only the seven required keys returns a started record whose other fields are `None`, and `parse` of a completed line that adds `duration_seconds` and `end_reason` but not `turns`, `tokens`, `cost_usd` and `image` returns a record whose `turns`, `tokens`, `cost_usd` and `image` are `None`, not 0.
-14. `parse` raises `CostRecordFormatError` with the right line number for each of: a line that is not JSON (`not valid JSON`), a JSON list (`not a JSON object`), an extra key (`unknown key: extra`) and an extra key in `tokens` (`unknown key: tokens.extra`), an absent `run` (`missing key: run`), `status` `done` (a fault starting with `invalid status`), `turns` of -1 (a fault starting with `invalid turns`), `tokens` with `input` of -1 (a fault starting with `invalid tokens.input`), `tokens` without `output` (`missing key: tokens.output`), `cost_usd` given as the JSON number 0.34, as `true`, as the string `"abc"` and as the string `"-0.01"` (each a fault starting with `invalid cost_usd`), and a started record with a `cost_usd` (a fault starting with `invalid record:`).
+14. `parse` raises `CostRecordFormatError` with the right line number for each of: a line that is not JSON (`not valid JSON`), a line with `"duration_seconds":Infinity` (`not valid JSON`), a JSON list (`not a JSON object`), an extra key (`unknown key: extra`) and an extra key in `tokens` (`unknown key: tokens.extra`), an absent `run` (`missing key: run`), `status` `done` (a fault starting with `invalid status`), `turns` of -1 (a fault starting with `invalid turns`), `tokens` with `input` of -1 (a fault starting with `invalid tokens.input`), `tokens` without `output` (`missing key: tokens.output`), `cost_usd` given as the JSON number 0.34, as `true`, as the string `"abc"` and as the string `"-0.01"` (each a fault starting with `invalid cost_usd`), and a started record with a `cost_usd` (a fault starting with `invalid record:`).
 15. On one line the faults come in a fixed order: a line with an extra key and no `run` gives `unknown key: extra`, a line with no `run` and `turns` of -1 gives `missing key: run`, and a line with `turns` of -1 on a started record that also has a `cost_usd` gives a fault starting with `invalid turns`; with a bad second line and a bad third line the fault is the second line's.
 16. `parse` of two lines with the same `run` raises `CostRecordFormatError` with the number of the second line and the fault `duplicate run: ` followed by the run.
 17. `read(path)` returns `[]` for a file that does not exist, the parsed records for a file in `tmp_path`, and raises `CostRecordFormatError` with the line number for a file with a broken line.
@@ -220,3 +221,19 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
 
    If you choose A (or B), I will end with `tests` and name the test changes so the tester adds them, then implement the domain change.
 7. human (pull request comment, 2026-10-13): A: make `duration_seconds` finite in the domain with `Field(ge=0, allow_inf_nan=False)`, as `cost_usd` already is (F0002's cost rule: a measure is unknown or a finite value of at least 0). Change criterion 4 to "`duration_seconds` accepts 0.0 and refuses -0.1, `float('inf')` and `float('nan')`", and add to criterion 14 that a line with `"duration_seconds":Infinity` gives `not valid JSON`. End with `tests` and name the two test changes; the tester adds them, then implement the domain change. Your reader change (`parse_constant` that raises) stays.
+8. coder: coder (round 1): applied the human's answer (option A) to the ticket. The two test changes go to the tester first; I make the domain change once they are in.
+
+   Test changes for the tester:
+   1. `tests/domain/test_cost_records.py::test_record_fields_keep_their_limits`: add refused cases for `duration_seconds` of `float('inf')` and `float('nan')`, next to the existing case that accepts 0.0 and refuses -0.1. This follows the new criterion 4.
+   2. `tests/adapters/test_cost_records_jsonl.py::test_parse_names_a_broken_line_and_its_fault`: add a case where line 2 holds `"duration_seconds":Infinity` and the expected fault is exactly `not valid JSON`. This follows the extended criterion 14.
+
+   Ticket edits (`## Assignment`, now "as of log entry 7"):
+   - Interface: `duration_seconds` is now `float | None`, commented as not negative and finite.
+   - A new rule: `duration_seconds`, when set, is at least 0 and finite.
+   - The `parse` fault list says that the constants `NaN`, `Infinity` and `-Infinity` give `not valid JSON`.
+   - Criteria 4 and 14 are reworded as the human gave them.
+
+   Still open for my next run:
+   - In `src/factory/domain/cost_records.py`, change `duration_seconds` to `Field(ge=0, allow_inf_nan=False)`, the same as `cost_usd`.
+   - The reader change from dfd95fb (a `parse_constant` that raises) stays as it is.
+   - I did not run `make check` in this run because no code changed.
