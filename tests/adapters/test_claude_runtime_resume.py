@@ -389,3 +389,43 @@ def test_version_query_sees_the_processes_environment(
 
 def test_claude_runtime_inherits_the_agent_runtime_interface() -> None:
     assert issubclass(ClaudeCodeRuntime, AgentRuntime)
+
+
+def test_measures_only_the_first_call_reported_are_kept(tmp_path: Path) -> None:
+    first = _budget_reply(
+        num_turns=5, total_cost_usd=3.0, usage={"input_tokens": 10, "output_tokens": 5}
+    )
+    second = _without(_reply(), "num_turns", "total_cost_usd", "usage")
+    steps = [Step(stdout=first), Step(stdout=second)]
+
+    result = _runtime(tmp_path, steps).run(_request(tmp_path))
+
+    assert result.end_reason == "completed"
+    assert result.turns == 5
+    assert result.cost_usd == Decimal("3.0")
+    assert result.tokens == TokenCounts(input=10, output=5, cache_read=0, cache_creation=0)
+
+
+def test_measures_only_the_resumed_call_reported_are_taken(tmp_path: Path) -> None:
+    first = _without(_budget_reply(), "num_turns", "total_cost_usd", "usage")
+    second = _reply(num_turns=2, total_cost_usd=0.5, usage={"input_tokens": 4, "output_tokens": 1})
+    steps = [Step(stdout=first), Step(stdout=second)]
+
+    result = _runtime(tmp_path, steps).run(_request(tmp_path))
+
+    assert result.end_reason == "completed"
+    assert result.turns == 2
+    assert result.cost_usd == Decimal("0.5")
+    assert result.tokens == TokenCounts(input=4, output=1, cache_read=0, cache_creation=0)
+
+
+def test_budget_stop_with_a_negative_measure_died_and_is_not_resumed(tmp_path: Path) -> None:
+    steps = [Step(stdout=_budget_reply(num_turns=-1)), Step(stdout=_reply())]
+
+    result = _runtime(tmp_path, steps).run(_request(tmp_path))
+
+    assert result.end_reason == "died"
+    assert result.turns is None
+    assert result.tokens is None
+    assert result.cost_usd is None
+    assert len(_calls(tmp_path)) == 1
