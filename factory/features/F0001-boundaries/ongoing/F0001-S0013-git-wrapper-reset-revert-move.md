@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 13
 blocked: null
 comments_seen: 0
 round: 0
@@ -83,3 +83,9 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names `src/factory/application/git.py` and the three signatures (`reset_to`, `revert_paths`, `move`) with concrete rules for each, plus the exact list of nineteen operations. Nothing is left to the coder's choice.
+   - Criteria: 1-11 are each testable by one test function. Every rule has its failing side. An unknown ref is criterion 3, which also checks that nothing changed. Unsafe paths are criterion 7, including that no path is changed. An unknown commit is criterion 8. A move with an untracked source or an existing destination is criterion 10. The passing side of the path rule is covered by `docs/a.txt` in criterion 7. Criterion 11 covers the protocol/`GitCli` match. Criteria 12 (`make check`) and 13 (`docs:`) close the list.
+   - Demo: the script uses only `GitCli`, `run_process` and `ProcessRequest`, so it can run. Its `Expect:` gives the three output lines (`False base`, `base`, `True False`), which can be checked exactly.
+   - Architecture: the `Git` protocol is in the application layer and `GitCli` is in the adapters layer. Git is reached only through the wrapper. Inputs are plain strings and sequences, with no `dict[str, Any]`.
+   - Scope: reset/clean, revert and move are listed in F0001's scope, and none of this is in "Out of scope". The rules for what to revert stay with F0004. The criterion-11 operations from S0011 are named in the Assignment.
