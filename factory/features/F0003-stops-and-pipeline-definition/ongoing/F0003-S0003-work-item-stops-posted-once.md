@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 42
 blocked: null
 comments_seen: 0
@@ -237,3 +237,22 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
    No findings for the coder. The docstrings and the Interface match the code. I saw nothing stale that is unrelated to this story.
 
    `make check`: check: green
+9. demo: I ran the single Demo command from the repository root exactly as written. It exited with 0 and its output matches the `Expect:` line. No findings.
+
+   Command 1 (`uv run python -c "…"`: post a stop twice on the fake hosting service, then kill it at `AFTER_POST` and post again after the restart):
+   ```
+   True posted already_posted
+   1 True work-item/F0001-S0001
+   1 True
+   killed at after-post
+   already_posted 1 1
+   ```
+   Expect: five lines, `True posted already_posted`, `1 True work-item/F0001-S0001`, `1 True`, `killed at after-post`, `already_posted 1 1`. **Met**: all five lines match exactly.
+
+   Checked against the acceptance criteria:
+   - The first post with `pull_request=None` opened exactly one draft pull request on the stop's branch and posted on it with `opened=True` (criteria 8 and 9).
+   - The repeat posted nothing (criterion 14).
+   - The one factory post carries the stop's key (criterion 13).
+   - After the kill at `AFTER_POST`, the restarted post returned `already_posted`. One pull request and one post remain (criteria 17 and 18).
+
+   Nothing in the demo goes against any other criterion. The demo does not exercise the branch check (criterion 12). `StubGit` always reports a commit beyond main, so only the passing side of the check runs. That side's result is as the criteria require. The refusing side is covered by the tests listed in entry 3.
