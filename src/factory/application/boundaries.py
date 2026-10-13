@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from factory.application.agent_runtime import AgentRuntime
+from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
 from factory.application.files import (
     CostRecordReader,
     CostRecordWriter,
@@ -31,6 +31,7 @@ class Boundaries:
     cost_reader: CostRecordReader
     cost_writer: CostRecordWriter
     pipeline_reader: PipelineDefinitionReader
+    agent_definitions: AgentDefinitionReader
     clock: Clock
     log: FactoryLog
     health: HealthStatusStore

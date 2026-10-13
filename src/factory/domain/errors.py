@@ -105,3 +105,31 @@ class PipelineDefinitionInvalid(FactoryError):
         """Name the fault; it is the whole message."""
         super().__init__(fault)
         self.fault = fault
+
+
+class AgentDefinitionError(FactoryError):
+    """The agent files cannot be read: the agent's name, `""` for all of them, and the fault."""
+
+    name: str
+    fault: str
+
+    def __init__(self, name: str, fault: str) -> None:
+        """Name the agent and the fault."""
+        super().__init__(f"agent {name}: {fault}" if name else fault)
+        self.name = name
+        self.fault = fault
+
+
+class AgentDefinitionMissing(AgentDefinitionError):
+    """No agent of that name is installed."""
+
+
+class AgentDefinitionInvalid(AgentDefinitionError):
+    """The agent file exists but does not define an agent: the key at fault, `""` for the file."""
+
+    key: str
+
+    def __init__(self, name: str, fault: str, key: str) -> None:
+        """Name the agent, the fault and the key it concerns."""
+        super().__init__(name, fault)
+        self.key = key

@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
 
 
 class AgentRuntime(ABC):
@@ -19,3 +19,19 @@ class AgentRuntime(ABC):
     @abstractmethod
     def version(self) -> str:
         """The version of the runtime, as it reports it."""
+
+
+class AgentDefinitionReader(ABC):
+    """Tells which agents are installed and reads one into its definition."""
+
+    @abstractmethod
+    def names(self) -> list[str]:
+        """The names of the installed agents, sorted; `AgentDefinitionError` without any."""
+
+    @abstractmethod
+    def read(self, name: str) -> AgentDefinition:
+        """The definition of the agent `name`.
+
+        `AgentDefinitionMissing` when no such agent is installed, `AgentDefinitionInvalid`
+        when its file does not define an agent.
+        """

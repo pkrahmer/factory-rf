@@ -46,6 +46,11 @@ def all_faults(validation_error: ValidationError, whole: str) -> list[str]:
     return [_fault(error, whole) for error in ranked]
 
 
+def first_error(validation_error: ValidationError) -> ErrorDetails:
+    """The error behind the first fault of `all_faults`."""
+    return min(validation_error.errors(), key=_rank)
+
+
 def first_fault(validation_error: ValidationError, whole: str) -> str:
     """The first fault of `all_faults`."""
-    return all_faults(validation_error, whole)[0]
+    return _fault(first_error(validation_error), whole)
