@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 34
 blocked: null
 comments_seen: 2
@@ -279,3 +279,20 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
     - Stale but untouched: none seen.
 
     `make check`: check: green
+13. demo: Demo round 1: I ran both `## Demo` commands from the repository root exactly as written. Both exited 0 and both matched their `Expect:` lines. No findings.
+
+    Command 1 (render three records, then parse them back):
+    ```
+    3 ['run', 'work_item', 'stage', 'role', 'attempt', 'status', 'started_at', 'duration_seconds', 'end_reason', 'turns', 'tokens', 'cost_usd', 'image']
+    0.3450 {'input': 12, 'output': 3438, 'cache_read': 0, 'cache_creation': 0}
+    True None None None False
+    ```
+    Met its Expect. There are three lines, all 13 keys appear in the documented order, and the cost is the string `0.3450` with its digits kept. The `time_limit` run comes back with turns, tokens and cost as `None` (not 0), and `ok` is False.
+
+    Command 2 (parse a broken line that follows a blank line):
+    ```
+    2 not valid JSON | line 2: not valid JSON
+    ```
+    Met its Expect: the blank first line counts toward the line number.
+
+    Checked against the criteria: nothing in the output contradicts criteria 1–19. As an extra check outside the demo, I rendered one started record on its own. It gives the same line as example line 2 of the ticket (`started_at` `2026-10-12T00:00:00Z` in the `Z` form, every unknown measure `null`), which agrees with criterion 9. I did not run `make check` myself (criterion 20); the factory runs it after this stage. Nothing is open.
