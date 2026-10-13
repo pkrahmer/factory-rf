@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 33
 blocked: null
 comments_seen: 0
@@ -199,3 +199,4 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
     - Command 1 gives no journal finding when the `Journal` section is missing, which fits criteria 15 and 16.
     - Command 1 gives no front-matter finding with no ignored keys (criterion 13).
     - Command 2 shows that rule 8 fires only for a started folder (criterion 14). It also shows that an empty form requires no sections (criterion 4).
+12. done (pull request merged); cost: 10 runs, 10.1 min, 66 turns, 188k tokens in (1052k more from cache), 38k out, $2.22
