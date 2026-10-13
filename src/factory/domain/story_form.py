@@ -35,8 +35,6 @@ class FormFinding(BaseModel):
 
 
 class _Item(BaseModel):
-    """A numbered item at column 0: its number and the range of lines it covers."""
-
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     number: int
@@ -45,8 +43,6 @@ class _Item(BaseModel):
 
 
 class _Body(BaseModel):
-    """A body split into lines, with its sections and the lines outside the fenced blocks."""
-
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     text: str
