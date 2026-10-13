@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 34
 blocked: null
 comments_seen: 2
@@ -247,3 +247,12 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
 
    `make lint`: lint: green
    `make test`: FAILED tests/domain/test_cost_records.py::test_record_fields_keep_their_limits[duration_seconds-inf-False]
+10. coder: coder (round 1): made the domain change the human chose in entry 7 (option A). `make check` is green.
+
+    - Built (e80288e): `src/factory/domain/cost_records.py` now has a `Duration` alias, `Annotated[float, Field(ge=0, allow_inf_nan=False)]`, which follows the existing `Cost` alias. `duration_seconds` is now `Duration | None` and no longer `NonNegativeFloat | None`. A record can therefore no longer hold `inf` or `nan`, and every record `render` writes is strict JSON. This makes the tester's red case `test_record_fields_keep_their_limits[duration_seconds-inf-False]` pass.
+    - Reader: the `parse_constant` that raises (dfd95fb) is unchanged. It is what makes `"duration_seconds":Infinity` give `not valid JSON` (criterion 14).
+    - Rejected: option B, rendering with `allow_nan=False` and adding a second `render` fault. The human chose A.
+    - Refactor: the diff is two lines plus a removed import, so nothing needed changing.
+    - Not touched: the docs criterion (21) is left to the documenter.
+
+    `make check`: check: green
