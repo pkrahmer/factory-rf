@@ -1,9 +1,11 @@
 """Fixtures shared by the whole test suite."""
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -48,3 +50,9 @@ def checkout(tmp_path: Path, remote: Path, kill_points: KillPoints) -> GitCli:
 def human(tmp_path: Path, remote: Path) -> HumanClone:
     """Return the human's own clone of `remote`, at `tmp_path / "human"`."""
     return HumanClone(tmp_path / "human", remote)
+
+
+@pytest.fixture
+def clock() -> ManualClock:
+    """Return a manual clock started at noon UTC on 2026-10-12."""
+    return ManualClock(datetime(2026, 10, 12, 12, 0, tzinfo=UTC))

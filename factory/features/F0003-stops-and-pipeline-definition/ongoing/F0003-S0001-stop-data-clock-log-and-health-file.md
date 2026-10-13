@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 40
 blocked: null
 comments_seen: 0
@@ -163,3 +163,35 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
    - Demo: it is runnable. It prints six lines (three log lines and three prints), and each `Expect:` line can be checked against the output.
    - Architecture: models are in domain, ABCs in application, implementations in adapters, and each implementation inherits its interface (24). Nothing is wired here, which matches the assignment.
    - Scope: the story is inside F0003 (S0001, ST3.4, R27) and touches nothing under "Out of scope". `StopService` and `Boundaries` are left to S0002.
+3. tester: I wrote red tests for criteria 1–24. Criterion 25 is `make check` and criterion 26 is docs, so neither gets a test.
+      - criterion 1: tests/domain/test_stops.py::test_a_blank_detail_is_rejected (cases: empty, whitespace only, `x` accepted)
+      - criterion 2: tests/domain/test_stops.py::test_each_reason_is_accepted_with_its_scope (all seven reasons)
+      - criterion 3: tests/domain/test_stops.py::test_each_reason_is_rejected_with_the_other_scope (all seven reasons)
+      - criterion 4: tests/domain/test_stops.py::test_an_unknown_reason_is_rejected (`other` and the empty text)
+      - criterion 5: tests/domain/test_stops.py::test_a_naive_time_is_rejected
+      - criterion 6: tests/domain/test_stops.py::test_an_aware_time_is_stored_as_the_same_instant_in_utc
+      - criterion 7: tests/domain/test_stops.py::test_both_models_reject_an_unknown_field (through variables typed `type[BaseModel]`)
+      - criterion 8: tests/domain/test_stops.py::test_a_field_cannot_be_assigned (uses `setattr`; one case per model)
+      - criterion 9: tests/domain/test_stops.py::test_a_status_is_healthy_exactly_when_it_holds_no_stop
+      - criterion 10: tests/domain/test_stops.py::test_a_status_holds_at_most_one_stop_per_reason
+      - criterion 11: tests/adapters/test_clock.py::test_the_clocks_tell_aware_utc_time
+      - criterion 12: tests/adapters/test_clock.py::test_a_manual_clock_refuses_a_naive_start
+      - criterion 13: tests/adapters/test_factory_log.py::test_a_line_is_stamped_with_whole_utc_seconds (clock at 12:00:07.987654 UTC; expects exactly `2026-10-12T12:00:07Z hello\n`)
+      - criterion 14: tests/adapters/test_factory_log.py::test_a_clock_east_of_utc_is_stamped_in_utc (a small `Clock` subclass at +02:00)
+      - criterion 15: tests/adapters/test_factory_log.py::test_lines_are_appended_to_the_file_in_order
+      - criterion 16: tests/adapters/test_factory_log.py::test_a_text_of_several_lines_writes_each_with_one_stamp
+      - criterion 17: tests/adapters/test_factory_log.py::test_an_empty_text_and_a_trailing_newline_each_write_one_line
+      - criterion 18: tests/adapters/test_health_file.py::test_the_log_and_the_health_file_create_missing_parent_directories
+      - criterion 19: tests/adapters/test_health_file.py::test_a_path_below_a_regular_file_fails_the_write_after_standard_output
+      - criterion 20: tests/adapters/test_health_file.py::test_a_written_status_reads_back_equal_in_order (three stops, order checked)
+      - criterion 21: tests/adapters/test_health_file.py::test_a_missing_file_reads_as_healthy
+      - criterion 22: tests/adapters/test_health_file.py::test_a_damaged_file_reads_as_healthy_and_is_replaced_by_the_next_write (five cases; the directory case tries no write)
+      - criterion 23: tests/adapters/test_health_file.py::test_a_write_leaves_only_the_health_file_in_its_directory (two writes, then the directory is listed)
+      - criterion 24: tests/application/test_machine.py::test_each_machine_interface_is_an_abstract_base_class_of_its_operations (one case per interface; covers ABC, the exact abstract methods, a docstring-only body checked with ast, instantiation raises TypeError through a variable typed `type[object]`, and which classes inherit each interface)
+
+      Files: I created tests/domain/test_stops.py, tests/application/test_machine.py, tests/adapters/test_clock.py, tests/adapters/test_factory_log.py and tests/adapters/test_health_file.py. tests/conftest.py now has the `clock` fixture, a `ManualClock` at `datetime(2026, 10, 12, 12, 0, tzinfo=UTC)`.
+
+      Red: the test run cannot import `factory.adapters.clock`, `factory.adapters.factory_log`, `factory.adapters.health_file`, `factory.application.machine` or `factory.domain.stops`. Because conftest imports `ManualClock` at the top, the whole suite stops at the conftest ImportError until `factory.adapters.clock` exists. That is the expected red. `make lint` passes. I skipped the type check, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.clock'
