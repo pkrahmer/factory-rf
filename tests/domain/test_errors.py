@@ -1,6 +1,7 @@
 """The root of the factory's error hierarchy."""
 
 from factory.domain.errors import (
+    AgentRuntimeError,
     BoundaryError,
     FactoryError,
     FetchFailed,
@@ -55,3 +56,11 @@ def test_project_command_error_names_command_and_detail() -> None:
     assert error.detail == "boom"
     assert str(error) == "project command check failed: boom"
     assert issubclass(ProjectCommandError, BoundaryError)
+
+
+def test_agent_runtime_error_names_its_detail() -> None:
+    error = AgentRuntimeError("boom")
+
+    assert error.detail == "boom"
+    assert str(error) == "agent runtime failed: boom"
+    assert issubclass(AgentRuntimeError, BoundaryError)

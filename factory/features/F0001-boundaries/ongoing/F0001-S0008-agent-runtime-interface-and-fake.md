@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 8
 blocked: null
 comments_seen: 0
@@ -193,3 +193,37 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
    - Demo: both commands are runnable with the imports given. Each `Expect:` line is checkable (`True doing x = 1 1` and `rejected: True`).
    - Architecture: matches CLAUDE.md (R5 to R7, R12), with no concrete tool in the application layer, no `dict[str, Any]` across a boundary, and the fake as a structural fit.
    - Scope: inside F0001's scope (the agent-runtime interface, its DTOs and the fake). The `claude -p` implementation and the guard hook are left to S0009, S0010 and F0004.
+3. tester: Wrote red tests for every criterion. Criteria 25 and 26 are left to make check and the documenter.
+   - criterion 1: tests/domain/test_agent_runs.py::test_question_and_the_five_end_reasons
+   - criterion 2: tests/domain/test_name.py::test_name_accepts_lower_case_hyphenated_words_only (parametrized: coder, smoke-tester accepted; Coder, 1x, "a b", "" rejected)
+   - criterion 3: tests/domain/test_agent_runs.py::test_agent_budget_must_be_positive (0.01 / 0 / -1) and ::test_agent_name_must_be_a_name
+   - criterion 4: tests/domain/test_agent_runs.py::test_minimal_request_has_empty_defaults_not_shared
+   - criterion 5: tests/domain/test_agent_runs.py::test_allowed_decisions_without_question_are_rejected ([] and ["doing"], error text contains "question") and ::test_allowed_decisions_with_question_are_accepted
+   - criterion 6: tests/domain/test_agent_runs.py::test_allowed_decisions_with_a_repeat_are_rejected
+   - criterion 7: tests/domain/test_agent_runs.py::test_time_limit_must_be_positive
+   - criterion 8: tests/domain/test_agent_runs.py::test_working_directory_must_be_absolute
+   - criterion 9: tests/domain/test_agent_runs.py::test_guard_root_must_be_absolute_and_paths_are_kept
+   - criterion 10: tests/domain/test_agent_runs.py::test_token_counts_reject_negative_counts (each field, 0 accepted, -1 rejected) and ::test_token_counts_default_cache_counts_to_zero
+   - criterion 11: tests/domain/test_agent_runs.py::test_completed_result_needs_decision_and_entry
+   - criterion 12: tests/domain/test_agent_runs.py::test_other_end_reasons_carry_no_decision_or_entry (one case per reason)
+   - criterion 13: tests/domain/test_agent_runs.py::test_unreported_measures_are_none_and_ok_only_when_completed (all five reasons)
+   - criterion 14: tests/domain/test_agent_runs.py::test_models_forbid_unknown_keys_and_are_frozen (the six domain models) and tests/adapters/test_fake_agent_runtime.py::test_scripted_run_forbids_unknown_keys_and_is_frozen. ScriptedRun is tested in the adapters folder so that the domain tests do not import an adapter.
+   - criterion 15: tests/adapters/test_fake_agent_runtime.py::test_runs_return_queued_results_in_order_and_record_requests
+   - criterion 16: tests/adapters/test_fake_agent_runtime.py::test_writes_create_and_replace_files_and_deletes_remove_them (the second run replaces the file and deletes the already-missing old.txt)
+   - criterion 17: tests/adapters/test_fake_agent_runtime.py::test_paths_outside_the_working_directory_raise_before_any_change (four cases: write ../escape.txt, write an absolute path, delete ../x, delete an absolute path; each also has a valid write and a valid delete, which must not take effect)
+   - criterion 18: tests/adapters/test_fake_agent_runtime.py::test_run_with_nothing_queued_raises_and_records_the_request
+   - criterion 19: tests/adapters/test_fake_agent_runtime.py::test_armed_agent_run_kills_after_the_writes
+   - criterion 20: tests/adapters/test_fake_agent_runtime.py::test_agent_run_point_is_reached_only_when_the_run_asks_for_it
+   - criterion 21: tests/adapters/test_fake_agent_runtime.py::test_runtime_without_kill_points_ignores_kill
+   - criterion 22: tests/adapters/test_fake_agent_runtime.py::test_version_is_the_one_given_at_construction
+   - criterion 23: tests/domain/test_errors.py::test_agent_runtime_error_names_its_detail (new test; the only change to existing code is the added import)
+   - criterion 24: tests/adapters/test_fake_agent_runtime.py::test_fake_fits_the_agent_runtime_protocol_without_inheriting (assigns to a variable annotated `AgentRuntime` and checks that `AgentRuntime` is not in the MRO)
+
+   Files created: tests/domain/test_agent_runs.py, tests/domain/test_name.py, tests/adapters/test_fake_agent_runtime.py. Files extended: tests/domain/test_errors.py (one import and one new test) and tests/conftest.py (the `agent_runtime` fixture, `FakeAgentRuntime(kill_points)`, plus its import).
+
+   Test run: red, as intended. Loading conftest fails with `ModuleNotFoundError: No module named 'factory.adapters.fake_agent_runtime'`, so the whole suite stays down until that module exists. This is expected because the ticket puts the fixture in conftest. The other modules that are not there yet are factory.domain.agent_runs, factory.application.agent_runtime, `Name` in factory.domain.identifiers and `AgentRuntimeError` in factory.domain.errors.
+
+   make lint: green. Type check skipped in this stage, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.fake_agent_runtime'
