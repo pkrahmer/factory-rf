@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 6
 blocked: null
 comments_seen: 0
@@ -175,3 +175,11 @@ Expect: four lines: `first pushed`, `second rejected`, `nothing to commit`, `Tru
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented clone, checkout, commit and push on the git wrapper; make check green (coverage 100 %), demo prints the four expected lines. No test changed.
+      - src/factory/domain/git.py: `PushOutcome`; src/factory/domain/errors.py: `NothingToCommit(GitError)`; src/factory/application/git.py: the four operations on `Git` with docstrings.
+      - src/factory/adapters/git_cli.py: `clone` creates missing parents and runs `git clone <url> <dir>` from the parent (git itself refuses a non-empty directory → `GitError`). `checkout` uses `git switch` (no path ambiguity, DWIM creates a branch that exists only on `origin`) and `git switch --force-create <branch> <start>` for a start point, the equivalent of `checkout -B`. `commit` runs `add --all`, then `diff --cached --quiet` → `NothingToCommit` when nothing is staged, else `commit --cleanup=verbatim --no-gpg-sign --message`, returning `HEAD`. `push` reaches BEFORE_PUSH, runs `push --porcelain --set-upstream origin <branch>`; exit 0 → `pushed` + AFTER_PUSH; a `!` ref line → `rejected`; exit 128 with one of the four markers → `unreachable`; else `GitError`. The environment sets GIT_AUTHOR_*/GIT_COMMITTER_* from the options' identity after the process and options environment, before the unchanged config isolation.
+      - Design: split the old `_run` into `_execute` (runs git, raises only when git never finished) and `_run` (checks the exit status), plus a `cwd` override for clone; push reads its outcome from `_execute`. Rejected: an "accept any status" flag on `_run`, which blurs its contract.
+      - Refactor pass: read the diff as a reviewer; nothing to change, so no refactor commit.
+      - Noticed, not touched: the interface text names `git checkout -B`; `switch --force-create` is the same operation. A branch created from `origin/main` first tracks `origin/main` until its first push sets its own upstream. Criterion 25 (docs) is the documenter's.
+
+   `make check`: check: green
