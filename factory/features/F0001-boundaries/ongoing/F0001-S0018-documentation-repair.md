@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 20
 blocked: null
 comments_seen: 0
 round: 0
@@ -48,3 +48,10 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: "None: documentation only". There is no comment stating behaviour and no rule with a failing side, so steps 3's requirements are vacuous.
+   - Criteria: 1 to 5 each name one file and one checkable wording change (the stale phrases can be found with grep, and the replacements are named). 6 and 7 are the two closing criteria. 7 is open-ended ("anything else F0001 left stale"), but it is the documenter's standing docs criterion and not a build decision.
+   - Demo: one runnable grep line. Its Expect line is checkable: three lines, each `0`, and the exit status 1 is explained.
+   - Architecture: no code, layers or dependencies change. Only `README.md` and `docs/` are touched, and the documenter's lane covers them.
+   - Scope: documentation repair across F0001's stories, listed as S0018 in FEATURE.md. Decision 21 says the repair runs through the pipeline. It is not in "Out of scope".
+   - Note for the next stage: the assignment says there is nothing for the tester and coder to build.
