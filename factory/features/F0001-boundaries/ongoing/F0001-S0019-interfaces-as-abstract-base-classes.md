@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 16
 blocked: null
 comments_seen: 0
@@ -141,3 +141,11 @@ Expect: one line, `True True True True True True`.
       Not touched: `docs/project-guide.md` and `docs/decisions.md`, which are criterion 16 and belong to the documenter stage. `CLAUDE.md` already states the decision.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   - Criteria: each of criteria 1–14 has a test that checks what the criterion says. Criteria 1, 2, 5, 6 and 7 are parametrized over all four interfaces in tests/application/test_interfaces.py. Criteria 3 and 4 use set equality against the OPERATIONS of test_git_protocol.py and test_hosting_protocol.py, and criterion 4 also checks the pinned return types through get_type_hints. Criterion 8 covers both sides: an incomplete subclass raises TypeError when called through a `Callable[[], object]`, and a complete one is constructed. Criteria 9, 10 and 12 check both subclass and instance and use the fixtures the criteria name. Criterion 13 is an ast search for `not in` against `__mro__`. Criterion 14 now skips classes whose base is `ABC` and expects exactly {FakeHostingService, PyGithubHostingService}. The coder's entry says `make check` was green.
+   - Rules on the failing side: instantiating an interface (7) and an incomplete subclass (8) are both tested. The Interface's "no state / no other public member" rule is tested through criterion 5's public-member check.
+   - Architecture: the four interfaces in factory.application derive from `abc.ABC`, every operation is `@abstractmethod` and its body is the docstring alone. The six adapters inherit their interface and import it from factory.application, so the direction adapters → application holds. No `typing.Protocol` is left anywhere in src or tests outside the new test's search strings. Signatures, docstrings and constructors are unchanged.
+   - Security: no subprocess, string-built commands, secrets or suppression markers added.
+   - Quality: the diff is mechanical. The rewritten tests drop the now-unused `STRUCTURAL_FIT` and the `tmp_path` parameter, and leave no dead code.
+   - Ticket hygiene: the Assignment matches what was built. The coder's entry gives the main decision (base class and decorator only) and what was rejected (shared helpers on the interfaces). Criterion 16 still describes what the documenter has to write in docs/project-guide.md and docs/decisions.md.
