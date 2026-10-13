@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 34
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -219,3 +219,4 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
      B. Leave the type alone and render with `allow_nan=False`, so `render` raises `CostRecordFormatError(line, "not valid JSON")` for such a record. This adds a second fault to `render` beyond `duplicate run`, and the record itself can still hold a value that cannot be written to the file.
 
    If you choose A (or B), I will end with `tests` and name the test changes so the tester adds them, then implement the domain change.
+7. human (pull request comment, 2026-10-13): A: make `duration_seconds` finite in the domain with `Field(ge=0, allow_inf_nan=False)`, as `cost_usd` already is (F0002's cost rule: a measure is unknown or a finite value of at least 0). Change criterion 4 to "`duration_seconds` accepts 0.0 and refuses -0.1, `float('inf')` and `float('nan')`", and add to criterion 14 that a line with `"duration_seconds":Infinity` gives `not valid JSON`. End with `tests` and name the two test changes; the tester adds them, then implement the domain change. Your reader change (`parse_constant` that raises) stays.
