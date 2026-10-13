@@ -6,7 +6,13 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.git import GIT_TIME_LIMIT, GitIdentity, GitOptions, check_git_argument
+from factory.domain.git import (
+    GIT_TIME_LIMIT,
+    GitIdentity,
+    GitOptions,
+    check_branch_name,
+    check_git_argument,
+)
 
 
 def test_git_time_limit_is_five_minutes() -> None:
@@ -61,3 +67,16 @@ def test_git_argument_that_is_empty_or_starts_with_a_dash_is_refused(value: str)
 )
 def test_git_argument_that_is_a_ref_branch_or_url_is_accepted(value: str) -> None:
     check_git_argument(value)
+
+
+@pytest.mark.parametrize(
+    "value", ["", "-x", "+main", ":main", "main:other", "HEAD:refs/heads/x", "refs/heads/x*"]
+)
+def test_branch_name_that_git_push_reads_as_an_option_or_a_refspec_is_refused(value: str) -> None:
+    with pytest.raises(ValueError):
+        check_branch_name(value)
+
+
+@pytest.mark.parametrize("value", ["main", "work-item/F0001-S0001", "feature/x", "a+b"])
+def test_branch_name_without_refspec_syntax_is_accepted(value: str) -> None:
+    check_branch_name(value)
