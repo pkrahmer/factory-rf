@@ -22,12 +22,8 @@ class JsonHealthStatusFile(HealthStatusStore):
     def read(self) -> HealthStatus:
         # A damaged file reads as healthy: every stop is raised again while its fault lasts.
         try:
-            text = self._path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            return HealthStatus()
-        try:
-            return HealthStatus.model_validate_json(text)
-        except ValidationError:
+            return HealthStatus.model_validate_json(self._path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, ValidationError):
             return HealthStatus()
 
     @override
