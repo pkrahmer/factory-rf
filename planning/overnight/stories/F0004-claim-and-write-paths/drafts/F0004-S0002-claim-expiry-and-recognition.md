@@ -34,9 +34,9 @@ Rules:
 - `factory.domain.lease` reads no clock: `now` is always passed in.
 - `ClaimService.status(state)` is `claim_status(state.claim, instance=<the service's instance>, now=boundaries.clock.now())`. It does not look at the definition's `lease_duration`.
 - `ClaimService.release(document)` returns the document with `state.claim` set to `None`; the journal, the other state fields and the body are not changed and no entry is appended. A document without a claim comes back equal. A document whose `state` is `None` raises `ValueError`.
-- Search tests (GH1.2). They parse every `.py` file under `src/factory` with `ast`. First: the names `claim_status`, `lease_expired` and `lease_age` occur (as a name, an attribute or an imported name) only in `factory/domain/lease.py` and `factory/application/claims.py`, and the test fails when it finds them in neither of those two. Second: `Claim` is called as a constructor only in `factory/application/claims.py`.
+- Search tests (GH1.2). They parse every `.py` file under `src/factory` with `ast`, through `tests/source_search.py` (`modules` and `imported_modules`), which they import and do not change. First: only `factory.application.claims` imports `claim_status`, `lease_expired` or `lease_age` from `factory.domain.lease` (`imported_modules` of its tree holds `factory.domain.lease.<name>`), no other module reaches one of the three as an attribute of `factory.domain.lease` (an `ast.Attribute` with that attribute name whose value is the name `lease` or the dotted name `factory.domain.lease`), and the test fails when `factory.application.claims` imports none of the three. A parameter or variable that happens to be called `claim_status` is not a finding. Second: `Claim` is called as a constructor only in `factory/application/claims.py`.
 
-Tests: `tests/domain/test_lease.py`, `tests/application/test_claims.py` (the same module as S0001, with the shared fixtures; the clock is the `clock` fixture, advanced with `advance`), `tests/test_claim_ownership.py` for the search tests.
+Tests: `tests/domain/test_lease.py`, `tests/application/test_claims.py` (the same module as S0001, with the shared fixtures; the clock is the `clock` fixture, advanced with `advance`), `tests/test_claim_ownership.py` for the search tests, which use `source_search.modules` and `source_search.imported_modules`.
 
 ## Acceptance criteria
 
@@ -49,11 +49,11 @@ Tests: `tests/domain/test_lease.py`, `tests/application/test_claims.py` (the sam
 7. `claim_status` for another instance's claim is `"held"` at 59 minutes and 59 seconds of a 60-minute lease, and `"expired"` at exactly 60 minutes and after it.
 8. The source of `factory.domain.lease` contains no call to `now`, `utcnow`, `today` or `time` (it reads no clock).
 9. `ClaimService.status` follows the boundaries' clock: for a state carrying a claim of the service's own instance it is `"own"`; for the claim of another instance it is `"held"` after 59 minutes of a 60-minute lease and `"expired"` after 60 minutes, with the `clock` fixture advanced between the calls; for a state without a claim it is `"none"`.
-10. `ClaimService.status` judges by the claim's own `lease_duration`: a claim made with 60 minutes by another instance reads `"held"` after 30 minutes even when the service's definition sets the role's `lease_duration` to 5.
+10. `ClaimService.status` judges by the claim's own `lease_duration`: a claim of the stage `intake` made with 60 minutes by another instance reads `"held"` after 30 minutes even when the service's definition sets the `intake` role's `lease_duration` and `time_limit` to 5 (the stage `intake` has no checks, so the definition is valid).
 11. `ClaimService.release` returns the document with `state.claim` set to `None`, and every other state field, the journal records and the body equal to the given document's.
 12. `ClaimService.release` on a document without a claim returns an equal document.
 13. `ClaimService.release` on a document whose `state` is `None` raises `ValueError`.
-14. The first search test finds `claim_status`, `lease_expired` and `lease_age` in `factory/domain/lease.py` and `factory/application/claims.py` and in no other module under `src/factory`.
+14. The first search test finds that `factory.application.claims` imports `claim_status`, `lease_expired` or `lease_age` from `factory.domain.lease`, and that no other module under `src/factory` imports one of the three from it or reaches one as an attribute of `factory.domain.lease`.
 15. The second search test finds `Claim(...)` called only in `factory/application/claims.py`.
 16. make check stays green.
 17. docs: `docs/operator-guide.md` explains `lease_duration` per role (default 60 minutes), that an instance's own claim is rerun at once and another instance's is waited for until the lease has run out, and that instances need a synchronised clock; `docs/project-guide.md` names `ClaimService` as the only module that builds or judges claims; `docs/decisions.md` records that expiry compares the recorded start time with the checking instance's own clock.
@@ -79,9 +79,20 @@ EOF
 Expect: six lines. `2700.0`; `own` (the same instance 30 minutes after the lease has run out); `held`; `expired`; `none`; `False` (a `now` before the start is not expired).
 
 ```bash
-grep -rlE 'claim_status|lease_expired|lease_age' src/factory --include='*.py' | sort
+uv run python - <<'EOF'
+import ast
+from pathlib import Path
+
+NAMES = {'claim_status', 'lease_expired', 'lease_age'}
+found = []
+for path in sorted(Path('src/factory').rglob('*.py')):
+    tree = ast.parse(path.read_text(encoding='utf-8'))
+    if any(isinstance(node, ast.ImportFrom) and node.module == 'factory.domain.lease' and NAMES & {alias.name for alias in node.names} for node in ast.walk(tree)):
+        found.append(path.as_posix())
+print(found)
+EOF
 ```
-Expect: exactly two lines, `src/factory/application/claims.py` and `src/factory/domain/lease.py`.
+Expect: one line, `['src/factory/application/claims.py']`.
 
 ## Log (append only)
 

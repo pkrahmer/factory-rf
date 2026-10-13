@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Build the first half of the claim service. `ClaimService.claim` writes the claim and a "started" journal entry into a work item, commits them as the stage-start commit and pushes that commit. The push is the claim (R19, R20): whoever pushes first owns the stage, and a rejected or unreachable push is no claim, so the caller (F0005) starts no agent run. The claim records the instance's configured name, the start time from the clock and the `lease_duration` of the stage's role, copied at claim time (R21). Status, expiry and release come in S0002. The stage-start commit is the last commit before the agent run: the caller commits its own preparation first, and this commit is the baseline of the guard and the undo (S0003 to S0005). Covers GH1.2 (the stage-start commit records the instance's name and the start time), R19, R20 and R21 (the lease runs from this commit); keeps kept thing 13 (recovery from what is on the remote). Morning observation: none; a real push against the hosting service's git remote is seen in the baseline run.
+Build the first half of the claim service. `ClaimService.claim` writes the claim and a "started" journal entry into a work item, commits them as the stage-start commit and pushes that commit. The push is the claim (R19, R20): whoever pushes first owns the stage, and a rejected or unreachable push is no claim, so the caller (F0005) starts no agent run. The claim records the instance's configured name, the start time from the clock and the `lease_duration` of the stage's role, copied at claim time (R21). Status, expiry and release come in S0002. The stage-start commit is the last commit before the agent run: whatever the caller left uncommitted (for a new branch, the opening) becomes part of this commit, which is the baseline of the guard and the undo (S0003 to S0005). Covers GH1.2 (the stage-start commit records the instance's name and the start time), R19, R20 and R21 (the lease runs from this commit); keeps kept thing 13 (recovery from what is on the remote). Morning observation: none; a real push against the hosting service's git remote is seen in the baseline run.
 
 ## Interface
 
@@ -11,7 +11,7 @@ Build the first half of the claim service. `ClaimService.claim` writes the claim
 ```python
 class PushFailed(FactoryError):
     branch: str
-    outcome: PushOutcome  # "rejected" or "unreachable", never "pushed"
+    outcome: PushOutcome
     def __init__(self, branch: str, outcome: PushOutcome) -> None: ...
 ```
 
@@ -19,6 +19,7 @@ class PushFailed(FactoryError):
 
 ```python
 class StageStart(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
     commit: CommitId  # the pushed stage-start commit
     claim: Claim
 
@@ -34,14 +35,14 @@ class ClaimService:
 Rules:
 
 - `instance` must match `^[a-z][a-z0-9-]*$`; otherwise `ClaimService(...)` raises `ValueError` before anything else.
-- `claim` checks these preconditions, in this order, before it writes anything. Each violation raises `ValueError` and leaves the work tree, the branch and the remote as they were: `document.state` is not `None`; `stage` equals `document.state.stage`; `stage` is a stage of the definition and has a role; `boundaries.git.status().branch` equals `branch`.
-- The claim is `Claim(instance=<instance>, stage=<stage>, started_at=boundaries.clock.now(), lease_duration=<the stage's role's lease_duration>)`; `started_at` is UTC.
+- `claim` checks these preconditions, in this order, before it writes anything. Each violation raises `ValueError` and leaves the work tree, the branch and the remote as they were: `document.state` is not `None`; `stage` equals `document.state.stage`; `stage` is a stage of the definition and has a role; `branch` equals `branch_name(<the id in the file name of path>)` (`parse_work_item_file_name` of the last segment of `path`; a file name that is no work item's raises `ValueError` too), so a claim is made only on the work item's own branch; `boundaries.git.status().branch` equals `branch`.
+- The claim is `Claim(instance=<instance>, stage=<stage>, started_at=boundaries.clock.now(), lease_duration=<the stage's role's lease_duration>)`; `started_at` is UTC. The lease is copied from the definition the caller loaded and gave to `ClaimService(...)` (normally the load of `origin/main`, which the stage-start commit contains); S0003 reads the write paths from the definition as the stage-start commit holds it.
 - The new document is the given one with `state.claim` set to the claim and one journal entry appended with `append_entry(document, NewEntry(speaker="factory", kind="started", text=started_text(stage, instance)))`. Nothing else changes: the other state fields and the body outside the journal section stay as given. A claim already in the document is replaced; whether to claim at all is the caller's judgement (S0002 gives it `status`).
-- The document is written at `path` with `boundaries.work_item_writer`, committed with `boundaries.git.commit("<stage> starts as <instance>")` (which stages every change in the work tree, so the caller commits its preparation first) and pushed with `boundaries.git.push(branch)`. `StageStart.commit` is the commit's id.
+- The document is written at `path` with `boundaries.work_item_writer`, committed with `boundaries.git.commit("<stage> starts as <instance>")` (which stages every change in the work tree, the caller's uncommitted preparation included) and pushed with `boundaries.git.push(branch)`. `StageStart.commit` is the commit's id.
 - A push outcome other than `"pushed"` raises `PushFailed(branch, outcome)`. Its message names the branch and the outcome. The local commit stays on the local branch; the remote is unchanged, so there is no claim. Recovering the local branch is the next tick's restore (F0006).
 - `InjectedKill` raised inside `push` (the `BEFORE_PUSH` point) is not caught.
 
-Tests: `tests/application/test_claims.py`, with the shared fixtures `remote`, `checkout`, `human`, `clock` and `boundaries`. The test reads what the remote holds through a second `GitCli` clone of `remote`; a rejected push is made by `human.push_file(branch, path, text)` on the work item's branch; an unreachable remote by moving the bare repository away.
+Tests: `tests/application/test_claims.py`, with the shared fixtures `remote`, `checkout`, `human`, `clock` and `boundaries`. The test reads what the remote holds through a second `GitCli` clone of `remote`; a rejected push is made by `human.push_file(branch, path, text)` on the work item's branch; an unreachable remote by moving the bare repository away. Each test sets the work item up on the branch before `claim`: push the definition to `main` where it needs another one, `checkout.fetch()`, `checkout.checkout(branch_name(id), start_point="origin/main")`, then write a work item with `initial_state(stage)`, journal entry 1 and a `## Journal` section at `factory/features/F0001-example/in-progress/F0001-S0001-first.md` (the fixture's backlog story has no state and no journal section, so `append_entry` would raise `WorkItemFormatError` on it). A helper in the test module does this.
 
 ## Acceptance criteria
 
@@ -59,8 +60,10 @@ Tests: `tests/application/test_claims.py`, with the shared fixtures `remote`, `c
 12. `claim` raises `ValueError` and writes nothing (the file, the branch and the remote are as before) when `document.state` is `None`, when `stage` differs from `document.state.stage`, and when `stage` has no role (the fixture's `approval`) or is not a stage of the definition.
 13. `claim` raises `ValueError` and writes nothing when the checkout is on another branch than `branch`.
 14. `ClaimService(...)` raises `ValueError` for the instance names `Factory-1`, `1factory`, `factory_1` and the empty string, and accepts `factory-1` and `f`.
-15. make check stays green.
-16. docs: `docs/project-guide.md` describes the claim (the stage-start commit with its "started" entry and the `claim` in the state, that the push is the claim, and that the stage-start commit is the last commit before the agent run); `docs/decisions.md` records why the push is the claim (R19, R20) and that a rejected push leaves the local commit to the next tick's restore.
+15. `claim` raises `ValueError` and writes nothing when `branch` is not the work item's own branch: `claim("work-item/F0001-S0002", <path of F0001-S0001>, ...)` with that other branch checked out, and a `path` whose file name is no work item's (`factory/features/F0001-example/in-progress/notes.md`).
+16. On a local branch created from `origin/main` that does not exist on the remote, with the work item written in the work tree but not committed (the opening), `claim` makes one commit directly on top of the head of `origin/main` whose tree holds the work item with the claim, and after the push `origin/<branch>` resolves to that commit.
+17. make check stays green.
+18. docs: `docs/project-guide.md` describes the claim (the stage-start commit with its "started" entry and the `claim` in the state, that the push is the claim, that the stage-start commit is the last commit before the agent run, and that whatever the caller left uncommitted, for a new branch its opening, is part of it); `docs/decisions.md` records why the push is the claim (R19, R20) and that a rejected push leaves the local commit to the next tick's restore.
 
 ## Demo
 
@@ -80,7 +83,6 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.run_record_file import JsonRunRecordFile
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
@@ -127,7 +129,7 @@ git, git2 = GitCli(work), GitCli(work2)
 for g in (git, git2):
     g.clone(str(remote))
     g.checkout(BRANCH, start_point='origin/' + BRANCH)
-b = Boundaries(git=git, hosting=FakeHostingService(), agent_runtime=FakeAgentRuntime(), project_commands=MakeProjectCommands(work), work_item_reader=FrontmatterWorkItemReader(), work_item_writer=FrontmatterWorkItemWriter(), cost_reader=JsonLinesCostRecordReader(), cost_writer=JsonLinesCostRecordWriter(), clock=clock, log=TimestampedFactoryLog(root / 'factory.log', clock), health=JsonHealthStatusFile(root / 'health.json'), pipeline_reader=RuamelPipelineDefinitionReader(), agent_definitions=FrontmatterAgentDefinitionReader(root / 'claude'), run_record=JsonRunRecordFile(root / 'run-record.json'), checkout=work)
+b = Boundaries(git=git, hosting=FakeHostingService(), agent_runtime=FakeAgentRuntime(), project_commands=MakeProjectCommands(work), work_item_reader=FrontmatterWorkItemReader(), work_item_writer=FrontmatterWorkItemWriter(), cost_reader=JsonLinesCostRecordReader(), cost_writer=JsonLinesCostRecordWriter(), clock=clock, log=TimestampedFactoryLog(root / 'factory.log', clock), health=JsonHealthStatusFile(root / 'health.json'), pipeline_reader=RuamelPipelineDefinitionReader(), agent_definitions=FrontmatterAgentDefinitionReader(root / 'claude'), checkout=work)
 b2 = replace(b, git=git2, project_commands=MakeProjectCommands(work2), checkout=work2)
 definition = b.pipeline_reader.parse(PIPELINE)
 
