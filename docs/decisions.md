@@ -105,3 +105,7 @@ Date: 2026-10-13 (F0003-S0003). `StopService.post` puts a work item's stop on it
 ## The pipeline definition schema forbids unknown keys
 
 Date: 2026-10-13 (F0003-S0004). Every model of the pipeline definition (`PipelineDefinition`, `StageDefinition`, `RoleDefinition`, `ProjectCommandDefinition`) is frozen and refuses a key it does not define, at every level. A misspelt optional key (`lease_minutes`, `attempts_capp`) would otherwise be dropped and the default would apply without a word, so the project would run on a setting it never chose. The refusal names the path (`unknown key: roles.coder.lanes`) and `all_faults` reports it first. Alternatives rejected: ignoring unknown keys, as the work item reader does for the keys of a backlog story (that file is the human's free text, while this one is configuration); warning and going on (the factory has no channel for a warning short of a stop).
+
+## Agent files: keys beyond the four are not interpreted until F0010
+
+Date: 2026-10-13 (F0003-S0005). `FrontmatterAgentDefinitionReader` passes only `model`, `tools`, `effort` and `budget_usd` to `AgentDefinition` and ignores every other front matter key, without a word. Which keys the agent runtime applies is for F0010 to decide, and F0010-S0006 will then refuse the others by extending `AgentDefinitionInvalid`. Refusing now would fix a list that the runtime has not settled. The reported `key` of a validation fault comes from `first_error`, the same error `first_fault` formats, so the key and the fault never name different problems.

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 44
 blocked: null
 comments_seen: 0
@@ -225,3 +225,17 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
      - `first_error` takes `min` by `_rank`, which picks the same error as the first element of the old stable sort, so `first_fault` returns what it did before. The reported key and fault come from that same error.
      - Comments explain why, and the public names have their docstrings.
    - **Ticket hygiene.** The log names the main decision (key and fault both come from `first_error`) and what was rejected (re-ranking inside `agent_files.py`). The Assignment matches what was built, and criterion 18 still describes what the documenter has to write.
+8. documenter: wrote the documentation for the agent definition reader. No findings: the code matches the Interface and the criteria. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section *The agent files*. It covers where agent files live (`<agent home>/agents/<name>.md`), the four keys and which are required, that the body is the instructions, that other keys are ignored for now, and a table of every fault the reader reports. It also says what order a file with several faults is reported in.
+   - `docs/project-guide.md`: new section *The agent definition reader*. It states that every role needs an agent file of the same name, and describes the interface, the `Boundaries` field and `names`/`read`. It says the front matter is split with `split_front_matter` and loaded through `RuamelYamlHandler` rather than PyYAML, and why no variable is named `yaml`. It has its own *Faults* table and a runnable example. In *Reading and writing a work item file* I added a note that `split_front_matter` is the shared function and a pointer to the new section, which is where the agent reader's fault line lives.
+   - `docs/decisions.md`: new entry recording that keys beyond the four are not interpreted until F0010, and that the reported key comes from `first_error`.
+
+   I ran the project-guide example and it printed `['coder']` and then `tools | invalid tools: Input should be a valid list`.
+
+   Cross-read and found current: the work item sections of `docs/project-guide.md`, the pipeline definition section, the agent runtime section (its `AgentDefinition` description matches), and the operator guide's stop reasons (`agent_definition_invalid` is already listed). `README.md` needs no change for this story.
+
+   Nothing stale and unrelated seen.
+
+   `make check`: check: green
