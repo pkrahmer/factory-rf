@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 27
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014, F0001-S0015, F0001-S0016, F0001-S0017, F0001-S0018, F0001-S0019, F0001-S0020, F0001-S0021, F0001-S0022]
+outcome: accepted
 ---
 # Acceptance of Boundaries
 
@@ -528,3 +529,4 @@ None. The two document findings under 5 are one moved sentence and one new sente
       6 Decisions: all 24 are built. New, taken without asking: `__all__` exports a domain function from an adapter for a test's sake. Fixed by S0022: `RemoteBranch` frozen, the protocol test names, the double check, the control-character row, the four stale or dense places in the documents. Still open: `set_labels` reads labels, the wide hosting interface, the pinned `claude` version, `version()`'s working directory, the kind for `git rm --cached`, decision 19's defaults, decisions 17 and 18 for F0005 and F0010, and the hand-ported git rules.
       7 Slow checks: none exist (no image, no SBOM, no mutants target). `make check` is green before and after the report.
       8 Cost: 155 runs, 118.4 min, $34.47, about $1.57 per story. S0022 cost $1.54 with no rework. No story stands out. Only two document sentences are left, so I recommend your own commit over another story or acceptance round.
+2. done (pull request merged); cost: 5 runs, 32.0 min, 143 turns, 532k tokens in (8049k more from cache), 140k out, $8.67
