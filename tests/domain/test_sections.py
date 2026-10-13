@@ -67,6 +67,12 @@ def test_a_block_closes_only_at_a_run_of_its_own_character_at_least_as_long(
     assert code_blocks(lines) == blocks
 
 
+@pytest.mark.parametrize("line", ["``", "~~", "`x` is inline code"])
+def test_a_line_starting_with_a_short_run_opens_no_block(line: str) -> None:
+    assert code_blocks([line, "## A"]) == []
+    assert sections(f"{line}\n## A\n") == [Section(heading="A", start=1, end=2)]
+
+
 def test_sections_run_from_heading_to_next_heading() -> None:
     body = "# T\n\nintro\n\n## A\n\ntext\n\n## B"
 
@@ -112,6 +118,7 @@ def test_a_heading_text_is_stripped_of_trailing_whitespace() -> None:
         ("#x\n# Real\n", "Real"),
         ("## x\n# Real\n", "Real"),
         ("#x\n## x\n", None),
+        (" # x\n# y\n", "y"),
     ],
 )
 def test_the_title_is_the_first_level_one_heading_outside_blocks(

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 31
 blocked: null
 comments_seen: 0
@@ -146,3 +146,11 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
         - (1) Add a test for criterion 3's new clause. Lines starting with ```` `` ````, `~~` and `` `x` is `` give no blocks from `code_blocks`, and a `## A` line after each one is still listed by `sections`.
         - (2) Add an indented ` # x` line before a `# y` line to `test_the_title_is_the_first_level_one_heading_outside_blocks`, and expect `"y"`.
       - Rejected: adding new criteria 17 and 18, which would renumber the closing two. Changing the code was also rejected, because the code was not at fault.
+7. tester: tester (round 1, approved test change): made the two test changes named in the coder's entry 6. Both are in `tests/domain/test_sections.py`, and nothing else changed.
+      - (1) Criterion 3's new clause: added `test_a_line_starting_with_a_short_run_opens_no_block`, parametrized over three lines: one starting with two backticks, `~~`, and `` `x` is inline code ``. For each, `code_blocks([line, "## A"])` is `[]`, and `sections` still lists `Section(heading="A", start=1, end=2)` after it.
+      - (2) Criterion 7: added the case `(" # x\n# y\n", "y")` to `test_the_title_is_the_first_level_one_heading_outside_blocks`, so an indented ` # x` is not a title.
+      - The code already behaves this way, so the new cases pass against the existing `src/factory/domain/sections.py`.
+      - `make test`: green, 99.63 % coverage. `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
