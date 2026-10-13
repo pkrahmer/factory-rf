@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 46
 blocked: null
 comments_seen: 0
@@ -190,3 +190,21 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
    Considered, not raised: the `"; "` separator constant now exists in both the domain module and the reader. They join different things (rule faults in the domain, field faults in the reader), and the domain constant is private, so the reader cannot import it.
 
    Ticket hygiene: the log explains the main decision (small rule functions collected by one validator) and what was rejected. The Assignment matches what was built. Criterion 26 still says what the documenter must write.
+6. documenter: wrote the documentation for the load-time rules of the pipeline definition. `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`
+     - New section "The rules of the definition". It covers the contract version (major must be 1, any minor is read, `01.0` is read), the lease rule with the 40+10+10=60 default example and a two-checks-plus-report counter-example, and a table of every fault in rule order.
+     - Replaced the stale "Not checked here, by later stories" bullet in "The pipeline definition". Added a note in "Faults" that the rules run only after the field faults are clear.
+   - `docs/operator-guide.md`: a row in the `pipeline_definition_invalid` faults table for the cross-key faults. It gives examples and points to the project guide's "The rules of the definition".
+   - `docs/decisions.md`: new entry. The rules refuse at load, the faults of one text are reported together, field faults come first, and the alternatives I rejected.
+
+   Cross-read and found current: the README, and the loader, agent and work item sections of the project guide.
+
+   Stale but not touched: none.
+
+   Findings: none. The code matches the Interface and the criteria.
+
+   I did not run the project-guide example code. I added no new example, and the existing one is unchanged and still valid.
+
+   `make check`: check: green
