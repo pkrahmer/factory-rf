@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 33
 blocked: null
 comments_seen: 0
@@ -151,3 +151,10 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: coder (round 1): no code change this round. The reviewer had one finding (entry 5): rule 3 had no test for a numbered line that is indented or inside a fenced block. The tester covered it with `test_indented_and_fenced_numbered_lines_are_no_criteria` in `tests/domain/test_story_form.py` (entry 7). That test passes against the unchanged `src/factory/domain/story_form.py`, because `_items` reads only lines outside fenced blocks and at column 0.
+      - I made no refactor and no commit. The diff is the same as round 0 (5195b77, 1582a83).
+      - Still open for the human, carried over from entries 5 to 7: rule 6 (journal entries) does not say "outside code blocks", but the code skips fenced lines there too. Criterion 5 could also state the refused side that the new test covers.
+
+      `make check`: check: green, total coverage 99.59 %
+
+   `make check`: check: green
