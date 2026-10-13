@@ -3,7 +3,6 @@
 # Postponed annotations let this module name the document while work_item imports JournalRecord.
 from __future__ import annotations
 
-import re
 from collections.abc import Sequence
 from datetime import date
 from typing import TYPE_CHECKING, Literal, Self
@@ -35,8 +34,6 @@ JournalKind = Literal[
     "send_back",
     "done",
 ]
-
-_ENTRY_START = re.compile(r"\d")
 
 
 class JournalRecord(BaseModel):
@@ -144,9 +141,7 @@ def _entry_lines(lines: Sequence[str], section: Section, number: int) -> list[st
     )
     if first is None:
         raise WorkItemFormatError(f"no journal entry {number}")
-    following = (
-        index for index in range(first + 1, len(content)) if _ENTRY_START.match(content[index])
-    )
+    following = (index for index in range(first + 1, len(content)) if content[index][:1].isdigit())
     entry = list(content[first : next(following, len(content))])
     while not entry[-1].strip():
         entry.pop()
