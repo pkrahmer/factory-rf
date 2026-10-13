@@ -26,7 +26,10 @@ class AgentDefinitionReader(ABC):
 
     @abstractmethod
     def names(self) -> list[str]:
-        """The names of the installed agents, sorted; `AgentDefinitionError` without any."""
+        """The names of the installed agents, sorted.
+
+        `AgentDefinitionError` when there is no agents directory; an empty one gives `[]`.
+        """
 
     @abstractmethod
     def read(self, name: str) -> AgentDefinition:
