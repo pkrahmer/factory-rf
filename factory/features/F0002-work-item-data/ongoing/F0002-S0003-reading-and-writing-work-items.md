@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 30
 blocked: null
 comments_seen: 0
 round: 0
@@ -155,3 +155,9 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`factory.application.files`, `factory.adapters.work_item_markdown`), the ABCs and the three adapter classes with signatures. The file format rules (split, handler, notation, normalisation, fault list) are stated exactly. `WorkItemFormatError` and `WorkItemDocument` already exist in the domain, and both dependencies are already pinned in `pyproject.toml`.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion, and each failing side has one too: no front matter, bad YAML, not a mapping, unknown key, missing key, invalid value, invalid state, no state on render, unreadable file, non-UTF-8 file, never-closed front matter. The precedence of faults is covered by criteria 11, 13, 14 and 15. The body normalisation is covered by 4 and 7. The `str(key)` conversion is covered by 17.
+   - Demo: both blocks are runnable commands, and each `Expect:` line gives checkable output (fifteen lines, then the fault and the parse_specification result).
+   - Architecture: the reader and writer interfaces sit in `application`, and the python-frontmatter/ruamel.yaml adapters sit in `adapters`. Criterion 22 checks the import boundary. Wiring is left to a later story. This matches the layers and R13 in `CLAUDE.md`.
+   - Scope: the story is inside FEATURE.md ("one reader and one writer for the work item file (R13)"). It does not touch sections, journal, cost sidecar or form check, which are other stories. Decision 4 in FEATURE.md matches the story text.
