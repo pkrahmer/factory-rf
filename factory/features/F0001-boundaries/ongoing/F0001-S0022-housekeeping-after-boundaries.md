@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 26
 blocked: null
 comments_seen: 0
 round: 0
@@ -95,3 +95,9 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
 ## Log (append only)
 
 1. 2026-10-13 human: created.
+2. intake: accepted
+   - Interface: `RemoteBranch` is given with `frozen=True, extra="forbid"` and its fields. The `GitCli` paragraph names the operations, the helpers to introduce (`_resolve_or_raise`, `delete_branch`, `merge`'s MERGE_HEAD check, `revert_paths`) and the public methods that keep their checks. The test file moves and the import lines are named.
+   - Criteria: each one fits a single test function. Criteria 1 to 3 cover `RemoteBranch`: frozen, closed to unknown fields, and still constructible and comparable. Criteria 4 and 5 count the checks, parametrized and with the conflict case apart. Criterion 6 keeps the public checks. Criterion 7 covers both sides of the 0x10 boundary: 0x10 and 0x1f are refused, 0x20 is refused as a space, and 0x21 is accepted. Criterion 8 is a file-name search. Criteria 9 and 10 close the list in the required order. Every rule has its failing side tested (criteria 6 and 7).
+   - Demo: the commands run. The `\x10` and `\x1f` escapes reach Python intact through bash double quotes, and Python reads them as control characters. The Expect line names three exact output lines and the listing, so the output can be checked against it.
+   - Architecture: the changes sit in `domain.git`, `adapters.git_cli` and the tests, so the layering is kept. The count tests wrap `check_git_argument` through `monkeypatch`, with no mock of the code under test. The `RemoteBranch` test follows the `type[BaseModel]` rule.
+   - Scope: this is the fourth acceptance's housekeeping, which the human chose in Q27 and recorded as decision 24 in FEATURE.md. The test changes beyond this story's own are limited to those the human allowed. No new dependency, no marker, and no change to `factory/`.
