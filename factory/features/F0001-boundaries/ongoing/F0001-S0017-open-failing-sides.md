@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 19
 blocked: null
 comments_seen: 0
@@ -103,3 +103,20 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - `make check` is green (coverage 99.49 %). I ran no examples because I wrote none.
 
    `make check`: check: green
+7. demo: no findings.
+      - Command 1, run from the repository root as written:
+        ```
+        uv run pytest --no-header -p no:cacheprovider tests/adapters/test_make_commands.py tests/adapters/test_git_cli_restoring.py tests/adapters/test_git_cli_history.py tests/adapters/test_fake_hosting.py
+        ```
+        Output (trimmed):
+        ```
+        ........................................................................ [ 69%]
+        ...............................                                          [100%]
+        103 passed in 2.59s
+        ```
+        Met its Expect line. The last line reads `103 passed in 2.59s`, with no failed, error or skipped count.
+      - Criteria cross-check:
+        - 1–4: the four new test functions named in entries 3–5 are in the files the command ran, and all of them passed.
+        - 5: `make check` was reported green by the coder and the documenter. The factory runs it again after this stage.
+        - 6: the `delete_comment` row of the fake's table, docs/project-guide.md:63, says that "the id of a comment on another pull request counts as unknown, and that comment is left alone".
+        - The demo contradicts no criterion.
