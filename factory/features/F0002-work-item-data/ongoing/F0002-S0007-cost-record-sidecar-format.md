@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 34
 blocked: null
 comments_seen: 2
@@ -256,3 +256,10 @@ Expect: one line, `2 not valid JSON | line 2: not valid JSON`: the blank first l
     - Not touched: the docs criterion (21) is left to the documenter.
 
     `make check`: check: green
+11. reviewer: reviewer (round 1): no findings.
+       - Acceptance criteria: each of criteria 1–19 has a test that checks what the criterion says, and the coder's entry 10 reports `make check` green after e80288e. Round 1's finding is closed on both sides. The reader passes `json.loads` a `parse_constant` that raises (`src/factory/adapters/cost_records_jsonl.py:293`). The `infinite-duration` case in `test_parse_names_a_broken_line_and_its_fault` asks for exactly `not valid JSON`. That separates the fix from the domain refusal, which would have given `invalid duration_seconds`. In the domain, `duration_seconds` is now `Duration` with `ge=0, allow_inf_nan=False`, and criterion 4 tests 0.0 as accepted and -0.1, inf and nan as refused. Every limit in the Interface is tested on both sides: `run` 32/31/33 characters and upper case, `attempt` and `turns` 0/-1, duration, cost 0/-0.01/NaN/Infinity. Each rule is also tested on its failing side: the started/completed rule, with `loc == ()`; a naive `started_at`; each fault kind; the fault order; and a duplicate run in both `parse` and `render`.
+       - Architecture: `CostRecord` and `CostRecordFormatError` are in domain, the two ABCs in `application/files.py` (`@abstractmethod`, the body only a docstring), and the JSON-lines classes in adapters, which inherit their interfaces. No `dict[str, Any]` crosses a function boundary. The shared fault ranking moved to `adapters/validation_faults.py`, and the work item reader behaves as before (it only passes `"state"` as `whole`).
+       - Security: no shell or SQL, no secrets (test hex values are repeated digits), no silencing markers. A malformed line gives `CostRecordFormatError` with a line number, not an internal trace.
+       - Quality: names and docstrings fit; comments say why (the `\n`-only split, rejecting a float cost, the strict-JSON constants). The writer sets the `Z` suffix and the cost string itself instead of relying on pydantic's JSON serialisation. That is a deliberate tie to the format text, not dead code.
+       - Hygiene: the log names the main decision (the cost type check is a before-validator in the same pydantic pass, so the fault order holds) and what was rejected (an adapter pre-check; option B for the duration). Assignment and Interface match the code as of entry 7.
+       - Open for the documenter: criterion 21. The Interface also says the file is strict JSON (`NaN`, `Infinity` and `-Infinity` are `not valid JSON`) and that a duration is finite. The line-format section is the natural place to say so.
