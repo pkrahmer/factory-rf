@@ -457,6 +457,10 @@ How to read the rows: an item's need is met when the conditions of the needed it
   - WE3.4: a push and an API call from inside a real agent run against the real remote. The local bare remote of the tests needs no credential, so a push there would succeed. This one is added to the plan's list.
 - Also observable only outside the container: the PyGithub client against the real API (SI2.2's real side) and a real restart (R36). The baseline run is the first to see them.
 
+## After v1.1
+
+- A repeatable, reusable maintenance feature that updates the pinned versions and the stack (Claude Code, Python, the tools) without breaking the system, with checks that prove it. It is built after the whole system is done; updating Claude Code from the pinned 2.1.289 is its first trial. The human, 2026-10-13 (questionnaire 1, Q21).
+
 ## Open questions
 
 1. **Expiry of another instance's lease.** What does it cost when another instance's lease expires: is it a crash (free rerun, `crashes` + 1) or a stall (an attempt)? And what note does it post, if any? The handover says only that another name "waits for the lease to expire" (R20), and ST1.4 speaks of "a note of an expiry". The proposal is a crash, because its holder is gone (R23), with a note under ST1.4's rule. Related: does a crash of one's own post a note at all? Section 7.2 lists none. F0008-S0003 depends on the answer.

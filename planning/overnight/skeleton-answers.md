@@ -2,6 +2,8 @@
 
 > 2026-10-13 morning, the human's decision, binding on everything below and on every later story: interfaces are abstract base classes and the factory's implementations inherit them (`CLAUDE.md`, Architecture; `interfaces.md`, Amendments). Where an answer below says "protocol", read "abstract base class".
 
+> 2026-10-13, reviewed by the human in questionnaire 1 (`planning/questionnaires/01-working-answers.md`, Answers): every answer below stands except skeleton answer 2 (no run record: drop it), skeleton answer 11 (no v1 recognition at all: v1.1 starts fresh), and F0001 round 1's "F0010's preflight checks that the identity is set" (no preflight item; the default identity stands). The questionnaire's answers win over this file.
+
 The main session's answers, taken unattended on 2026-10-12 under the plan's rule: take the plan's default or the simplest reading consistent with the handover and decisions 001 to 007, and list each for the morning. They bind the interface sheet and the drafters. Numbers follow `skeleton.md`'s open questions.
 
 1. **Expiry of another instance's lease** is handled as a crash: the stage reruns from its stage-start commit, no attempt is charged, `crashes` rises by one. It posts a note on the work item's pull request. The note says "retrying" only when the rerun will happen, and never at the crash cap, where it asks the human (ST1.4). A crash of the instance's own stage (same name) posts no note; it adds a journal entry with the rerun's stage-start commit.

@@ -538,3 +538,14 @@ F0010-S0007 ships seven agents whose bodies hold one boundary sentence and one e
 - F0001 round 2, S0002's garbled lines: an editorial fix, built.
 
 ## Answers
+
+Answered by the human on 2026-10-13 in a temporary answer sheet on GitHub (commit `cb1682c`), since the question dialog was denied by the night's settings. Every question not listed below: the recommended option (A).
+
+- **Q3: A, drop the run record** (differs from the working answer). To apply: F0005-S0003 (its Interface, c4, c13 to c16 and the docs criterion), F0006-S0004 (c15, c16: GH1.5 then tests that the tick reads and writes no run record and no lock), F0006-S0006 (`running_since` from the claim), the `boundaries` fixture and every draft that builds it, and the interface sheet's run-record rows.
+- **Q15: none of the options.** The human's note: "v1 is not used anywhere in production, assume everything starts fresh with v1.1." So v1.1 builds no recognition of v1 work items: R26's refusal (decision 006, point 4) is dropped for v1.1. To apply: F0006-S0001 (recognition), S0002 (the event), S0004 (the stop), F0002-S0003 (`ignored_keys` for v1's keys), F0002-S0008, F0011-S0003 (the stop table), `traceability.md` (R26), and a decision in factory-v2 recording that R26 is dropped.
+- **Q18: A, a default identity and no preflight item** (differs from the working answer). F0010-S0004 stays as drafted; F0010-S0003's global `git config` lines go with Q17.
+- **Q21: A, pin 2.1.289**, with the human's note: v1.1 needs a repeatable, reusable maintenance feature that updates the versions and the stack without breaking the system. It is built after the whole system is done, and updating Claude Code from 2.1.289 is its first trial. Recorded in `skeleton.md`, "After v1.1".
+- **Q28: A** (Q6 is A, so the keyed variant applies; the tick in the variant for Q6 B does not apply).
+- **Q29: A**, v1's texts carried over in the glossary's names (Q19 is A).
+
+Answers that confirm the working answer but still have to be applied to drafts: Q17 (F0010-S0001, S0003, S0008, S0009), Q20 (F0006-S0004, F0007-S0010, F0008-S0001, S0003, F0009-S0006, F0010-S0001, F0011-S0001), Q22 (a preflight item in F0010-S0004 or S0005; F0005-S0001 checked against it), Q23 (F0010-S0003), Q29 (F0010-S0007, split or followed by a story). Q27 A: one housekeeping story in F0001 now, with this answer as the human's word for the two test changes (items 2 and 4); item 5 stays.
