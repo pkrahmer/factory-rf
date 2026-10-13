@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 40
 blocked: null
 comments_seen: 2
@@ -298,3 +298,4 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
     - A `not json` file reads as healthy (criterion 22).
 
     The demo does not exercise the other criteria (validation sides, ABC shape, OSError cases, docs). They are covered by the tests and the docs stage. No findings.
+14. done (pull request merged); cost: 11 runs, 8.1 min, 60 turns, 248k tokens in (778k more from cache), 31k out, $2.49
