@@ -21,7 +21,7 @@ class StopService:
     """
 
     def __init__(self, boundaries: Boundaries) -> None:
-        """Report through the log and the health status store of `boundaries`."""
+        """Report through the log, health status, hosting service and git of `boundaries`."""
         self._boundaries = boundaries
 
     def raise_stop(self, stop: RepositoryStop) -> None:
