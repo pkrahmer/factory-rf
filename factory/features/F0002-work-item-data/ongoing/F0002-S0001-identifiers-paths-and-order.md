@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 28
 blocked: null
 comments_seen: 0
 round: 0
@@ -128,3 +128,9 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: both modules are named with concrete signatures. The constants, patterns, models and functions are listed, and F0001's five definitions are marked as existing and unchanged. The test files are named.
+   - Criteria: 18 criteria, each testable by one test function. Every rule has its failing side. Slugs: 2 and 4 to 5. `ValueError` on malformed ids: 7. `None` from `work_item_of_branch`: 10. `cost_records_path` on a non-`.md` path: 13. `folder_of` returning `None`: 15. Criterion 11 pins the constants. Criteria 8 and 9 test the order through sorting, not the tuple value; that is enough, because the order is the behaviour.
+   - Demo: both commands are runnable with `uv run python -c`, and each Expect line gives exact output to compare against.
+   - Architecture: pure domain modules in `factory.domain`, with no I/O imports, and criterion 16 checks that with `ast`. This matches the layering in CLAUDE.md.
+   - Scope: it matches FEATURE.md ("Identifier patterns... plain string order, with an acceptance sorting after the stories") and touches nothing under Out of scope. The acceptance's due order stays with F0009.
