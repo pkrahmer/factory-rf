@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 17
 blocked: null
 comments_seen: 0
@@ -129,3 +129,16 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
       - Open: criterion 12 (project guide and decision log) belongs to the docs stage.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: every criterion from 1 to 10 has a test that checks what the criterion says, and I read each one against it.
+        - Criterion 1 covers the refused inputs `""`, `-x` and `--force`. Criterion 2 covers the accepted inputs, including the hyphen inside `work-item/...` and a `file://` url, so the rule is tested on both sides.
+        - Criterion 3 builds a real divergence through the `human` fixture. It checks that the remote's tip is unchanged and that `BEFORE_PUSH` was reached 0 times, using the `kill_points` fixture that `checkout` shares.
+        - Criteria 4 to 7 each check the state that must stay unchanged: the remote's refs, the bound directory, the branch and HEAD.
+        - Criterion 8 covers all 11 positions the Interface lists. Its stand-in executable records every call, and the test asserts it was never started.
+        - Criterion 10 tries the four combinations of `LC_ALL=de_DE.UTF-8` set in the process environment and in `options.environment`.
+        - The coder's entry reports `make check` green.
+      - Interface coverage: I compared it with `git_cli.py`'s public methods. `fetch`, `remote_branches`, `status`, `commit` and `move` take no ref, branch or url. Every other method calls `check_git_argument` as its first statement. That is before `BEFORE_PUSH` in `push` and before `mkdir` in `clone`. `start_point` and `since` are checked only when given. `_environment` sets `LC_ALL=C` after `os.environ` and `options.environment`.
+      - Architecture: `check_git_argument` is a pure function in `factory.domain.git`, next to `check_repository_path`. The adapter calls it, and no layer imports upward.
+      - Security: no suppression markers and no secrets were added. The check stops option injection before any process starts.
+      - Quality: names and docstrings fit the code around them, and the comments say why. `merge` checks `ref` again through its own `is_ancestor(ref, "HEAD")` call. The repeat is harmless and does not justify a round.
+      - Ticket hygiene: the coder's entry gives the main decision, checking in each method and not in `_run`, and why that was rejected. `Assignment` matches what was built. Criterion 12 still says what the project guide and the decision log must state.
