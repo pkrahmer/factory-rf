@@ -2,7 +2,7 @@
 
 from factory.application.boundaries import Boundaries
 from factory.domain.errors import HostingServiceError
-from factory.domain.paths import MAIN_BRANCH
+from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.post_texts import opened_for_stop_description
 from factory.domain.stops import (
     HealthStatus,
@@ -11,8 +11,6 @@ from factory.domain.stops import (
     StopPosted,
     WorkItemStop,
 )
-
-_REMOTE = "origin/"
 
 
 class StopService:
@@ -77,8 +75,8 @@ class StopService:
         # The hosting service refuses a pull request without such a commit; refusing it here
         # makes the fake and the production service fail alike.
         git = self._boundaries.git
-        tip = git.resolve(_REMOTE + branch)
-        if tip is None or git.is_ancestor(tip, _REMOTE + MAIN_BRANCH):
+        tip = git.resolve(f"{REMOTE}/{branch}")
+        if tip is None or git.is_ancestor(tip, f"{REMOTE}/{MAIN_BRANCH}"):
             raise HostingServiceError(
                 "create_pull_request",
                 f"branch {branch} is not on the remote with a commit beyond main",
