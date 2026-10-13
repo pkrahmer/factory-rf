@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 14
 blocked: null
 comments_seen: 0
@@ -173,3 +173,10 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
    - Ticket hygiene: the coder's entry explains the main decision (a private mutable `_PullRequest` with fresh frozen views) and what was rejected (`model_copy` with side dictionaries). `Assignment` matches what was built. Criterion 20 still says what the documenter must write.
 
    Open, not a finding: `delete_comment` raises `HostingServiceError` when the id belongs to another pull request. No criterion states this case, as intake, the tester and the coder all noted.
+6. documenter: no findings.
+   - `docs/project-guide.md`: new subsection "The fake" under the hosting service (the `hosting` fixture and `FakeHostingService` as the only stand-in, the behaviour shared with the PyGithub client, numbering, url and `created_at`, the kill point, a table of the nine test operations, a short example). The two "fake follows in a later story" sentences were stale and now point to it.
+   - `README.md`: the status sentence lists the hosting fake.
+   - Cross-read and found current: the rest of the project guide's hosting section and the kill-points table (`AFTER_POST` already names the fake), `docs/decisions.md`, `docs/operator-guide.md`. The diff matches the Interface; I did not re-run the demo blocks, the coder ran the second one. `make check` is green.
+   - Not touched: nothing stale seen. Open, not a finding: `delete_comment` with an id from another pull request raises `HostingServiceError`; no criterion covers it, so the guide only says an unknown id raises.
+
+   `make check`: check: green
