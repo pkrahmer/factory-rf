@@ -4,6 +4,8 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from pydantic import BaseModel, ConfigDict
+
 from factory.application.files import WorkItemReader
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.paths import (
@@ -18,6 +20,7 @@ from factory.domain.story_form import (
     check_story_place,
     lifecycle_folder_of_location,
 )
+from factory.domain.work_item import WorkItemDocument
 from factory.entry.wiring import build_work_item_reader
 
 _USAGE = "usage: factory-check-story <path>..."
@@ -32,6 +35,13 @@ class _UnreadableError(Exception):
         super().__init__(f"cannot read {path}: {reason}")
 
 
+class _Read(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    document: WorkItemDocument
+    folder: LifecycleFolder
+
+
 def _read_text(root: Path, path: str) -> str:
     try:
         return (root / path).read_text(encoding="utf-8")
@@ -39,25 +49,28 @@ def _read_text(root: Path, path: str) -> str:
         raise _UnreadableError(path, str(error)) from error
 
 
+def _read_started(reader: WorkItemReader, text: str, folder: LifecycleFolder) -> _Read:
+    try:
+        return _Read(document=reader.parse(text), folder=folder)
+    except WorkItemFormatError as error:
+        if error.fault != _NO_FRONT_MATTER:
+            raise
+    # On main a started story is the human's moved file; its state lives on the
+    # work item's branch, so it is checked as a specification.
+    return _Read(document=reader.parse_specification(text), folder="backlog")
+
+
 def _form_findings(
     reader: WorkItemReader, text: str, form: str, folder: LifecycleFolder
 ) -> list[FormFinding]:
     try:
         if folder == "backlog":
-            document = reader.parse_specification(text)
+            read = _Read(document=reader.parse_specification(text), folder=folder)
         else:
-            try:
-                document = reader.parse(text)
-            except WorkItemFormatError as error:
-                if error.fault != _NO_FRONT_MATTER:
-                    raise
-                # On main a started story is the human's moved file; its state lives on
-                # the work item's branch, so it is checked as a specification.
-                document = reader.parse_specification(text)
-                folder = "backlog"
+            read = _read_started(reader, text, folder)
     except WorkItemFormatError as error:
         return [FormFinding(line=None, message=error.fault)]
-    return check_story_form(document, form, folder=folder)
+    return check_story_form(read.document, form, folder=read.folder)
 
 
 def _feature_file_exists(root: Path, path: str) -> bool:
