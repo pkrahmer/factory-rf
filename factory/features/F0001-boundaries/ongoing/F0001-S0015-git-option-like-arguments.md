@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 17
 blocked: null
 comments_seen: 0
@@ -96,3 +96,24 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
    - Demo: runnable as written. Its `Expect:` line is checkable: `rejected`, `refused`, `['human', 'one']`.
    - Architecture: the rule is a pure function in the domain and the adapter calls it, as `check_repository_path` is used. This fits the layers and the git wrapper rule (R9).
    - Scope: it is within F0001's git wrapper scope and not in its "Out of scope". The feature's decision 21 records the human's choice of refusal over `--end-of-options`.
+3. tester: wrote red tests for every criterion.
+   - criterion 1: tests/domain/test_git.py::test_git_argument_that_is_empty_or_starts_with_a_dash_is_refused (parametrized over `""`, `"-x"`, `"--force"`)
+   - criterion 2: tests/domain/test_git.py::test_git_argument_that_is_a_ref_branch_or_url_is_accepted (parametrized over `main`, `origin/main`, `HEAD~1`, `work-item/F0001-S0001`, `file:///tmp/remote.git`)
+   - criterion 3: tests/adapters/test_git_cli_arguments.py::test_push_of_an_option_like_branch_is_refused_before_anything_runs (the human pushes to `main`, `checkout` commits on top of the old `main`; checks the remote's `main` is still the human's tip and `BEFORE_PUSH` was reached 0 times)
+   - criterion 4: tests/adapters/test_git_cli_arguments.py::test_delete_remote_branch_of_an_option_like_name_is_refused (compares the remote's `for-each-ref` before and after)
+   - criterion 5: tests/adapters/test_git_cli_arguments.py::test_clone_of_an_option_like_url_is_refused (checks the bound directory `parent/clone` does not exist)
+   - criterion 6: tests/adapters/test_git_cli_arguments.py::test_checkout_of_an_option_like_branch_or_start_point_is_refused (parametrized: `("--detach", None)` and `("x", "--orphan")`; checks branch and HEAD are unchanged)
+   - criterion 7: tests/adapters/test_git_cli_arguments.py::test_delete_branch_of_an_option_like_name_is_refused
+   - criterion 8: tests/adapters/test_git_cli_arguments.py::test_option_like_ref_is_refused_without_starting_git (11 cases: resolve, show_file, list_files, is_ancestor in both positions, log ref and since, changed_paths, merge, reset_to, revert_paths; a stand-in executable appends its argv to `tmp_path/calls`, and the test checks that file was never created)
+   - criterion 9: tests/adapters/test_git_cli_arguments.py::test_push_of_a_new_branch_with_hyphens_in_its_name_is_pushed (also checks the remote holds the commit)
+   - criterion 10: tests/adapters/test_git_cli_arguments.py::test_git_runs_in_the_c_locale_whatever_the_environment_says (parametrized over `LC_ALL=de_DE.UTF-8` in neither, the process environment, `options.environment`, or both; uses `fetch` with a stand-in that writes its `LC_ALL` to a file, which must read `C`)
+   - criteria 11 and 12: not tests (make check; docs stage).
+
+   Files: created tests/adapters/test_git_cli_arguments.py; added to tests/domain/test_git.py (it imports `check_git_argument`).
+
+   `make test`: a collection error, `ImportError: cannot import name 'check_git_argument' from 'factory.domain.git'`, in tests/domain/test_git.py. The run stops there, so the new adapter tests have not run yet. They fail on behaviour: for example, `delete_branch("-D")` returns quietly today and `push("--force")` reaches git. `make lint` is green. I skipped the type check as the stage says.
+
+   No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
