@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 20
 blocked: null
 comments_seen: 0
@@ -55,3 +55,12 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
    - Architecture: no code, layers or dependencies change. Only `README.md` and `docs/` are touched, and the documenter's lane covers them.
    - Scope: documentation repair across F0001's stories, listed as S0018 in FEATURE.md. Decision 21 says the repair runs through the pipeline. It is not in "Out of scope".
    - Note for the next stage: the assignment says there is nothing for the tester and coder to build.
+3. tester: no tests written; this is a documentation-only story.
+   - The Interface is "None: documentation only", and the Assignment says the tester and coder stages have nothing to build. Criteria 1 to 5 are wording changes in `README.md`, `docs/project-guide.md` and `docs/operator-guide.md`. Their check is the Demo's grep line, which the documenter and the demo stage run.
+   - Rejected: pytest tests that grep the docs for phrases. Tests would then pin documentation prose, which is the documenter's to word. Nothing in the criteria asks for that, and it would break the rule that tests do not name tickets or criteria.
+   - Criterion mapping: 1 to 5 go to the documenter and the Demo grep; 6 is `make check`, unchanged by this stage; 7 is the documenter's cross-read.
+   - Files created: none. Modules the test runner could not import: none, since no new tests exist. `make lint` is green.
+   - Next: the coder stage has no code to write and can hand straight on to the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
