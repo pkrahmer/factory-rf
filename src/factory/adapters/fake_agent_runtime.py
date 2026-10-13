@@ -5,6 +5,7 @@ from pathlib import Path, PurePath
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
@@ -21,7 +22,7 @@ class ScriptedRun(BaseModel):
     kill: bool = False
 
 
-class FakeAgentRuntime:
+class FakeAgentRuntime(AgentRuntime):
     """An agent runtime that plays queued scripted runs and records every request."""
 
     def __init__(self, kill_points: KillPoints | None = None, version: str = "fake") -> None:

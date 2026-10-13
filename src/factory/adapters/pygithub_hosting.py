@@ -9,6 +9,7 @@ from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
+from factory.application.hosting import HostingService
 from factory.domain.errors import HostingServiceError
 from factory.domain.hosting import (
     PostKey,
@@ -70,7 +71,7 @@ def _comments(pull: PullRequest) -> list[PullRequestComment]:
     return sorted(comments, key=lambda comment: comment.id)
 
 
-class PyGithubHostingService:
+class PyGithubHostingService(HostingService):
     """The hosting service on PyGithub; every failing call raises `HostingServiceError`."""
 
     def __init__(self, repository: Repository, kill_points: KillPoints | None = None) -> None:
