@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 44
 blocked: null
 comments_seen: 0
 round: 0
@@ -132,3 +132,9 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures throughout (errors.py, agent_runtime.py, work_item_markdown.split_front_matter, agent_files.py, Boundaries field). It builds on code that exists: `AgentDefinition` (domain/agent_runs.py), `Name`, `RuamelYamlHandler`, `first_fault` in adapters/validation_faults.py, and the current `_split` in work_item_markdown.py that becomes the shared function.
+   - Criteria: each is testable by one test function (criteria 8, 9 and 10 are parametrized). Every Interface rule has a criterion for both sides. Passing side: 1, 3-7, and 11 with 0.01. Failing side: 2 (missing agents directory), 8, 9, 10, 11 (0, -1, text, boolean), 12 (fault order), 13 (absent file, directory) and 14 (bad names, plus no read of `../x.md`). Criterion 15 covers the error hierarchy, 16 the abstract base class, 18 the docs.
+   - Demo: runnable with `uv run python -c`. The Expect line gives four checkable lines, including the `tools | invalid tools:` prefix.
+   - Architecture: the interface sits in application, the reader in adapters, the errors in domain, and the wiring through `Boundaries`. The one YAML handler, the semgrep naming rule and the ABC convention are all respected.
+   - Scope: inside F0003 ("the agent definition reader that tells which agents are installed and reads one"). Refusing runtime-inapplicable keys stays with F0010, and the loader with S0006.
