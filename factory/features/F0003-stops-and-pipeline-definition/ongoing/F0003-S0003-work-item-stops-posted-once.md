@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 42
 blocked: null
 comments_seen: 0
@@ -223,3 +223,17 @@ Expect: five lines of output: `True posted already_posted`, then `1 True work-it
    - Group 3 passes. No secrets, no markers that silence a check, no shell commands built from strings. The new models validate their input when they are built.
    - Group 4 passes. The docstrings of the module, `WorkItemStop`, `StopPosted`, `post` and `opened_for_stop_description` describe what the code does. The comments explain why: the keyed post makes a repeat a no-op, and the branch check makes the fake fail the way production does. The code reuses `REMOTE` and `MAIN_BRANCH` from `factory.domain.paths`. There is no dead code.
    - Group 5 passes. Entry 4 states the main decision: rely on the keyed `post_comment` alone. It also says what was rejected: listing comments first. The Assignment matches what was built. Criterion 24 still describes what the operator guide and the decision log need.
+8. documenter: wrote the documentation for criterion 24 and fixed one stale sentence. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "Stops of one work item". It covers the single comment on the pull request and its marker and key. It says a draft pull request is opened first when there is none, and only when the branch is on the remote with a commit beyond `main`. It says a restart never repeats a stop. It also says which pull request is reused or posted on, and that the caller records the number.
+   - `docs/decisions.md`: new entry. Stops are keyed posts, so the order of the post and the state write does not matter. The branch is checked before the pull request is opened, so the fake and production refuse the same case. Alternatives rejected are listed.
+   - `docs/project-guide.md`: the `StopService` paragraph said it "never reaches a pull request". It now says this holds for repository and machine stops, and describes `post`, `WorkItemStop` and `StopPosted`.
+
+   Cross-read and found current: `README.md`, the operator guide's other sections, and the post-key and marker section of the project guide. The marker and key format shown in the new section matches `render_post`. The stop description text matches `opened_for_stop_description`.
+
+   I did not run the examples. The new section has no runnable commands.
+
+   No findings for the coder. The docstrings and the Interface match the code. I saw nothing stale that is unrelated to this story.
+
+   `make check`: check: green
