@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 46
 blocked: null
 comments_seen: 0
@@ -208,3 +208,26 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
    I did not run the project-guide example code. I added no new example, and the existing one is unchanged and still valid.
 
    `make check`: check: green
+7. demo: I ran the one Demo command exactly as written from the repository root. Its output met its `Expect:` line, and I found nothing to report.
+
+   Command 1 (`uv run python -c "…"`, which parses five variants of a minimal definition through `RuamelPipelineDefinitionReader`):
+
+   ```
+   next -> stage doing: next names unknown stage ship
+   contract -> contract major 2 is not supported (this factory reads major 1)
+   write paths -> role coder: write_paths is empty
+   time limit -> role coder at stage doing: 61 min exceed lease_duration 60 min
+   fits accepted
+   ```
+
+   The output met its `Expect:` line. It printed exactly five lines, in the expected order, and each matched its expected text character for character.
+
+   I checked the output against every acceptance criterion and none is contradicted:
+   - **Criterion 7:** the unknown `next` gives exactly the fault the Interface specifies.
+   - **Criteria 2 and 24 (ST8.4):** contract major 2 is refused with the major as written.
+   - **Criterion 10 (ST8.3):** the role with empty write paths is refused and names the role.
+   - **Criterion 15 (ST8.5, GH1.4):** a time limit of 61 against the default lease of 60 is refused. A time limit of 60, equal to the lease, is accepted. This also confirms that checks and reports default to nothing and add no minutes.
+
+   The other variants keep `done` with no role and no `next`, keep the contract at `1.0`, and use no reserved names, so they raised no extra faults. That fits the single-fault output shown.
+
+   Open: none.
