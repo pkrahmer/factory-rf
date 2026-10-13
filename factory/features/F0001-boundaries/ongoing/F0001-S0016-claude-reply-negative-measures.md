@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 18
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -70,3 +70,12 @@ Expect: one line, `died None None None []`, and no traceback.
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: Format check passed. The story is not ready: two behaviours the story or FEATURE.md state have no criterion.
+
+   1. FEATURE.md decision 21 says "a budget-stop reply with a negative measure is `died` and not resumed". The Interface says nothing about this, and no criterion tests it. The criteria only cover replies that do not hit the budget. Without a criterion, a coder can parse the negative reply as `died` and still start the resume, and every listed test passes. Options: (a) add a criterion: a first call that stops on its budget with a negative measure, e.g. `num_turns` -1, gives `died` with every measure `None`, and the stand-in is called once (no resume). (b) Drop the sentence from the decision. I would choose (a), and add one line to the Interface saying the same.
+
+   2. The Interface says the end reason is `died` "unless the `time_limit` ended it". The side where the `time_limit` ended the call and the reply also has a negative measure has no criterion. Options: (a) add a criterion stating the expected end reason (`timed_out`, as I read it) and measures `None`. (b) Remove "unless the `time_limit` ended it" from the Interface, since a call ended by the `time_limit` has no parsed reply. I would choose (b), because decision 13 already says a `time_limit` call has no measures taken from its JSON.
+
+   3. The Interface says the resumed sum is "tested in both directions", but criterion 6 covers only the first call reporting the measures. The reverse, where the first call reports none and the resumed call reports some, has no criterion. Either add that criterion, or reword the Interface to say that only the first-call-only direction is pinned here. I would add the criterion.
+
+   Everything else I checked is fine: the Interface names the module and the rules, the Demo is runnable and its Expect line is checkable, the architecture matches (the change stays inside `factory.adapters`), and the scope matches FEATURE.md.
