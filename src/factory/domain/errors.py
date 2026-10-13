@@ -57,3 +57,14 @@ class ProjectCommandError(BoundaryError):
         super().__init__(f"project command {command} failed: {detail}")
         self.command = command
         self.detail = detail
+
+
+class AgentRuntimeError(BoundaryError):
+    """The agent runtime could not run an agent; a dead or timed-out run is a result."""
+
+    detail: str
+
+    def __init__(self, detail: str) -> None:
+        """Say why the agent runtime failed."""
+        super().__init__(f"agent runtime failed: {detail}")
+        self.detail = detail
