@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 44
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The agent definition reader: which agents are installed and what they say
@@ -186,3 +186,9 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
    Noticed but not touched: nothing.
 
    `make check`: check: green
+5. reviewer: one finding, sent back to doing.
+
+   Groups 1–3 pass. Every criterion from 1 to 16 has a test that checks what it says. Both sides of each Interface rule are tested: no agents directory against a present one, `budget_usd` 0 against 0.01, a missing key ranked before an invalid value, a bad name refused before any read, with decoy files at `x.md`, `agents/a/b.md` and `agents/Coder.md`. The coder's entry reports `make check` green. All layer imports point downward. The interface is an ABC whose method bodies are their docstrings alone, and the reader inherits it. YAML is loaded only through the one `RuamelYamlHandler`, and no variable is named `yaml`. There are no suppression markers and no secrets. Moving `_split` to `split_front_matter` keeps its behaviour. `first_error` uses `min` by `_rank`, which picks the same error as the first item of the stable sort, so `first_fault` returns the same result as before.
+
+   Findings:
+   1. `src/factory/application/agent_runtime.py`, docstring of `AgentDefinitionReader.names`: it says `AgentDefinitionError` is raised "without any" agents. The Interface says the error is raised only when `<agent_home>/agents` is not a directory; an empty agents directory returns `[]` (`agent_files.py` `names`). S0006's loader will be written against this docstring. Fix: reword it, for example "The names of the installed agents, sorted; `AgentDefinitionError` when there is no agents directory."
