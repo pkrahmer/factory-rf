@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 38
 blocked: null
 comments_seen: 0
 round: 0
@@ -52,3 +52,9 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
 ## Log (append only)
 
 1. 2026-10-13 human: created.
+2. intake: accepted
+   - Interface: "None: no code changes", which fits a documentation-only story. There is nothing to name.
+   - Criteria: criterion 1 is the gate. Criterion 2 is the docs criterion, and it states checkable facts: the wiring sentence, no story named in "The state" or "Cost records", the two error types listed, the README status topics, and the operator guide's layout statement and folder wording. The story has no rule with a failing side. It is documentation only and the tester writes no tests.
+   - Demo: all three commands are runnable. I checked the first against docs/project-guide.md. "Wiring does not use them yet" is at line 456, "next story" at line 403 and "This story" at line 543, so the Demo's two counts match the three spots the assignment repairs. Each Expect line is checkable, and the grep exit-1 case is stated.
+   - Architecture: there are no layer or interface changes. Only docs are touched, and the documenter owns them.
+   - Scope: this is within F0002 (it is listed in FEATURE.md as proposed by the feature acceptance). Decision 17 covers the v1-tree statement. Nothing in "Out of scope" is touched.
