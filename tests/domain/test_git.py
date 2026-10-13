@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.git import GIT_TIME_LIMIT, GitIdentity, GitOptions
+from factory.domain.git import GIT_TIME_LIMIT, GitIdentity, GitOptions, check_git_argument
 
 
 def test_git_time_limit_is_five_minutes() -> None:
@@ -47,3 +47,17 @@ def test_options_default_to_the_factory_identity_and_plain_git() -> None:
         GitOptions(**unknown)
     with pytest.raises(ValidationError):
         setattr(other, field, "other")
+
+
+@pytest.mark.parametrize("value", ["", "-x", "--force"])
+def test_git_argument_that_is_empty_or_starts_with_a_dash_is_refused(value: str) -> None:
+    with pytest.raises(ValueError):
+        check_git_argument(value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["main", "origin/main", "HEAD~1", "work-item/F0001-S0001", "file:///tmp/remote.git"],
+)
+def test_git_argument_that_is_a_ref_branch_or_url_is_accepted(value: str) -> None:
+    check_git_argument(value)

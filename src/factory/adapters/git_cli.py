@@ -18,6 +18,7 @@ from factory.domain.git import (
     PushOutcome,
     RemoteBranch,
     WorkTreeStatus,
+    check_git_argument,
     check_repository_path,
 )
 from factory.domain.kill_points import KillPoint
@@ -170,6 +171,7 @@ class GitCli(Git):
 
     def resolve(self, ref: str) -> CommitId | None:
         """The commit id `ref` points to, or `None` when there is no such ref."""
+        check_git_argument(ref)
         result = self._run(
             ["rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], accepted=(0, ANSWER_NO)
         )
@@ -179,6 +181,7 @@ class GitCli(Git):
 
     def show_file(self, ref: str, path: str) -> str | None:
         """The text of `path` at `ref`, or `None` when it is absent or not a file."""
+        check_git_argument(ref)
         listing = self._run(["ls-tree", "-z", ref, "--", path]).stdout
         blob = _blob_in_listing(listing, path)
         if blob is None:
@@ -187,12 +190,15 @@ class GitCli(Git):
 
     def list_files(self, ref: str, directory: str) -> list[str]:
         """The repository-relative paths of all files under `directory` at `ref`, sorted."""
+        check_git_argument(ref)
         listing = self._run(["ls-tree", "-r", "-z", "--name-only", ref, "--", directory]).stdout
         prefix = f"{directory}/"
         return sorted(path for path in listing.split("\0") if path.startswith(prefix))
 
     def is_ancestor(self, ancestor: str, descendant: str) -> bool:
         """Whether `ancestor` is reachable from `descendant`."""
+        check_git_argument(ancestor)
+        check_git_argument(descendant)
         result = self._run(
             ["merge-base", "--is-ancestor", ancestor, descendant], accepted=(0, ANSWER_NO)
         )
@@ -202,6 +208,9 @@ class GitCli(Git):
         self, ref: str, *, since: str | None = None, path: str | None = None
     ) -> list[CommitInfo]:
         """The commits reachable from `ref` and not from `since`, touching `path` if given."""
+        check_git_argument(ref)
+        if since is not None:
+            check_git_argument(since)
         revisions = [ref] if since is None else [ref, f"^{since}"]
         paths = [] if path is None else [path]
         arguments = ["log", "-z", "--date-order", f"--format={LOG_FORMAT}", "--end-of-options"]
@@ -210,6 +219,7 @@ class GitCli(Git):
 
     def changed_paths(self, since: str) -> list[ChangedPath]:
         """The tracked paths that differ from `since`, and the untracked ones as added."""
+        check_git_argument(since)
         diff = self._run(
             ["diff", "--name-status", "-z", "--no-renames", "--end-of-options", since, "--"]
         ).stdout
@@ -238,16 +248,19 @@ class GitCli(Git):
 
     def clone(self, url: str) -> None:
         """Clone `url` into the bound directory, creating its missing parents."""
+        check_git_argument(url)
         parent = self._directory.parent
         parent.mkdir(parents=True, exist_ok=True)
         self._run(["clone", "--quiet", url, str(self._directory)], cwd=parent)
 
     def checkout(self, branch: str, *, start_point: str | None = None) -> None:
         """Switch to `branch`; with `start_point`, create or reset it there first."""
+        check_git_argument(branch)
         if start_point is None:
             # `switch` takes no paths, so a branch name is never read as a file.
             self._run(["switch", "--quiet", branch])
         else:
+            check_git_argument(start_point)
             self._run(["switch", "--quiet", "--force-create", branch, start_point])
 
     def commit(self, message: str) -> CommitId:
@@ -263,6 +276,7 @@ class GitCli(Git):
 
     def push(self, branch: str) -> PushOutcome:
         """Push `branch` without force; a refusal or an unreachable remote is a value."""
+        check_git_argument(branch)
         self._reach(KillPoint.BEFORE_PUSH)
         arguments = ["push", "--porcelain", "--set-upstream", REMOTE, branch]
         result = self._execute(arguments)
@@ -273,6 +287,7 @@ class GitCli(Git):
 
     def delete_remote_branch(self, branch: str) -> PushOutcome:
         """Delete `branch` on the remote; already gone counts as deleted, like `push`'s values."""
+        check_git_argument(branch)
         arguments = ["push", "--porcelain", REMOTE, "--delete", branch]
         result = self._execute(arguments)
         if result.exit_status == 0 or ALREADY_DELETED_MARKER in result.stdout:
@@ -283,12 +298,14 @@ class GitCli(Git):
 
     def delete_branch(self, branch: str) -> None:
         """Delete the local `branch` even when unmerged; a missing branch changes nothing."""
+        check_git_argument(branch)
         if self.resolve(f"refs/heads/{branch}") is None:
             return
         self._run(["branch", "--delete", "--force", branch])
 
     def merge(self, ref: str, *, fast_forward_only: bool = False) -> MergeOutcome:
         """Merge `ref` into `HEAD`; a conflict is aborted, any other refusal is a `GitError`."""
+        check_git_argument(ref)
         self._resolve_or_raise(ref, "merge")
         if self.is_ancestor(ref, "HEAD"):
             return "up_to_date"
@@ -301,6 +318,7 @@ class GitCli(Git):
 
     def reset_to(self, ref: str) -> None:
         """Hard-reset the current branch to `ref`, then remove untracked files and directories."""
+        check_git_argument(ref)
         # `reset` takes no `--end-of-options`, so it only ever sees a resolved commit id.
         commit = self._resolve_or_raise(ref, "reset")
         self._run(["reset", "--quiet", "--hard", commit, "--"])
@@ -308,6 +326,7 @@ class GitCli(Git):
 
     def revert_paths(self, commit: str, paths: Sequence[str]) -> None:
         """Restore each path from `commit`, or delete it where `commit` does not have it."""
+        check_git_argument(commit)
         for path in paths:
             check_repository_path(path)
         commit_id = self._resolve_or_raise(commit, "checkout")
@@ -355,7 +374,8 @@ class GitCli(Git):
             self._options.kill_points.reach(point)
 
     def _environment(self) -> dict[str, str]:
-        # The identity and the isolation come last, so that no extra environment can lift them.
+        # The identity, the isolation and the locale come last, so that no extra environment can
+        # lift them; the C locale keeps the English messages the push outcomes are read from.
         return {
             **os.environ,
             **self._options.environment,
@@ -365,6 +385,7 @@ class GitCli(Git):
             "GIT_COMMITTER_EMAIL": self._identity.email,
             "GIT_CONFIG_NOSYSTEM": "1",
             "GIT_CONFIG_GLOBAL": os.devnull,
+            "LC_ALL": "C",
         }
 
     def _run(

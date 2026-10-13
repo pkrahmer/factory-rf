@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 17
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The git wrapper: no argument is read as an option, and git speaks one language
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
@@ -82,3 +90,84 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: `check_git_argument(value: str) -> None` in `factory/domain/git.py` is concrete, and the rules name every `GitCli` operation that takes a ref, branch, start point, commit or url. I compared the list with the public methods of `git_cli.py`. `fetch`, `remote_branches`, `status`, `commit` and `move` take no such value (`move`'s paths are already guarded by `check_repository_path`). The `LC_ALL=C` ordering relative to the environment, identity and isolation is stated. Every Interface comment has a criterion.
+   - Criteria: 1 and 2 test the function, with both the refusing and the accepting side. 3 to 8 each test one refusal and what stays unchanged (remote, directory, HEAD, no process started, `BEFORE_PUSH` not reached). 9 is the passing side for a hyphen inside a name. 10 tests the locale override. Each is testable by one test function (8 and 10 are parametrized). Each rule has its failing side.
+   - Demo: runnable as written. Its `Expect:` line is checkable: `rejected`, `refused`, `['human', 'one']`.
+   - Architecture: the rule is a pure function in the domain and the adapter calls it, as `check_repository_path` is used. This fits the layers and the git wrapper rule (R9).
+   - Scope: it is within F0001's git wrapper scope and not in its "Out of scope". The feature's decision 21 records the human's choice of refusal over `--end-of-options`.
+3. tester: wrote red tests for every criterion.
+   - criterion 1: tests/domain/test_git.py::test_git_argument_that_is_empty_or_starts_with_a_dash_is_refused (parametrized over `""`, `"-x"`, `"--force"`)
+   - criterion 2: tests/domain/test_git.py::test_git_argument_that_is_a_ref_branch_or_url_is_accepted (parametrized over `main`, `origin/main`, `HEAD~1`, `work-item/F0001-S0001`, `file:///tmp/remote.git`)
+   - criterion 3: tests/adapters/test_git_cli_arguments.py::test_push_of_an_option_like_branch_is_refused_before_anything_runs (the human pushes to `main`, `checkout` commits on top of the old `main`; checks the remote's `main` is still the human's tip and `BEFORE_PUSH` was reached 0 times)
+   - criterion 4: tests/adapters/test_git_cli_arguments.py::test_delete_remote_branch_of_an_option_like_name_is_refused (compares the remote's `for-each-ref` before and after)
+   - criterion 5: tests/adapters/test_git_cli_arguments.py::test_clone_of_an_option_like_url_is_refused (checks the bound directory `parent/clone` does not exist)
+   - criterion 6: tests/adapters/test_git_cli_arguments.py::test_checkout_of_an_option_like_branch_or_start_point_is_refused (parametrized: `("--detach", None)` and `("x", "--orphan")`; checks branch and HEAD are unchanged)
+   - criterion 7: tests/adapters/test_git_cli_arguments.py::test_delete_branch_of_an_option_like_name_is_refused
+   - criterion 8: tests/adapters/test_git_cli_arguments.py::test_option_like_ref_is_refused_without_starting_git (11 cases: resolve, show_file, list_files, is_ancestor in both positions, log ref and since, changed_paths, merge, reset_to, revert_paths; a stand-in executable appends its argv to `tmp_path/calls`, and the test checks that file was never created)
+   - criterion 9: tests/adapters/test_git_cli_arguments.py::test_push_of_a_new_branch_with_hyphens_in_its_name_is_pushed (also checks the remote holds the commit)
+   - criterion 10: tests/adapters/test_git_cli_arguments.py::test_git_runs_in_the_c_locale_whatever_the_environment_says (parametrized over `LC_ALL=de_DE.UTF-8` in neither, the process environment, `options.environment`, or both; uses `fetch` with a stand-in that writes its `LC_ALL` to a file, which must read `C`)
+   - criteria 11 and 12: not tests (make check; docs stage).
+
+   Files: created tests/adapters/test_git_cli_arguments.py; added to tests/domain/test_git.py (it imports `check_git_argument`).
+
+   `make test`: a collection error, `ImportError: cannot import name 'check_git_argument' from 'factory.domain.git'`, in tests/domain/test_git.py. The run stops there, so the new adapter tests have not run yet. They fail on behaviour: for example, `delete_branch("-D")` returns quietly today and `push("--force")` reaches git. `make lint` is green. I skipped the type check as the stage says.
+
+   No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: made the git wrapper refuse option-like values and run git in the C locale. `make check` is green.
+      - `src/factory/domain/git.py`: added `check_git_argument(value)` next to `check_repository_path`. It raises `ValueError` for an empty value or one that starts with `-`.
+      - `src/factory/adapters/git_cli.py`: each operation named in the Interface now calls `check_git_argument` as its first statement, before any git process or kill point. These are `resolve`, `show_file`, `list_files`, `is_ancestor` (both arguments), `log` (`ref`, and `since` when given), `changed_paths`, `clone` (before the parent directory is created), `checkout` (branch, and `start_point` when given), `push` (before `BEFORE_PUSH`), `delete_remote_branch`, `delete_branch`, `merge`, `reset_to` and `revert_paths`.
+      - `_environment` now sets `LC_ALL=C` last, alongside the identity and the configuration isolation, so neither `os.environ` nor `options.environment` can override it. The comment there says why: the push outcomes are read from git's English messages.
+      - Main decision: each public method checks its own arguments explicitly. I rejected a central check inside `_run`/`_execute`. That layer cannot tell a ref apart from a flag or a path, and it runs after `push` has already reached `BEFORE_PUSH` and after `clone` has already created the parent directory.
+      - Internal calls with fixed values, such as `is_ancestor("HEAD", ref)` and `resolve(f"refs/heads/{branch}")`, pass the check without trouble.
+      - The Demo output matches its Expect line: `rejected`, `refused`, `['human', 'one']`.
+      - Refactor: I read the diff and found nothing to change. No refactor commit.
+      - Commit: `ticket F0001-S0015: fix(git): refuse option-like refs and run git in the C locale`.
+      - Open: criterion 12 (project guide and decision log) belongs to the docs stage.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: every criterion from 1 to 10 has a test that checks what the criterion says, and I read each one against it.
+        - Criterion 1 covers the refused inputs `""`, `-x` and `--force`. Criterion 2 covers the accepted inputs, including the hyphen inside `work-item/...` and a `file://` url, so the rule is tested on both sides.
+        - Criterion 3 builds a real divergence through the `human` fixture. It checks that the remote's tip is unchanged and that `BEFORE_PUSH` was reached 0 times, using the `kill_points` fixture that `checkout` shares.
+        - Criteria 4 to 7 each check the state that must stay unchanged: the remote's refs, the bound directory, the branch and HEAD.
+        - Criterion 8 covers all 11 positions the Interface lists. Its stand-in executable records every call, and the test asserts it was never started.
+        - Criterion 10 tries the four combinations of `LC_ALL=de_DE.UTF-8` set in the process environment and in `options.environment`.
+        - The coder's entry reports `make check` green.
+      - Interface coverage: I compared it with `git_cli.py`'s public methods. `fetch`, `remote_branches`, `status`, `commit` and `move` take no ref, branch or url. Every other method calls `check_git_argument` as its first statement. That is before `BEFORE_PUSH` in `push` and before `mkdir` in `clone`. `start_point` and `since` are checked only when given. `_environment` sets `LC_ALL=C` after `os.environ` and `options.environment`.
+      - Architecture: `check_git_argument` is a pure function in `factory.domain.git`, next to `check_repository_path`. The adapter calls it, and no layer imports upward.
+      - Security: no suppression markers and no secrets were added. The check stops option injection before any process starts.
+      - Quality: names and docstrings fit the code around them, and the comments say why. `merge` checks `ref` again through its own `is_ancestor(ref, "HEAD")` call. The repeat is harmless and does not justify a round.
+      - Ticket hygiene: the coder's entry gives the main decision, checking in each method and not in `_run`, and why that was rejected. `Assignment` matches what was built. Criterion 12 still says what the project guide and the decision log must state.
+6. documenter: Docs written; no findings, and `make check` is green.
+
+   Changed:
+   - `docs/project-guide.md`, git wrapper section:
+     - Added the argument rule: `check_git_argument`, which operations and arguments it covers, and that it runs before git starts or any kill point is reached.
+     - Added `LC_ALL=C` to the configuration-isolation paragraph, with why it is there and that it leaves path reading unchanged.
+     - Reworded the `reset_to` bullet, which said the ref is resolved so an option-like name never reaches git. It now says an option-like ref is refused earlier by the argument rule.
+   - `docs/decisions.md`: new entry "Option-like values are refused, not passed after `--end-of-options`". It gives the `push("--force")` incident, the rejected alternative, and `LC_ALL=C`.
+
+   Cross-read against the diff and found current: the operation table, the push and delete outcomes, and the identity paragraph. I did not touch `README.md` or `docs/operator-guide.md` because the diff doesn't affect them.
+
+   I ran no examples; I added none. Nothing stale and unrelated to this story.
+
+   `make check`: check: green
+7. demo: ran the one Demo command from the repository root, exactly as written. No findings.
+
+   Command 1 (diverged `main`: plain push, then `push('--force')`, then the human's view of `origin/main`):
+   ```
+   rejected
+   refused
+   ['human', 'one']
+   ```
+   Met its `Expect:` line. The three lines are `rejected`, `refused` and `['human', 'one']`, and the human's commit is still the remote's tip.
+
+   Read against the acceptance criteria:
+   - The demo matches criterion 3. `push('--force')` raises `ValueError`, and the remote's `main` stays at the human's commit, so nothing was force-pushed.
+   - It also uses `clone` with a path, `push('main')` and `log('origin/main')`. All three are values the rule accepts (criterion 2), and they ran normally.
+   - Nothing in the output contradicts criteria 1 to 10.
+   - Criteria 11 (`make check`) and 12 (docs) are not demo matters. The coder's and documenter's entries report `make check` green, and the factory runs it again.

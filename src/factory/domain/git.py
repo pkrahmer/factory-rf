@@ -91,3 +91,10 @@ def check_repository_path(path: str) -> None:
         raise ValueError(f"not a repository-relative path: {path!r}")
     if ".." in pure.parts:
         raise ValueError(f"path leaves the repository: {path!r}")
+
+
+def check_git_argument(value: str) -> None:
+    """Raise `ValueError` for a ref, branch, commit or url that git could read as an option."""
+    # No ref, branch name or remote url starts with a dash, so refusing one loses nothing.
+    if not value or value.startswith("-"):
+        raise ValueError(f"not a git ref, branch or url: {value!r}")
