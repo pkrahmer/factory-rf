@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 13
 blocked: null
 comments_seen: 2
@@ -200,3 +200,4 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
          It met `Expect:` with exactly the three lines it names. The reset removed the untracked `junk.txt` and undid the edit to `a.txt`. The revert put back the committed text `base`. The move put the file at `docs/a.txt`, created the `docs` folder, and removed `a.txt` from its old path.
        - Criteria check: nothing in the demo contradicts any criterion. It matches criteria 1 and 2 (the edit to a tracked file is discarded and the untracked file is removed), 4 (the committed content comes back) and 9 (the folder is created and the file is at its new path). The demo does not exercise the failing sides (criteria 3, 5–8, 10 and 12) or the operation count (criterion 11). Their tests cover them, as entry 11 records.
        - Nothing open.
+14. done (pull request merged); cost: 11 runs, 8.3 min, 67 turns, 182k tokens in (930k more from cache), 31k out, $2.03
