@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 8
 blocked: null
 comments_seen: 0
 round: 0
@@ -187,3 +187,9 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`domain/identifiers.py`, `domain/errors.py`, `domain/agent_runs.py`, `application/agent_runtime.py`, `adapters/fake_agent_runtime.py`) with full signatures. The layers are right (domain DTOs, application protocol, adapter fake). The tests, fixture and the structural-typing check are named.
+   - Criteria: 26 in total, each testable by one function. Every rule of the Interface has a criterion for both sides: Name (2), budget_usd > 0 (3), question required and no repeats (5, 6), time_limit > 0 (7), absolute working_directory and root (8, 9), non-negative tokens (10), decision and entry exactly when completed (11, 12), unknown measures are None and `ok` (13), frozen and forbids extra keys (14). For the fake: order and recording (15), writes and deletes (16), escape paths with nothing written (17), empty queue with the request recorded (18), kill armed, unarmed and not requested (19-21), version (22), the error message (23).
+   - Demo: both commands are runnable with the imports given. Each `Expect:` line is checkable (`True doing x = 1 1` and `rejected: True`).
+   - Architecture: matches CLAUDE.md (R5 to R7, R12), with no concrete tool in the application layer, no `dict[str, Any]` across a boundary, and the fake as a structural fit.
+   - Scope: inside F0001's scope (the agent-runtime interface, its DTOs and the fake). The `claude -p` implementation and the guard hook are left to S0009, S0010 and F0004.
