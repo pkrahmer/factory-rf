@@ -6,9 +6,15 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.clock import ManualClock
+from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
+from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
+from factory.adapters.health_file import JsonHealthStatusFile
+from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
+from factory.application.boundaries import Boundaries
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY, clone, make_remote
@@ -56,3 +62,31 @@ def human(tmp_path: Path, remote: Path) -> HumanClone:
 def clock() -> ManualClock:
     """Return a manual clock started at noon UTC on 2026-10-12."""
     return ManualClock(datetime(2026, 10, 12, 12, 0, tzinfo=UTC))
+
+
+@pytest.fixture
+def boundaries(
+    tmp_path: Path,
+    checkout: GitCli,
+    *,
+    hosting: FakeHostingService,
+    agent_runtime: FakeAgentRuntime,
+    kill_points: KillPoints,
+    clock: ManualClock,
+) -> Boundaries:
+    """Return the interfaces on the test's checkout, fakes and clock, the state under `tmp_path`."""
+    state = tmp_path / "state"
+    return Boundaries(
+        git=checkout,
+        hosting=hosting,
+        agent_runtime=agent_runtime,
+        project_commands=MakeProjectCommands(tmp_path / CHECKOUT, kill_points),
+        work_item_reader=FrontmatterWorkItemReader(),
+        work_item_writer=FrontmatterWorkItemWriter(),
+        cost_reader=JsonLinesCostRecordReader(),
+        cost_writer=JsonLinesCostRecordWriter(),
+        clock=clock,
+        log=TimestampedFactoryLog(state / "factory.log", clock),
+        health=JsonHealthStatusFile(state / "health.json"),
+        checkout=tmp_path / CHECKOUT,
+    )

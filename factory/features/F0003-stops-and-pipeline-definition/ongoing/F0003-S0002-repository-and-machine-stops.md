@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 41
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Raising and clearing the stops of the repository and the machine
 
 ## Assignment (as of log entry 1)
@@ -96,3 +104,93 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `Boundaries` (frozen, kw_only, twelve named fields) and `StopService` (`raise_stop`, `clear_stop`) are in concrete modules, `application/boundaries.py` and `application/stops.py`. They have signatures, `OSError` contracts and the fixture recipe, including the mypy-safe ways to test keyword-only and frozen.
+   - Criteria: every criterion is testable by one test function. Each Interface behaviour has one: the replace-in-place and append order (5), the line format and stamp (4, 10), the silent no-op (11), and the write order and error propagation. Each failing side has a criterion: health unwritable (6, 12), log unwritable (7, 13), both unwritable with the log's `OSError` winning (8), and positional and mutation attempts (1, 2).
+   - Demo: runnable. It calls only S0001 classes and the new ones. The `Expect:` line gives six output lines that I checked against the script's prints, and the stamps are checkable with a regex and a 5 s offset.
+   - Architecture: `Boundaries` and `StopService` sit in `factory.application` and import only interfaces and domain types. Wiring stays in `factory.entry`, and the story builds none.
+   - Scope: this is S0002 of F0003, the repository and machine side of stops. Work item stops, the health check command and the pipeline definition are other stories or out of scope, and none of them is touched.
+3. tester: I wrote red tests for criteria 1–13. Each criterion maps to one test function, and criterion 11 has two.
+   - criterion 1: tests/application/test_boundaries.py::test_boundaries_refuse_positional_arguments (calls `Boundaries` through `Callable[..., Boundaries]` with the fixture's field values in order)
+   - criterion 2: tests/application/test_boundaries.py::test_boundaries_refuse_assignment_to_a_field (`setattr` on `checkout`)
+   - criterion 3: tests/application/test_stops.py::test_a_raised_stop_is_in_the_health_status
+   - criterion 4: tests/application/test_stops.py::test_a_raised_stop_writes_one_stamped_line_to_output_and_log_file (the clock is advanced by 7.987654 s, so the expected stamp is `2026-10-12T12:00:07Z`)
+   - criterion 5: tests/application/test_stops.py::test_a_stop_of_a_known_reason_replaces_it_in_place_and_a_new_reason_is_appended (A, B, A' gives `[A', B]`, then a new reason C gives `[A', B, C]`)
+   - criterion 6: tests/application/test_stops.py::test_a_stop_reaches_the_log_when_the_health_status_cannot_be_written
+   - criterion 7: tests/application/test_stops.py::test_a_stop_reaches_the_health_status_when_the_log_file_cannot_be_written
+   - criterion 8: tests/application/test_stops.py::test_the_log_error_is_raised_when_neither_destination_can_be_written (the `filename` is the log's blocking file or a path below it, and is neither the health file's blocker nor a path below that)
+   - criterion 9: tests/application/test_stops.py::test_a_raised_stop_opens_no_pull_request
+   - criterion 10: tests/application/test_stops.py::test_clearing_a_stop_removes_only_it_and_writes_the_cleared_line
+   - criterion 11: tests/application/test_stops.py::test_clearing_a_reason_that_is_not_stopped_does_nothing (no line, and neither the log file nor the health file exists afterwards) and ::test_clearing_a_reason_that_is_not_stopped_keeps_the_other_stops_silently (the Interface rule "no write, no line" when other stops are present)
+   - criterion 12: tests/application/test_stops.py::test_clearing_raises_and_writes_no_line_when_the_health_status_cannot_be_written
+   - criterion 13: tests/application/test_stops.py::test_clearing_removes_the_stop_and_raises_when_the_log_file_cannot_be_written
+
+   Why criterion 12 uses a fake: the Interface's recipe for an unwritable destination is a `JsonHealthStatusFile` below a regular file, but such a file reads as `HealthStatus()`, so there would be no stop to clear. The test therefore uses `_UnwritableHealth`, a small `HealthStatusStore` defined in the test module. It returns a status that holds the stop and raises `OSError` on every write. The other unwritable destinations follow the Interface's recipe.
+
+   Files:
+   - created: tests/application/test_boundaries.py and tests/application/test_stops.py
+   - changed: tests/conftest.py, which gains the `boundaries` fixture built exactly as the Interface says. Its parameters after `checkout` are keyword-only to satisfy ruff's PLR0917.
+
+   What fails, and why: conftest imports `factory.application.boundaries` at the top, so `make test` stops while loading conftest with `ModuleNotFoundError: No module named 'factory.application.boundaries'`. The whole suite is blocked until the coder creates that module. `factory.application.stops` is missing as well.
+
+   Checks: `make lint` is green. I skipped the type check as this stage says.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.application.boundaries'
+4. coder: I implemented `Boundaries` and `StopService`, and `make check` is green. The tester's tests are unchanged.
+   - `src/factory/application/boundaries.py`: `Boundaries` is a `@dataclass(frozen=True, kw_only=True)` with the twelve fields the Interface lists. It imports only application interfaces and `Path`.
+   - `src/factory/application/stops.py`:
+     - `StopService.raise_stop` writes the line `stop <scope> <reason>: <detail>` through `boundaries.log`. It then reads the health status and writes it back with the stop: a stop with a known reason is replaced where it stood, and a new reason is appended. Each write sits in its own `try`, and the first `OSError` is raised once both have been tried. The log is tried first, so the log's error wins when both fail.
+     - `clear_stop` does nothing when the status holds no stop of that reason. Otherwise it writes the status without that stop first and then the line `stop cleared <reason>`. An `OSError` from the health write therefore stops it before the line.
+   - Commits:
+     - `61b20ec` feat(application): boundaries and the stop service
+     - `d5bfeaa` refactor(application): `_with_stop` now decides between replacing and appending by checking the reason. Before, it checked whether the stop was in the list.
+
+   Design: the replace-or-append rule lives in two private helpers in `application/stops.py`. I rejected adding public methods to `HealthStatus` in `factory.domain.stops`. That would put a domain API in this story's diff that only this service uses. If later stories need the rule elsewhere, it can move to the domain then.
+
+   Noticed, not touched: `HealthStatusStore.read()` is documented as never raising. `raise_stop` still reads inside the health `try`, so a store that breaks this contract with an `OSError` cannot lose the line. `clear_stop` lets a read error propagate before anything is written, which matches "nothing else is done".
+
+   Open: none. The docs criterion (15) is the documenter's.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: I read every test against its criterion. Criteria 1–13 each have a test that checks what the criterion says. Criterion 11 has two tests, one with no status file and one with other stops present. The failing side of each `OSError` rule has a test: health unwritable (6, 12), log unwritable (7, 13), and both unwritable with the log's error winning (8). Criterion 12 uses `_UnwritableHealth`, a `HealthStatusStore` defined in the test module. I accept it because the Interface's recipe (a file below a regular file) reads as `HealthStatus()`, so there would be no stop to clear. It inherits the interface and does not stand in for the code under test. The Interface states no numeric limit. The coder's entry records `make check` green.
+   - Architecture: `src/factory/application/boundaries.py` imports only application interfaces and `Path`. `src/factory/application/stops.py` imports only `Boundaries` and `factory.domain.stops`. The story builds no wiring, and no tool is called.
+   - Security: no secrets, no shell or SQL built from strings, no suppression markers. The diff adds no external input.
+   - Quality: `raise_stop` tries the log first and then the health status, each in its own `try`, and raises `errors[0]`, so the log's error wins as the rule says. `clear_stop` returns early when the reason is absent, writes the health status before the line, and lets `OSError` propagate in that order. The private helpers `_with_stop` and `_without_stop` replace a stop in place or append it, and `HealthStatus` keeps its one-stop-per-reason validator. The module, the public classes and the public methods carry docstrings, and the comments say why.
+   - Ticket hygiene: the coder's entry gives the main decision and what was rejected (the replace-or-append rule stays private, not a public `HealthStatus` API). `Assignment` matches what was built. Criterion 15 still describes what the documenter has to write.
+6. documenter: I wrote the three documents criterion 15 asks for, and `make check` is green.
+   - `docs/operator-guide.md`:
+     - New section "Stops of the repository or the machine" with the two lines `stop <scope> <reason>: <detail>` and `stop cleared <reason>`, each with an example.
+     - It says a stop is replaced in place and not repeated, that a new reason is appended, and that a stop is removed when the fault is gone.
+     - It says what happens when one destination cannot be written.
+     - I replaced the intro of the log/health section, which said `StopService` was still to come.
+   - `docs/project-guide.md`:
+     - The "Stops, the clock and the factory log" section now describes `StopService`, with the write order and the `OSError` rules. The "comes with F0003-S0002" sentence is gone.
+     - New "Boundaries" subsection: keyword-only, frozen, the twelve fields, the `boundaries` fixture, `dataclasses.replace`, the mypy-safe tests, and the note that wiring is not built yet.
+   - `docs/decisions.md`: a new entry records that both destinations of a stop are tried and one failing never loses it. It also records why `clear_stop` writes the health status first, and the alternatives I rejected.
+   - I cross-read the README (it names no stop or boundary) and the rest of the operator guide and project guide against the diff. I found them current.
+   - I found nothing stale to leave alone, and no findings for the coder. The code matches the Interface.
+   - I did not run the demo script. The log line examples in the operator guide use the demo's format.
+
+   `make check`: check: green
+7. demo: the one command under `## Demo` ran from the repository root with exit code 0. Its output matches its `Expect:` line, and I found no findings.
+
+   Command 1 (the `uv run python -c` script that raises and then clears `fetch_failed`):
+   ```
+   2026-10-12T12:00:07Z stop repository fetch_failed: origin unreachable
+   ['fetch_failed'] False
+   2026-10-12T12:00:12Z stop cleared fetch_failed
+   [] True
+   2 True
+   ['stop repository fetch_failed: origin unreachable', 'stop cleared fetch_failed']
+   ```
+   It met its `Expect:` line. There are six lines:
+   - Line 1 is the stop line. Its stamp is `YYYY-MM-DDTHH:MM:SSZ`, starts with `2026-10-12T`, and is the clock's time cut to whole seconds.
+   - Line 2 is `['fetch_failed'] False`.
+   - Line 3 is the cleared line, with a stamp 5 seconds after the first (12:00:12).
+   - Line 4 is `[] True`.
+   - Line 5 is `2 True`.
+   - Line 6 lists the two lines with their stamps removed.
+
+   Criteria check: the demo agrees with criteria 3 (the stop is in the status and `healthy` is false), 4 (one stamped line on standard output and in the log file, stamped with the clock's time), 10 (clear removes the stop and writes `stop cleared <reason>`) and 1/2 (built with keyword arguments only). It contradicts no criterion. The demo does not exercise the error paths (6–8, 12, 13), the replace-in-place rule (5) or the no-op clear (11); tests cover them, according to the tester's and reviewer's entries. I did not run `make check`, which the factory runs itself after this stage.
