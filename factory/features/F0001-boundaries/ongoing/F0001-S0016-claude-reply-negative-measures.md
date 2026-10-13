@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 18
 blocked: null
 comments_seen: 2
@@ -119,3 +119,12 @@ Expect: one line, `died None None None []`, and no traceback.
    Not touched: two lines of `claude_runtime.py` remain uncovered (360, 381-382): the resume skipped when no time is left, and the state-directory write error. The story leaves both out on purpose. Criterion 10, the docs sentence, is for the documenter.
 
    `make check`: check: green
+7. reviewer: no findings.
+
+   I read the ticket and `git diff main...HEAD -- . ':!factory'`: `src/factory/adapters/claude_runtime.py` and the two test files.
+
+   - Acceptance criteria: each of criteria 1 to 8 has a test, and each test checks what its criterion says. Criteria 1, 2 and 3 change one measure to -1 (or the cost to -0.01) and keep the other `_reply` values valid. Criterion 2 is one test parametrized over the four `usage` fields. Criterion 4 is the zero side of the same limit; `Decimal("0.0") == Decimal(0)` holds. Criterion 5 asserts that the call ran with its files, that no run file is left and that `KillPoint.AGENT_RUN` was reached once. Criterion 6 tests the first-call-only sum and criterion 8 the resumed-call-only sum. Criterion 7 uses `_budget_reply(num_turns=-1)`, asserts `died` with every measure `None`, and checks that the stand-in was called once. Every rule the Interface states is tested on its rejected side (negative) and its accepted side (zero). The coder's entry says the factory's `make check` was green.
+   - Architecture: the change stays inside `factory.adapters`. The bounds sit on the private parse models (`NonNegativeInt` and `NonNegativeFloat` from pydantic, which is already a dependency). It adds no new interface, DTO or wrapper.
+   - Security: nothing silences a check, nothing builds a shell command or SQL from strings, and there are no secrets. A reply with a negative measure fails validation at the boundary, `_parse_reply` catches that, and the run ends as `died` without leaking the error.
+   - Quality: the rule reuses the existing "reply does not parse" path, so there is no duplicated check. The comment above `_Usage` gives the reason.
+   - Ticket hygiene: log entry 6 states the main decision (bounding the parse model) and the alternative rejected (a separate check after parsing). The Assignment matches what was built. Criterion 10 still tells the documenter what to add to `docs/project-guide.md`.
