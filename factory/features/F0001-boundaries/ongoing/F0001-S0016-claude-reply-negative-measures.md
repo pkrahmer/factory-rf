@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 18
 blocked: null
 comments_seen: 2
@@ -110,3 +110,12 @@ Expect: one line, `died None None None []`, and no traceback.
 
    `make lint`: lint: green
    `make test`: FAILED tests/adapters/test_claude_runtime_resume.py::test_budget_stop_with_a_negative_measure_died_and_is_not_resumed
+6. coder: I changed `src/factory/adapters/claude_runtime.py` (commit 16acc2a). The private reply models are now bounded at zero. `_Reply.num_turns` is `NonNegativeInt | None`. `_Reply.total_cost_usd` is `NonNegativeFloat | None`. The four `_Usage` token counts are `NonNegativeInt`. A reply with a negative measure therefore fails validation in `_parse_reply`, which returns `None`. That is the existing path for a reply that does not parse: the run is `died` with every measure `None`, the run files are removed in `finally`, and `KillPoint.AGENT_RUN` is reached. A budget-stop reply with a negative measure fails to parse too, so its end reason is never `budget` and it is not resumed. Zero is still valid. I did not need to change the resumed sums; the tests for criteria 6 and 8 already passed. `make check` is green.
+
+   Main decision: I put the rule in the reply's parse model. I rejected a separate check after parsing. It would duplicate the "does not parse" path, and it would have to run before the budget subtype is read so that it does not trigger a resume. Bounding the fields keeps "a negative measure is a reply that does not parse" literally true. I added one comment above `_Usage` giving the reason.
+
+   Refactor: I read the diff and found nothing to change; it is three type annotations, an import and a comment.
+
+   Not touched: two lines of `claude_runtime.py` remain uncovered (360, 381-382): the resume skipped when no time is left, and the state-directory write error. The story leaves both out on purpose. Criterion 10, the docs sentence, is for the documenter.
+
+   `make check`: check: green
