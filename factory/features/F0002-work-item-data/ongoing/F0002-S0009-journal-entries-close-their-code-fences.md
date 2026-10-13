@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 37
 blocked: null
 comments_seen: 0
@@ -131,3 +131,36 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
    - Stale but not touched: the example `entry_text` output in the project guide has no fenced entry, so it is still correct.
 
    `make check`: check: green
+7. demo: ran the one `## Demo` command from the repository root, exactly as written. It met its Expect line, so there are no findings.
+
+   ```
+   # T
+
+   ## Journal
+
+   1. 2026-10-13 human: created.
+   2. tester: red:
+      ```
+      E   assert 1 == 2
+      ```
+   3. coder: green
+
+   ## After
+   []
+   'red:\n```\nE   assert 1 == 2\n```'
+   ```
+
+   - Expect met:
+     - The body shows `2. tester: red:`.
+     - Under it come lines indented by three spaces: a fence line, `E   assert 1 == 2`, and the added closing fence line.
+     - Then `3. coder: green`, an empty line and `## After`.
+     - `check_story_form` returns `[]`. It finds all three entries and the `After` section after the journal.
+     - The last line, the repr of `entry_text(doc, 2)`, is `'red:\n```\nE   assert 1 == 2\n```'`, the closing line included.
+   - Criteria checked against this output:
+     - 1: the closing line has a three-space indent for a one-digit number.
+     - 5: the form check is clean and entry 3 is visible.
+     - 6: `## After` is still a section.
+     - 7: `entry_text` returns the text as rendered.
+     - 4: entry 1, which has no fence, is unchanged.
+     - The demo contradicts no criterion. It does not exercise criteria 2, 3, 8 and 9 directly; tests cover those (log entries 3 and 5).
+   - I did not run `make check` myself. The factory runs it after this stage.
