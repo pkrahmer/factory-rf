@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 10
 blocked: null
 comments_seen: 0
@@ -240,3 +240,4 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
    Open, carried over from earlier entries, not findings:
    - The operator guide names no pinned `claude` version, because the ticket names none. That needs a decision from the human.
    - No test covers the branch in `_resume` where no time is left.
+8. done (pull request merged); cost: 6 runs, 5.9 min, 45 turns, 195k tokens in (816k more from cache), 27k out, $2.00
