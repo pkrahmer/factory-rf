@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 18
 blocked: null
 comments_seen: 2
@@ -128,3 +128,7 @@ Expect: one line, `died None None None []`, and no traceback.
    - Security: nothing silences a check, nothing builds a shell command or SQL from strings, and there are no secrets. A reply with a negative measure fails validation at the boundary, `_parse_reply` catches that, and the run ends as `died` without leaking the error.
    - Quality: the rule reuses the existing "reply does not parse" path, so there is no duplicated check. The comment above `_Usage` gives the reason.
    - Ticket hygiene: log entry 6 states the main decision (bounding the parse model) and the alternative rejected (a separate check after parsing). The Assignment matches what was built. Criterion 10 still tells the documenter what to add to `docs/project-guide.md`.
+8. documenter: changed `docs/project-guide.md` (measures paragraph of the `claude -p` runtime section): after the sentence on a wrong-typed field, it now says a reply with a negative `num_turns`, token count or `total_cost_usd` counts as `died` with every measure `None`, that zero is valid, and that a budget-stop reply with a negative measure is `died` and not resumed (criterion 10).
+   Cross-read and found current against the diff: the resume paragraphs of the same section (sums over both calls, a call that reported none adds nothing; this matches criteria 6 and 8), the `AgentRunResult` paragraph, `README.md`, `docs/operator-guide.md`. The code matches the Interface and no finding for the coder. No examples were written; `make check` is green after the edit. Nothing stale seen that is unrelated to this story.
+
+   `make check`: check: green
