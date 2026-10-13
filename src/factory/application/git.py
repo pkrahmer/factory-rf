@@ -1,5 +1,6 @@
 """The interface through which the factory reaches git."""
 
+from collections.abc import Sequence
 from typing import Protocol
 
 from factory.domain.git import (
@@ -102,5 +103,28 @@ class Git(Protocol):
         """Merge `ref` into the checked-out branch, fast-forwarding where it can.
 
         A conflict is aborted before `"conflict"` is returned, so nothing is left half done.
+        """
+        ...
+
+    def reset_to(self, ref: str) -> None:
+        """Point the current branch at `ref`, discard every tracked change and clean the tree.
+
+        Untracked files and directories are removed, ignored ones stay.
+        """
+        ...
+
+    def revert_paths(self, commit: str, paths: Sequence[str]) -> None:
+        """Bring each of `paths` to its content at `commit`, in the work tree and the index.
+
+        A path missing at `commit` is deleted; one that is nowhere is skipped. Paths are
+        repository-relative with forward slashes: an absolute path or a `..` segment raises
+        `ValueError` before any path is changed.
+        """
+        ...
+
+    def move(self, source: str, destination: str) -> None:
+        """Move the tracked file `source` to `destination`, staged as a rename.
+
+        The destination's parent directories are created; an existing destination is refused.
         """
         ...

@@ -1,6 +1,7 @@
 """The git wrapper: the one class that runs the git command-line tool."""
 
 import os
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from factory.domain.git import (
     PushOutcome,
     RemoteBranch,
     WorkTreeStatus,
+    check_repository_path,
 )
 from factory.domain.kill_points import KillPoint
 from factory.domain.paths import REMOTE
@@ -296,6 +298,41 @@ class GitCli:
         if fast_forward_only:
             return "not_fast_forward"
         return self._merge_diverged(ref)
+
+    def reset_to(self, ref: str) -> None:
+        """Hard-reset the current branch to `ref`, then remove untracked files and directories."""
+        # `reset` takes no `--end-of-options`, so it only ever sees a resolved commit id.
+        commit = self._resolve_or_raise(ref, "reset")
+        self._run(["reset", "--quiet", "--hard", commit, "--"])
+        self._run(["clean", "--quiet", "--force", "-d"])
+
+    def revert_paths(self, commit: str, paths: Sequence[str]) -> None:
+        """Restore each path from `commit`, or delete it where `commit` does not have it."""
+        for path in paths:
+            check_repository_path(path)
+        commit_id = self._resolve_or_raise(commit, "checkout")
+        for path in paths:
+            if self.show_file(commit_id, path) is None:
+                self._delete_path(path)
+            else:
+                self._run(["checkout", "--quiet", commit_id, "--", path])
+
+    def move(self, source: str, destination: str) -> None:
+        """Run `git mv`, after creating the destination's parent directories."""
+        (self._directory / destination).parent.mkdir(parents=True, exist_ok=True)
+        self._run(["mv", "--", source, destination])
+
+    def _resolve_or_raise(self, ref: str, command: str) -> CommitId:
+        commit = self.resolve(ref)
+        if commit is None:
+            raise GitError(_command([command, ref]), None, f"unknown ref {ref}")
+        return commit
+
+    def _delete_path(self, path: str) -> None:
+        self._run(["rm", "--quiet", "--cached", "--ignore-unmatch", "--", path])
+        file = self._directory / path
+        if file.is_file() or file.is_symlink():
+            file.unlink()
 
     def _merge_diverged(self, ref: str) -> MergeOutcome:
         arguments = ["merge", "--quiet", "--no-edit", "--no-gpg-sign", "--end-of-options", ref]
