@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 7
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The project-commands interface and the make class
@@ -182,3 +182,12 @@ Expect: one line starting with `project command Check; ls failed:` that names th
       Not touched: the docs for criterion 26 (`docs/project-guide.md` and `docs/operator-guide.md`) are the documenter's job.
 
    `make check`: check: green
+5. reviewer: one finding, sent back.
+
+   1. `src/factory/adapters/make_commands.py:251`: `_COMMAND_NAME.match(command)` uses Python `re`, where `$` also matches just before a trailing newline. So `run("check\n", ...)` gets past the name check and starts `make --no-print-directory "check\n"`. Only after that does `CheckResult(command="check\n")` fail, because Pydantic's default Rust regex does not let `$` match before a final newline. The caller then gets a raw `ValidationError` after a process was started. The Interface rule says a non-matching command raises `ProjectCommandError` before anything is started, so this breaks it. Fix: use `_COMMAND_NAME.fullmatch(command)`, or anchor the shared pattern with `\Z`, so the adapter and the model accept exactly the same names. Criterion 19 does not test a name with a trailing newline. This is a gap in the story, not the tester's fault: if the human wants a test for it, adding `"check\n"` to the parametrized names of `tests/adapters/test_make_commands.py::test_invalid_command_name_is_refused_before_starting` is a tester change (R9).
+
+   Otherwise the review found no problems:
+   - Every criterion from 1 to 24 has a test, and each test checks what its criterion says. The coder's entry reports `make check` green.
+   - Layers are correct: the Protocol is in application, the DTO and error in domain, and the make class in adapters through `run_process`.
+   - No suppression markers were added.
+   - The docstrings are present and say the right things.
