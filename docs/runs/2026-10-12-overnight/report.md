@@ -2,7 +2,7 @@ This is not v1.1's baseline run: that run is v1.1 on `factory-demo-todo`, after 
 
 # Morning report, 2026-10-12 overnight
 
-A running file: every push of the night log updates it. Status at the last update (02:45): F0001 has 9 of 14 stories merged and archived (S0001 to S0009), all accepted at the first approval. Starts are held at 93% of the 5-hour window until its reset at 03:30; S0010 is next. Planning stopped at 01:25: F0002 to F0011 are drafted and cross-checked once, not audited.
+A running file: every push of the night log updates it. Status at the last update (04:39): all 14 stories of F0001 (boundaries) merged and archived, each accepted at its first approval; F0001's feature acceptance is running. Planning stopped at 01:25 and the cut-off has passed: no later feature is built tonight.
 
 ## Done
 
@@ -21,6 +21,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0011 Git wrapper: history and work tree | #11 | 9 | 8.2 | 14 (03:51 to 04:05) | $2.15 | 1 (coder: test commit ids flagged by detect-secrets) |
 | F0001-S0012 Git wrapper: branches and merge | #12 | 6 | 6.4 | 9 (04:06 to 04:15) | $1.42 | 0 (first-pass) |
 | F0001-S0013 Git wrapper: reset, revert, move | #13 | 11 | 8.3 | 14 (04:16 to 04:30) | $2.03 | 1 (reviewer: `move` outside the path rule) |
+| F0001-S0014 The hosting-service fake | #14 | 6 | 4.1 | 7 (04:31 to 04:38) | $1.30 | 0 (first-pass) |
 
 ## Stops
 
