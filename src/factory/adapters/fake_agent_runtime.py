@@ -45,15 +45,7 @@ class FakeAgentRuntime:
         if not self._queue:
             raise AgentRuntimeError("no scripted run is queued")
         scripted = self._queue.popleft()
-        directory = request.working_directory
-        # Check every path first, so that a bad one leaves the directory untouched.
-        writes = {_inside(directory, path): text for path, text in scripted.writes.items()}
-        deletes = [_inside(directory, path) for path in scripted.deletes]
-        for target, text in writes.items():
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(text, encoding="utf-8")
-        for target in deletes:
-            target.unlink(missing_ok=True)
+        _apply(scripted, request.working_directory)
         if scripted.kill and self._kill_points is not None:
             self._kill_points.reach(KillPoint.AGENT_RUN)
         return scripted.result
@@ -61,6 +53,17 @@ class FakeAgentRuntime:
     def version(self) -> str:
         """The version given at construction."""
         return self._version
+
+
+def _apply(scripted: ScriptedRun, directory: Path) -> None:
+    # Check every path first, so that a bad one leaves the directory untouched.
+    writes = {_inside(directory, path): text for path, text in scripted.writes.items()}
+    deletes = [_inside(directory, path) for path in scripted.deletes]
+    for target, text in writes.items():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+    for target in deletes:
+        target.unlink(missing_ok=True)
 
 
 def _inside(directory: Path, path: str) -> Path:
