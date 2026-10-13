@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 12
 blocked: null
 comments_seen: 0
@@ -125,3 +125,15 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
 
    `make lint`: lint: green
    `make test`: FAILED tests/adapters/test_git_cli_branches.py::test_merge_commit_without_options_carries_the_default_identity
+4. coder: implemented the branch operations. All 20 tests in tests/adapters/test_git_cli_branches.py pass, `make check` is green (coverage 98.84 %), and the demo prints `conflict []`, `''`, `up_to_date`.
+      - `src/factory/domain/git.py`: `MergeOutcome`.
+      - `src/factory/application/git.py`: `delete_remote_branch`, `delete_branch` and `merge` added to the `Git` protocol.
+      - `src/factory/adapters/git_cli.py`:
+        - `delete_remote_branch` runs `push --porcelain origin --delete`. Exit 0, or git's "remote ref does not exist", means `"pushed"`; either way it then runs `update-ref -d refs/remotes/origin/<branch>` to drop a stale tracking ref. It reaches no kill point.
+        - `delete_branch` checks `refs/heads/<branch>` through `resolve`, so a missing branch is a no-op. Otherwise it runs `branch --delete --force`, and git refuses the checked-out branch, which gives the GitError.
+        - `merge` decides from ancestry before git merges anything: an unknown ref is a GitError; ref contained in HEAD → `up_to_date`; HEAD contained in ref → `merge --ff-only` → `fast_forwarded`; diverged with `fast_forward_only` → `not_fast_forward`; otherwise `merge --no-edit --no-gpg-sign`. If that fails and `MERGE_HEAD` exists, it runs `merge --abort` and returns `conflict`. Any other failure (such as local changes the merge would overwrite) is a GitError. Both merge calls use `--end-of-options`. The identity comes from the existing `_environment`, which already overrides GIT_COMMITTER_*.
+      - Main decision: decide the outcome from ancestry plus the presence of `MERGE_HEAD`, not by parsing git's merge messages. Rejected alternative: parsing "Already up to date" / "Fast-forward" / "CONFLICT" text, which is fragile across git versions and locales. The already-deleted case still relies on git's text "remote ref does not exist". I found no cleaner signal for it.
+      - Refactor (separate commit 4366098): `push` and `delete_remote_branch` duplicated the rejected / unreachable / error classification. It is now one private `_failed_push`.
+      - Open: criterion 19 (project-guide) is the documenter's. I noticed nothing outside the ticket that needs touching.
+
+   `make check`: check: green
