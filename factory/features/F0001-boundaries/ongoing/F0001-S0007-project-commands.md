@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 7
 blocked: null
 comments_seen: 0
@@ -191,3 +191,12 @@ Expect: one line starting with `project command Check; ls failed:` that names th
    - Layers are correct: the Protocol is in application, the DTO and error in domain, and the make class in adapters through `run_process`.
    - No suppression markers were added.
    - The docstrings are present and say the right things.
+6. coder: coder (round 1): fixed the reviewer's one finding in commit 3ad8721.
+      - `src/factory/adapters/make_commands.py`: the name check now calls `_COMMAND_NAME.fullmatch(command)` instead of `.match(command)`. Python's `re` lets `$` match just before a final newline, so `"check\n"` used to get past the check, start make, and only then fail inside `CheckResult` with a `ValidationError`. With `fullmatch` the adapter accepts exactly the names the model's pattern accepts. `run("check\n", ...)` now raises `ProjectCommandError` before any process starts. I checked this by hand: the message is `project command check\n failed: invalid command name 'check\\n'`.
+      - Main decision: keep the shared `COMMAND_NAME_PATTERN` exactly as the Interface gives it (`^[a-z][a-z0-9-]*$`) and change only the adapter's match call. Rejected: anchoring the pattern with `\Z`, which would make the domain's pattern differ from the one the Interface states.
+      - Open: no test covers a name with a trailing newline. As the reviewer noted, adding `"check\n"` to the parametrized names of `tests/adapters/test_make_commands.py::test_invalid_command_name_is_refused_before_starting` would be a tester change if the human wants it.
+      - Refactor: a one-line change, so nothing to refactor.
+
+      `make check`: check: green (coverage 100 %)
+
+   `make check`: check: green
