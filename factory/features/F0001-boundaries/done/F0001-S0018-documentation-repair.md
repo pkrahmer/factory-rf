@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 20
 blocked: null
 comments_seen: 0
@@ -107,3 +107,4 @@ Expect: three lines, each `0`. grep exits 1 when it counts nothing; that exit is
    7. The documenter's entry records the cross-read and the stale wording it left alone. That wording is outside this story's criteria.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 2.2 min, 26 turns, 58k tokens in (230k more from cache), 6k out, $0.49
