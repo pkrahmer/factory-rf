@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 41
 blocked: null
 comments_seen: 0
@@ -153,3 +153,9 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
    Open: none. The docs criterion (15) is the documenter's.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: I read every test against its criterion. Criteria 1–13 each have a test that checks what the criterion says. Criterion 11 has two tests, one with no status file and one with other stops present. The failing side of each `OSError` rule has a test: health unwritable (6, 12), log unwritable (7, 13), and both unwritable with the log's error winning (8). Criterion 12 uses `_UnwritableHealth`, a `HealthStatusStore` defined in the test module. I accept it because the Interface's recipe (a file below a regular file) reads as `HealthStatus()`, so there would be no stop to clear. It inherits the interface and does not stand in for the code under test. The Interface states no numeric limit. The coder's entry records `make check` green.
+   - Architecture: `src/factory/application/boundaries.py` imports only application interfaces and `Path`. `src/factory/application/stops.py` imports only `Boundaries` and `factory.domain.stops`. The story builds no wiring, and no tool is called.
+   - Security: no secrets, no shell or SQL built from strings, no suppression markers. The diff adds no external input.
+   - Quality: `raise_stop` tries the log first and then the health status, each in its own `try`, and raises `errors[0]`, so the log's error wins as the rule says. `clear_stop` returns early when the reason is absent, writes the health status before the line, and lets `OSError` propagate in that order. The private helpers `_with_stop` and `_without_stop` replace a stop in place or append it, and `HealthStatus` keeps its one-stop-per-reason validator. The module, the public classes and the public methods carry docstrings, and the comments say why.
+   - Ticket hygiene: the coder's entry gives the main decision and what was rejected (the replace-or-append rule stays private, not a public `HealthStatus` API). `Assignment` matches what was built. Criterion 15 still describes what the documenter has to write.
