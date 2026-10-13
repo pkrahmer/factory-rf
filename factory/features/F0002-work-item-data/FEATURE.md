@@ -36,6 +36,8 @@ The order is the story numbers. A later number may start first if it is the only
 - S0006 — Story form check
 - S0007 — Cost record sidecar format
 - S0008 — The story check command
+- S0009 — Journal entries close their code fences (proposed by the feature acceptance)
+- S0010 — Documentation after work item data (proposed by the feature acceptance)
 
 ## Decisions taken for the human
 
@@ -55,3 +57,6 @@ Product decisions taken while writing the stories, for the human to review in on
 12. The journal story comes after the sections story, because appending an entry needs the section finder; the story form check comes after both. (S0004, S0005, S0006, story order)
 13. `factory.entry.wiring.build_work_item_reader` stays as a building block when `build_boundaries` arrives: `build_boundaries` calls it, so later stories add tests and change none of `tests/entry/test_wiring.py`. (S0008, story text)
 14. The command reads a story by its folder and by whether the reader finds front matter in it. A story in `backlog` is read as a specification. A story in `in-progress` or `done` is read with `parse`. When `parse` reports `no front matter`, the story is read again as a specification and checked with the folder `backlog`. On `main` a started story is the human's moved file and has no front matter, because the state lives on the work item's branch (ST6.1). So the state rules (a story without state, a journal that disagrees with its data) are not asked of a file that cannot have a state. A story in `in-progress` or `done` with front matter is checked with the folder of its path, and any other fault of `parse` is its finding. Whether a text has front matter is the reader's rule (decision 4), not a test of the first line. (S0008, story text)
+15. Journal entries are counted only at column 0 outside code blocks, and `render_entry` closes a code block that an entry's text leaves open. `NewEntry.text` and the journal record stay unchanged, and a text that ends with its own closing line gets one more, as CommonMark reads it. Decided by the human on 2026-10-13 after the feature acceptance. (S0009, story text)
+16. `pydantic_core.ErrorDetails` is imported without a direct pin of `pydantic-core`: `pydantic` pins it exactly through `uv.lock`, and a second pin would have to move by hand with every pydantic upgrade. Decided by the human on 2026-10-13. (S0003, story text)
+17. v1.1's file names (`factory/story-form.md`, `feature.md`) stand, so `factory-check-story` does not check factory-rf's own stories, which are in v1's tree (`TICKET.md`, `FEATURE.md`), until the tree moves to v1.1's layout. Decided by the human on 2026-10-13. (S0008, S0010, story text)
