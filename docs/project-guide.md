@@ -502,7 +502,7 @@ The notation:
 - `started_at` is single-quoted UTC text in `isoformat()` form with the offset written as `Z`.
 - A name a YAML reader could take for null or a boolean (`null`, `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`) is single-quoted (`handed_over: 'true'`), so it reads back as the same text. Every other scalar is unquoted.
 
-`RuamelYamlHandler` subclasses python-frontmatter's `YAMLHandler` and overrides only `load` (ruamel.yaml's safe loader, keys converted with `str`) and `export`. The reader calls the handler's `detect`, `split` and `load` itself rather than `frontmatter.loads`, which would take two later `---` lines for front matter, return an unclosed text whole, drop front matter that is not a mapping and refuse a key named `content`.
+`RuamelYamlHandler` subclasses python-frontmatter's `YAMLHandler` and overrides only `load` (ruamel.yaml's safe loader, keys converted with `str`) and `export`. The reader calls the handler's `detect`, `split` and `load` itself (the split is the module function `split_front_matter(handler, text)`, which the agent definition reader calls too) rather than `frontmatter.loads`, which would take two later `---` lines for front matter, return an unclosed text whole, drop front matter that is not a mapping and refuse a key named `content`.
 
 ### The body
 
@@ -522,7 +522,7 @@ The notation:
 | `invalid <path>: <reason>` | a value the model refuses; the first in the order of the state's fields |
 | `invalid state: <reason>` | every value is valid but a rule across keys is broken (the claim's stage differs from the state's) |
 
-When several faults exist, the first in this order is reported: structure, unknown key, missing key, invalid value, rule across keys. `parse_specification` raises only `front matter is not valid YAML` and `front matter is not a mapping`; a text with no front matter is a body with no ignored keys. `read` raises `WorkItemFormatError` with `path` set to `str(path)`: `cannot read: <reason>` for a file that is missing or not UTF-8, otherwise the fault of `parse`. `render` raises `the document has no state` for a document whose `state` is `None`.
+The agent files have their own reader and faults: see *The agent definition reader*. When several faults exist, the first in this order is reported: structure, unknown key, missing key, invalid value, rule across keys. `parse_specification` raises only `front matter is not valid YAML` and `front matter is not a mapping`; a text with no front matter is a body with no ignored keys. `read` raises `WorkItemFormatError` with `path` set to `str(path)`: `cannot read: <reason>` for a file that is missing or not UTF-8, otherwise the fault of `parse`. `render` raises `the document has no state` for a document whose `state` is `None`.
 
 ```bash
 uv run python -c "
@@ -735,6 +735,49 @@ except PipelineDefinitionInvalid as error:
 ```
 
 prints `doing 60 ['check', 'lint', 'test']` and then `unknown key: contrakt; missing key: contract`.
+
+## The agent definition reader
+
+Every role of the pipeline definition needs an agent file of the same name, `<agent home>/agents/<name>.md`. `AgentDefinitionReader` (`factory.application.agent_runtime`, an abstract base class, `Boundaries.agent_definitions`) has two operations and `FrontmatterAgentDefinitionReader(agent_home)` (`factory.adapters.agent_files`) implements them. F0005 uses `read` to compose every task; the pipeline definition loader (F0003-S0006) uses `names()` to check the roles.
+
+| Operation | Does |
+|---|---|
+| `names()` | the sorted stems of the regular `.md` files directly in `agents/` whose stem is a `Name`; `[]` for an empty directory |
+| `read(name)` | the `AgentDefinition` of the file; `name` is checked as a `Name` before any path is built |
+
+The front matter is split as the work item reader splits it, with `split_front_matter`, and loaded with ruamel.yaml through `RuamelYamlHandler`, never PyYAML (so `model: on` is the text `on`). The body, stripped, is `instructions`. Only `model`, `tools`, `effort` and `budget_usd` are validated into `AgentDefinition`; other keys are left aside. `budget_usd` becomes a `Decimal` (`0.1` gives `Decimal("0.1")`). No variable in the module is named `yaml`, because the semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`.
+
+### Faults
+
+`AgentDefinitionError(name, fault)` is a `FactoryError`. `names()` raises it with `name == ""` and `no agents directory at <path>`. `read` raises a subclass:
+
+| Error | Fault |
+|---|---|
+| `AgentDefinitionMissing` | `not an agent name: <name>`, `no agent file <path>` |
+| `AgentDefinitionInvalid` (`key` is `""`) | `cannot read: <reason>`, `no front matter`, `front matter is not valid YAML`, `front matter is not a mapping` |
+| `AgentDefinitionInvalid` (`key` is the top-level key) | `missing key: <key>`, `budget_usd must be greater than 0`, `invalid <path>: <message>` |
+
+Of several validation faults the first in the order of `first_fault` is reported (unknown key, missing key, invalid value); `first_error` in `factory.adapters.validation_faults` gives the error `first_fault` formats, so the `key` and the fault name the same problem. F0010-S0006 extends `AgentDefinitionInvalid` to refuse keys the runtime does not apply.
+
+```bash
+uv run python -c "
+import tempfile
+from pathlib import Path
+from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.domain.errors import AgentDefinitionInvalid
+home = Path(tempfile.mkdtemp())
+(home / 'agents').mkdir()
+(home / 'agents' / 'coder.md').write_text('---\nmodel: sonnet\ntools: Read\nbudget_usd: 1\n---\nGo.\n')
+reader = FrontmatterAgentDefinitionReader(home)
+print(reader.names())
+try:
+    reader.read('coder')
+except AgentDefinitionInvalid as error:
+    print(error.key, '|', error.fault)
+"
+```
+
+prints `['coder']` and then a line that starts with `tools | invalid tools:`.
 
 ## Kill points: testing a crash
 

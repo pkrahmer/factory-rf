@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.clock import ManualClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
@@ -66,10 +67,17 @@ def clock() -> ManualClock:
 
 
 @pytest.fixture
+def agent_home(tmp_path: Path) -> Path:
+    """Return the test's agent home, `tmp_path / "agent-home"`; nothing is created in it."""
+    return tmp_path / "agent-home"
+
+
+@pytest.fixture
 def boundaries(
     tmp_path: Path,
     checkout: GitCli,
     *,
+    agent_home: Path,
     hosting: FakeHostingService,
     agent_runtime: FakeAgentRuntime,
     kill_points: KillPoints,
@@ -87,6 +95,7 @@ def boundaries(
         cost_reader=JsonLinesCostRecordReader(),
         cost_writer=JsonLinesCostRecordWriter(),
         pipeline_reader=RuamelPipelineDefinitionReader(),
+        agent_definitions=FrontmatterAgentDefinitionReader(agent_home),
         clock=clock,
         log=TimestampedFactoryLog(state / "factory.log", clock),
         health=JsonHealthStatusFile(state / "health.json"),

@@ -76,6 +76,48 @@ A stop of one work item (a question, a stall, a cap reached) appears as one comm
 - A restart never repeats a stop. The key identifies the stop: if the factory died after posting and before recording it, the next attempt finds the key on the pull request and posts nothing. The same key with another text is still a repeat; a different kind or number is a new stop and a new comment.
 - The factory records the pull request's number in the work item's state when it opened or found the pull request; the posting itself writes no state.
 
+## The agent files
+
+An agent is a file `<agent home>/agents/<name>.md`. The name is lowercase letters, digits and hyphens, starting with a letter (`coder`); `README.md` and `Coder.md` are not agents, nor is a file with another suffix or one in a subdirectory. Every role of the pipeline definition needs an agent file of the same name.
+
+The file is YAML front matter between two lines of three hyphens, then the agent's instructions:
+
+```
+---
+model: sonnet
+tools: [Read, Write]
+effort: low
+budget_usd: 0.1
+---
+The agent's instructions.
+```
+
+| Key | Meaning |
+|---|---|
+| `model` | required, text |
+| `tools` | required, a list of texts; `[]` is allowed |
+| `effort` | optional, text |
+| `budget_usd` | required, a number greater than 0 |
+
+The body, without the whitespace around it, is the instructions; a line of hyphens inside it belongs to it. Any other front matter key is ignored for now: which ones the agent runtime applies is decided with F0010.
+
+The reader reports these faults. `read` names the agent; a fault with a key names that key.
+
+| Fault | When |
+|---|---|
+| `no agents directory at <path>` | `<agent home>/agents` is absent or not a directory |
+| `not an agent name: <name>` | the name is not a valid name, so no file is looked up |
+| `no agent file <path>` | the file is absent or is a directory |
+| `cannot read: <reason>` | the file cannot be read or is not UTF-8 |
+| `no front matter` | the file does not start with front matter that is closed |
+| `front matter is not valid YAML` | the YAML does not load |
+| `front matter is not a mapping` | it loads as a list or a scalar |
+| `missing key: <key>` | `model`, `tools` or `budget_usd` is left out |
+| `budget_usd must be greater than 0` | zero, negative, text or a boolean |
+| `invalid <key>: <reason>` | any other value of the wrong type |
+
+When a file has several faults, the first is reported: a missing key before an invalid value.
+
 ## Checking a story before it starts
 
 `factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout must be laid out the v1.1 way: `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in `backlog`, `in-progress` or `done`.

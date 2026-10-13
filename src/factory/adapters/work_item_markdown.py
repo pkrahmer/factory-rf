@@ -97,6 +97,19 @@ def _normalised_body(body: str) -> str:
     return f"{stripped}\n" if stripped else ""
 
 
+def split_front_matter(handler: RuamelYamlHandler, text: str) -> tuple[str, str] | None:
+    """The front matter text and the body of `text`, or None when it has no front matter."""
+    # The handler's own `detect` and `split`, not `frontmatter.parse`: given a handler,
+    # that skips `detect`, returns an unclosed text whole and drops a non-mapping silently.
+    prepared = text.replace("\r\n", "\n").strip()
+    if not handler.detect(prepared):
+        return None
+    try:
+        return handler.split(prepared)
+    except ValueError:
+        return None
+
+
 class FrontmatterWorkItemReader(WorkItemReader):
     """Reads a work item file with python-frontmatter and ruamel.yaml."""
 
@@ -106,7 +119,7 @@ class FrontmatterWorkItemReader(WorkItemReader):
 
     @override
     def parse(self, text: str) -> WorkItemDocument:
-        split = self._split(text)
+        split = split_front_matter(self._handler, text)
         if split is None:
             raise WorkItemFormatError("no front matter")
         front_matter, body = split
@@ -119,7 +132,7 @@ class FrontmatterWorkItemReader(WorkItemReader):
 
     @override
     def parse_specification(self, text: str) -> WorkItemDocument:
-        split = self._split(text)
+        split = split_front_matter(self._handler, text)
         if split is None:
             return WorkItemDocument(state=None, body=_normalised_body(text))
         front_matter, body = split
@@ -136,17 +149,6 @@ class FrontmatterWorkItemReader(WorkItemReader):
             return self.parse(text)
         except WorkItemFormatError as error:
             raise WorkItemFormatError(error.fault, str(path)) from error
-
-    def _split(self, text: str) -> tuple[str, str] | None:
-        # The handler's own `detect` and `split`, not `frontmatter.parse`: given a handler,
-        # that skips `detect`, returns an unclosed text whole and drops a non-mapping silently.
-        prepared = text.replace("\r\n", "\n").strip()
-        if not self._handler.detect(prepared):
-            return None
-        try:
-            return self._handler.split(prepared)
-        except ValueError:
-            return None
 
 
 class FrontmatterWorkItemWriter(WorkItemWriter):
