@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 14
 blocked: null
 comments_seen: 0
@@ -117,3 +117,34 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
    - Demo: both blocks are runnable with `uv run python -c`. Each Expect line is checkable output: five lines in the first block and two in the second. The second relies on the `InjectedKill` text `injected kill at after-post` from S0001.
    - Architecture: the fake sits in `factory.adapters`, satisfies the `HostingService` protocol structurally (criterion 18), and is the only fake of the hosting service (criterion 17). It imports only domain types, so the layering holds.
    - Scope: within FEATURE.md ("the one fake (SI2.3)"). It does not touch wiring, the posting rules of handlers or the kill-point tests, all of which are out of scope.
+3. tester: wrote red tests for every acceptance criterion of the hosting-service fake.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_fake_hosting.py::test_created_pull_requests_are_open_numbered_and_carry_url_description_and_no_labels
+   - criterion 2: tests/adapters/test_fake_hosting.py::test_pull_requests_lists_every_state_ordered_by_number
+   - criterion 3: tests/adapters/test_fake_hosting.py::test_find_open_pull_request_returns_only_an_open_one
+   - criterion 4: tests/adapters/test_fake_hosting.py::test_human_close_and_merge_set_state_and_merge_commit
+   - criterion 5: tests/adapters/test_fake_hosting.py::test_close_and_reopen_toggle_the_state
+   - criterion 6: tests/adapters/test_fake_hosting.py::test_set_draft_and_set_description_change_the_pull_request
+   - criterion 7: tests/adapters/test_fake_hosting.py::test_set_labels_replaces_only_stage_labels
+   - criterion 8: tests/adapters/test_fake_hosting.py::test_comment_ids_rise_across_pull_requests_with_a_second_apart
+   - criterion 9: tests/adapters/test_fake_hosting.py::test_human_comments_are_not_factory_posts
+   - criterion 10: tests/adapters/test_fake_hosting.py::test_post_comment_adds_a_factory_post_with_marker_and_key
+   - criterion 11: tests/adapters/test_fake_hosting.py::test_a_repeated_key_is_not_posted_again
+   - criterion 12: tests/adapters/test_fake_hosting.py::test_after_post_kill_point_fires_after_the_post_and_not_for_a_repeat
+   - criterion 13: tests/adapters/test_fake_hosting.py::test_delete_comment_removes_it_and_refuses_an_unknown_id
+   - criterion 14: tests/adapters/test_fake_hosting.py::test_an_unknown_pull_request_number_is_refused (parametrized, one case per operation, 15 in all)
+   - criterion 15: tests/adapters/test_fake_hosting.py::test_fail_next_fails_that_many_calls_of_that_operation
+   - criterion 16: tests/adapters/test_fake_hosting.py::test_fail_next_refuses_an_unknown_operation_or_times_below_one (cases: unknown name, times=0) and ::test_fail_next_accepts_one_time (times=1)
+   - criterion 17: tests/test_hosting_fake_search.py::test_only_the_fake_and_the_pygithub_client_define_post_comment and ::test_no_test_class_defines_post_comment. Protocol classes are found by a `Protocol` base in the AST.
+   - criterion 18: tests/adapters/test_fake_hosting.py::test_the_fake_fits_the_protocol_without_inheriting_it. It assigns the fake to a variable annotated `HostingService`, so mypy checks the fit, and it asserts that `HostingService` is not in the MRO.
+   - criterion 19 (make check) and criterion 20 (docs) are not test functions. Criterion 19 is the gate the coder runs; criterion 20 belongs to the documenter.
+
+   Files: I created tests/adapters/test_fake_hosting.py and tests/test_hosting_fake_search.py. I added the `hosting` fixture to tests/conftest.py, which returns `FakeHostingService(kill_points)`. No existing fixture was changed.
+
+   Red run: `make test` stops when it loads conftest with `ModuleNotFoundError: No module named 'factory.adapters.fake_hosting'`. That is the only module the runner could not import. Because conftest imports the fake, the whole suite is red until the module exists. `make lint` is green.
+
+   Choices made inside the criteria: in criterion 14, operations that need a comment id or other arguments get valid ones, so only the pull request number is wrong. In criterion 12, "once per posted" is checked with a second post under a new key, which raises the reach count to 2. The test for criterion 8 also checks that the first comment's `tzinfo` is `UTC`. I left untested the case that the criteria leave open: `delete_comment` with an id that belongs to another pull request, as intake noted.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.fake_hosting'

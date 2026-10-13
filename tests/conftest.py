@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
@@ -22,6 +23,12 @@ def kill_points() -> KillPoints:
 def agent_runtime(kill_points: KillPoints) -> FakeAgentRuntime:
     """Return a fake agent runtime with nothing queued, on the test's kill points."""
     return FakeAgentRuntime(kill_points)
+
+
+@pytest.fixture
+def hosting(kill_points: KillPoints) -> FakeHostingService:
+    """Return a fake hosting service with no pull requests, on the test's kill points."""
+    return FakeHostingService(kill_points)
 
 
 @pytest.fixture
