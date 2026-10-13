@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 35
 blocked: null
 comments_seen: 2
@@ -146,3 +146,29 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I built the story check command, and the tests for criteria 1–23 now pass. `make check` is green with 99.64 % coverage. Both Demo blocks give the expected output: `ok`/`0`, the `:11:` finding/`1`, and the usage line with status 2.
+      - `src/factory/domain/story_form.py`:
+        - `check_story_place(path, *, feature_file_exists)` applies the placement rules in the Interface's order.
+        - A story file name is a work item file name from `parse_work_item_file_name` whose id is not an acceptance (`is_acceptance`). The feature-id comparison uses `feature_of`.
+        - The location message is built from `FEATURES_DIRECTORY` and `LIFECYCLE_FOLDERS`, so the folder names are written in only one place.
+        - New public helper: `lifecycle_folder_of_location(path) -> LifecycleFolder | None`. It returns the folder of a path that sits in a work item location, whatever the file and directory names are.
+      - `src/factory/entry/wiring.py`: `build_work_item_reader()` returns a `FrontmatterWorkItemReader`. It is the only module in the entry layer that imports from adapters.
+      - `src/factory/entry/check_story.py`:
+        - `main(argv, *, root)`. A path outside a work item location gets only that finding and is not read.
+        - Otherwise the place findings come first, then either the reader's fault or the form findings.
+        - A backlog story is read with `parse_specification`.
+        - A started story is read with `parse`. When that fails with the fault `no front matter`, the file is read again with `parse_specification` and checked as `backlog` (in `_read_started`).
+        - A file that cannot be read (OS error or not UTF-8) raises a private `_UnreadableError`. `main` catches it and prints it to standard error with status 2; output already printed for earlier paths stays. The same path covers an unreadable `factory/story-form.md`, which is read before anything is printed.
+        - The module runs with `python -m`.
+      - Main design decision: `main` decides "not a work item location" with the domain helper `lifecycle_folder_of_location`, which also gives the folder used to pick the reader.
+        - Rejected: comparing the message of `check_story_place`'s finding (fragile).
+        - Rejected: reusing `paths.folder_of`. It returns None for bad file or directory names, which this command has to report as findings and then still read.
+        - This adds one public function beyond the Interface. The reviewer may judge whether it should be private.
+      - Commits:
+        - feat: `ticket F0002-S0008: feat(entry): the story check command and its placement rules`
+        - refactor: `ticket F0002-S0008: refactor(entry): read a started story in its own function` (moved the nested try into `_read_started`, with a small frozen `_Read` model for the document and its folder)
+      - Noticed, not touched:
+        - The fault text `no front matter` is a literal in the adapter (`work_item_markdown.py`) and is now matched as a literal in `check_story.py` too. A shared constant in `factory.domain.errors` would be cleaner, but that is beyond this ticket.
+        - The `if __name__ == "__main__"` line is not covered, because criterion 21 runs it only in a subprocess.
+
+   `make check`: check: green
