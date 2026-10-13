@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 45
 blocked: null
 comments_seen: 0
@@ -190,3 +190,27 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
    - Docstrings in `pipeline_loading.py` are present. Nothing stale seen that is unrelated.
 
    `make check`: check: green
+7. demo: ran the single `## Demo` command from the repository root exactly as written. It exited with status 0 and there are no findings.
+
+   Command 1 (`uv run python -c "…"`: the stub git, an agent home holding only `coder.md`, then `load()`, then `tester.md` is installed and `load()` runs again):
+   ```
+   2026-10-12T12:00:00Z stop repository pipeline_definition_invalid: role tester: agent is not installed
+   role tester: agent is not installed
+   ['pipeline_definition_invalid']
+   2026-10-12T12:00:00Z stop cleared pipeline_definition_invalid
+   tests True
+   ```
+   Met its `Expect:` line. There are five lines, in the expected order:
+   - The stop line. Its stamp has the form `YYYY-MM-DDTHH:MM:SSZ` and starts with `2026-10-12T`.
+   - The fault `role tester: agent is not installed`.
+   - `['pipeline_definition_invalid']` in the health status.
+   - The cleared line.
+   - `tests True`.
+
+   Checked against the acceptance criteria. The demo agrees with every criterion it touches and contradicts none:
+   - Criterion 10 (the missing role is named with the exact fault text).
+   - Criterion 4 (one stop, its line in the factory log).
+   - Criterion 8 (the stop is cleared after a successful load, the health status is healthy again).
+   - Criterion 11 (the definition loads once every role has an agent).
+
+   The demo does not exercise the other criteria (ref handling, missing file, `GitError`, `OSError`). Those are covered by tests/application/test_pipeline_loading.py, as the earlier entries record.
