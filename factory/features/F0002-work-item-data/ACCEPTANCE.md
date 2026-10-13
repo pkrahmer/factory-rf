@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 39
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0002-S0001, F0002-S0002, F0002-S0003, F0002-S0004, F0002-S0005, F0002-S0006, F0002-S0007, F0002-S0008, F0002-S0009, F0002-S0010]
+outcome: accepted
 ---
 # Acceptance of Work item data
 
@@ -305,3 +306,4 @@ None. No finding has the weight of a story. Items 4.1 to 4.3 are each a few line
       6 Decisions: FEATURE.md's 17 decisions, with 15 to 17 settling the first acceptance's open points; the code departs from none of them. The six log decisions already accepted with the first acceptance are unchanged. New: `render_entry` reads the rendered lines rather than the raw text; the tester added a three-backtick case to criterion 9; S0010 ran docs-only through every stage.
       7 Slow checks: none offered.
       8 Cost: 84 runs, 75.6 min, $19.36. S0004 (14 runs) and S0005 (12) stand out, as before, because their criteria did not spell out refused-side tests. S0009 ($1.36) and S0010 ($0.55) were the cheapest. In S0010, three of six runs had nothing to do by design, because a docs-only story still pays for every stage.
+2. done (pull request merged); cost: 2 runs, 10.8 min, 62 turns, 253k tokens in (4655k more from cache), 62k out, $4.19
