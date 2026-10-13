@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 7
 blocked: null
 comments_seen: 0
@@ -200,3 +200,13 @@ Expect: one line starting with `project command Check; ls failed:` that names th
       `make check`: check: green (coverage 100 %)
 
    `make check`: check: green
+7. reviewer: reviewer (round 1, second pass): no findings.
+      - The finding from entry 5 is fixed. `src/factory/adapters/make_commands.py` now calls `_COMMAND_NAME.fullmatch(command)`. With fullmatch, `"check\n"` no longer matches `^[a-z][a-z0-9-]*$`, so the adapter accepts the same names as the model's Pydantic pattern and refuses `"check\n"` before `run_process` starts anything.
+      - Acceptance criteria: I read each test from 1 to 24 against its criterion, and each one tests what its criterion says.
+        - The failing sides are covered: rejected status/exit pairs (2), rejected names (3, 19, with a marker file proving nothing started), a `time_limit` of zero or less (10), an executable that cannot start (20), a timeout with the `sleep` reaped (9), and the tail boundary at 29, 30, 31 and 40 lines (11).
+        - The coder's entry reports `make check` green.
+        - Still open, as entries 5 and 6 say: no test covers a name with a trailing newline. Only the human can close that, by asking the tester to add `"check\n"` to `test_invalid_command_name_is_refused_before_starting`. It does not block this story.
+      - Architecture: `CheckResult`, `status_of` and `ProjectCommandError` are in domain, the `ProjectCommands` Protocol is in application, and `MakeProjectCommands` is in adapters and goes through `run_process`, the one process module. Layers and wrappers (R5, R6, R8, R11) hold. No `dict[str, Any]` crosses a function boundary; `_environment` returns `dict[str, str]`.
+      - Security: the command runs from an argv list with no shell, and the name is validated before anything starts. The diff adds no suppression markers and no secrets.
+      - Quality: the status mapping and the name pattern each exist once, in the domain, and the adapter reuses them. Docstrings are present and accurate. `kill_points` is stored but never used, which the Interface allows explicitly so that wiring stays uniform.
+      - Ticket hygiene: the Assignment matches what was built. Criterion 26 still describes what the documenter must write in `docs/project-guide.md` and `docs/operator-guide.md`.
