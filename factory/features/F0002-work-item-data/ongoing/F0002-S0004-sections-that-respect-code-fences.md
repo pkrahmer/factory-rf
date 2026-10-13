@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 31
 blocked: null
 comments_seen: 0
-round: 1
+round: 2
 attempts: 0
 ---
 # Sections that respect code fences
@@ -163,3 +163,13 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
       `make check`: check: green
 
    `make check`: check: green
+9. reviewer: reviewer (round 1): one finding. It is against the story, not against the tester or the coder.
+   1. `src/factory/domain/sections.py:25-26,34-35` (`Section.start`/`end`, `CodeBlock.start`/`end` typed `NonNegativeInt`, as the Interface declares) and `tests/domain/test_sections.py`: nothing tests either side of the stated `≥ 0` limit, and no criterion asks for it. Every model built in the tests uses valid indices, so retyping any of the four fields as plain `int` would still pass every test. Other domain models in this project test the same limit on both sides (`tests/domain/test_work_item.py:95`, `tests/domain/test_kill_points.py:119`, `tests/domain/test_agent_runs.py:131`). Fix: add to criterion 16 that `Section` and `CodeBlock` accept `0` and refuse `-1` with `ValidationError` for `start` and `end` (for `CodeBlock.end`, `None` is also accepted). Then add a parametrized test for it.
+
+   The review stopped at group 1 (acceptance criteria), as the role skill requires, so groups 2–5 were not formally reviewed. I read them anyway and found nothing to raise. The module is pure domain code that imports only `re`, `pydantic` and `factory.domain.errors`. It has no I/O, no silencing markers and no dead code, and its docstrings are present. The log records the main decision (find the blocks first, then filter by index) and the alternative it rejected. Entry 8 says the factory's `make check` was green.
+
+   Checked and fine: criteria 1–15 each have a test that exercises them, including the two round-1 additions (`test_a_line_starting_with_a_short_run_opens_no_block` and the ` # x` title case). Criterion 16's frozen and unknown-field checks go through `type[BaseModel]` and `setattr`, as `CLAUDE.md` asks.
+
+   Considered but not raised as findings:
+   - A tilde block that is not closed by a backtick line is not tested; only the other direction is. The Interface states this rule once for both characters, and the code handles them with one symmetric check, so I left it out.
+   - Criteria 3 and 7 were extended by the coder in entry 6, not by the human. The additions only restate rules the Interface already gave ("three or more", "column 0"), so they do not change scope.
