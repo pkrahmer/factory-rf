@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 35
 blocked: null
 comments_seen: 2
@@ -172,3 +172,31 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
         - The `if __name__ == "__main__"` line is not covered, because criterion 21 runs it only in a subprocess.
 
    `make check`: check: green
+7. reviewer: no findings.
+      - Acceptance criteria: criteria 1–23 each have a test named after them, and each test checks what its criterion says. The coder's entry reports `make check` green.
+        - The five-part rule is tested on both sides: four and six parts are refused, five are accepted.
+        - Criterion 2 covers `ongoing`, `drafts`, outside `factory` and outside `features`, plus one path where everything else is wrong too.
+        - Criterion 13 covers a missing file and the bytes `\xff\xfe`. It also checks that earlier output stays and that later paths are not printed ("at once").
+        - Criterion 15 gives a broken body, so it shows the form check is skipped.
+        - Criterion 23 covers the feature file in `main` on both sides.
+        - Criterion 20 parses the imports with `ast` and also checks that `factory.entry.check_story` exists, so the test cannot pass with an empty set.
+      - Architecture:
+        - `check_story_place` and `lifecycle_folder_of_location` are pure functions in `factory.domain.story_form`.
+        - `factory.entry.check_story` imports only from domain, from application (the `WorkItemReader` interface) and from `factory.entry.wiring`. `wiring` is the only entry module that imports from adapters.
+        - No `dict[str, Any]` crosses a function boundary. The private `_Read` is a frozen Pydantic model.
+      - Security:
+        - No string-built shell or SQL. The test's subprocess uses `sys.executable` with fixed arguments.
+        - The test's `# noqa: S603` has its reason beside it and follows the precedent in `tests/test_layers.py`. There is no `nosec`, `nosemgrep` or baseline entry.
+        - Errors that reach the user are `cannot read <path>: <reason>`, as the Interface specifies.
+      - Quality:
+        - Names and docstrings are in place, and the one comment explains why (`_read_started`).
+        - Messages are built from the `paths` constants and not repeated as literals.
+      - Judged, not findings:
+        1. `lifecycle_folder_of_location` (`src/factory/domain/story_form.py`) is a public function beyond the Interface. It is imported across modules, so it has to be public.
+           - It overlaps in part with `paths.folder_of`. But `folder_of` also rejects bad names, which this command must report and still read, so `folder_of` does not already cover it. I accept the coder's choice.
+        2. The fault text `"no front matter"` appears as a literal both in `src/factory/entry/check_story.py:27` and in `src/factory/adapters/work_item_markdown.py:111`. The Interface specifies this fault text, and the criterion 17 test and the adapter's own test would both catch a change on either side.
+           - The shared constant in `factory.domain.errors` that the coder proposed can be a later story. It is not needed here.
+      - Ticket hygiene:
+        - The coder's entry states the main decision: the location helper, and why comparing the message and reusing `folder_of` were rejected.
+        - The Assignment matches what was built.
+        - The docs criterion (25) still describes what the operator and the agents need to know.
