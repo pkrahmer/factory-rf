@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 40
 blocked: null
 comments_seen: 0
 round: 0
@@ -157,3 +157,9 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures in all four layers (`domain/stops.py`, `application/machine.py`, `adapters/clock.py`, `factory_log.py`, `health_file.py`). Every comment-stated behaviour has a criterion: UTC conversion (6, 11), the stamp format and whole seconds (13, 14), splitlines (16, 17), parent directories (18), the atomic replace (23), and a damaged file reading as `HealthStatus()` (21, 22).
+   - Criteria: each is testable by one test function. Every rule has its failing side: blank `detail` (1), wrong scope (3), unknown reason (4), naive `at` (5), duplicate reason (10), unknown field (7), assignment (8), naive `ManualClock` start (12), `OSError` on write (19), and damaged or missing file (21, 22).
+   - Demo: it is runnable. It prints six lines (three log lines and three prints), and each `Expect:` line can be checked against the output.
+   - Architecture: models are in domain, ABCs in application, implementations in adapters, and each implementation inherits its interface (24). Nothing is wired here, which matches the assignment.
+   - Scope: the story is inside F0003 (S0001, ST3.4, R27) and touches nothing under "Out of scope". `StopService` and `Boundaries` are left to S0002.
