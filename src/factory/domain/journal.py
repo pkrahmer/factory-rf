@@ -104,10 +104,10 @@ def _journal_section(body: str) -> Section:
 
 
 def _last_text_line(lines: Sequence[str], section: Section) -> int:
-    """The index of the section's last non-blank line, its heading when it has no text."""
     for index in range(section.end - 1, section.start, -1):
         if lines[index].strip():
             return index
+    # An empty section ends at its heading, so whatever follows goes right under it.
     return section.start
 
 
@@ -170,7 +170,6 @@ def last_record(
 
 
 def _journal_block(body: str) -> list[str]:
-    """The journal section from its heading to its last non-blank line."""
     lines = split_lines(body)
     section = _journal_section(body)
     return lines[section.start : _last_text_line(lines, section) + 1]
