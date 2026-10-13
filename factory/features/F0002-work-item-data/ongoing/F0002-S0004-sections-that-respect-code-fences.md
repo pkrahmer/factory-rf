@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 31
 blocked: null
 comments_seen: 0
@@ -68,7 +68,7 @@ Tests: `tests/domain/test_sections.py`. A test that constructs a model with an u
 13. `insert_paragraph` raises `WorkItemFormatError` with the fault `missing section: ## Verdict` when no section is called `Verdict`, also when `## Verdict` occurs only inside a fenced block.
 14. `insert_paragraph` raises `ValueError` for the paragraphs `""` and `"  \n"`.
 15. `required_sections` of a form with a title, a comment line, the headings `## Description`, `## Interface`, a `### Sub` heading, a fenced block that holds `## Hidden`, and `## Journal` is `["Description", "Interface", "Journal"]`.
-16. `ACCEPTANCE_CRITERIA`, `SMOKE_TEST` and `JOURNAL` are `"Acceptance criteria"`, `"Smoke test"` and `"Journal"`; `Section` and `CodeBlock` are frozen and refuse an unknown field with `ValidationError`.
+16. `ACCEPTANCE_CRITERIA`, `SMOKE_TEST` and `JOURNAL` are `"Acceptance criteria"`, `"Smoke test"` and `"Journal"`; `Section` and `CodeBlock` are frozen and refuse an unknown field with `ValidationError`; their `start` and `end` accept `0` and refuse `-1` with `ValidationError`, and `CodeBlock.end` also accepts `None`.
 17. make check stays green.
 18. docs: `docs/project-guide.md` explains how sections are found (outside code fences, exact heading text, the three constants) and says that every module that needs a heading or a fenced block uses `factory.domain.sections`; `docs/decisions.md` records that headings inside fences are ignored, which v1 did not do.
 
@@ -173,3 +173,8 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
    Considered but not raised as findings:
    - A tilde block that is not closed by a backtick line is not tested; only the other direction is. The Interface states this rule once for both characters, and the code handles them with one symmetric check, so I left it out.
    - Criteria 3 and 7 were extended by the coder in entry 6, not by the human. The additions only restate rules the Interface already gave ("three or more", "column 0"), so they do not change scope.
+10. coder: coder (round 2): no code change. The review finding in entry 9 is a missing test, and I can't edit tests (R9), so the ticket goes to the tester.
+       - Checked against `src/factory/domain/sections.py`: the code already follows the Interface. `Section(heading="A", start=0, end=0)`, `CodeBlock(start=0, end=0)` and `CodeBlock(start=0, end=None)` are accepted. Each of `Section.start`, `Section.end`, `CodeBlock.start` and `CodeBlock.end` set to `-1` raises `ValidationError`.
+       - Criterion: I extended criterion 16 with the Interface's own `NonNegativeInt` rule, so 17 and 18 stay last. It now also says that `start` and `end` accept `0` and refuse `-1` with `ValidationError`, and that `CodeBlock.end` also accepts `None`.
+       - Test change for the tester: add one parametrized test to `tests/domain/test_sections.py`. It should cover all four fields (`Section.start`, `Section.end`, `CodeBlock.start`, `CodeBlock.end`), check that each accepts `0` and refuses `-1` with `ValidationError`, and also check that `CodeBlock(start=0, end=None)` is accepted.
+       - Rejected: changing the code, because it was not at fault, and adding a new criterion, because that would renumber the closing two.
