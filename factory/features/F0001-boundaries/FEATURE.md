@@ -43,6 +43,7 @@ Every outside party is reached through one boundary: the git command-line tool t
 - S0017 — The boundaries' open failing sides: tests for behaviour already built (proposed by the feature acceptance)
 - S0018 — Documentation repair after Boundaries (proposed by the feature acceptance)
 - S0019 — The four interfaces as abstract base classes
+- S0020 — The git wrapper: a pushed branch is never read as a refspec (proposed by the second feature acceptance)
 
 ## Decisions taken for the human
 
@@ -69,3 +70,4 @@ Product and design decisions taken while writing the stories, for the human to r
 19. Defaults without a source in the handover or run-facts, for the human to confirm: a git `time_limit` of 5 minutes (S0005), a `version()` limit of 30 seconds (S0010), a minimum resume budget of 0.50 (S0010; run-facts gives only "a quarter more"). (S0005, S0010, story text)
 20. The factory's interfaces are abstract base classes (`abc.ABC` with `@abstractmethod` operations), and its own implementations inherit them; `typing.Protocol` is kept only for shapes of code the factory does not own. Decided by the human on 2026-10-13, after the feature was accepted with protocols. (S0019, story text)
 21. Answers to the open points of the drafts the feature acceptance proposed, decided by the human on 2026-10-13 as the pre-check recommended: an option-like ref, branch, start point or url is refused with `ValueError` before git runs, not passed after `--end-of-options`; every git call runs with `LC_ALL=C` (S0015). A negative `total_cost_usd` counts as a reply that does not parse, like a negative turn or token count, and a budget-stop reply with a negative measure is `died` and not resumed (S0016). An unmerged path stays `"modified"` in `status()`; a kind of its own would be a story of its own (S0017). The documentation repair runs through the pipeline (S0018). (S0015 to S0018, story text)
+22. A branch that `git push` would read as a refspec is refused with `ValueError` by `check_branch_name` in `push` and `delete_remote_branch`, before git runs: a leading `+` (force), any `:` (another ref, or a deletion) and any `*` (a pattern; git never allows it in a branch name). Rejected: pushing the explicit refspec `refs/heads/<b>:refs/heads/<b>`. Decided by the human on 2026-10-13 after the second acceptance; the `*` was added by the pre-check within that choice. (S0020, story text)
