@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 30
 blocked: null
 comments_seen: 0
@@ -297,3 +297,4 @@ Expect: two lines: `unknown key: colour`, then `None ['stage', 'attempts'] '# T\
    - Command 2 is consistent with criteria 11 (`unknown key: colour`) and 17 (`state` None, ignored keys in file order, the body normalised from `\n\n# T\n` to `# T\n`).
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 7.1 min, 48 turns, 187k tokens in (943k more from cache), 35k out, $2.07
