@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 13
 blocked: null
 comments_seen: 2
@@ -190,3 +190,13 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
     - I did not check the code docstrings beyond the diff: `Git.reset_to`, `revert_paths`, `move` and `check_repository_path` all have accurate ones.
 
     `make check`: check: green
+13. demo: I ran the one demo command from the repository root exactly as written. It met its `Expect:` line and I have no findings.
+       - Command 1 (the `uv run python -c` script that runs `reset_to`, `revert_paths` and `move` on a fresh repository). Exit code 0. Output:
+         ```
+         False base
+         base
+         True False
+         ```
+         It met `Expect:` with exactly the three lines it names. The reset removed the untracked `junk.txt` and undid the edit to `a.txt`. The revert put back the committed text `base`. The move put the file at `docs/a.txt`, created the `docs` folder, and removed `a.txt` from its old path.
+       - Criteria check: nothing in the demo contradicts any criterion. It matches criteria 1 and 2 (the edit to a tracked file is discarded and the untracked file is removed), 4 (the committed content comes back) and 9 (the folder is created and the file is at its new path). The demo does not exercise the failing sides (criteria 3, 5–8, 10 and 12) or the operation count (criterion 11). Their tests cover them, as entry 11 records.
+       - Nothing open.
