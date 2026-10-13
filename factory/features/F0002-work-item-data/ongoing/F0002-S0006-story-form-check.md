@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 33
 blocked: null
 comments_seen: 0
@@ -158,3 +158,11 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
       `make check`: check: green, total coverage 99.59 %
 
    `make check`: check: green
+9. reviewer: reviewer (round 1): no findings.
+      - Acceptance criteria: I read `tests/domain/test_story_form.py` against criteria 1 to 17, and each one has a test that checks what it names. The refused side of each rule's limits is covered too: line 0 against None and 1; an indented and a fenced numbered line in `Acceptance criteria`, which is the test added after the round-0 finding; an indented journal line; one item and two items for the closing criteria; empty and non-empty `ignored_keys`; with a state and without one; equal and unequal journal counts; backlog and in-progress. The coder's entry 8 records `make check` green.
+      - Code: I read `src/factory/domain/story_form.py` against the ten rules of the Interface and found no difference in message, line or order. Criteria and journal entries are read from the section reader's view (`sections`, `code_blocks`, `lines_outside_blocks`). Items run to the next item or to the end of the section. Rules 7 and 10 run for `backlog` and rules 8 and 9 for the other folders. The change to `src/factory/domain/sections.py` only makes `lines_outside_blocks` public and gives it a docstring.
+      - Architecture: the module is pure domain code. It imports only `re`, `pydantic` and other `factory.domain` modules. There is no I/O and no new dependency.
+      - Security: no marker silences a check, there are no secrets, and nothing runs a process.
+      - Quality: names, docstrings on public names only, and no dead code.
+      - Ticket hygiene: the log gives the main decision (build on the section reader rather than a second scanner) and what was rejected. The Assignment matches what was built, and the docs criterion still describes what the reader needs.
+      - Still open for the human, carried over from entries 5 to 8 and not a finding: rule 6 does not say "outside code blocks" for journal entries, but the code also skips fenced lines there. Criterion 5 could spell out the refused side that `test_indented_and_fenced_numbered_lines_are_no_criteria` now covers.
