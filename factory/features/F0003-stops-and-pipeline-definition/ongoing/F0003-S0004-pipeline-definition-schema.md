@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 43
 blocked: null
 comments_seen: 0
@@ -281,3 +281,29 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
    Nothing stale was left untouched.
 
    `make check`: check: green
+7. demo: no findings.
+
+   I ran the one command under `## Demo` from the repository root, exactly as written. It exited 0.
+
+   ```
+   tests ['tests', 'doing', 'done'] 2
+   90 60 40
+   2 2 ['check', 'lint', 'test']
+   True True
+   ```
+
+   Met its `Expect:` line. There are four lines and each matches exactly:
+   - the first stage, the stage order and `position('done')`
+   - the given `lease_duration` of 90 for the tester, and the defaults 60 and 40 for the coder
+   - the defaults for `attempts_cap`, `crash_cap` and `project_commands`
+   - the misspelt `contrakt` refused with both `missing key: contract` and `unknown key: contrakt` in the one fault
+
+   Against the acceptance criteria, the output agrees with:
+   - criterion 2 (`first_stage`)
+   - criterion 5 (`position` is the index in YAML order)
+   - criterion 6 (a left-out key with a default takes it)
+   - criterion 8 (the default command set)
+   - criterion 10 (a given value replaces the default)
+   - criteria 11, 12 and 18 (a missing key and an unknown key are both reported in one refusal)
+
+   Nothing in the output contradicts any criterion.
