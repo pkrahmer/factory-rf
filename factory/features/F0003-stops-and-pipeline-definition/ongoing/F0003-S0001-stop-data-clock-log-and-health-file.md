@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 40
 blocked: null
 comments_seen: 2
@@ -271,3 +271,30 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
     - `make check` is green.
 
     `make check`: check: green
+13. demo: Demo run from the repository root, round 1. There is one command and it met its `Expect:` line.
+
+    Command 1 (the `uv run python -c` script: ManualClock, TimestampedFactoryLog, JsonHealthStatusFile, RepositoryStop, HealthStatus). It exited with 0.
+
+    ```
+    2026-10-12T12:00:07Z first
+    2026-10-12T12:00:07Z second
+    2026-10-12T12:00:12Z third
+    ['fetch_failed'] False
+    ['factory.log', 'health.json']
+    True
+    ```
+
+    The output matches the expectation:
+    - It has six lines.
+    - Lines 1 and 2 carry the same stamp, and line 3's stamp is 5 seconds after it. Every stamp has the form `YYYY-MM-DDTHH:MM:SSZ` and starts with `2026-10-12T`.
+    - Line 4 is `['fetch_failed'] False`, line 5 is `['factory.log', 'health.json']` and line 6 is `True`.
+
+    I checked the output against the acceptance criteria and it contradicts none of them:
+    - The clock's `.987654` fraction was dropped, not rounded up (`07`, not `08`), as criterion 13 requires.
+    - `a\nb` split into two lines with one stamp (criterion 16).
+    - The missing parent directory `state/` was created by both classes (criterion 18).
+    - A round trip through write and read kept the stop (criterion 20).
+    - After `write` the state directory held only `factory.log` and `health.json`, with no temp file left over (consistent with criterion 23).
+    - A `not json` file reads as healthy (criterion 22).
+
+    The demo does not exercise the other criteria (validation sides, ABC shape, OSError cases, docs). They are covered by the tests and the docs stage. No findings.
