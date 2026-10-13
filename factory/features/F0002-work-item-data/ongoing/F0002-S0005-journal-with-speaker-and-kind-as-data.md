@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 32
 blocked: null
 comments_seen: 0
@@ -172,3 +172,11 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: Round 1, after the tester's entry 7. I made no code change and no commit. The reviewer's three findings in entry 5 were missing tests, not faulty code. The tester added those tests in tests/domain/test_journal.py: `test_entry_text_ignores_an_indented_number`, `test_entry_text_drops_the_blank_lines_before_the_next_section`, and the body `"# T\n\nSpec.\n\n\n"` in the parametrization of `test_restore_adds_the_journal_when_the_current_body_has_none`. They pass against the unchanged `src/factory/domain/journal.py` (commits d82bc08 feat, 321e24a refactor).
+      - Checked: `make check` is green (total coverage 99.66 %). `src/factory/domain/journal.py` is now fully covered, including the two defensive branches entry 4 reported as untested: the trailing-blank trim in `_entry_lines` and the trailing-blank strip in the restore.
+      - Refactor: no new diff this round, so there was nothing to refactor.
+      - Still open from entry 4, not touched: a continuation line in an entry's text that opens an unclosed fence still hides the headings after it, because the indent does not neutralise a fence. No criterion asks for this.
+
+      `make check`: check: green
+
+   `make check`: check: green
