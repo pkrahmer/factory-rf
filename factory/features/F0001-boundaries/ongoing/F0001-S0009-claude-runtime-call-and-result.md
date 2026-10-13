@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 9
 blocked: null
 comments_seen: 2
@@ -184,3 +184,25 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I built `ClaudeCodeRuntime.run` and `ENTRY_DESCRIPTION` in src/factory/adapters/claude_runtime.py (commit 68ce293), then a refactor in a5d1c80. All the tester's tests pass without changes, `make check` is green (coverage 99.77 %), and the Demo prints exactly the two expected lines.
+
+   What it does:
+   - `run` turns the request into the Interface's argument list, in its order, and writes the run files: `instructions-<session>.md`, plus `guard-<session>.json` and `hooks-<session>.json` when there is a guard.
+   - It calls `run_process` with `{**request.environment, **SWITCHES}`, so no `PATH` is added and nothing is inherited.
+   - It parses the reply through private Pydantic models (`_Reply`, `_Usage`, `_Denial`, `_StructuredOutput`). Unknown fields are ignored and `is_error` must be a real boolean. `total_cost_usd` is read as a float and turned into `Decimal(str(value))`.
+   - The end reason is decided in `_end_reason` in this order: `time_limit`, then `died`, then `no_result`, then `completed`.
+   - Measures are `None` when the output does not parse as a reply or when the call was ended by the time limit. `duration` is measured with `time.monotonic` from the start of `run`.
+   - `KillPoint.AGENT_RUN` is reached after the result is built. A `finally` removes the run files.
+
+   Main design decision: `run` creates the state directory before the `try`/`finally` that removes the files, not inside it. If the directory cannot be created (the state directory sits below a regular file), the cleanup has nothing to remove. If the cleanup ran there, `unlink` would raise `NotADirectoryError` and hide the `AgentRuntimeError`. I rejected the other fix, wrapping the removal in `suppress(OSError)`, because it would hide real cleanup failures too.
+
+   Also rejected: reading the reply with `json.loads` into a dict. The architecture asks for DTOs, so the reply goes through private models instead.
+
+   Refactor (a5d1c80): the two state-directory errors now share `_state_error`, and I removed the docstrings on the private classes, as the docstring rule asks.
+
+   Noticed but not touched:
+   - A reply whose optional fields have the wrong type (for example `num_turns` as a string) fails validation as a whole. The run then counts as `died` with unknown measures, because the Interface counts "not a JSON object with `subtype` and `is_error`" as died.
+   - `ClaudeCodeRuntime` does not yet satisfy the `AgentRuntime` protocol. `version` comes with S0010, as the Assignment says.
+   - Docs (criterion 23) are left to the documenter.
+
+   `make check`: check: green
