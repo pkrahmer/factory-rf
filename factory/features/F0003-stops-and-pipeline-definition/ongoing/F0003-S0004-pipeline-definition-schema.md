@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 43
 blocked: null
 comments_seen: 0
@@ -216,3 +216,24 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.pipeline_yaml'
+4. coder: Built the pipeline definition schema and its reader. `make check` is green, and the demo prints the four expected lines. Commit 3293ffd.
+
+   What I built:
+   - `src/factory/domain/pipeline_definition.py`: the two placeholders, `RoleDefinition`, `StageDefinition`, `ProjectCommandDefinition` and `PipelineDefinition`, with `first_stage`, `role_of` and `position`. Every model is frozen with `extra="forbid"`, so a misspelt key is refused at every level. Names use the existing `identifiers.Name`.
+   - `src/factory/domain/errors.py`: `PipelineDefinitionInvalid(FactoryError)`. Its message is the fault.
+   - `src/factory/application/files.py`: the `PipelineDefinitionReader` abstract base class. Its one method, `parse`, has a docstring as its whole body.
+   - `src/factory/application/boundaries.py`: the new field `pipeline_reader`.
+   - `src/factory/adapters/validation_faults.py`: `all_faults`, a stable sort of pydantic's errors by the existing `_rank`, so faults of one rank keep pydantic's order. `first_fault` now returns `all_faults(...)[0]`, so the two cannot drift apart. The work item reader's behaviour is unchanged and its tests stay green.
+   - `src/factory/adapters/pipeline_yaml.py`: `RuamelPipelineDefinitionReader`. It loads with `YAML(typ="safe")`; on a duplicate key or a Python tag ruamel raises `YAMLError`, which becomes `not valid YAML: <problem>`. A top level that is not a dict, `None` for an empty text included, becomes the mapping fault. Otherwise all the faults are joined by `; `.
+
+   Main decision: the default `project_commands` comes from a `Field(default_factory=...)` rather than the literal dict the Interface sketches. A given dict still replaces the default set as a whole, so the behaviour is the same, and no mutable model instances are shared as a class default. I rejected a custom validator that would merge the given commands with the defaults, because the Interface says a given set replaces them.
+
+   Refactor: I read the diff and found nothing to rename or simplify, so there is no refactor commit.
+
+   Noticed, not touched:
+   - The fault for unreadable YAML carries ruamel's full multi-line problem text, including its "To suppress this check see: …" hint. The Interface asks for `<problem>`, which this is. S0006, which reports a refusal as a stop, may want to shorten it.
+   - `position` of an unknown stage raises `ValueError` (from `list.index`). The Interface does not say what it should raise, and no test covers it.
+   - `role_of` on a stage whose role is not defined raises `KeyError`. S0007's load-time rules will rule that case out.
+   - Pydantic's lax mode accepts `true` as the integer 1 for a limit. No test covers it, and the Interface does not ask for strict mode.
+
+   `make check`: check: green
