@@ -171,6 +171,12 @@ def test_the_first_misnumbered_criterion_is_reported_on_its_line(
     assert _check(body) == [FormFinding(line=_line(body, wrong_item), message=message)]
 
 
+def test_indented_and_fenced_numbered_lines_are_no_criteria() -> None:
+    criteria = "1. a\n   2. x\n```\n3. y\n```\n2. make check stays green.\n3. docs: none."
+
+    assert _check(_body(criteria=criteria)) == []
+
+
 def test_an_acceptance_criteria_section_without_items_gives_no_finding() -> None:
     assert _check(_body(criteria="")) == []
 

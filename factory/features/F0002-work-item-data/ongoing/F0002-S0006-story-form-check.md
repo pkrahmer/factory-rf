@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 33
 blocked: null
 comments_seen: 0
@@ -143,3 +143,11 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
       - The code already handles this case, so no code change is needed. `src/factory/domain/story_form.py` reads items only from lines outside fenced blocks and only at column 0. I ran exactly that body through `check_story_form` (folder `backlog`, empty form) and it returned `[]`.
       - Left open for the human, as the reviewer noted: rule 6 (journal entries) does not say "outside code blocks", but the code skips fenced lines there too. Criterion 5 could spell out the refused side the new test covers.
       - Unchanged since round 0: `make test` is green, total coverage 99.59 %.
+7. tester: tester (round 1, approved test change): added the test from the coder's entry 6 (the reviewer's finding 1) as `test_indented_and_fenced_numbered_lines_are_no_criteria` in `tests/domain/test_story_form.py`, next to the criterion 5 tests. It is the refused side of rule 3's "at column 0, outside code blocks". The `Acceptance criteria` section holds `1. a`, an indented `   2. x`, a fenced block with the line `3. y`, then `2. make check stays green.` and `3. docs: none.`. The test asserts that `check_story_form` returns `[]`. Nothing else changed. The new test passes against the existing code, as the coder said it would.
+      Still open for the human, carried over from entries 5 and 6: rule 6 (journal entries) does not say "outside code blocks", and criterion 5 could spell out the refused side this test now covers.
+
+      `make test`: green, total coverage 99.59 %
+      `make lint`: green
+
+   `make lint`: lint: green
+   `make test`: test: green
