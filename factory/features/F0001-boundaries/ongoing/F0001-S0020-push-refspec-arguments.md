@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 22
 blocked: null
 comments_seen: 0
@@ -108,3 +108,13 @@ Expect: four lines: `rejected`, `refused +main`, `refused :main`, `['human', 'on
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the refspec refusal in commit 7e390b1.
+   - `src/factory/domain/git.py`: the new `check_branch_name(value)` first calls `check_git_argument`, so an empty value or a leading `-` is still refused. It then raises `ValueError` for a leading `+`, any `:` and any `*`. A comment says why each one is refused: `+` forces, `:` names another ref or deletes one, `*` is a pattern.
+   - `src/factory/adapters/git_cli.py`: `push` and `delete_remote_branch` now call `check_branch_name` in place of `check_git_argument`, as their first statement. In `push` the check runs before `_reach(BEFORE_PUSH)` and before any git process. The local operations are unchanged and still use `check_git_argument`.
+   - Design: the function reuses `check_git_argument` rather than repeating its checks, so the documented rule stays one rule with a stricter push-side extension. I took no other approach: the human's decision 22 rejected pushing an explicit `refs/heads/<b>:refs/heads/<b>` refspec.
+   - Refactor: I read the diff (3 lines in the wrapper, one function in the domain) and found nothing to change, so there is no refactor commit.
+   - Demo: run by hand, it prints the expected four lines (`rejected`, `refused +main`, `refused :main`, `['human', 'one'] ['main']`).
+   - `make check`: green; total coverage 99.49 %.
+   - Open: criterion 10 (docs in `docs/project-guide.md` and `docs/decisions.md`) is the documenter's. I did not write it.
+
+   `make check`: check: green
