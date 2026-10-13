@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 9
 blocked: null
 comments_seen: 2
@@ -206,3 +206,21 @@ Expect: two lines: `good completed doing 3 0.25 (10, 5)`, then `bad died None No
    - Docs (criterion 23) are left to the documenter.
 
    `make check`: check: green
+7. reviewer: no findings.
+
+   What I checked, group by group:
+   - Acceptance criteria: each of criteria 1–21 has a test in the tester's mapping (entry 5), and I read each test against its criterion. The failing sides are tested:
+     - `died`: exit status 1, output that is not JSON, `is_error` true, `subtype` missing, `is_error` missing.
+     - `no_result`: no `structured_output`, a decision that is not allowed, a blank entry.
+     - Unknown measures: no measure fields at all, `input_tokens` only, and a timed-out call.
+     - Errors: a missing executable, and a state directory below a regular file.
+     - Leftover files: none after a result, after `InjectedKill`, or after an `AgentRuntimeError`.
+     - Kill point: reached for a completed run and for a died one.
+     - Shell quoting: a guard path with a space and one without.
+     The coder's entry says the factory's `make check` was green after their work.
+   - Architecture: `src/factory/adapters/claude_runtime.py` imports only `factory.domain` and `factory.adapters.process`. It starts its process only through `run_process`, and `tests/test_wrapper_search.py` confirms the three wrappers are the only importers. The reply is read through private Pydantic models, so no `dict[str, Any]` crosses a function boundary.
+   - Security: no shell is used. The guard path in the hook command is shell-quoted with `shlex.quote`. The environment is exactly `request.environment` plus the three switches, with nothing inherited. The diff adds no `noqa`, `nosec`, `nosemgrep` or baseline entry, and no secrets.
+   - Quality: names are clear and each function does one thing. Docstrings are on the module and on the public class and its methods, not on private names. Comments explain why (the switches, the float-to-`Decimal` reading, why a timed-out call's output is not used as its measure). Creating the state directory before the `try`/`finally` is correct. It keeps the cleanup from hiding the `AgentRuntimeError` for an unwritable directory.
+   - Ticket hygiene: the coder's entry explains the main decision and what was rejected (`suppress(OSError)`, and reading the reply with `json.loads` into a dict). The Assignment matches what was built, a single call with the resume and `version` left to S0010. Criterion 23 still describes what the documenter has to write.
+
+   Open, not a finding: the reply models do not require non-negative numbers. A `claude` reply with a negative `num_turns` or token count would fail when the `AgentRunResult` or `TokenCounts` is built, and `run` would raise a raw `ValidationError` instead of returning `died`. The Interface does not cover this input, and the real tool does not produce it. It could be tightened together with S0010's work on the reply.
