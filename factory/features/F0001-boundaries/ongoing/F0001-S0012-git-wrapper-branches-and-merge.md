@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 12
 blocked: null
 comments_seen: 0
@@ -102,3 +102,26 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
    - Demo: runnable. It relies on `GitCli.status().changes` from S0011, which is in this feature. The three expected lines (`conflict []`, `''`, `up_to_date`) can be checked against the output.
    - Architecture: the DTO name goes in the domain layer, the operations on the application `Git` interface, and the implementation in the adapter `GitCli`. This matches R9 and the layer rules.
    - Scope: within F0001's scope ("delete branches, merge with abort on a conflict"). Reset, revert and move are left to S0013, which is not in the Out of scope list.
+3. tester: wrote the red tests for the branch operations in tests/adapters/test_git_cli_branches.py (new file). All of them use the `remote`, `checkout` (TEST_IDENTITY, kill_points) and `tmp_path` fixtures, and set up and check state with plain git through `run_git`.
+   - criterion 1: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_removes_it_from_the_remote_and_the_tracking_ref
+   - criterion 2: ::test_delete_remote_branch_already_gone_is_pushed_and_drops_the_stale_tracking_ref (a second clone deletes the branch on the remote; the remote's refs are compared before and after)
+   - criterion 3: ::test_delete_remote_branch_declined_by_a_remote_hook_is_rejected
+   - criterion 4: ::test_delete_remote_branch_on_a_removed_remote_is_unreachable
+   - criterion 5: ::test_delete_remote_branch_of_an_invalid_ref_name_raises
+   - criterion 6: ::test_delete_remote_branch_reaches_no_kill_point
+   - criterion 7: ::test_delete_branch_removes_an_unmerged_local_branch
+   - criterion 8: ::test_delete_branch_of_the_checked_out_branch_raises_and_keeps_it
+   - criterion 9: ::test_delete_branch_of_a_missing_branch_changes_nothing (all refs compared before and after)
+   - criterion 10: ::test_merge_of_a_contained_ref_is_up_to_date_and_keeps_head (parametrized over fast_forward_only)
+   - criterion 11: ::test_merge_of_a_descendant_fast_forwards_without_a_merge_commit (parametrized over fast_forward_only; HEAD's only parent is the old HEAD)
+   - criterion 12: ::test_merge_of_a_diverged_branch_makes_a_merge_commit_with_both_parents (`main` checked out; subject `Merge branch 'other'`)
+   - criterion 13: ::test_merge_fast_forward_only_of_a_diverged_ref_changes_nothing
+   - criterion 14: ::test_merge_with_a_conflict_is_aborted_and_leaves_everything_as_it_was (clean `status --porcelain`, no .git/MERGE_HEAD)
+   - criterion 15: ::test_merge_of_an_unknown_ref_raises
+   - criterion 16: ::test_merge_that_would_overwrite_a_local_change_raises_and_keeps_the_change (diverged ref; the uncommitted edit is to a file that the ref changes)
+   - criterion 17: ::test_merge_commit_carries_the_identity_of_the_options (with GIT_COMMITTER_NAME set through monkeypatch) and ::test_merge_commit_without_options_carries_the_default_identity
+   - criteria 18 and 19: not tests (make check / documenter).
+   I ran `make test` once and it fails only in the new file, with failing tests and no collection errors. All modules import. The failures come from `delete_remote_branch`, `delete_branch` and `merge` not existing yet on `GitCli`, and `MergeOutcome` is not yet in factory.domain.git (the tests do not import it). `make lint` passes. I interpreted no criterion.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/adapters/test_git_cli_branches.py::test_merge_commit_without_options_carries_the_default_identity
