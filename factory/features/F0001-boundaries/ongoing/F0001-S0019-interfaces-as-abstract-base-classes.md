@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 16
 blocked: null
 comments_seen: 0
 round: 0
@@ -93,3 +93,9 @@ Expect: one line, `True True True True True True`.
 ## Log (append only)
 
 1. 2026-10-13 human: created.
+2. intake: accepted
+   - Interface: concrete. It names the four modules and their paths, the ABC/@abstractmethod form with a worked example, the six implementations with unchanged constructors, and the test files to rewrite. The files that criteria 3 and 4 cite (`test_git_protocol.py`, `test_hosting_protocol.py`) exist and define `OPERATIONS`. No behaviour is stated in an Interface comment that lacks a criterion.
+   - Criteria: each is testable by one function (ast searches for 2, 6 and 13; set equality on `__abstractmethod__s` for 3 to 5; `TypeError` for 7 and 8; subclass/instance checks for 9 to 12; a class count for 14). The rules have their failing sides: the interface and an incomplete subclass cannot be built (7, 8), and a complete subclass can (8).
+   - Demo: both commands are runnable one-liners, and each `Expect:` line gives exact output to compare.
+   - Architecture: matches CLAUDE.md (interfaces as ABCs in `factory.application`, implementations in `factory.adapters` inheriting them, layer contract unchanged).
+   - Scope: within F0001 Boundaries. It is listed in FEATURE.md as S0019, decision 20 records it, and nothing out of scope is touched.
