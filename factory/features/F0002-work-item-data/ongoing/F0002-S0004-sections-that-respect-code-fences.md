@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 31
 blocked: null
 comments_seen: 0
@@ -193,3 +193,18 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
        `make check`: check: green
 
     `make check`: check: green
+13. reviewer: reviewer (round 2): no findings.
+       - Group 1 (acceptance criteria): each of criteria 1–16 has a test in `tests/domain/test_sections.py`, and each test checks the criterion it is named after. Every limit the Interface states is tested on both sides:
+         - The opening run is "three or more": `test_a_line_starting_with_a_short_run_opens_no_block` covers runs of two and one, and every other fence is three or longer.
+         - The closing run is "at least as many": three does not close a four-backtick block; four and five do.
+         - The closing line has "nothing but whitespace" after the run: a run followed by text does not close; a run followed by trailing spaces does.
+         - Indices are `NonNegativeInt`: `test_indices_are_not_negative` covers `0` and `-1` for all four fields, and `None` for `CodeBlock.end`.
+         - Rules that must fail are tested failing too: not a heading (6), not a title, including the indented ` # x` (7), a missing or wrong-case heading gives `None` (8, 9), `WorkItemFormatError` with the exact fault, including a heading only inside a fence (13), `ValueError` for a blank paragraph (14), unknown fields and frozen assignment (16).
+         - Entry 12 says the factory's `make check` was green.
+       - Group 2 (architecture): `src/factory/domain/sections.py` is pure domain code. It imports only `re`, `collections.abc`, `pydantic` and `factory.domain.errors`. It has no I/O and no imports from higher layers. The models are Pydantic DTOs with `frozen=True, extra="forbid"`.
+       - Group 3 (security): no secrets and no silencing markers. Nothing is built from strings for a shell or SQL. The error messages carry only the heading text.
+       - Group 4 (quality): there is a module docstring and one on each public class and function, and none on private helpers. There is no dead code. `code_blocks` is the one place that holds the fence rules, and `_first_section` is the one lookup that `section_text` and `insert_paragraph` share.
+       - Group 5 (ticket hygiene): entry 4 records the main decision (find the blocks first, then filter by index) and what was rejected (a single stateful scanner). The Assignment and Interface match what was built. Criterion 18 still says what the documenter must write.
+       - Considered and not raised:
+         - An info string after a backtick fence may contain backticks. The Interface does not forbid this, and the coder noted it in entries 4, 8 and 12.
+         - A paragraph passed with leading blank lines is not trimmed. The Interface does not specify this case.
