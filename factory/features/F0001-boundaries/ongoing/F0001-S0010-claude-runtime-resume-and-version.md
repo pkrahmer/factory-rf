@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 10
 blocked: null
 comments_seen: 0
@@ -196,3 +196,23 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
    - The branch in `_resume` where no time is left is not covered by a test. The coder named this edge case; it ends as `time_limit` with unknown measures, which follows R24.
    - The intake noted that killing a call's children has no test here; S0004 covers that in `run_process`.
    - The version query runs in the process's current directory, which the Interface does not name.
+6. documenter: wrote the documentation for the budget resume, the shared `time_limit`, the added-up measures and the version query. `make check` is green. I wrote no new runnable examples.
+
+   Files changed:
+   - `docs/project-guide.md`: in "The agent runtime", the `ClaudeCodeRuntime` text no longer says it lacks `version` or the resume, and now says it satisfies `AgentRuntime` structurally. The new constructor argument `version_time_limit` is listed.
+     - The end-reason rule now says `error_max_budget_usd` is `budget`, checked after `time_limit` and before the exit status.
+     - The kill point is described as reached once, after the last call.
+     - New paragraphs cover the resume arguments and `resume_budget`, the one `time_limit` across both calls (including the skipped resume when no time is left), the summed measures, and `version()`.
+     - The summed measures are `None` after a resumed call ended by the `time_limit` (R24). `FINISH_MESSAGE` asks for `question` where v1 asked for `stuck`.
+   - `docs/operator-guide.md`: says which `claude` version is read and that the preflight comparison comes with F0010. It also says what a budget stop costs (one resume at a quarter of the budget, at least 0.50 USD) and what a `time_limit` does (kills the run, no resume, unknown measures).
+   - `README.md`: the status sentence now says the `claude -p` runtime is complete.
+
+   Cross-read and found current: `docs/decisions.md`, and the rest of `docs/project-guide.md` (the kill points table and the fake).
+
+   Findings for the coder: none. The code matches the Interface.
+
+   Stale text I saw but did not touch: none.
+
+   Gap in the operator guide: "which `claude` version is expected" has no pinned number, because the ticket and the code name none. The guide says the pinned version is the one the flags were written for. A human decision on the version, with the morning observation of the exit status on a budget stop, would let that sentence name it.
+
+   `make check`: check: green
