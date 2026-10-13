@@ -122,9 +122,7 @@ def section_text(body: str, heading: str) -> str | None:
         return None
     content = split_lines(body)[found.start + 1 : found.end]
     trimmed = _without_leading_blank_lines(content)
-    while trimmed and _is_blank(trimmed[-1]):
-        trimmed.pop()
-    return "\n".join(trimmed)
+    return "\n".join(reversed(_without_leading_blank_lines(trimmed[::-1])))
 
 
 def insert_paragraph(body: str, heading: str, paragraph: str) -> str:
