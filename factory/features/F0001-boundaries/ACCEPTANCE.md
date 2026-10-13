@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 21
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014, F0001-S0015, F0001-S0016, F0001-S0017, F0001-S0018, F0001-S0019]
+outcome: accepted
 ---
 # Acceptance of Boundaries
 
@@ -502,3 +503,4 @@ New:
       6 Decisions: all 21 are built. The exception is decision 10, broken at the `+` and `:` edge. Since last time: your S0016 answer and the coders' own choices (per-method argument checks, bounds on the parse model). The S0020 refusal versus an explicit-refspec alternative is yours to choose. Older open points are still open, plus the test-file rename.
       7 Slow checks: none exist (no image, SBOM or mutants target). `make check` is green at 99.49 %.
       8 Cost: 137 runs, 104.7 min, $30.60, about $1.61 per story. The five new stories cost 31 runs and $5.21. S0016 had one intake round for your answer. S0017 and S0018 paid six runs for test-only and docs-only work, which is the pipeline's shape. No story stands out.
+2. done (pull request merged); cost: 2 runs, 12.2 min, 61 turns, 287k tokens in (4142k more from cache), 72k out, $4.57
