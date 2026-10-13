@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 10
 blocked: null
 comments_seen: 0
@@ -216,3 +216,27 @@ Expect: one line, `['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']`.
    Gap in the operator guide: "which `claude` version is expected" has no pinned number, because the ticket and the code name none. The guide says the pinned version is the one the flags were written for. A human decision on the version, with the morning observation of the exit status on a budget stop, would let that sentence name it.
 
    `make check`: check: green
+7. demo: both commands under `## Demo` ran from the repository root exactly as written. Both exited 0 and both met their `Expect:` lines. No findings.
+
+   Command 1 (stand-in `claude`: version query, then a run whose first call stops on its budget and whose resumed call completes):
+   ```
+   2.1.289
+   completed doing 8 3.25 10 5
+   ```
+   Met the Expect line: `2.1.289`, then `completed doing 8 3.25 10 5`.
+   - The version is the first word of `2.1.289 (Claude Code)` (criterion 12).
+   - The first call's `error_max_budget_usd` led to one resume, and the resumed call took the `--resume` branch of the stand-in (criteria 2 and 4).
+   - Turns are 5 + 3 = 8 and cost is 3.0 + 0.25 = 3.25 (criterion 4).
+   - The first call reported no tokens, so the tokens are the resumed call's, 10 and 5 (criterion 9).
+
+   Command 2 (`resume_budget`):
+   ```
+   ['1.00', '0.75', '0.50', '0.50', '0.51', '0.51']
+   ```
+   Met the Expect line exactly. It agrees with criterion 1 for those values: a quarter of the budget, never below 0.50, rounded to cents.
+
+   I read the acceptance criteria again against this output and found nothing in it that contradicts any of them. The demo does not exercise the time limit, the kill point, a second budget stop or the version errors (criteria 5, 7, 8, 10, 11, 13 to 15). The tester's entry names a test for each of them.
+
+   Open, carried over from earlier entries, not findings:
+   - The operator guide names no pinned `claude` version, because the ticket names none. That needs a decision from the human.
+   - No test covers the branch in `_resume` where no time is left.
