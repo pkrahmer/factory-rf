@@ -1,39 +1,45 @@
 ---
-stage: done
-pr: 36
+stage: accept
+pr: 39
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
-stories: [F0002-S0001, F0002-S0002, F0002-S0003, F0002-S0004, F0002-S0005, F0002-S0006, F0002-S0007, F0002-S0008]
-outcome: accepted
+stories: [F0002-S0001, F0002-S0002, F0002-S0003, F0002-S0004, F0002-S0005, F0002-S0006, F0002-S0007, F0002-S0008, F0002-S0009, F0002-S0010]
 ---
 # Acceptance of Work item data
 
 ## Verdict
 
-**accepted with drafts.** Every goal and scope item of `FEATURE.md` has a story, and the feature demo ran green against the real entry points: draft, check, start, edit, write back, restore, then the cost sidecar. `make check` is green. Two findings are worth stories, and neither is a broken promise. First, the journal and the form check read a code fence differently: one entry whose text leaves a fence open makes the form check report a valid work item as damaged (section 4). Second, the documentation has stale and story-bound sentences, and its example for the one command exits 2 on this repository (section 5).
+**accepted.** Every scope item and every clause of the Goal has a story and code. The feature demo against the real entry points is green, and that includes the case the first acceptance found broken: an entry that quotes output cut inside a code fence now leaves the form check clean. `make check` is green with 99.64 % coverage. The two drafts proposed by the first acceptance (S0009, S0010) are merged and did what they promised. What remains are low-weight observations, listed under 4 for the human. None of them is worth a story of its own.
 
 ## 1 Scope
 
-None. I compared each scope item with the archived stories and the code they name:
+None. This is the second acceptance of F0002. The first (pull request 36, merged) mapped every scope item to its story and code, and nothing under `src/` changed since then except S0009's `render_entry` and `opening_fence`:
 
 - identifiers, paths and order: S0001, `factory.domain.identifiers`, `factory.domain.paths`
 - the state in the front matter: S0002, `factory.domain.work_item`
 - one reader and one writer: S0003, `factory.adapters.work_item_markdown` behind `factory.application.files`
-- sections: S0004, `factory.domain.sections`
-- the journal and its restore: S0005, `factory.domain.journal`
+- sections with code fences respected: S0004, `factory.domain.sections`, plus `opening_fence` from S0009
+- the journal and its restore: S0005, `factory.domain.journal`. S0009 made it agree with the form check about fences, so entries stay in step with their records (SI1.1) and fences are respected (SI1.3).
 - the story form check: S0006, `factory.domain.story_form`
 - the cost-record sidecar: S0007, `factory.domain.cost_records`, `factory.adapters.cost_records_jsonl`
-- the command: S0008, `factory.entry.check_story`, `factory.entry.wiring`
+- the command `factory-check-story`: S0008, `factory.entry.check_story`, `factory.entry.wiring`
+- the documentation repair: S0010, docs only
 
-Each clause of the Goal's "done when" is shown by the demo in section 2. No story strays into Out of scope: when records are written, bills, pipeline definition and hand-over are all left to F0003, F0005 and F0009.
-
-One observation, not a gap. `WorkItemReader.read(path)` is `parse` only, so reading a backlog file as a specification means reading the text yourself and calling `parse_specification`. The command does this in its own `_read_text` (`src/factory/entry/check_story.py:45`), which repeats the reader's `cannot read` mapping in a second wording. The factory reads files through git as text, so `parse_specification(text)` is likely the main path anyway. I am leaving this for F0005 to judge when it opens a story.
+No story strays into Out of scope. The observation from the first acceptance still stands and is still not a gap: `WorkItemReader.read(path)` is `parse` only, so the check command reads a backlog file's text itself (`src/factory/entry/check_story.py`, `_read_text`) and maps `cannot read` in its own wording. F0005 will judge this when it reads stories through git.
 
 ## 2 Feature demo
 
-This is the walk a user of the feature takes. A human writes a draft in a v1.1 tree and checks it with the command; the factory starts it and journals it; the story is edited and written back; an agent's tampering is undone; two runs leave cost records. Run from the repository root; it creates files only under a temporary directory. My first two attempts failed because of my script, not the code: I called `read(path)` on a backlog file, and I appended a spec edit after the last journal entry, where it belongs to the journal. Both behaviours are as the Interfaces say. This is the third run:
+This is the walk a user of the feature takes, run in a temporary v1.1-layout project:
+
+1. A human writes a draft and checks it with the command.
+2. The factory starts the story and journals it.
+3. A tester's result quotes a tail of test output cut inside a code fence, which is the case S0009 repairs. The story is edited and written back, and its journal is read by speaker and kind.
+4. An agent's tampering is undone.
+5. Two runs leave cost records.
+
+Run from the repository root:
 
 ```bash
 uv run python - <<'EOF'
@@ -99,21 +105,27 @@ print("  front matter keys:", [l.split(":")[0] for l in front.splitlines() if l[
 print("  folder:", folder_of(rel), "| form findings:", check_story_form(reader.read(path), FORM, folder="in-progress"))
 cli(root, rel)
 
-print("4. Edit and write back; speaker and kind are read as data")
+print("4. Edit and write back; a tester result quotes a tail of output cut inside a fence; read back by speaker and kind")
 back = reader.read(path)
-edited = append_entry(back, NewEntry(speaker="tester", kind="result", text="tests written\nall red"))
+edited = append_entry(back, NewEntry(speaker="tester", kind="result", text=f"tests written, red; output:\n{FENCE}\nE   assert 1 == 2"))
+edited = append_entry(edited, NewEntry(speaker="coder", kind="result", text="green"))
 edited = edited.model_copy(update={"body": insert_paragraph(edited.body, "Assignment", "Note from the human.")})
 writer.write(path, edited)
 again = reader.read(path)
 print("  equal after write and read:", again == edited)
+print("  journal as written:")
+for line in again.body.split("## Journal\n", 1)[1].strip("\n").splitlines():
+    print("   |", line)
 print("  last factory record:", last_record(again, speaker="factory"))
-print("  last result:", last_record(again, kind="result"), "| text:", repr(entry_text(again, 3)))
+print("  last result:", last_record(again, kind="result"), "| entry 3:", repr(entry_text(again, 3)))
 forged = again.model_copy(update={"body": again.body.replace("3. tester:", "3. human:")})
 print("  speaker forged in the text; last human record:", last_record(forged, speaker="human"))
+print("  form findings with the fenced entry:", check_story_form(again, FORM, folder="in-progress"))
+cli(root, rel)
 
 print("5. An agent tampers with state and journal and edits the spec; the restore puts state and journal back")
 tampered = again.model_copy(update={"state": again.state.model_copy(update={"stage": "done"}),
-                                    "body": again.body.replace("tests written", "approved!").replace("Print a greeting.", "Print a loud greeting.")})
+                                    "body": again.body.replace("E   assert 1 == 2", "approved!").replace("Print a greeting.", "Print a loud greeting.")})
 restored = restore_state_and_journal(tampered, again)
 print("  stage:", restored.state.stage, "| entry 3:", repr(entry_text(restored, 3)), "| spec edit kept:", "Print a loud greeting." in restored.body)
 print("  form findings after restore:", check_story_form(restored, FORM, folder="in-progress"))
@@ -156,13 +168,25 @@ echo "exit $?"
   $ factory-check-story factory/features/F0009-greetings/in-progress/F0009-S0001-greet-the-user.md
     factory/features/F0009-greetings/in-progress/F0009-S0001-greet-the-user.md: ok
     exit 0
-4. Edit and write back; speaker and kind are read as data
+4. Edit and write back; a tester result quotes a tail of output cut inside a fence; read back by speaker and kind
   equal after write and read: True
+  journal as written:
+   | 1. 2026-10-13 human: created.
+   | 2. factory: started at tests
+   | 3. tester: tests written, red; output:
+   |    ```
+   |    E   assert 1 == 2
+   |    ```
+   | 4. coder: green
   last factory record: number=2 speaker='factory' kind='started'
-  last result: number=3 speaker='tester' kind='result' | text: 'tests written\nall red'
+  last result: number=4 speaker='coder' kind='result' | entry 3: 'tests written, red; output:\n```\nE   assert 1 == 2\n```'
   speaker forged in the text; last human record: number=1 speaker='human' kind='created'
+  form findings with the fenced entry: []
+  $ factory-check-story factory/features/F0009-greetings/in-progress/F0009-S0001-greet-the-user.md
+    factory/features/F0009-greetings/in-progress/F0009-S0001-greet-the-user.md: ok
+    exit 0
 5. An agent tampers with state and journal and edits the spec; the restore puts state and journal back
-  stage: tests | entry 3: 'tests written\nall red' | spec edit kept: True
+  stage: tests | entry 3: 'tests written, red; output:\n```\nE   assert 1 == 2\n```' | spec edit kept: True
   form findings after restore: []
 6. Cost records: started, then completed by replacing its line; unknowns stay unknown
   sidecar: factory/features/F0009-greetings/in-progress/F0009-S0001-greet-the-user.costs.jsonl
@@ -173,64 +197,71 @@ echo "exit $?"
 exit 0
 ```
 
-Green. Each clause of the Goal shows in the output:
+Green, exit 0. Each clause of the Goal shows in the output:
 
 - read: step 3
-- checked against the project's form: steps 1, 3 and 5
+- checked against the project's form: steps 1, 3, 4 and 5, by the domain function and by the command
 - edited and written back with its key order: steps 3 and 4
 - journal read by speaker and kind, not from the text: step 4, where a speaker forged in the text changes no record
-- a heading in a fence is no section: step 3, where `## start the server` is not listed
-- cost records round-trip with unknowns kept unknown: step 6
+- a heading inside a code fence is never a section: step 3 (`## start the server` is not listed). Step 4 shows that an entry quoting an open fence gets its closing line, so the form check and the command both stay clean and see all four entries.
+- cost records round-trip with unknown cost and tokens kept unknown: step 6
 
-`make check` was green as I found it: `check: green`, total coverage 99.64 %. The only F0002 line it misses is `src/factory/entry/check_story.py:131`, the `if __name__ == "__main__"` line, which a subprocess test exercises.
+Beyond the demo, I probed `render_entry` on nested and mixed fences: a four-backtick block holding three backticks, a `~~~` block holding three backticks, a closing run longer than the opening, and a fence on the numbered line followed by a later `py` fence. Each got exactly one closing line with the opening run, or none where none was due.
+
+`make check` was green as I found it: `check: green`, total coverage 99.64 %. The only F0002 line it misses is `src/factory/entry/check_story.py:131`, the `if __name__ == "__main__"` guard, which a subprocess test runs.
 
 ## 3 Mutation score
 
-None: the project has no `make mutants` target. This is deliberate and recorded in `docs/decisions.md` ("No `mutants` target, no mutmut": over the whole package it could outgrow the lease). There is no score and there are no survivor groups.
+None to report: the project has no `make mutants` target. That is a recorded decision (`docs/decisions.md`, "No `mutants` target, no mutmut"), so there is no score and there are no survivor groups.
 
-The nearest evidence is the review history. Every rework round in this feature was a refused side the Interface stated but no test checked, which is what a mutant would have shown:
-
-- S0004: fence runs shorter than three, an indented title, negative indices
-- S0005: an indented entry number, trailing blank lines, a restore onto trailing blanks
-- S0006: an indented or fenced criterion
-- S0007: an infinite duration
-
-All were closed with tests. In each case, by the reviewer's own account, a mutated line would have passed the earlier tests. S0004's fence run is the reviewer's own example: `{1,}` for `{3,}` passed every test.
+The nearest evidence is still the review history. Rework rounds in S0004 to S0007 were each a refused side of a stated limit that no test covered, which a mutant would have shown, and all were closed with tests. S0009 had no rework round. Its tester covered the limits the Interface states on both sides without a criterion asking for it: three backticks against two (`"``x"` gives None), the two-digit indent, and a closed block against an open one.
 
 ## 4 What the stories noticed
 
-1. **An unclosed fence in an entry's text desynchronises the journal from the form check.** This is the weightiest finding. S0005's coder noticed it (entries 4, 8 and 10) and the reviewer left it open "for a later story". It is documented as a known limit, but only as "hides later headings". Reproduced here: three entries are appended, the second with the text `red; output starts:` + a fence line + `E   assert 1 == 2`. `last_record` and `entry_text(doc, 3)` see three entries, but `check_story_form(..., folder="in-progress")` returns `the journal data lists 3 entries but the text shows 2`. The journal ends an entry at the next column-0 number whatever the fences; the form check counts only lines outside blocks. The operator guide tells the human that this finding means "the state is damaged, so restore the file". The form check is meant to run before and after every agent run (S0006's Assignment), and an agent's result often quotes output that a tail can cut mid-fence. Draft F0002-S0009.
-2. An info string after a backtick fence may contain backticks, which CommonMark forbids. Noticed in S0004 by the coder (entries 4, 8 and 12) and the reviewer. A line such as ```` ```x`y ```` opens a block in `sections` but not in a CommonMark renderer. Low weight; no draft.
-3. A paragraph passed to `insert_paragraph` with leading blank lines gets an extra blank line (S0004 reviewer). Not specified. Low weight; no draft.
-4. The fault text `no front matter` is a literal in both `src/factory/adapters/work_item_markdown.py` and `src/factory/entry/check_story.py` (S0008 coder and reviewer). Tests catch a change on either side; a typed `NoFrontMatter` error or a shared constant would be cleaner. Low weight; no draft. The human may fold it into the first story that touches the reader.
-5. The same UTC field validator (`value.astimezone(UTC)`) now exists in four copies: `domain/git.py` from F0001, plus `domain/hosting.py`, `domain/work_item.py` and `domain/cost_records.py`. The S0002 reviewer counted three before S0007 added the fourth. It follows the idiom, but a shared aware-UTC type is a candidate for a later clean-up. No draft.
-6. Journal entries are counted outside code blocks although rule 6 of S0006's Interface does not say so (S0006 reviewer, carried to the human through entries 5 to 10 and never answered). The code and the guide agree with each other. Finding 1 is the case where this rule bites.
-7. S0003's reviewer weighed and accepted the import of `pydantic_core.ErrorDetails`, a package that `pyproject.toml` does not list directly (pinned through pydantic). Listed under 6 for the human.
+The items from the first acceptance that were not drafted are all still in the code, verified today. S0009 added one new item.
+
+1. **A test name is half true** (new; S0009's tester, coder and reviewer). `tests/domain/test_journal.py:208` is `test_entry_text_returns_the_text_as_it_was_given`, but since S0009 `entry_text` returns the text as rendered, closing line included. The test still passes because its text has no fence. Renaming it is a test change, so it belongs to the tester of the next story that touches `test_journal.py`. No draft.
+2. The fault text `no front matter` appears twice: in `src/factory/adapters/work_item_markdown.py:111` and as `_NO_FRONT_MATTER` in `src/factory/entry/check_story.py:27`. Tests catch a drift on either side. No draft. It fits the first story that touches the reader, likely in F0005.
+3. The UTC field validator `value.astimezone(UTC)` exists in four copies: `domain/git.py:76`, `domain/hosting.py:87`, `domain/work_item.py:35` and `domain/cost_records.py:48`. A shared aware-UTC annotated type would replace them, but that crosses F0001 and F0002 modules. No draft; it is a candidate for a later clean-up.
+4. In `sections`, a backtick fence's info string may itself contain backticks, which CommonMark forbids (S0004). Low weight, no draft.
+5. A paragraph passed to `insert_paragraph` with leading blank lines gets an extra blank line (S0004 reviewer). This is unspecified. Low weight, no draft.
+6. The unreachable `fence is None` guard in `journal._closing_line` (S0009) narrows the type for mypy, where an `assert` would trip bandit. It is accepted and needs nothing.
+
+The weighty item of the first acceptance, an open fence that desynchronised the journal from the form check, is fixed (S0009) and shown fixed in section 2.
 
 ## 5 The documentation as a whole
 
-I read it as a newcomer, from `README.md` down. Draft F0002-S0010 repairs the first five points; point 6 is left as it is.
+None. I read `README.md`, `docs/operator-guide.md`, the F0002 sections of `docs/project-guide.md` and `docs/decisions.md` from the top, as a newcomer:
 
-1. `docs/project-guide.md:457` says of the work item reader and writer: "Wiring does not use them yet." S0008 wired the reader (`factory.entry.wiring.build_work_item_reader`), so this is stale.
-2. Story-bound sentences in a guide meant to stay true: `docs/project-guide.md:403` ("The reader of the next story names a fault by that location") and `:544` ("This story is the format only").
-3. The guide's "Errors" section lists every error type except `CostRecordFormatError`, which is described only under "Cost records".
-4. The README's status sentence lists the work item data types, the journal, the reader and writer and the check command. It omits identifiers and paths, sections, the story form check and the cost records.
-5. The operator guide's only example does not run here. It names `factory/features/F0002-work-item-data/backlog/F0002-S0008-the-story-check-command.md`, but this repository has no `backlog` folder and no `factory/story-form.md`. Run as written, it prints `cannot read factory/story-form.md: [Errno 2] No such file or directory: '/work/factory-rf/factory/story-form.md'` and exits 2; the story's real path under `done/` gives the same. The README points the newcomer at this command and at this guide. Nothing says that this repository's own `factory/` tree is v1's (`drafts/`, `ongoing/`, `FEATURE.md`, `TICKET.md`) and so is not what the command checks. The guide's sentence "`ongoing` is the pipeline's folder and is not accepted" describes v1's pipeline to a v1.1 operator. Behaviour and documentation agree; the example misleads.
-6. No contradiction found between stories. The guide gives the reader's `cannot read: <reason>` and the command's `cannot read <path>: <reason>` as two different texts, and both are correct for their place. The fault tables, the notation example, the journal format and the form rules match the code. I re-ran the S0001 sorting example and the feature demo above against the guide's statements.
+- Each of the five repairs S0010 promised is in place: the wiring sentence, no story-bound sentences in "The state" and "Cost records", `CostRecordFormatError` and `NothingToCommit` under "Errors", the README's status, and the operator guide's statement of the v1.1 layout and of this repository's v1 tree.
+- S0009's documentation matches the code. The journal format gives the closing line, `entry_text` is "as rendered", the known limit is gone, `opening_fence` is in the sections table, and a decision entry gives the two rejected alternatives.
+- Every runnable example in the project guide prints what the guide says. I re-ran all seven blocks under "Identity, order and places", "The data of a work item", "Reading and writing", "Cost records", "Sections" and "The form check".
+- The operator guide's two outcomes hold. Run here, the command exits 2 with `cannot read factory/story-form.md: ...`. In a temporary v1.1-layout project, the placeholder path prints `factory/features/F0001-example/backlog/F0001-S0001-example-story.md: ok` and exits 0.
+- The guides do not contradict each other. The form check's "an unclosed block hides a later `## Journal`" is about the human's specification text. The journal can no longer produce such a block.
+
+Two remarks, too small for a story:
+
+- The operator guide's opening paragraph lists the built parts (git, build commands, `claude -p`, the hosting-service client) without the work item data. The next sentence does name `factory-check-story`.
+- The README's status sentence is now one long enumeration of every built part. As features accumulate, a short summary with a pointer to the project guide would read better. That is the documenter's call when the next feature lands.
 
 ## 6 Decisions taken for the human
 
-`FEATURE.md` lists 14 decisions, and I found nothing in the code that departs from them. These further ones were taken in the story logs:
+`FEATURE.md` now lists 17 decisions. Three of them (15 to 17) settle what the first acceptance raised: journal entries are counted only outside blocks, with `render_entry` closing them; `pydantic_core.ErrorDetails` without a direct pin; and v1.1's file names stand. I found nothing in the code that departs from any of the 17.
 
-1. `BRANCH_PREFIX` is defined in `factory.domain.identifiers` and re-exported by `paths`, not defined in `paths` as S0001's Interface said; the other way is an import cycle. The coder took this, the reviewer accepted it, and it is recorded in `docs/decisions.md`.
-2. In S0004 the coder extended criteria 3, 7 and 16 during review rounds. The additions restate the Interface's own limits (three or more, column 0, `NonNegativeInt`), and no human saw them before merge. The S0004 reviewer judged that they do not change scope.
-3. Journal entries are counted only outside code blocks (S0006, rule 6 silent). Raised for the human in S0006's entries 5 to 10 and not answered. Finding 4.1 depends on it.
-4. The cost is checked by a before-validator on `CostRecord` that refuses an int, float or bool even from Python code (S0007 coder). The shared pydantic fault ranking moved to `src/factory/adapters/validation_faults.py`, which both readers use.
-5. `duration_seconds` is finite, and the reader refuses `NaN`, `Infinity` and `-Infinity` as `not valid JSON`. The human decided this (S0007, entry 7, option A).
-6. `main` of the check command reports a missing `feature.md` (S0008 criterion 23). The human approved this in S0008's entry 3.
-7. `lifecycle_folder_of_location` is a public function beyond S0008's Interface; the reviewer accepted it.
-8. `pydantic_core.ErrorDetails` is imported from a transitive dependency without declaring `pydantic-core` in `pyproject.toml` (S0003 reviewer judged it no new dependency). "New dependency" is on the not-without-asking list, so confirm or ask for the direct pin.
-9. `STORY_FORM_FILE` is `factory/story-form.md` and `FEATURE_FILE_NAME` is `feature.md` (v1.1's glossary), while this repository's tree is v1's (`TICKET.md`, `FEATURE.md`). So `factory-check-story` cannot be used on factory-rf's own stories until the tree moves to v1.1. That is consistent with `CLAUDE.md`'s vocabulary rule, but it is worth a conscious yes.
+You saw these log decisions in the first acceptance and accepted them by merging it. They stand unchanged:
+
+- `BRANCH_PREFIX` lives in `identifiers` and is re-exported by `paths`. This is recorded in `docs/decisions.md`.
+- The coder extended S0004's criteria 3, 7 and 16 with the Interface's own limits.
+- The cost before-validator refuses int, float and bool even from Python code.
+- `duration_seconds` is finite (your decision).
+- A missing `feature.md` is a finding of the command (your approval).
+- `lifecycle_folder_of_location` is public.
+
+New from S0009 and S0010, taken without you:
+
+1. S0009's `render_entry` decides on an open block by reading the rendered lines (number prefix and indent included), not the raw text, so it uses the same `code_blocks` reading as the form check. The coder made this choice and the reviewer accepted it. It follows from the story's rules.
+2. S0009's tester added a case of exactly three backticks to criterion 9's table, for the three-against-two side.
+3. S0010 ran as a documentation-only story through every stage. Its tester and coder had nothing to do by design, and its reviewer reviewed an empty diff. This is a process choice, not a product one. Whether doc-only drafts should take a shorter path is a question for the factory (see 8).
 
 ## 7 The slow checks
 
@@ -238,7 +269,7 @@ None. Beyond `make check` the project offers no slow check: no `make mutants` (s
 
 ## 8 Cost
 
-72 runs, 68.8 min, $17.45 for 8 stories; that is about $2.18 and 9 runs per story.
+84 runs, 75.6 min, $19.36 for 10 stories, about $1.94 and 8.4 runs per story.
 
 | Story | Runs | Minutes | Cost | Rework rounds |
 |---|---|---|---|---|
@@ -250,25 +281,27 @@ None. Beyond `make check` the project offers no slow check: no `make mutants` (s
 | S0006 | 10 | 10.1 | $2.22 | 1 |
 | S0007 | 11 | 11.6 | $3.01 | 1, with a question |
 | S0008 | 7 | 7.2 | $2.00 | 0, with an intake question |
+| S0009 | 6 | 3.9 | $1.36 | 0 |
+| S0010 | 6 | 2.9 | $0.55 | 0 |
 
-S0004 and S0005 stand out. Their logs say why: every rework round asked for a test of a limit the Interface stated but no criterion spelled out on its refused side. The code was never wrong, except for two private docstrings in S0005. Each such round cost one coder run that made no change, one tester run and one reviewer run.
+As the first acceptance found, S0004 and S0005 stand out. Their rework rounds asked only for refused-side tests that the criteria did not spell out.
 
-The story writer can avoid that cost. Where an Interface states "three or more", "at column 0" or a `NonNegativeInt`, put its refused side into a criterion. `CLAUDE.md` already makes it a review finding.
+The two late stories were the cheapest. S0009 had criteria that spelled out every failing side (the first acceptance's advice), and it went through without rework for $1.36. S0010 cost $0.55, but three of its six runs (tester, coder, reviewer) had nothing to work on by design, because the story was docs only. Small in money, it is still a pattern worth knowing: a documentation-only story pays for every stage of the pipeline.
+
+The two acceptances cost $2.86 for the first, plus this one; neither is in the sum above.
 
 ## Proposed stories
 
-- `drafts/F0002-S0009-journal-entries-close-their-code-fences.md`: an entry whose text leaves a fence open makes the form check report a valid work item as damaged and hides the sections after the journal; `render_entry` closes it (section 4, item 1).
-- `drafts/F0002-S0010-documentation-after-work-item-data.md`: stale and story-bound sentences in the project guide, the missing error type, the README's status, and the operator guide's example that exits 2 on this repository (section 5).
+None. No finding has the weight of a story. Items 4.1 to 4.3 are each a few lines and fit the first later story that touches the module (`test_journal.py`, the reader, the domain DTOs); I list them for you instead of drafting them.
 
 ## Log (append only)
 
-1. acceptor: accepted with drafts; 2 drafts proposed; make mutants n/a (no target, by decision)
-   1 Scope: none. Every scope item and every clause of the Goal has a story and code. One observation: `WorkItemReader.read` is `parse` only, so the check command reads a backlog file's text itself and repeats the `cannot read` mapping in a second wording.
-   2 Feature demo: green, exit 0. The walk goes draft, check (exit 1, then 0), start, write, check (`ok`), edit and write back (equal), journal read by speaker and kind (a speaker forged in the text changes no record), tamper and restore, then the cost sidecar (completed by replacing its line; the `time_limit` run's cost, tokens and turns read back as None). My first two attempts failed on my own script, not the code. `make check` was green as I found it, with 99.64 % coverage.
-   3 Mutation score: no `make mutants` target (`docs/decisions.md`). Instead, every rework round in this feature was an untested refused side of a stated limit.
-   4 Noticed: an entry whose text leaves a code fence open makes the form check report `journal data lists 3 entries but the text shows 2` on a valid work item, and hides the sections after the journal. I reproduced it; draft S0009. Low weight, no draft: backticks in a backtick info string, the `no front matter` literal shared by the adapter and the entry layer, four copies of the UTC validator, and journal entries counted only outside fences (never answered in S0006).
-   5 Docs: the project guide still says "Wiring does not use them yet" for the reader, has two story-bound sentences, and lists no `CostRecordFormatError` under Errors. The README's status is behind. The operator guide's only example exits 2 here (`cannot read factory/story-form.md`), and the guide does not say that this repository's tree is v1's. Draft S0010.
-   6 Decisions: FEATURE.md's 14 decisions, plus 9 from the logs: BRANCH_PREFIX moved to identifiers; criteria extended by the coder in S0004; journal entries counted outside fences; the cost before-validator; finite duration (decided by the human); the feature.md criterion (approved by the human); public `lifecycle_folder_of_location`; `pydantic_core` imported without a direct pin; v1.1 paths that do not match this repository's v1 tree.
-   7 Slow checks: none offered.
-   8 Cost: 72 runs, 68.8 min, $17.45. S0004 (14 runs) and S0005 (12) stand out: their rework rounds asked only for refused-side tests the criteria did not spell out, and the code was never wrong apart from two private docstrings.
-2. done (pull request merged); cost: 1 runs, 6.6 min, 38 turns, 167k tokens in (3508k more from cache), 41k out, $2.86
+1. acceptor: accepted; 0 drafts proposed; make mutants n/a (no target, by decision in docs/decisions.md)
+      1 Scope: none. Every scope item and every clause of the Goal has a story and code. Since the first acceptance, S0009 is the only story that changed `src/`. The observation that the check command reads a backlog file's text itself (`_read_text`) still stands; it is not a gap, and F0005 will judge it.
+      2 Feature demo: green, exit 0. In a temporary v1.1 project the walk goes: draft, check (exit 1, then 0), start, write, check (`ok`). A tester result quoting output cut inside a fence gets its closing line, and the form check and the command stay clean with all four entries seen. Then edit and write back (equal), speaker and kind read as data, tamper and restore, and the cost sidecar with unknowns kept unknown. Extra probes of nested and mixed fences in `render_entry` were correct. `make check` was green as I found it, with 99.64 % coverage.
+      3 Mutation score: there is no `make mutants` target (recorded decision), so no score. S0009 had no rework round; its tests cover both sides of each limit.
+      4 Noticed: one new item, the test name `test_entry_text_returns_the_text_as_it_was_given` (now half true after S0009). Still open from before: the `no front matter` literal in two layers, four copies of the UTC validator, backticks allowed in a backtick info string, and the extra blank line from `insert_paragraph`. All are low weight with no draft; each fits the next story that touches the module.
+      5 Docs: none. All S0010 repairs and S0009's documentation are in place. All seven project-guide examples print what the guide says, and both operator-guide outcomes hold: exit 2 in this v1 tree, `ok` in a v1.1 tree. Two small remarks: the operator guide's opening list of built parts and the README's status sentence keep growing.
+      6 Decisions: FEATURE.md's 17 decisions, with 15 to 17 settling the first acceptance's open points; the code departs from none of them. The six log decisions already accepted with the first acceptance are unchanged. New: `render_entry` reads the rendered lines rather than the raw text; the tester added a three-backtick case to criterion 9; S0010 ran docs-only through every stage.
+      7 Slow checks: none offered.
+      8 Cost: 84 runs, 75.6 min, $19.36. S0004 (14 runs) and S0005 (12) stand out, as before, because their criteria did not spell out refused-side tests. S0009 ($1.36) and S0010 ($0.55) were the cheapest. In S0010, three of six runs had nothing to do by design, because a docs-only story still pays for every stage.
