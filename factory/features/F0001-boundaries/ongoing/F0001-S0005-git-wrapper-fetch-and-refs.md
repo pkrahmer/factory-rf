@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 5
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The git wrapper: fetch and refs
 
 ## Assignment (as of log entry 1)
@@ -192,3 +200,138 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`domain/errors.py`, `domain/paths.py`, `domain/git.py`, `application/git.py`, `adapters/git_cli.py`). The rules list states each behaviour: the message formats, the 30-line tail, the environment order, the sorting and the defaults. The fixtures `remote` and `checkout` and the helpers in `tests/git_support.py` are specified too.
+   - Criteria: all 25 are testable by one test function each. Every Interface behaviour has a criterion: the error message (1), the tail (2), the unstartable executable (3), the time limit (4), the configuration isolation (8, 9), credentials by environment (10, 11), the sort order and the `origin/` prefix (12), the 40-character id (13), the exact text (15), the plain string order and non-ASCII names (17), and the defaults and non-sharing of `environment` (23). Every rule has its failing side: `fetch` failure (7), `resolve` of a missing ref (14), `show_file` of a missing path or ref (16), `list_files` of a missing directory or ref (18), `is_ancestor` of an unknown ref (20), and empty identity fields (21).
+   - Demo: both blocks are runnable as written, and each `Expect:` line is checkable against the printed output.
+   - Architecture: the domain types are pure data. The `Git` Protocol is in application. `GitCli` is in adapters, reaches git only through `run_process`, and satisfies the Protocol structurally (22). The DTOs are Pydantic models, and there are five constructor parameters or fewer.
+   - Scope: within the feature's "The git wrapper" scope. The writing operations, history and status are left to S0006, S0011, S0012 and S0013, and the wiring is left to F0010. Nothing falls under "Out of scope".
+3. tester: red tests written for all criteria. These are the coder's specification.
+
+   Mapping (criterion → test):
+   - 1: tests/domain/test_errors.py::test_git_error_carries_command_status_and_tail_in_its_message
+   - 2: tests/adapters/test_git_cli_reading.py::test_failure_keeps_the_last_thirty_lines_of_output (parametrized: fetch/FetchFailed and remote_branches/GitError, × 40 lines → lines 11–40 and 3 lines → all 3)
+   - 3: tests/adapters/test_git_cli_reading.py::test_executable_that_cannot_start_raises_without_exit_status
+   - 4: tests/domain/test_git.py::test_git_time_limit_is_five_minutes and tests/adapters/test_git_cli_reading.py::test_command_that_reaches_its_time_limit_raises_without_exit_status
+   - 5: tests/adapters/test_git_cli_reading.py::test_fetch_brings_in_a_branch_pushed_by_another_clone
+   - 6: tests/adapters/test_git_cli_reading.py::test_fetch_prunes_a_branch_the_remote_deleted
+   - 7: tests/adapters/test_git_cli_reading.py::test_fetch_outside_a_repository_raises_fetch_failed and ::test_fetch_from_a_removed_remote_raises_fetch_failed. For "a clone whose remote was removed", the test deletes the bare remote directory.
+   - 8: tests/adapters/test_git_cli_reading.py::test_global_configuration_is_ignored
+   - 9: tests/adapters/test_git_cli_reading.py::test_system_configuration_is_ignored
+   - 10: tests/adapters/test_git_cli_reading.py::test_options_environment_reaches_git
+   - 11: tests/adapters/test_git_cli_reading.py::test_process_environment_reaches_git
+   - 12: tests/adapters/test_git_cli_reading.py::test_remote_branches_lists_the_remote_tracking_branches_sorted
+   - 13: tests/adapters/test_git_cli_reading.py::test_resolve_returns_the_full_commit_id
+   - 14: tests/adapters/test_git_cli_reading.py::test_resolve_returns_none_for_a_missing_ref
+   - 15: tests/adapters/test_git_cli_reading.py::test_show_file_returns_the_text_as_committed
+   - 16: tests/adapters/test_git_cli_reading.py::test_show_file_returns_none_for_no_file_and_raises_for_a_missing_ref
+   - 17: tests/adapters/test_git_cli_reading.py::test_list_files_returns_all_paths_under_a_directory_sorted
+   - 18: tests/adapters/test_git_cli_reading.py::test_list_files_is_empty_for_a_missing_directory_and_raises_for_a_missing_ref
+   - 19: tests/adapters/test_git_cli_reading.py::test_is_ancestor_follows_history
+   - 20: tests/adapters/test_git_cli_reading.py::test_is_ancestor_raises_for_an_unknown_ref (parametrized: unknown ancestor, unknown descendant)
+   - 21: tests/domain/test_git.py::test_identity_needs_a_name_and_an_email_and_is_frozen
+   - 22: tests/adapters/test_git_cli_reading.py::test_git_cli_fits_the_git_interface_without_inheriting_it. It assigns `git: Git = checkout` and checks that `Git` is not in `GitCli.__mro__`, because `issubclass` raises on a Protocol that is not runtime-checkable.
+   - 23: tests/domain/test_git.py::test_options_default_to_the_factory_identity_and_plain_git and tests/adapters/test_git_cli_reading.py::test_git_cli_works_with_default_options (parametrized: `GitCli(directory)` and `GitCli(directory, GitOptions())`)
+   - 24, 25: not tests. 24 is the gate `make check`; 25 is the documenter's.
+
+   Files:
+   - new: tests/git_support.py, which holds CHECKOUT, TEST_IDENTITY, PIPELINE_YAML, STORY_FORM, REMOTE_FILES, run_git, write_files, commit_all, clone, make_remote and write_executable. `run_git` runs through `run_process`, ignores the global and system configuration and uses the author Test Author <test@example.invalid>.
+   - new: tests/adapters/test_git_cli_reading.py and tests/domain/test_git.py.
+   - extended (new tests and imports only): tests/domain/test_errors.py and tests/conftest.py. conftest.py gains `remote`, a bare repository at tmp_path/origin/remote.git, and `checkout`, a GitCli on a clone at tmp_path/checkout built with kill_points and TEST_IDENTITY.
+
+   Missing modules:
+   - `factory.adapters.git_cli`, `factory.application.git`, and the new names in `factory.domain.git` and `factory.domain.errors`.
+
+   Test run:
+   - The one `make test` run happened before conftest.py imported git_cli at the top. That run showed collection errors (ImportError) in test_git_cli_reading.py, test_errors.py and test_git.py.
+   - After that, lint (PLC0415) refused the lazy imports in conftest.py, so the imports moved to the top of the file. As a result the whole suite now fails at collection with ImportError until `factory.adapters.git_cli` and `factory.domain.git.GitOptions` exist. I did not run the tests again after that change.
+
+   `make lint` is green. The type check was skipped, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.git_cli'
+4. coder: the git wrapper's reading half is built and `make check` is green (100 % branch coverage). I did not change any test. Commits: 1e3fe8e (feat), 97e65fe (refactor).
+
+   What I built:
+   - `src/factory/domain/errors.py`: `GitError` (`command`, `exit_status`, `output_tail`; message `<command> failed (exit N|no exit status): <tail>`) and `FetchFailed`.
+   - `src/factory/domain/paths.py`: `REMOTE = "origin"`.
+   - `src/factory/domain/git.py`: `GIT_TIME_LIMIT`, `RemoteBranch`, `GitIdentity` (frozen, forbids unknown keys, non-empty fields) and `GitOptions` (frozen, forbids unknown keys, `arbitrary_types_allowed` for `KillPoints`). Pydantic copies the `{}` default of `environment`, so two `GitOptions()` never share it.
+   - `src/factory/application/git.py`: the `Git` Protocol.
+   - `src/factory/adapters/git_cli.py`: `GitCli`. Every command goes through one private `_run`. It calls `run_process` with `merge_stderr=True` and `options.time_limit`. The environment is the process environment, then `options.environment`, then `GIT_CONFIG_NOSYSTEM=1` and `GIT_CONFIG_GLOBAL=os.devnull`. `_run` turns an `OSError`, a timeout, or an exit status it was not told to expect into the error class it is given (`GitError`, or `FetchFailed` for `fetch`), with the last 30 output lines as the tail.
+
+   Main decision: I tell a missing ref or path apart from a failure by git's exit statuses and listings, not by matching error text.
+   - `resolve` uses `rev-parse --verify --quiet <ref>^{commit}`: exit 1 means `None`, exit 128 is an error.
+   - `is_ancestor` uses `merge-base --is-ancestor`: 0 is true, 1 is false, 128 is an error.
+   - `show_file` runs `ls-tree -z <ref> -- <path>` and returns `None` unless that exact path is a blob; then `cat-file blob <oid>` gives the text.
+   - `list_files` runs `ls-tree -r -z --name-only` and keeps only paths under `<directory>/`, so a sibling such as `factory/features-x` or a file named like the directory is not counted.
+   - With `-z`, names with spaces or non-ASCII characters come back unquoted.
+   - Rejected: `git show <ref>:<path>` with parsing of its error text to tell "no such path" from "no such ref". That depends on git's wording and its language setting.
+
+   Refactor (97e65fe): renamed the exit-status constant to `ANSWER_NO` and moved the ls-tree entry parsing into `_blob_in_listing`. Behaviour is unchanged.
+
+   Noticed, not touched:
+   - `GitCli` stores the identity (`self._identity`) but does not use it yet; S0006's `commit` needs it.
+   - It does not use `kill_points` yet either.
+   - `RemoteBranch` is not frozen, because the interface does not ask for it.
+   - I ran the second demo block and it printed `FetchFailed git fetch --prune origin 128`. The first block's behaviour is covered by the tests, but I did not run it.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked:
+   - Criteria 1–23: each has a test. Each test exercises its criterion, including the failing side of every Interface rule: the tail on both sides of 30 lines (40 and 3), the unstartable executable, the time limit, the non-repository and the missing remote, the missing ref, path and directory, the unknown ref in each position of `is_ancestor`, the empty identity fields, unknown keys and frozen fields.
+   - The isolation tests (8, 9) can fail. Test 10 shows that an `insteadOf` rewrite on a plain path takes effect when git honours it, and test 9 removes `GIT_CONFIG_NOSYSTEM` from the test process.
+   - The coder's entry reports `make check` green.
+   - Architecture: the domain types are pure Pydantic data. The `Git` Protocol is in application, and `GitCli` in adapters satisfies it without inheriting from it. Git is reached only through `run_process`. No `dict[str, Any]` crosses a `src` boundary.
+   - Security: no secrets and no silencing markers. Arguments go to git as a list, never through a shell. The configuration isolation comes after `options.environment` (`src/factory/adapters/git_cli.py`, `_environment`), so the options cannot lift it.
+   - Quality: the names, docstrings and why-comments are in order. Missing refs and paths are told apart by exit status and by `ls-tree -z` listings, not by git's wording. Output is decoded from bytes without newline translation, so `show_file` returns the text exactly as committed.
+
+   Considered, not raised:
+   - `self._identity` in `GitCli.__init__` duplicates `self._options.identity` and nothing reads it yet. The Interface explicitly asks `GitCli` to keep the identity for S0006, so I don't count it as dead code.
+   - The Interface's `merge_stderr=True` means a git warning on stderr would be mixed into the output that `remote_branches` and `resolve` parse. `rev-parse --quiet` suppresses the ambiguity warning, and `for-each-ref` warns only on a broken ref. This is a possible gap in the story, not in this code.
+6. documenter: no findings. `make check` is green. I ran the second demo block and it printed `FetchFailed git fetch --prune origin 128`. I did not run the first block; the tests cover its behaviour.
+
+   Files changed:
+   - `docs/project-guide.md`, Errors section: `GitError` (the three attributes, the message formats, the 30-line tail) and `FetchFailed`.
+   - `docs/project-guide.md`, new section "The git wrapper":
+     - `Git` and `GitCli` as the only route to git.
+     - The `GitOptions` fields with their defaults, and the identity and environment that F0010 fills from `GIT_USER_NAME`, `GIT_USER_EMAIL` and the token.
+     - The six operations and their failure rules.
+     - The isolated configuration, and credentials that reach git only through the environment and never inside a URL.
+     - The real-bare-remote fixtures and the helpers in `tests/git_support.py`.
+   - `docs/decisions.md`: new entry on why global and system git configuration are ignored (WE6.3). It lists the rejected alternatives: trusting the user's configuration, a private `HOME`, and credentials in the URL.
+   - `README.md`: the one-sentence status of the package now mentions the git wrapper's reading half.
+
+   Cross-read and found current: the rest of `docs/project-guide.md` (hosting service, process wrapper, kill points) and `docs/decisions.md`. The kill-point table still holds, because `GitCli` does not reach any kill point yet. `docs/operator-guide.md` is a stub and was left alone.
+
+   Nothing stale found that I left untouched.
+
+   `make check`: check: green
+7. demo: both blocks ran from the repository root exactly as written. Both met their `Expect:` lines, so there are no findings.
+
+   Block 1 (wrapper reads on a fresh clone with a bare remote), exit 0:
+   ```
+   ['main']
+   'hello\n'
+   ['docs/read me.txt']
+   None None
+   True
+   ```
+   Expected five lines: `['main']`, `'hello\n'`, `['docs/read me.txt']`, `None None`, `True`. Met.
+
+   Block 2 (`fetch()` in a directory that is not a repository), exit 0:
+   ```
+   FetchFailed git fetch --prune origin 128
+   ```
+   Expected one line: `FetchFailed git fetch --prune origin 128`. Met.
+
+   Criteria cross-check: the output contradicts no acceptance criterion, and several criteria show up directly in it.
+   - 12: remote branches are listed without the `origin/` prefix and without `HEAD`.
+   - 14: `resolve` gives `None` for `origin/nope`.
+   - 15: `show_file` keeps the trailing newline.
+   - 16: `show_file` gives `None` for a missing path.
+   - 17: `list_files` returns the full path, and a name with a space comes back exactly.
+   - 19: `is_ancestor` is true for a commit and itself.
+   - 7 and 23: `fetch()` outside a repository raises `FetchFailed` with the exact command and exit status 128, using the default `GitCli(directory)`.
+
+   Not run here: `make check` (criterion 24). The factory runs it after this stage, and the coder and documenter reported it green.
