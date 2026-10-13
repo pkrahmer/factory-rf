@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 40
 blocked: null
 comments_seen: 0
@@ -195,3 +195,19 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.clock'
+4. coder: I implemented the interface. All tests pass and `make check` is green (5f7cf90 feat, d683e40 refactor).
+      - Built:
+        - `src/factory/domain/stops.py`: `RepositoryStop` and `HealthStatus`. Validators refuse a blank detail, convert `at` to UTC, require scope `machine` exactly for `preflight_failed`, and allow one stop per reason. `healthy` is a property.
+        - `src/factory/application/machine.py`: `Clock`, `FactoryLog` and `HealthStatusStore` as ABCs whose abstract methods have docstring-only bodies.
+        - `src/factory/adapters/clock.py`: `SystemClock` and `ManualClock`. A naive start raises `ValueError`, and the start is stored in UTC.
+        - `src/factory/adapters/factory_log.py`: `TimestampedFactoryLog`. The clock is read once per call. The stamp is formatted with `strftime("%Y-%m-%dT%H:%M:%SZ")`, which truncates the fraction rather than rounding. `splitlines() or [""]` makes an empty text one line. Each call writes to stdout and flushes before it creates the parent directories and appends to the file.
+        - `src/factory/adapters/health_file.py`: `JsonHealthStatusFile`. `write` uses `tempfile.mkstemp` in the target directory, writes `model_dump_json()`, then calls `os.replace`; if anything fails, the temporary file is removed and the error re-raised. `read` treats `OSError`, `UnicodeDecodeError` and `ValidationError` as `HealthStatus()`; pydantic's `model_validate_json` covers both non-JSON input and an invalid model.
+      - Main decision: `write` puts the temporary file next to the target and moves it with `os.replace`, so the replace is atomic on one filesystem. I rejected writing the target in place, because a reader could see half a file.
+      - Refactor: I merged the two `try` blocks in `read` into one.
+      - Demo: I ran it, and its six lines match the Expect.
+      - Noticed, not touched:
+        - The cleanup branch in `write` (lines 45–47) is not covered. No test makes the write fail after `mkstemp` succeeds, and total coverage is 99.5 %.
+        - Nothing is wired yet. As the assignment says, `StopService` and `Boundaries` belong to S0002.
+        - The docs criterion (26) is left to the documenter.
+
+   `make check`: check: green
