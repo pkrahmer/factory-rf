@@ -323,6 +323,52 @@ outcome = agent_runtime.run(request)
 assert outcome.ok and agent_runtime.requests() == [request]
 ```
 
+## Identity, order and places of work items
+
+Two pure domain modules give a work item its identity, its order and its place. Neither reads a file, the clock or a process (a test parses their imports). `factory.domain.identifiers` holds the ids; `factory.domain.paths` holds the names of the project's `factory/` tree.
+
+### Ids and names
+
+- `WorkItemId` is `F0001-S0001` (a story) or `F0001-A0001` (an acceptance); `FeatureId` is `F0001`; `Name` is lower-case letters, digits and hyphens, starting with a letter. The patterns `FEATURE_ID`, `STORY_ID` and `ACCEPTANCE_ID` are the unanchored regular expressions.
+- A work item file is `<id>.md` or `<id>-<slug>.md`; a feature directory is `<id>` or `<id>-<slug>`. A slug is lower-case segments of letters and digits joined by single hyphens (`2fa` and `a-b` are slugs; `Bad`, `a-`, `-a` and `a--b` are not). `parse_work_item_file_name` and `parse_feature_directory_name` return a `WorkItemFileName` or `FeatureDirectoryName` (frozen, `id` and `slug`, the slug `None` when absent), or `None` for any other string; they never raise.
+- `is_acceptance`, `feature_of`, `work_item_order` and `branch_name` take a `WorkItemId` and raise `ValueError` for a string that is not one.
+- The branch of a work item is `work-item/<id>` (`branch_name`), never the file name, so a slug cannot change it. `work_item_of_branch` gives the id back for exactly that form and `None` for anything else. `BRANCH_PREFIX` is defined in `identifiers` (to avoid an import cycle) and re-exported by `paths`.
+
+### Order
+
+`work_item_order(id)` is the sort key `(feature id, 0 for a story or 1 for an acceptance, id)`. Sorted by it, the features come in plain string order, and inside a feature every story (in plain string order) comes before the acceptances. Plain string order alone would put `F0002-A0001` before `F0002-S0001`. The slug is not part of the id, so it never changes the order. Plain string order of the ids is otherwise the human's only priority; use this key wherever work items are listed or picked. Why it is a key: see `docs/decisions.md`.
+
+### The tree
+
+All spellings are constants in `factory.domain.paths`:
+
+| Constant | Value |
+| --- | --- |
+| `FACTORY_DIRECTORY` | `factory` |
+| `PIPELINE_DEFINITION_FILE` | `factory/pipeline.yml` |
+| `STORY_FORM_FILE`, `FEATURE_FORM_FILE` | `factory/story-form.md`, `factory/feature-form.md` |
+| `FEATURES_DIRECTORY` | `factory/features` |
+| `FEATURE_FILE_NAME` | `feature.md` |
+| `LIFECYCLE_FOLDERS` | `backlog`, `in-progress`, `done` (in that order) |
+| `COST_RECORDS_SUFFIX` | `.costs.jsonl` |
+| `BRANCH_PREFIX` | `work-item/` |
+| `LABEL_PREFIX` | `stage:` |
+| `REMOTE`, `MAIN_BRANCH` | `origin`, `main` |
+
+- `work_item_path(feature_directory, folder, file_name)` is `factory/features/<feature_directory>/<folder>/<file_name>`.
+- `cost_records_path(path)` replaces the final `.md` with `.costs.jsonl`, so the sidecar sits beside the work item; a path not ending in `.md` is a `ValueError`.
+- `folder_of(path)` returns the lifecycle folder of a work item path and `None` for anything else. A work item path has exactly the shape `factory/features/<feature directory>/<folder>/<file>`, where the directory parses as a feature directory name, the folder is a lifecycle folder and the file parses as a work item file name (an acceptance file too). So a sidecar, a `.gitkeep`, a `README.md`, a folder such as `drafts` or `ongoing` and a path one level too deep or too shallow all give `None`.
+
+```bash
+uv run python -c "
+from factory.domain.identifiers import parse_work_item_file_name, work_item_order
+ids = [parse_work_item_file_name(n).id for n in ['F0002-A0001.md', 'F0002-S0002-2fa.md', 'F0002-S0001.md', 'F0001-S0010-x.md']]
+print(sorted(ids, key=work_item_order))
+"
+```
+
+prints `['F0001-S0010', 'F0002-S0001', 'F0002-S0002', 'F0002-A0001']`.
+
 ## Kill points: testing a crash
 
 A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).

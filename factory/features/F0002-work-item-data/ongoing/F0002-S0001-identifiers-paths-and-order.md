@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 28
 blocked: null
 comments_seen: 0
@@ -189,3 +189,16 @@ Expect: three lines: `factory/features/F0002-work-item-data/in-progress/F0002-S0
       - Security: no subprocess, shell, secrets or suppression markers. The parsers use `re.fullmatch`, so a trailing newline cannot slip through.
       - Quality: public names have docstrings and comments explain why. The private `_WORK_ITEM_ID` repeats the pattern of `WorkItemId`; this is deliberate and explained in the log (F0001's definition is kept exactly as written).
       - Ticket hygiene: the log gives the main decision and the alternatives it rejected. The Assignment matches what was built. Criterion 18 still names what the documenter has to write: the spellings in project-guide.md and the reason for the sort key in decisions.md.
+6. documenter: wrote the two items of criterion 18. `make check` is green and the sort example I added prints the expected line.
+   - `docs/project-guide.md`: new section "Identity, order and places of work items", placed before "Kill points". It covers:
+     - the id and name types, the file and directory name rules, and the branch form `work-item/<id>`;
+     - the sort rule for acceptances;
+     - a table of the spellings: lifecycle folders, branch prefix, feature file, sidecar suffix, and the other tree constants;
+     - `work_item_path`, `cost_records_path` and `folder_of`;
+     - one runnable example.
+   - `docs/decisions.md`: new entry saying why the acceptance rule is a sort key (`work_item_order`) and not a property of the alphabet. It lists the rejected alternatives and records why `BRANCH_PREFIX` is defined in `identifiers` and re-exported by `paths` (an import cycle otherwise).
+   - Cross-read and found current: README.md and docs/operator-guide.md. The existing lines in the project guide on `LABEL_PREFIX` and `MAIN_BRANCH`, and on `work-item/<id>` branches, agree with the code.
+   - Findings for the coder: none. The `BRANCH_PREFIX` placement differs from the Interface text; the reviewer accepted it and I documented the actual state.
+   - Stale but not touched: nothing.
+
+   `make check`: check: green
