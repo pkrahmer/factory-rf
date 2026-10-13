@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 44
 blocked: null
 comments_seen: 0
@@ -166,3 +166,23 @@ Expect: four lines of output: `['coder', 'tester']`, then `sonnet ['Read', 'Writ
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.agent_files'
+4. coder: Built the agent definition reader. Commit 2193fdb. `make check` is green and the demo prints the four lines it should expect.
+
+   - `src/factory/domain/errors.py`: adds `AgentDefinitionError(name, fault)` and its subclasses `AgentDefinitionMissing` and `AgentDefinitionInvalid(name, fault, key)`.
+   - `src/factory/application/agent_runtime.py`: adds the `AgentDefinitionReader` ABC with `names` and `read`. Each method's body is its docstring alone.
+   - `src/factory/application/boundaries.py`: adds the field `agent_definitions: AgentDefinitionReader`. No code in `src` builds `Boundaries` yet, so the only wiring is the tester's fixture.
+   - `src/factory/adapters/work_item_markdown.py`: `FrontmatterWorkItemReader._split` is now the module function `split_front_matter(handler, text)`. Both readers call it; its behaviour is the same.
+   - `src/factory/adapters/agent_files.py`: `FrontmatterAgentDefinitionReader`.
+     - The name is checked through `TypeAdapter(Name)` before any path is built.
+     - `read` then checks for a regular file, reads it as UTF-8, splits it with `split_front_matter` and loads the front matter with one `RuamelYamlHandler`.
+     - Only `model`, `tools`, `effort` and `budget_usd` go into `AgentDefinition.model_validate`, together with `name` and `instructions`. Any other key is ignored, because `AgentDefinition` is `extra="forbid"`.
+     - A `budget_usd` fault that is not a missing key becomes `budget_usd must be greater than 0`. Every other fault uses `first_fault`'s spelling.
+   - `src/factory/adapters/validation_faults.py`: new `first_error(validation_error) -> ErrorDetails`, which is the `min` by the existing rank. `first_fault` now formats that error. Its result is unchanged, because the sort was stable.
+
+   Main decision: the reported `key` comes from `first_error`, the same error that `first_fault` formats, so the key and the fault always name the same problem. Rejected: re-ranking pydantic's errors inside `agent_files.py`. That would have copied the rank order kept in `validation_faults`.
+
+   Refactor: I reread the diff and found nothing to change, so there is no separate refactor commit.
+
+   Noticed but not touched: nothing.
+
+   `make check`: check: green
