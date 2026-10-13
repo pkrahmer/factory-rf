@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 45
 blocked: null
 comments_seen: 0
@@ -165,3 +165,19 @@ Expect: five lines of output: `<stamp> stop repository pipeline_definition_inval
    Not touched: nothing noticed outside the ticket.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: every one of criteria 1–16 has a matching test in tests/application/test_pipeline_loading.py, and each test checks its criterion. The coder's entry reports `make check` green.
+     - Work tree versus `origin/main`: criterion 1 edits the checkout's work-tree file, criterion 2 pushes to a branch.
+     - Stop raised once with the correct `at` and log line: criterion 4 advances the clock by 5 s first.
+     - Nothing posted: criterion 5. The fake only posts on an existing pull request, so an empty `pull_requests()` also means nothing was posted.
+     - Default taken: criterion 6. `crash_cap: 2\n` is present in PIPELINE_YAML and no role sets `lease_duration`.
+     - Clear keeps other stops: criterion 8 keeps `fetch_failed`.
+     - `GitError` cases: criterion 9 covers both, a missing directory and an unknown ref.
+     - Role order with two missing roles: criterion 10.
+     - Both sides of the `ref == PIPELINE_REF` rule: refusal raises the stop (4, 7, 10, 12) and success clears it (8); at another ref neither happens (13, 14).
+     - `OSError` from the stop's writes, after the stop line: criterion 15.
+     - Agents checked only when the text is valid: criterion 16.
+   - Architecture: src/factory/application/pipeline_loading.py imports only factory.application and factory.domain. It reaches git, the readers, the clock, the log and the health status through `Boundaries` and `StopService`, and calls no tool.
+   - Security: no secrets, no suppression markers, no command or SQL built from strings.
+   - Quality: one design point. `load` decides the stop once, around the private `_read`. `GitError` is not caught, so it propagates without a stop. The module, class and public-method docstrings are present and say what each one does. The test helper `install_agents` in tests/git_support.py is small and named by the Interface.
+   - Ticket hygiene: the coder's entry states the main decision and the alternative rejected (raising the stop at each refusal site). The Assignment matches what was built. Criterion 18 still describes what the operator guide, the project guide and the decision log need.
