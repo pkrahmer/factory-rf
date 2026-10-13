@@ -5,7 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
@@ -158,8 +158,10 @@ def test_fake_fits_the_agent_runtime_protocol_without_inheriting() -> None:
 def test_scripted_run_forbids_unknown_keys_and_is_frozen() -> None:
     run = ScriptedRun(result=_result())
 
+    model: type[BaseModel] = ScriptedRun
+
     assert ScriptedRun(**dict(run)) == run
     with pytest.raises(ValidationError):
-        ScriptedRun(**dict(run), unknown=1)
+        model(**dict(run), unknown=1)
     with pytest.raises(ValidationError):
         setattr(run, "kill", True)  # noqa: B010
