@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 26
 blocked: null
 comments_seen: 0
@@ -145,3 +145,21 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
    Not done here: criterion 10's documents (the operator guide's "(WE6.3)", the project guide's intro and the RemoteBranch and test-file names in it, the README's "(partly written)", and the split of decisions 22 and 23 in `docs/decisions.md`). `CLAUDE.md` gives these to the documenter stage. I did not write them.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked:
+   - Acceptance criteria:
+     - Criteria 1–3 are covered by `tests/domain/test_git.py`. The unknown-field test goes through `type[BaseModel]`.
+     - Criteria 4 and 5 are covered by `tests/adapters/test_git_cli_arguments.py`. The wrapper still calls the real check, and counting starts only after the setup.
+     - Criterion 6 is covered in the same file: both arguments of `is_ancestor` are refused.
+     - Criterion 7: the rows 0x10, 0x1f and 0x20 are refused and the row 0x21 is accepted, so both sides of the boundary are tested.
+     - Criterion 8: `tests/test_test_names.py` covers it.
+     - The coder's entry reports `make check` green.
+   - Code: in `src/factory/adapters/git_cli.py` no public `GitCli` method calls another public method any more.
+     - `merge`, `reset_to`, `revert_paths` and `delete_branch` each check their argument once, as their first statement, then use `_resolve_unchecked`, `_is_ancestor_unchecked` and `_blob`.
+     - `_merge_diverged` checks `MERGE_HEAD` through `_resolve_unchecked`.
+     - The public `resolve`, `show_file` and `is_ancestor` keep their checks.
+     - Each operation returns the same results as before.
+   - Architecture: the layers are unchanged and no new tool call or marker was added. `RemoteBranch` is frozen and closed to unknown fields, like the other result models.
+   - The coder's `__all__ = ["GitCli", "check_git_argument"]`: I accept it. Criterion 4 wraps the check by the name `factory.adapters.git_cli.check_git_argument`, and mypy's no-implicit-reexport refuses that name otherwise. The other two options would have needed a `noqa` marker, which is not allowed, or a test change, which R9 forbids. No other test imports anything except `GitCli` from the module, and the comment beside it gives the reason.
+   - Ticket: the Assignment matches what was built, and the log explains the `__all__` decision and the options rejected. Criterion 10 (the docs criterion) still lists everything the documenter has to write: "(WE6.3)", the project guide's intro, the `RemoteBranch` mention, the README, the split of decisions 22 and 23, and the renamed test modules.
