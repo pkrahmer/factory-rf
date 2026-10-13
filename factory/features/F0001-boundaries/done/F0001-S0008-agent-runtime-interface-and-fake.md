@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 8
 blocked: null
 comments_seen: 2
@@ -310,3 +310,4 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
     This met `Expect: rejected: True`. `AgentRunRequest` with `allowed_decisions=['review']` raised a `ValidationError` that names `question`. The command exited with status 0.
 
     Read against the acceptance criteria: nothing in the demo contradicts any of them. Command 1 matches criteria 4 (a minimal request is accepted), 13 (`ok` is true for `completed`, and measures that were not given stay unset), 15 (the request is recorded) and 16 (the write creates the file and its folder) for the cases it covers. It also matches 21: the fake was built without kill points and returned the result. Command 2 matches criterion 5. The remaining criteria (the other validation rules, path escapes, kill points, version, the error message and the structural fit) are covered by the tests the reviewer checked in entry 9. Entries 8 and 10 report `make check` green.
+12. done (pull request merged); cost: 9 runs, 6.1 min, 54 turns, 176k tokens in (816k more from cache), 30k out, $1.96
