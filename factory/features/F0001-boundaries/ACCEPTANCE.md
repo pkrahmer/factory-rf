@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 15
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0001-S0001, F0001-S0002, F0001-S0003, F0001-S0004, F0001-S0005, F0001-S0006, F0001-S0007, F0001-S0008, F0001-S0009, F0001-S0010, F0001-S0011, F0001-S0012, F0001-S0013, F0001-S0014]
+outcome: accepted
 ---
 # Acceptance of Boundaries
 
@@ -424,3 +425,4 @@ No story stands out beyond what its questions explain. Four of the five extra-ro
    6 Decisions: FEATURE.md's 19 decisions, with 10 and 12 broken at their edges. Also listed: five human answers, coder defaults (`switch --force-create`, renames off, English git markers, `version()` cwd), and open questions (pinned `claude` version, `rm --cached` and unmerged kinds, users of eleven git operations, frozen `RemoteBranch`, `set_labels` reading labels).
    7 Slow checks: none exist (no image, SBOM or mutants target). `make check` is green with 99.00 % coverage.
    8 Cost: 106 runs, 86.4 min, $25.39, about $1.81 per story. S0001 (14 runs) and S0013 (11 runs) stand out, from two answers and one answer with rework. Four of the five extra-round causes were test conventions, now in `CLAUDE.md`.
+2. done (pull request merged); cost: 1 runs, 7.3 min, 35 turns, 167k tokens in (2497k more from cache), 45k out, $2.74
