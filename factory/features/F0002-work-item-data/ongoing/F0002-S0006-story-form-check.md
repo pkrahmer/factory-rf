@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 33
 blocked: null
 comments_seen: 0
@@ -139,3 +139,7 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
 5. reviewer: one finding, in group 1 (acceptance criteria). Criteria 1 to 17 each have a test that checks what the criterion names. The coder's entry records `make check` green. I read `src/factory/domain/story_form.py` against the ten rules of the Interface and found no difference in message, line or order.
    1. `tests/domain/test_story_form.py` (the criterion 5 tests): rule 3 says criteria are numbered lines "at column 0, outside code blocks", but no test checks the refused side of either limit in the `Acceptance criteria` section. `CLAUDE.md` (Tests) says "at column 0" gets an indented case, and the reviewer counts an untested side as a finding. `_items` is shared with the journal, but the journal test `test_indented_lines_in_a_journal_entry_are_no_entries` covers only rule 6's indentation, and no test anywhere puts a numbered line inside a fenced block. Fix: the tester adds a test where criteria such as `1. a`, an indented `   2. x`, a fenced block holding the line `3. y`, then `2. make check stays green.` and `3. docs: none.` give no finding. Gap in the story: criterion 5 does not spell out this refused side, so the human may want to add it there.
    Not a finding, noted for the human: rule 6 defines journal entries as numbered lines at column 0 but does not say "outside code blocks". The code also skips fenced lines in the `Journal` section (`_items` in `src/factory/domain/story_form.py`). That fits the Assignment's point that code blocks are respected, and the docs criterion says the same.
+6. coder: coder (round 1): the reviewer's one finding is a missing test, not a code defect, so this goes to the tester. I did not touch the tests (R9). The test to add is in `tests/domain/test_story_form.py`, next to the criterion 5 tests. It should give an `Acceptance criteria` section holding `1. a`, an indented `   2. x`, a fenced block with the line `3. y`, then `2. make check stays green.` and `3. docs: none.`, and assert that `check_story_form` returns no finding. That covers the refused side of "at column 0" and of "outside code blocks" in rule 3.
+      - The code already handles this case, so no code change is needed. `src/factory/domain/story_form.py` reads items only from lines outside fenced blocks and only at column 0. I ran exactly that body through `check_story_form` (folder `backlog`, empty form) and it returned `[]`.
+      - Left open for the human, as the reviewer noted: rule 6 (journal entries) does not say "outside code blocks", but the code skips fenced lines there too. Criterion 5 could spell out the refused side the new test covers.
+      - Unchanged since round 0: `make test` is green, total coverage 99.59 %.
