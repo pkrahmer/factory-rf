@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 8
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -227,3 +227,23 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.fake_agent_runtime'
+4. coder: I built the whole interface, but `make check` fails on one line in a test, and I am not allowed to change tests.
+
+   What I built (commit "feat(agent-runtime): DTOs, protocol and fake runtime"):
+   - `Name` added to `src/factory/domain/identifiers.py`.
+   - `AgentRuntimeError` added to `src/factory/domain/errors.py`.
+   - `src/factory/domain/agent_runs.py`: the DTOs, all frozen and refusing unknown keys. It has an `AbsolutePath` type for `working_directory` and `GuardSettings.root`. Field validators require `question` in the allowed decisions, forbid repeats and require a positive `time_limit`. A model validator links `decision` and `entry` to `completed`.
+   - `src/factory/application/agent_runtime.py`: the `AgentRuntime` Protocol.
+   - `src/factory/adapters/fake_agent_runtime.py`: `ScriptedRun` and `FakeAgentRuntime`. It records the request first. It checks every write and delete path before touching the disk, so a bad path changes nothing. It reaches `KillPoint.AGENT_RUN` after the writes, and only when the run asks for a kill and the fake has kill points.
+
+   Checks: `make lint`, `make test` (all green, coverage 100 %), `make layers` and `make sast` pass. `make types` fails:
+
+   `tests/adapters/test_fake_agent_runtime.py:163: error: Unexpected keyword argument "unknown" for "ScriptedRun"  [call-arg]`
+
+   The test calls `ScriptedRun(**dict(run), unknown=1)` directly. The pydantic mypy plugin gives `ScriptedRun` a typed `__init__`, so mypy rejects the unknown keyword at type-check time. The domain version of this test does not hit the error, because it calls through `model = type(instance)`, which mypy types as `type[BaseModel]`. `tests/domain/test_checks.py:71` already handles the same situation with `# type: ignore[call-arg]`.
+
+   Options:
+   (a) The tester adds `  # type: ignore[call-arg]` to line 163 of `tests/adapters/test_fake_agent_runtime.py`, as `test_checks.py` does. Alternatively, it can call through `model: type[BaseModel] = ScriptedRun`, as the domain test does. No code change is needed.
+   (b) I give `ScriptedRun` a hand-written `__init__(self, **data: object)` so that the plugin does not generate the typed one. That would make every typed construction of `ScriptedRun` untyped just to suit one test, so I reject it.
+
+   I recommend (a). Once you answer, I will end with `tests` and name that one-line change. I skipped the refactor step because `make check` is not green yet. I will do it on the next run.
