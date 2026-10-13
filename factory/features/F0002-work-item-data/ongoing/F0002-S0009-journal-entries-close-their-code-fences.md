@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 37
 blocked: null
 comments_seen: 0
@@ -111,3 +111,11 @@ Expect: the body shows `2. tester: red:`, then three-space-indented lines with a
    - Noticed, not touched: as the tester also notes, the existing test name `test_entry_text_returns_the_text_as_it_was_given` is now only half true. Docs for criterion 11 (`docs/project-guide.md` and `docs/decisions.md`) are the documenter's work.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Criteria 1–9: each has a test in `tests/domain/test_journal.py` or `tests/domain/test_sections.py`, and each test asserts the criterion's literal inputs and outputs. The failing sides are covered: a closed block, no block, a first-line fence and two backticks get no closing line (criterion 4); the opening run's limit is tested at three against two (`"``x"` → None, three backticks → three backticks); the two-digit indent is tested (criterion 1). The coder's entry reports the factory's `make check` as green.
+      - Code: `opening_fence` (`src/factory/domain/sections.py`) is now the one fence rule, and `code_blocks` uses it. `_closing_line` (`src/factory/domain/journal.py`) reads the lines as they will appear in the body, with the numbered first line and the indent. So it agrees with the form check's `code_blocks`/`lines_outside_blocks` reading by construction. `_closes` accepts the added line, which is the exact opening run behind any indent. `NewEntry.text` and the journal records are untouched.
+      - Architecture: the change is in `factory.domain` only, pure functions, with no new import across layers and no new dependency.
+      - Security: nothing applies (pure string handling), and no suppression markers were added.
+      - Quality: the `fence is None` guard in `_closing_line` cannot fire. I accepted it as narrowing for mypy, because an `assert` would trip bandit. The coder's entry gives this reason. The comment says why the block is closed, and the docstrings of `render_entry` and `entry_text` describe the new behaviour.
+      - Ticket: the log records the main decision (read the rendered lines, not the raw text) and what was rejected. The Assignment matches the code, and criterion 11 still describes what the documenter has to write.
+      - Open, outside this diff: the existing test name `test_entry_text_returns_the_text_as_it_was_given` is now only half true, as the tester and the coder both noted. Renaming it would be a separate change.
