@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 5
 blocked: null
 comments_seen: 0
@@ -335,3 +335,4 @@ Expect: one line, `FetchFailed git fetch --prune origin 128`.
    - 7 and 23: `fetch()` outside a repository raises `FetchFailed` with the exact command and exit status 128, using the default `GitCli(directory)`.
 
    Not run here: `make check` (criterion 24). The factory runs it after this stage, and the coder and documenter reported it green.
+8. done (pull request merged); cost: 6 runs, 7.6 min, 52 turns, 170k tokens in (1160k more from cache), 46k out, $2.27
