@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
@@ -15,6 +16,12 @@ from human_clone import HumanClone
 def kill_points() -> KillPoints:
     """Return a new, inert set of kill points for each test."""
     return KillPoints()
+
+
+@pytest.fixture
+def agent_runtime(kill_points: KillPoints) -> FakeAgentRuntime:
+    """Return a fake agent runtime with nothing queued, on the test's kill points."""
+    return FakeAgentRuntime(kill_points)
 
 
 @pytest.fixture

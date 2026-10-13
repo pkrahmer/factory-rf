@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 8
+blocked: null
+comments_seen: 2
+round: 0
+attempts: 0
+---
 # The agent-runtime interface, its DTOs and the fake
 
 ## Assignment (as of log entry 1)
@@ -179,3 +187,126 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`domain/identifiers.py`, `domain/errors.py`, `domain/agent_runs.py`, `application/agent_runtime.py`, `adapters/fake_agent_runtime.py`) with full signatures. The layers are right (domain DTOs, application protocol, adapter fake). The tests, fixture and the structural-typing check are named.
+   - Criteria: 26 in total, each testable by one function. Every rule of the Interface has a criterion for both sides: Name (2), budget_usd > 0 (3), question required and no repeats (5, 6), time_limit > 0 (7), absolute working_directory and root (8, 9), non-negative tokens (10), decision and entry exactly when completed (11, 12), unknown measures are None and `ok` (13), frozen and forbids extra keys (14). For the fake: order and recording (15), writes and deletes (16), escape paths with nothing written (17), empty queue with the request recorded (18), kill armed, unarmed and not requested (19-21), version (22), the error message (23).
+   - Demo: both commands are runnable with the imports given. Each `Expect:` line is checkable (`True doing x = 1 1` and `rejected: True`).
+   - Architecture: matches CLAUDE.md (R5 to R7, R12), with no concrete tool in the application layer, no `dict[str, Any]` across a boundary, and the fake as a structural fit.
+   - Scope: inside F0001's scope (the agent-runtime interface, its DTOs and the fake). The `claude -p` implementation and the guard hook are left to S0009, S0010 and F0004.
+3. tester: Wrote red tests for every criterion. Criteria 25 and 26 are left to make check and the documenter.
+   - criterion 1: tests/domain/test_agent_runs.py::test_question_and_the_five_end_reasons
+   - criterion 2: tests/domain/test_name.py::test_name_accepts_lower_case_hyphenated_words_only (parametrized: coder, smoke-tester accepted; Coder, 1x, "a b", "" rejected)
+   - criterion 3: tests/domain/test_agent_runs.py::test_agent_budget_must_be_positive (0.01 / 0 / -1) and ::test_agent_name_must_be_a_name
+   - criterion 4: tests/domain/test_agent_runs.py::test_minimal_request_has_empty_defaults_not_shared
+   - criterion 5: tests/domain/test_agent_runs.py::test_allowed_decisions_without_question_are_rejected ([] and ["doing"], error text contains "question") and ::test_allowed_decisions_with_question_are_accepted
+   - criterion 6: tests/domain/test_agent_runs.py::test_allowed_decisions_with_a_repeat_are_rejected
+   - criterion 7: tests/domain/test_agent_runs.py::test_time_limit_must_be_positive
+   - criterion 8: tests/domain/test_agent_runs.py::test_working_directory_must_be_absolute
+   - criterion 9: tests/domain/test_agent_runs.py::test_guard_root_must_be_absolute_and_paths_are_kept
+   - criterion 10: tests/domain/test_agent_runs.py::test_token_counts_reject_negative_counts (each field, 0 accepted, -1 rejected) and ::test_token_counts_default_cache_counts_to_zero
+   - criterion 11: tests/domain/test_agent_runs.py::test_completed_result_needs_decision_and_entry
+   - criterion 12: tests/domain/test_agent_runs.py::test_other_end_reasons_carry_no_decision_or_entry (one case per reason)
+   - criterion 13: tests/domain/test_agent_runs.py::test_unreported_measures_are_none_and_ok_only_when_completed (all five reasons)
+   - criterion 14: tests/domain/test_agent_runs.py::test_models_forbid_unknown_keys_and_are_frozen (the six domain models) and tests/adapters/test_fake_agent_runtime.py::test_scripted_run_forbids_unknown_keys_and_is_frozen. ScriptedRun is tested in the adapters folder so that the domain tests do not import an adapter.
+   - criterion 15: tests/adapters/test_fake_agent_runtime.py::test_runs_return_queued_results_in_order_and_record_requests
+   - criterion 16: tests/adapters/test_fake_agent_runtime.py::test_writes_create_and_replace_files_and_deletes_remove_them (the second run replaces the file and deletes the already-missing old.txt)
+   - criterion 17: tests/adapters/test_fake_agent_runtime.py::test_paths_outside_the_working_directory_raise_before_any_change (four cases: write ../escape.txt, write an absolute path, delete ../x, delete an absolute path; each also has a valid write and a valid delete, which must not take effect)
+   - criterion 18: tests/adapters/test_fake_agent_runtime.py::test_run_with_nothing_queued_raises_and_records_the_request
+   - criterion 19: tests/adapters/test_fake_agent_runtime.py::test_armed_agent_run_kills_after_the_writes
+   - criterion 20: tests/adapters/test_fake_agent_runtime.py::test_agent_run_point_is_reached_only_when_the_run_asks_for_it
+   - criterion 21: tests/adapters/test_fake_agent_runtime.py::test_runtime_without_kill_points_ignores_kill
+   - criterion 22: tests/adapters/test_fake_agent_runtime.py::test_version_is_the_one_given_at_construction
+   - criterion 23: tests/domain/test_errors.py::test_agent_runtime_error_names_its_detail (new test; the only change to existing code is the added import)
+   - criterion 24: tests/adapters/test_fake_agent_runtime.py::test_fake_fits_the_agent_runtime_protocol_without_inheriting (assigns to a variable annotated `AgentRuntime` and checks that `AgentRuntime` is not in the MRO)
+
+   Files created: tests/domain/test_agent_runs.py, tests/domain/test_name.py, tests/adapters/test_fake_agent_runtime.py. Files extended: tests/domain/test_errors.py (one import and one new test) and tests/conftest.py (the `agent_runtime` fixture, `FakeAgentRuntime(kill_points)`, plus its import).
+
+   Test run: red, as intended. Loading conftest fails with `ModuleNotFoundError: No module named 'factory.adapters.fake_agent_runtime'`, so the whole suite stays down until that module exists. This is expected because the ticket puts the fixture in conftest. The other modules that are not there yet are factory.domain.agent_runs, factory.application.agent_runtime, `Name` in factory.domain.identifiers and `AgentRuntimeError` in factory.domain.errors.
+
+   make lint: green. Type check skipped in this stage, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.fake_agent_runtime'
+4. coder: I built the whole interface, but `make check` fails on one line in a test, and I am not allowed to change tests.
+
+   What I built (commit "feat(agent-runtime): DTOs, protocol and fake runtime"):
+   - `Name` added to `src/factory/domain/identifiers.py`.
+   - `AgentRuntimeError` added to `src/factory/domain/errors.py`.
+   - `src/factory/domain/agent_runs.py`: the DTOs, all frozen and refusing unknown keys. It has an `AbsolutePath` type for `working_directory` and `GuardSettings.root`. Field validators require `question` in the allowed decisions, forbid repeats and require a positive `time_limit`. A model validator links `decision` and `entry` to `completed`.
+   - `src/factory/application/agent_runtime.py`: the `AgentRuntime` Protocol.
+   - `src/factory/adapters/fake_agent_runtime.py`: `ScriptedRun` and `FakeAgentRuntime`. It records the request first. It checks every write and delete path before touching the disk, so a bad path changes nothing. It reaches `KillPoint.AGENT_RUN` after the writes, and only when the run asks for a kill and the fake has kill points.
+
+   Checks: `make lint`, `make test` (all green, coverage 100 %), `make layers` and `make sast` pass. `make types` fails:
+
+   `tests/adapters/test_fake_agent_runtime.py:163: error: Unexpected keyword argument "unknown" for "ScriptedRun"  [call-arg]`
+
+   The test calls `ScriptedRun(**dict(run), unknown=1)` directly. The pydantic mypy plugin gives `ScriptedRun` a typed `__init__`, so mypy rejects the unknown keyword at type-check time. The domain version of this test does not hit the error, because it calls through `model = type(instance)`, which mypy types as `type[BaseModel]`. `tests/domain/test_checks.py:71` already handles the same situation with `# type: ignore[call-arg]`.
+
+   Options:
+   (a) The tester adds `  # type: ignore[call-arg]` to line 163 of `tests/adapters/test_fake_agent_runtime.py`, as `test_checks.py` does. Alternatively, it can call through `model: type[BaseModel] = ScriptedRun`, as the domain test does. No code change is needed.
+   (b) I give `ScriptedRun` a hand-written `__init__(self, **data: object)` so that the plugin does not generate the typed one. That would make every typed construction of `ScriptedRun` untyped just to suit one test, so I reject it.
+
+   I recommend (a). Once you answer, I will end with `tests` and name that one-line change. I skipped the refactor step because `make check` is not green yet. I will do it on the next run.
+5. human (pull request comment, 2026-10-13): (a), in its second form: the tester calls through `model: type[BaseModel] = ScriptedRun`, as the domain test does, so no `type: ignore` marker is added. No code change; `ScriptedRun` keeps its typed constructor.
+6. coder: The human's answer (entry 5) asks for a change to a test, so I'm handing it to the tester. I made no code change.
+
+   The change: in `tests/adapters/test_fake_agent_runtime.py::test_scripted_run_forbids_unknown_keys_and_is_frozen`, replace the direct call `ScriptedRun(**dict(run), unknown=1)` with a call through `model: type[BaseModel] = ScriptedRun`, as in `model(**dict(run), unknown=1)`. This needs `from pydantic import BaseModel` and must not add a `type: ignore` marker.
+
+   The implementation from commit "feat(agent-runtime): DTOs, protocol and fake runtime" is unchanged, and `ScriptedRun` keeps its typed constructor. After that change `make types` should pass. I skipped the refactor step again because `make check` is not green yet. I'll do it on the next doing run.
+7. tester: tester (approved test change): I made the change the human approved in entry 5, as the coder described it in entry 6, and nothing else.
+      - In `tests/adapters/test_fake_agent_runtime.py::test_scripted_run_forbids_unknown_keys_and_is_frozen`, the test now builds the model with an unknown key through `model: type[BaseModel] = ScriptedRun` and `model(**dict(run), unknown=1)`. Before, it called `ScriptedRun(...)` directly. The domain test does the same thing, so the pydantic mypy plugin no longer flags the unknown keyword. No `type: ignore` marker was added.
+      - I changed the import `from pydantic import ValidationError` to `from pydantic import BaseModel, ValidationError`.
+      - `ScriptedRun` and the rest of the implementation are unchanged.
+
+      `make test`: green, coverage 100 %. `make lint`: green. I did not run `make types`; the coder's `make check` covers it.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: The tester's change from entry 7 is in, and `make check` now passes in full: lint, types, layers, sast, secrets, licenses, and test with 100 % coverage. The feature code is unchanged since commit "feat(agent-runtime): DTOs, protocol and fake runtime". This run only added the refactor step that I skipped in the earlier runs.
+
+   What I built (entry 4 has the details):
+   - `src/factory/domain/identifiers.py`: adds `Name`.
+   - `src/factory/domain/errors.py`: adds `AgentRuntimeError`.
+   - `src/factory/domain/agent_runs.py`: the DTOs. They are frozen and refuse unknown keys. A shared `AbsolutePath` type covers `working_directory` and `GuardSettings.root`. Field validators require `question`, forbid repeats and require a positive `time_limit`. A model validator links `decision` and `entry` to `completed`.
+   - `src/factory/application/agent_runtime.py`: the `AgentRuntime` Protocol.
+   - `src/factory/adapters/fake_agent_runtime.py`: `ScriptedRun` and `FakeAgentRuntime`.
+
+   Main design decision: the fake checks every write and delete path before it touches the disk, so a bad path changes nothing. The alternative was to check each path as it is applied and roll back on failure. I rejected it because it is more code and still leaves partial state if the rollback fails.
+
+   Refactor (commit "refactor(agent-runtime): move applying a scripted run out of run"): `run` now does five steps in order: record the request, take the oldest queued run, apply it, maybe kill, return the result. The path checks and the file writes and deletes moved together into the private helper `_apply`. Behaviour is the same and no test changed.
+
+   Noticed, not touched: the diff against main also shows `CLAUDE.md` and `docs/runs/…/night-log.md`. Both come from the human's commits merged into this branch, not from this stage. Docs criterion 26 is left to the documenter.
+
+   `make check`: check: green
+9. reviewer: no findings.
+      - Acceptance criteria: I read all 24 behavioural criteria against their tests and each test checks what its criterion says. Every Interface rule has its failing side tested: a budget of 0 and of -1; `allowed_decisions` without `question` (`[]` and `["doing"]`, and the error names `question`) and with a repeat; `time_limit` of `timedelta(0)` and of 1 s; relative and absolute `working_directory` and `root`; -1 and 0 for each token count; decision and entry present or missing for all five end reasons; an unknown keyword and an assignment for all seven models; the four escaping write and delete paths, each alongside a valid write and delete that must not happen; and an empty queue, where the request is still recorded. The coder's entry 8 says `make check` was green.
+      - Architecture: the DTOs are in `factory.domain.agent_runs` and do no I/O (`Path.is_absolute` is pure). The `AgentRuntime` Protocol is in `factory.application` and imports only the domain. The fake is in `factory.adapters` and fits the Protocol without inheriting from it, which mypy checks through the annotated variable in `tests/adapters/test_fake_agent_runtime.py`. No `dict[str, Any]` crosses a boundary.
+      - Security: no markers, no secrets, no shell. `_inside` rejects absolute paths and `..` segments before any write or delete, and `_apply` resolves every path before it touches the disk.
+      - Quality: every public name has a docstring, and the comments explain why (always being able to ask the human; checking paths first). `AgentRuntimeError` follows the same pattern as `ProjectCommandError`.
+      - Ticket hygiene: entry 8 gives the main decision (validate all paths first; per-path rollback rejected), the Assignment matches what was built, and docs criterion 26 still describes what the documenter has to write.
+      - Not under review: the `CLAUDE.md` and `docs/runs/…/night-log.md` lines in the diff come from the human's commit ae1cc73 ("CLAUDE.md: test refused fields through type[BaseModel]"), not from this ticket's work.
+10. documenter: wrote the agent-runtime documentation (criterion 26). `make check` is green.
+    - `docs/project-guide.md`: added a section "The agent runtime". It covers the protocol, the request and result DTOs, the five end reasons, unknown measures as `None`, and `question` always allowed. It also covers the fake (`ScriptedRun`, the order of what `run` does, the `agent_runtime` fixture) with a short example. Also added `AgentRuntimeError` to the Errors section.
+    - `docs/decisions.md`: added the entry on why a dead, timed-out or over-budget run is a result and not an error (WE6.3). It gives the alternatives rejected.
+    - `README.md`: the status sentence now names the agent-runtime interface and its fake.
+    - Ran the fake example against the code; it prints `True True`.
+    - Cross-read against the diff: the Kill points section (the `AGENT_RUN` row and the "built only the seam" text) is still true, so I left it. `docs/operator-guide.md` has nothing to correct.
+    - No findings: the code matches the Interface and the docs criterion.
+    - Stale text I saw but did not touch: none.
+
+    `make check`: check: green
+11. demo: both commands met their `Expect:` lines. No findings.
+
+    1. The fake runtime applies a scripted run and records the request:
+    ```
+    True doing x = 1 1
+    ```
+    This met `Expect: True doing x = 1 1`. The scripted write is on disk under the working directory, the result is `ok` with decision `doing`, and one request was recorded. The command exited with status 0.
+
+    2. A request whose allowed decisions lack `question` is refused:
+    ```
+    rejected: True
+    ```
+    This met `Expect: rejected: True`. `AgentRunRequest` with `allowed_decisions=['review']` raised a `ValidationError` that names `question`. The command exited with status 0.
+
+    Read against the acceptance criteria: nothing in the demo contradicts any of them. Command 1 matches criteria 4 (a minimal request is accepted), 13 (`ok` is true for `completed`, and measures that were not given stay unset), 15 (the request is recorded) and 16 (the write creates the file and its folder) for the cases it covers. It also matches 21: the fake was built without kill points and returned the result. Command 2 matches criterion 5. The remaining criteria (the other validation rules, path escapes, kill points, version, the error message and the structural fit) are covered by the tests the reviewer checked in entry 9. Entries 8 and 10 report `make check` green.
