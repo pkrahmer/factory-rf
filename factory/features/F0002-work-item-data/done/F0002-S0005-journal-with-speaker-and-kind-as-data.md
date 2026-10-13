@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 32
 blocked: null
 comments_seen: 0
@@ -259,3 +259,4 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
     Criteria check: the demo contradicts none of the acceptance criteria. It matches criteria 3–7 (render format, continuation indent, entries placed directly under each other, final newline), 10 (entry_text returns the original text), 12 (last_record with `speaker=`), 15 (the baseline's whole state comes back) and 16 (the Journal section is replaced and edits elsewhere stay).
 
     No findings. Nothing is open from the demo.
+14. done (pull request merged); cost: 12 runs, 11.8 min, 78 turns, 267k tokens in (1191k more from cache), 46k out, $3.07
