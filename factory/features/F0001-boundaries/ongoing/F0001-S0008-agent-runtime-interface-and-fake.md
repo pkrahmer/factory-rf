@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 8
 blocked: null
 comments_seen: 2
@@ -248,3 +248,8 @@ Expect: one line, `rejected: True`: a request whose allowed decisions lack `ques
 
    I recommend (a). Once you answer, I will end with `tests` and name that one-line change. I skipped the refactor step because `make check` is not green yet. I will do it on the next run.
 5. human (pull request comment, 2026-10-13): (a), in its second form: the tester calls through `model: type[BaseModel] = ScriptedRun`, as the domain test does, so no `type: ignore` marker is added. No code change; `ScriptedRun` keeps its typed constructor.
+6. coder: The human's answer (entry 5) asks for a change to a test, so I'm handing it to the tester. I made no code change.
+
+   The change: in `tests/adapters/test_fake_agent_runtime.py::test_scripted_run_forbids_unknown_keys_and_is_frozen`, replace the direct call `ScriptedRun(**dict(run), unknown=1)` with a call through `model: type[BaseModel] = ScriptedRun`, as in `model(**dict(run), unknown=1)`. This needs `from pydantic import BaseModel` and must not add a `type: ignore` marker.
+
+   The implementation from commit "feat(agent-runtime): DTOs, protocol and fake runtime" is unchanged, and `ScriptedRun` keeps its typed constructor. After that change `make types` should pass. I skipped the refactor step again because `make check` is not green yet. I'll do it on the next doing run.
