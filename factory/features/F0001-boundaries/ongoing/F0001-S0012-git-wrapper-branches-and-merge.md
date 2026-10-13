@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 12
 blocked: null
 comments_seen: 0
@@ -137,3 +137,10 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
       - Open: criterion 19 (project-guide) is the documenter's. I noticed nothing outside the ticket that needs touching.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–17 has a test in tests/adapters/test_git_cli_branches.py that checks what the criterion names. The remote and the tracking ref are checked after the deletion (1, 2), with the remote's refs compared before and after (2). Criterion 3 uses a real pre-receive hook, criterion 4 a removed remote, criterion 5 `a..b`, and criterion 6 checks both kill points at 0. Criterion 10 is parametrized over both `fast_forward_only` values, as is criterion 11, where the only parent is the old HEAD. Criterion 12 checks both parents, both files and the default subject. Criteria 13, 14 and 16 check that HEAD is unchanged, the work tree is clean or the local change kept, and there is no `.git/MERGE_HEAD`. Criterion 17 has two tests: the options identity with `GIT_COMMITTER_NAME` set, and the default identity. Every failing side the Interface names has a test: rejected, unreachable, invalid ref, checked-out branch, missing branch, not_fast_forward, conflict, unknown ref, local-change overwrite. The coder's entry says the factory's `make check` was green.
+      - Architecture: `MergeOutcome` is a Literal in `factory.domain.git`, the three operations are on the application `Git` protocol, and the implementation is in the adapter `GitCli`, which reaches git only through `_run`/`_execute`. No `dict[str, Any]`, and no new imports across layers.
+      - Security: no new silencing markers and no secrets. All argv is lists, and both merge calls use `--end-of-options`. `merge` checks the ref with `resolve` before anything else.
+      - Quality: deciding from ancestry and `MERGE_HEAD` avoids parsing merge text. Moving the push failure classification into `_failed_push` (4366098) removes duplication. The public methods have docstrings. Comments say why: the stale tracking ref and the already-deleted marker.
+      - Ticket hygiene: the log records the main decision and the rejected alternative (parsing git's merge messages). It also states the remaining reliance on git's English text for "remote ref does not exist". The same applies to the existing unreachable markers. Assignment matches what was built. Criterion 19 still describes what the project guide must say.
+      - Noted, not a finding: `delete_remote_branch` passes `branch` without `--end-of-options`, the same as the existing `push`. Any branch name starting with `-` still ends in a `GitError` (`--delete` without refs dies), which the Interface allows.
