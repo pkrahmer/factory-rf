@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 31
 blocked: null
 comments_seen: 0
@@ -55,11 +55,11 @@ Tests: `tests/domain/test_sections.py`. A test that constructs a model with an u
 
 1. `split_lines` gives `["a", "b"]` for `"a\nb\n"` and for `"a\nb"`, `[]` for `""`, `[""]` for `"\n"` and `["a", ""]` for `"a\n\n"`.
 2. `code_blocks` of the lines `x`, three backticks followed by `python`, `a`, three backticks, `y`, three tildes, `b`, three tildes gives the blocks `(start=1, end=3)` and `(start=5, end=7)`; an opening and a closing line that are indented are recognised too.
-3. A block opened by four backticks is not closed by a line of three backticks and is closed by four or five; a tilde line does not close a backtick block; a closing run followed by text does not close; a block that is never closed has `end` `None` and holds every later line.
+3. A block opened by four backticks is not closed by a line of three backticks and is closed by four or five; a tilde line does not close a backtick block; a closing run followed by text does not close; a block that is never closed has `end` `None` and holds every later line; a line that starts with two backticks, two tildes or one backtick (inline code such as `` `x` is … ``) opens no block, so a `## ` line after it is still a heading.
 4. `sections` of the body `# T`, a blank line, `intro`, a blank line, `## A`, a blank line, `text`, a blank line, `## B` (lines 0 to 8) gives `Section(heading="A", start=4, end=8)` and `Section(heading="B", start=8, end=9)`; the lines before `## A` belong to no section.
 5. A `## ` line inside a block opened by backticks, inside one opened by tildes and inside one that is never closed is not a heading: for the lines `## A`, three backticks, `## B`, three backticks, `## C`, `sections` lists `A` from 0 to 4 and `C` from 4 to 5; with an unclosed block after `## A` only `A` is listed and it runs to the end.
 6. `### x`, ` ## x` (indented), `##x`, `##` and `# x` are not headings, and a heading's text is stripped of trailing whitespace.
-7. `title` returns the stripped text of the first `# ` line outside the blocks, `None` for a body without one, and ignores a `# comment` line inside a fenced block, `#x` and `## x`.
+7. `title` returns the stripped text of the first `# ` line outside the blocks, `None` for a body without one, and ignores a `# comment` line inside a fenced block, `#x`, `## x` and an indented ` # x`.
 8. `section_text` returns the text of a section without its heading and without leading and trailing blank lines, keeps the blank lines and fenced blocks inside it, returns `""` for a heading with no text, `None` for a missing heading and for a heading spelled in another case, and the first section when a heading occurs twice.
 9. `section_text` of a section that contains a fenced block with the lines `## x` and `# y` returns the whole section including the block, and `section_text` of a heading that occurs only inside a fenced block is `None`.
 10. `insert_paragraph("## Verdict\n\nAccepted.\n", "Verdict", "Reason.")` is `"## Verdict\n\nReason.\n\nAccepted.\n"`.
@@ -137,3 +137,12 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
    2. `src/factory/domain/sections.py:87` (`title`, `startswith` at column 0) and `tests/domain/test_sections.py::test_the_title_is_the_first_level_one_heading_outside_blocks`: the Interface says the title line starts with `# ` "at column 0". Criterion 7 rejects only `#x` and `## x` and never an indented ` # x`, so an implementation that strips the line first would pass. Fix: add the indented ` # x` case to criterion 7 and its test, the same way criterion 6 has ` ## x` for headings.
    Groups 2–5 were not reviewed, since the review stops at the first failing group. I saw nothing there worth raising: the module is pure domain code that imports only `re`, `pydantic` and `factory.domain.errors`, and the coder's entry says `make check` was green.
    Rejected as findings: a paragraph with leading blank lines gets an extra blank line from `insert_paragraph`, and an info string after a backtick fence may contain backticks. The Interface specifies neither, so neither is a defect against this story.
+6. coder: coder (round 1): no code change. Both review findings are missing tests, and I can't edit tests (R9), so the ticket goes to the tester.
+      - I ran `src/factory/domain/sections.py` on both cases and it already follows the Interface. `code_blocks(["``x", "~~", "`x` is", "## A"])` is `[]`, and `sections` still finds `## A` after a ```` `` ```` line. `title(" # x\n# y\n")` is `"y"`.
+      - Criteria: I extended two existing criteria with the Interface's own rules instead of adding new ones, so 17 and 18 stay last and keep their numbers.
+        - Criterion 3 now also says: a line that starts with two backticks, two tildes or one backtick opens no block, so a later `## ` line is still a heading.
+        - Criterion 7 now also says: an indented ` # x` is not a title.
+      - Test changes for the tester, in `tests/domain/test_sections.py`:
+        - (1) Add a test for criterion 3's new clause. Lines starting with ```` `` ````, `~~` and `` `x` is `` give no blocks from `code_blocks`, and a `## A` line after each one is still listed by `sections`.
+        - (2) Add an indented ` # x` line before a `# y` line to `test_the_title_is_the_first_level_one_heading_outside_blocks`, and expect `"y"`.
+      - Rejected: adding new criteria 17 and 18, which would renumber the closing two. Changing the code was also rejected, because the code was not at fault.
