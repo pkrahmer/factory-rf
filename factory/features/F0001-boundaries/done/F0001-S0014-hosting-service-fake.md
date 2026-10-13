@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 14
 blocked: null
 comments_seen: 0
@@ -200,3 +200,4 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
    Expected `injected kill at after-post 1`, then `already_posted 1`. Met. Exit 0.
 
    Criteria cross-check: the output agrees with criterion 1 (number 1, open, draft true), 9 (human author on the human comment), 10 (factory post, counted by `factory_posts`), 11 (repeated key gives `already_posted`, count unchanged), 12 (kill after the post, comment already present, the repeat is `already_posted`) and 8 (`list_comments` oldest first). No criterion is contradicted. I did not run `make check` myself; the factory runs it after this stage.
+8. done (pull request merged); cost: 6 runs, 4.1 min, 36 turns, 119k tokens in (526k more from cache), 21k out, $1.30
