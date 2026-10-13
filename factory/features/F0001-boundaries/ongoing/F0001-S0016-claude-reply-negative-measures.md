@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 18
 blocked: null
 comments_seen: 2
@@ -91,3 +91,22 @@ Expect: one line, `died None None None []`, and no traceback.
    - Demo: the command is runnable and its Expect line (`died None None None []`, no traceback) can be checked against the output.
    - Architecture: the change stays inside `factory.adapters`, with no new layer or dependency.
    - Scope: within F0001 and not in its "Out of scope". It matches FEATURE.md decisions 12, 13 and 21.
+5. tester: I wrote the tests for criteria 1 to 8, adding them to the two existing claude runtime test files. No new files were needed.
+
+   - criterion 1: tests/adapters/test_claude_runtime.py::test_negative_turns_died_with_unknown_measures
+   - criterion 2: tests/adapters/test_claude_runtime.py::test_negative_token_count_died_with_unknown_measures (parametrized over the four `usage` fields, each set to -1 while the others stay valid)
+   - criterion 3: tests/adapters/test_claude_runtime.py::test_negative_cost_died_with_unknown_measures
+   - criterion 4: tests/adapters/test_claude_runtime.py::test_zero_measures_are_valid
+   - criterion 5: tests/adapters/test_claude_runtime.py::test_reply_with_negative_measures_removes_run_files_and_reaches_the_kill_point
+   - criterion 6: tests/adapters/test_claude_runtime_resume.py::test_measures_only_the_first_call_reported_are_kept
+   - criterion 7: tests/adapters/test_claude_runtime_resume.py::test_budget_stop_with_a_negative_measure_died_and_is_not_resumed
+   - criterion 8: tests/adapters/test_claude_runtime_resume.py::test_measures_only_the_resumed_call_reported_are_taken
+
+   How I read the criteria: in criteria 6 and 8, "tokens 10 and 5" and "tokens 4 and 1" mean `input_tokens` and `output_tokens`. The cache counts are left out of the reply and are expected to be 0. An existing test, `test_cache_counts_default_to_zero`, already pins that default, so this is not a new rule.
+
+   `make test` result: the new tests for criteria 1, 2, 3, 5 and 7 fail for the right reason. They get the wrong end reason, or a `ValidationError` from the current runtime; no import or collection errors. The tests for criteria 4, 6 and 8 pin behaviour that already exists, so they are expected to pass now (the story says these rules are "unchanged and now tested"). There are no modules the test runner could not import. `make lint` is green.
+
+   Left for the next stages: criterion 9 (`make check`) is for the coder, and criterion 10 (the docs sentence) is for the documenter.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/adapters/test_claude_runtime_resume.py::test_budget_stop_with_a_negative_measure_died_and_is_not_resumed

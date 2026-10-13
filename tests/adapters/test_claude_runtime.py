@@ -455,3 +455,75 @@ def test_denial_detail_is_json_with_sorted_keys(tmp_path: Path) -> None:
     result = _run(tmp_path, _reply(permission_denials=[denial]))
 
     assert result.permission_denials == [PermissionDenial(tool="Edit", detail='{"a": 2, "b": 1}')]
+
+
+def _usage(**changes: int) -> dict[str, int]:
+    usage = {
+        "input_tokens": 10,
+        "output_tokens": 5,
+        "cache_read_input_tokens": 7,
+        "cache_creation_input_tokens": 2,
+    }
+    usage.update(changes)
+    return usage
+
+
+def _assert_died_without_measures(result: AgentRunResult) -> None:
+    assert result.end_reason == "died"
+    assert result.turns is None
+    assert result.tokens is None
+    assert result.cost_usd is None
+
+
+def test_negative_turns_died_with_unknown_measures(tmp_path: Path) -> None:
+    result = _run(tmp_path, _reply(num_turns=-1))
+
+    _assert_died_without_measures(result)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "input_tokens",
+        "output_tokens",
+        "cache_read_input_tokens",
+        "cache_creation_input_tokens",
+    ],
+)
+def test_negative_token_count_died_with_unknown_measures(tmp_path: Path, field: str) -> None:
+    result = _run(tmp_path, _reply(usage=_usage(**{field: -1})))
+
+    _assert_died_without_measures(result)
+
+
+def test_negative_cost_died_with_unknown_measures(tmp_path: Path) -> None:
+    result = _run(tmp_path, _reply(total_cost_usd=-0.01))
+
+    _assert_died_without_measures(result)
+
+
+def test_zero_measures_are_valid(tmp_path: Path) -> None:
+    zero = _usage(
+        input_tokens=0, output_tokens=0, cache_read_input_tokens=0, cache_creation_input_tokens=0
+    )
+
+    result = _run(tmp_path, _reply(num_turns=0, total_cost_usd=0, usage=zero))
+
+    assert result.end_reason == "completed"
+    assert result.turns == 0
+    assert result.tokens == TokenCounts(input=0, output=0, cache_read=0, cache_creation=0)
+    assert result.cost_usd == Decimal(0)
+
+
+def test_reply_with_negative_measures_removes_run_files_and_reaches_the_kill_point(
+    tmp_path: Path, kill_points: KillPoints
+) -> None:
+    state = tmp_path / "state"
+    runtime = _runtime(tmp_path, [Step(stdout=_reply(num_turns=-1))], kill_points)
+
+    result = runtime.run(_request(tmp_path))
+
+    assert result.end_reason == "died"
+    assert _only_call(tmp_path).files
+    assert _left_over(state) == []
+    assert kill_points.reached(KillPoint.AGENT_RUN) == 1
