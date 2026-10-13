@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 41
 blocked: null
 comments_seen: 0
@@ -159,3 +159,18 @@ Expect: six lines of output. Line 1 is `<stamp> stop repository fetch_failed: or
    - Security: no secrets, no shell or SQL built from strings, no suppression markers. The diff adds no external input.
    - Quality: `raise_stop` tries the log first and then the health status, each in its own `try`, and raises `errors[0]`, so the log's error wins as the rule says. `clear_stop` returns early when the reason is absent, writes the health status before the line, and lets `OSError` propagate in that order. The private helpers `_with_stop` and `_without_stop` replace a stop in place or append it, and `HealthStatus` keeps its one-stop-per-reason validator. The module, the public classes and the public methods carry docstrings, and the comments say why.
    - Ticket hygiene: the coder's entry gives the main decision and what was rejected (the replace-or-append rule stays private, not a public `HealthStatus` API). `Assignment` matches what was built. Criterion 15 still describes what the documenter has to write.
+6. documenter: I wrote the three documents criterion 15 asks for, and `make check` is green.
+   - `docs/operator-guide.md`:
+     - New section "Stops of the repository or the machine" with the two lines `stop <scope> <reason>: <detail>` and `stop cleared <reason>`, each with an example.
+     - It says a stop is replaced in place and not repeated, that a new reason is appended, and that a stop is removed when the fault is gone.
+     - It says what happens when one destination cannot be written.
+     - I replaced the intro of the log/health section, which said `StopService` was still to come.
+   - `docs/project-guide.md`:
+     - The "Stops, the clock and the factory log" section now describes `StopService`, with the write order and the `OSError` rules. The "comes with F0003-S0002" sentence is gone.
+     - New "Boundaries" subsection: keyword-only, frozen, the twelve fields, the `boundaries` fixture, `dataclasses.replace`, the mypy-safe tests, and the note that wiring is not built yet.
+   - `docs/decisions.md`: a new entry records that both destinations of a stop are tried and one failing never loses it. It also records why `clear_stop` writes the health status first, and the alternatives I rejected.
+   - I cross-read the README (it names no stop or boundary) and the rest of the operator guide and project guide against the diff. I found them current.
+   - I found nothing stale to leave alone, and no findings for the coder. The code matches the Interface.
+   - I did not run the demo script. The log line examples in the operator guide use the demo's format.
+
+   `make check`: check: green
