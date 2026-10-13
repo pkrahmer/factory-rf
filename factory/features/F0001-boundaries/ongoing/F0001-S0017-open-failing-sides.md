@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 19
 blocked: null
 comments_seen: 0
@@ -77,3 +77,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: no code change. The story pins behaviour that is already built, and the tester's four new tests pass against the code as it stands:
+      - tests/adapters/test_make_commands.py::test_command_name_with_a_trailing_newline_is_refused_before_starting
+      - tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_unsafe_source_and_changes_nothing
+      - tests/adapters/test_git_cli_history.py::test_status_lists_a_path_left_unmerged_by_a_conflicting_merge_once_as_modified
+      - tests/adapters/test_fake_hosting.py::test_delete_comment_refuses_a_comment_of_another_pull_request
+      I ran `make check` and it is green: lint, types (mypy --strict over the new tests), layers, sast, secrets, licenses, and test at 99.49 % coverage. The unmerged branch `u` in `_status_entry` (src/factory/adapters/git_cli.py) is now covered. I made no commits and did no refactor, because this branch has no coder diff to clean up. Criterion 6 (the `delete_comment` row in docs/project-guide.md) is for the documenter.
+      Noticed, not touched: the report still lists two uncovered spots in git_cli.py. One is line 122, the final `return None` in `_status_entry` for an entry kind that is neither `?`, `1` nor `u` (with renames off, git writes no `2` entries). The other is the partial branch 67->69 in `_commits_in_log`. claude_runtime.py has uncovered lines 360 and 381-382. Each is outside this story.
+
+   `make check`: check: green
