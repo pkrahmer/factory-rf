@@ -20,6 +20,7 @@ from factory.domain.journal import (
     restore_state_and_journal,
 )
 from factory.domain.sections import sections
+from factory.domain.story_form import check_story_form
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
 from source_search import modules
 
@@ -27,6 +28,9 @@ CREATED_ON = date(2026, 10, 12)
 CREATED = NewEntry(speaker="human", kind="created", text="created.", on=CREATED_ON)
 CREATED_LINE = "1. 2026-10-12 human: created."
 MULTILINE = "accepted\nfirst\n\nsecond"
+TICKS = "`" * 3
+UNCLOSED_TEXT = f"red:\n{TICKS}\nE   assert 1 == 2"
+UNCLOSED = NewEntry(speaker="tester", kind="result", text=UNCLOSED_TEXT)
 
 
 def _result(text: str) -> NewEntry:
@@ -431,3 +435,95 @@ def test_the_journal_imports_the_work_item_only_for_type_checking() -> None:
 
     assert guarded
     assert every == guarded
+
+
+def _tester(text: str) -> NewEntry:
+    return NewEntry(speaker="tester", kind="result", text=text)
+
+
+def test_render_entry_closes_a_block_the_entry_leaves_open() -> None:
+    assert render_entry(2, UNCLOSED) == (
+        f"2. tester: red:\n   {TICKS}\n   E   assert 1 == 2\n   {TICKS}"
+    )
+    assert render_entry(10, UNCLOSED).endswith(f"\n    {TICKS}")
+
+
+@pytest.mark.parametrize(
+    ("opening", "closing"),
+    [("````python", "````"), ("~~~~~", "~~~~~"), (TICKS, TICKS)],
+)
+def test_the_closing_line_repeats_the_opening_run_without_info_string(
+    opening: str, closing: str
+) -> None:
+    rendered = render_entry(2, _tester(f"a\n{opening}\nx"))
+
+    assert rendered == f"2. tester: a\n   {opening}\n   x\n   {closing}"
+
+
+def test_only_the_last_unclosed_block_is_closed() -> None:
+    text = f"a\n~~~~\nx\n~~~~\n{TICKS}\ny"
+
+    assert render_entry(2, _tester(text)) == (
+        f"2. tester: a\n   ~~~~\n   x\n   ~~~~\n   {TICKS}\n   y\n   {TICKS}"
+    )
+
+
+def test_a_fence_on_the_numbered_line_opens_no_block() -> None:
+    text = f"{TICKS}python\nx = 1\n{TICKS}"
+
+    assert render_entry(2, _tester(text)) == (
+        f"2. tester: {TICKS}python\n   x = 1\n   {TICKS}\n   {TICKS}"
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "rendered"),
+    [
+        (f"a\n{TICKS}\nx\n{TICKS}", f"2. tester: a\n   {TICKS}\n   x\n   {TICKS}"),
+        ("a\nb", "2. tester: a\n   b"),
+        (TICKS, f"2. tester: {TICKS}"),
+        ("a\n``\nb", "2. tester: a\n   ``\n   b"),
+    ],
+)
+def test_an_entry_without_an_open_block_gets_no_closing_line(text: str, rendered: str) -> None:
+    assert render_entry(2, _tester(text)) == rendered
+
+
+def _with_unclosed_entry(body: str) -> WorkItemDocument:
+    created = NewEntry(speaker="human", kind="created", text="created.", on=date(2026, 10, 13))
+    start = WorkItemDocument(state=initial_state("tests"), body=body)
+    return append_entry(append_entry(start, created), UNCLOSED)
+
+
+def test_an_entry_after_an_unclosed_fence_is_seen_by_the_form_check() -> None:
+    coder = NewEntry(speaker="coder", kind="result", text="green")
+    document = append_entry(_with_unclosed_entry("# T\n\n## Journal\n"), coder)
+
+    assert check_story_form(document, "# F\n\n## Journal\n", folder="in-progress") == []
+    assert document.state is not None
+    assert len(document.state.journal) == 3
+    assert entry_text(document, 3) == "green"
+
+
+def test_a_section_after_an_unclosed_fence_entry_stays_a_section() -> None:
+    document = _with_unclosed_entry("# T\n\n## Journal\n\n## After\n\nmore\n")
+
+    assert "After" in [found.heading for found in sections(document.body)]
+
+
+def test_entry_text_includes_the_closing_line() -> None:
+    document = _with_unclosed_entry("# T\n\n## Journal\n")
+
+    assert entry_text(document, 2) == f"{UNCLOSED_TEXT}\n{TICKS}"
+    assert entry_text(document, 1) == "created."
+
+
+def test_the_entry_text_and_the_journal_records_stay_as_given() -> None:
+    document = _with_unclosed_entry("# T\n\n## Journal\n")
+
+    assert UNCLOSED.text == UNCLOSED_TEXT
+    assert document.state is not None
+    assert document.state.journal == [
+        JournalRecord(number=1, speaker="human", kind="created"),
+        JournalRecord(number=2, speaker="tester", kind="result"),
+    ]

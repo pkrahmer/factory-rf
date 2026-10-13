@@ -11,7 +11,14 @@ from pydantic import BaseModel, ConfigDict, PositiveInt, field_validator, model_
 
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.identifiers import Name
-from factory.domain.sections import JOURNAL, Section, sections, split_lines
+from factory.domain.sections import (
+    JOURNAL,
+    Section,
+    code_blocks,
+    opening_fence,
+    sections,
+    split_lines,
+)
 
 if TYPE_CHECKING:
     from factory.domain.work_item import WorkItemDocument, WorkItemState
@@ -77,13 +84,26 @@ def _prefix(number: int) -> str:
     return f"{number}. "
 
 
+def _closing_line(lines: Sequence[str], indent: str) -> list[str]:
+    blocks = code_blocks(lines)
+    if not blocks or blocks[-1].end is not None:
+        return []
+    # An unclosed fence would swallow every later entry and section of the body.
+    fence = opening_fence(lines[blocks[-1].start])
+    return [] if fence is None else [indent + fence]
+
+
 def render_entry(number: int, entry: NewEntry) -> str:
-    """The visible entry: number, the human's date, speaker and text, continuation indented."""
+    """The visible entry: number, the human's date, speaker and text, continuation indented.
+
+    A block the text leaves open is closed by one more line with the opening run.
+    """
     dated = "" if entry.on is None else f"{entry.on.isoformat()} "
     indent = " " * len(_prefix(number))
     first, *rest = entry.text.split("\n")
     continued = [indent + line if line else "" for line in rest]
-    return "\n".join([f"{_prefix(number)}{dated}{entry.speaker}: {first}", *continued])
+    rendered = [f"{_prefix(number)}{dated}{entry.speaker}: {first}", *continued]
+    return "\n".join([*rendered, *_closing_line(rendered, indent)])
 
 
 def _state_of(document: WorkItemDocument) -> WorkItemState:
@@ -149,7 +169,7 @@ def _entry_lines(lines: Sequence[str], section: Section, number: int) -> list[st
 
 
 def entry_text(document: WorkItemDocument, number: int) -> str:
-    """The text of entry `number` as it was given, for display only."""
+    """The text of entry `number` as rendered, a closing fence line included, for display only."""
     section = _journal_section(document.body)
     first, *rest = _entry_lines(split_lines(document.body), section, number)
     indent = " " * len(_prefix(number))
