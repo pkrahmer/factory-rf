@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 38
 blocked: null
 comments_seen: 0
@@ -79,3 +79,12 @@ Expect: `cannot read factory/story-form.md: ...` and `status 2`. The operator gu
       - 2. Architecture, 3. Security, 4. Quality: there is nothing to judge, because there is no code, test or configuration diff.
       - 5. Ticket hygiene: the log explains why no tests and no code exist. `Assignment` matches what was built (nothing so far; the docs work is still to come). Criterion 2 still says what a reader must know once the story is done: the project guide's wiring, "The state", "Cost records" and "Errors" fixes, the README status topics, and the operator guide's statements about layout and v1 folders. The Demo's grep commands check them.
       - Open: all of the work is the documenter's, from criterion 2 and the Demo.
+6. documenter: wrote the F0002 documentation repairs.
+   - `docs/project-guide.md`: the wiring sentence now says that `build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command and that the writer is not wired. "The state" says "the work item reader". "Cost records" says "The classes cover the format only" and that creation, completion and bills come later (F0005). "Errors" lists `NothingToCommit` beside `FetchFailed` and `CostRecordFormatError(line, fault)` beside `WorkItemFormatError`.
+   - `README.md`: the status sentence now names the identifiers and paths of work items, the sections of a Markdown body, the story form check with its command, and the cost records.
+   - `docs/operator-guide.md`, "Checking a story before it starts": the command checks a project laid out the v1.1 way. This repository's `factory/` tree is v1's, so the command prints `cannot read factory/story-form.md: ...`, exits 2, and does not apply until the tree moves to v1.1. The example now uses placeholder paths. I ran it in a temporary v1.1-layout directory and it printed `<path>: ok` with status 0. `drafts` and `ongoing` are called v1's folders and not work item locations.
+   - `make check` is green after the last edit. The Demo's greps and the error-section check match what I wrote.
+   - Cross-read against the diff: the diff is empty because the story changes no code. The Interface, the other sections of the project guide that I touched, and the operator guide's tables are current.
+   - Stale but untouched: nothing.
+
+   `make check`: check: green
