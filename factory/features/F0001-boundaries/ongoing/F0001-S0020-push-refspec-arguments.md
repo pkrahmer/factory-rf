@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 22
 blocked: null
 comments_seen: 0
 round: 0
@@ -87,3 +87,9 @@ Expect: four lines: `rejected`, `refused +main`, `refused :main`, `['human', 'on
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: `check_branch_name(value: str) -> None` in `src/factory/domain/git.py` is concrete. The ticket says which wrapper methods call it (`GitCli.push`, `GitCli.delete_remote_branch`, as their first statement) and which keep `check_git_argument`. The ticket states the rules fully: what is refused, what is accepted, and the effect of a refusal (no process, no `BEFORE_PUSH`).
+   - Criteria: criteria 1 and 2 cover the function's refusing and accepting sides. Criteria 3 to 6 cover the wrapper's failing sides for `+`, `:` and the `delete_remote_branch` cases. Criterion 7 covers the passing side (`a+b`). Criterion 8 covers the local operations that stay unrefused. Each criterion fits one test function. The `*` rule has its function-level case (`refs/heads/x*`) in criterion 1; a wrapper-level `*` test is not listed, and I accept that.
+   - Demo: the script is runnable with the existing wrapper API and the Expect line gives four checkable lines.
+   - Architecture: the pure check sits in `factory.domain`, and the I/O stays in the `GitCli` wrapper in the adapters layer. The test locations and fixtures (`remote`, `checkout`, `human`) follow CLAUDE.md.
+   - Scope: it is within F0001's git wrapper scope (decision 22, which sits in FEATURE.md) and touches nothing in the Out of scope list.
