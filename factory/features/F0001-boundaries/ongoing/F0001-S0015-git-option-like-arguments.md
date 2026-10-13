@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 17
 blocked: null
 comments_seen: 0
@@ -117,3 +117,15 @@ Expect: three lines: `rejected`, `refused`, `['human', 'one']`. The human's comm
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: made the git wrapper refuse option-like values and run git in the C locale. `make check` is green.
+      - `src/factory/domain/git.py`: added `check_git_argument(value)` next to `check_repository_path`. It raises `ValueError` for an empty value or one that starts with `-`.
+      - `src/factory/adapters/git_cli.py`: each operation named in the Interface now calls `check_git_argument` as its first statement, before any git process or kill point. These are `resolve`, `show_file`, `list_files`, `is_ancestor` (both arguments), `log` (`ref`, and `since` when given), `changed_paths`, `clone` (before the parent directory is created), `checkout` (branch, and `start_point` when given), `push` (before `BEFORE_PUSH`), `delete_remote_branch`, `delete_branch`, `merge`, `reset_to` and `revert_paths`.
+      - `_environment` now sets `LC_ALL=C` last, alongside the identity and the configuration isolation, so neither `os.environ` nor `options.environment` can override it. The comment there says why: the push outcomes are read from git's English messages.
+      - Main decision: each public method checks its own arguments explicitly. I rejected a central check inside `_run`/`_execute`. That layer cannot tell a ref apart from a flag or a path, and it runs after `push` has already reached `BEFORE_PUSH` and after `clone` has already created the parent directory.
+      - Internal calls with fixed values, such as `is_ancestor("HEAD", ref)` and `resolve(f"refs/heads/{branch}")`, pass the check without trouble.
+      - The Demo output matches its Expect line: `rejected`, `refused`, `['human', 'one']`.
+      - Refactor: I read the diff and found nothing to change. No refactor commit.
+      - Commit: `ticket F0001-S0015: fix(git): refuse option-like refs and run git in the C locale`.
+      - Open: criterion 12 (project guide and decision log) belongs to the docs stage.
+
+   `make check`: check: green
