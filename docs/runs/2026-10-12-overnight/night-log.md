@@ -76,3 +76,6 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 02:27 | `CLAUDE.md` Tests: one more line, construct a model through `type[BaseModel]` to test refused fields (learned from S0008's question); a tightening | | plan, section 8 |
 | 02:32 | S0008 at accept: 24 behavioural criteria mapped, demos met both `Expect:` lines, `make check` green in the container, diff within the story (one `noqa: B010` in a test, a lint marker with its reason). Merged; archived | #8 | plan, section 8 (approval) |
 | 02:33 | Usage 90%. `F0001: start S0009` (the last start before the 92% rule holds the next one) | | plan, section 8 (start) |
+| 02:35 | S0009: intake asked for two criteria the Interface implies (cache counts default 0; sorted denial detail). Answered: write both as proposed | #9 | plan, section 8: closes Interface behaviours, no decision touched |
+| 02:44 | S0009 at accept: 21 behavioural criteria mapped (two added at intake), demo met its `Expect:`, `make check` green in the container, diff within the story. Merged; archived | #9 | plan, section 8 (approval) |
+| 02:45 | Usage 93% of the 5-hour window (resets 03:30): no new start. S0010 waits; the heartbeat at 03:37 starts it after the reset. Nothing is in progress in the factory | | plan, sections 9 and 11; rule of 02:03 |

@@ -2,7 +2,7 @@ This is not v1.1's baseline run: that run is v1.1 on `factory-demo-todo`, after 
 
 # Morning report, 2026-10-12 overnight
 
-A running file: every push of the night log updates it. Status at the last update (01:10): Phase 1 done. Phase 2 done: 11 features, 79 stories drafted (F0001 now 14), skeleton, interface sheet, traceability and cross-check 1 committed under `planning/overnight/`. Phase 3/4 for F0001 in its third round; F0001-S0001 started at 01:09. Later features not yet audited (usage kept for the build).
+A running file: every push of the night log updates it. Status at the last update (02:45): F0001 has 9 of 14 stories merged and archived (S0001 to S0009), all accepted at the first approval. Starts are held at 93% of the 5-hour window until its reset at 03:30; S0010 is next. Planning stopped at 01:25: F0002 to F0011 are drafted and cross-checked once, not audited.
 
 ## Done
 
@@ -16,6 +16,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0006 Git wrapper: clone, checkout, commit, push | #6 | 6 | 6.3 | 9 (02:02 to 02:11) | $1.95 | 0 (first-pass) |
 | F0001-S0007 Project commands and the make class | #7 | 8 | 4.9 | 9 (02:12 to 02:21) | $1.78 | 0 |
 | F0001-S0008 Agent-runtime interface, DTOs and fake | #8 | 9 | 6.1 | 10 (02:22 to 02:32) | $1.96 | 1 (coder: a test vs the pydantic mypy plugin) |
+| F0001-S0009 The `claude -p` runtime: call and result | #9 | 7 | 6.5 | 11 (02:33 to 02:44) | $2.02 | 1 (intake: two criteria the Interface implied) |
 
 ## Stops
 
@@ -48,7 +49,7 @@ Conditions: run 4 ticked every 2 minutes fixed; tonight the pause starts at 15 s
 
 - Start (23:17): 5-hour window 1% used, resets 03:30; weekly 53% used, resets 05:00.
 - 00:46: 5-hour window 57%, weekly 61%.
-- 02:03: 83%, weekly 64%. 02:11: 85%. 02:32: 90%.
+- 02:03: 83%, weekly 64%. 02:11: 85%. 02:32: 90%. 02:44: 93%, starts held until the 03:30 reset.
 
 ## What needs the operator
 
