@@ -66,7 +66,7 @@ Why: see `docs/decisions.md`.
 
 ## The git wrapper
 
-Git is reached only through the `Git` protocol (`factory.application.git`) and its one implementation `GitCli` (`factory.adapters.git_cli`), which satisfies the protocol structurally and does not inherit it. Every command goes through `run_process`; no other module starts git. It reads, and it writes the first things: clone, checkout, commit and push. It deletes branches and merges (below); reset, revert and move follow in a later story.
+Git is reached only through the `Git` protocol (`factory.application.git`) and its one implementation `GitCli` (`factory.adapters.git_cli`), which satisfies the protocol structurally and does not inherit it. Every command goes through `run_process`; no other module starts git. It reads, and it writes the first things: clone, checkout, commit and push. It deletes branches and merges, and it restores the checkout: reset, revert and move (all below).
 
 `GitCli(directory, options=None)` works in `directory`. `options` is a `GitOptions` (`factory.domain.git`; frozen, unknown keys forbidden), and `None` means `GitOptions()`:
 
@@ -80,7 +80,7 @@ Git is reached only through the `Git` protocol (`factory.application.git`) and i
 
 F0010's wiring fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the token for the factory's own pushes, so that the agent run never receives it.
 
-The thirteen operations, nine reading and four writing:
+The nineteen operations of the `Git` protocol (`tests/application/test_git_protocol.py` checks that the protocol has exactly these and that `GitCli` has each):
 
 | Operation | Returns |
 |---|---|
@@ -97,6 +97,9 @@ The thirteen operations, nine reading and four writing:
 | `delete_remote_branch(branch)` | `PushOutcome`; runs `git push origin --delete <branch>` (below) |
 | `delete_branch(branch)` | `None`; deletes the local branch even when it is not merged. The checked-out branch is a `GitError` and stays; a branch that does not exist is no error and changes nothing |
 | `merge(ref, *, fast_forward_only=False)` | `MergeOutcome` (below) |
+| `reset_to(ref)` | `None`; `git reset --hard` then `git clean -fd` (below) |
+| `revert_paths(commit, paths)` | `None`; each path back to its content at `commit`, or deleted when it was not there (below) |
+| `move(source, destination)` | `None`; `git mv` that creates the destination's folders (below) |
 | `log(ref, *, since=None, path=None)` | `list[CommitInfo(commit, parents, subject, author, committed_at)]`: the commits reachable from `ref`, newest first, a commit always before its parents (a merge commit has two). `commit` and `parents` are full ids, `subject` is the first line of the message, `author` the author's name, `committed_at` the committer date in UTC. With `since`, only commits not reachable from it (`since == ref` gives `[]`); with `path`, only commits that changed that file or anything under that directory. An unknown `ref` or `since` is a `GitError` |
 | `changed_paths(since)` | `list[ChangedPath(path, change)]`: the net difference between the commit `since` and the work tree, whether committed, staged, unstaged or untracked. Untracked files that are not ignored count, as `"added"`; ignored paths do not. A path added and deleted again, or changed and restored, is not listed. Sorted by path in plain string order. An unknown `since` is a `GitError` |
 | `status()` | `WorkTreeStatus(branch, head, changes)`: `branch` is `None` when HEAD is detached, `head` is `None` in a repository without commits (`branch` then names the unborn branch). `changes` has one `ChangedPath` per path that differs from HEAD, staged, unstaged or untracked, listed once and sorted by path. A deleted path is `"deleted"`, a path HEAD lacks (untracked or newly staged, even if edited again) is `"added"`, anything else `"modified"`. Ignored paths are never listed |
@@ -133,6 +136,29 @@ The push kill points: `KillPoint.BEFORE_PUSH` is reached once per call, before g
 An unknown `ref`, and any other refusal that leaves no merge in progress (for example local changes the merge would overwrite), is a `GitError` and changes nothing.
 
 Who uses them: preparing a stage merges the main branch into a work item's branch (F0005); a merge or a discard deletes branches, remote and local (F0007).
+
+### Restoring the checkout
+
+These three make the checkout disposable: whatever a stage or a crash left behind can be put back.
+
+- `reset_to(ref)` resolves `ref` to a commit, runs `git reset --hard` on it, then `git clean --force -d`. Tracked files, staged or not, go back to `ref` and the current branch points at it. Untracked files and directories are removed; ignored paths (a file named in `.gitignore`) stay. An unknown `ref` is a `GitError` and nothing changes. The ref is resolved first so that a name that looks like an option is never passed to git as one.
+- `revert_paths(commit, paths)` brings each path to its content at `commit`, in the work tree and in the index. A path that does not exist at `commit` (added later, only staged, or untracked) is deleted from both. A path that exists nowhere is skipped without an error. Paths that were not given are not touched. An unknown `commit` is a `GitError`. A path that is a directory is not supported: the rules speak of files, and git then fails with a `GitError`.
+- `move(source, destination)` creates the destination's parent folders and runs `git mv`; the move is staged as a rename (`status()` and `changed_paths()` still show it as a deletion plus an addition, see above). A `source` that is not tracked, or a `destination` that exists, is a `GitError`.
+
+The path rule, for `revert_paths` (every path) and `move` (both arguments): a path is relative to the repository, with forward slashes. `factory.domain.git.check_repository_path` raises `ValueError` for an empty path, an absolute path or one with a `..` segment, and it runs before anything is changed or created. So `revert_paths` changes no path of a call that holds one bad path, and `move` creates no folder outside the checkout. `docs/a.txt` is fine, `../x` and `a/../../x` are not.
+
+Who uses them: a stall or a crash reverts or resets (F0004, F0005, F0008); the tick resets the checkout to the remote (F0006); the undo's revert is this wrapper's, the rules for what to revert are F0004's; a merge or a discard moves the story file (F0007).
+
+### Which feature uses which operation
+
+| Operation | Used by |
+|---|---|
+| `changed_paths`, `revert_paths` | F0004: the undo compares the work tree with the stage-start commit and reverts chosen paths |
+| `merge` | F0005: preparing a stage merges the main branch into the work item's branch |
+| `status`, `reset_to` | F0006: the tick looks at the checkout and resets it to the remote |
+| `reset_to` | also F0004, F0005 and F0008: a stall or a crash |
+| `delete_remote_branch`, `delete_branch`, `move` | F0007: a merge or a discard |
+| `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and first writes; no story names a single user yet, they are the building blocks of the tick, the stages and the claim |
 
 Identity: every call also sets `GIT_AUTHOR_NAME`, `GIT_COMMITTER_NAME`, `GIT_AUTHOR_EMAIL` and `GIT_COMMITTER_EMAIL` from `options.identity`, over the process environment and `options.environment`. No user or system configuration can change it, and `commit.gpgsign` is ignored. F0010 fills `identity` from `GIT_USER_NAME` and `GIT_USER_EMAIL`; a `GitCli` built without options commits as `factory <factory@noreply.invalid>`.
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 13
 blocked: null
 comments_seen: 2
@@ -181,3 +181,12 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
        - Security: every path is checked before anything is written. `reset` gets only a resolved commit id followed by `--`, and `checkout`, `rm` and `mv` pass paths after `--`. No suppression markers or secrets are added.
        - Quality: `_resolve_or_raise` replaces the duplicated unknown-ref check in `merge`. The comment in `reset_to` explains why, and the docstrings of the public methods and of `check_repository_path` are present and accurate.
        - Ticket hygiene: the log gives the main decision (resolve before reset/checkout) and what was rejected (`git restore`). The Assignment as of entry 6 matches what was built, and criterion 14 still names what the project guide must say.
+12. documenter: wrote the docs criterion into `docs/project-guide.md`; no findings. `make check` is green and I ran the demo's reset and move steps (`False base`, `True`).
+    - `docs/project-guide.md`, git wrapper intro: removed "reset, revert and move follow in a later story".
+    - `docs/project-guide.md`, operations table: the intro said "thirteen operations" but the table already held sixteen. It now says nineteen and names the protocol test that checks the count. Added rows for `reset_to`, `revert_paths` and `move`.
+    - `docs/project-guide.md`, new section "Restoring the checkout": the rules of the three operations, the path rule both `revert_paths` and `move` follow (`check_repository_path`, raised before anything is changed or created), and the directory-path limit of `revert_paths`.
+    - `docs/project-guide.md`, new table "Which feature uses which operation". F0004, F0005, F0006, F0007 and F0008 are taken from this story's assignment and from the existing text. For `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit` and `push`, no document I was allowed to read names a feature, and I did not guess. The table says so. If the human wants the feature named for those eleven, that needs an answer from them.
+    - Cross-read as current: the rest of the git section (identity, configuration isolation, push, delete and merge), the README and `docs/operator-guide.md`. Neither of those two mentions the git wrapper.
+    - I did not check the code docstrings beyond the diff: `Git.reset_to`, `revert_paths`, `move` and `check_repository_path` all have accurate ones.
+
+    `make check`: check: green
