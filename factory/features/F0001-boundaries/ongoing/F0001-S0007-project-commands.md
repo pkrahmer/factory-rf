@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 7
 blocked: null
 comments_seen: 0
@@ -140,3 +140,34 @@ Expect: one line starting with `project command Check; ls failed:` that names th
    - Demo: both blocks are runnable. Each `Expect:` line is checkable against the printed output.
    - Architecture: the interface is a Protocol in `application`, the implementation is in `adapters` and calls `run_process`, and the result and the error are in `domain`. This fits the four layers and R6/R11.
    - Scope: the story is within the feature's "project-commands interface and the make class (R11), generic check result (R8)". Nothing is in "Out of scope".
+3. tester: wrote red tests for every acceptance criterion except 25 and 26 (the check gate and docs).
+   - criterion 1: tests/domain/test_checks.py::test_status_matching_the_exit_status_is_accepted (parametrized over the three pairs)
+   - criterion 2: tests/domain/test_checks.py::test_status_contradicting_the_exit_status_is_rejected (parametrized over the five pairs)
+   - criterion 3: tests/domain/test_checks.py::test_lowercase_command_names_are_accepted and ::test_other_command_names_are_rejected
+   - criterion 4: tests/domain/test_checks.py::test_unknown_keys_and_assignment_are_rejected
+   - criterion 5: tests/domain/test_checks.py::test_fields_are_exactly_the_generic_six and tests/test_make_search.py::test_no_identifier_in_the_check_modules_names_a_layer (uses `ast` to collect names, attributes, arguments, function and class names and import aliases)
+   - criterion 6: tests/adapters/test_make_commands.py::test_succeeding_target_passes
+   - criterion 7: tests/adapters/test_make_commands.py::test_failing_recipe_fails_with_the_status_make_sets (recipe exits 2 and 3; both expect 2)
+   - criterion 8: tests/adapters/test_make_commands.py::test_missing_target_is_a_failed_command
+   - criterion 9: tests/adapters/test_make_commands.py::test_command_reaching_its_time_limit_is_killed (recipe `sleep 60 & echo $$! > pid; wait`)
+   - criterion 10: tests/adapters/test_make_commands.py::test_time_limit_of_zero_or_less_is_rejected (expects ValueError whose message matches `time_limit`) and ::test_time_limit_of_one_second_runs
+   - criterion 11: tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines (n = 29, 30, 31, 40, via `seq`)
+   - criterion 12: tests/adapters/test_make_commands.py::test_output_tail_merges_stderr_in_the_order_written
+   - criterion 13: tests/adapters/test_make_commands.py::test_last_line_skips_trailing_blank_lines
+   - criterion 14: tests/adapters/test_make_commands.py::test_last_line_is_empty_without_output
+   - criterion 15: tests/adapters/test_make_commands.py::test_last_line_skips_the_lines_make_writes (also checks that make's `Error 3` line is in the tail; the `make[1]:` line is written by the recipe)
+   - criterion 16: tests/adapters/test_make_commands.py::test_duration_is_the_time_the_command_ran
+   - criterion 17: tests/adapters/test_make_commands.py::test_command_runs_with_the_current_environment
+   - criterion 18: tests/adapters/test_make_commands.py::test_run_reaches_no_kill_point
+   - criterion 19: tests/adapters/test_make_commands.py::test_invalid_command_name_is_refused_before_starting (parametrized; a marker file stays absent)
+   - criterion 20: tests/adapters/test_make_commands.py::test_executable_that_cannot_start_is_an_error
+   - criterion 21: tests/domain/test_errors.py::test_project_command_error_names_command_and_detail (new test only; the import list gained `ProjectCommandError`, and no existing test changed)
+   - criterion 22: tests/test_make_search.py::test_only_the_make_class_names_make (the set of modules with the `"make"` literal must equal {factory.adapters.make_commands})
+   - criterion 23: tests/adapters/test_make_commands.py::test_make_class_fits_the_interface_without_inheriting (annotated assignment for mypy; `ProjectCommands` is not in the MRO)
+   - criterion 24: tests/adapters/test_make_commands.py::test_outer_make_variables_do_not_reach_the_command (output_tail lines are exactly `ok`, `0`)
+   Interpretation: criteria 11, 12 and 24 compare `output_tail.splitlines()`, so a trailing newline is not judged either way.
+   Files created: tests/domain/test_checks.py, tests/adapters/test_make_commands.py, tests/test_make_search.py. File extended: tests/domain/test_errors.py.
+   `make test`: collection errors in test_make_commands, test_checks and test_errors, because the modules factory.domain.checks, factory.application.project_commands and factory.adapters.make_commands and the name factory.domain.errors.ProjectCommandError do not exist yet. test_make_search will fail until make_commands.py exists. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
