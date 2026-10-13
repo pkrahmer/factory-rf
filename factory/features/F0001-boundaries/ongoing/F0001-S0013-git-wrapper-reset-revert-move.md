@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 13
 blocked: null
 comments_seen: 2
@@ -169,3 +169,15 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
        `make check`: check: green
 
     `make check`: check: green
+11. reviewer: no findings.
+       - Acceptance criteria: I read every test in `tests/adapters/test_git_cli_restoring.py` and `tests/application/test_git_protocol.py` against criteria 1–12. Each test checks what its criterion says:
+         - reset: both staged and unstaged changes are discarded, the branch stays `main` at `ref`, and the status is clean. Untracked files and nested directories are removed and `.gitignore`'d `kept.log` stays. An unknown ref leaves HEAD and the edit in place.
+         - revert: work tree and index match `base`. Committed-later, staged-only and untracked files are deleted, and a path that exists nowhere is skipped. The other paths' status is unchanged. Each unsafe path is refused with the valid `a.txt` before it in the same call, and `docs/a.txt` is accepted. An unknown commit raises `GitError`.
+         - move: the status is a rename and the content is unchanged. An untracked source and an existing destination each raise `GitError`. A `../x.txt` destination and an absolute one leave `tmp_path` unchanged.
+         - protocol: the test compares the exact set of nineteen names and checks `hasattr` on `GitCli`.
+         - The coder's entry 10 reports `make check` green.
+       - Accepted, not a finding: no test covers an unsafe `source` passed to `move`. Criterion 12 is limited to the destination because the human worded the test that way in entry 6. `GitCli.move` still checks both arguments, as the Interface rule says.
+       - Architecture: `check_repository_path` is a pure function in `factory.domain.git`. The three operations are on the `Git` protocol in application, and `GitCli` in adapters implements them. Git is reached only through `_run`, and no `dict[str, Any]` crosses a boundary.
+       - Security: every path is checked before anything is written. `reset` gets only a resolved commit id followed by `--`, and `checkout`, `rm` and `mv` pass paths after `--`. No suppression markers or secrets are added.
+       - Quality: `_resolve_or_raise` replaces the duplicated unknown-ref check in `merge`. The comment in `reset_to` explains why, and the docstrings of the public methods and of `check_repository_path` are present and accurate.
+       - Ticket hygiene: the log gives the main decision (resolve before reset/checkout) and what was rejected (`git restore`). The Assignment as of entry 6 matches what was built, and criterion 14 still names what the project guide must say.
