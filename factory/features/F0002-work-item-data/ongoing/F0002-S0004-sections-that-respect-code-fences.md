@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 31
 blocked: null
 comments_seen: 0
@@ -96,3 +96,31 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
    - Demo: one runnable `uv run python -c` command. Its `Expect:` line gives four checkable outputs, including the exact list for the `Journal` insert.
    - Architecture: pure domain code in `factory.domain`, with no I/O and no imports from higher layers. It matches the layer rules in `CLAUDE.md`.
    - Scope: this covers the "Sections (SI1.3)" scope item of F0002 and decisions 5 and 6 of `FEATURE.md`. Nothing is taken from "Out of scope". The journal and the form check are left to S0005 and S0006.
+3. tester: red tests written for criteria 1–16 in the new file `tests/domain/test_sections.py`.
+   - criterion 1: tests/domain/test_sections.py::test_split_lines_drops_only_an_empty_last_element (all five cases)
+   - criterion 2: ::test_backtick_and_tilde_blocks_are_found, ::test_indented_opening_and_closing_lines_are_recognised (space-indented opening line, tab-indented closing line)
+   - criterion 3: ::test_a_block_closes_only_at_a_run_of_its_own_character_at_least_as_long. Cases: four backticks not closed by three and closed by four or five; a tilde line inside a backtick block; a closing run followed by text; a run followed by trailing whitespace still closes; an unclosed block gives `end=None`.
+   - criterion 4: ::test_sections_run_from_heading_to_next_heading
+   - criterion 5: ::test_a_heading_inside_a_fenced_block_is_not_a_heading (backticks and tildes), ::test_a_heading_after_an_unclosed_block_is_not_a_heading
+   - criterion 6: ::test_lines_that_are_not_level_two_headings_open_no_section, ::test_a_heading_text_is_stripped_of_trailing_whitespace
+   - criterion 7: ::test_the_title_is_the_first_level_one_heading_outside_blocks (includes a `# comment` line inside a closed fence and inside an unclosed fence)
+   - criterion 8: ::test_section_text_is_the_trimmed_text_under_the_first_matching_heading (inner blank lines and a fence kept, empty section gives `""`, missing heading or another case gives `None`, a repeated heading gives the first one)
+   - criterion 9: ::test_section_text_keeps_a_fenced_block_with_heading_lines_whole
+   - criterion 10: ::test_a_paragraph_goes_first_under_the_heading
+   - criterion 11: ::test_a_paragraph_in_an_empty_section_or_a_body_without_final_newline
+   - criterion 12: ::test_a_paragraph_of_several_lines_goes_whole_under_the_first_heading (the body has another section before the target and a second `## Verdict` after it, and checks the exact full result)
+   - criterion 13: ::test_inserting_under_a_missing_heading_is_a_format_error (no such heading; heading only inside a fence)
+   - criterion 14: ::test_a_blank_paragraph_is_refused
+   - criterion 15: ::test_required_sections_are_the_form_headings_in_order (the "comment line" is an HTML comment `<!-- comment -->`)
+   - criterion 16: ::test_the_three_known_section_names, ::test_section_and_block_are_frozen_and_refuse_unknown_fields (construction through `type[BaseModel]`, assignment through `setattr`)
+
+   Interpretations: where a criterion leaves a detail open, the test applies the rule stated in the Interface:
+   - criterion 3: a closing run followed only by whitespace closes the block.
+   - criterion 7: an unclosed fence hides a later `# ` line.
+
+   Neither adds behaviour beyond the stated rules, so I raised no question.
+
+   `make test` fails at collection, as expected: `ModuleNotFoundError: No module named 'factory.domain.sections'` is the one module that could not be imported. `make lint` is green after `ruff format`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
