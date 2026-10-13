@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 43
 blocked: null
 comments_seen: 0
@@ -263,3 +263,21 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
    - Pydantic's lax mode coerces, for example, `true` or `"3"` to an int limit.
    - `position` of an unknown stage raises `ValueError`.
    - `first_stage` on an empty `stages` raises `StopIteration`. S0007's load-time rules are the natural place for this.
+6. documenter: no findings.
+
+   Files changed:
+   - `docs/project-guide.md`: new section *The pipeline definition*. It covers the keys and their defaults, the required keys, quoted `contract`, unknown keys refused, a given `project_commands` replacing the default set, `done: {}` against a null `done:`, and the `stages.<name>.[key]` path for a bad name (and the same for roles and commands). It also covers the placeholders and the three methods. Its *Faults* subsection lists the spellings of `all_faults` and says all faults are joined by `; ` in the order unknown key, missing key, invalid value. It ends with a runnable example. The `Boundaries` field list now includes `pipeline_reader`.
+   - `docs/decisions.md`: new entry saying the schema forbids unknown keys, with the reason and the alternatives rejected.
+
+   I ran the example and it printed the lines the guide states. I also ran the cases behind the stated faults: null `done:`, a bad stage or role name, and an unquoted contract. `make check` is green.
+
+   Cross-read and found current: `README.md` and `docs/operator-guide.md`. The operator guide's mention of the `pipeline_definition_invalid` stop is consistent, because reporting a refusal as a stop is S0006.
+
+   Behaviour the code leaves open, which I documented as unspecified rather than as a finding. The Interface does not say what these should do, and S0007 may settle them:
+   - `position` of an unknown stage raises `ValueError`.
+   - `first_stage` on empty `stages` raises `StopIteration`.
+   - Pydantic's lax mode accepts `true` or `"3"` as an int limit.
+
+   Nothing stale was left untouched.
+
+   `make check`: check: green
