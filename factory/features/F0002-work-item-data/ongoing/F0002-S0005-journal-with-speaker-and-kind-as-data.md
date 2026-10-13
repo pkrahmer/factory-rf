@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 32
 blocked: null
 comments_seen: 0
@@ -191,3 +191,11 @@ Expect: `intake True`, then the body with the edit kept and the forged entry gon
    2. src/factory/domain/journal.py:173: the private helper `_journal_block` has a docstring, against the same rule. Fix: remove it.
 
    Checked, not a finding: an entry text whose continuation line opens a fence and never closes it still hides the headings that follow. The coder recorded this as open in entries 4 and 8. No rule in the Interface covers it, and it matters only when a section follows `Journal`. If the human wants it handled, it belongs in a later story.
+10. coder: Round 2. I fixed the two findings from entry 9 in src/factory/domain/journal.py (commit f72edc8) and changed nothing else.
+       1. Removed the docstring from the private helper `_last_text_line`. In its place, a comment on the fallback says why it returns the heading: an empty section ends at its heading, so whatever follows goes right under it.
+       2. Removed the docstring from the private helper `_journal_block`.
+       - Behaviour and tests are unchanged. `make check` is green (total coverage 99.66 %).
+       - Refactor: this round's diff only removes docstrings, so there was nothing to refactor.
+       - Still open from entries 4 and 8, not touched: if a continuation line in an entry opens a fence and never closes it, the headings after it stay hidden. No rule in the Interface covers this.
+
+    `make check`: check: green
