@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 14
 blocked: null
 comments_seen: 0
@@ -148,3 +148,19 @@ Expect: two lines: `injected kill at after-post 1`, then `already_posted 1`: the
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.adapters.fake_hosting'
+4. coder: built `FakeHostingService` in `src/factory/adapters/fake_hosting.py`. All tests pass and `make check` is green (coverage 99 %, the new module is fully covered). The second demo block prints `injected kill at after-post 1` / `already_posted 1` as expected.
+
+   What it does:
+   - Each pull request is a private mutable `_PullRequest` dataclass that holds its description, labels and comments. Callers get a frozen `PullRequestView` built fresh on each read, so the domain DTOs stay frozen and the test operations can change state in place.
+   - Comment ids come from one counter shared by all pull requests. `created_at` is 2026-10-12 UTC plus the id in seconds. Every comment, the human's and the factory's, goes through `PullRequestComment.from_body`, so `by_factory` and `key` are derived the same way as in the PyGithub client.
+   - `post_comment` follows `PyGithubHostingService.post_comment`: first the key check, then the post, then `KillPoint.AFTER_POST`. A repeated key reaches no kill point.
+   - Each of the ten protocol operations first checks for an injected failure and only then looks up the pull request number. So an injected failure has no effect at all, even for a number that does not exist. The test operations take no injected failures, as the interface says (`fail_next` names only the ten).
+   - `set_labels` uses the same `LABEL_PREFIX` filter as the PyGithub client.
+
+   Rejected: storing pull requests as `PullRequestView` and replacing them with `model_copy(update=...)`. The description, labels and comments would then need side dictionaries next to the view, and the state would be split across several places.
+
+   Refactor pass: I read the diff (one new file). Nothing to rename or simplify, so there is no refactor commit.
+
+   Noticed, not touched: `delete_comment` with an id that belongs to another pull request raises `HostingServiceError`, because it searches only the comments of the given pull request. No criterion covers this case, as intake noted. Criterion 20 (docs) is left for the documenter.
+
+   `make check`: check: green
