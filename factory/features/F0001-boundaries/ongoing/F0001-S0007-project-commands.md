@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 7
 blocked: null
 comments_seen: 0
 round: 0
@@ -134,3 +134,9 @@ Expect: one line starting with `project command Check; ls failed:` that names th
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/checks.py`, `domain/errors.py`, `application/project_commands.py`, `adapters/make_commands.py`). The command line, the environment handling, the error message and the structural fit are all stated.
+   - Criteria: each is testable by one test function (1-4 for the model, 6-18 and 24 for `run`, 19-21 for errors, 22-23 for the structure). Each rule has its failing side: invalid status/exit_status pairs (2), invalid command names (3, 19), a `time_limit` of zero or less (10), a failed or missing target as a result (7, 8), a timeout (9), an executable that cannot be started (20). Each behaviour stated in the Interface has a criterion: the 30-line tail (11), the merged order (12), `last_line` skipping blanks and make's lines (13-15), `duration` (16), the environment (17, 24) and the kill points (18).
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable against the printed output.
+   - Architecture: the interface is a Protocol in `application`, the implementation is in `adapters` and calls `run_process`, and the result and the error are in `domain`. This fits the four layers and R6/R11.
+   - Scope: the story is within the feature's "project-commands interface and the make class (R11), generic check result (R8)". Nothing is in "Out of scope".
