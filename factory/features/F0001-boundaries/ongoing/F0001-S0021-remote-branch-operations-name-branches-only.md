@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 24
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The git wrapper: push and delete_remote_branch act on branches only
 
 <!-- proposed by feature acceptance of 2026-10-13; refine before promoting -->
@@ -92,3 +100,77 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
 ## Log (append only)
 
 1. 2026-10-13 feature acceptance: proposed; the human refines and promotes.
+2. intake: accepted
+   - Interface: `check_branch_name` in `src/factory/domain/git.py` has its signature and a complete rule list. `GitCli.push` and `delete_remote_branch` have their exact git command lines (`refs/heads/<branch>`, source only), the kept outcomes and kill points, and the removal of `ALREADY_DELETED_MARKER`. The tests' files and fixtures are named.
+   - Criteria: 1 to 3 cover every rule of the function, with the passing and the failing side. They include `*` inside a name, `HEAD` and `@` only as a whole value, and `.lock` only at the end of a component. 4 to 6 cover the refusals in `push` and the tag case. 7 to 10 cover `delete_remote_branch`: the tag survives, the `refs/heads` upstream, the checkout's `origin/keep` removed, and `a..b` now a `ValueError`. Criterion 10 names the S0012 test to change, and decision 23 records the human's permission. Each is testable by one test function. The unchanged "already gone returns pushed" rule keeps S0012's existing test.
+   - Demo: runnable with the existing `GitCli` and `run_process` API. The seven expected lines match the code: `pushed`, `pushed`, four `refused`, and the ref list.
+   - Architecture: the pure name rules sit in the domain, with no git call. The git command lines sit only in the `GitCli` wrapper. No new dependency or module.
+   - Scope: this is within F0001's git wrapper (R9) and matches decision 23. No Out-of-scope item is touched.
+3. tester: wrote the tests for criteria 1–10. They fail on purpose and are the coder's specification.
+      - criterion 1: tests/domain/test_git.py::test_branch_name_that_git_would_not_take_as_a_branch_is_refused (parametrized over all 19 values)
+      - criterion 2: tests/domain/test_git.py::test_branch_name_with_a_star_inside_or_refspec_syntax_is_refused (`x*y`, `""`, `-x`, `+main`, `:main`, `main:other`)
+      - criterion 3: tests/domain/test_git.py::test_branch_name_that_git_takes_as_a_branch_is_accepted (all 8 values)
+      - criterion 4: tests/adapters/test_git_cli_arguments.py::test_push_of_a_negative_refspec_is_refused_before_anything_runs
+      - criterion 5: tests/adapters/test_git_cli_arguments.py::test_push_of_the_checked_out_branch_by_alias_is_refused_and_creates_nothing (`HEAD`, `@`; the remote's refs are compared before and after)
+      - criterion 6: tests/adapters/test_git_cli_branches.py::test_push_of_a_local_tag_without_a_local_branch_raises_and_pushes_nothing
+      - criterion 7: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_leaves_a_remote_tag_of_the_same_name. `HumanClone` has no tag method, so the tag is created and pushed with `run_git` in the human's clone at `tmp_path / "human"`.
+      - criterion 8: tests/adapters/test_git_cli_branches.py::test_push_of_a_new_branch_tracks_it_as_its_upstream
+      - criterion 9: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_removes_a_branch_the_human_pushed. The checkout fetches first, so `origin/keep` exists before the deletion.
+      - criterion 10: tests/adapters/test_git_cli_branches.py::test_delete_remote_branch_of_an_invalid_ref_name_raises. Changed from `GitError` to `ValueError`, with the human's permission in decision 23. It also asserts that the remote's refs are unchanged.
+      Files changed: tests/domain/test_git.py, tests/adapters/test_git_cli_arguments.py, tests/adapters/test_git_cli_branches.py. No new files. The existing S0020 tests are untouched.
+      Imports: every module imports; nothing failed to collect. The failures are wrong results: the current `check_branch_name` accepts the new values (for example `feature/.x`, `x.lock`, `feature/x.lock/y`, `a\x7fb`). Criteria 8 and 9 may already pass on the current code. They guard the `refs/heads/<branch>` change.
+      `make lint` is green. The type check was skipped, as this stage says.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_git.py::test_branch_name_that_git_would_not_take_as_a_branch_is_refused[a\x7fb]
+4. coder: implemented; `make check` green; the demo prints the seven expected lines.
+   - `src/factory/domain/git.py`: `check_branch_name` still has its earlier refusals (empty, leading `-`, leading `+`, any `:`, any `*`). It now also refuses the whole values `HEAD` and `@` (`BRANCH_ALIASES`) and anything `git check-ref-format --branch` would refuse. It does this in the domain through the private helpers `_is_valid_ref_name`, `_is_forbidden_character` and `_is_valid_component`, which check:
+     - the characters `^ ~ ? [ \ space`, control characters and DEL;
+     - the sequences `..`, `@{` and `//`;
+     - a leading or trailing `/`, and a trailing `.`;
+     - a component that starts with `.` or ends with `.lock`.
+   - `src/factory/adapters/git_cli.py`:
+     - `push` runs `git push --porcelain --set-upstream origin refs/heads/<branch>`.
+     - `delete_remote_branch` runs `git push --porcelain origin --delete refs/heads/<branch>` and treats only exit 0 as `"pushed"`.
+     - `ALREADY_DELETED_MARKER` and its comment are removed.
+   - Commits: 3ecbe25 (feat), c3f992a (refactor: the rule constants are now declared before `check_branch_name`, which uses them).
+   - Design: the name rules are a hand-written port of git's rules in the domain. I rejected calling `git check-ref-format`, because the domain must not run a tool and the wrapper would need an extra process for each push. Only the source is qualified (no `:<dst>`), as decision 23 says.
+   - Left alone: the explicit leading/trailing `/` check overlaps a little with the component split (an empty component would otherwise pass). I kept it explicit because it reads clearer. The docs (criterion 12) are the documenter's job.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Criteria 1–10: each has a test that checks what its criterion says. Criteria 1–3 in `tests/domain/test_git.py` cover the failing side of every Interface rule. The boundaries are tested on both sides: `HEAD` and `@` refused as a whole value, while `feature/HEAD` and `a@b` pass; `.lock` refused at the end of a component, while `x.lock.y` passes; `*` refused inside a name, not only at the end. Criteria 4–5 in `tests/adapters/test_git_cli_arguments.py` check that `BEFORE_PUSH` is not reached and that the remote's refs are unchanged. Criteria 6–10 in `tests/adapters/test_git_cli_branches.py` cover the local tag (`GitError`, nothing pushed), the remote tag left alone, the upstream after a push, the removal of `origin/keep`, and `a..b` as a `ValueError` with the refs unchanged. S0012's already-gone test is still there and covers removing `ALREADY_DELETED_MARKER`. The coder's entry reports the factory's `make check` as green.
+   - Architecture: the name rules are pure and live in `factory.domain.git` (no I/O, no git call). The command lines change only in `GitCli` (`src/factory/adapters/git_cli.py:280` and `:290`), which name only the source, `refs/heads/<branch>`, as decision 23 says. The local operations keep `check_git_argument`.
+   - Security: the git argv is built as a list, not a shell string. Names are validated before any process runs. No suppression markers, no secrets, no new dependencies.
+   - Quality: the helpers are small and private and have no docstrings, as CLAUDE.md allows. The comments say why. The removed marker leaves no dead code behind, and the `delete_remote_branch` docstring is still accurate.
+   - Ticket hygiene: the coder's entry records the main decision (porting git's rules into the domain rather than calling `git check-ref-format`) and what was rejected. The Assignment matches what was built. The docs criterion (12) still describes what the documenter has to write.
+6. documenter: wrote criterion 12; `make check` green. No code findings: the diff matches the Interface.
+   - `docs/project-guide.md`:
+     - The operation table and the push paragraph now show `refs/heads/<branch>` in both command lines.
+     - The push outcomes say a local tag is no branch (`push("v1")` is a `GitError`).
+     - The `delete_remote_branch` text drops the `remote ref does not exist` wording, says a remote tag is left alone, and says `a..b` is now a `ValueError`.
+     - The branch rule names the added refusals: `HEAD`, `@`, and git's branch-name rules with `^main` as the example. It also explains why `refs/heads/<branch>` is named, as the source only.
+   - `docs/decisions.md`: the entry "A pushed branch is never read as a refspec" records the extension (decision 23) and why it is not the explicit `refs/heads/<b>:refs/heads/<b>` that decision 22 rejected.
+   - Cross-read and found current: the push outcome meanings, the kill points, the sentence on the local operations, `README.md` and `docs/operator-guide.md`. The latter two don't mention these operations.
+   - I did not run the demo script. The new sentences come from the Interface, the ticket log and the diff.
+   - Nothing stale seen outside this story.
+
+   `make check`: check: green
+7. demo: ran the one demo command from the repository root as written. It met its `Expect:` line. No findings.
+
+   ```
+   pushed
+   pushed
+   refused ^main
+   refused HEAD
+   refused @
+   refused main~1
+   ['refs/heads/main', 'refs/tags/v1']
+   ```
+
+   - Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refused @`, `refused main~1`, `['refs/heads/main', 'refs/tags/v1']`. Met: the output has exactly these seven lines, in this order.
+   - Checked against the acceptance criteria:
+     - Criterion 7: `delete_remote_branch('v1')` returned `pushed`, and the remote tag `refs/tags/v1` survived.
+     - Criteria 1, 4 and 5: `^main`, `HEAD`, `@` and `main~1` were each refused with `ValueError`, and the remote gained no branch. Its only branch is `refs/heads/main`.
+     - Criterion 8 (in part): the push of `main` returned `pushed`.
+     - The demo contradicts no criterion. It does not exercise criteria 2, 3, 6, 9 and 10; the tests listed in the tester's entry cover them.

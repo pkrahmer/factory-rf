@@ -18,6 +18,7 @@ from git_support import (
     run_git,
     write_files,
 )
+from human_clone import HumanClone
 
 BRANCH = "work-item/F0001-S0001"
 FEATURE = "factory/features/F0001-example/feature.md"
@@ -117,9 +118,13 @@ def test_delete_remote_branch_on_a_removed_remote_is_unreachable(
     assert checkout.delete_remote_branch(BRANCH) == "unreachable"
 
 
-def test_delete_remote_branch_of_an_invalid_ref_name_raises(checkout: GitCli) -> None:
-    with pytest.raises(GitError):
+def test_delete_remote_branch_of_an_invalid_ref_name_raises(remote: Path, checkout: GitCli) -> None:
+    before = _refs(remote)
+
+    with pytest.raises(ValueError):
         checkout.delete_remote_branch("a..b")
+
+    assert _refs(remote) == before
 
 
 def test_delete_remote_branch_reaches_no_kill_point(
@@ -295,3 +300,57 @@ def test_merge_commit_without_options_carries_the_default_identity(tmp_path: Pat
         "factory",
         "factory@noreply.invalid",
     ]
+
+
+def test_push_of_a_local_tag_without_a_local_branch_raises_and_pushes_nothing(
+    tmp_path: Path, remote: Path, checkout: GitCli
+) -> None:
+    run_git(tmp_path / CHECKOUT, "tag", "v1")
+
+    with pytest.raises(GitError):
+        checkout.push("v1")
+
+    assert _refs(remote, "refs/heads/v1") == []
+    assert _refs(remote, "refs/tags/v1") == []
+
+
+@pytest.mark.usefixtures("human")
+def test_delete_remote_branch_leaves_a_remote_tag_of_the_same_name(
+    tmp_path: Path, remote: Path, checkout: GitCli
+) -> None:
+    run_git(tmp_path / "human", "tag", "v1")
+    run_git(tmp_path / "human", "push", "-q", "origin", "v1")
+    tag = _refs(remote, "refs/tags/v1")
+    assert tag != []
+
+    assert checkout.delete_remote_branch("v1") == "pushed"
+
+    assert _refs(remote, "refs/tags/v1") == tag
+
+
+def test_push_of_a_new_branch_tracks_it_as_its_upstream(
+    tmp_path: Path, remote: Path, checkout: GitCli
+) -> None:
+    directory = tmp_path / CHECKOUT
+    commit = _branch_with_commit(directory, BRANCH, {"work.txt": "work\n"})
+
+    assert checkout.push(BRANCH) == "pushed"
+
+    assert _head(directory, f"origin/{BRANCH}") == commit
+    upstream = run_git(directory, "rev-parse", "--abbrev-ref", f"{BRANCH}@{{upstream}}")
+    assert upstream.strip() == f"origin/{BRANCH}"
+    assert remote_commit(remote, BRANCH) == commit
+
+
+def test_delete_remote_branch_removes_a_branch_the_human_pushed(
+    tmp_path: Path, remote: Path, checkout: GitCli, human: HumanClone
+) -> None:
+    directory = tmp_path / CHECKOUT
+    human.push_file("keep", "keep.txt", "keep\n")
+    checkout.fetch()
+    assert _refs(directory, "refs/remotes/origin/keep") != []
+
+    assert checkout.delete_remote_branch("keep") == "pushed"
+
+    assert remote_commit(remote, "keep") is None
+    assert _refs(directory, "refs/remotes/origin/keep") == []

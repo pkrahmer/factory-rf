@@ -216,3 +216,27 @@ def test_delete_branch_of_a_refspec_like_name_is_not_refused_and_changes_nothing
     assert (
         run_git(tmp_path / CHECKOUT, "for-each-ref", "--format=%(objectname) %(refname)") == before
     )
+
+
+def test_push_of_a_negative_refspec_is_refused_before_anything_runs(
+    remote: Path, checkout: GitCli, kill_points: KillPoints
+) -> None:
+    main_tip = remote_commit(remote, "main")
+
+    with pytest.raises(ValueError):
+        checkout.push("^main")
+
+    assert kill_points.reached(KillPoint.BEFORE_PUSH) == 0
+    assert remote_commit(remote, "main") == main_tip
+
+
+@pytest.mark.parametrize("branch", ["HEAD", "@"])
+def test_push_of_the_checked_out_branch_by_alias_is_refused_and_creates_nothing(
+    remote: Path, checkout: GitCli, branch: str
+) -> None:
+    before = _remote_refs(remote)
+
+    with pytest.raises(ValueError):
+        checkout.push(branch)
+
+    assert _remote_refs(remote) == before
