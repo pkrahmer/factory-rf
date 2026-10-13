@@ -246,3 +246,30 @@ def test_section_and_block_are_frozen_and_refuse_unknown_fields(
         model(**fields, unknown=1)
     with pytest.raises(ValidationError):
         setattr(instance, field, 2)
+
+
+@pytest.mark.parametrize(
+    ("model", "field", "value", "accepted"),
+    [
+        (Section, "start", 0, True),
+        (Section, "start", -1, False),
+        (Section, "end", 0, True),
+        (Section, "end", -1, False),
+        (CodeBlock, "start", 0, True),
+        (CodeBlock, "start", -1, False),
+        (CodeBlock, "end", 0, True),
+        (CodeBlock, "end", -1, False),
+        (CodeBlock, "end", None, True),
+    ],
+)
+def test_indices_are_not_negative(
+    model: type[BaseModel], field: str, value: int | None, accepted: bool
+) -> None:
+    fields: dict[str, object] = {"start": 0, "end": 0, field: value}
+    if model is Section:
+        fields["heading"] = "A"
+    if accepted:
+        assert model(**fields).model_dump()[field] == value
+    else:
+        with pytest.raises(ValidationError):
+            model(**fields)

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 31
 blocked: null
 comments_seen: 0
@@ -178,3 +178,10 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
        - Criterion: I extended criterion 16 with the Interface's own `NonNegativeInt` rule, so 17 and 18 stay last. It now also says that `start` and `end` accept `0` and refuse `-1` with `ValidationError`, and that `CodeBlock.end` also accepts `None`.
        - Test change for the tester: add one parametrized test to `tests/domain/test_sections.py`. It should cover all four fields (`Section.start`, `Section.end`, `CodeBlock.start`, `CodeBlock.end`), check that each accepts `0` and refuses `-1` with `ValidationError`, and also check that `CodeBlock(start=0, end=None)` is accepted.
        - Rejected: changing the code, because it was not at fault, and adding a new criterion, because that would renumber the closing two.
+11. tester: tester (round 2, approved test change): I made the test change the coder named in entry 10, and nothing else.
+       - Criterion 16 (non-negative indices): I added `tests/domain/test_sections.py::test_indices_are_not_negative`. It is one parametrized test over `Section.start`, `Section.end`, `CodeBlock.start` and `CodeBlock.end`. Each of the four fields accepts `0` and refuses `-1` with `ValidationError`, and `CodeBlock(start=0, end=None)` is accepted. The models are built through a variable typed `type[BaseModel]`, the same way `tests/domain/test_work_item.py` does it.
+       - The code already follows the `NonNegativeInt` rule, so the new cases pass against the existing `src/factory/domain/sections.py`.
+       - `make test`: green, 99.63 % coverage. `make lint`: green.
+
+    `make lint`: lint: green
+    `make test`: test: green
