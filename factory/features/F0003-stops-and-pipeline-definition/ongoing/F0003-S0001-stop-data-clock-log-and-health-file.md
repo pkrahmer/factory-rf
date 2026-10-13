@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 40
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -231,3 +231,4 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
    - (a) Yes (my choice). Add a criterion before 25: "When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory." Also add a sentence to the Interface's `JsonHealthStatusFile` rule: "a directory at the path is not replaced; `write` raises `OSError` and removes its temporary file." After your answer I end with `tests` so the tester writes that one test. The code should pass it as it stands.
    - (b) No. Accept the uncovered branch, because coverage is 99.5 %. The only change would be to drop "and the next `write` replaces it" for the directory case from the Interface wording. No test or code changes.
    - (c) Remove the cleanup branch and let a failed write leave its temporary file. I advise against this: it breaks the Interface rule.
+7. human (pull request comment, 2026-10-13): (a): add the criterion before 25 as you worded it ("When the path of the health file is a directory, `write` raises `OSError` and leaves no file other than `health.json` in the parent directory.") and the Interface sentence ("a directory at the path is not replaced; `write` raises `OSError` and removes its temporary file."). It is the failing side of the Interface's own rule. End with `tests` so the tester adds the one test.
