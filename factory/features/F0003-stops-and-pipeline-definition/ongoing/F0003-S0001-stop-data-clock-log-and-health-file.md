@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 40
 blocked: null
 comments_seen: 2
@@ -255,3 +255,10 @@ Expect: six lines of output. Lines 1 and 2 are `<stamp> first` and `<stamp> seco
        `make check`: check: green
 
     `make check`: check: green
+11. reviewer: reviewer (round 1): no findings.
+
+    - Acceptance criteria: each of criteria 1–25 has a test that checks what the criterion says. The test added for 25 (`tests/adapters/test_health_file.py::test_a_directory_at_the_path_fails_the_write_and_leaves_no_temporary_file`) closes entry 5's finding. It runs the `except BaseException` cleanup in `src/factory/adapters/health_file.py` and checks that the directory is still there. Every rule in the Interface is tested on both sides: blank detail against `x`, scope against reason in both directions, unknown reason, naive against aware `at`, one stop per reason against two of the same, unknown field, frozen assignment, naive `ManualClock` start, an `OSError` on write after standard output, and missing, damaged or directory files read as `HealthStatus()`. Criterion 13 really tests that the fraction is cut off: `.987654` gives `07Z`. The coder's `make check` was green (entry 10).
+    - Architecture: the models are in `factory.domain.stops`, which does no I/O and reads no clock. The ABCs are in `factory.application.machine`, with docstring-only abstract bodies and no state. Every adapter inherits its interface, nothing is wired, and the layers import only downward.
+    - Security: there are no secrets and no shell or SQL. The only markers in the diff are `# noqa: DTZ001` on the tests' deliberately naive datetimes; earlier tests use the same marker (`tests/domain/test_hosting.py`, `tests/domain/test_work_item.py`), and it is not a security marker. `except BaseException` in `write` re-raises after the cleanup.
+    - Quality: names are clear and each function does one thing. Comments explain why: standard output comes first, the replace is atomic, and a damaged file reads as healthy. Module, class and `__init__` docstrings are present, and the `@override` methods take their docstrings from the interface. There is no dead code.
+    - Hygiene: the log gives the main decision (a temporary file in the same directory plus `os.replace`) and what was rejected (writing in place). The Assignment matches what was built, and docs criterion 27 still says what the operator guide and the decision log must cover.
