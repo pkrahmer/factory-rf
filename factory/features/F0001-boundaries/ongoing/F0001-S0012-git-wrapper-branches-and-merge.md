@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 12
 blocked: null
 comments_seen: 0
 round: 0
@@ -96,3 +96,9 @@ Expect: three lines: `conflict []`, then `''`, then `up_to_date`: the conflictin
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.git.MergeOutcome`; `delete_remote_branch`, `delete_branch` and `merge` on `Git` in `factory.application.git`). The rules are stated per outcome, including the stale `origin/<branch>` and the kill-point rule.
+   - Criteria: 17 behavioural criteria plus the two closing ones. Each is testable with setup through plain git. Every rule has its failing side: rejected (3), unreachable (4), invalid ref (5), checked-out branch (8), missing branch (9), not_fast_forward (13), conflict (14), unknown ref (15) and local-change overwrite (16). Every behaviour in the Interface text has a criterion: the default message (12), the identity (17), and the no-kill-point rule (6). Criterion 17 covers two scenarios (options identity, and the default identity); I take it as two test functions, which needs no further decision.
+   - Demo: runnable. It relies on `GitCli.status().changes` from S0011, which is in this feature. The three expected lines (`conflict []`, `''`, `up_to_date`) can be checked against the output.
+   - Architecture: the DTO name goes in the domain layer, the operations on the application `Git` interface, and the implementation in the adapter `GitCli`. This matches R9 and the layer rules.
+   - Scope: within F0001's scope ("delete branches, merge with abort on a conflict"). Reset, revert and move are left to S0013, which is not in the Out of scope list.
