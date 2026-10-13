@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 36
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0002-S0001, F0002-S0002, F0002-S0003, F0002-S0004, F0002-S0005, F0002-S0006, F0002-S0007, F0002-S0008]
+outcome: accepted
 ---
 # Acceptance of Work item data
 
@@ -270,3 +271,4 @@ The story writer can avoid that cost. Where an Interface states "three or more",
    6 Decisions: FEATURE.md's 14 decisions, plus 9 from the logs: BRANCH_PREFIX moved to identifiers; criteria extended by the coder in S0004; journal entries counted outside fences; the cost before-validator; finite duration (decided by the human); the feature.md criterion (approved by the human); public `lifecycle_folder_of_location`; `pydantic_core` imported without a direct pin; v1.1 paths that do not match this repository's v1 tree.
    7 Slow checks: none offered.
    8 Cost: 72 runs, 68.8 min, $17.45. S0004 (14 runs) and S0005 (12) stand out: their rework rounds asked only for refused-side tests the criteria did not spell out, and the code was never wrong apart from two private docstrings.
+2. done (pull request merged); cost: 1 runs, 6.6 min, 38 turns, 167k tokens in (3508k more from cache), 41k out, $2.86
