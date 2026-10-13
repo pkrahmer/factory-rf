@@ -8,7 +8,15 @@ from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, JsonValue, StrictBool, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    JsonValue,
+    NonNegativeFloat,
+    NonNegativeInt,
+    StrictBool,
+    ValidationError,
+)
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.agent_runtime import AgentRuntime
@@ -43,13 +51,14 @@ VERSION_TIME_LIMIT = timedelta(seconds=30)
 CENT = Decimal("0.01")
 
 
+# A negative count or cost is no measure: such a reply does not parse, so the call is `died`.
 class _Usage(BaseModel):
     model_config = ConfigDict(frozen=True, extra="ignore")
 
-    input_tokens: int | None = None
-    output_tokens: int | None = None
-    cache_read_input_tokens: int = 0
-    cache_creation_input_tokens: int = 0
+    input_tokens: NonNegativeInt | None = None
+    output_tokens: NonNegativeInt | None = None
+    cache_read_input_tokens: NonNegativeInt = 0
+    cache_creation_input_tokens: NonNegativeInt = 0
 
 
 class _Denial(BaseModel):
@@ -71,9 +80,9 @@ class _Reply(BaseModel):
 
     subtype: str
     is_error: StrictBool
-    num_turns: int | None = None
+    num_turns: NonNegativeInt | None = None
     # A float as the JSON carries it; `Decimal(str(...))` keeps the digits it printed.
-    total_cost_usd: float | None = None
+    total_cost_usd: NonNegativeFloat | None = None
     usage: _Usage | None = None
     permission_denials: list[_Denial] = []
     structured_output: _StructuredOutput | None = None
