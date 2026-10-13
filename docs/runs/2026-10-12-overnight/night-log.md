@@ -87,3 +87,6 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 04:06 | `F0001: start S0012` | | plan, section 8 (start) |
 | 04:15 | S0012 at accept: 17 behavioural criteria mapped, demo met its `Expect:`, `make check` green in the container, diff within the story. Merged; archived | #12 | plan, section 8 (approval) |
 | 04:16 | `F0001: start S0013` | | plan, section 8 (start) |
+| 04:23 | S0013: the reviewer asked whether `move` follows the story's own path rule (it creates folders outside the checkout before git refuses). Answered (a): add the rule and criterion | #13 | plan, section 8: closes a failing side with the story's own rule |
+| 04:30 | S0013 at accept: 12 behavioural criteria mapped (one added at review), demo met its `Expect:`, `move` checks both paths, `make check` green in the container, diff within the story. Merged; archived | #13 | plan, section 8 (approval) |
+| 04:31 | `F0001: start S0014`, the feature's last story; its archive makes F0001's acceptance due | | plan, section 8 (start) |

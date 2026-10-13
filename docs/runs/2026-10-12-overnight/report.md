@@ -20,6 +20,7 @@ A running file: every push of the night log updates it. Status at the last updat
 | F0001-S0010 The `claude -p` runtime: resume and version | #10 | 6 | 5.9 | 11 (03:39 to 03:50) | $2.00 | 0 (first-pass) |
 | F0001-S0011 Git wrapper: history and work tree | #11 | 9 | 8.2 | 14 (03:51 to 04:05) | $2.15 | 1 (coder: test commit ids flagged by detect-secrets) |
 | F0001-S0012 Git wrapper: branches and merge | #12 | 6 | 6.4 | 9 (04:06 to 04:15) | $1.42 | 0 (first-pass) |
+| F0001-S0013 Git wrapper: reset, revert, move | #13 | 11 | 8.3 | 14 (04:16 to 04:30) | $2.03 | 1 (reviewer: `move` outside the path rule) |
 
 ## Stops
 
@@ -28,6 +29,7 @@ A running file: every push of the night log updates it. Status at the last updat
 - S0008, coder at doing: a test passed an unknown keyword to a typed pydantic constructor. Answered (a) without a marker; `CLAUDE.md` got a second test rule.
 - S0009, intake: two behaviours of the Interface without criteria. Answered: write both.
 - S0011, coder at doing: random-looking commit ids in a test failed `make secrets`. Answered (a) low-entropy ids; `CLAUDE.md` got a third test rule.
+- S0013, reviewer at review: `move` created folders outside the checkout before git refused. Answered (a): the story's own path rule and a criterion.
 
 ## Fixes made
 
