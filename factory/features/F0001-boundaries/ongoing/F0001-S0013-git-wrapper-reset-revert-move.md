@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 13
 blocked: null
 comments_seen: 0
@@ -89,3 +89,20 @@ Expect: three lines: `False base`, then `base`, then `True False`: the reset rem
    - Demo: the script uses only `GitCli`, `run_process` and `ProcessRequest`, so it can run. Its `Expect:` gives the three output lines (`False base`, `base`, `True False`), which can be checked exactly.
    - Architecture: the `Git` protocol is in the application layer and `GitCli` is in the adapters layer. Git is reached only through the wrapper. Inputs are plain strings and sequences, with no `dict[str, Any]`.
    - Scope: reset/clean, revert and move are listed in F0001's scope, and none of this is in "Out of scope". The rules for what to revert stay with F0004. The criterion-11 operations from S0011 are named in the Assignment.
+3. tester: Wrote the red tests for reset_to, revert_paths, move and the nineteen-operation Git protocol.
+   - criterion 1: tests/adapters/test_git_cli_restoring.py::test_reset_to_discards_tracked_changes_and_moves_the_branch
+   - criterion 2: tests/adapters/test_git_cli_restoring.py::test_reset_to_removes_untracked_files_and_directories_and_keeps_ignored
+   - criterion 3: tests/adapters/test_git_cli_restoring.py::test_reset_to_an_unknown_ref_raises_and_changes_nothing
+   - criterion 4: tests/adapters/test_git_cli_restoring.py::test_revert_paths_restores_edited_and_deleted_files_in_work_tree_and_index
+   - criterion 5: tests/adapters/test_git_cli_restoring.py::test_revert_paths_deletes_paths_missing_at_the_commit_and_skips_unknown_ones
+   - criterion 6: tests/adapters/test_git_cli_restoring.py::test_revert_paths_leaves_other_paths_alone
+   - criterion 7: tests/adapters/test_git_cli_restoring.py::test_revert_paths_refuses_unsafe_paths_before_changing_any (parametrized: `../x`, `a/../../x`, an absolute path; each sits next to the valid `a.txt` in one call) and ::test_revert_paths_accepts_a_path_in_a_subdirectory (`docs/a.txt`)
+   - criterion 8: tests/adapters/test_git_cli_restoring.py::test_revert_paths_from_an_unknown_commit_raises
+   - criterion 9: tests/adapters/test_git_cli_restoring.py::test_move_creates_folders_and_stages_a_rename (expects porcelain status `R  a.txt -> docs/new/a.txt`)
+   - criterion 10: tests/adapters/test_git_cli_restoring.py::test_move_refuses_an_untracked_source_or_an_existing_destination (parametrized: untracked source, existing destination)
+   - criterion 11: tests/application/test_git_protocol.py::test_git_has_exactly_the_nineteen_operations_and_git_cli_has_each
+   Files created: tests/adapters/test_git_cli_restoring.py, tests/application/test_git_protocol.py.
+   Every module imports, so there are no collection errors. `make test` fails as intended because `GitCli` does not have `reset_to`, `revert_paths` or `move` yet, and `Git` has only sixteen operations. `make lint` is green. I skipped the type check, as this stage says to.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_git_protocol.py::test_git_has_exactly_the_nineteen_operations_and_git_cli_has_each
