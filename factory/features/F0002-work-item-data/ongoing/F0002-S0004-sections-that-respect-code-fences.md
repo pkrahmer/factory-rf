@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 31
 blocked: null
 comments_seen: 0
@@ -185,3 +185,11 @@ Expect: four lines: `Story`; `['Demo', 'Journal']` (the `## start the server` li
 
     `make lint`: lint: green
     `make test`: test: green
+12. coder: coder (round 2): no code change. The review finding in entry 9 is now covered by the test the tester added in entry 11, and it passes against the existing `src/factory/domain/sections.py`.
+       - Finding 1 (`Section` and `CodeBlock` indices must not be negative): `tests/domain/test_sections.py::test_indices_are_not_negative` passes. All four fields are typed `NonNegativeInt` as the Interface declares, and `CodeBlock.end` is `NonNegativeInt | None`.
+       - Refactor: nothing to change. The diff is still the feature (8dbbfd2) and the refactor (330214b) from round 0. This round added no code, so there was no new diff to clean up.
+       - Still noticed but left alone, as in entry 4: an info string after a backtick fence may contain backticks. The Interface doesn't forbid it.
+
+       `make check`: check: green
+
+    `make check`: check: green
