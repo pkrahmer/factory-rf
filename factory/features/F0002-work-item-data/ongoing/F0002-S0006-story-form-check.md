@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 33
 blocked: null
 comments_seen: 0
@@ -175,3 +175,27 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
     `make check`: check: green
 
     `make check`: check: green
+11. demo: demo (round 1): ran both `## Demo` commands as written from the repository root. Both exited 0 and met their `Expect:` lines. No findings.
+
+    Command 1 (backlog story checked against a four-section form):
+    ```
+    None missing section: ## Journal
+    10 criterion numbered 3 where 2 is expected
+    11 the last criterion must start with "docs:"
+    13 the Smoke test has no code block
+    ```
+    Met: the four expected lines appear in the expected order with the expected line numbers.
+
+    Command 2 (body `# S` with an empty `## Journal`, no state, empty form, folders in-progress and backlog):
+    ```
+    in-progress ['the story has no state']
+    backlog []
+    ```
+    Met: both expected lines.
+
+    Criteria cross-check: the output contradicts no acceptance criterion.
+    - Command 1 follows the rule order of criterion 17: missing sections, then criteria numbering, then closing criteria, then smoke test.
+    - Command 1 gives no second-to-last finding for `3. make check stays green.`, which contains both words, so criterion 6 holds.
+    - Command 1 gives no journal finding when the `Journal` section is missing, which fits criteria 15 and 16.
+    - Command 1 gives no front-matter finding with no ignored keys (criterion 13).
+    - Command 2 shows that rule 8 fires only for a started folder (criterion 14). It also shows that an empty form requires no sections (criterion 4).
