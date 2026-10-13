@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 35
 blocked: null
 comments_seen: 2
@@ -200,3 +200,12 @@ Expect: the line `usage: factory-check-story <path>...` (on standard error) and 
         - The coder's entry states the main decision: the location helper, and why comparing the message and reusing `folder_of` were rejected.
         - The Assignment matches what was built.
         - The docs criterion (25) still describes what the operator and the agents need to know.
+8. documenter: no findings; `make check` green.
+   - Changed `docs/operator-guide.md`: new section "Checking a story before it starts". It gives the command (both forms), the output format, the three exit statuses, which reader a story gets by folder and by front matter, and a table of findings with what to do about each. The intro no longer says there is no command to run.
+   - Changed `docs/project-guide.md`: new subsections "Where a story sits" (the five placement rules, `check_story_place`, `lifecycle_folder_of_location`) and "The check command" (wiring, the two readers, the `no front matter` fallback), placed after the form check.
+   - Changed `README.md`: replaced "nothing to run yet" with the command and added it to the list of what is built.
+   - I ran the command by hand: a story missing a section gives the finding and status 1, and no argument gives the usage line and status 2.
+   - Cross-read and found current: the form-check section and the reader's fault table in `project-guide.md`, `decisions.md`, and the rest of the operator guide.
+   - The code matches the Interface. I saw nothing stale that I left untouched.
+
+   `make check`: check: green
