@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 43
 blocked: null
 comments_seen: 0
@@ -237,3 +237,29 @@ Expect: four lines of output: `tests ['tests', 'doing', 'done'] 2`, then `90 60 
    - Pydantic's lax mode accepts `true` as the integer 1 for a limit. No test covers it, and the Interface does not ask for strict mode.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: I read every test against its criterion. Criteria 1–22 are each covered by the tests the tester's entry maps. Criterion 23 is covered by the unchanged `test_only_the_work_item_adapter_imports_frontmatter_and_ruamel`, and `ruamel` is imported only in `src/factory/adapters/` (`work_item_markdown.py`, `pipeline_yaml.py`). Both sides of each boundary are tested:
+     - every limit at 0 and -1 (refused) and at 1 (accepted)
+     - the name pattern: refused for stage, role and command keys, accepted for `smoke-test` and `a1`, and refused for the name values `role`, `next[0]` and `acceptance_stage`
+     - missing, unknown and wrong-type keys, invalid YAML, a repeated key, a Python tag, and a top level that is not a mapping
+     - several faults in rank order
+
+     The coder's entry reports the factory's `make check` as green.
+   - Architecture:
+     - `factory.domain.pipeline_definition` imports only pydantic and `identifiers.Name`.
+     - `PipelineDefinitionReader` in `factory.application.files` is an ABC whose one abstract method's body is its docstring alone.
+     - `RuamelPipelineDefinitionReader` inherits it.
+     - ruamel stays in the adapter.
+     - `Boundaries` is built only in `tests/conftest.py`, which wires the new field.
+   - Security: `YAML(typ="safe")` is used. Every `YAMLError` and `ValidationError` becomes `PipelineDefinitionInvalid`. No variable is named `yaml`, and the diff adds no suppression markers.
+   - Quality:
+     - `all_faults` is a stable sort over the existing `_rank`/`_fault`, and `first_fault` now delegates to it, so the two cannot drift apart.
+     - Defining the default `project_commands` with `default_factory` behaves the same as the literal in the Interface.
+     - Public names carry docstrings, and the comments say why.
+   - Ticket hygiene: the log names the main decision (`default_factory`) and the alternative it rejected (a merging validator). The Assignment matches the code. Docs criterion 25 matches the real fault spelling for a bad name (`stages.<name>.[key]`, from `_key_path`).
+
+   Open, already in the coder's entry and outside this story's criteria:
+   - Pydantic's lax mode coerces, for example, `true` or `"3"` to an int limit.
+   - `position` of an unknown stage raises `ValueError`.
+   - `first_stage` on an empty `stages` raises `StopIteration`. S0007's load-time rules are the natural place for this.
