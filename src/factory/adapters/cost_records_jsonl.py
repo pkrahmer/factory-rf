@@ -15,10 +15,15 @@ from factory.domain.errors import CostRecordFormatError
 _SEPARATORS = (",", ":")
 
 
+def _refuse_constant(constant: str) -> object:
+    # `NaN` and `Infinity` are Python's extension, not JSON; strict readers refuse them.
+    raise ValueError(f"not a JSON value: {constant}")
+
+
 def _record_of_line(line: str, number: int) -> CostRecord:
     try:
-        loaded: object = json.loads(line)
-    except json.JSONDecodeError as error:
+        loaded: object = json.loads(line, parse_constant=_refuse_constant)
+    except ValueError as error:
         raise CostRecordFormatError(number, "not valid JSON") from error
     if not isinstance(loaded, dict):
         raise CostRecordFormatError(number, "not a JSON object")
