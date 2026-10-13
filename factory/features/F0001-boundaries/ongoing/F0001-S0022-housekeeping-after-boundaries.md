@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 26
 blocked: null
 comments_seen: 0
@@ -101,3 +101,24 @@ Expect: three lines `frozen`, `refused 0x10`, `refused 0x1f`, then a listing tha
    - Demo: the commands run. The `\x10` and `\x1f` escapes reach Python intact through bash double quotes, and Python reads them as control characters. The Expect line names three exact output lines and the listing, so the output can be checked against it.
    - Architecture: the changes sit in `domain.git`, `adapters.git_cli` and the tests, so the layering is kept. The count tests wrap `check_git_argument` through `monkeypatch`, with no mock of the code under test. The `RemoteBranch` test follows the `type[BaseModel]` rule.
    - Scope: this is the fourth acceptance's housekeeping, which the human chose in Q27 and recorded as decision 24 in FEATURE.md. The test changes beyond this story's own are limited to those the human allowed. No new dependency, no marker, and no change to `factory/`.
+3. tester: Wrote the tests for criteria 1–8, renamed the two test modules and changed the import lines in `test_interfaces.py`.
+
+   Mapping:
+   - criterion 1: tests/domain/test_git.py::test_remote_branch_refuses_assignment (assigns through `setattr`, like the existing frozen-model tests, so mypy stays clean)
+   - criterion 2: tests/domain/test_git.py::test_remote_branch_refuses_an_unknown_field (constructs through a variable typed `type[BaseModel]`)
+   - criterion 3: tests/domain/test_git.py::test_remote_branch_constructs_and_equal_instances_compare_equal
+   - criterion 4: tests/adapters/test_git_cli_arguments.py::test_operation_checks_its_argument_once (parametrized: merge returns "up_to_date"; reset_to, revert_paths and delete_branch return None). The helper `_count_checks` wraps `factory.adapters.git_cli.check_git_argument` through monkeypatch and still calls the real check.
+   - criterion 5: tests/adapters/test_git_cli_arguments.py::test_conflicting_merge_checks_its_argument_once. The human pushes `shared.txt` to main, the checkout commits a different `shared.txt` and fetches. Counting starts only after that, so the setup's own checks are not counted.
+   - criterion 6: tests/adapters/test_git_cli_arguments.py::test_public_reading_operations_still_refuse_an_option_like_ref (parametrized, on the `checkout` fixture)
+   - criterion 7: new rows in tests/domain/test_git.py. `"a\x10b"`, `"a\x1fb"` and `"a b"` were added to test_branch_name_that_git_would_not_take_as_a_branch_is_refused, and `"a!b"` to test_branch_name_that_git_takes_as_a_branch_is_accepted. The ticket asked for these as rows, so there is no new function.
+   - criterion 8: tests/test_test_names.py::test_no_test_module_is_named_after_a_protocol
+
+   Files:
+   - created: tests/test_test_names.py
+   - renamed (content unchanged): tests/application/test_git_protocol.py → test_git_interface.py, tests/application/test_hosting_protocol.py → test_hosting_interface.py
+   - changed: tests/application/test_interfaces.py (the two import lines only), tests/domain/test_git.py, tests/adapters/test_git_cli_arguments.py
+
+   `make test` is red, with no import or collection errors. Each module under test imports; the tests fail on wrong results. The RemoteBranch tests fail because the model is not frozen and accepts unknown fields. The check-count tests fail because GitCli checks its arguments more than once. The new criterion 7 rows and the criterion 6 and 8 tests already pass: they guard behaviour that exists. `make lint` is green. I skipped the type check, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_git.py::test_remote_branch_refuses_an_unknown_field

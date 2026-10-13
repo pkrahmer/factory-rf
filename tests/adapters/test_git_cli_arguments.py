@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters import git_cli
 from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoint, KillPoints
@@ -240,3 +241,69 @@ def test_push_of_the_checked_out_branch_by_alias_is_refused_and_creates_nothing(
         checkout.push(branch)
 
     assert _remote_refs(remote) == before
+
+
+def _count_checks(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    checked: list[str] = []
+    check = git_cli.check_git_argument
+
+    def counting(value: str) -> None:
+        checked.append(value)
+        check(value)
+
+    monkeypatch.setattr(git_cli, "check_git_argument", counting)
+    return checked
+
+
+@pytest.mark.parametrize(
+    ("operation", "expected"),
+    [
+        (lambda cli: cli.merge("origin/main"), "up_to_date"),
+        (lambda cli: cli.reset_to("origin/main"), None),
+        (lambda cli: cli.revert_paths("HEAD", ["a.txt", "b.txt"]), None),
+        (lambda cli: cli.delete_branch("gone"), None),
+    ],
+    ids=["merge", "reset_to", "revert_paths", "delete_branch"],
+)
+def test_operation_checks_its_argument_once(
+    monkeypatch: pytest.MonkeyPatch,
+    checkout: GitCli,
+    operation: Callable[[GitCli], object],
+    expected: object,
+) -> None:
+    checked = _count_checks(monkeypatch)
+
+    assert operation(checkout) == expected
+    assert len(checked) == 1, checked
+
+
+def test_conflicting_merge_checks_its_argument_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, checkout: GitCli, human: HumanClone
+) -> None:
+    human.push_file("main", "shared.txt", "human side\n")
+    write_files(tmp_path / CHECKOUT, {"shared.txt": "factory side\n"})
+    checkout.commit("factory side")
+    checkout.fetch()
+    checked = _count_checks(monkeypatch)
+
+    outcome = checkout.merge("origin/main")
+
+    assert outcome == "conflict"
+    assert len(checked) == 1, checked
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda cli: cli.resolve("-x"),
+        lambda cli: cli.show_file("-x", "README.md"),
+        lambda cli: cli.is_ancestor("-x", "HEAD"),
+        lambda cli: cli.is_ancestor("HEAD", "-x"),
+    ],
+    ids=["resolve", "show_file", "is_ancestor-ancestor", "is_ancestor-descendant"],
+)
+def test_public_reading_operations_still_refuse_an_option_like_ref(
+    checkout: GitCli, operation: Callable[[GitCli], object]
+) -> None:
+    with pytest.raises(ValueError):
+        operation(checkout)

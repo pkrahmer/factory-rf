@@ -4,12 +4,13 @@ from datetime import timedelta
 from typing import Any
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from factory.domain.git import (
     GIT_TIME_LIMIT,
     GitIdentity,
     GitOptions,
+    RemoteBranch,
     check_branch_name,
     check_git_argument,
 )
@@ -104,6 +105,9 @@ def test_branch_name_without_refspec_syntax_is_accepted(value: str) -> None:
         "x.lock",
         "feature/x.lock/y",
         "a\x7fb",
+        "a\x10b",
+        "a\x1fb",
+        "a b",
     ],
 )
 def test_branch_name_that_git_would_not_take_as_a_branch_is_refused(value: str) -> None:
@@ -128,7 +132,31 @@ def test_branch_name_with_a_star_inside_or_refspec_syntax_is_refused(value: str)
         "release-1.2",
         "feature/HEAD",
         "x.lock.y",
+        "a!b",
     ],
 )
 def test_branch_name_that_git_takes_as_a_branch_is_accepted(value: str) -> None:
     check_branch_name(value)
+
+
+def test_remote_branch_refuses_assignment() -> None:
+    branch = RemoteBranch(name="main", commit="a" * 40)
+    field = "name"
+
+    with pytest.raises(ValidationError):
+        setattr(branch, field, "other")
+
+
+def test_remote_branch_refuses_an_unknown_field() -> None:
+    model: type[BaseModel] = RemoteBranch
+
+    with pytest.raises(ValidationError):
+        model(name="main", commit="a" * 40, unknown=1)
+
+
+def test_remote_branch_constructs_and_equal_instances_compare_equal() -> None:
+    branch = RemoteBranch(name="main", commit="a" * 40)
+
+    assert branch.name == "main"
+    assert branch.commit == "a" * 40
+    assert branch == RemoteBranch(name="main", commit="a" * 40)
