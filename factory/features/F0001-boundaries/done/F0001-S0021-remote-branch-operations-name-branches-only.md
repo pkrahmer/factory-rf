@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 24
 blocked: null
 comments_seen: 0
@@ -174,3 +174,4 @@ Expect: seven lines: `pushed`, `pushed`, `refused ^main`, `refused HEAD`, `refus
      - Criteria 1, 4 and 5: `^main`, `HEAD`, `@` and `main~1` were each refused with `ValueError`, and the remote gained no branch. Its only branch is `refs/heads/main`.
      - Criterion 8 (in part): the push of `main` returned `pushed`.
      - The demo contradicts no criterion. It does not exercise criteria 2, 3, 6, 9 and 10; the tests listed in the tester's entry cover them.
+8. done (pull request merged); cost: 6 runs, 4.9 min, 41 turns, 107k tokens in (673k more from cache), 16k out, $1.15
