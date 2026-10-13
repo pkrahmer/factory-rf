@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 29
 blocked: null
 comments_seen: 0
@@ -133,3 +133,30 @@ Expect: two lines, `refused 1` and `refused 1`: both invalid states are refused 
    - Demo: both commands are runnable. Each `Expect:` line is checkable: the dumped dict is given exactly, and the second shows two lines of `refused 1`.
    - Architecture: pure domain types with no I/O, in `factory.domain`, with Pydantic DTOs. `Name` comes from the domain identifiers. Tests are placed under `tests/domain/`.
    - Scope: within F0002's "state in the front matter (R15)". The reader and writer (S0003) and the journal functions (S0005) are left out.
+3. tester: I wrote red tests for criteria 1–13 from the Interface. No criterion needed interpreting.
+   - criterion 1: tests/domain/test_work_item.py::test_initial_state_starts_at_the_first_stage_with_nothing_set
+   - criterion 2: tests/domain/test_work_item.py::test_only_stage_is_required_and_must_be_a_name
+   - criterion 3: tests/domain/test_work_item.py::test_blocked_is_one_of_the_five_reasons_or_none
+   - criterion 4: tests/domain/test_work_item.py::test_counters_are_not_negative, ::test_pull_request_is_positive_or_none, ::test_handed_over_is_a_name_or_none
+   - criterion 5: tests/domain/test_work_item.py::test_comments_read_are_ascending_positive_and_unique
+   - criterion 6: tests/domain/test_work_item.py::test_a_claim_must_be_for_the_state_s_stage
+   - criterion 7: tests/domain/test_work_item.py::test_journal_records_are_numbered_from_one_in_order
+   - criterion 8: tests/domain/test_work_item.py::test_an_error_is_located_at_the_field_its_rule_validates
+   - criterion 9: tests/domain/test_journal_records.py::test_the_journal_has_twelve_kinds, ::test_a_record_accepts_each_kind, ::test_a_record_refuses_an_unknown_kind, ::test_a_record_needs_a_positive_number_and_a_named_speaker, ::test_the_two_fixed_speakers
+   - criterion 10: tests/domain/test_work_item.py::test_a_claim_s_lease_lasts_at_least_one_minute, ::test_a_claim_refuses_a_naive_start, ::test_a_claim_stores_its_start_in_utc, ::test_a_claim_s_instance_and_stage_are_names
+   - criterion 11: tests/domain/test_work_item.py::test_work_item_models_are_frozen_and_refuse_an_unknown_field (parametrized over WorkItemState, Claim, JournalRecord, WorkItemDocument)
+   - criterion 12: tests/domain/test_work_item.py::test_a_document_needs_a_state_even_if_it_is_none
+   - criterion 13: tests/domain/test_work_item_errors.py::test_a_format_error_names_its_path_and_fault, ::test_a_format_error_without_a_path_is_its_fault
+   - criteria 14 and 15 are not tests: 14 is the make check gate and 15 is the documenter's.
+
+   Files created: tests/domain/test_work_item.py, tests/domain/test_journal_records.py, tests/domain/test_work_item_errors.py.
+
+   `make test` stops with 3 collection errors (expected): the test runner cannot import `factory.domain.work_item` or `factory.domain.journal`, which do not exist yet, or `WorkItemFormatError` from `factory.domain.errors`. `make lint` is green. I skipped the type check (`make types`) as this stage allows.
+
+   Notes for the coder:
+   - Criterion 8 builds the state with `WorkItemState.model_validate` from a dict and compares `errors()[0]["loc"]`.
+   - Criterion 11 checks a frozen model by assigning a field's own value back with `setattr` and expects a `ValidationError`.
+   - The naive-datetime literal in test_a_claim_refuses_a_naive_start carries `# noqa: DTZ001`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
