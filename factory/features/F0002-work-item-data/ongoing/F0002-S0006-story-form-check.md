@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 33
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Story form check
@@ -136,3 +136,6 @@ Expect: two lines: `in-progress ['the story has no state']` and `backlog []`.
       - Noticed, not touched: an unclosed smoke-test block runs to the end of the body and hides any later `## Journal`. The Interface accepts this, and the tests allow for it.
 
    `make check`: check: green
+5. reviewer: one finding, in group 1 (acceptance criteria). Criteria 1 to 17 each have a test that checks what the criterion names. The coder's entry records `make check` green. I read `src/factory/domain/story_form.py` against the ten rules of the Interface and found no difference in message, line or order.
+   1. `tests/domain/test_story_form.py` (the criterion 5 tests): rule 3 says criteria are numbered lines "at column 0, outside code blocks", but no test checks the refused side of either limit in the `Acceptance criteria` section. `CLAUDE.md` (Tests) says "at column 0" gets an indented case, and the reviewer counts an untested side as a finding. `_items` is shared with the journal, but the journal test `test_indented_lines_in_a_journal_entry_are_no_entries` covers only rule 6's indentation, and no test anywhere puts a numbered line inside a fenced block. Fix: the tester adds a test where criteria such as `1. a`, an indented `   2. x`, a fenced block holding the line `3. y`, then `2. make check stays green.` and `3. docs: none.` give no finding. Gap in the story: criterion 5 does not spell out this refused side, so the human may want to add it there.
+   Not a finding, noted for the human: rule 6 defines journal entries as numbered lines at column 0 but does not say "outside code blocks". The code also skips fenced lines in the `Journal` section (`_items` in `src/factory/domain/story_form.py`). That fits the Assignment's point that code blocks are respected, and the docs criterion says the same.
