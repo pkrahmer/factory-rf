@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 89
 blocked: null
 comments_seen: 0
@@ -125,3 +125,15 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
    - Not run: the demo in the ticket. The code diff matches its Interface.
 
    `make check`: check: green
+7. demo: ran the single command under `## Demo` from the repository root. No findings.
+
+   - Command 1 (`uv run python -c "…"`, which builds both lookup handlers and calls `handle` with a detail): exit 0.
+
+     ```
+     CannotHandle cannot handle duplicate: two work items share the id F0001-S0001: a.md, b.md
+     CannotHandle cannot handle pull_request_lookup: the pull request lookup for work-item/F0001-S0001 failed: rate limited
+     ```
+
+     Met its `Expect:` line. Both lines match the expected text exactly.
+
+   - Criteria check: the output agrees with criteria 1 and 2 (the kind is `duplicate` or `pull_request_lookup`, the reason names the id or the branch and ends with `: <detail>`). Both handlers were built with no arguments and nothing was written, which fits criterion 3. The demo does not exercise criteria 4 to 8 (the dispatcher sequence, the restart, the except search) or criterion 10 (docs), and nothing in its output contradicts them. Earlier entries record their tests and a green `make check`.
