@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 90
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -153,3 +153,21 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: question. An existing test contradicts the Interface, and I have not changed it.
+
+   Built and committed in 82ef94e:
+   - `src/factory/domain/hand_over.py`: `HAND_OVER_CLOSING`, `REPORT_SECTIONS` and `hand_over_description`.
+   - `DESCRIPTION` in `src/factory/domain/sections.py`.
+   - `cost_table_post` in `src/factory/domain/post_texts.py`.
+   - `src/factory/application/handlers/hand_over.py`: `HandOverHandler`. It checks out the branch, refuses a stage that is not an approval, and returns at once when `handed_over == stage`. Otherwise it reads the cost records from the checkout, then calls set_description, set_draft(False) and the keyed post, and records `handed_over` last.
+
+   All 25 tests in `tests/domain/test_hand_over.py` and `tests/application/handlers/test_hand_over.py` pass.
+
+   `make check` is red on one test: `tests/test_no_journal_reading.py::test_no_module_reads_data_from_the_journal_text` reports `factory.domain.hand_over references entry_text`. That test's `ALLOWED["entry_text"]` set permits `factory.application.handlers.hand_over` but not `factory.domain.hand_over`. The Interface does the opposite: `hand_over_description(document, commits)` in the domain reads each report's text "with `entry_text`", and the domain tests call it with only a document and commits. So the text has to be read in the domain module.
+
+   Options:
+   1. (I recommend this.) The tester changes `ALLOWED["entry_text"]` in `tests/test_no_journal_reading.py`, replacing `factory.application.handlers.hand_over` with `factory.domain.hand_over`. The use is for display only: the speaker is still found from the record's data, which is what that test protects.
+   2. I add a helper in `factory.domain.journal`, for example `latest_result_text(document, speaker)`, and the domain module calls that instead. The test passes with no change, but it gets around the allow list rather than respecting it.
+   3. Change the Interface so the handler reads the texts and passes them to `hand_over_description`. That changes the signature and the domain tests.
+
+   Refactor step: not done yet, because the check is red.
