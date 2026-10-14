@@ -481,7 +481,7 @@ The watcher turns what the remote shows into one `Event`. The evaluation keeps n
 
 `idle` and `acceptance_due` take no work item; every other kind needs one. `feature` is set for `acceptance_due` and only for it. A violation raises `ValidationError`. `remote_state` is the snapshot's `branch_commit`, else the head of `origin/main`; an event with no work item carries `origin/main`'s head.
 
-The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); `RejectHandler` handles it (see *An illegal stage change is put back*). `build_handlers` registers every kind except `expired` and `acceptance_due` (see *The handlers of the events*); `expired` belongs to F0008 and `acceptance_due` to F0009.
+The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); `RejectHandler` handles it (see *An illegal stage change is put back*). `build_handlers` registers every kind except `acceptance_due`, which belongs to F0009 (see *The handlers of the events*).
 
 ### The four tiers
 
@@ -547,7 +547,7 @@ The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, 
 5. **Evaluate** with `Watcher(boundaries, instance).evaluate(definition)`.
 6. **Dispatch**: `handlers(definition)` is built now, because the handlers take the loaded definition, and a `Dispatcher` with the tick's status handles the event. The tick keeps the dispatcher's status for the next run.
 
-**The stale branch.** `delete_stale_branches(boundaries) -> list[str]` deletes the remote branches that a kill or a refused deletion left behind for a story that is already in `backlog/` or `done/`. It lists the stories of `origin/main` with `RemoteWorkItems.list_stories` for `backlog`, `done` and `in-progress`; the stale ids are those of the first two that no `in-progress` story file shares (a shared id is the `duplicate` case, which the evaluation reports). For each branch of `Git.remote_branches()` whose `work_item_of_branch` is a stale id, in the order of the names, it calls `Git.delete_remote_branch`. Outcome `"pushed"` writes `deleted stale branch <name>: its story is back in the backlog` (`its story is done` for `done/`) and adds the name to the result; any other outcome writes `could not delete stale branch <name>: <outcome>` and goes on, to be tried on the next tick. It reads only `origin/main` and the remote-tracking branches, makes no hosting call, and does not catch `GitError`. Because of it, a story started again after a discard that was killed starts with an empty bill.
+**The stale branch.** `delete_stale_branches(boundaries) -> list[str]` deletes the remote branches that a kill or a refused deletion left behind for a story that is already in `backlog/` or `done/`. It lists the stories of `origin/main` with `RemoteWorkItems.list_stories` for `backlog`, `done` and `in-progress`; the stale ids are those of the first two that no `in-progress` story file shares (a shared id is the `duplicate` case, which the evaluation reports). For each branch of `Git.remote_branches()` whose `work_item_of_branch` is a stale id, in the order of the names, it calls `Git.delete_remote_branch`. Outcome `"pushed"` writes `deleted stale branch <name>: its story is back in the backlog` (`its story is done` for `done/`, also for an id with story files in both `backlog/` and `done/`) and adds the name to the result; any other outcome writes `could not delete stale branch <name>: <outcome>` and goes on, to be tried on the next tick. It reads only `origin/main` and the remote-tracking branches, makes no hosting call, and does not catch `GitError`. Because of it, a story started again after a discard that was killed starts with an empty bill.
 
 `run` returns `TickOutcome(stopped=..., event=..., dispatch=...)`: `stopped` is set and the others are `None` when the tick ended at a stop. `WorkItemFormatError`, `ValueError` from the evaluation and a `GitError` outside the fetch and the restore are not caught; no stop exists for them. The tick reads and writes no run record and no lock. `IdleHandler` does nothing and is the handler of `idle`.
 
@@ -1384,7 +1384,7 @@ Tests: `tests/domain/test_labels.py`, `tests/application/test_stage_finish.py`, 
 
 ## Kill points: testing a crash
 
-A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).
+A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; F0008's tests arm `BEFORE_PUSH` (`tests/application/test_recovery_crash.py`, a kill before the crash commit's push) and `AFTER_PUSH` (`tests/application/test_tick_stale_branch.py`, a discard killed after its push); F0011 covers all four points.
 
 There are four points, the members of `KillPoint`:
 

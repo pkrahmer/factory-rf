@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 100
 blocked: null
 comments_seen: 0
@@ -105,3 +105,14 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
       - Rule sides: the stale-branch rule has both sides. Deleted: backlog, done, both folders. Kept: in progress, no owner. The "could not delete" rule is covered for `rejected` (already tested) and `unreachable` (new). The cleanup ordering is covered for all three repository stops, with the deleting side of each in the same test.
       - Considered, not a finding: `_log_lines` in `test_tick_stale_branch.py` is the fourth private copy of this 3-line helper. `test_tick.py`, `test_pipeline_loading.py` and `test_stale_branches.py` already have one each. CLAUDE.md's rule against second copies covers helpers in `src/factory`. Sharing the helper would mean changing the existing helper of `test_stale_branches.py`, and the Interface rules that out. A shared log-reading helper in `tests/` would be a story of its own, if the human wants one.
       - Ticket hygiene: the coder's log entry explains why nothing in `src/` changed and why criterion 7 was left to the documenter (CLAUDE.md gives those four documents to the documenter). The Assignment matches what was built. All four items of the docs criterion are still open and still describe what is needed: the `build_handlers` sentence, the both-folders rule under "The stale branch", the kill-points section, and the one-sentence additions to README and the operator guide.
+6. documenter: all four items of criterion 7 are written, and `make check` is green. The code matches the Interface, so I have no findings.
+   - `docs/project-guide.md` has three edits.
+     - The event-kinds paragraph now says `build_handlers` registers every kind except `acceptance_due` (F0009). `expired` is no longer named as unregistered.
+     - "The stale branch" says an id with story files in both `backlog/` and `done/` is logged as `its story is done`.
+     - The kill-points section says F0008's tests arm `BEFORE_PUSH` (`tests/application/test_recovery_crash.py`) and `AFTER_PUSH` (`tests/application/test_tick_stale_branch.py`), and that F0011 covers all four points.
+   - `README.md` and `docs/operator-guide.md` each got one sentence in the opening paragraph: a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch.
+   - I ran the demo greps. The first gives line 484, `registers every kind except `acceptance_due``, with no `expired`. The `crash` count in `README.md` is 1.
+   - I cross-read the `NOT_YET_HANDLED` paragraph and the wiring paragraph of `build_handlers`. The `NOT_YET_HANDLED` paragraph already named only `acceptance_due`. The wiring paragraph already lists `expired` among the registered kinds.
+   - I saw nothing stale that I left untouched.
+
+   `make check`: check: green
