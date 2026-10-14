@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 82
 blocked: null
 comments_seen: 0
@@ -221,3 +221,13 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
    - Quality: the code matches the Interface step by step: the `check_out` sequence, `publish` raising `PushFailed` for any outcome other than `pushed`, `unread` filtering only on `by_factory` and the ids already read, the sorted union in `comments_read`, and the early return in `copy`. Public names have docstrings and the comments explain why.
    - Hygiene: the log explains the main decision (updating `comments_read` with `model_copy`, rejected: building a new state through validation). Assignment matches what was built, and criterion 23 still describes what the documenter has to write.
    - Open, not a finding: the coder says `_state_of` in `comments.py` cannot be reached. It can be: `copy` reaches it when the checked-out work item has no state, and `append` reaches it when called directly with a stateless document. It then raises `ValueError`, not `CannotHandle`. The Interface does not cover this case. S0005 and S0007 call `target_of` first, which already needs a state. Also open: `copy` does not fetch, so the stories that call it must fetch first.
+6. documenter: wrote criterion 23 in one file.
+   - `docs/project-guide.md`:
+     - *Errors* now has `CannotHandle`.
+     - A new section "Recording the human's act" covers `target_of`, `require_pull_request`, `commit_subject` and `WorkItemRecorder`. It says a handler records the act in the work item's branch and pushes it before it acts. It also says `check_out` does not fetch, so the caller must have.
+     - A new section "Comments are copied by id" covers `CommentCopier`: only the marker separates the factory's comments from the human's, comments are tracked by id and not by count, and it lists the rules for `append` and `copy`. It also says no handler is registered yet.
+   - Cross-read and still true: README, `docs/operator-guide.md` and the "handlers of the events" section (`NOT_YET_HANDLED` is unchanged, since this story registers nothing). The diff against the Interface found no contradiction.
+   - Not run: I did not run the two demo commands, and the new text has no runnable examples. `make check` is green.
+   - Seen, not touched: `CommentCopier._state_of` raises `ValueError` for a stateless document. The reviewer noted this and the Interface doesn't cover it. I documented it as it is.
+
+   `make check`: check: green
