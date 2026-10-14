@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 53
 blocked: null
 comments_seen: 0
@@ -175,3 +175,29 @@ Expect: one line, `['src/factory/application/claims.py']`.
    - Stale but untouched: nothing.
 
    `make check`: check: green
+7. demo: ran both `## Demo` commands from the repository root, exactly as written. Both met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+   1. The lease clock and claim status, run with `uv run python -`. Exit code 0.
+   ```
+   2700.0
+   own
+   held
+   expired
+   none
+   False
+   ```
+   Met. The output is six lines, in order:
+   - `2700.0` (45 minutes; criterion 1).
+   - `own` for the same instance 30 minutes after the lease ran out (criterion 6).
+   - `held` at 59 minutes (criterion 7).
+   - `expired` at exactly 60 minutes (criteria 2 and 7).
+   - `none` for no claim (criterion 5).
+   - `False` for a `now` before the start (criterion 3).
+
+   2. The ast search for imports of the three lease functions from `factory.domain.lease`. Exit code 0.
+   ```
+   ['src/factory/application/claims.py']
+   ```
+   Met. The output is one line, and `factory.application.claims` is the only importer (criterion 14).
+
+   Cross-check against the criteria: nothing in the output contradicts criteria 1–15. Criterion 16 (`make check`) is the factory's gate after this stage; the coder and the documenter each reported it green. Criterion 17 (the docs) was not exercised by the demo; the documenter's entry 6 covers it.
