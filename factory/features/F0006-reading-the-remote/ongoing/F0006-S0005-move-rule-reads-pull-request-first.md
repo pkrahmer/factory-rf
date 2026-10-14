@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 75
 blocked: null
 comments_seen: 2
@@ -235,3 +235,18 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
      - `_reject` recognises the waiting work item by object identity. That is correct because the waiting pair is built from `facts.snapshots` itself.
      - Nothing dead is left (`_signal_of` is gone and nothing references it), and the public names have docstrings.
    - Ticket hygiene: log entry 6 names the main decision (a lookup step separate from the step that interprets it) and the alternative it rejected (a callback that remembers its result). The Assignment matches what was built. Criterion 27 still describes what the documenter has to write.
+8. documenter: wrote the move rule documentation; `make check` is green. I found no findings, because the code matches the Interface and the criteria.
+
+   Files changed:
+   - `docs/project-guide.md`:
+     - New section "The move rule", under *The evaluation*. It covers `StageChange`, `is_legal_change`, `factory_moves` and `last_stage_change`, with the `None` cases, the opening and merge commit exemptions and the `move_back` correction. It says only the newest commit that touched the file is judged.
+     - The same section says the pull request is read first. It describes the skip for a merged pull request and that a failed lookup skips nothing.
+     - Updated the `Watcher` paragraph for `illegal_changes`, and the event kinds sentence, which no longer says `evaluate` never makes `reject`.
+     - Added `reject` to the tier list.
+   - `docs/operator-guide.md`: new section "A stage changed by hand". It says what the factory reports, what is not a stage change (opening commit, merge commit, `move_back` correction, merge by any method) and that handling `reject` is not built yet (F0007-S0006).
+
+   I did not run the Demo block.
+
+   Cross-read and found current: README, `docs/decisions.md`, and the project-guide sections *The tick*, *The remote's work items* and *The stage protocol*. I saw nothing stale that is unrelated to this story.
+
+   `make check`: check: green

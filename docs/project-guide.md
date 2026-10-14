@@ -471,7 +471,7 @@ prints `{'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes
 
 The watcher turns what the remote shows into one `Event`. The evaluation keeps no memory: the same facts give the same event, so a `run` event the dispatcher has capped is still the first one on the next evaluation.
 
-`Watcher(boundaries, instance).evaluate(definition)` (`factory.application.watcher`) reads `origin/main`'s head and `RemoteWorkItems.read(definition)`, builds an `EvaluationInput(definition, snapshots, main_commit)` and calls the pure `evaluate(facts, lookup, claim_status)` (`factory.domain.evaluation`). Like `RemoteWorkItems`, it does not fetch; the caller does, first. `GitError` passes through, also when `origin/main` does not resolve (its message names `origin/main`), and so does `WorkItemFormatError`. The `lookup` it hands over calls `get_pull_request`, and `list_comments` only while the pull request is open. `claim_status` is `ClaimService(...).status`.
+`Watcher(boundaries, instance).evaluate(definition)` (`factory.application.watcher`) reads `origin/main`'s head and `RemoteWorkItems.read(definition)`, builds an `EvaluationInput(definition, snapshots, main_commit, illegal_changes)` (the illegal changes come from the move rule, below) and calls the pure `evaluate(facts, lookup, claim_status)` (`factory.domain.evaluation`). Like `RemoteWorkItems`, it does not fetch; the caller does, first. `GitError` passes through, also when `origin/main` does not resolve (its message names `origin/main`), and so does `WorkItemFormatError`. The `lookup` it hands over calls `get_pull_request`, and `list_comments` only while the pull request is open. `claim_status` is `ClaimService(...).status`.
 
 ### The event
 
@@ -479,13 +479,14 @@ The watcher turns what the remote shows into one `Event`. The evaluation keeps n
 
 `idle` and `acceptance_due` take no work item; every other kind needs one. `feature` is set for `acceptance_due` and only for it. A violation raises `ValidationError`. `remote_state` is the snapshot's `branch_commit`, else the head of `origin/main`; an event with no work item carries `origin/main`'s head.
 
-The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `reject` (an illegal stage change; F0006-S0005 adds it to tier 1) and `acceptance_due` (F0009). Handlers exist only for `idle` and `run` so far; the others belong to later features.
+The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); handling it, the move back, belongs to F0007-S0006. Handlers exist only for `idle` and `run` so far; the others belong to later features.
 
 ### The four tiers
 
 The first tier that matches decides.
 
 1. **Integrity.** Two snapshots with one id: `duplicate` for the first such id in id order, carrying the first snapshot; `detail` is `<id> at <path> and <path>`.
+   - Then, after the validation below and the pull request lookup, `reject`: see *The move rule*. It comes before everything else in tier 2 and below.
 2. **The human.** Only the first work item that waits, in id order, is looked at. A work item waits when `blocked` is set or its stage is an approval stage.
    - No pull request: `ask` (`no pull request`), without a lookup.
    - The lookup raises `HostingServiceError`: `pull_request_lookup`, with the error's text.
@@ -502,6 +503,28 @@ Nothing matched: `idle` at `origin/main`'s head.
 Three rules follow. A waiting work item holds back all new work, so one never starts while another waits for the human; and while a claim is held, nothing else runs, so only one agent runs at a time. At most one pull request lookup is made per evaluation, so an idle tick costs at most one.
 
 `evaluate` first checks every snapshot against the definition, after tier 1 and before any lookup: a work item with no state raises `ValueError("work item <id> has no state")`, and one in a stage the definition lacks raises `ValueError("work item <id>: stage <stage> is not in the pipeline definition")`. An unknown stage therefore never reaches the definition's accessors.
+
+### The move rule
+
+A stage changes only through the pipeline. `factory.domain.move_rule` holds the rule; every model in it is frozen and forbids unknown keys.
+
+- `StageChange(from_stage, to_stage, correction=False)`: a change read from git. `correction` is true when the same commit appended a journal record of kind `move_back`. The factory's own correction is marked by that journal kind, never by a commit message.
+- `is_legal_change(definition, change)` is true when `correction` is set, when the stage is unchanged, when `to_stage` is in `from_stage`'s `next`, or when `to_stage` is `done` and `from_stage` is an approval stage (the human's merge accepts, even when that stage's `next` does not list `done`). A stage the definition lacks is never a legal side.
+- `factory_moves(definition)` lists every `FactoryMove(from_stage, to_stage)` the factory may make: every name in every stage's `next`, in stage order, then each approval stage to `done`, no pair twice. All of them are legal under `is_legal_change`. A handler that moves a work item must take its target from the definition, or this proof does not hold.
+
+`RemoteWorkItems.last_stage_change(snapshot)` reads the change from git: `Git.log("origin/<branch>", since="origin/main", path=<story file>)`, so only commits not reachable from `origin/main` count, and the newest of them, `C`, decides. Only the last commit that touched the file is judged; an older illegal change that a later commit buried is not seen. The result is `None` when:
+
+- the snapshot has no branch, or the log is empty;
+- `C` is a merge commit (more than one parent);
+- `C` is the opening commit: its parent is reachable from `origin/main` (the text the human started, which may say any stage);
+- the file does not exist at `C` (deleted) or at its parent (added), or the parent's text cannot be parsed;
+- the stage is the same at `C` and at its parent.
+
+Otherwise it is a `StageChange`; `correction` is true only when `C`'s journal is longer than the parent's and its last record has kind `move_back`.
+
+`Watcher.evaluate` fills `illegal_changes` with an `IllegalChange(work_item, change)` for each snapshot, in snapshot order, whose change is not legal.
+
+**The pull request is read first.** After a merge by any method (merge commit, squash, rebase) the branch's commits may still be beyond `origin/main` and show a stage change nobody made by hand. So `evaluate` makes its one lookup (for the first waiting work item `W`, exactly when it did before) before it decides on `reject`. It returns `reject` for the first illegal change in snapshot order, with `remote_state` the snapshot's `branch_commit` and `detail` `stage changed from <from> to <to>, which the pipeline definition does not allow`. It skips the change of `W` only when the lookup returned a merged pull request; the next illegal change, if any, is then considered. A failed lookup skips nothing. The lookup is made at most once and not at all when no work item waits.
 
 `waiting(state, definition)` and `question_posted(snapshot, comments)` are public in `factory.domain.evaluation` for the handlers that come later.
 

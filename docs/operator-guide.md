@@ -381,6 +381,19 @@ When the factory does nothing, the evaluation may still have a reason. An `idle`
 
 Neither is a fault. With neither, an idle tick means no work item has anything to do.
 
+## A stage changed by hand
+
+The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. Handling the event, moving the stage back, is not built yet; until it is, the event is only recorded.
+
+Not counted as such a change:
+
+- the opening commit, whose parent is the story as you started it (a story started at `review` is not rejected);
+- a merge commit on the branch;
+- the factory's own correction, which moves the stage back and appends a journal entry of kind `move_back`;
+- a merge of the pull request by any method: merge commit, squash or rebase. The factory reads the pull request first, and a merged pull request is `merged`, never an illegal change.
+
+A hand-made change that a later commit on the branch buried is not seen: only the newest commit that touched the file is judged.
+
 ## An event that keeps failing
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
