@@ -422,3 +422,100 @@ def test_an_event_without_a_work_item_is_reported_without_a_log(
 
     assert outcomes == ["error", "error", "reported"]
     assert _entry(dispatcher, event).reported
+
+
+def _dispatch_without_git(dispatcher: Dispatcher, event: Event, checkout: Path) -> str:
+    git_directory = checkout / ".git"
+    away = checkout.with_name("git-away")
+    git_directory.rename(away)
+    try:
+        return dispatcher.dispatch(event)
+    finally:
+        away.rename(git_directory)
+
+
+def test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported(
+    boundaries: Boundaries,
+    hosting: FakeHostingService,
+    human: HumanClone,
+    checkout: GitCli,
+    remote: Path,
+) -> None:
+    human.push_file(BRANCH, "note.txt", "x")
+    checkout.fetch()
+    tip = remote_commit(remote, BRANCH)
+    assert tip is not None
+    event = _event(snapshot=_snapshot(None, branch_commit=tip))
+    log = RecordingLog()
+    dispatcher = Dispatcher({"run": Failing()}, TickStatus(), StopService(boundaries), log)
+    for _ in range(2):
+        dispatcher.dispatch(event)
+
+    failed = _dispatch_without_git(dispatcher, event, boundaries.checkout)
+
+    assert failed == "error"
+    entry = _entry(dispatcher, event)
+    assert not entry.reported
+    assert entry.count == 3
+    assert entry.last_error == BOOM
+    assert hosting.pull_requests() == []
+    assert log.lines == []
+
+
+def test_a_report_that_failed_with_a_git_error_is_made_again_once_git_is_back(
+    boundaries: Boundaries,
+    hosting: FakeHostingService,
+    human: HumanClone,
+    checkout: GitCli,
+    remote: Path,
+) -> None:
+    human.push_file(BRANCH, "note.txt", "x")
+    checkout.fetch()
+    tip = remote_commit(remote, BRANCH)
+    assert tip is not None
+    event = _event(snapshot=_snapshot(None, branch_commit=tip))
+    handler = Failing()
+    dispatcher = Dispatcher({"run": handler}, TickStatus(), StopService(boundaries))
+    for _ in range(2):
+        dispatcher.dispatch(event)
+    assert _dispatch_without_git(dispatcher, event, boundaries.checkout) == "error"
+
+    again = dispatcher.dispatch(event)
+
+    assert again == "reported"
+    assert len(handler.calls) == 3
+    pull_requests = hosting.pull_requests()
+    assert len(pull_requests) == 1
+    opened = pull_requests[0]
+    assert opened.draft
+    assert opened.branch == BRANCH
+    assert [post.key for post in hosting.factory_posts(opened.number)] == [_report_key(STATE)]
+    assert dispatcher.dispatch(event) == "capped"
+    assert len(hosting.factory_posts(opened.number)) == 1
+
+
+def test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line(
+    boundaries: Boundaries, hosting: FakeHostingService
+) -> None:
+    event = _event(snapshot=_snapshot(None, branch_commit=None))
+    handler = Failing()
+    log = RecordingLog()
+    dispatcher = Dispatcher({"run": handler}, TickStatus(), StopService(boundaries), log)
+    for _ in range(2):
+        dispatcher.dispatch(event)
+
+    failed = _dispatch_without_git(dispatcher, event, boundaries.checkout)
+
+    assert failed == "error"
+    entry = _entry(dispatcher, event)
+    assert not entry.reported
+    assert entry.count == 3
+    assert entry.last_error == BOOM
+    assert log.lines == []
+
+    again = dispatcher.dispatch(event)
+
+    assert again == "reported"
+    assert len(handler.calls) == 3
+    assert log.lines == [f"error cap reached on {event.key}: {BOOM}"]
+    assert hosting.pull_requests() == []

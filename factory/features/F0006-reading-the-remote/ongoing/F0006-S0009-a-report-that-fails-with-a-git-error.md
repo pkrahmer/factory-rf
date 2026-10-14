@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 79
 blocked: null
 comments_seen: 0
@@ -56,3 +56,15 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
    - Demo: the pytest command is runnable. The `Expect:` line checks against the output: 100% coverage of the dispatcher with an empty `Missing` column, and `<n> passed` with no failed, error or skipped count.
    - Architecture: tests only, no new layer or dependency. The real git wrapper is used and not faked, as CLAUDE.md requires.
    - Scope: this is within F0006's dispatcher scope, and the feature's story list names it as proposed by the feature acceptance. It touches nothing under Out of scope.
+3. tester: added three test functions to tests/application/test_dispatcher.py. They use the module's existing fixtures and helpers (`Failing`, `RecordingLog`, `_snapshot`, `_event`, `_entry`, `_report_key`). I did not change any existing test, helper or import.
+      - criterion 1: tests/application/test_dispatcher.py::test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported
+      - criterion 2: tests/application/test_dispatcher.py::test_a_report_that_failed_with_a_git_error_is_made_again_once_git_is_back
+      - criterion 3: tests/application/test_dispatcher.py::test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line
+      - New private helper `_dispatch_without_git(dispatcher, event, checkout)`: it renames `boundaries.checkout / ".git"` to `checkout.with_name("git-away")` for one dispatch and renames it back in a `finally`. The `GitError` therefore comes from the real `GitCli.resolve`, with no test double. Its return type is `str` rather than `DispatchOutcome`, so the module's imports stay unchanged.
+      - Files created: none (one existing test module extended).
+      - Modules the test runner could not import: none.
+      - The tests pass rather than fail. That is expected: the ticket says `Dispatcher.dispatch` already behaves this way and needs no code change. `make test` is green (total coverage 99.35%) and `make lint` is green. I skipped the type check, as this stage says.
+      - Open for the coder: confirm that no code change is needed and run `make check`. Criterion 5 (the operator-guide sentence) is the documenter's.
+
+   `make lint`: lint: green
+   `make test`: test: green
