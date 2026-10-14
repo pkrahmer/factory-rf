@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 51
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Documentation after stops and the pipeline definition
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
@@ -51,3 +59,79 @@ Expect: one line, a number of at least `2`: the status names the health status f
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: "None: no code changes" is consistent with a documentation-only story. No Interface comment states a behaviour, so no criterion is missing.
+   - Criteria: only `make check` green and the `docs:` criterion. The docs criterion names the concrete checks: the example parses with `RuamelPipelineDefinitionReader().parse`, the keys with their defaults, the `done` stage, contract major 1, the lease rule, strict YAML types, blank write paths, `next` and a role or approval, the pointer to the faults list, the `agent_definitions` field order, and `WritePathService` removed. No rule states a limit, so there is no failing side to cover. The documenter judges the docs criterion, and the tester has nothing to write.
+   - Demo: all three commands are runnable (sed/grep over existing files), and each Expect line is checkable by a count or a matching line. The README count of at least 2 is loose but checkable.
+   - Architecture: no code, no layer touched. The edits are confined to README.md, docs/operator-guide.md and docs/project-guide.md, which the documenter owns.
+   - Scope: within F0003 (listed as S0010 in FEATURE.md) and outside no "Out of scope" item. The decision on the README summary is recorded as decision 20.
+3. tester: no tests written, by design. This story only changes documentation: the Interface is "None: no code changes", and the Assignment says the tester writes no tests.
+   - criterion 1 (`make check` stays green): the factory checks this itself. No test is needed, and there is no new code to make one fail.
+   - criterion 2 (docs): the documenter judges it from the docs criterion, and the Demo's sed/grep commands check it. It describes no runtime behaviour, so pytest cannot test it.
+   Files created: none. Modules the test runner could not import: none. Nothing was added, so `make test` is unchanged from main and was not run for a red state. `make lint` is green and the working tree is clean.
+   Rejected: tests that grep README.md or docs/ for the required sections or names. They would turn prose into a test contract, which is beyond what the Assignment asks for, and they would put criteria in the tests (R4). Open: nothing. The coder has nothing to build, so the work goes on to the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: nothing to build, by design. This story only changes documentation: the Interface is "None: no code changes", the tester wrote no tests, and the Assignment gives the work to the documenter (README.md, docs/operator-guide.md, docs/project-guide.md). The coder does not write those files.
+      - No source or test changes and no commits. I ran `make check` on the unchanged branch and it is green (coverage 99.72 %).
+      - No refactor: there is no diff to read.
+      - Rejected: editing the three docs files here. They are outside the coder's lane, and CLAUDE.md gives them to the documenter stage.
+      Open: everything in the docs criterion, for the documenter. That covers the operator guide's section on the pipeline definition and its pointer from `pipeline_definition_invalid`, the F0003 parts in the opening list, `agent_definitions` in the project guide's "Boundaries", `WritePathService` removed from "The pipeline loader", and the README status summary.
+
+      `make check`: check: green
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the ticket. That matches a documentation-only story, whose Interface is "None: no code changes".
+      - Acceptance criteria: criterion 1 (`make check` stays green) is met. The coder's entry says `make check` is green on the unchanged branch (coverage 99.72 %), and the factory recorded green after the coder. Criterion 2 (docs) is the documenter's to write next. No pytest test can cover it, and the tester explained why it wrote none. The Interface states no rule or limit, so no failing side goes untested.
+      - Architecture, security and quality: nothing to judge, because no code, tests, dependencies or check markers changed.
+      - Ticket hygiene: the tester and coder entries both explain the main decision (no tests and no code, by design) and what they rejected (prose-grepping tests, and the coder editing docs outside its lane). The Assignment matches what was built, which is nothing yet. The docs criterion still says everything the documenter must write: the operator guide's pipeline-definition section with an example that parses, the keys and defaults, the `done` stage, contract major 1, the lease rule, strict YAML types, blank write paths, `next` plus a role or approval, the pointer to the faults list and the `pipeline_definition_invalid` pointer; the F0003 parts in the opening list; `agent_definitions` in "Boundaries" in the dataclass's order; `WritePathService` removed from "The pipeline loader"; and the README status summary.
+      Open: the whole docs criterion, for the documenter.
+6. documenter: wrote the three repairs; no findings against the code. `make check` is green (coverage 99.72 %).
+   - `docs/operator-guide.md`: added "The pipeline definition", before "The agent files". It has an example that `RuamelPipelineDefinitionReader().parse` accepted when I ran it, the keys with their defaults, and the stage and role fields. It also states the rules an operator meets: `done: {}`, contract major 1, `next` plus a role or `approval: true`, the lease arithmetic (40+10+10=60 fits, 70 does not), strict YAML types, a write path that is not blank, unknown keys refused, and `project_commands` replacing the default set. It points to the project guide's "The rules of the definition" for the full list of faults. The `pipeline_definition_invalid` table row now points to the new section. The opening list of built parts now names the F0003 parts: factory log, health file, the stops, the pipeline definition with its reader, rules and loader, and the agent definition reader.
+   - `docs/project-guide.md`: "Boundaries" now lists `…, cost_reader, cost_writer, pipeline_reader, agent_definitions, clock, …`, the dataclass's order (it had `pipeline_reader` before the cost fields). In "The pipeline loader", `WritePathService.at` is replaced by a sentence that F0004's write paths will parse the definition directly with `pipeline_reader`. The loader paragraph also points to the rules section.
+   - `README.md`: the status sentence is now a summary of the built parts. It names the stops, the factory log and health status file, and the pipeline definition with its agent files. It points to `docs/project-guide.md`, as decision 20 says.
+   - Cross-read and found current: the rest of the operator guide (agent files, stops, story check) and the project guide's pipeline definition and agent reader sections, against `boundaries.py` and the pipeline YAML example.
+   - Ran the three demo commands: `agent_definitions` count in Boundaries is 1, the new section heading is present, and the README match count is 2.
+   - Stale but not touched: the README and operator guide still describe `factory-check-story` as the only command, which is true. The guide's line "The documenter stage extends this" is unrelated and left as is.
+
+   `make check`: check: green
+7. demo: I ran all three demo commands from the repository root. Each one met its `Expect:` line, and I found nothing that contradicts a criterion.
+
+   1. `sed -n '/^### Boundaries/,/^## /p' docs/project-guide.md | grep -c agent_definitions`
+   ```
+   1
+   ```
+   Met: one line, a number of at least 1.
+
+   2. `grep -n "^## " docs/operator-guide.md | grep -i "pipeline definition"`
+   ```
+   101:## The pipeline definition
+   ```
+   Met: there is a section on the pipeline definition. "The stop `pipeline_definition_invalid`" is a separate heading at line 79. Its name has no space between "pipeline" and "definition", so this grep does not match it.
+
+   3. `grep -ci "health\|pipeline definition\|project.guide" README.md`
+   ```
+   2
+   ```
+   Met: one line, a number of at least 2.
+
+   Criteria checked beyond the commands:
+   - The YAML example in "The pipeline definition" of the operator guide parses. I took it out of the guide and ran it through `factory.adapters.pipeline_yaml.RuamelPipelineDefinitionReader().parse`, which returned a `PipelineDefinition` with the stages `['testing', 'doing', 'review', 'done']`.
+   - The section covers everything the docs criterion names:
+     - the table of keys with their defaults;
+     - `done: {}`;
+     - contract major 1;
+     - `next` plus a role or `approval: true`;
+     - the lease rule, with the default sum 40+10+10=60;
+     - values taken only in their YAML type;
+     - a write path that is not blank;
+     - the pointer to the project guide's "The rules of the definition".
+   - The fix column for the rules-fault row in the `pipeline_definition_invalid` table points to "The pipeline definition".
+   - The operator guide's opening list of built parts names the F0003 parts: the factory log, the health status file, the stops, the pipeline definition with its reader, rules and loader, and the agent definition reader.
+   - The project guide's "Boundaries" lists `…, cost_writer, pipeline_reader, agent_definitions, clock, …`, in the dataclass's order.
+   - `grep WritePathService` over `docs/*.md` and `README.md` finds nothing.
+   - The README status sentence summarises the built parts, names the stops, the health status file and the pipeline definition, and points to `docs/project-guide.md`.
+
+   Findings: none. Open: nothing.

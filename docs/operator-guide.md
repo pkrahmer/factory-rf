@@ -1,6 +1,6 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, and the hosting-service client. The one command to run so far is `factory-check-story`; there is nothing else to start; the sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
+The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, and the agent definition reader. The one command to run so far is `factory-check-story`; there is nothing else to start; the sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
 
 ## The project's make targets
 
@@ -90,13 +90,57 @@ The detail is the fault. The faults the load reports:
 |---|---|
 | `factory/pipeline.yml is missing at origin/main` | the file is not on `main`; merge it |
 | a fault of the text, such as `missing key: contract`, `unknown key: <path>`, `invalid <path>: <message>`, `not valid YAML: <problem>` | fix `factory/pipeline.yml` on `main`; several faults are joined by `; ` |
-| a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; the full list is in the project guide, "The rules of the definition" |
+| a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; see "The pipeline definition" for the rules you meet most often and the project guide, "The rules of the definition", for the full list |
 | `role <role>: agent is not installed` | the role has no file `<agent home>/agents/<role>.md`; install it. Every missing role is named, in the order of `roles`, joined by `; ` |
 | `agent home unavailable: <fault>` | `<agent home>/agents` is missing or is not a directory (see "The agent files") |
 
 The agents are checked only when the text itself is valid, so a broken file and a missing agent home show the file's fault alone until it is fixed. A key with a default may be left out and takes it; a key without one that is missing is a fault.
 
 The stop clears itself at the next load of `origin/main` that succeeds, with the line `stop cleared pipeline_definition_invalid`; stops of other reasons are not touched. Only the load of `origin/main` raises or clears this stop: a look at the definition on another branch can be refused, but it changes neither the health status nor the log. A git failure while reading (an unreachable repository, an unknown ref) is not a fault of the definition and raises no stop. If the health status cannot be written, the load reports an `OSError` and not the fault; the log line has been written. What the cycle does while the stop stands is described with the tick.
+
+## The pipeline definition
+
+`factory/pipeline.yml` is the project's configuration: its stages, the roles that work in them and the limits. The factory reads it only as it stands on `origin/main`, so a change takes effect when it is merged. This definition loads:
+
+```yaml
+contract: '1.0'
+roles:
+  tester:
+    write_paths: ['tests/*', '{work_item}']
+  coder:
+    write_paths: ['src/*', '{work_item}']
+stages:
+  testing: {role: tester, next: [doing], checks: [lint]}
+  doing: {role: coder, next: [review], checks: [check]}
+  review: {approval: true, next: [done, doing], round_cap: 3}
+  done: {}
+```
+
+The keys, with what a left-out key takes:
+
+| Key | Meaning | Default |
+|---|---|---|
+| `contract` | the contract version, quoted: `'1.0'` | required |
+| `stages` | name to stage; the order in the file is the pipeline's order | required |
+| `roles` | name to role; the name is also the agent file's name | required |
+| `project_commands` | name to `time_limit` in minutes | `check`, `lint` and `test`, each 10 |
+| `attempts_cap` | attempts before the human is asked | 2 |
+| `crash_cap` | crashes before the human is asked | 2 |
+| `acceptance_stage` | the stage of the feature acceptance | none |
+
+A stage has `role` (none: no agent runs), `next` (the first name is the forward move), `approval` (the human decides), `checks` (project commands that must pass after the agent), `reports` (project commands run after green and only recorded) and `round_cap` (none: no cap). A role has `write_paths` (required), `lease_duration` (60 minutes) and `time_limit` (40 minutes, one agent run). A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature directory. Every limit is a positive whole number.
+
+The rules you meet most often:
+
+- The stage `done` must exist, with no role and no `next`. Write it `done: {}`; `done:` alone is refused.
+- The contract major must be 1. Any minor is read.
+- Every stage other than `done` needs a non-empty `next` and either a role or `approval: true`; every name in `next` must be a stage.
+- The lease: for each stage with a role, the role's `time_limit` plus the `time_limit` of every command in the stage's `checks` and `reports` must be at most the role's `lease_duration`. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits; a stage with two checks and a report adds up to 70 and is refused. Raise the `lease_duration` or lower a limit.
+- Values are taken only in their YAML type: a limit is an integer (not `'30'`, `30.0` or `true`), `approval` is `true` or `false` (not `'yes'` or `1`), names and write paths are text. A write path must hold a character that is not whitespace.
+- A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them.
+- Every role needs an agent file (see "The agent files").
+
+A refused definition raises the stop `pipeline_definition_invalid`, described above. The project guide, "The rules of the definition", lists every fault.
 
 ## The agent files
 
