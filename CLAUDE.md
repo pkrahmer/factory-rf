@@ -27,6 +27,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 - File formats (R13). ruamel.yaml (keeps comments and order when it rewrites YAML the human edits) and python-frontmatter, each format behind one reader and one writer class, validated into Pydantic DTOs.
 - Type everything; `mypy --strict` is part of the checks. `Any` only at a boundary that Pydantic validates immediately.
 - Before changing the architecture, read `docs/decisions.md`; lasting reasons are there.
+- Before writing a helper, search `src/factory` for one that does the same, and reuse or extend it; the reviewer counts a second copy of an existing helper as a finding.
 
 ## Tests
 - pytest. Tests live under `tests/` and mirror the package: `tests/domain/`, `tests/application/`, `tests/adapters/`, `tests/entry/`, each folder a package with an `__init__.py`; a module outside the layers is tested at the `tests/` root.
