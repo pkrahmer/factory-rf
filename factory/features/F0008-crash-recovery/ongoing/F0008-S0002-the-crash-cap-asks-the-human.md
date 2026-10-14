@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 96
 blocked: null
 comments_seen: 0
@@ -231,3 +231,17 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
       - Quality: the cap is decided once, in `_crash_recorded`, and `handle` branches on the pushed `blocked`. That is sound and explained in the log. The `_state_of` helper replaces three duplicated checks. The docstrings are present and accurate, and the comments say why.
       - Ticket hygiene: the log names the main decision and the rejected alternative, and `Assignment` matches what was built.
       - Left open for the documenter: docs criterion 19. The coder also noted that `AskHandler._post` looks up `last_record(kind="question")` with no speaker filter. That is outside this diff and only matters if the crash-cap question is not the work item's last question.
+6. documenter: Docs written; `make check` is green (coverage 99.17 %). I did not run the two demo commands. I did not run the new examples either, because the new text has none beyond the question text, which I copied from the Interface. A background wait loop I started was stopped at its time limit; it did not affect the check, which had already finished green.
+
+   Files changed:
+   - `docs/operator-guide.md`: the crash-cap row in the questions table now has the real comment text, what a comment does, and what closing does. A new subsection "The crash cap" gives the `crash_cap` key and its default of 2, how the count works, the question text, and the effect of a comment or a close. It also covers a repeated boundary error after a claim ending here and not in the error report, and a failed post staying recorded. "A restart during a stage" no longer says nothing is posted or that the cap is unhandled.
+   - `docs/project-guide.md`: the crash-recovery section now says that below the cap nothing is posted. A new paragraph covers `at_crash_cap`, `asking_crash_cap`, `crash_cap_question`, `ask_crash_cap`, the post key, `CannotHandle`, `PushFailed` and the recorded-before-posted order. It says the cap counts crashes since the last forward move. The "No code reads data from the journal's text" list now names `factory.application.recovery` for the display text of the question.
+   - `docs/decisions.md`: a new entry. A rework move and a stall keep the counter. The crash and the question go in one commit that is pushed before the post. A lost question for a story without a pull request is not posted again.
+
+   Cross-read and found current: the `crash_cap` rows in the `operator-guide.md` and `project-guide.md` pipeline-definition tables, the `unblock` and `CommentHandler` text, and the `AskHandler` text. `README.md` has nothing on crash recovery.
+
+   Seen but not touched: the project guide's `NOT_YET_HANDLED` text (`expired` as F0008's) is unrelated to this story.
+
+   No findings against the code. I did not check `tests/test_no_journal_reading.py` against the code, since it is outside the docs lane.
+
+   `make check`: check: green

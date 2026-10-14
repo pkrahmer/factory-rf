@@ -146,7 +146,7 @@ The questions you can meet on a pull request, and how to answer each:
 | The round cap | `round_cap` | see below | answers it | discards the story |
 | The attempts cap | `attempts_cap` | `factory: ` and the text below | the attempts go back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
 | The send-back | `send_back` | see "A close at the approval sends the story back" | answers it | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted (option 2 of the question). The send-back has already moved the story out of the approval, so a close cannot send it back again |
-| The crash cap | `crash_cap` | posted by the handler of crashes (F0008) | answers it | discards the story |
+| The crash cap | `crash_cap` | `factory: ` and the text below | the crash counter goes back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
 
 The attempts-cap question is recorded by the `ask` handler itself, when a work item has used all its attempts: an entry by `factory` of kind `question`, and `blocked` set to `attempts_cap`. It reads:
 
@@ -590,12 +590,27 @@ What it does, in one call:
 
 - It throws away everything the dead stage did that is not on the remote: uncommitted and untracked files, commits that were never pushed, and the cost records of the discarded agent runs. Records of earlier stages stay.
 - It records the crash in one commit on top of the remote's head: the claim is cleared, `crashes` goes up by one, and the journal gets an entry of kind `crash`: "crash 1: the run of stage doing ended without a result. Its work is discarded back to commit <commit>."
-- It reruns the stage at once. `attempts` is not raised: a crash is not charged as a failed attempt.
-- It posts nothing on the pull request.
+- It reruns the stage at once, unless the crash cap is reached (see "The crash cap"). `attempts` is not raised: a crash is not charged as a failed attempt.
+- Below the cap it posts nothing on the pull request.
 
 A commit that you pushed to the branch while the stage ran is on the remote, so it stays; the journal entry names the commit the discard went back to. The stage-start commit and its `started` entry stay in the history too.
 
-If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. The `crash_cap` and a claim of another instance name that has expired are not handled yet.
+If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. A claim of another instance name that has expired is not handled yet.
+
+### The crash cap
+
+`crash_cap` in the pipeline definition (default 2) is the number of crashes after which the factory asks you instead of rerunning. The count is `crashes` in the work item's state; it is reset by a forward move of the stage and by your answer, and kept by a rework move and by a stall, so it counts the crashes since the last forward move.
+
+When a crash brings `crashes` up to the cap, the stage is not rerun. The same commit that records the crash records a question by `factory` and sets `blocked` to `crash_cap`; the commit is pushed, and only then is the question posted on the pull request, once. If the work item has no pull request yet, a draft is opened for it first. The question reads:
+
+```text
+Stage doing crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+```
+
+- A comment you write after the question was posted ends the wait: `crashes` goes back to 0, `attempts` stay, and the stage runs again.
+- Closing the pull request discards the story.
+- A boundary error after the factory pushed its claim (hosting service, agent runtime, project command, git, a rejected result push) leaves the claim on the remote. The next look treats it as a crash and reruns the stage. If that fails again, it is the second crash and ends here with this question, not in the error report of "An event that keeps failing", because each rerun is a new event on a new remote state.
+- If posting fails, the question stays recorded and pushed; the failure is a counted error of the event. A question lost between its record and its post is posted again by the `ask` handler when the work item has a pull request; for a work item without one it is not posted again.
 
 ## Claims, leases and the clock
 
