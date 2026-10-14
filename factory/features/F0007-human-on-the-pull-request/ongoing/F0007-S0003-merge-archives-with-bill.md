@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 84
 blocked: null
 comments_seen: 0
@@ -218,3 +218,14 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
         - The coder derives the sidecar destination as `cost_records_path(destination_path(story, "done"))`. That is the right call: `folder_of` accepts only `.md` work item files, and widening it would change the rule that S0004 reuses.
         - The `appended.state is None` guard in `merged.py:39` cannot be reached, because `append_entry` already refuses a stateless document. It exists only to narrow the type for mypy, which is how the sibling handlers handle the same issue. I accept it and do not count it as dead logic.
       - Ticket hygiene: the log names the main decision (the sidecar destination) and what was rejected. `Assignment` matches the code. Criterion 19 still says what the operator guide must cover.
+6. documenter: no findings. `make check` is green.
+   - `docs/operator-guide.md`: new section "A merge archives the story", placed before "Branch deletion on merge must be off". It covers criterion 19:
+     - What a merge by any method does at any stage: it moves the story and its cost records to `done/`, sets the stage to `done`, adds the `done` journal entry with the bill, and deletes the branch. The handler posts nothing.
+     - What to do when it goes wrong: a rejected archive push, a kill before or after the push, and a refused branch deletion. In the last case the operator deletes the branch by hand.
+     - A note that `merged` is still in `NOT_YET_HANDLED`, because the handler is built but not registered yet.
+   - `docs/project-guide.md`: new subsection "The merge archives the story". It describes `MergedHandler` step by step, `destination_path`, `done_entry_text` and the tests. It records why the sidecar's destination is derived from the story's destination, and why the claim is dropped in the state.
+   - Cross-read and found current: `README.md`, `docs/decisions.md`, and the operator guide's "An event that keeps failing" section. That section lists `merged` as unhandled, which is still true because the diff does not touch the wiring. The "Branch deletion on merge must be off" section is also still true.
+   - I did not run the demo commands.
+   - Stale prose I saw and did not touch: none that is unrelated to this story.
+
+   `make check`: check: green

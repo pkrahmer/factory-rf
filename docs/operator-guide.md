@@ -410,6 +410,24 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 - Exit status: 0 after printing; 1 when the pipeline definition on `origin/main` is invalid (the fault goes to standard error as `factory-watch: <fault>`, standard output stays empty, no stop is raised); 2 for an unknown option, and while the instance settings are not wired (F0010-S0001): then `factory-watch: no instance settings are wired yet` goes to standard error. Until F0010 the installed command therefore ends with 2; the code is reached by `factory.entry.watch.run_watch`. A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
 - v1's `--follow` mode and its `factory-last-line` file are gone: `--follow` is an unknown option, and nothing writes that file. A file of that name left by v1 is not read and can be deleted.
 
+## A merge archives the story
+
+A merge of a story's pull request, by any method (merge commit, squash or rebase), accepts the story as it is, at whatever stage it has reached: working, waiting for you, or at an approval stage. The merged handler (`MergedHandler`) then archives it on `main`, in one commit with the subject `work item <id>: merged, archived`:
+
+- the story file moves from `in-progress/` to `done/` of its feature, and its cost records (`<story>.costs.jsonl`) move beside it when it has them;
+- its stage becomes `done`, with no wait and no claim, whoever held the claim; its counters and journal stay as they were;
+- one journal entry is added, from `factory`, kind `done`: `done (pull request merged); cost: <the bill>`. The bill counts every cost record of the story, a died run and an unknown cost included; a story with no cost records gets the bill of none.
+
+The handler posts nothing on the pull request. After the archive is pushed it deletes the work item's branch, on the remote and in the factory's checkout. A branch that is already gone (the hosting service deleted it) is no error. The handler trusts the merge: it asks nothing and checks nothing.
+
+Not yet running: `merged` is still in `NOT_YET_HANDLED` (see "An event that keeps failing"), because the handler is not registered until F0007 wires its handlers. Until then a merge leads to the error report described there.
+
+When it goes wrong:
+
+- **The push of the archive is rejected** (`PushFailed`, outcome `rejected`): `main` moved since the checkout. Nothing is archived and the branch is kept. The next tick fetches, and the story is archived then; do nothing.
+- **The factory dies before the push**: `main` and the branch are as they were, and the story is archived once on the next tick.
+- **The factory dies after the push, or the remote refuses to delete the branch** (`PushFailed` naming the branch, outcome `rejected`, for example when the remote forbids deletions): the archive stays on `main` and the story is under `done/`, so no event is raised for it again. The branch `work-item/<id>` is left on the remote. Delete it yourself (`git push origin --delete work-item/<id>`) after you have lifted the refusal, if any; nothing in the factory reads it any more. An unreachable remote during the deletion leaves the branch in the same way.
+
 ## Branch deletion on merge must be off
 
 The factory reads a work item's state from its branch `origin/work-item/<id>`. A story in `in-progress/` on `main` with no such branch is read as a new start: it is at the first stage with fresh counters, whatever its file says. So turn off the hosting setting that deletes head branches when a pull request is merged ("Automatically delete head branches" on GitHub). With it on, a merged story whose file is still in `in-progress/` loses its branch and starts again.
