@@ -11,10 +11,7 @@ S0007 refuses at load "a definition that is well formed but cannot work", so tha
 
 This story adds two rules to the validator of `PipelineDefinition`, after S0007's nine. Each refusal is then the existing `PipelineDefinitionInvalid` and, at load, the existing `pipeline_definition_invalid` stop. Covers R30 and keeps kept things 7 and 12. The acceptance of F0003 found the gap (section 2 probes).
 
-Decisions for the human while refining:
-
-- Is either shape ever meant? For example, a stage the factory itself works in with no agent: the name `factory` is reserved, but no such stage kind exists in the schema. This draft assumes neither is meant.
-- The two rules run only when the definition has a stage named `done`. Without one, it is unclear which stage was meant as the end, so its faults would be noise. This also keeps S0007's test `test_a_definition_without_a_done_stage_is_refused` valid as it stands: its text renames `done` to `finished`, and `finished: {}` would otherwise add two faults to the one it expects. The alternative is to apply the rules always and change that test, which needs your approval (R9).
+Decided by the human on 2026-10-14, as the pre-check recommended: neither shape is meant. No kind of stage in the schema lets the factory work without an agent (the name `factory` is reserved, not a stage kind), and a later story that needs one adds it and relaxes rule 11 deliberately. The two rules run only when the definition has a stage named `done`: without one, the end of the pipeline is unknown and S0007's fault `stages must hold a stage named done` is the one that matters. This also keeps S0007's test `test_a_definition_without_a_done_stage_is_refused` as it stands, so no test of another story changes. Rejected: applying the rules always, which would add two faults for `finished: {}` to that test and change it.
 
 ## Interface
 
@@ -32,7 +29,7 @@ Tests: a new file `tests/adapters/test_pipeline_stage_moves.py`, through `Ruamel
 ## Acceptance criteria
 
 1. `PIPELINE_YAML` still parses. Its stage `acceptance`, which no `next` names, is accepted: this story adds no rule on reachability.
-2. A stage `limbo: {next: [done]}` added before `done` is refused with the fault `stage limbo: has neither a role nor approval`. `limbo: {role: coder, next: [done]}` is accepted, and so is `limbo: {approval: true, next: [done]}`.
+2. A stage `limbo: {next: [done]}` added before `done` is refused with the fault `stage limbo: has neither a role nor approval`. `limbo: {role: coder, next: [done]}` is accepted, and so is `limbo: {approval: true, next: [done]}`. A stage `limbo: {}` added before `done` breaks both rules and is refused with the fault `stage limbo: next is empty; stage limbo: has neither a role nor approval`.
 3. The stage `doing` with `next: []` is refused with the fault `stage doing: next is empty`. With `next: [review]` it is accepted.
 4. The stage `approval` with `next: []` is refused with the fault `stage approval: next is empty`.
 5. With two faults of each rule (`doing` and `review` with `next: []`, and stages `a: {next: [done]}` and `b: {next: [done]}` added before `done`), the fault is `stage doing: next is empty; stage review: next is empty; stage a: has neither a role nor approval; stage b: has neither a role nor approval`.
@@ -40,7 +37,7 @@ Tests: a new file `tests/adapters/test_pipeline_stage_moves.py`, through `Ruamel
 7. Without a stage named `done` (every `done` renamed `finished`), the fault is exactly `stages must hold a stage named done`. Neither new rule adds a fault for `finished`.
 8. Loaded through `PipelineLoader.load` at `origin/main`, a stage `limbo: {next: [done]}` is a reported stop. `load` raises `PipelineDefinitionInvalid`, and the health status holds one stop `pipeline_definition_invalid` with the `detail` `stage limbo: has neither a role nor approval`.
 9. `make check` stays green.
-10. docs: `docs/project-guide.md`, "The rules of the definition", lists rules 10 and 11 with their faults and says they apply only when the stage `done` exists. The operator guide's row for faults of the rules still points there.
+10. docs: `docs/project-guide.md`, "The rules of the definition", says the validator applies eleven rules, lists rules 10 and 11 with their faults, and says they apply only when the stage `done` exists. `docs/decisions.md` records that a stage other than `done` must be able to move (a `next`, and a role or approval) and why the two rules wait for `done`. The operator guide's row for faults of the rules still points to the project guide's list.
 
 ## Demo
 

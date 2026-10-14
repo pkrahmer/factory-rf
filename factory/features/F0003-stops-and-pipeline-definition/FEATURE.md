@@ -33,6 +33,9 @@ The order is the story numbers. A later number may start first if it is the only
 - S0005 — The agent definition reader: which agents are installed and what they say
 - S0006 — Loading the pipeline definition: installed agents and a reported stop
 - S0007 — Load-time rules of the pipeline definition
+- S0008 — Strict values in the pipeline definition (proposed by the feature acceptance)
+- S0009 — Stages that cannot move are refused at load (proposed by the feature acceptance)
+- S0010 — Documentation after stops and the pipeline definition (proposed by the feature acceptance)
 
 ## Decisions taken for the human
 
@@ -57,3 +60,4 @@ Product decisions taken while writing the stories, for the human to review in on
 17. A health file that is missing, damaged or not a valid status reads as healthy, and the next write replaces it, because every stop is raised again while its fault lasts; the file is written atomically. (S0001, story text)
 18. Any minor version of contract major 1 is read, and the major is compared as an integer (`01.0` is major 1); the contract must look like `<digits>.<digits>`. A stage named `done` must exist, with no role and no `next`; the names `human`, `factory` and `question` are reserved for stages and roles. (S0007, story text)
 19. A role's `time_limit` plus the `time_limit` of every listed check and every listed report (a command listed twice counts twice) must not exceed the role's own `lease_duration`; a total equal to the lease is accepted. With the defaults (40 minutes for an agent run, 10 for a project command), a stage with two checks and one report does not fit in 60 minutes, and a project must lower the limits or raise the lease. (S0007, story text)
+20. The answers to the acceptance's drafts, taken by the session for the human on 2026-10-14 as the pre-checks recommended, for the human to overrule in the morning: values in the pipeline definition are taken only as written (strict mode on the definition's models; lax mode with a warning rejected, since nothing would show the warning); the multi-line YAML fault stays out of S0008; a stage other than `done` with an empty `next`, or with neither a role nor approval, is refused, and these two rules run only when a `done` stage exists; the documentation repair runs through the pipeline, and the README summarises the built parts instead of listing them. (S0008 to S0010, story text)
