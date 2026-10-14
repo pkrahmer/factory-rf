@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 96
 blocked: null
 comments_seen: 0
@@ -245,3 +245,24 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
    No findings against the code. I did not check `tests/test_no_journal_reading.py` against the code, since it is outside the docs lane.
 
    `make check`: check: green
+7. demo: Demo run from the repository root, both commands exactly as written under `## Demo`, in order.
+
+   Command 1 (pure rules and the question text):
+   ```
+   [False, True, True]
+   crash_cap
+   None 0 1
+   Stage doing crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+   ```
+   Exit 0. Met its Expect line: all four lines match exactly.
+
+   Command 2 (second crash against a real local bare remote and the fake hosting service):
+   ```
+   2 0 crash_cap True
+   0
+   1 crash_cap 4
+   True
+   ```
+   Exit 0. Met its Expect line: the crash count reached the cap of 2, no attempt was charged, the item was blocked with `crash_cap` and the claim was cleared. The run handler was not called. Exactly one post was made, of kind `crash_cap` and keyed by journal entry 4. Its body starts with the `factory: ` question text.
+
+   Checked against the acceptance criteria: the output agrees with criteria 1, 3, 4, 6, 7, 14, 15 (through `unblock`) and 17, and contradicts none. The demo does not exercise the other criteria (failed post, already_posted, opening the draft pull request, a checkout on main, CannotHandle, the boundary-error path, docs). It contradicts none of them either. No findings.
