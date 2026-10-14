@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 86
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -186,3 +186,4 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
    If you choose (a) or (b), I'll end the next run with `tests` and name exactly that change for the tester.
 
    Not yet done: the refactor pass. I'll do it with `make check` green, after the test is fixed.
+7. human (pull request comment, 2026-10-14): (a): change that test's `CLAIM` to `stage="approval"`, so the check that `claim` ends up unset stays a real one; the domain validator stays as it is. End with `tests` and name exactly that change.
