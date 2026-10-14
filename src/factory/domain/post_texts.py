@@ -112,6 +112,17 @@ def attempts_cap_question(stage: str, attempts: int, last_stall: str) -> str:
     )
 
 
+def crash_cap_question(stage: str, crashes: int, crash_cap: int) -> str:
+    """The question asked when a stage has crashed as often as the crash cap allows."""
+    return (
+        f"Stage {stage} crashed {crashes} times, which is the crash cap of {crash_cap}."
+        " The factory has not rerun it. Write a comment here and the stage reruns with the"
+        " crash counter reset to 0 (your comment is copied into the journal). Close the pull"
+        " request to discard the story instead: it goes back to the backlog as you wrote it,"
+        " and its branch and bill are deleted."
+    )
+
+
 def cost_table_post(table: str) -> str:
     """The post that shows the human the cost table at the approval."""
     return f"Cost of this work item so far\n\n{table}"
