@@ -76,10 +76,7 @@ class TaskComposer:
 
         `ValueError` for a stage without a role; `AgentDefinitionMissing` propagates.
         """
-        role = self._definition.stages[stage].role
-        if role is None:
-            raise ValueError(f"stage {stage} has no role, so no agent runs there")
-        return self._boundaries.agent_definitions.read(role)
+        return self._boundaries.agent_definitions.read(self._role_name(stage))
 
     def compose(self, context: TaskContext, agent: AgentDefinition) -> AgentRunRequest:
         """The request for `agent`'s run on `context`, its decisions shared with its prompt."""
@@ -106,11 +103,14 @@ class TaskComposer:
             os_user=None,
         )
 
-    def _role(self, stage: str) -> RoleDefinition:
-        role = self._definition.role_of(stage)
+    def _role_name(self, stage: str) -> str:
+        role = self._definition.stages[stage].role
         if role is None:
             raise ValueError(f"stage {stage} has no role, so no agent runs there")
         return role
+
+    def _role(self, stage: str) -> RoleDefinition:
+        return self._definition.roles[self._role_name(stage)]
 
     def _round(self, context: TaskContext) -> int:
         state = context.document.state
