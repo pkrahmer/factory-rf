@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 48
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -198,3 +198,15 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: the claim service is built and committed (3ac70cc): `PushFailed` is in `src/factory/domain/errors.py` and `StageStart`, `started_text` and `ClaimService` are in `src/factory/application/claims.py`. `make lint`, types, layers, sast, secrets and licences are green. Of the tests, everything passes except one, and that one fails because of a fault in the test itself, not in the code.
+
+   Failing test: `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role[role-default]`. In both cases the test first runs `human.push_file("main", PIPELINE_FILE, pipeline)`. In the `role-default` case `pipeline` is `PIPELINE_YAML`, and the fixture's `main` already holds exactly that text at `factory/pipeline.yml`. So the human's commit has nothing to commit and `HumanClone.push_file` raises `NothingToCommit` before `claim` is called. No implementation can make this case pass. The `role-sets-45` case passes.
+
+   Options:
+   (a) The tester skips the push to `main` when `pipeline == PIPELINE_YAML`. For example, the parametrization could carry `None` for "keep the fixture's definition" and push only when it is set.
+   (b) The tester drops the push from the test and passes only the parsed definition to `ClaimService`. The lease is read from the definition given to the constructor, not from the file on `main`, so the push is not what criterion 2 checks.
+   (c) Change `HumanClone.push_file` so it tolerates an unchanged file. This touches a shared test helper and changes its behaviour for every test, so I would not do it.
+
+   I would choose (a). It keeps the "the definition on main holds 45" setup for the 45 case, and the default case becomes a plain claim against the fixture's definition. After your answer I will end with `tests` and name exactly that change.
+
+   Not refactored yet: the refactor pass comes after the tests are green.
