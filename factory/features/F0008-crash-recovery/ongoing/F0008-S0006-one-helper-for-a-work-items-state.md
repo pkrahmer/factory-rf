@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 101
 blocked: null
 comments_seen: 0
@@ -135,3 +135,20 @@ Expect: two lines, `doing` and then `no state here`.
    - Seen but not touched: nothing unrelated to this story.
 
    `make check`: check: green
+7. demo: ran both Demo commands from the repository root. Both met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+   Command 1, `grep -rn "def _state_of" src/factory; echo "copies: $?"`:
+   ```
+   src/factory/domain/journal.py:110:def _state_of(document: WorkItemDocument) -> WorkItemState:
+   copies: 0
+   ```
+   Met: two lines, the journal's one copy with the expected signature, then `copies: 0`. This agrees with criterion 3.
+
+   Command 2, `uv run python -c "…require_state…"`:
+   ```
+   doing
+   no state here
+   ```
+   Met: two lines, `doing` and then `no state here`. This agrees with criteria 1 and 2: the document's state is returned, and the exception passed is raised without a state.
+
+   Criteria 4 to 7 are not exercised by the demo commands, and nothing in the output contradicts them.
