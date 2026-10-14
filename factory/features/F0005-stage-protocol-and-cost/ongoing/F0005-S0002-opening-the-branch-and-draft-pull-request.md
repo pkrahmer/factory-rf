@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 59
 blocked: null
 comments_seen: 0
@@ -112,3 +112,13 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the opening of a work item's branch and its draft pull request. `make check` is green.
+      - Built: `src/factory/application/opening.py` contains `PreparedWorkItem` (frozen, forbids extra keys) and `WorkItemOpening`. `prepare` checks `origin/<branch>` with `Git.resolve`.
+        - New branch: it checks out at `origin/main` and reads the file with `show_file`. An absent file raises `WorkItemFormatError(path=path)`. It keeps only the body, through `parse_specification`, so the backlog file's front matter is dropped. It adds an empty `## Journal` section when the body has none, builds `initial_state(definition.first_stage())` and appends `human`/`created` dated `Clock.now().date()`.
+        - Existing branch: it checks out with `start_point="origin/<branch>"`, which resets any stale local branch. Then it runs `merge("origin/main")`, where `"conflict"` sets `merge_conflict`, and reads the document from the work tree.
+        - `ensure_pull_request`: it reuses the PR in `state.pull_request` only when `get_pull_request` says it is open. Otherwise it takes `find_open_pull_request`, otherwise it creates a draft titled `<id>: <title>` with the body as description. The title is only looked up when a PR has to be created, so a missing title line raises before any create.
+      - Main decision: the PR in the state is checked with `get_pull_request` before the branch lookup, because criterion 15 has two open PRs on one branch. Rejected: relying on `find_open_pull_request` alone, which can return the wrong one.
+      - Commits: 6768791 (feat), then 36eb3ec (refactor: the existing-branch path moved into its own `_reopen` step, so `prepare` reads as one decision; behaviour unchanged).
+      - Noticed, not touched: a state that has no `pull_request` and a document without state are handled the same way (fall through to the branch lookup). Docs for criterion 22 are the documenter's.
+
+   `make check`: check: green
