@@ -9,7 +9,7 @@ from source_search import modules, string_literals
 ALLOWED = {
     "entry_text": {
         "factory.domain.journal",
-        "factory.application.handlers.hand_over",
+        "factory.domain.hand_over",
         "factory.application.handlers.questions",
     },
     "JOURNAL": {

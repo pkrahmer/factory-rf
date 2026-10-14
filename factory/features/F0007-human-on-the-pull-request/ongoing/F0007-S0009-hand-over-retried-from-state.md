@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 90
 blocked: null
 comments_seen: 2
@@ -175,3 +175,13 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
 6. coder: tests. The human answered in log entry 5. In `tests/test_no_journal_reading.py`, in `ALLOWED["entry_text"]` (line 12), replace `"factory.application.handlers.hand_over"` with `"factory.domain.hand_over"` and change nothing else in that file.
 
    The implementation is already in 82ef94e and I did not change it. Once the test is changed, `make check` should go green. The refactor step is still to do: I will do it on the next doing run, when the check is green.
+7. tester: made the test change the human approved (entry 5, named by the coder in entry 6).
+
+   In `tests/test_no_journal_reading.py`, in `ALLOWED["entry_text"]` (line 12), I replaced `"factory.application.handlers.hand_over"` with `"factory.domain.hand_over"`. Nothing else in the file changed.
+
+   Why: the Interface has the domain's `hand_over_description` read each report's text with `entry_text`. That use is for display only, and the speaker is still found from the record's data.
+
+   `make test`: test: green (coverage 99.21%).
+
+   `make lint`: lint: green
+   `make test`: test: green
