@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 48
 blocked: null
 comments_seen: 2
@@ -211,3 +211,4 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
 
    Not refactored yet: the refactor pass comes after the tests are green.
 5. human (pull request comment, 2026-10-14): (a): the parametrization carries `None` for "keep the fixture's definition", and the test pushes to `main` only when it is set; the `role-sets-45` case keeps its push. Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
+6. coder: the human's answer (entry 5, option (a)) calls for one test change. The code in 3ac70cc is unchanged and I did not touch the test. Change for the tester: in `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role`, the `role-default` case's parameter becomes `None` instead of `PIPELINE_YAML`, meaning "keep the fixture's definition". The test calls `human.push_file("main", PIPELINE_FILE, pipeline)` and builds the definition from `pipeline` only when it is set; when it is `None`, the test claims with the fixture's definition, as the other tests do through `_claim(boundaries, document)`. The `role-sets-45` case keeps its push of `LEASE_45_YAML` and its expected 45, and `HumanClone.push_file` stays as it is. Still open after the tests come back: the refactor pass, then `review`. `## Assignment` is unchanged, because the answer does not change what the task means.
