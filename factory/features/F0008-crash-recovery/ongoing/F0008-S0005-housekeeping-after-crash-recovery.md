@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 100
 blocked: null
 comments_seen: 0
@@ -116,3 +116,33 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
    - I saw nothing stale that I left untouched.
 
    `make check`: check: green
+7. demo: I ran all three commands from the repository root, in order. Each one met its `Expect:` line, and the demo contradicts no criterion. I am not root (uid 1000), so the restore test ran and was not skipped.
+
+   1. `grep -no 'registers every kind except[^;.(]*' docs/project-guide.md`
+   ```
+   484:registers every kind except `acceptance_due`, which belongs to F0009 
+   ```
+   Met. There is one line, `acceptance_due` is the only kind named, the clause after it is short, and the line does not contain `expired`.
+
+   2. `grep -c -i "crash" README.md`
+   ```
+   1
+   ```
+   Met: the count is at least 1.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/application/test_stale_branches.py tests/application/test_tick_stale_branch.py`
+   ```
+   .....................                                                    [100%]
+   21 passed in 6.02s
+   ```
+   Met: 21 passed, which is 17 plus 4, with none skipped because I am not root.
+
+   Criteria cross-check:
+   - Criterion 7: I read the docs.
+     - README.md:3 and the opening paragraph at docs/operator-guide.md:3 each have the sentence "After a crash, a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch."
+     - docs/project-guide.md:550 ("The stale branch") states the both-folders rule (`its story is done`).
+     - docs/project-guide.md:1387 names `BEFORE_PUSH` (test_recovery_crash.py) and `AFTER_PUSH` (test_tick_stale_branch.py), and says F0011 covers all four points.
+   - Criteria 1–5: the passing run of both modules covers them.
+   - Criterion 6: the factory runs `make check` itself after this stage. I did not run it here; earlier stages reported it green.
+
+   Findings: none.
