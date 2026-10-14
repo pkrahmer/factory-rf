@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 86
 blocked: null
 comments_seen: 2
@@ -124,3 +124,43 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
    - Demo: runnable with `uv run python -c`. The `Expect:` line gives six checkable lines, and I traced them against the Interface rules.
    - Architecture: the pure rules are in domain, the handler is in application and uses the Boundaries interfaces. The claim is set directly in the state, as the Interface explains.
    - Scope: within the feature's scope (send-back, GH3.3, R22). It leaves the acceptances to F0009 and does not touch the `ask` handler.
+5. tester: Wrote red tests for every acceptance criterion from the Interface. `make lint` is green. `make test` fails with 3 collection errors, as expected: `factory.domain.send_back` does not exist yet, and `factory.domain.post_texts` does not have `CLOSE_ENTRY_TEXT`, `SEND_BACK_QUESTION`, `send_back_entry_text` or `send_back_question` yet.
+
+   Files created:
+   - `tests/domain/test_send_back.py`
+   - `tests/domain/test_send_back_texts.py`
+   - `tests/application/handlers/test_closed_send_back.py`
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_send_back.py::test_a_comment_after_the_latest_result_or_without_any_result_is_a_reason (two cases; the body is `# T\n` with no journal text)
+   - criterion 2: tests/domain/test_send_back.py::test_no_comment_after_the_latest_result_is_no_reason (two cases)
+   - criterion 3: tests/domain/test_send_back.py::test_the_send_back_target_is_the_second_next_of_the_approval_or_none_without_one
+   - criterion 4: tests/domain/test_send_back.py::test_the_send_back_cap_is_the_round_cap_of_the_first_capped_stage_handing_over (three cases; for the `None` case, `doing` has a `round_cap` but does not hand over to the approval)
+   - criterion 5: tests/domain/test_send_back_texts.py::test_the_send_back_question_offers_comment_close_again_and_merge. tests/domain/test_send_back_texts.py::test_the_close_entry_text_says_the_pull_request_was_closed also pins `CLOSE_ENTRY_TEXT` from the Interface.
+   - criterion 6: tests/domain/test_send_back_texts.py::test_the_send_back_entry_names_the_target_and_the_round
+   - criterion 7: tests/domain/test_send_back_texts.py::test_within_the_cap_only_a_missing_reason_asks (three cases; round equal to the cap is the accepted side of the boundary)
+   - criterion 8: tests/domain/test_send_back_texts.py::test_past_the_cap_the_cap_question_wins_with_or_without_a_reason (4 > 3 is the refused side)
+   - criterion 9: tests/application/handlers/test_closed_send_back.py::test_a_failed_reopen_leaves_the_close_recorded_and_the_story_at_the_approval (also checks the subject `close recorded` and the date in the rendered entry; the clock is moved to 2026-10-14 so that date differs from every other date in the test)
+   - criterion 10: …::test_the_event_handled_again_after_a_failed_reopen_sends_back_with_one_close
+   - criterion 11: …::test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question (the state carries a claim before the close, so `claim` unset is a real check)
+   - criterion 12: …::test_a_comment_copied_at_the_close_or_earlier_counts_as_the_reason (two cases)
+   - criterion 13: …::test_a_close_without_a_comment_after_the_latest_result_records_the_question
+   - criterion 14: …::test_a_close_past_the_round_cap_records_the_cap_question_even_with_a_reason
+   - criterion 15: …::test_the_send_back_posts_nothing_and_the_ask_handler_posts_its_question_once (`AskHandler` runs twice and exactly one post is made)
+   - criterion 16: …::test_a_kill_before_the_close_is_pushed_changes_nothing
+   - criterion 17: …::test_an_approval_with_one_next_stage_cannot_be_sent_back_and_nothing_is_recorded (`PIPELINE_YAML` with `approval: next: [done]`, parsed through the pipeline reader)
+   - criterion 18: …::test_a_story_without_a_pull_request_cannot_be_sent_back_and_nothing_is_recorded
+   - criterion 19: …::test_a_rejected_push_of_the_decision_keeps_the_close_and_a_retry_sends_back_once. It uses the test subclass `_PushingOnDraft(FakeHostingService)`: once armed, its `set_draft` pushes `notes.md` to the branch through `human.push_file`. It is swapped in with `dataclasses.replace(boundaries, hosting=...)`.
+   - criterion 20: …::test_a_comment_written_before_the_retry_is_copied_and_counts_as_the_reason
+   - criterion 21: …::test_after_the_decision_the_labels_name_the_target_stage (two cases: labels are `["stage:doing"]`; and a failed `set_labels` raises while the decision stays recorded)
+   - criterion 22: …::test_only_a_close_recorded_since_the_latest_result_spares_a_new_close_entry (two cases: two `close` records, and one)
+   - criteria 23 and 24 are not tests (`make check`, docs).
+
+   Notes for the coder:
+   - The handler tests build each story at stage `approval` on its branch with `handed_over="approval"`. Before the event, the pull request is marked ready and then closed by the human, so "reopened as a draft" is a real change.
+   - The pipeline is the shared `PIPELINE_YAML`. In it, `acceptance` comes after `smoke-test`, so the cap is 3.
+
+   Nothing is open; no criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
