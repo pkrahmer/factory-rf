@@ -25,11 +25,10 @@ from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkIte
 _KIND = "crash"
 
 
-def _state_of(work_item: WorkItemSnapshot) -> WorkItemState:
-    state = work_item.document.state
-    if state is None:
-        raise CannotHandle(_KIND, f"work item {work_item.id} has no state")
-    return state
+def _state_of(work_item: str, document: WorkItemDocument) -> WorkItemState:
+    if document.state is None:
+        raise CannotHandle(_KIND, f"work item {work_item} has no state")
+    return document.state
 
 
 class RecoveryHandler(Handler):
@@ -73,7 +72,7 @@ class RecoveryHandler(Handler):
         subject = commit_subject(snapshot.id, f"crash of stage {target.state.stage} recorded")
         commit = recorder.record(branch, snapshot.path, document, subject)
         rerun = snapshot.model_copy(update={"branch_commit": commit, "document": document})
-        if _state_of(rerun).blocked == "crash_cap":
+        if _state_of(rerun.id, document).blocked == "crash_cap":
             self.ask_crash_cap(rerun)
             return
         self._run.handle(
@@ -91,7 +90,7 @@ class RecoveryHandler(Handler):
         Raises `CannotHandle` when the work item is not blocked on the crash cap or has no
         question by the factory; `HostingServiceError` from the post leaves it recorded.
         """
-        state = _state_of(work_item)
+        state = _state_of(work_item.id, work_item.document)
         if state.blocked != "crash_cap":
             raise CannotHandle(_KIND, f"work item {work_item.id} is not blocked on the crash cap")
         document = work_item.document
@@ -117,9 +116,7 @@ class RecoveryHandler(Handler):
         # The method may be called on its own, with the checkout on another branch.
         recorder.check_out(work_item.branch)
         document = recorder.read(work_item.path)
-        state = document.state
-        if state is None:
-            raise CannotHandle(_KIND, f"work item {work_item.id} has no state")
+        state = _state_of(work_item.id, document)
         opened = document.model_copy(
             update={"state": state.model_copy(update={"pull_request": number})}
         )
