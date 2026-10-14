@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 91
 blocked: null
 comments_seen: 2
@@ -223,3 +223,23 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
      - The Assignment matches what was built, and the docs criterion (15) still describes what the documenter must write.
 
    Open: the Demo of F0006-S0007 is out of date, as the Interface already notes. That is not under this story's review.
+10. documenter: Documented the run gate and the grown wiring. I ran `make check` after the edits and it is green. I wrote no new examples, so none needed running.
+
+    Files changed:
+    - docs/project-guide.md:
+      - New paragraph in *The handlers of the events* on `RunGate`. It covers the pull request read before every agent run, the closed and merged hand-off, a failing read raising, and every path to a run (the rerun after a crash included) going through the gate.
+      - `build_handlers` now lists its ten registered kinds, and `NOT_YET_HANDLED` is `crash`, `expired` and `acceptance_due`.
+      - Removed "built but not yet registered" for the merged, closed, reject, duplicate and lookup handlers, and the stale sentence in the comment section. Also fixed the kinds paragraph that said only `idle` and `run` are registered.
+    - docs/operator-guide.md:
+      - Merge and close sections: a story merged or closed while its stage waited to run is archived or discarded without that run.
+      - Removed the "Not yet running" notes.
+      - Rewrote "An event that keeps failing" so only `crash`, `expired` and `acceptance_due` have no handler.
+      - Updated the hand-over, stage-changed-by-hand and "Stops that cannot be done" passages.
+
+    Cross-read and found current: README.md. No stale passages left alone.
+
+    No findings. The code matches the Interface and the criteria.
+
+    Not touched, outside this story's lane: the Demo of F0006-S0007 prints the old constant, as the Interface already notes. The operator guide's "AskHandler is registered" wording rests on `AskHandler` being in `build_handlers`, which the diff confirms.
+
+    `make check`: check: green
