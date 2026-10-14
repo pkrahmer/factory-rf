@@ -1,6 +1,6 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, the claim of a stage with its lease, the write paths with the guard and the undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls, checks and reports, and v1's decision rules with the factory's own questions), and the cost records with the bill. The commands to run so far are `factory-check-story`, `factory-bill` and `factory-watch` (you run them) and `factory-guard` (the agent runtime runs it); there is nothing else to start; the sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
+The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, the claim of a stage with its lease, the write paths with the guard and the undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls, checks and reports, and v1's decision rules with the factory's own questions), the cost records with the bill, and the reading of the remote: the evaluation that picks the next event, the tick with its stops, the dispatcher with the run handler that starts a stage, and `factory-watch`. A tick can run a stage, but no command runs ticks yet; that arrives with F0010. The commands to run so far are `factory-check-story`, `factory-bill` and `factory-watch` (you run them) and `factory-guard` (the agent runtime runs it). `factory-run` and `factory-health` are declared in `pyproject.toml` but not built: both end with a `ModuleNotFoundError` until F0010. The sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
 
 ## The project's make targets
 
@@ -67,7 +67,7 @@ That is `stop cleared <reason>`. It is written only when the stop was in the hea
 
 ## Stops of one work item
 
-A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. Today a question is only recorded: a journal entry of kind `question`, with `blocked` set. Posting it on the pull request arrives with F0007. The rules below are those of `StopService.post`, which nothing built calls yet. A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
+A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. Today a question is only recorded: a journal entry of kind `question`, with `blocked` set. Posting it on the pull request arrives with F0007. The rules below are those of `StopService.post`, which the dispatcher's error report calls (see "An event that keeps failing"). A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
 
 ```
 <!-- factory -->
@@ -78,7 +78,7 @@ A stop of one work item (a question, a cap reached) is meant to appear as one co
 - It opens one only when the branch is on the remote with a commit beyond `main`. Otherwise it opens nothing, posts nothing and reports a `create_pull_request` error: `branch <branch> is not on the remote with a commit beyond main`. The factory pushes the branch before it can report a stop, so you see this only if the remote branch was removed or reset.
 - If the work item's branch already has an open pull request, the factory posts on that one. A pull request you closed or merged is not reused for a new one; but when the work item's state records a pull request number, the stop is posted there even if you have since closed it.
 - A restart never repeats a stop. The key identifies the stop: if the factory died after posting and before recording it, the next attempt finds the key on the pull request and posts nothing. The same key with another text is still a repeat; a different kind or number is a new stop and a new comment.
-- The factory records the pull request's number in the work item's state when it opened or found the pull request; the posting itself writes no state.
+- The posting writes no state. In particular the dispatcher does not record the number of a pull request it opened for an error report; a later stop finds that pull request by its branch.
 
 ## What a stage run shows
 
@@ -105,7 +105,7 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 - `attempt n of m`: `n` is the work item's attempts after this stall; `m` is `attempts_cap` of the pipeline definition.
 - The cause is one sentence. The reasons are: the agent run died without a result; it reached its time limit; it spent its budget, and the resume too; the agent gave no valid decision and entry; the agent's decision is not an allowed one; the agent left the work item's branch; the work item's form broke during the stage; a check is red after the stage; merging the main branch conflicts and the merge was aborted. A detail, such as the name of a red check, follows the sentence after a colon. A detail of several lines (the output of a red check) puts its first line in the sentence and the other lines in a code block below it; see "A stall by a red check".
 - The note says "Retrying on the next tick." only while `n` is below `m`. Nothing for you to do then; the next tick runs the stage again from what the stall kept.
-- At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. Stopping the stage at the cap and asking the attempts-cap question are not built yet: the evaluation arrives with F0006 and the question with F0007. Until then the note only counts. Once they arrive, you read the cause and the stall entries in the work item's journal, fix what stops the stage (the agent, the stage's time limit or budget, the pipeline definition, the project's checks, a conflict with `main`), and answer on the pull request; the factory does not run the stage again until you have.
+- At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. At the cap the evaluation makes the event `ask` with the detail `attempts cap`. Nothing handles `ask` before F0007, so today it is a counted error (see "An event that keeps failing"). Once F0007 asks the question, you read the cause and the stall entries in the work item's journal, fix what stops the stage (the agent, the stage's time limit or budget, the pipeline definition, the project's checks, a conflict with `main`), and answer on the pull request; the factory does not run the stage again until you have.
 - The stall's pull request: an open pull request of the work item is reused; otherwise the stall opens a new draft titled `<id>: <title>` with the work item's text as description. It does not use the stop description, and it does not post on a closed pull request.
 
 If the hosting service fails while the note is posted, the stall commit is already on the remote, no note is posted and no label is written. If it fails while the label is written, the note is posted and the label is missing. The error is reported, and the work item shows the stall in its file and journal.
@@ -128,7 +128,7 @@ In the work item's journal the agent's entry comes first, ending with one line p
 What to do:
 
 - Below the attempts cap nothing: the next tick runs the stage again, and the agent sees the journal.
-- At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch. Fix what is wrong (the code, the target, or a tool missing on the machine), then answer on the pull request. Stopping at the cap and asking the attempts-cap question are not built yet (F0006's evaluation, F0007's question); the answer is what the operator does once they are.
+- At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch. Fix what is wrong (the code, the target, or a tool missing on the machine), then answer on the pull request. At the cap the evaluation makes `ask` (`attempts cap`), a counted error until F0007 asks the question; the answer is what the operator does once it does.
 - Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move. Every report that ran adds one line `` `<command>`: <last line of its output> `` to the agent's entry, passed or failed; the line has the same form either way, so only its last line shows whether the report passed. A failing report holds nothing and stops nothing.
 
 The result commit of every stage holds the whole work tree. Make sure the project's `.gitignore` covers whatever its checks create (build output, caches, coverage files); otherwise the factory commits it.
@@ -176,7 +176,7 @@ A tick works from the remote alone: the checkout is disposable. It fetches first
 
 The restore throws away every uncommitted change and every untracked file in the checkout (ignored paths stay) and deletes the local branches of the work items, so that a stage starts from the remote's branch. When it throws changes away it writes one line to the log, `discarded uncommitted changes: <path>, <path>`. Do not keep work in the factory's checkout.
 
-A work item file that cannot be read is not a stop. The tick ends with the error, naming the file's path, and does so on every tick until a human repairs the file on its branch (or on `main`, for a story that has not started) or closes the pull request. A work item in a stage that the pipeline definition lacks fails the same way.
+A work item file that cannot be read is not a stop. The tick ends with the error, naming the file's path, and does so on every tick until a human repairs the file (on its branch, or on `main` for a started story without a branch) or moves the story out of `in-progress/` on `main`. Closing the pull request changes nothing: the tick reads every story in `in-progress/` before it looks at any pull request. A work item in a stage that the pipeline definition lacks fails the same way.
 
 v1's leftover files in `.git/` (`factory-run.json`, `factory-tick.lock`, `factory-tick.json`) are neither read nor written; they change nothing and can be deleted.
 
@@ -404,11 +404,11 @@ Neither is a fault. With neither, an idle tick means no work item has anything t
 
 ## A stage changed by hand
 
-The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. Handling the event, moving the stage back, is not built yet; until it is, the event is only recorded.
+The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. Handling the event, moving the stage back, is not built before F0007-S0006. Until then a `reject` is a counted error (see "An event that keeps failing"): after three ticks one report is posted on the pull request, then the event is capped and holds back all new work. A push to the work item's branch makes the factory try again, and the `reject` returns for as long as the newest commit beyond `origin/main` that touched the story's file is the illegal change.
 
 Not counted as such a change:
 
-- the opening commit, whose parent is the story as you started it (a story started at `review` is not rejected);
+- the opening commit, whose parent is the story as you started it (a story started at `review` is not rejected). So the stage a work item branch you created by hand starts with is never judged, whatever it is: the first commit that gives the file its front matter is the opening commit, or has a previous version that cannot be read. Later stage changes on such a branch are judged like any other;
 - a merge commit on the branch;
 - the factory's own correction, which moves the stage back and appends a journal entry of kind `move_back`;
 - a merge of the pull request by any method: merge commit, squash or rebase. The factory reads the pull request first, and a merged pull request is `merged`, never an illegal change.
@@ -418,6 +418,16 @@ A hand-made change that a later commit on the branch buried is not seen: only th
 ## An event that keeps failing
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
+
+Only the run handler is registered today. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup` and `acceptance_due`. The common ones lead to this today:
+
+- `hand_over`: a work item reached an approval stage.
+- `merged`: you merged a waiting work item's pull request.
+- `ask`: a question waits to be posted (an agent's `question`, or the attempts cap).
+- `comment`: you answered on the pull request.
+- `crash`: the instance found its own claim on the remote, after a rejected result push or another boundary error after the stage-start commit, or after a restart when the process died during a stage.
+
+Each ends in the one report of its work item and remote state, and then holds back all new work, until F0007 and F0008 register their handlers. A push to the branch makes the factory try again.
 
 After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "Stops of one work item".
 

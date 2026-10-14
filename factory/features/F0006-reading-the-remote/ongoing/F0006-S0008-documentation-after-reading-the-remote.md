@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 80
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Documentation after reading the remote
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
@@ -53,3 +61,78 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: "None", no code changes. The files are named (`README.md`, `docs/operator-guide.md`), and `project-guide.md` and `decisions.md` change only where they contradict the new text. There is nothing to specify further. The Interface states no rule or behaviour needing its own criterion.
+   - Criteria: criterion 1 is the `make check` gate. Criterion 2 is the docs criterion, split into seven bullets. Each bullet names the sections and the exact claims to add or remove, so the documenter and a reviewer can check it by reading. No code rule is stated, so there is no failing side to cover. The story says the tester writes no tests, and the tester stage should respect that.
+   - Demo: the three commands are runnable `grep`s on the two files. Each `Expect:` line is checkable against the output: absent phrases, `factory-run` named as not built, `NOT_YET_HANDLED`, `hand_over` and "created by hand" present.
+   - Architecture: no layer or module is touched, so there is no conflict with `CLAUDE.md`. The docs follow the documenter's four-file rule, and the story leaves `docs/decisions.md` alone unless it contradicts the new text.
+   - Scope: the story is within F0006's goal. It is the feature acceptance's proposed documentation story, listed in `FEATURE.md`. It documents today's behaviour and does not change the rules (F0007, F0008 and F0010 stay out of scope).
+3. tester: no tests written, on purpose. This is a documentation-only story. The Interface is "None: no code changes", and the Assignment says the tester writes no tests. Criterion 1 is the `make check` gate. Criterion 2 is the docs criterion, which the reader checks against `README.md` and `docs/operator-guide.md`. It states no code behaviour a test could check. I did not add tests that grep the docs: the Demo already does that, and such tests would guess at wording the documenter has not written. No files were created or changed. No modules failed to import. I did not run `make test` because no new tests exist. `make lint` is green. For the coder: there is nothing to build, so hand on to the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: nothing built, on purpose. This story only changes documentation. The Interface is "None: no code changes" and the tester wrote no tests, so the coding stage has no work to do. I made no commits and changed no files under `src/` or `tests/`. I skipped the refactor step because there is no diff of my own to review. The documentation changes in criterion 2 (`README.md` and `docs/operator-guide.md`) belong to the documenter stage. Under CLAUDE.md the coder does not write those files, so I did not touch them. `make check` is green on the branch as checked out (coverage 99.35 %).
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` has no changes under `src/`, `tests/`, `README.md` or `docs/` apart from `docs/runs/`. Every changed file is under `planning/` or `docs/runs/`. They come from the human's commit 5f50f94 ("Night log: F0010 …"), which reached the branch through 802caad ("merge main"). The local `main` ref has not caught up with it yet. These are the human's files, not this ticket's work, so I did not review them.
+      - Acceptance criteria: the Interface is "None: no code changes" and states no rule or limit, so no failing side needs a test. The tester wrote no tests and the coder built nothing, both on purpose and as the Assignment says. Criterion 1: the coder's entry records `make check` green (coverage 99.35 %). Criterion 2 is the docs criterion, which the documenter writes next. Its seven bullets name the sections, the phrases to remove and the texts to match (`error_report_text`, the `reject` detail, `factory-watch: no instance settings are wired yet`), so the documenter can write it and a later reader can check it.
+      - Architecture, security, quality: no code or configuration changed, and no suppression markers were added.
+      - Ticket hygiene: the log gives the main decision (documentation only, no tests, nothing to build) and what was rejected (tests that grep the docs). `Assignment` matches what was built, which is nothing yet. The docs criterion still describes what the reader must know after this story.
+6. documenter: wrote the seven fixes of the docs criterion. `make check` is green, with coverage at 99.35 %.
+
+   Files changed:
+   - `README.md`: the summary now names reading the remote, the evaluation, the tick, the dispatcher with the run handler, and `factory-watch`. It says a tick can run a stage but no command runs ticks before F0010. "nothing starts a stage before F0006" is gone. It also says `factory-run` and `factory-health` are declared but not built and end with `ModuleNotFoundError` until F0010. The four existing commands are still named.
+   - `docs/operator-guide.md`, opening paragraph: same summary, same F0010 note, same warning about the two unbuilt commands. "there is nothing else to start" is gone.
+   - `docs/operator-guide.md`, "The stops of the tick": the unreadable work item file now has two ways out, repair the file or move the story out of `in-progress/` on `main`. The text no longer names closing the pull request, and says why closing it changes nothing.
+   - `docs/operator-guide.md`, "A stage changed by hand": a `reject` is a counted error until F0007-S0006. It is reported once after three ticks and then capped, which holds back all new work. A push to the branch makes the factory try again, and the `reject` returns while the newest touching commit is the illegal change. The stage a hand-made branch starts with is never judged, because the first commit that gives the file its front matter is the opening commit or has an unreadable previous version. Later stage changes are judged.
+   - `docs/operator-guide.md`, "An event that keeps failing": added the `NOT_YET_HANDLED` kinds. Under them are the five common ones (`hand_over`, `merged`, `ask`, `comment`, `crash`) and what leads to each. Each ends in one report and then holds back all new work, until F0007 and F0008 register their handlers.
+   - `docs/operator-guide.md`, "Stops of one work item": `StopService.post` is now said to be called by the dispatcher's error report. The dispatcher does not record the number of a pull request it opened, and a later stop finds that pull request by its branch.
+   - `docs/operator-guide.md`, "A stall: the stall note" and "A stall by a red check": at the cap the evaluation makes `ask` with the detail `attempts cap`, a counted error until F0007. What the operator does once F0007 arrives is kept.
+
+   Quoted texts checked against the code:
+   - `error_report_text` in `factory.domain.post_texts`
+   - the `reject` detail in `factory.domain.evaluation`
+   - `factory-watch: no instance settings are wired yet`
+   - the `NOT_YET_HANDLED` list in `factory.entry.wiring`
+
+   Cross-read: `docs/project-guide.md` and `docs/decisions.md` have no line contradicting the new text (grepped for the old phrases). The rest of the operator guide is unchanged. I did not run the three Demo greps. I did not check whether the "Stops of the tick" tick explanation still lists the stops correctly beyond the paragraph I changed.
+
+   Stale text unrelated to this story: none seen.
+
+   Code findings: none.
+
+   `make check`: check: green
+7. demo: I ran all three Demo commands from the repository root. All three met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   1. `grep -n "F0006\|factory-run\|factory-health" README.md`
+   ```
+   12:When it works, `make check` ends with the line `check: green`. `factory-run` and `factory-health` are declared in `pyproject.toml` but not built: both end with a `ModuleNotFoundError` until F0010. Four commands exist so far: you run `uv run factory-check-story <path>...` … and the agent runtime runs `factory-guard` to refuse writes outside a role's write paths (see `docs/operator-guide.md`).
+   ```
+   Met. No line says "nothing starts a stage before F0006", and line 12 says `factory-run` is not built.
+
+   2. `grep -n "closes the pull request\|the event is only recorded\|which nothing built calls yet\|arrives with F0006" docs/operator-guide.md`
+   ```
+   (no output, exit status 1)
+   ```
+   Met. None of the four phrases is printed.
+
+   3. `grep -n "NOT_YET_HANDLED\|hand_over\|created by hand" docs/operator-guide.md`
+   ```
+   411:- the opening commit, whose parent is the story as you started it (a story started at `review` is not rejected). So the stage a work item branch you created by hand starts with is never judged, whatever it is: the first commit that gives the file its front matter is the opening commit, or has a previous version that cannot be read. Later stage changes on such a branch are judged like any other;
+   422:Only the run handler is registered today. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup` and `acceptance_due`. The common ones lead to this today:
+   424:- `hand_over`: a work item reached an approval stage.
+   ```
+   Met. Line 422 names `NOT_YET_HANDLED` and lists the kinds. Line 424 names `hand_over`. Line 411 says the starting stage of a branch created by hand is never judged.
+
+   Criteria, read again against the docs and the code:
+   - The summary in `README.md` line 1 and in the opening paragraph of `docs/operator-guide.md` names reading the remote, the evaluation, the tick with its stops, the dispatcher with the run handler, and `factory-watch`. Both say no command runs ticks before F0010, and both warn about `factory-run`/`factory-health`. `README.md` still names the four commands that exist.
+   - The unreadable-file paragraph (operator guide line 179) names two ways out: repair the file, or move the story out of `in-progress/`. It says closing the pull request changes nothing.
+   - The `reject` paragraph (line 407) describes the counted error, the one report after three ticks, the cap and the retry on push. Its quoted detail matches `factory.domain.evaluation`.
+   - The list of unhandled kinds (line 422) matches the `NOT_YET_HANDLED` tuple in `src/factory/entry/wiring.py`. The five common kinds and their causes are explained.
+   - The "Stops of one work item" section (lines 70 and 81) says the dispatcher's error report calls `StopService.post`, and that the dispatcher does not record the number of a pull request it opens; a later stop finds it by its branch.
+   - The stall cap paragraphs (lines 108 and 131) say the evaluation makes `ask` (`attempts cap`), a counted error until F0007. They keep what the operator does once F0007 arrives.
+   - Quoted texts: the error report quote matches `error_report_text` in `src/factory/domain/post_texts.py`. The `factory-watch` line matches `src/factory/entry/watch.py:63`.
+   - I did not run `make check` again here; the factory runs it after this stage. The documenter's entry records it green.
+
+   Open: nothing.
