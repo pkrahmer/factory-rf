@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 88
 blocked: null
 comments_seen: 2
@@ -160,3 +160,18 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
       - Quality: `_question_post`, `_answer_after` and `_ending_the_wait` each do one thing. The one comment gives the reason. Public names have docstrings and private ones do not.
       - Non-issue: `_state_of` was already in `comments.py` before this story, so the duplication the coder noticed is not new.
       - Ticket: the log names the main decision and what was rejected. The decision is to read `blocked` and the question record from the document freshly read from the branch, not from the snapshot. `Assignment` matches what was built, and criterion 21 still says what the documenter must write.
+8. documenter: wrote the documentation for criterion 21. `make check` is green.
+   - `docs/operator-guide.md`: new section "Which comment answers a question", under "The factory's own questions". It covers the following:
+     - A comment answers only when it was written after the question was posted.
+     - An earlier comment, or a question not yet posted or posted for an earlier number, is only recorded.
+     - Resets: `attempts` for the attempts cap, `crashes` for the crash cap, nothing else, and `round` never.
+     - A comment at an approval, or on a work item that is not blocked, is only recorded.
+     - A failing comment event is tried three times and reported once.
+     - It also says that `CommentHandler` is built but no tick registers it yet, so today comments are not handled. That matches `NOT_YET_HANDLED` in `factory.entry.wiring`.
+   - `docs/operator-guide.md`, "An event that keeps failing": the `comment` bullet now notes that `CommentHandler` exists but is not registered.
+   - `docs/decisions.md`: new entry "Every event goes through the error cap, comment events included". It gives the reason, the alternatives rejected, and why the wait ends only from ids and keys.
+   - Cross-read and found current against the diff: the question table in "The factory's own questions" (the attempts-cap and crash-cap resets already match), `README.md`, and "A close at the approval sends the story back".
+   - No findings. The code matches the Interface, and the public names have docstrings.
+   - Stale but unrelated, not touched: the sentence in the operator guide that Only the run handler is registered today may be out of date, because earlier F0007 stories added handlers while `NOT_YET_HANDLED` still lists them. I did not check which handlers are wired.
+
+   `make check`: check: green

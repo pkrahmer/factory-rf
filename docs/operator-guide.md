@@ -158,6 +158,16 @@ Comment anything to retry: the attempts go back to 0 and the stage runs again. C
 
 The last time is the text of the work item's latest `stall` entry. A work item at the cap with no stall entry cannot be asked about, and is a counted error. Comments you write while a question waits to be posted are recorded after it; the post stays keyed to the question's own entry.
 
+### Which comment answers a question
+
+A comment answers a question when it was written after the factory posted that question. The handler of `comment` (`CommentHandler`) is built, but no tick registers it yet, so today comments are not handled (see "An event that keeps failing"). Once it is registered, it works like this for a work item that waits (`blocked` is set):
+
+- Your comments are copied into the journal and, in the same commit, the wait ends. The answer is read from ids and keys, never from what you wrote; a blank comment is marked read but does not answer.
+- A comment written before the question was posted is only recorded and the wait stays. The same holds when the question is recorded but not posted yet, and when the only post on the pull request belongs to an earlier question. Comment again once the question is on the pull request.
+- Each answer clears the wait and resets only what belongs to that wait: `attempts` go back to 0 for the attempts cap, `crashes` go back to 0 for the crash cap, nothing else. The `round` is never reset, so the next send-back at the round cap asks again.
+- A comment on a work item that does not wait for you, at an approval stage for instance, is only recorded; `stage`, `round`, `attempts`, `crashes` and the hand-over are untouched.
+- A comment event that keeps failing is tried three times on the same remote state and then reported once on the pull request, like every other event (see "An event that keeps failing"). The factory's own comments (those with its marker) never answer.
+
 - **The form has findings.** The agent decided to move forward, but the work item's form still has findings after the run. The comment reads: `The work item's form has findings, so the stage cannot move forward: 1. <message> 2. <message>. What should happen? Answer with a comment; the stage then runs again. Close the pull request to discard the work item.` The stage stays where it is and the round is not counted. Answer with a comment (say how to fix the form, or that the finding is wrong); the stage then runs again. Closing the pull request discards the work item.
 - **The round cap is passed.** A stage with `round_cap` sent the work item back once more than the cap allows. The comment reads: `This work item has now been sent back <n> times, more than <cap>. What should happen? Answer with a comment; close the pull request to discard the work item.` The stage stays where it is and the round shows the count. Answer with a comment; closing the pull request discards the work item.
 
@@ -531,7 +541,7 @@ Only the run handler is registered today. The kinds without a handler are those 
 - `hand_over`: a work item reached an approval stage.
 - `merged`: you merged a waiting work item's pull request.
 - `ask`: a question waits to be posted (an agent's `question`, or the attempts cap). `AskHandler` exists but is not registered yet.
-- `comment`: you answered on the pull request.
+- `comment`: you commented on the pull request. `CommentHandler` exists but is not registered yet.
 - `crash`: the instance found its own claim on the remote, after a rejected result push or another boundary error after the stage-start commit, or after a restart when the process died during a stage.
 
 Each ends in the one report of its work item and remote state, and then holds back all new work, until F0007 and F0008 register their handlers. A push to the branch makes the factory try again.
