@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 82
 blocked: null
 comments_seen: 0
@@ -231,3 +231,22 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
    - Seen, not touched: `CommentCopier._state_of` raises `ValueError` for a stateless document. The reviewer noted this and the Interface doesn't cover it. I documented it as it is.
 
    `make check`: check: green
+7. demo: both commands were run from the repository root, exactly as written. Both met their `Expect:` line and there are no findings.
+
+   1. Comment copier (`unread` and `append` on the fake hosting service). Exit 0.
+      ```
+      True
+      [(1, 'human', 'created'), (2, 'human', 'comment'), (3, 'human', 'comment')]
+      True
+      ```
+      This met Expect. `unread` returned exactly the unmarked comment and the `factory:` comment by `someone-else`, in the order listed, and left out the marked one (criteria 9 and 10). `append` numbered the two `human`/`comment` entries after the existing entry (criterion 12). `comments_read` is the sorted list of both ids (criterion 14).
+
+   2. `CannotHandle`. Exit 0.
+      ```
+      True cannot handle comment: work item F0001-S0001 has no pull request
+      ```
+      This met Expect. It is a `FactoryError` and its message has the form `cannot handle <kind>: <reason>` (criterion 1).
+
+   Checked against the acceptance criteria: nothing in either output contradicts any criterion. The demo does not exercise the git-backed parts (`check_out`, `record`, `publish`, `copy`, criteria 5, 6, 8 and 15 to 20). The tests cover those, and neither command contradicts them.
+
+   Still open, carried from the reviewer's and documenter's entries and not a demo finding: `CommentCopier._state_of` raises `ValueError` rather than `CannotHandle` for a document without a state. Also, `copy` does not fetch, so its later callers (S0005, S0007) must fetch first.
