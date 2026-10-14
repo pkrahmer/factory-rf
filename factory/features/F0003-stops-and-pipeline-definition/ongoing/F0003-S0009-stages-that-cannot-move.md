@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 50
 blocked: null
 comments_seen: 0
@@ -98,3 +98,11 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
 
    `make lint`: lint: green
    `make test`: FAILED tests/application/test_pipeline_loading_stage_moves.py::test_a_stage_without_role_or_approval_is_one_reported_stop
+4. coder: rules 10 and 11 are in `src/factory/domain/pipeline_definition.py` (commit 46fd728). `make check` is green and every test from the tester passes.
+   - `_empty_next_faults` (rule 10) and `_unworked_stage_faults` (rule 11) come at the end of `_RULES`, after S0007's rules. That ordering puts rule 10's faults before rule 11's, and both after rules 1 to 9, each in the order of the stages.
+   - Both rules go through one helper, `_moving_stages`. It returns every stage except `done`, and returns nothing when there is no `done`. That way the "rules wait for done" condition is written in one place.
+   - Rejected: checking for `done` inside each rule. It would repeat the same condition twice.
+   - Refactor: I read the diff and found nothing to change. No separate refactor commit.
+   - Not touched: the docs criterion, which belongs to the documenter.
+
+   `make check`: check: green
