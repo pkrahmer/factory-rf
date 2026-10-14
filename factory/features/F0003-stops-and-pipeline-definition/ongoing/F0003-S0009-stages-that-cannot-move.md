@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 50
 blocked: null
 comments_seen: 0
@@ -82,3 +82,19 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
    - Demo: the script is runnable. Its `Expect:` line gives three exact lines. I checked that `PIPELINE_YAML` in `tests/git_support.py` has `doing`, `review`, `acceptance`, `approval` and `done` as the criteria assume.
    - Architecture: the change is in the domain validator only. The existing error and stop carry the faults, so no layer rule is touched.
    - Scope: the story stays within F0003's load-time validation and is not in "Out of scope".
+3. tester: wrote red tests for rules 10 and 11. The cases change `PIPELINE_YAML` by text replacement and parse it through `RuamelPipelineDefinitionReader`.
+   - criterion 1: tests/adapters/test_pipeline_stage_moves.py::test_a_stage_no_next_names_is_accepted (it also asserts that no `next` names `acceptance`)
+   - criterion 2: tests/adapters/test_pipeline_stage_moves.py::test_a_stage_needs_a_role_or_approval_and_a_next (parametrized: `limbo: {next: [done]}` refused, the role and approval variants accepted, `limbo: {}` refused by both rules)
+   - criterion 3: tests/adapters/test_pipeline_stage_moves.py::test_a_stage_with_a_role_and_an_empty_next_is_refused (`[]` refused, `[review]` accepted)
+   - criterion 4: tests/adapters/test_pipeline_stage_moves.py::test_an_approval_stage_with_an_empty_next_is_refused
+   - criterion 5: tests/adapters/test_pipeline_stage_moves.py::test_empty_nexts_come_before_stages_without_role_or_approval_in_stage_order
+   - criterion 6: tests/adapters/test_pipeline_stage_moves.py::test_a_fault_of_the_earlier_rules_comes_before_a_stage_that_cannot_move
+   - criterion 7: tests/adapters/test_pipeline_stage_moves.py::test_without_a_done_stage_no_stage_is_refused_for_not_moving
+   - criterion 8: tests/application/test_pipeline_loading_stage_moves.py::test_a_stage_without_role_or_approval_is_one_reported_stop (uses S0006's fixtures `boundaries`, `agent_home`, `human` and `checkout`)
+
+   Files created: tests/adapters/test_pipeline_stage_moves.py, tests/application/test_pipeline_loading_stage_moves.py. No existing test was changed.
+
+   `make test`: every module imports, since the modules under test already exist. The 7 failing tests fail on a wrong result: each case that should be refused is still accepted. The cases that should be accepted already pass, and so does criterion 7. `make lint` is green. The type check was not run in this stage.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_pipeline_loading_stage_moves.py::test_a_stage_without_role_or_approval_is_one_reported_stop
