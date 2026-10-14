@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 85
 blocked: null
 comments_seen: 0
@@ -201,3 +201,26 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
    Stale but not touched: none seen.
 
    `make check`: check: green
+7. demo: ran the one command under `## Demo` from the repository root, exactly as written. It exited 0. There are no findings.
+
+   Command 1 (the `uv run python -c` script: a story at `doing` on main, a work item branch with a different body, then `ClosedHandler.handle` on a `closed` event):
+
+   ```
+   factory/features/F0001-todo/backlog/F0001-S0001-model.md
+   # Model
+
+   The human wrote this.
+   main
+   ```
+
+   This meets its `Expect:` line on all three points:
+   - The first line is exactly the path under `backlog/`. It is the only file on `origin/main`, so nothing is left under `in-progress/`.
+   - The file's text is `# Model`, an empty line, then `The human wrote this.`. That is the human's text from main, not the branch's `worked on by the factory`.
+   - The last line is `main`, so `work-item/F0001-S0001` is gone from the remote.
+
+   Checked against the acceptance criteria:
+   - The demo agrees with criteria 1, 2 and 5 (the remote side).
+   - It agrees with criterion 11: the demo passes `hosting=None`, and the handler ran without error, so it made no call to the hosting service.
+   - It contradicts no other criterion. Criteria 3, 4 and 6–10 and 12 are not exercised by the demo. The tests the reviewer checked in `tests/application/handlers/test_closed.py` cover them.
+
+   Open: none.
