@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 97
 blocked: null
 comments_seen: 0
-round: 1
+round: 2
 attempts: 0
 ---
 # An expired lease, and notes that say retrying only when true
@@ -249,3 +249,13 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
       - No tests changed. Nothing else was touched.
 
    `make check`: check: green
+7. reviewer: reviewer (round 1): one finding, in group 4 (quality). Groups 1 to 3 pass.
+
+   - Every criterion from 1 to 17 has a test that checks what the criterion says.
+   - Both sides of the lease limit are tested (59:59 refused as `held`, 60:00 handled). Both note caps are tested on both sides (1 against 2 and 3, for every `StallReason`). The refused statuses own, own after the lease, and no claim are each tested.
+   - The rejected push of the pull-request number goes through the shared `_record_pull_request`, which S0002's test covers.
+   - The coder's entry reports `make check` green. The layers hold, the post goes through `StopService`, and the diff adds no marker that silences a check.
+   - Last round's finding is fixed: `required_claim_status` in `src/factory/domain/evaluation.py` derives the required status from the one `CLAIM_EVENTS` map, typed `ClaimStatus`.
+   - The diff also holds changes to `CLAUDE.md`, `docs/runs/` and `planning/`. They come from the human's commit, so I did not review them.
+
+   1. `src/factory/application/recovery.py:190` (`_remote_head`): for an `expired` event it raises `CannotHandle(_KIND, ...)`, which names the kind `crash`. That breaks the contract of `CannotHandle` ("the event's kind", `src/factory/domain/errors.py:178`). It also disagrees with the guard on the missing branch commit in `_dead_run`, which this diff changed to `event.kind` for the same case. The coder's entry noticed this and left it. Fix: pass the event's kind into `_remote_head` (from `handle`) and raise with it, as `_dead_run` does. `_state_of` in `ask_crash_cap` may keep `crash`.
