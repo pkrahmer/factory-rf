@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 83
 blocked: null
 comments_seen: 0
@@ -138,3 +138,12 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
       - Open: the documentation criterion (18) is the documenter's.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Criteria: I read each test against its criterion. All 16 tested criteria have a test that checks what the criterion says. The coder's entry records a green `make check`.
+        - Both limits are tested on both sides. For the attempts cap: 1 (refused), 2 (at the cap, criterion 7) and 3 (above it). For the rules that refuse: no question record (all five `Blocked` values), no stall record and no pull request.
+        - The kill points come from the real adapters, so the kill tests (13, 14) run the real path: `AFTER_POST` in `FakeHostingService.post_comment` and `BEFORE_PUSH` in `GitCli.push`.
+      - Intake's noted gap (no criterion for a `GitError` or `PushFailed` while recording): I do not count it as a finding. The handler catches nothing, so every failure propagates. The failing-call rule is tested through `HostingServiceError` (criterion 11). The push failure is tested through the before-push kill (criterion 14) and by S0001's recorder tests.
+      - Architecture: `AskHandler` is in `factory.application.handlers`. It reaches git only through `WorkItemRecorder` and the hosting service only through `Boundaries.hosting`. `attempts_cap_question` is pure domain code. No new dependencies.
+      - Security: no secrets, no strings built into shell or SQL commands, no suppression markers.
+      - Quality: there are docstrings on the module, the public class and the public functions. The private `_state_of` follows the same local pattern already used in `comments.py`, `claims.py` and `stage.py`, so it adds no new duplication for this ticket to fix.
+      - Ticket hygiene: the coder's entry states the main decision and the rejected alternative. The decision is to rely on the keyed `post_comment` no-op instead of listing comments first. The Assignment matches what was built. Criterion 18 still describes what the documenter must write.
