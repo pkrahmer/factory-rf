@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 75
 blocked: null
 comments_seen: 2
@@ -190,3 +190,31 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: Implemented the move rule and made `reject` wait for the pull request lookup. All of the tester's tests pass unchanged, and `make check` is green (coverage 99.41 %).
+
+   What I built:
+   - `src/factory/domain/move_rule.py`
+     - `StageChange`, `FactoryMove` and `IllegalChange`: frozen, and they forbid unknown keys.
+     - `is_legal_change`: true for a correction or an unchanged stage; otherwise `to_stage` must be in `from_stage`'s `next`, or be `done` from an approval stage. An unknown `from_stage` is false.
+     - `factory_moves`: the `next` pairs in stage order, then each approval stage → `done`. Duplicates are removed with `dict.fromkeys`.
+   - `src/factory/domain/evaluation.py`
+     - `EvaluationInput.illegal_changes` is added, with default `[]`.
+     - `evaluate` now finds the first waiting pair. It makes the lookup at most once (`_looked_up` returns the observation, the `HostingServiceError`, or `None` when there is no pull request).
+     - `_reject` then runs, then `_human_signal` from the same lookup result, then tiers 3 and 4.
+     - `_reject` goes through the snapshots in order. It skips the waiting snapshot only when the lookup returned a merged pull request. A failed lookup skips nothing.
+   - `src/factory/application/work_items.py`: `RemoteWorkItems.last_stage_change`.
+     - It reads `Git.log(origin/<branch>, since=origin/main, path=...)`, newest first. It returns `None` when there is no remote branch, no commit, a merge commit, or an opening commit (the parent is an ancestor of `origin/main`).
+     - It also returns `None` when the file is missing on either side, the parent cannot be parsed, or the stage is unchanged.
+     - `correction` means the journal grew and its last record has kind `move_back`.
+   - `src/factory/application/watcher.py`: `_illegal_changes` fills `illegal_changes` from `last_stage_change` and `is_legal_change`, in snapshot order.
+
+   Main decision: I split the old `_signal_of` into a lookup step and a step that interprets the result, so `reject` and the human signal share one lookup. The rejected alternative was to keep the lookup inside `_human_signal` and pass a callback that remembers its result. That hides the "at most once" rule in state; an explicit value is simpler to read.
+
+   Refactor: commit 0dc76f0 adds the `_Pair` alias for the repeated waiting-pair tuple type. Nothing else needed changing.
+
+   Noticed but did not touch:
+   - `last_stage_change` treats `snapshot.branch_commit is None` as "no branch", because a snapshot always carries a branch name.
+   - A work item's `illegal_changes` entry is matched to its snapshot by id. Duplicate ids are already returned as `duplicate` before `reject`.
+   - Docs criterion 27 is the documenter's.
+
+   `make check`: check: green
