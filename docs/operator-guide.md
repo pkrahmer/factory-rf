@@ -97,6 +97,18 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 
 If the hosting service fails while the note is posted, the stall commit is already on the remote and no note is posted. The error is reported, and the work item shows the stall in its file and journal.
 
+## A stall by a red check
+
+When the agent decides to move forward and the stage has checks, the factory runs them itself, in the order of the pipeline definition, and stops at the first that is red. A check is green only when its make target exits 0. A red check is a stall that costs one attempt; the stage, the round and the crash count stay. On the pull request you see the stall note with the cause `a check is red after the stage` and, after a colon, the check's name and the last 15 lines of its output (all of them when it printed fewer). In the work item's journal the agent's entry comes first, ending with one line per check that was green, and the `factory` stall entry follows.
+
+What to do:
+
+- Below the attempts cap nothing: the next tick runs the stage again, and the agent sees the journal.
+- At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch. Fix what is wrong (the code, the target, or a tool missing on the machine), then answer on the pull request.
+- Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move: a failing report adds no line to the entry and stops nothing.
+
+The result commit of every stage holds the whole work tree. Make sure the project's `.gitignore` covers whatever its checks create (build output, caches, coverage files); otherwise the factory commits it.
+
 ## The factory's own questions
 
 Besides an agent's `question`, the factory asks you itself in two cases. Each is a comment on the pull request, and the work item is blocked until you answer.

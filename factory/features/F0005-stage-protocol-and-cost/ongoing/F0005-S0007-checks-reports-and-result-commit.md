@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 64
 blocked: null
 comments_seen: 2
@@ -212,3 +212,16 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - `StageFinisher.finish` does the eight steps in the Interface's order. A red check goes through `StallService.stall` with the stage-start commit and the document that already holds the entry and the green-check lines. Only rule 6 resets `crashes`. Labels are written after the push, and `PushFailed` and `HostingServiceError` propagate unchanged. `StageRunner.run` handles the merge-conflict stall without launching the agent and reports every stall with rule `None`.
    - Layers hold: the application imports only application and domain, and `labels_for` lives in the domain. Commands run only through `ProjectCommands`. No suppression markers, secrets or string-built shell.
    - Considered and accepted: the red-check stall detail puts the command's name in front of the 15-line tail. It adds information and removes none, and the log (entries 4 and 8) records it as a design decision. The third private `_state_of` copy follows the existing pattern in `claims.py` and `stalls.py`; the coder noted it and left it alone as out of scope.
+10. documenter: wrote the docs for the stage protocol. `make check` is green.
+
+    Files changed:
+    - `docs/project-guide.md`: added the section "The stage protocol". It covers the order `StageRunner.run` follows, `StageReport`, the eight steps of `StageFinisher.finish`, the red-check tail of 15 lines, reports that are recorded and never enforced, the `crashes` reset on a forward move, labels as a projection that is never read back, and the one result commit that holds the whole work tree. I also replaced three "(F0005-S0007)" forward references with pointers to that section: in "After the agent run", in "The decision rules" and in the rule 5 row of its table.
+    - `docs/operator-guide.md`: added the section "A stall by a red check". It describes what the stall note and the journal look like on the pull request, what to do below and at the attempts cap, that reports never hold a move, and that the project's `.gitignore` must cover whatever its checks create.
+
+    Cross-read and found current: the "Stalls" and "Starting a stage" sections of the project guide, and the "A stall: the stall note" and "The factory's own questions" sections of the operator guide. I checked the stall detail (command name, then the tail) against `src/factory/application/stage.py`. The docs did not describe the new classes, so nothing else needed fixing.
+
+    Findings for the coder: none.
+
+    Stale text seen but not touched: none that is unrelated to this story.
+
+    `make check`: check: green
