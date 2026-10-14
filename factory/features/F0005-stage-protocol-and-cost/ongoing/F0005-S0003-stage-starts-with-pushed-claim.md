@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 60
 blocked: null
 comments_seen: 0
@@ -90,3 +90,39 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Demo: `uv run pytest tests/application/test_stage_launch.py` is runnable, and its `Expect:` line (last line says `passed`, no `failed` or `error`) can be checked against the output.
    - Architecture: the module sits in `factory.application` and reaches git, hosting and the runtime only through the interfaces. The test helper `tests/observing_runtime.py` sits at the `tests/` root, like `git_support.py`.
    - Scope: the story is within the feature's scope (the stage start, the claim pushed first, the guard, the environment). It leaves out the pull request state reading, F0008's crash handling and the cost records, which are the feature's out-of-scope items or later stories.
+3. tester: red tests written for the stage start. `make test` stops at collection with `ModuleNotFoundError: No module named 'factory.application.stage'`, which is the expected reason. `make lint` is green. I skipped the type check as the stage says.
+
+   Criteria → tests (all in `tests/application/test_stage_launch.py`):
+   - criterion 1: `test_the_stage_start_commit_is_on_the_remote_when_the_run_starts`
+   - criterion 2: `test_the_stage_start_commit_is_one_commit_above_the_existing_branch`
+   - criterion 3: `test_the_stage_start_commit_of_a_new_work_item_is_its_opening_commit`
+   - criterion 4: `test_a_push_by_another_clone_rejects_the_claim_and_no_run_starts`
+   - criterion 5: `test_an_unreachable_remote_fails_the_claim_and_no_run_starts` (the remote directory is removed with `shutil.rmtree` after `prepare`)
+   - criterion 6: `test_a_missing_agent_file_is_raised_before_anything_is_pushed`, parametrised for a new branch (stays absent) and an existing one (head unchanged)
+   - criterion 7: `test_a_conflicted_work_item_is_refused_before_anything_is_read_or_pushed`
+   - criterion 8: `test_a_stage_without_a_role_is_refused_naming_the_stage` (`match="approval"`)
+   - criterion 9: `test_a_new_work_item_has_one_open_draft_when_the_run_starts`
+   - criterion 10: `test_a_recorded_open_pull_request_is_kept_and_reused` (six pull requests of other branches are created first, so the work item's is number 7)
+   - criterion 11: `test_the_runtime_receives_the_request_with_the_guard_and_the_draft_number`
+   - criterion 12: `test_the_request_carries_exactly_the_given_environment`
+   - criterion 13: `test_the_first_stage_prompt_carries_the_form_findings`, parametrised complete / without-smoke-test
+   - criterion 14: `test_a_run_that_did_not_complete_is_returned_as_its_result`, parametrised died / time_limit / budget
+   - criterion 15: `test_a_runtime_error_propagates_and_leaves_the_claim_pushed` (nothing is queued, so `FakeAgentRuntime` raises `AgentRuntimeError("no scripted run is queued")`)
+   - criterion 16: `test_started_and_launched_stages_are_frozen_and_forbid_unknown_keys`
+   - criteria 17 and 18 (make check, docs) are not test cases.
+
+   Files created:
+   - `tests/application/test_stage_launch.py`
+   - `tests/observing_runtime.py`: `ObservingRuntime(AgentRuntime)` takes the delegate `FakeAgentRuntime` and the keywords `remote`, `branch`, `hosting` and `checkout: Git`. On each `run` it records an `Observation` (`remote_head`, `checkout_head`, `pull_requests`), then delegates. `observations()` lists them. The tests put it into `Boundaries` with `dataclasses.replace(boundaries, agent_runtime=...)`.
+
+   Notes for the coder:
+   - Criteria 7 and 8 install no agent file. If `launch` read the agent definition before step 1's refusal, it would raise `AgentDefinitionMissing` instead of `ValueError`, so these tests also check the order.
+   - Criterion 7 checks only for `ValueError`, not its message.
+   - Criterion 16 rebuilds each model with `model(**dict(instance), unknown=1)`.
+
+   Modules the runner could not import: `factory.application.stage`.
+
+   Nothing in the criteria needed interpreting; no questions are open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
