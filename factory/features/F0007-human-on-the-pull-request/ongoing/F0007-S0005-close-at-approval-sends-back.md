@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 86
 blocked: null
 comments_seen: 2
@@ -84,8 +84,9 @@ Tests: `tests/domain/test_send_back.py`, `tests/domain/test_send_back_texts.py` 
 19. When the push of the decision is rejected (the human pushed to the branch after the reopen), `handle` raises `PushFailed` with outcome `rejected`, the remote branch still holds the `close` entry and the human's commit, and handling the event again sends the story back once: the journal holds one `close` record and one `send_back` record.
 20. A comment that the human writes after the reopen failed and before the retry is copied by the retry as a `comment` entry, and the journal still holds exactly one `close` record (the retry does not close again); that comment counts as the reason.
 21. After the decision is pushed, `hosting.labels(<pull request>)` is `["stage:doing"]`; when `set_labels` fails, `handle` raises `HostingServiceError` and the remote branch holds the decision (two cases, one test).
-22. make check stays green.
-23. docs: `docs/operator-guide.md` explains the close at the approval (the comment that counts as the reason, the round cap, the three options of the send-back question) and that, after a kill between the reopen and the second record, the pull request is handed over again at the approval and the close has to be repeated; `docs/decisions.md` records why the close is recorded before the pull request is reopened.
+22. A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry.
+23. make check stays green.
+24. docs: `docs/operator-guide.md` explains the close at the approval (the comment that counts as the reason, the round cap, the three options of the send-back question) and that, after a kill between the reopen and the second record, the pull request is handed over again at the approval and the close has to be repeated; `docs/decisions.md` records why the close is recorded before the pull request is reopened.
 
 ## Demo
 
@@ -117,3 +118,9 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
    2. Optional, not blocking: `any close counts when there is no result` has no case either. I'd fold it into the same criterion as a second case (a `close` and no `result` record: no second `close`). Do you want that?
    The other checks passed. The Interface, the Demo and the other criteria are fine. The scope and architecture match `FEATURE.md`.
 3. human (pull request comment, 2026-10-14): 1: confirmed as you worded it. 2: yes, fold it into the same criterion as a second case. The criterion, before the two closing ones: "A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry." The Interface stays as it is.
+4. intake: accepted. Carried in from log entry 3 (the human's answer): added criterion 22 before the two closing ones ("A story at the approval whose journal holds a `close` record numbered before the latest `result` record ... gets a new `close` entry ... two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry"), worded as the human gave it. `make check` and `docs:` are now criteria 23 and 24. The Interface and the Assignment are unchanged, as the human said.
+   - Interface: names concrete modules (`domain/send_back.py`, `domain/post_texts.py`, `application/handlers/closed.py`) with signatures and ordered handler steps. Every rule is stated exactly.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for its failing side: no reason, past the cap, one `next` entry, no pull request, a rejected push, a failed reopen, a failed `set_labels`. The two sides of the `close`-record rule are covered by criteria 10, 20 and 22.
+   - Demo: runnable with `uv run python -c`. The `Expect:` line gives six checkable lines, and I traced them against the Interface rules.
+   - Architecture: the pure rules are in domain, the handler is in application and uses the Boundaries interfaces. The claim is set directly in the state, as the Interface explains.
+   - Scope: within the feature's scope (send-back, GH3.3, R22). It leaves the acceptances to F0009 and does not touch the `ask` handler.
