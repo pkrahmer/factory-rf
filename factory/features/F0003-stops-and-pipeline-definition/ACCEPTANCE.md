@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 47
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0003-S0001, F0003-S0002, F0003-S0003, F0003-S0004, F0003-S0005, F0003-S0006, F0003-S0007]
+outcome: accepted
 ---
 # Acceptance of Stops and the pipeline definition
 
@@ -397,3 +398,4 @@ This acceptance is not in the sum.
       6 Decisions: FEATURE.md's 19 decisions, which the code follows. Eight decisions came from the logs, including your S0001 answer, the keyed post alone, `default_factory`, and the rule functions with `ctx["error"]`. Open for you: strict values (S0008), whether either stage shape is ever meant, and running the new rules only when `done` exists so that no test changes (S0009).
       7 Slow checks: none offered.
       8 Cost: 51 runs, 46.6 min, $12.93 ($1.85/story, below F0002's $1.94). S0001 stands out at 11 runs and $2.49: one unstated refused side cost five extra runs for a test that passed against the unchanged code. S0004 and S0007, the largest stories, had no rework.
+2. done (pull request merged); cost: 1 runs, 7.8 min, 51 turns, 163k tokens in (4538k more from cache), 37k out, $2.96
