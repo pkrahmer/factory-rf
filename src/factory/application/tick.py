@@ -1,6 +1,7 @@
 """The tick: fetch, load, restore the checkout, evaluate the remote and dispatch one event."""
 
 from collections.abc import Callable, Mapping
+from typing import NoReturn
 
 from pydantic import BaseModel, ConfigDict
 
@@ -136,7 +137,7 @@ class Tick:
         started = [story.id for story in stories]
         return sorted({work_item for work_item in [*on_remote, *started] if work_item is not None})
 
-    def _stop(self, reason: RepositoryStopReason, detail: str) -> None:
+    def _stop(self, reason: RepositoryStopReason, detail: str) -> NoReturn:
         stop = RepositoryStop(
             scope="repository", reason=reason, detail=detail, at=self._boundaries.clock.now()
         )
