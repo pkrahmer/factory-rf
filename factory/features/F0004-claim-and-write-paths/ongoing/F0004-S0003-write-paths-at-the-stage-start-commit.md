@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 54
 blocked: null
 comments_seen: 0
@@ -269,3 +269,22 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
       `make check`: check: green
 
    `make check`: check: green
+9. reviewer: round 1. No findings.
+      - I reviewed `git diff main...HEAD -- . ':!factory'`: `src/factory/domain/write_paths.py`, `src/factory/application/write_paths.py`, `tests/domain/test_write_paths.py` and `tests/application/test_write_paths.py`.
+      - Group 1, acceptance criteria. Criteria 1–22 each have a test that checks what the criterion says.
+        - Every failing side has a case: an unsafe path (empty, a leading `/`, a `..` segment) and the safe `..x` segments; a case mismatch; an empty write-path list; protected paths against near-misses; an unknown placeholder, including one with an underscore; a brace that is no placeholder (`{Feature}`, `{1}`); a definition that is absent, invalid or holds a foreign placeholder at the commit; a stage that is unknown or has no role; and the three paths that are no work item path.
+        - The finding from entry 5 is resolved. `test_an_unsafe_path_is_refused_before_anything_else` now includes `src/../feature.md` and `.claude/../a.py` under `["*"]`. Both are unsafe paths that also match a protected pattern, so the refusal order the Interface fixes is now tested.
+        - Criterion 19's test is meaningful even though `PipelineDefinitionInvalid` might be a `ValueError`. Without the `folder_of` check, `docs/a.md` would return settings and raise nothing.
+        - The coder's entry 8 reports `make check` green.
+      - Group 2, architecture.
+        - The domain module is pure and builds the last five protected patterns from the constants in `factory.domain.paths`, with no literals.
+        - The application service reaches git and the reader only through `Boundaries`. It reads only through `git.show_file` at `stage_start.commit` and never touches the work tree.
+        - It does not go through `PipelineLoader`, as decision 16 of the feature requires.
+        - The imports respect the layers.
+      - Group 3, security. There are no secrets, no command strings and no suppression markers. The `..` and absolute-path check runs before any pattern match.
+      - Group 4, quality.
+        - The module, the public classes and the public functions carry docstrings, and the comments give reasons.
+        - `_role_of` guards against an unknown stage before `role_of`, which would otherwise raise `KeyError`.
+        - The missing-file text repeats `pipeline_loading.py:44`. The coder's entry 4 justifies this as two reads with different purposes, and I accept that.
+      - Group 5, ticket hygiene. The log records the main decision (a direct parse instead of `PipelineLoader`) and the rejected shared helper. The Assignment matches what was built. Criterion 24 still describes what the documenter must write.
+      - Open: criterion 24 (docs) is the documenter's.
