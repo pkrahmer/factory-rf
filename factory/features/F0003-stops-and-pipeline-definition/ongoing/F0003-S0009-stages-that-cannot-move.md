@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 50
 blocked: null
 comments_seen: 0
@@ -106,3 +106,9 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
    - Not touched: the docs criterion, which belongs to the documenter.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: criteria 1 to 8 each have a test that checks what the criterion says. Both rules are tested on their refused side and their accepted side: `limbo` with a role or with approval is accepted, `doing` with `[review]` is accepted, and an empty `next` is refused for both a role stage and an approval stage. The `done`-exists condition is tested on its other side by `test_without_a_done_stage_no_stage_is_refused_for_not_moving`. In `tests/git_support.py`, `done` appears only in the `approval` stage's `next` and in the `done` stage itself, so the global rename in that test does what criterion 7 describes. The tests also check the order of the faults: within a rule they follow the order of the stages (criterion 5), and an earlier rule's fault comes first (criterion 6). Criterion 8 checks both the raised `PipelineDefinitionInvalid` and the single health stop with its `detail`. The coder's entry records `make check` green.
+   - Architecture: the change is only in `factory.domain` (`src/factory/domain/pipeline_definition.py`). It adds no I/O and no new imports, and it reuses the existing error and stop.
+   - Security: no subprocess, strings or suppression markers were added.
+   - Quality: `_moving_stages` holds the "only when `done` exists" condition once. Its comment says why, not what. The rule functions are private, so no docstrings are needed. Rule 11's check `role is None and not approval` matches `StageDefinition` (`role: Name | None`, `approval: bool`).
+   - Ticket hygiene: the coder's log names the main decision (one helper for the `done` condition) and what was rejected (checking for `done` inside each rule). Assignment and Interface match the code. The docs criterion still describes what the documenter must write.
