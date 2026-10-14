@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 62
 blocked: null
 comments_seen: 0
 round: 0
@@ -99,3 +99,9 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `agent_entry`, `AgentAftermath` and `AfterAgent.process` are named with module paths and signatures. The six steps, their order, their stall reasons and details, and the "new finding" rule are stated precisely. The interface comments on kind, prefix removal, the paragraph and the cost-record exclusion are all behaviours with criteria.
+   - Criteria: each is testable by one test function. Every rule has its failing side: left branch (2), non-ok results (3, 4), disallowed decision (5), blank entry (13), new finding stalls against old or fixed finding not stalling (14, 15, 16, 17, 18), the paragraph present and absent (12, 20), frozen and unknown keys (21). Criterion 8 covers both the role that may write the work item and the role that may not.
+   - Demo: both commands are runnable. The first Expect has five lines, which matches what the code would print (`tester result`, `wrote the tests`, an empty line, the paragraph, `None`). The second Expect is checkable against pytest output.
+   - Architecture: `agent_entry` is pure and sits in the domain. `AfterAgent` is in the application layer and uses the S0004 stall service, the F0004 undo service and the form checker, all through interfaces. It adds no dependency and no top-level package.
+   - Scope: this is the feature's "After the agent" item. It covers decisions 13, 14, 15, 27 and 28 and stays out of the decision rules (S0006) and the result commit (S0007).
