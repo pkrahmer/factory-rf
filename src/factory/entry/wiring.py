@@ -9,6 +9,7 @@ from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.application.boundaries import Boundaries
+from factory.application.claims import ClaimService
 from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
 from factory.application.files import WorkItemReader
@@ -21,6 +22,7 @@ from factory.application.handlers.questions import AskHandler
 from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
+from factory.application.recovery import RecoveryHandler
 from factory.application.tick import HandlerFactory, IdleHandler
 from factory.domain.events import EventKind
 from factory.domain.identifiers import Name
@@ -39,7 +41,7 @@ __all__ = [
 ]
 
 # The kinds with no handler yet, in the order of `EventKind`; registering one removes it here.
-NOT_YET_HANDLED: tuple[EventKind, ...] = ("crash", "expired", "acceptance_due")
+NOT_YET_HANDLED: tuple[EventKind, ...] = ("expired", "acceptance_due")
 
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
@@ -81,6 +83,9 @@ def build_handlers(
     return {
         "idle": IdleHandler(),
         "run": run,
+        "crash": RecoveryHandler(
+            boundaries, definition, ClaimService(boundaries, instance, definition), run
+        ),
         "comment": CommentHandler(boundaries),
         "ask": AskHandler(boundaries, definition),
         "merged": merged,

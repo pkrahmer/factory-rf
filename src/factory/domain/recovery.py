@@ -1,0 +1,17 @@
+"""The crash: the count it raises and the journal text that records the discard."""
+
+from factory.domain.git import CommitId
+from factory.domain.work_item import WorkItemState
+
+
+def crashed(state: WorkItemState) -> WorkItemState:
+    """Return a copy of `state` with one more crash; the claim is released elsewhere."""
+    return state.model_copy(update={"crashes": state.crashes + 1})
+
+
+def crash_entry_text(stage: str, crashes: int, head: CommitId) -> str:
+    """Return the journal text of crash number `crashes`, discarded back to commit `head`."""
+    return (
+        f"crash {crashes}: the run of stage {stage} ended without a result. "
+        f"Its work is discarded back to commit {head}."
+    )
