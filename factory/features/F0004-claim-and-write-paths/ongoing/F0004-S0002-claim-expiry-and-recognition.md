@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 53
 blocked: null
 comments_seen: 0
@@ -144,3 +144,14 @@ Expect: one line, `['src/factory/application/claims.py']`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented the lease clock and the claim service's `status` and `release` (commit 5125046). `make check` is green, and both demo blocks print the expected output.
+   - `src/factory/domain/lease.py` (new) holds `ClaimStatus`, `lease_age`, `lease_expired` and `claim_status`. They are pure functions: `now` is always passed in, and expiry uses `>=` against the claim's own `lease_duration`. An own claim returns "own" before `now` is looked at.
+   - `src/factory/application/claims.py`:
+     - `ClaimService.status(state)` calls `claim_status` with the service's instance and `boundaries.clock.now()`. It never reads the definition's `lease_duration`.
+     - `ClaimService.release(document)` uses `model_copy` to set `state.claim` to None and leaves everything else as it was. A document without state raises `ValueError`.
+     - The class docstring now says the service claims, judges and releases.
+   - Design decision: `release` does not reuse `_state_of`, because that helper's error message talks about claiming. It checks for missing state inline with its own message instead. I rejected adding a parameter to `_state_of` for the message as more machinery than two lines are worth.
+   - Refactor: I re-read the diff and found nothing to change, so there is no refactor commit.
+   - Noticed, not touched: none.
+
+   `make check`: check: green
