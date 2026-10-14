@@ -614,6 +614,14 @@ It makes no hosting-service call. Tests: `tests/application/handlers/test_closed
 
 Only the work item's branch is written: `main` is never checked out, written or pushed, so a killed correction cannot leave it dirty. Tests: `tests/application/handlers/test_reject.py`, `tests/domain/test_correction_texts.py`.
 
+### A stop with no work to do is an error
+
+A handler that cannot do its work raises `CannotHandle` and never reports success: returning quietly would hide the stop from the human (R28, kept thing 12). The dispatcher counts the error, retries up to `ERROR_CAP` (3) times on the same remote state and then reports once, keyed `PostKey(kind="error", n=<first 12 digits of the remote state>)`.
+
+`DuplicateHandler()` and `PullRequestLookupHandler()` (`factory.application.handlers.lookups`) take no boundary and always raise: `CannotHandle("duplicate", "two work items share the id <id>")` and `CannotHandle("pull_request_lookup", "the pull request lookup for <branch> failed")`, each followed by `: <event.detail>` when the detail is not empty. Both are built but not yet registered. `AskHandler` without a pull request is the third such stop (`require_pull_request`).
+
+No module under `factory.application.handlers` catches `Exception` or `BaseException` or has a bare `except`; `tests/application/handlers/test_handlers_raise.py` walks the package and checks it. Tests of the dispatch sequence (`error, error, reported, capped`): `tests/application/handlers/test_lookups.py`.
+
 ### Comments are copied by id
 
 `CommentCopier(boundaries)` (`factory.application.handlers.comments`) copies the human's comments on a pull request into the journal.

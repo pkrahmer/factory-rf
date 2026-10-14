@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 89
 blocked: null
 comments_seen: 0
@@ -116,3 +116,12 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
       - Quality: the module, the public classes and the public methods have docstrings. The private `_with_detail` helper removes the duplicated suffix logic. There is no dead code.
       - Ticket hygiene: the coder's entry gives the main decision (handlers take no boundary) and the alternative it rejected (passing `Boundaries` for symmetry). `Assignment` matches what was built. Criterion 10 still states what the documenter must write.
       - Note, not a finding: the package's `__init__.py` is not walked by the criterion 8 test. It holds only a docstring today, so nothing is missed.
+6. documenter: wrote the criterion 10 text and found no findings for the coder.
+   - docs/operator-guide.md: new section "Stops that cannot be done" before "Claims, leases and the clock". It has a table of the three stops (a work item that exists twice, a failed pull request lookup, a question with no pull request), each with the last error in the report and what to do. It says each stop is tried three times on the same state and then reported once, on a draft pull request if there is none. It also says the handlers are not registered yet, so today the report reads `no handler for event kind <kind>`.
+   - docs/project-guide.md: new subsection "A stop with no work to do is an error" before "Comments are copied by id". It states that a handler that cannot do its work raises `CannotHandle` and never reports success. It covers the two new handlers (no boundary, exact reasons, detail suffix), the key of the report, the rule against broad `except` clauses, and the tests.
+   - Cross-read against the diff and found current: the `CannotHandle` line under Errors, "An event that keeps failing" and the `NOT_YET_HANDLED` lists in both guides (the two kinds are still unregistered).
+   - `make check` is green (coverage 99.24 %).
+   - Not touched, unrelated to this story: the operator guide's intro paragraph lists what is built and does not mention these handlers. It is a summary and still true.
+   - Not run: the demo in the ticket. The code diff matches its Interface.
+
+   `make check`: check: green
