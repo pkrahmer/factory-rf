@@ -108,17 +108,12 @@ class StallService:
     ) -> WorkItemDocument:
         state = _state_of(document)
         attempts = state.attempts + 1
-        counted = document.model_copy(
-            update={
-                "state": state.model_copy(
-                    update={"attempts": attempts, "pull_request": pull_request}
-                )
-            }
+        counted_state = state.model_copy(
+            update={"attempts": attempts, "pull_request": pull_request}
         )
-        released = self._claims.release(counted)
+        released = self._claims.release(document.model_copy(update={"state": counted_state}))
         cap = self._definition.attempts_cap
-        cause = stall_cause(reason, detail)
-        text = f"Stage {stage} stalled (attempt {attempts} of {cap}): {cause}"
+        text = f"Stage {stage} stalled (attempt {attempts} of {cap}): {stall_cause(reason, detail)}"
         return append_entry(released, NewEntry(speaker=FACTORY, kind="stall", text=text))
 
     def _commit_and_push(self, context: StallContext, document: WorkItemDocument) -> CommitId:
