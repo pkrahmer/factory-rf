@@ -33,7 +33,7 @@ def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) 
 
 Rules:
 
-- `agent_user_item(settings, exists)` is the item `agent-user`. It fails when `settings.agent_user` is `None` and `settings.token_file` is not `None` and `exists(settings.token_file)`; its detail names `FACTORY_AGENT_USER` and says that every agent would run as the factory's user, who can read the token file. In every other case it passes: the agent user is set, or there is no token file to protect.
+- `agent_user_item(settings, exists)` is the item `agent-user`. It fails when `settings.agent_user` is `None` and `settings.token_file` is not `None` and `exists(settings.token_file)`; its detail is `FACTORY_AGENT_USER is not set: every agent would run as the factory's user, who can read the token file`. In every other case it passes: the agent user is set, or there is no token file to protect.
 - The sudoers file holds, apart from blank and comment lines, exactly the four lines shown, in this order. Only the last is a rule, and no line gives `agent` anything.
 - The values of the sudoers file's `umask` and the entrypoint's `umask` agree: both are `0002`.
 - Wiring: the items `agent-user` and, when `settings.agent_user` is not `None`, `tool_item("sudo", which)` are added to the machine checks by the story that builds the probe of an agent run, which assembles every extra item in one place.
@@ -48,7 +48,7 @@ Tests: `tests/test_image_users.py` (the Dockerfile, the sudoers file and the com
 4. The `umask` value of the sudoers file equals the value of the entrypoint's `umask` line (both `0002`): the agent's files and the factory's are group-writable alike.
 5. The uid of the compose secret `hosting-token` equals the uid the Dockerfile gives the user `factory` and differs from the uid it gives `agent`, and `agent`'s uid is not 0 (WE3.1: the token file is readable only by the factory's user).
 6. The entrypoint sets `umask 002` directly after `set -eu`, and before it starts the instance the stub sees the umask `0002`.
-7. `agent_user_item` fails, with a detail that names `FACTORY_AGENT_USER`, when `settings.agent_user` is `None` and `exists` answers true for the token file.
+7. `agent_user_item` fails, with the detail `FACTORY_AGENT_USER is not set: every agent would run as the factory's user, who can read the token file`, when `settings.agent_user` is `None` and `exists` answers true for the token file.
 8. `agent_user_item` passes, with the name `agent-user` and an empty detail, when `settings.agent_user` is `agent`, whether or not the token file exists.
 9. `agent_user_item` passes when `settings.agent_user` is `None` and `settings.token_file` is `None`, and when it is a path for which `exists` answers false.
 10. make check stays green.

@@ -52,7 +52,7 @@ Tests: `tests/application/test_scheduler.py`. The scheduler tests pass recording
 8. A `ValueError("boom")` raised by `prepare` writes the line `iteration failed: ValueError: boom` through the log, `tick` is not called in that iteration, and the sleep that follows is the idle pause of 30.0 seconds.
 9. An `InjectedKill` raised by `tick` leaves `Scheduler.run` and is not logged.
 10. `CheckoutPreparer.prepare` on a missing checkout directory clones the settings' repository into it and returns `True`: `origin/main` then resolves in the new checkout; after `shutil.rmtree` of the whole checkout, a second `prepare` clones again (ST7.3).
-11. `CheckoutPreparer.prepare` on a checkout that already holds a clone returns `True` and leaves it as it is: a file the test added to the work tree is still there.
+11. `CheckoutPreparer.prepare` on a checkout that already holds a clone returns `True` without calling git and leaves it as it is: `CheckoutPreparer(GitCli(<the checkout>, GitOptions(executable=<a path in tmp_path that does not exist>)), settings).prepare()` returns `True` (any git call would raise `GitError`), and a file the test added to the work tree is still there.
 12. `CheckoutPreparer.prepare` on a directory that holds files but no `.git` raises `GitError` and changes nothing in the directory.
 13. make check stays green.
 14. docs: `docs/operator-guide.md` states the pauses (15 seconds after activity, doubling to 120 seconds while idle) and that only a missing checkout is recloned, so the operator deletes a checkout whose clone was killed half-way; `docs/decisions.md` records why a checkout whose clone was killed half-way is not recognised (R18: the checkout is disposable).
