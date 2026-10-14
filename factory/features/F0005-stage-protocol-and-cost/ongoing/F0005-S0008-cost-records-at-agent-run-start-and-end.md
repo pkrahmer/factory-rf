@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 65
 blocked: null
 comments_seen: 0
@@ -110,3 +110,28 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Demo: `uv run pytest tests/application/test_costs.py` is runnable. Its `Expect:` line is checkable (last line `passed`, no `failed` or `error`).
    - Architecture: the module sits in `factory.application`. It reaches the sidecar through `CostRecordReader` and `CostRecordWriter`, and it imports `StartedStage` under `TYPE_CHECKING` to avoid the import cycle. The layers are respected.
    - Scope: the story is within FEATURE.md's "Cost records" scope. `image` stays `None` (F0010), the bill is S0009's, and the crash discard is F0008's. Decisions 20, 27 and 32 match the story.
+3. tester: Wrote the tests for every criterion in `tests/application/test_costs.py` (the only file created). It defines `SidecarRuntime`, a subclass of `ObservingRuntime` that stays as S0003 wrote it. When called, it reads the sidecar from the work tree and from the remote branch head, then delegates. The stage, stall and result paths go through `StageRunner`. Criteria 4–7 read `LaunchedStage.cost` from `StageLauncher.launch`. The work item is a complete story, with a Makefile of green `lint`/`check`/`test` targets (`lint` red for criterion 12).
+
+   - criterion 1: tests/application/test_costs.py::test_the_sidecar_holds_a_started_record_while_the_runtime_runs
+   - criterion 2: tests/application/test_costs.py::test_each_run_gets_a_new_hex_id_and_its_record_comes_after_the_earlier_ones (an earlier `intake` record on the branch, then a died run and a completed run)
+   - criterion 3: tests/application/test_costs.py::test_no_cost_record_is_pushed_before_the_run [first-stage, later-stage]
+   - criterion 4: tests/application/test_costs.py::test_a_completed_run_completes_its_record_with_the_reported_measures
+   - criterion 5: tests/application/test_costs.py::test_unreported_measures_of_an_ended_run_stay_unknown [died, time_limit]
+   - criterion 6: tests/application/test_costs.py::test_a_reported_zero_cost_and_zero_tokens_stay_zero
+   - criterion 7: tests/application/test_costs.py::test_the_completed_record_replaces_the_started_one
+   - criterion 8: tests/application/test_costs.py::test_a_run_after_a_stall_records_the_counted_attempt (state starts with `attempts: 1`)
+   - criterion 9: tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo [overwritten, deleted] (the pushed sidecar must equal an exact expected `CostRecord`)
+   - criterion 10: tests/application/test_costs.py::test_the_result_commit_of_a_moving_stage_holds_the_completed_record
+   - criterion 11: tests/application/test_costs.py::test_the_stall_commit_of_an_ended_run_holds_its_record [died, time_limit]
+   - criterion 12: tests/application/test_costs.py::test_the_stall_commit_of_a_red_check_holds_the_record_once
+   - criterion 13: tests/application/test_costs.py::test_a_failing_run_is_committed_with_a_record_that_is_not_ok [no_result, time_limit, budget, died]
+   - criterion 14: tests/application/test_costs.py::test_an_agent_inside_its_write_paths_is_not_told_of_the_sidecar_undo [sidecar-deleted, sidecar-reverted]
+   - criterion 15: tests/application/test_costs.py::test_cost_runs_and_stall_contexts_are_frozen_and_forbid_unknown_keys
+   - criteria 16 and 17 are the factory's `make check` and the documenter's; no tests.
+
+   Earlier tests: none changed. No S0003/S0004/S0005/S0007 test builds `LaunchedStage` or `AgentAftermath` by keywords. The frozen/unknown-key tests use `dict(launched)` and `dict(aftermath)`, which will carry `cost`. `StallContext.cost` defaults to `None`, and no exact `UndoReport` comparison in those modules covers a launched stage's undo. The coder should still watch the earlier launch-driven tests: `begin` now leaves an untracked sidecar in the work tree.
+
+   `make test` once: a collection error, `ModuleNotFoundError: No module named 'factory.application.costs'`. That is the one module the runner could not import. `make lint` is green after `ruff format`. I skipped the type check as the stage says: `StallContext(cost=...)` and `LaunchedStage.cost` do not exist yet.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
