@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 84
 blocked: null
 comments_seen: 0
 round: 0
@@ -156,3 +156,9 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/archive.py: destination_path`, `post_texts.done_entry_text`, `application/handlers/merged.py: MergedHandler(boundaries)` with `handle`). Its rules fix the git calls, the commit subject, the state changes and the order of push and branch deletion.
+   - Criteria: each is testable by one test function. Every stated rule has a criterion for its failing side. `ValueError` for a path in no lifecycle folder is criterion 2. A push that is not `pushed` is criterion 15. A refused branch deletion is criterion 17. A missing cost record file is criterion 10. A branch already gone is criterion 12. The kills are criteria 13 and 14. The `done_entry_text` format is criterion 3, the bill content is criterion 8, and the "posts nothing" rule is criterion 16.
+   - Demo: both blocks are runnable. Each `Expect:` line names exact output (the four lines, the file list, the stage and journal tuples, and `main` as the only branch left on the remote), so the output can be checked against it.
+   - Architecture: the pure path function and text are in `domain`. The handler is in `application` and reaches git, readers and writers only through `Boundaries`. Dropping the claim by setting the field to `None` is allowed, per decision 22 and `tests/test_claim_ownership.py`.
+   - Scope: this is within the feature's Merge item (feature decisions 5, 6, 8 and 22). It leaves out the acceptance's merge, which is F0009's, and the discard, which is S0004's. `destination_path` is built here for S0004 to reuse, as the feature plans.
