@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Documentation after the human on the pull request
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
