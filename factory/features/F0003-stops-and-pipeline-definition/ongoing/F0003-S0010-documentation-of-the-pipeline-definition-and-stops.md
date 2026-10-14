@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 51
 blocked: null
 comments_seen: 0
@@ -73,3 +73,12 @@ Expect: one line, a number of at least `2`: the status names the health status f
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: nothing to build, by design. This story only changes documentation: the Interface is "None: no code changes", the tester wrote no tests, and the Assignment gives the work to the documenter (README.md, docs/operator-guide.md, docs/project-guide.md). The coder does not write those files.
+      - No source or test changes and no commits. I ran `make check` on the unchanged branch and it is green (coverage 99.72 %).
+      - No refactor: there is no diff to read.
+      - Rejected: editing the three docs files here. They are outside the coder's lane, and CLAUDE.md gives them to the documenter stage.
+      Open: everything in the docs criterion, for the documenter. That covers the operator guide's section on the pipeline definition and its pointer from `pipeline_definition_invalid`, the F0003 parts in the opening list, `agent_definitions` in the project guide's "Boundaries", `WritePathService` removed from "The pipeline loader", and the README status summary.
+
+      `make check`: check: green
+
+   `make check`: check: green
