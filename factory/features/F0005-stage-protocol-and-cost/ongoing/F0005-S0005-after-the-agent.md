@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 62
 blocked: null
 comments_seen: 2
@@ -275,3 +275,23 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
     Findings: none. The code matches the Interface. I wrote no runnable examples. `make check` is green.
 
     `make check`: check: green
+15. demo: Ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines.
+
+    1. `agent_entry` snippet (exit 0):
+    ```
+    tester result
+    wrote the tests
+
+    The factory undid changes outside the write paths: README.md, src/b.py.
+    None
+    ```
+    Met. It printed 5 lines. Line 1 is `tester result`. Lines 2–4 are the text with the leading `tester:` removed, a blank line, and the undo paragraph with the paths sorted and joined by `, `. Line 5 is `None` for the text that is blank once its prefix is removed.
+
+    2. `uv run pytest tests/application/test_after_agent.py` (exit 0):
+    ```
+    .................................                                        [100%]
+    33 passed in 6.40s
+    ```
+    Met. The last line reports `passed`, and the output contains neither `failed` nor `error`.
+
+    I checked the output against all acceptance criteria and found no contradictions. It agrees with criteria 9 (speaker and kind), 11 (prefix removed once, whitespace dropped), 12 (undo paragraph, sorted paths) and 13 (an empty entry gives no entry, so the stage stalls). No findings. Nothing is open.
