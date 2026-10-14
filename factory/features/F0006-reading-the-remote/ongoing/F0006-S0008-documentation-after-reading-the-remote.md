@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 80
 blocked: null
 comments_seen: 0
@@ -103,3 +103,36 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
    Code findings: none.
 
    `make check`: check: green
+7. demo: I ran all three Demo commands from the repository root. All three met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   1. `grep -n "F0006\|factory-run\|factory-health" README.md`
+   ```
+   12:When it works, `make check` ends with the line `check: green`. `factory-run` and `factory-health` are declared in `pyproject.toml` but not built: both end with a `ModuleNotFoundError` until F0010. Four commands exist so far: you run `uv run factory-check-story <path>...` … and the agent runtime runs `factory-guard` to refuse writes outside a role's write paths (see `docs/operator-guide.md`).
+   ```
+   Met. No line says "nothing starts a stage before F0006", and line 12 says `factory-run` is not built.
+
+   2. `grep -n "closes the pull request\|the event is only recorded\|which nothing built calls yet\|arrives with F0006" docs/operator-guide.md`
+   ```
+   (no output, exit status 1)
+   ```
+   Met. None of the four phrases is printed.
+
+   3. `grep -n "NOT_YET_HANDLED\|hand_over\|created by hand" docs/operator-guide.md`
+   ```
+   411:- the opening commit, whose parent is the story as you started it (a story started at `review` is not rejected). So the stage a work item branch you created by hand starts with is never judged, whatever it is: the first commit that gives the file its front matter is the opening commit, or has a previous version that cannot be read. Later stage changes on such a branch are judged like any other;
+   422:Only the run handler is registered today. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup` and `acceptance_due`. The common ones lead to this today:
+   424:- `hand_over`: a work item reached an approval stage.
+   ```
+   Met. Line 422 names `NOT_YET_HANDLED` and lists the kinds. Line 424 names `hand_over`. Line 411 says the starting stage of a branch created by hand is never judged.
+
+   Criteria, read again against the docs and the code:
+   - The summary in `README.md` line 1 and in the opening paragraph of `docs/operator-guide.md` names reading the remote, the evaluation, the tick with its stops, the dispatcher with the run handler, and `factory-watch`. Both say no command runs ticks before F0010, and both warn about `factory-run`/`factory-health`. `README.md` still names the four commands that exist.
+   - The unreadable-file paragraph (operator guide line 179) names two ways out: repair the file, or move the story out of `in-progress/`. It says closing the pull request changes nothing.
+   - The `reject` paragraph (line 407) describes the counted error, the one report after three ticks, the cap and the retry on push. Its quoted detail matches `factory.domain.evaluation`.
+   - The list of unhandled kinds (line 422) matches the `NOT_YET_HANDLED` tuple in `src/factory/entry/wiring.py`. The five common kinds and their causes are explained.
+   - The "Stops of one work item" section (lines 70 and 81) says the dispatcher's error report calls `StopService.post`, and that the dispatcher does not record the number of a pull request it opens; a later stop finds it by its branch.
+   - The stall cap paragraphs (lines 108 and 131) say the evaluation makes `ask` (`attempts cap`), a counted error until F0007. They keep what the operator does once F0007 arrives.
+   - Quoted texts: the error report quote matches `error_report_text` in `src/factory/domain/post_texts.py`. The `factory-watch` line matches `src/factory/entry/watch.py:63`.
+   - I did not run `make check` again here; the factory runs it after this stage. The documenter's entry records it green.
+
+   Open: nothing.
