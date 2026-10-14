@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 56
 blocked: null
 comments_seen: 2
@@ -195,3 +195,8 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 
    With (a), the ticket goes back with `tests` and the tester makes that one-line change. I could not run the tests against my code beyond the four that already pass, but the Demo covers the main path (refused pipeline rewrite, deleted outside file, kept `src/` file, restored state with the section edit kept, idempotent second undo). Refactor step not yet done; it follows once `make check` can be green.
 5. human (pull request comment, 2026-10-14): (a): in `_start`, call `human.push_file` only when `text != PIPELINE_YAML` (still followed by `git.fetch()`). Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
+6. coder: the human answered (entry 5) with option (a), so this goes back to the tester for a change to the test module only. In `tests/application/test_undo.py`, the helper `_start` should call `human.push_file("main", PIPELINE_FILE, text)` only when `text != PIPELINE_YAML`, and still call `git.fetch()` afterwards. `HumanClone.push_file` stays as it is.
+
+   Why: when a test passes no `write_paths`, the helper pushes the text that `main` already has. The commit is then empty and `GitCli.commit` raises `NothingToCommit`, which makes 15 of the 19 tests fail during setup.
+
+   The implementation in `src/factory/application/undo.py` (commit 4cfd5a1) is unchanged. I made no code changes in this run, and the refactor step comes once `make check` can go green with the corrected test.
