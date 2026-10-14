@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 87
 blocked: null
 comments_seen: 2
@@ -127,3 +127,13 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: Built the reject handler. All 21 tests in tests/application/handlers/test_reject.py and tests/domain/test_correction_texts.py pass, and `make check` is green (coverage 99.23 %, reject.py fully covered).
+   - `src/factory/domain/post_texts.py`: adds `MOVED_BACK_MARKER`, `move_back_entry_text` and `correction_note`. The entry text builds on the marker, so the two words appear only once in the code.
+   - `src/factory/application/handlers/reject.py`: `RejectHandler(boundaries)`. `handle` takes the target and checks out the branch through `WorkItemRecorder`. It takes the change from `RemoteWorkItems(git, work_item_reader).last_stage_change(snapshot)` and raises `CannotHandle("reject", …)` when that is `None` or a correction, before anything is posted or written. It reads the checked-out document. With a pull request it posts `correction_note` keyed `PostKey(kind="correction", n=len(journal)+1)`. It then records the stage set back to `from_stage` with `claim=None` and one FACTORY `move_back` entry, under the subject `stage <new> -> <old>, moved back`. Finally, with a pull request, it calls `set_labels(labels_for(recorded state))`. Main is never checked out.
+   - Commits: 4afc60e (feat) and 685c699 (refactor: the note posting moved into `_post_note` so that `handle` reads note → record → label).
+
+   Main design decision: the claim is cleared directly in the state, as the Interface says and as `ClosedHandler._record_decision` already does. I did not go through `ClaimService.release`. I also did not give `RejectHandler` a pipeline definition: the legality judgement belongs to the watcher, and the handler only re-derives the change from the same source.
+
+   Noticed but not touched: `_state_of` is defined privately in closed.py, questions.py and now reject.py. Sharing it in recording.py would be a separate clean-up. Nothing is open.
+
+   `make check`: check: green
