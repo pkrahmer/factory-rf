@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 64
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -175,3 +175,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Design (for the review afterwards): a red check reuses `StallService.stall` with the stage-start commit. The document given to it is the undone one with the agent's entry and the green checks' lines appended, so the entry stays above the stall record. The stall detail is the command's name followed by the last 15 lines of `output_tail`. I rejected a separate stall path in the finisher because it would have duplicated the attempt counting and the note.
 
    Refactor step: not done yet, because the checks are not green.
+5. human (pull request comment, 2026-10-14): (a): the tester gives the tester role in `DEFINITION_YAML` `lease_duration: 70`, so the definition parses under F0003's lease rule; time limits, order and coverage stay as they are. End with `tests` and name exactly that change. The lease rule stays.
