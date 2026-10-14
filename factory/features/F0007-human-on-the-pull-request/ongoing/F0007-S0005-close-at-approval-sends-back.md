@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 86
 blocked: null
 comments_seen: 4
@@ -210,3 +210,21 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
     Noticed but not touched: `_state_of` in `closed.py` raises `ValueError` for a document without a state. `target_of` already guarantees a state, so that branch exists only to narrow the type for mypy.
 
     `make check`: check: green
+11. reviewer: no findings.
+
+    What I checked against `git diff main...HEAD -- . ':!factory'` (`src/factory/application/handlers/closed.py`, `src/factory/domain/post_texts.py`, `src/factory/domain/send_back.py` and the three new test files):
+    - Acceptance criteria: criteria 1–22 each have a test, and each test checks what its criterion says.
+      - The domain tests use a body with no journal text, so `reason_given` is judged from the records alone.
+      - `send_back_question` is tested on both sides of the cap: round 3 against cap 3 asks nothing, round 4 against cap 3 asks the cap question.
+      - Every failing side of the Interface's rules has a test: a failed reopen, a rejected decision push (`_PushingOnDraft`), a failed `set_labels`, an approval with one `next` entry, a story without a pull request, and a kill at `before-push`.
+      - Criterion 11 now starts from a real claim at `approval`, so the check that `claim` ends up unset is real.
+      - The rule "commit only when the document differs" is exercised by the retry in criterion 10: the retry reads an unchanged document, and committing it would raise `NothingToCommit`.
+      - The coder's entry 10 reports `make check` green.
+    - Architecture: `send_back.py` and the new texts are pure domain code. `ClosedHandler` reaches git, the hosting service and the clock only through `Boundaries`. It clears the claim directly in the state, as the Interface allows, and the code comment says why.
+    - Security: no shell commands, no secrets and no check-silencing markers.
+    - Quality:
+      - The handler follows the Interface's order: close recorded and pushed, then reopen and set draft, then the decision pushed, then labels.
+      - The extra public helper `recorded_since_latest_result` holds the one "after the latest result" rule that both `reason_given` and the close check use, and it has a docstring.
+      - `_state_of` and `_with_state` follow the module-local pattern the other handlers already use.
+      - Comments explain why, not what.
+    - Ticket hygiene: the log gives the main decision, `CommentCopier.append` inside the "close recorded" commit, and what was rejected. Looking at the code, `CommentCopier.copy` would also have been wrong because it records nothing when there are no unread comments, so the close would be lost. The Assignment matches what was built, and criterion 24 still says what the documenter has to write.
