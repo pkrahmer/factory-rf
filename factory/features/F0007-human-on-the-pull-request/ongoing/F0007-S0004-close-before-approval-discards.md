@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 85
 blocked: null
 comments_seen: 0
@@ -117,3 +117,30 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
    - Demo: the Python block is runnable and self-contained. Its `Expect:` line is checkable: the first line is the backlog path, then the human's text, and the last line is `main`.
    - Architecture: the handler sits in `factory.application` and uses only the Git and recorder boundaries. It makes no hosting call and has no layer violation.
    - Scope: this is decision 7 of FEATURE.md, the discard in its Scope list. The approval-stage close and the acceptance are excluded. Decision 21, the leftover branch when the human starts the story again, is flagged in FEATURE.md for the human and is not an intake finding.
+3. tester: wrote the red tests for `ClosedHandler` in a new file, `tests/application/handlers/test_closed.py`. It is modelled on `test_merged.py` and uses the shared handler fixtures (`pull_request`, `boundaries`, `human`, `checkout`). The `close` fixture does five things: starts the story with `human.start`, pushes a state at the given stage to `work-item/F0001-S0001` with a different body, pushes a cost record file beside it, closes the pull request with `close_by_human`, and fetches. The definition is `boundaries.pipeline_reader.parse(PIPELINE_YAML)`.
+
+   Criteria mapped to tests:
+   - criterion 1: tests/application/handlers/test_closed.py::test_a_story_closed_at_doing_is_moved_back_under_backlog_on_main. It also checks the commit subject from the Interface.
+   - criterion 2: tests/application/handlers/test_closed.py::test_the_discarded_story_keeps_the_text_main_held_whatever_the_branch_held
+   - criterion 3: tests/application/handlers/test_closed.py::test_a_story_closed_at_any_stage_before_the_approval_is_discarded_the_same_way, parametrized over intake, tests, review, docs and smoke-test.
+   - criterion 4: tests/application/handlers/test_closed.py::test_the_discard_commit_moves_only_that_story. It fetches, does `reset_to("origin/main")`, then calls `changed_paths(<main before>)`. The expected result is exactly [backlog path added, in-progress path deleted].
+   - criterion 5: tests/application/handlers/test_closed.py::test_after_the_discard_the_branch_is_gone_from_the_remote_and_the_checkout
+   - criterion 6: tests/application/handlers/test_closed.py::test_a_story_started_again_after_a_discard_has_an_empty_bill
+   - criterion 7: tests/application/handlers/test_closed.py::test_a_story_whose_branch_is_already_gone_is_discarded_without_an_error
+   - criterion 8: tests/application/handlers/test_closed.py::test_a_kill_before_the_push_changes_nothing_and_a_second_run_discards_once
+   - criterion 9: tests/application/handlers/test_closed.py::test_a_kill_after_the_move_is_pushed_leaves_the_branch_on_the_remote
+   - criterion 10: tests/application/handlers/test_closed.py::test_a_main_moved_since_the_checkout_rejects_the_discard_and_keeps_the_branch
+   - criterion 11: tests/application/handlers/test_closed.py::test_a_discard_posts_nothing_and_leaves_the_pull_request_closed
+   - criterion 12: tests/application/handlers/test_closed.py::test_a_refused_branch_deletion_fails_after_the_move_is_pushed, using `receive.denyDeletes` in the bare remote.
+   - criteria 13 and 14 (`make check`, docs) have no tests in this stage.
+
+   Files created: tests/application/handlers/test_closed.py.
+
+   `make test` fails at collection, as expected: ModuleNotFoundError: No module named 'factory.application.handlers.closed'. That is the only module the runner could not import. `make lint` is green.
+
+   Left out on purpose:
+   - The close at an approval stage, which is S0005's.
+   - The `unreachable` outcome of `delete_remote_branch`. No criterion names it, and the intake judged it the same path as `rejected`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
