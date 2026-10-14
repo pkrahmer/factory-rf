@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 48
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # The stage-start commit is the claim
@@ -239,3 +239,16 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
    - The docs criterion (19) is left to the documenter stage.
 
    `make check`: check: green
+9. reviewer: groups 1–3 pass, group 4 (quality) fails.
+
+   - Criteria: I read every one of criteria 1–17 against its test in `tests/application/test_claims.py`. Each test checks what its criterion says.
+   - Failing sides: every failing side the Interface states is tested. That covers the instance regex (four refused names, two accepted), each precondition with a writes-nothing snapshot, a rejected push, an unreachable remote, `BEFORE_PUSH` through the `kill_points` fixture that `boundaries` shares, and the `CommitId` limits (39, uppercase, 40).
+   - Checks: the coder's entry 8 reports `make check` green.
+   - Architecture: `ClaimService` reaches git, the clock and the writer only through `Boundaries`. `PushFailed` sits in `factory.domain.errors` and imports only `factory.domain.git`.
+   - Security: no strings passed to a shell, no suppression markers, no secrets.
+
+   Findings:
+   1. `src/factory/application/claims.py:83-89` (`_lease_duration_of`): this repeats the stage-to-role lookup that `PipelineDefinition.role_of` (`src/factory/domain/pipeline_definition.py:83`) already does. It also names a `StageDefinition` `definition`, right next to `self._definition`, which is the pipeline definition. Fix: refuse `stage not in self._definition.stages`, then use `self._definition.role_of(stage)`, raise `ValueError` when it is `None`, and return its `lease_duration`.
+   2. `src/factory/application/claims.py:92` (`_with_claim`): this calls `_state_of(document)` a second time, after `_check_preconditions` (line 71) has already narrowed the state, so the `ValueError` branch can never run on this path. Fix: pass the narrowed `WorkItemState` from `claim` into `_with_claim`, for example by having `_check_preconditions` return it with the lease, so the check happens once.
+
+   Not a finding: `StageStart` is a Pydantic model in `factory.application`. That is where the Interface puts it, and intake accepted it.
