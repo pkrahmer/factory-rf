@@ -112,6 +112,11 @@ def attempts_cap_question(stage: str, attempts: int, last_stall: str) -> str:
     )
 
 
+def cost_table_post(table: str) -> str:
+    """The post that shows the human the cost table at the approval."""
+    return f"Cost of this work item so far\n\n{table}"
+
+
 def done_entry_text(bill: Bill) -> str:
     """The journal text of a merged work item's archive, with its bill."""
     return f"done (pull request merged); cost: {cost_line(bill)}"
