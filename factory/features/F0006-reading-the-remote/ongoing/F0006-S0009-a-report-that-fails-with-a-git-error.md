@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 79
 blocked: null
 comments_seen: 0
@@ -92,3 +92,23 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
    Findings: none.
 
    `make check`: check: green
+7. demo: ran the one demo command from the repository root. It met its `Expect:` line. No findings.
+
+   Command 1: `uv run pytest --no-header -p no:cacheprovider --cov=factory.application.dispatcher --cov-branch --cov-report=term-missing tests/application/test_dispatcher.py`
+   ```
+   .....................                                                    [100%]
+   ================================ tests coverage ================================
+   Name                                    Stmts   Miss Branch BrPart  Cover   Missing
+   -----------------------------------------------------------------------------------
+   src/factory/application/dispatcher.py      76      0     14      0   100%
+   -----------------------------------------------------------------------------------
+   TOTAL                                      76      0     14      0   100%
+   Required test coverage of 90.0% reached. Total coverage: 100.00%
+   21 passed in 3.66s
+   ```
+   Met: the coverage line for dispatcher.py shows `100%` and its `Missing` column is empty. The last line reads `21 passed in 3.66s`, with no failed, error or skipped count.
+
+   Criteria check:
+   - Criteria 1–3: each one's test (named in log entry 3) is among the 21 that passed. Nothing in the run contradicts them.
+   - Criterion 4: I did not run `make check` here. The factory runs it after this stage.
+   - Criterion 5: docs/operator-guide.md:433 now says "(the hosting service is down, or git fails in the factory's checkout while the report resolves the branch)" and gives that as a reason the report is tried again on the next tick. This matches the criterion.
