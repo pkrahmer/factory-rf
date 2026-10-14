@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 70
 blocked: null
 comments_seen: 0
@@ -102,3 +102,30 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
    No findings for the coder.
 
    `make check`: check: green
+7. demo: I ran both demo commands from the repository root exactly as written. Both meet their `Expect:` lines, and nothing in the demo contradicts any acceptance criterion. No findings.
+
+   Command 1: `grep -n -i "stage protocol\|decision rules\|cost record\|bill" README.md`
+   ```
+   3:The factory, reimplemented by v1 of itself. … the claim of a stage with its write paths, guard and undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls and v1's decision rules), and the cost records with the bill. The pipeline itself does not run on its own yet: nothing starts a stage before F0006. `docs/project-guide.md` describes each part.
+   12:When it works, `make check` ends with the line `check: green`. Three commands exist so far: you run `uv run factory-check-story <path>...` … and `uv run factory-bill [<work item id>]` to see what a work item cost, and the agent runtime runs `factory-guard` … (see `docs/operator-guide.md`).
+   ```
+   Met. Line 3 is the built-parts summary. It names the stage protocol and v1's decision rules, and it names the cost records with the bill. It still says nothing starts a stage before F0006.
+
+   Command 2: `grep -n "stop of one work item\|opened this draft pull request\|started <stage> as\|stage:<stage>" docs/operator-guide.md`
+   ```
+   70:A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. Today a question is only recorded: a journal entry of kind `question`, with `blocked` set. Posting it on the pull request arrives with F0007. The rules below are those of `StopService.post`, which nothing built calls yet. A stall does not follow them: it has its own rule, given under "A stall: the stall note". …
+   77:- If the work item has no pull request yet, `StopService.post` opens a draft pull request first, on the work item's branch (`work-item/<id>`), and posts the stop there. The description says: "The factory opened this draft pull request to report a stop on <work item>. The stop is the comment below."
+   88:2. **The stage-start commit.** It is pushed before any agent runs. It holds the claim and one journal entry, speaker `factory`, kind `started`, with the text `factory: started <stage> as <instance>.` (for example `factory: started doing as factory-1.`). If this push fails, no agent runs.
+   91:5. **The label** `stage:<stage>` (written so, for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
+   ```
+   Met. No printed line counts a stall among the stops that get the stop description or are posted on a closed pull request; line 70 explicitly excludes stalls. Line 88 has `started <stage> as` and line 91 has `stage:<stage>`.
+
+   I cross-read the remaining parts of criterion 2 in `docs/operator-guide.md`. They hold:
+   - The opening paragraph names the stage protocol, the decision rules with the factory's questions, the checks and reports, and the cost records with the bill. It names `factory-check-story`, `factory-bill` and `factory-guard`.
+   - "A stall: the stall note", line 97: its first sentence points to "the nine listed below", and the list names nine causes.
+   - The cap paragraph (line 108) and the cap bullet of "A stall by a red check" (line 131) both say that stopping at the cap and asking the attempts-cap question are not built yet. They name F0006's evaluation and F0007's question.
+   - A new bullet gives the stall's own pull-request rule: an open pull request is reused, otherwise a new draft titled `<id>: <title>` with the work item's text.
+   - "The factory's own questions" (line 138) says a question is recorded today as a journal entry of kind `question` with `blocked` set, and that posting it arrives with F0007.
+   - The quoted texts match `src/factory/domain/post_texts.py`: the stop description at line 20, "The attempts cap is reached; the factory asks you next." at line 55, and the round-cap text at line 75.
+
+   Open, and harmless: the pattern `stop of one work item` in the second command does not match the heading "Stops of one work item". It does match line 70's sentence, so the command still prints the lines its Expect needs.
