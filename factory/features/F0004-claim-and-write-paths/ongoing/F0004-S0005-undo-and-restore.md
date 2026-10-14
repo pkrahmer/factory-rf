@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 56
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -184,3 +184,13 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented `src/factory/application/undo.py` (commit 4cfd5a1). It holds `UndoReport` and `UndoService.undo`, following the Interface's order. First it gets the settings from `WritePathService.at`. Then it reads the baseline before any path changes; an absent or unreadable baseline raises `WorkItemFormatError` with the path. Then it reverts the refused paths from `changed_paths` with one `revert_paths` call; a path is refused by `refusal`, or because it sits directly in `factory/features/<dir>/in-progress/` and is not the own work item, checked on the string. Last it restores the own work item. A readable work item gets `restore_state_and_journal` and is written only if it changed. A missing or unreadable one is checked out whole. `make lint`, `make types` and `make layers` are green. The ticket's Demo prints exactly the five expected lines.
+
+   `make test` is red because of the test file, not the code. 15 of the 19 tests in `tests/application/test_undo.py` fail in the setup helper `_start` with `NothingToCommit: nothing to commit`, raised from `human.push_file("main", PIPELINE_FILE, text)`. When a test passes no `write_paths`, `_pipeline(None)` returns `PIPELINE_YAML`. That is the same text the `remote` fixture already has on `main` (`REMOTE_FILES` in `tests/git_support.py`). So the human's commit is empty, and `GitCli.commit` correctly refuses it. Only the tests that pass `write_paths` (criteria 5, 6, 7) and the two `UndoReport` model tests get past setup, and those pass. I did not touch the test, not even temporarily (R9).
+
+   Options:
+   (a) In `_start`, call `human.push_file` only when `text != PIPELINE_YAML` (still followed by `git.fetch()`). This changes only the test module and is my recommendation.
+   (b) Make `HumanClone.push_file` skip the commit and push when nothing changed. This changes a shared test helper that other tests rely on.
+   (c) Always push a definition that differs, e.g. by adding a trailing comment.
+
+   With (a), the ticket goes back with `tests` and the tester makes that one-line change. I could not run the tests against my code beyond the four that already pass, but the Demo covers the main path (refused pipeline rewrite, deleted outside file, kept `src/` file, restored state with the section edit kept, idempotent second undo). Refactor step not yet done; it follows once `make check` can be green.
