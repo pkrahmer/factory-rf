@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 91
 blocked: null
 comments_seen: 2
@@ -243,3 +243,20 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
     Not touched, outside this story's lane: the Demo of F0006-S0007 prints the old constant, as the Interface already notes. The operator guide's "AskHandler is registered" wording rests on `AskHandler` being in `build_handlers`, which the diff confirms.
 
     `make check`: check: green
+11. demo: I ran the one command under `## Demo` exactly as written, from the repository root. It exited with code 0.
+
+    Command 1 (the `uv run python -c` script that drives `RunGate` with spy handlers and the fake hosting service):
+    ```
+    [('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), ('run', 'run')]
+    ```
+    It met its `Expect:` line: one line with that exact list.
+    - The open pull request and the work item without a pull request reached the run handler with kind `run`.
+    - The closed pull request reached the closed handler as a `closed` event.
+    - The merged pull request reached the merged handler as a `merged` event.
+
+    Against the acceptance criteria:
+    - The output is consistent with criteria 1, 2, 4 and 5: each case went to exactly one handler, with the kind the Interface states.
+    - The work item without a pull request ran even though the fake hosting service had no pull request for it, so no read got in the way (criterion 1).
+    - The demo does not exercise criterion 3 (read order), 6 (failing read), 7 and 8 (real git), or 9 to 13 (wiring), and does not contradict them. Entries 3, 8 and 9 map those criteria to tests that pass.
+
+    No findings. Open, as the Interface already says: the Demo of F0006-S0007 prints the old `NOT_YET_HANDLED` and is out of date. That is not part of this story's demo.
