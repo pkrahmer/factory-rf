@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 66
 blocked: null
 comments_seen: 0
@@ -240,3 +240,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Met. The last line reports `passed`, and the output contains neither `failed` nor `error`.
 
    Not run by me: `make check`. The factory runs it after this stage, and the coder and documenter entries report it green. The `factory-bill` command was not run against a live remote, because the Demo does not ask for it; criteria 15 to 19 are covered by the tests in command 2.
+8. done (pull request merged); cost: 6 runs, 9.0 min, 49 turns, 188k tokens in (1229k more from cache), 40k out, $2.31
