@@ -50,17 +50,11 @@ class WorkItemOpening:
         has `origin/main` merged in, a conflict aborted.
         """
         branch = branch_name(work_item)
-        remote_branch = f"origin/{branch}"
-        if self._boundaries.git.resolve(remote_branch) is None:
-            document = self._open_new(branch, path)
-            merge_conflict = False
-            branch_existed = False
+        branch_existed = self._boundaries.git.resolve(f"origin/{branch}") is not None
+        if branch_existed:
+            document, merge_conflict = self._reopen(branch, path)
         else:
-            # The remote is the truth: whatever a local branch of this name held is dropped.
-            self._boundaries.git.checkout(branch, start_point=remote_branch)
-            merge_conflict = self._boundaries.git.merge(_MAIN) == "conflict"
-            document = self._boundaries.work_item_reader.read(self._boundaries.checkout / path)
-            branch_existed = True
+            document, merge_conflict = self._open_new(branch, path), False
         return PreparedWorkItem(
             work_item=work_item,
             branch=branch,
@@ -69,6 +63,13 @@ class WorkItemOpening:
             branch_existed=branch_existed,
             merge_conflict=merge_conflict,
         )
+
+    def _reopen(self, branch: str, path: str) -> tuple[WorkItemDocument, bool]:
+        # The remote is the truth: whatever a local branch of this name held is dropped.
+        self._boundaries.git.checkout(branch, start_point=f"origin/{branch}")
+        merge_conflict = self._boundaries.git.merge(_MAIN) == "conflict"
+        document = self._boundaries.work_item_reader.read(self._boundaries.checkout / path)
+        return document, merge_conflict
 
     def _open_new(self, branch: str, path: str) -> WorkItemDocument:
         self._boundaries.git.checkout(branch, start_point=_MAIN)
