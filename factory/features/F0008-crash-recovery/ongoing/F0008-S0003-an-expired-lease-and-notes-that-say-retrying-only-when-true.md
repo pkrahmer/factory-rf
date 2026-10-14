@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 97
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # An expired lease, and notes that say retrying only when true
@@ -239,3 +239,6 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
         - Docs are left to the documenter (criterion 19).
 
    `make check`: check: green
+5. reviewer: one finding, in group 4 (quality). Groups 1 to 3 pass. Every criterion from 1 to 17 has a test that checks what the criterion says. Both sides of the lease limit are tested (59:59 and 60:00), and both sides of each note cap (1 against 2 and 3). The refused statuses own, own after the lease, no claim and held are each tested. The coder's entry reports `make check` green. The layers hold, the post goes through `StopService`, and the diff adds no markers that silence a check. The diff also contains `CLAUDE.md`, `docs/runs/` and `planning/`; those changes are the human's commit b6af571, so I did not review them.
+
+   1. `src/factory/application/recovery.py:43` (`_REQUIRED_STATUS: dict[EventKind, str]`): the values are typed `str`, but they are compared with the `ClaimStatus` that `ClaimService.status` returns. Under `mypy --strict` a mistyped status ("expird") would therefore type-check and make the guard refuse every event. The map is also a second hand-kept copy, reversed, of `_CLAIM_EVENTS` in `src/factory/domain/evaluation.py:46` (own → crash, expired → expired). Fix: derive the required status from the domain's mapping by making it or its inverse public in `factory.domain`, and if that is not possible, at least type the values as `factory.domain.lease.ClaimStatus`.
