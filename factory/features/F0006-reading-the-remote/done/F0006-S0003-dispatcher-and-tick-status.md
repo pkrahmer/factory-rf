@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 73
 blocked: null
 comments_seen: 0
@@ -231,3 +231,4 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
 
    - Matches its `Expect:` line. There are two lines. The first is exactly `['error', 'error', 'reported', 'capped', 'capped']`. The second matches the expected text exactly: one post, which is the full report text.
    - Checked against the criteria: the output is consistent with 10–13. The first two failures return "error" with no post. The third returns "reported" and makes exactly one post on the pull request. The two dispatches after that return "capped" and post nothing more. The post text matches the `error_report_text` format in 23, with the short remote state `cccccccccccc`. The demo contradicts no other criterion. It does not exercise 14–22 (new remote state, unhandled kind, no pull request, no branch, failed post, kill, no work item); the tests listed in entry 3 cover those.
+8. done (pull request merged); cost: 6 runs, 7.9 min, 48 turns, 170k tokens in (1049k more from cache), 31k out, $1.98
