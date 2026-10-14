@@ -10,6 +10,7 @@ from factory.domain.errors import PushFailed
 from factory.domain.git import CommitId
 from factory.domain.identifiers import branch_name, parse_work_item_file_name
 from factory.domain.journal import NewEntry, append_entry
+from factory.domain.lease import ClaimStatus, claim_status
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 
@@ -31,7 +32,7 @@ def started_text(stage: str, instance: str) -> str:
 
 
 class ClaimService:
-    """Claims a stage of a work item for one instance by pushing the stage-start commit."""
+    """Claims, judges and releases the stage claims of work items for one instance."""
 
     def __init__(
         self, boundaries: Boundaries, instance: str, definition: PipelineDefinition
@@ -65,6 +66,17 @@ class ClaimService:
         if outcome != "pushed":
             raise PushFailed(branch, outcome)
         return StageStart(commit=commit, claim=claim)
+
+    def status(self, state: WorkItemState) -> ClaimStatus:
+        """The status of the state's claim for this instance, by the claim's own lease."""
+        return claim_status(state.claim, instance=self._instance, now=self._boundaries.clock.now())
+
+    def release(self, document: WorkItemDocument) -> WorkItemDocument:
+        """Return the document with its claim cleared; `ValueError` when it has no state."""
+        if document.state is None:
+            raise ValueError("the work item has no state to release")
+        released_state = document.state.model_copy(update={"claim": None})
+        return document.model_copy(update={"state": released_state})
 
     def _check_preconditions(self, branch: str, path: str, state: WorkItemState, stage: str) -> int:
         if stage != state.stage:
