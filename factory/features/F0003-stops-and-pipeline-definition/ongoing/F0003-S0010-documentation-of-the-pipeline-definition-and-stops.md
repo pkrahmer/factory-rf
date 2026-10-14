@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 51
 blocked: null
 comments_seen: 0
@@ -65,3 +65,11 @@ Expect: one line, a number of at least `2`: the status names the health status f
    - Demo: all three commands are runnable (sed/grep over existing files), and each Expect line is checkable by a count or a matching line. The README count of at least 2 is loose but checkable.
    - Architecture: no code, no layer touched. The edits are confined to README.md, docs/operator-guide.md and docs/project-guide.md, which the documenter owns.
    - Scope: within F0003 (listed as S0010 in FEATURE.md) and outside no "Out of scope" item. The decision on the README summary is recorded as decision 20.
+3. tester: no tests written, by design. This story only changes documentation: the Interface is "None: no code changes", and the Assignment says the tester writes no tests.
+   - criterion 1 (`make check` stays green): the factory checks this itself. No test is needed, and there is no new code to make one fail.
+   - criterion 2 (docs): the documenter judges it from the docs criterion, and the Demo's sed/grep commands check it. It describes no runtime behaviour, so pytest cannot test it.
+   Files created: none. Modules the test runner could not import: none. Nothing was added, so `make test` is unchanged from main and was not run for a red state. `make lint` is green and the working tree is clean.
+   Rejected: tests that grep README.md or docs/ for the required sections or names. They would turn prose into a test contract, which is beyond what the Assignment asks for, and they would put criteria in the tests (R4). Open: nothing. The coder has nothing to build, so the work goes on to the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
