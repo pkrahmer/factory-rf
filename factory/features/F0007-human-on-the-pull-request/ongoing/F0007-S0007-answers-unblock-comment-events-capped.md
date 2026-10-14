@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 88
+blocked: null
+comments_seen: 2
+round: 0
+attempts: 0
+---
 # Answers unblock, and comment events are capped
 
 ## Assignment (as of log entry 1)
@@ -28,7 +36,7 @@ Rules:
 - The comments and the end of the wait are one commit. When no comment is recorded, nothing is written and the work item stays blocked.
 - A comment at an approval stage, or on a work item whose `blocked` is unset, is recorded and changes nothing else.
 - Every failure leaves `handle` by raising; the handler catches nothing. The dispatcher counts the error per event and remote state, tries it up to `ERROR_CAP` (3) times and reports it once (F0006).
-- F0006-S0002's `question_posted` compares the post's `n` with the number of the latest `question` record, not of the last record, so the comments this story records after a question do not make the watcher raise `ask` again.
+- F0006-S0002's `question_posted` compares the post's `n` with the number of the latest `question` record, not of the last record, so the comments this story records after a question do not make the watcher raise `ask` again. This rule is built and tested by F0006-S0002 (`tests/domain/test_evaluation.py`); this story only relies on it.
 
 Tests: `tests/domain/test_answers.py` and `tests/application/handlers/test_comment_handler.py`. The test for a wait that has a post makes the post with `AskHandler` (S0002) or with `hosting.post_comment` and the key above; the human's comments are `hosting.add_human_comment` before or after it. The dispatcher tests build `Dispatcher({"comment": ..., "ask": ...}, TickStatus(), StopService(boundaries))` and count the handler's calls with a small wrapper, a subclass of `Handler`, that delegates to the real handler; failures are injected with `hosting.fail_next("list_comments", times=10)` and, for `ask`, with a work item at the attempts cap that has no stall entry.
 
@@ -47,7 +55,7 @@ Tests: `tests/domain/test_answers.py` and `tests/application/handlers/test_comme
 11. When `list_comments` fails, `handle` raises `HostingServiceError` and the remote branch does not move.
 12. For a work item whose state has no pull request, `handle` raises `CannotHandle` with kind `comment`, and records nothing.
 13. A human comment written before the factory posted the question (its id is smaller than the post's) is recorded as an entry and its id is in `comments_read`, in one commit, and `blocked` is still set: the next comment, written after the post, ends the wait.
-14. A blocked work item whose question has not been posted yet (the `question` record exists, no factory comment carries its key) records a new human comment and stays blocked, and so does one with `blocked` set and no `question` record at all (two cases, one test).
+14. A blocked work item whose question has not been posted yet (the `question` record exists, no factory comment carries its key) records a new human comment and stays blocked, and so does one with `blocked` set and no `question` record at all, and so does one whose only post is keyed to an earlier question number while a later `question` record is not posted yet (three cases, one test).
 15. Of two new comments, one written before the post and one after it, both are recorded in the journal and the wait ends, in one commit.
 16. A comment with a blank body written after the post gets its id into `comments_read`, gets no entry, and leaves the work item blocked.
 17. A `comment` event that fails every time (ST1.1), dispatched four times on the same remote state, gives the outcomes `error`, `error`, `reported`, `capped`; the handler is called three times; the pull request has no factory post after the second dispatch, exactly one after the third, with key kind `error` and `n` equal to the first 12 digits of the remote state, and still exactly one after the fourth.
@@ -89,3 +97,101 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The last rule of `## Interface` says F0006-S0002's `question_posted` compares the post's `n` with the number of the latest `question` record, not of the last record, so that comments recorded after a question do not make the watcher raise `ask` again. No criterion tests this behaviour. Two coders could read it two ways and both would pass the tests. Options: (a) add a criterion before the two closing ones, e.g. "a work item whose question is posted and followed by a recorded comment entry is not raised as `ask` again by the watcher's evaluation", with the failing side too ("a work item whose latest question record has no post with its number is still raised"); (b) drop the rule from this story if F0006-S0002 already tests it, and say so in the Interface. I would choose (a).
+   2. The post lookup in `adjust` compares the key's `n` with the latest `question` record. The failing side is untested: a post keyed to an earlier question number, with a later question record that is not posted yet, must not end the wait. Criterion 14 covers only "no post at all". Options: add this as a case of criterion 14, or a new criterion. I would choose a new case in criterion 14.
+3. human (pull request comment, 2026-10-14): 1 (b): F0006-S0002 already tests this rule on both sides in `tests/domain/test_evaluation.py`: `test_a_post_keyed_to_the_latest_question_is_the_posted_question` (parametrized `question-last` and `comment-after-question`) and `test_question_posted_is_false_without_a_post_for_the_latest_question`. Say in the Interface that the rule is built and tested by F0006-S0002 and that this story only relies on it; no new criterion for it.
+   2: add it as a new case of criterion 14, as you proposed: a post keyed to an earlier question number, with a later `question` record not posted yet, does not end the wait.
+4. intake: accepted. Carried in the human's answer (log entry 3), nothing else changed: (1b) the last rule of `## Interface` now says the `question_posted` rule is built and tested by F0006-S0002 (`tests/domain/test_evaluation.py`) and that this story only relies on it, with no new criterion; (2) criterion 14 gets a third case: a post keyed to an earlier question number while a later `question` record is not posted yet does not end the wait (now "three cases, one test"). The Assignment's meaning is unchanged.
+   - Interface: `unblock` and `CommentHandler` are named with modules and signatures; the rules for `adjust` (post key, id comparison, blank body) are concrete and read from data.
+   - Criteria: each is testable by one test function. Every rule has its failing side: not blocked (9, 10), no new comment (7), marker-only comments (8), older comment (13), no post, no question record and an earlier-keyed post (14), blank body (16), failing `list_comments` (11), no pull request (12), and the cap on both sides, through `error`, `error`, `reported`, `capped` and the restart (17-19).
+   - Demo: both blocks are runnable, and each `Expect:` line names exact output to compare.
+   - Architecture: the pure rule is in `factory.domain`, the handler in `factory.application.handlers`, and it uses `HostingService` only through its interface. Nothing is wired here.
+   - Scope: within F0007's "Answers and comment events" scope. The crash-cap question and the rerun stay with F0008.
+5. tester: wrote red tests for criteria 1-19, one test function per criterion.
+   - criterion 1: tests/domain/test_answers.py::test_unblock_clears_the_wait_and_changes_nothing_else (parametrized: question, round_cap, send_back)
+   - criterion 2: tests/domain/test_answers.py::test_unblock_at_the_attempts_cap_resets_the_attempts_only
+   - criterion 3: tests/domain/test_answers.py::test_unblock_at_the_crash_cap_resets_the_crashes_only
+   - criterion 4: tests/domain/test_answers.py::test_unblock_of_a_state_that_waits_for_nothing_returns_an_equal_state
+   - criterion 5: tests/application/handlers/test_comment_handler.py::test_an_answer_after_the_posted_question_is_recorded_and_ends_the_wait_in_one_commit
+   - criterion 6: …::test_an_answer_at_the_attempts_cap_also_resets_the_attempts
+   - criterion 7: …::test_without_a_new_human_comment_the_work_item_stays_blocked_and_nothing_is_pushed
+   - criterion 8: …::test_comments_that_carry_the_factory_marker_do_not_answer_and_push_nothing
+   - criterion 9: …::test_a_comment_at_an_approval_is_recorded_and_changes_nothing_else
+   - criterion 10: …::test_a_comment_on_a_work_item_that_waits_for_nothing_changes_no_other_field
+   - criterion 11: …::test_a_failing_comment_listing_raises_and_pushes_nothing
+   - criterion 12: …::test_a_work_item_without_a_pull_request_cannot_be_handled_and_records_nothing
+   - criterion 13: …::test_a_comment_older_than_the_post_is_recorded_and_only_a_later_one_answers
+   - criterion 14: …::test_a_comment_on_a_wait_whose_question_is_not_posted_does_not_answer (parametrized: question-not-posted, no-question-record, earlier-question-posted)
+   - criterion 15: …::test_a_comment_before_and_one_after_the_post_are_both_recorded_and_end_the_wait
+   - criterion 16: …::test_a_blank_comment_after_the_post_is_read_without_an_entry_and_does_not_answer
+   - criterion 17: …::test_a_comment_event_that_always_fails_is_tried_three_times_and_reported_once
+   - criterion 18: …::test_an_ask_event_that_always_fails_is_tried_three_times_and_reported_once (the failure is an AskHandler work item at the attempts cap with no stall entry)
+   - criterion 19: …::test_after_a_restart_the_failing_comment_event_is_tried_again_and_not_reported_twice
+
+   Files created: tests/domain/test_answers.py and tests/application/handlers/test_comment_handler.py. The question post is made with `hosting.post_comment` and the Interface's key (`PostKey(work_item, kind=blocked, n=<latest question record number>)`). The dispatcher tests use a small `Counting` subclass of `Handler` that passes each event to the real handler. Criteria 20 and 21 are the closing ones and get no tests.
+
+   `make test`: both modules fail at collection for the expected reasons. `factory.domain.answers` does not exist, and `CommentHandler` cannot be imported from `factory.application.handlers.comments`. `make lint` is green. The type check was skipped as this stage says to.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I built `unblock` and `CommentHandler`. All the tests pass and `make check` is green. Commits: 03142bf (feat), dd73dd8 (refactor).
+      - `src/factory/domain/answers.py`: `unblock(state)` clears `blocked`. It sets `attempts` to 0 for `attempts_cap` and `crashes` to 0 for `crash_cap`. It never changes `round`. A state with nothing blocked comes back as it is. Demo 1 prints the six expected lines.
+      - `src/factory/application/handlers/comments.py`: I added `CommentHandler(Handler)` next to `CommentCopier`.
+        - Not blocked: it calls `copy(snapshot, number)` with no `adjust`.
+        - Blocked: it first calls `hosting.list_comments(number)`, then passes `copy` an `adjust` built by `_ending_the_wait(work_item, listed)`.
+        - `adjust` takes the document's latest `question` record and looks for a factory post keyed `PostKey(work_item, kind=document.state.blocked, n=<that number>)`. If the post exists and one of the unread comments has a non-blank body and an id greater than the post's, the state becomes `unblock(state)`. Otherwise the document comes back unchanged.
+        - It catches nothing. With no unread comment, the copier writes nothing.
+      - Main decision: `adjust` reads `blocked` and the question record from the document it is handed (the one freshly read from the branch), not from the event's snapshot. That way the post key matches the document being committed. Rejected: computing the post once in `handle` from the snapshot, which could disagree with the branch if the branch moved in between.
+      - Refactor (dd73dd8):
+        - Moved the answer rule out of a closure inside `handle` into the module-level factory `_ending_the_wait`.
+        - Dropped a docstring on a private function, per CLAUDE.md.
+        - Widened the module docstring to cover answers.
+        - My first refactor commit had a long-line lint error because piping `make check` through `tail` hid the failure. I fixed it and amended that local commit before handing over.
+      - Noticed, not touched: `_state_of` is now defined separately in `comments.py`, `questions.py` and other handlers. Sharing it would be a cross-module clean-up beyond this ticket. The docs criterion (21) is the documenter's.
+
+   `make check`: check: green
+7. reviewer: no findings.
+      - Criteria 1-19: each has its own test, and I read each against its criterion. `tests/domain/test_answers.py` compares each whole state with `model_copy`, so "nothing else changes" is proven, not sampled. `tests/application/handlers/test_comment_handler.py` checks the one-commit claims with `_new_commits(...) == 1` and the claims that nothing moved with `remote_commit(...) == snapshot.branch_commit`.
+      - Failing sides of the rules: these all have tests. A work item that is not blocked (9, 10), no new comment (7), comments with the marker only (8), an older comment (13), and the three cases where the question has no post (14: no post, no `question` record, a post keyed to an earlier question). Also a blank body (16), a failing `list_comments` (11) and no pull request (12).
+      - `ERROR_CAP` is tested on both sides. Dispatches 1-2 give `error` and no post; dispatch 3 gives `reported` and one post; dispatch 4 gives `capped`. This holds for `comment` (17) and for `ask` (18). In 18 the failure is a work item at the default `attempts_cap` of 2 with no stall entry. After a restart (19) there are three more calls and still one post.
+      - The coder's entry says `make check` was green.
+      - Architecture: `factory.domain.answers` is pure. `CommentHandler` (in `factory.application`) uses only `Boundaries`, `HostingService` through its interface, and domain code. Nothing is wired here, and no `dict[str, Any]` crosses a function boundary (the `update` dict in `unblock` stays local).
+      - Security: no shell or SQL built from strings, no suppression markers, no secrets. The test hex values are low-entropy.
+      - Quality: `_question_post`, `_answer_after` and `_ending_the_wait` each do one thing. The one comment gives the reason. Public names have docstrings and private ones do not.
+      - Non-issue: `_state_of` was already in `comments.py` before this story, so the duplication the coder noticed is not new.
+      - Ticket: the log names the main decision and what was rejected. The decision is to read `blocked` and the question record from the document freshly read from the branch, not from the snapshot. `Assignment` matches what was built, and criterion 21 still says what the documenter must write.
+8. documenter: wrote the documentation for criterion 21. `make check` is green.
+   - `docs/operator-guide.md`: new section "Which comment answers a question", under "The factory's own questions". It covers the following:
+     - A comment answers only when it was written after the question was posted.
+     - An earlier comment, or a question not yet posted or posted for an earlier number, is only recorded.
+     - Resets: `attempts` for the attempts cap, `crashes` for the crash cap, nothing else, and `round` never.
+     - A comment at an approval, or on a work item that is not blocked, is only recorded.
+     - A failing comment event is tried three times and reported once.
+     - It also says that `CommentHandler` is built but no tick registers it yet, so today comments are not handled. That matches `NOT_YET_HANDLED` in `factory.entry.wiring`.
+   - `docs/operator-guide.md`, "An event that keeps failing": the `comment` bullet now notes that `CommentHandler` exists but is not registered.
+   - `docs/decisions.md`: new entry "Every event goes through the error cap, comment events included". It gives the reason, the alternatives rejected, and why the wait ends only from ids and keys.
+   - Cross-read and found current against the diff: the question table in "The factory's own questions" (the attempts-cap and crash-cap resets already match), `README.md`, and "A close at the approval sends the story back".
+   - No findings. The code matches the Interface, and the public names have docstrings.
+   - Stale but unrelated, not touched: the sentence in the operator guide that Only the run handler is registered today may be out of date, because earlier F0007 stories added handlers while `NOT_YET_HANDLED` still lists them. I did not check which handlers are wired.
+
+   `make check`: check: green
+9. demo: ran both demo commands from the repository root, exactly as written. Both match their `Expect:` lines. No findings.
+
+   1. `unblock` over the six `blocked` values (round=2, attempts=2, crashes=2):
+   ```
+   question None 2 2 2
+   round_cap None 2 2 2
+   send_back None 2 2 2
+   attempts_cap None 2 0 2
+   crash_cap None 2 2 0
+   None None 2 2 2
+   ```
+   Met the expectation: six lines, identical to the `Expect:` line. `blocked` is cleared every time. `attempts` is reset only at `attempts_cap` and `crashes` only at `crash_cap`. `round` never changes (criteria 1-4).
+
+   2. `CommentHandler.handle` on a blocked work item with no pull request:
+   ```
+   CannotHandle cannot handle comment: work item F0001-S0001 has no pull request
+   ```
+   Met the expectation: one line, identical to the `Expect:` line. The handler leaves by raising and catches nothing (criterion 12, and the rule that every failure leaves `handle` by raising). The handler was built with an empty `SimpleNamespace` as its boundaries, so it raised before it touched any boundary: nothing was recorded.
+
+   Acceptance criteria read again against the output: the demo contradicts none of them. Criteria 5-11 and 13-19 (git, hosting, dispatcher) are not exercised by the demo; their tests are listed in log entries 5 and 7. I did not run `make check`; the factory runs it after this stage.
