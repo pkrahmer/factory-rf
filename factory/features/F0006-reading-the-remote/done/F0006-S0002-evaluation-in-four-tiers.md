@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 72
 blocked: null
 comments_seen: 2
@@ -344,3 +344,4 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     - Nothing in the output contradicts any other criterion.
 
     I made no changes to the working tree.
+18. done (pull request merged); cost: 15 runs, 21.9 min, 117 turns, 383k tokens in (2469k more from cache), 66k out, $4.57
