@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 66
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Bills from the cost records
 
 ## Assignment (as of log entry 1)
@@ -131,3 +139,104 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (domain/bills.py, application/costs.py, entry/bill.py, entry/wiring.py). Every stated behaviour has a rule: the sums, the unknown-is-skipped rule, stage grouping, the line and table formats, rounding, the ref choice, and the in_flight and run outputs. The types it imports are named with their modules.
+   - Criteria: each is testable by one test function. The failing sides are covered: a failed run still counts (2), unknown cost, turns and tokens are skipped (3), no id on any ref gives None (10), local unpushed commits and journal text are ignored (11, 12), other branches are ignored (14), a bad id, an unknown id and too many arguments (16), and negative or unknown fields (22). Minor gap, not blocking: the tests for 17 may also cover an in-flight id without a bill being skipped, since the Interface states that rule.
+   - Demo: both commands are runnable. I checked the expected figures by hand: 210 s is 3.5 min, input 22 + cache_creation 50 is 72, and 1.545 rounds half up to 1.55. The `Expect:` lines are checkable against the output.
+   - Architecture: pure sums and formats sit in domain, the service in application behind the Git and CostRecordReader interfaces, and the command and wiring in entry, with `bill.py` importing only from `wiring`. This matches CLAUDE.md.
+   - Scope: the story stays within the feature's Bills scope and touches none of the Out of scope items (the hand-over posting is F0007).
+3. tester: wrote red tests for criteria 1–22. `make lint` is green. `make test` stops at collection on purpose because the modules under test don't exist yet.
+   - criterion 1: tests/domain/test_bills.py::test_the_bill_of_the_demo_records_sums_every_known_value, ::test_the_bill_of_no_records_is_all_zero
+   - criterion 2: tests/domain/test_bills.py::test_a_failed_run_counts_in_runs_and_duration (parametrised over died, time_limit, budget)
+   - criterion 3: tests/domain/test_bills.py::test_an_unknown_cost_turns_or_tokens_is_skipped_never_zero
+   - criterion 4: tests/domain/test_bills.py::test_bills_by_stage_groups_in_first_order_and_a_returning_stage_joins_its_first_group
+   - criterion 5: tests/domain/test_bills.py::test_the_cost_line_of_the_demo_bill
+   - criterion 6: tests/domain/test_bills.py::test_minutes_and_dollars_round_half_up (0.125 → $0.13, 3 s → 0.1 min; half-even would give $0.12 and 0.0)
+   - criterion 7: tests/domain/test_bills.py::test_the_cost_table_of_the_demo_stage_bills
+   - criterion 8: tests/application/test_bill_service.py::test_a_work_item_with_a_branch_is_billed_from_the_branch (main holds a 1-record sidecar, the branch a 2-record one)
+   - criterion 9: tests/application/test_bill_service.py::test_an_archived_work_item_is_billed_from_its_sidecar_on_main
+   - criterion 10: tests/application/test_bill_service.py::test_an_id_without_a_file_has_no_bill, ::test_a_work_item_without_a_sidecar_has_an_empty_bill
+   - criterion 11: tests/application/test_bill_service.py::test_the_cost_line_in_the_journal_has_no_influence
+   - criterion 12: tests/application/test_bill_service.py::test_a_local_commit_that_was_not_pushed_has_no_influence
+   - criterion 13: tests/application/test_bill_service.py::test_a_fresh_clone_gives_the_same_bill
+   - criterion 14: tests/application/test_bill_service.py::test_in_flight_lists_the_work_item_branches_in_work_item_order (ignores `feature/notes` and `work-item/notes`)
+   - criterion 15: tests/entry/test_bill.py::test_one_id_prints_the_table_and_the_cost_line
+   - criterion 16: tests/entry/test_bill.py::test_a_wrong_argument_prints_why_and_returns_its_status (parametrised: no bill, `F1`, two arguments)
+   - criterion 17: tests/entry/test_bill.py::test_no_argument_prints_every_in_flight_work_item_that_has_a_bill (it also covers the gap intake raised: the branch `work-item/F0001-S0003` has no work item file and is skipped)
+   - criterion 18: tests/entry/test_bill.py::test_main_reads_the_id_from_sys_argv_in_the_current_checkout, ::test_main_with_a_list_uses_the_list_instead_of_sys_argv
+   - criterion 19: tests/entry/test_bill.py::test_the_module_runs_as_a_program_and_exits_with_the_status (wraps `runpy` in `pytest.warns(RuntimeWarning)` because the module imports `factory.entry.bill` at the top)
+   - criterion 20: tests/test_no_journal_reading.py::test_no_module_reads_data_from_the_journal_text
+   - criterion 21: tests/test_no_journal_reading.py::test_a_journal_reference_outside_the_allowed_modules_is_found (8 cases: `entry_text` and `JOURNAL` each by import, name and attribute, plus the literals "Journal" and "## Journal"). The allowed side is ::test_a_journal_reference_in_an_allowed_module_is_not_found.
+   - criterion 22: tests/domain/test_bills.py::test_a_bill_count_of_zero_is_accepted, ::test_a_negative_bill_count_is_refused, ::test_a_bill_is_frozen, ::test_a_stage_bill_is_frozen, ::test_a_bill_refuses_an_unknown_key, ::test_a_stage_bill_refuses_an_unknown_key; tests/application/test_bill_service.py::test_a_work_item_bill_is_frozen, ::test_a_work_item_bill_refuses_an_unknown_key
+
+   Files created: tests/domain/test_bills.py, tests/application/test_bill_service.py, tests/entry/test_bill.py, tests/test_no_journal_reading.py, tests/bill_support.py (a helper that builds completed records and renders their sidecar with `JsonLinesCostRecordWriter`).
+
+   Setup notes for the coder:
+   - The service tests call `checkout.fetch()` before they use `BillService`. The Interface does not say the service fetches, so the tests do not rely on it either way.
+   - `violations(trees)` is defined in the test module itself.
+   - The search test on the real tree is a guard and may already pass: only `factory.domain.journal` references `entry_text` today, and `JOURNAL` appears only in allowed modules.
+
+   Imports that fail during collection: `factory.domain.bills` (the module is missing), `BillService` and `WorkItemBill` from `factory.application.costs` (the names are missing), and `factory.entry.bill` (the module is missing).
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented bills, the bill service and `factory-bill`. `make check` is green (coverage 99.43 %) and the Demo's six lines match exactly. Commit 6b3790a.
+   - `src/factory/domain/bills.py`: the `Bill` and `StageBill` models, plus `bill`, `bills_by_stage`, `total`, `cost_line` and `cost_table`. Each record becomes a one-run bill in which an unknown measure adds nothing, and the bills are summed field by field. So `bill`, the stage grouping (a dict keyed on the first time a stage appears) and `total` share one adding path. Minutes and dollars are rounded with `Decimal.quantize(ROUND_HALF_UP)`. The minutes come from `Decimal(str(seconds))`, which avoids float half-way errors.
+   - `src/factory/application/costs.py`: added `WorkItemBill` and `BillService`. It picks the ref `origin/<branch>` when `resolve` finds that ref, else `origin/main`. Then it takes the first path under `FEATURES_DIRECTORY` whose file name parses to the id, reads the sidecar with `show_file` and parses it with `CostRecordReader.parse`; a missing sidecar gives no records. `in_flight` maps `remote_branches()` through `work_item_of_branch` and sorts with `work_item_order`. The service never fetches; the caller fetches, as the tests do.
+   - `src/factory/entry/bill.py`: `run` and `main`, ending with `raise SystemExit(main())` under `__main__`. It imports only `build_bill_service` from the adapter side, through wiring.
+   - `src/factory/entry/wiring.py`: added `build_bill_service` and listed it in `__all__`.
+   - Design choice: the bill is built only from per-record bills and their sum. I rejected keeping separate running totals for each field, because that would repeat the skip-if-unknown rule in several places.
+   - Id check in `run`: a regex built from the domain's `STORY_ID|ACCEPTANCE_ID`. I rejected calling the private `_checked` in identifiers, and building a pydantic TypeAdapter just to answer yes or no.
+   - Refactor pass: I read the diff and found nothing to change.
+   - Noticed, not touched: the search test already passed on the real tree. No module in F0005 had a local variable named `entry_text`, so nothing needed renaming.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read every test against its criterion. Criteria 1–22 each have tests that check what the criterion names. The failing sides are covered: failed runs (died, time_limit, budget), unknown cost, turns and tokens being skipped, no file on any ref giving None, unpushed local commits, journal text, non-work-item branches, `F1`, two arguments, an in-flight branch without a file, and negative counts and unknown keys tested on both sides of zero. The search test's eight failing cases run on `ast.parse` trees, and the allowed modules are tested too. Criterion 8 is a real test: if the service read main, the branch's file would sit at the backlog path with no sidecar there, giving 0 runs, not 2. The coder's entry reports `make check` green.
+      - Architecture: `domain/bills.py` is pure (Pydantic and Decimal only). `BillService` sits in application and depends only on the `Git` and `CostRecordReader` interfaces. `entry/bill.py` reaches the adapters only through `wiring.build_bill_service`, which is in `__all__`. No `dict[str, Any]` crosses a boundary.
+      - Security: nothing to flag. No subprocess, no strings built into commands, no suppression markers. The argument is checked against the id pattern before it is used.
+      - Quality: `bill`, `bills_by_stage` and `total` share one per-record-bill-plus-sum path, so the skip-unknown rule lives in one place (`_record_bill`). `parse_work_item_file_name` already requires `.md`, so a sidecar can never be taken for the work item file. Docstrings are present on the public names and match what the code does.
+      - Rejected as findings: `_is_work_item_id` in `src/factory/entry/bill.py` rebuilds the id regex from the domain's `STORY_ID|ACCEPTANCE_ID` constants instead of calling a public domain predicate. No such public predicate exists, and the coder's entry explains why it rejected the alternatives. It reuses domain constants rather than copying them. The Name and WorkItemId patterns on `StageBill` and `WorkItemBill` have no refused-side test. They are existing domain types, and the Interface lists only the counts and unknown keys as the limits to test.
+      - Ticket hygiene: the Assignment matches what was built. The coder's log explains the main design choice and what it rejected. Criterion 24 still says what the documenter has to write.
+6. documenter: wrote the bill documentation. `make check` is green after the last edit. I found no findings against the code.
+
+   Files changed:
+   - `docs/operator-guide.md`: a new section "What a work item cost: `factory-bill`". It covers usage, the exit statuses, that the command reads remote-tracking refs only and does not fetch, the cost table's columns, the cost line, and the `+ <n> unknown` mark. The intro's command list now names `factory-bill`. The table and line are copied from the Demo's output, which the reviewer checked.
+   - `docs/project-guide.md`: a new "Bills" section. It says a bill is a sum of cost records, and describes `bills.py`, `BillService` and the entry command. A sub-section, "No code reads data from the journal's text", gives the search test's rule: the allowed modules for `entry_text` and `JOURNAL`, and the forbidden `Journal` and `## Journal` literals. In "Cost records", the "comes later (F0005)" sentence now points to "Bills".
+   - `README.md`: the sentence about the commands that exist now names `factory-bill`.
+
+   I did not run the new `factory-bill` examples against a live remote. The table and line come from the Demo, and the exit statuses and fetch behaviour come from the diff and its tests.
+
+   Cross-read and found current against the diff: the "Project commands", "Stops of one work item" and "A stall" sections, and the rest of the cost-records section.
+
+   Stale but unrelated, not touched: nothing seen.
+
+   `make check`: check: green
+7. demo: I ran both Demo commands from the repository root, exactly as written. Both met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   Command 1 (the demo records through `cost_table` and `cost_line`), exit 0:
+   ```
+   | stage | runs | min | turns | in | cached | out | USD |
+   | :-- | --: | --: | --: | --: | --: | --: | --: |
+   | tests | 1 | 1.0 | 7 | 62 | 1000 | 300 | 0.35 |
+   | doing | 2 | 2.5 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |
+   | **total** | 3 | 3.5 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |
+   3 runs, 3.5 min, 12 turns, 72 tokens in (1500 more from cache), 400 out, $1.55 + 1 unknown
+   ```
+   Met. There are six lines and each one matches its expected line character for character.
+
+   Against the criteria:
+   - The `died` run counts in runs and in duration: the `doing` row shows 2 runs and 2.5 min (criterion 2).
+   - The unknown cost shows as ` + 1 unknown`, not as zero (criteria 3 and 5).
+   - The rows follow the order in which each stage first appears, and the total row comes last (criteria 4 and 7).
+   - 0.345 rounds half up to 0.35, and 1.545 rounds half up to 1.55 (criterion 6).
+   - The in column is input plus cache_creation: 12 + 50 = 62 and 22 + 50 = 72 (criterion 1).
+
+   Command 2 (`uv run pytest tests/domain/test_bills.py tests/application/test_bill_service.py tests/entry/test_bill.py tests/test_no_journal_reading.py`), exit 0:
+   ```
+   ..................................................                       [100%]
+   50 passed in 3.61s
+   ```
+   Met. The last line reports `passed`, and the output contains neither `failed` nor `error`.
+
+   Not run by me: `make check`. The factory runs it after this stage, and the coder and documenter entries report it green. The `factory-bill` command was not run against a live remote, because the Demo does not ask for it; criteria 15 to 19 are covered by the tests in command 2.
