@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 54
 blocked: null
 comments_seen: 0
@@ -298,3 +298,25 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
     - `make check`: check: green.
 
     `make check`: check: green
+11. demo: Demo run from the repository root: both commands under `## Demo`, exactly as written and in order. Neither starts a server. Both exited 0.
+
+    Command 1 (domain: `expand_write_paths`, `refusal`, `PROTECTED_PATHS`):
+    ```
+    ['factory/features/F0004-demo/in-progress/F0004-S0001-demo.md', 'factory/features/F0004-demo/backlog/*', 'tests/*']
+    tests/test_a.py -> None
+    pyproject.toml -> pyproject.toml is owned by the human; a change there is a question.
+    factory/features/F0004-demo/feature.md -> factory/features/F0004-demo/feature.md is owned by the human; a change there is a question.
+    src/../factory/pipeline.yml -> src/../factory/pipeline.yml is not a path inside the checkout.
+    10
+    ```
+    Met its Expect line: six lines, each exactly the expected text. This shows criteria 4, 6 (the count), 8, 10 and 11, and that a protected path wins over the write path `*`.
+
+    Command 2 (`WritePathService.at`, using a real bare remote and a clone in a temp directory):
+    ```
+    True True 10
+    True
+    docs/extra.md is outside the write paths of this stage.
+    ```
+    Met its Expect line: three lines, as expected. The write paths are `['src/*', <work item path>]` with `{work_item}` expanded, root is the checkout, and there are 10 protected paths (criterion 12). After `factory/pipeline.yml` in the work tree was rewritten to widen `src/*` to `*`, `at` returned equal `GuardSettings` (criteria 14/15, read at the stage-start commit and not from the work tree). `refusal` still says `docs/extra.md` is outside the write paths (criterion 9).
+
+    I read the acceptance criteria again: the demo contradicts none of them. The demo does not exercise the error paths (criteria 5, 16–19, 22), `{feature}` expansion through `at` (13), the no-agent-file case (21) or `make check` (23). The tests cover those, and the factory runs `make check` itself. No findings.
