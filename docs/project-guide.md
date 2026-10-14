@@ -467,6 +467,44 @@ prints `{'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes
 - Without a branch, the story has just been started by the human's move into `in-progress/`: its document is `initial_state(definition.first_stage())` with the body and `ignored_keys` of `parse_specification` on `origin/main`. State fields in that file (`stage`, `attempts`, ...) are not applied; they are listed in `ignored_keys`.
 - A story file missing at its branch tip, or a text the reader refuses on the branch or on `origin/main`, raises `WorkItemFormatError` with `path` set to the story's path. `GitError` from `Git` passes through.
 
+## The evaluation
+
+The watcher turns what the remote shows into one `Event`. The evaluation keeps no memory: the same facts give the same event, so a `run` event the dispatcher has capped is still the first one on the next evaluation.
+
+`Watcher(boundaries, instance).evaluate(definition)` (`factory.application.watcher`) reads `origin/main`'s head and `RemoteWorkItems.read(definition)`, builds an `EvaluationInput(definition, snapshots, main_commit)` and calls the pure `evaluate(facts, lookup, claim_status)` (`factory.domain.evaluation`). Like `RemoteWorkItems`, it does not fetch; the caller does, first. `GitError` passes through, also when `origin/main` does not resolve (its message names `origin/main`), and so does `WorkItemFormatError`. The `lookup` it hands over calls `get_pull_request`, and `list_comments` only while the pull request is open. `claim_status` is `ClaimService(...).status`.
+
+### The event
+
+`Event` (`factory.domain.events`, frozen, no unknown keys) has `kind`, `work_item` (a `WorkItemSnapshot`), `pull_request` (the view of the one lookup, when it succeeded), `feature`, `remote_state` and `detail`. `detail` is for display; no code reads it back. `key` is `<kind>:<work item id>`, else `<kind>:<feature id>`, else `<kind>:-`.
+
+`idle` and `acceptance_due` take no work item; every other kind needs one. `feature` is set for `acceptance_due` and only for it. A violation raises `ValidationError`. `remote_state` is the snapshot's `branch_commit`, else the head of `origin/main`; an event with no work item carries `origin/main`'s head.
+
+The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `reject` (an illegal stage change; F0006-S0005 adds it to tier 1) and `acceptance_due` (F0009). Handlers exist only for `idle` and `run` so far; the others belong to later features.
+
+### The four tiers
+
+The first tier that matches decides.
+
+1. **Integrity.** Two snapshots with one id: `duplicate` for the first such id in id order, carrying the first snapshot; `detail` is `<id> at <path> and <path>`.
+2. **The human.** Only the first work item that waits, in id order, is looked at. A work item waits when `blocked` is set or its stage is an approval stage.
+   - No pull request: `ask` (`no pull request`), without a lookup.
+   - The lookup raises `HostingServiceError`: `pull_request_lookup`, with the error's text.
+   - Merged: `merged`. Closed: `closed`.
+   - Open, at an approval stage and not yet `handed_over` for it: `hand_over`.
+   - Open, with a comment that is not the factory's and whose id is not in `comments_read`: `comment` (`<n> new comments`).
+   - Open, blocked, and no factory post answers the latest `question` record in the journal: `ask`. A later record of another kind does not change which question is the latest.
+   - Otherwise `idle`, its `detail` naming the work item, and nothing below tier 2 is reached.
+3. **The agent at work.** The first work item with a claim decides by `claim_status`: `own` is `crash`, `expired` is `expired`, `held` is `idle` (the `detail` names the work item and the instance).
+4. **New work.** The first work item, in id order, whose stage has a role and which does not wait: `run`, or `ask` (`attempts cap`) when `attempts` has reached `attempts_cap`. A stage without a role (`done`) is skipped.
+
+Nothing matched: `idle` at `origin/main`'s head.
+
+Three rules follow. A waiting work item holds back all new work, so one never starts while another waits for the human; and while a claim is held, nothing else runs, so only one agent runs at a time. At most one pull request lookup is made per evaluation, so an idle tick costs at most one.
+
+`evaluate` first checks every snapshot against the definition, after tier 1 and before any lookup: a work item with no state raises `ValueError("work item <id> has no state")`, and one in a stage the definition lacks raises `ValueError("work item <id>: stage <stage> is not in the pipeline definition")`. An unknown stage therefore never reaches the definition's accessors.
+
+`waiting(state, definition)` and `question_posted(snapshot, comments)` are public in `factory.domain.evaluation` for the handlers that come later.
+
 ## Reading and writing a work item file
 
 Every file format the factory owns has one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`, and validates into Pydantic DTOs; no other module parses or renders that format. For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` (`factory.application.files`) and the classes are `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` (`factory.adapters.work_item_markdown`). That module is the only one that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`. Wiring uses the reader and not yet the writer: `factory.entry.wiring.build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and nothing builds `FrontmatterWorkItemWriter` yet.

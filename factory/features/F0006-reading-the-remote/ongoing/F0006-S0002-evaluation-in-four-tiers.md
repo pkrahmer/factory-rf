@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 72
 blocked: null
 comments_seen: 2
@@ -314,3 +314,16 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     Considered and not findings:
     - The watcher leaves fetching to its caller; the Interface leaves this open and F0006-S0004 decides the tick.
     - `_agent_at_work`'s `state.claim is not None` guard only narrows the type for mypy.
+16. documenter: Round 2. No findings; the code matches the Interface and criteria. Earlier rounds had written no docs, so I wrote criterion 27's.
+
+    Files changed:
+    - `docs/project-guide.md`: new section "The evaluation", placed before "Reading and writing a work item file". It covers the Watcher and its `GitError`/`WorkItemFormatError` behaviour, the `Event` rules and the kinds (`reject` and `acceptance_due` are not yet made), and the four tiers in order with when each event is made. It also states that a waiting work item holds back new work, that there is at most one lookup per evaluation, and that stages are validated against the definition before any lookup.
+    - `docs/operator-guide.md`: new section "An idle tick that is not empty". An `idle` tick can mean a work item waiting for the human or a claim held by another instance.
+
+    I did not run the Demo block. `make check` is green (coverage 99.38%).
+
+    Cross-read against the diff and found current: the project-guide section "The remote's work items" (the watcher does not fetch, matching it) and "The claim service" (`status`).
+
+    Stale but not touched: `docs/operator-guide.md` lines 108 and 131 say stopping at the attempts cap and the evaluation "are not built yet". The evaluation now exists and makes the attempts-cap `ask` event. Its handler and the question belong to later stories (F0006/F0007), so the sentence is still true for the operator. I left it for the story that builds the handler.
+
+    `make check`: check: green
