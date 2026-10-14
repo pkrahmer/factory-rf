@@ -54,7 +54,6 @@ class StageLauncher:
     ) -> None:
         """Launch as `instance` under `definition`; agent runs get `environment` unchanged."""
         self._boundaries = boundaries
-        self._definition = definition
         self._claims = ClaimService(boundaries, instance, definition)
         self._opening = WorkItemOpening(boundaries, definition)
         self._composer = TaskComposer(boundaries, definition, environment)
@@ -91,12 +90,7 @@ class StageLauncher:
         state = prepared.document.state
         if state is None:
             raise ValueError(f"the work item {prepared.work_item} has no state")
-        stage = state.stage
-        if stage not in self._definition.stages:
-            raise ValueError(f"{stage} is not a stage of the pipeline definition")
-        if self._definition.stages[stage].role is None:
-            raise ValueError(f"stage {stage} has no role, so no agent runs there")
-        return stage
+        return state.stage
 
     def _start(
         self, prepared: PreparedWorkItem, stage: str, findings: list[FormFinding]
