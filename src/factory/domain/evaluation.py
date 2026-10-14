@@ -34,6 +34,7 @@ class EvaluationInput(BaseModel):
 
 PullRequestLookup = Callable[[int], PullRequestObservation]
 ClaimStatusOf = Callable[[WorkItemState], ClaimStatus]
+_Pairs = Sequence[tuple[WorkItemSnapshot, WorkItemState]]
 
 _CLAIM_EVENTS: dict[ClaimStatus, EventKind] = {"own": "crash", "expired": "expired"}
 
@@ -82,9 +83,6 @@ def evaluate(
     )
 
 
-_Pairs = Sequence[tuple[WorkItemSnapshot, WorkItemState]]
-
-
 def _duplicate(facts: EvaluationInput) -> Event | None:
     first_of: dict[str, WorkItemSnapshot] = {}
     for snapshot in facts.snapshots:
@@ -128,7 +126,7 @@ def _signal_of(
     except HostingServiceError as error:
         return _event("pull_request_lookup", snapshot, main, detail=str(error))
     view = observation.view
-    kind, detail = _open_signal(facts.definition, snapshot, state, observation)
+    kind, detail = _signal_of_observation(facts.definition, snapshot, state, observation)
     if kind is None:
         return Event(
             kind="idle",
@@ -140,7 +138,7 @@ def _signal_of(
     return _event(kind, snapshot, main, pull_request=view, detail=detail)
 
 
-def _open_signal(
+def _signal_of_observation(
     definition: PipelineDefinition,
     snapshot: WorkItemSnapshot,
     state: WorkItemState,
