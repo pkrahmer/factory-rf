@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 72
 blocked: null
 comments_seen: 2
@@ -289,3 +289,8 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
 
     `make lint`: lint: green
     `make test`: test: green
+14. coder: Round 2. Entry 11 had one finding, and it was about a test. Entry 13 made that change: `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open` now asserts `hosting.factory_posts(number) == []`. The finding needed no source change and I made none, because `src/factory/application/watcher.py` never posts. No commits this round and nothing to refactor. Nothing else is open; criterion 27 (docs) belongs to the documenter.
+
+    `make check`: check: green (coverage 99.38%).
+
+    `make check`: check: green
