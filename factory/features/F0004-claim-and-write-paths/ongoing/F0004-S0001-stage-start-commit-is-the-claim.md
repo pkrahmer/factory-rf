@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 48
 blocked: null
 comments_seen: 2
@@ -252,3 +252,15 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
    2. `src/factory/application/claims.py:92` (`_with_claim`): this calls `_state_of(document)` a second time, after `_check_preconditions` (line 71) has already narrowed the state, so the `ValueError` branch can never run on this path. Fix: pass the narrowed `WorkItemState` from `claim` into `_with_claim`, for example by having `_check_preconditions` return it with the lease, so the check happens once.
 
    Not a finding: `StageStart` is a Pydantic model in `factory.application`. That is where the Interface puts it, and intake accepted it.
+10. coder: coder (round 1): I fixed both of the reviewer's findings from entry 9 in one refactor commit, 2c15695. It changes only `src/factory/application/claims.py`. Behaviour and tests are unchanged. `make check` is green, with total coverage at 99.72%.
+
+    1. `_lease_duration_of` no longer repeats the lookup from stage to role. It first refuses a stage that is not in `self._definition.stages`. It then calls `self._definition.role_of(stage)`, refuses a `None` role and returns `role.lease_duration`. The `StageDefinition` variable named `definition` is gone, so nothing shadows the pipeline definition any more. The order of the preconditions and their `ValueError` messages are the same as before.
+    2. `claim` now narrows the state once, with `state = _state_of(document)`, and gives that `WorkItemState` to both `_check_preconditions` (whose parameter changes from `document` to `state`) and `_with_claim(document, state, claim)`. The second `_state_of` call, which could never fail, is gone. "No state" is still the first precondition checked.
+
+    What I rejected: the reviewer suggested making `_check_preconditions` return a `(state, lease)` tuple. Narrowing the state in `claim` does the same job with no tuple return value.
+
+    Process note: my first commit for this round piped `make check` into `tail`, so its failed exit status was hidden and the commit went in with an unformatted line. I ran `ruff format`, ran `make check` again (green) and amended the local commit, which had not been pushed, so only 2c15695 remains.
+
+    I noticed nothing else and touched nothing else.
+
+    `make check`: check: green
