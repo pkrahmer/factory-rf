@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 50
 blocked: null
 comments_seen: 0
@@ -135,3 +135,4 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
    - The output matches the fault texts in criteria 2 and 3 (`stage <s>: has neither a role nor approval`, `stage <s>: next is empty`).
    - It shows that a definition containing `done` with both rules met is accepted. The `done` stage itself (`done: {}`, with no role and no `next`) is not refused, which agrees with the rules exempting `done`.
    - Nothing in the output contradicts any criterion. Criteria 1, 4 to 8 and 10 are not exercised by this demo; their tests and the docs are recorded in log entries 3 to 6.
+8. done (pull request merged); cost: 6 runs, 3.8 min, 30 turns, 79k tokens in (349k more from cache), 10k out, $0.76
