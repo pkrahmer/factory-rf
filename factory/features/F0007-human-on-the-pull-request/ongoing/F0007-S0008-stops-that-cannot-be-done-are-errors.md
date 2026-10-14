@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 89
 blocked: null
 comments_seen: 0
@@ -101,3 +101,18 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
       - Open: criterion 10 (the operator guide and project guide) belongs to the documenter.
 
    `make check`: check: green
+5. reviewer: No findings.
+      - Acceptance criteria: criteria 1 to 8 each have a test in `tests/application/handlers/test_lookups.py` or `tests/application/handlers/test_handlers_raise.py`. Each test checks the criterion it is named after:
+        - Criteria 1 and 2 are parametrized over a detail and an empty detail, and they compare the exact reason and kind.
+        - Criterion 3 checks that the comments and the remote's `main` and branch heads are unchanged.
+        - Criteria 4 and 5 check the post count after the second, third and fourth dispatch, and the outcomes and the call count.
+        - Criterion 6 checks that the draft pull request is opened only on the third dispatch, has exactly one `error` post, and that no second pull request or post appears on the fourth dispatch.
+        - Criterion 7 is the restart test with a fresh `TickStatus`.
+        - Criterion 8 walks the package with `pkgutil.walk_packages` and checks the at-least set.
+        - The coder's entry records `make check` green, with 99.24 % coverage.
+        - The "always raises" and "never catches" rules have no passing side. The empty-detail boundary is tested for both handlers.
+      - Architecture: `src/factory/application/handlers/lookups.py` imports only `factory.application.dispatcher`, `factory.application.handlers.recording` and `factory.domain`. It holds no boundary and makes no I/O. Both classes derive from `Handler`.
+      - Security: there are no suppression markers, no strings run as shell or SQL, and no `except` clauses anywhere in the handlers package.
+      - Quality: the module, the public classes and the public methods have docstrings. The private `_with_detail` helper removes the duplicated suffix logic. There is no dead code.
+      - Ticket hygiene: the coder's entry gives the main decision (handlers take no boundary) and the alternative it rejected (passing `Boundaries` for symmetry). `Assignment` matches what was built. Criterion 10 still states what the documenter must write.
+      - Note, not a finding: the package's `__init__.py` is not walked by the criterion 8 test. It holds only a docstring today, so nothing is missed.
