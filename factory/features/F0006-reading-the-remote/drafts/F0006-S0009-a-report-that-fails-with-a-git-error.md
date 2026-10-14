@@ -1,0 +1,44 @@
+# A report that fails with a git error
+
+<!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
+
+## Assignment (as of log entry 1)
+
+The feature acceptance of F0006 hand-mutated the dispatcher. One mutant survived: a report that fails with an exception other than `HostingServiceError` could be marked as reported, and no test would notice. The rule is F0006-S0003's: "a report that raises any `Exception` leaves the entry unreported and returns `"error"`; the next dispatch of the same event on the same state makes the report again; a failed report does not count". Its criterion 19 tests the rule only with `HostingServiceError`.
+
+`StopService.post` raises `GitError` too. For a work item without a pull request it resolves the branch through `Git.resolve` before it opens a draft pull request, and a broken checkout fails there. Such a report would be lost without a word, because the hosting-service exception would not apply (it turns a report into a log line only for `HostingServiceError` on a work item without a branch on the remote).
+
+This story adds the missing criteria for the non-hosting failure. It is expected to need no code change: `src/factory/application/dispatcher.py` already behaves this way. The coder confirms that and builds nothing if the tests pass. Keeps kept thing 12 (errors capped and reported, never lost). Uses `Dispatcher` and `StopService` (F0006-S0003, F0003-S0002).
+
+## Interface
+
+No new names. The rule under test, in `src/factory/application/dispatcher.py` (`Dispatcher.dispatch`, unchanged):
+
+```python
+def dispatch(self, event: Event) -> DispatchOutcome: ...
+    # a report that raises an Exception other than HostingServiceError returns "error",
+    # leaves the entry unreported with its count and last_error unchanged, and writes no log line,
+    # whatever the snapshot's branch_commit; the next dispatch of the event on the same remote
+    # state makes the report again without calling the handler
+```
+
+Tests: in `tests/application/test_dispatcher.py`, with its fixtures and helpers (`boundaries`, `hosting`, `human`, `checkout`, `remote`, `tmp_path`, `Failing`, `RecordingLog`, `_snapshot`, `_event`). The `GitError` comes from the real `GitCli`, not from a test double. The checkout's `.git` directory (`tmp_path / CHECKOUT / ".git"`) is renamed away just before the dispatch that makes the report, and renamed back afterwards. `GitCli.resolve` then fails with `GitError` ("not a git repository"). The work item has no pull request, so `StopService.post` reaches `Git.resolve`.
+
+## Acceptance criteria
+
+1. For a work item without a pull request whose branch is on the remote with a commit beyond `main`, and whose handler raises `ValueError("boom")`: when the checkout's `.git` is gone for the third dispatch, `dispatch` returns `"error"`. The entry is not `reported`, its `count` is 3 and its `last_error` is `ValueError: boom`. The hosting service holds no pull request, and the given log holds no line.
+2. After `.git` is back, the next dispatch of the same event does not call the handler. It opens the draft pull request on the work item's branch, posts the one keyed report there and returns `"reported"`. The dispatch after that returns `"capped"` and posts nothing.
+3. The log-line exception stays limited to `HostingServiceError`. For a work item whose `branch_commit` is `None` (no pull request), a `GitError` from the report (the checkout's `.git` gone for the third dispatch) gives `"error"`, not `"reported"`. The entry is not `reported`, and the given log holds no `error cap reached` line.
+4. make check stays green.
+5. docs: in `docs/operator-guide.md`, "An event that keeps failing", the sentence on a report that cannot be posted names a git failure in the factory's checkout next to the hosting service being down, as a reason the report is tried again on the next tick.
+
+## Demo
+
+```bash
+uv run pytest -q --no-header -p no:cacheprovider --cov=factory.application.dispatcher --cov-branch --cov-report=term-missing tests/application/test_dispatcher.py
+```
+Expect: all tests pass, and the coverage line of `src/factory/application/dispatcher.py` shows 100 % with no missing lines or branches.
+
+## Log (append only)
+
+1. 2026-10-14 human: created.
