@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 54
 blocked: null
 comments_seen: 0
@@ -260,3 +260,12 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: round 1. The tester's entry 7 has already fixed the one review finding (entry 5). I changed no code and no tests.
+      - The test `tests/domain/test_write_paths.py::test_an_unsafe_path_is_refused_before_anything_else` now covers unsafe paths that also match a protected pattern: `src/../feature.md` and `.claude/../a.py` under write paths `["*"]`.
+      - These cases pass against the existing `refusal` in `src/factory/domain/write_paths.py` (commit 03442ea). It checks safety before protected paths, which is the order the Interface fixes.
+      - I did no refactor pass this round: the round addresses exactly the finding, and the finding needed no code change.
+      - Open: criterion 24 (docs) is the documenter's.
+
+      `make check`: check: green
+
+   `make check`: check: green
