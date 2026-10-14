@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 93
 blocked: null
 comments_seen: 0
@@ -95,3 +95,17 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
       - Architecture, security, quality: nothing to judge, because the diff is empty.
       - Ticket hygiene: the log explains the main decision (documentation only, so the documenter does the work) and what was rejected (the coder writing the doc edits outside its lane). The Assignment matches what was built, which is nothing. The bullets of the docs criterion are specific enough for the documenter to write from and are checkable through the Demo greps: the stale `ask`/`comment` passages, the `send_back` row, the README and operator-guide summaries, step 1 of the close, the three new handler subsections, and the `factory.domain.hand_over` module name.
       - Open for the documenter: everything in the docs criterion.
+6. documenter: wrote the docs criterion; no findings.
+
+   Files changed:
+   - `docs/operator-guide.md`: removed the "not registered yet" passages for `ask` and `comment` (cap bullet, "The factory's own questions", "Which comment answers a question"). The cap bullet now says the `ask` handler records and posts the attempts-cap question and the stage waits for an answer. The `send_back` row now says a close discards the story and explains why it cannot send it back again. The opening summary now names the handlers.
+   - `README.md`: the summary paragraph names the handlers of the human's acts on the pull request, summarised as the human decided in F0003-S0010. It still says no command runs ticks before F0010.
+   - `docs/project-guide.md`: step 1 of "A close before the approval discards the story" now says the handler sends the story back at an approval stage. Added three subsections to "The handlers of the events": "A close at the approval sends the story back", "A comment can end a wait" and "The hand-over at the approval". Each names its test modules. The journal-reading rule now lists `factory.domain.hand_over`, matching `ALLOWED` in `tests/test_no_journal_reading.py`.
+
+   Cross-read and found current: the rest of `docs/operator-guide.md` (hand-over, send-back and merge sections), the other handler subsections of the project guide, `docs/decisions.md` (nothing contradicts the new text; the S0005 entry on record order matches) and the code of `ClosedHandler`, `CommentHandler`, `HandOverHandler`, `factory.domain.send_back`, `answers` and `hand_over`.
+
+   Checks: the demo greps for stale phrases print nothing. `make check` is green (coverage 99.22 %).
+
+   Stale but unrelated and left alone: none seen.
+
+   `make check`: check: green

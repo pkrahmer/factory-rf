@@ -597,12 +597,52 @@ It posts nothing and does not touch the pull request. `destination_path(path, fo
 
 `ClosedHandler(boundaries, definition)` (`factory.application.handlers.closed`) handles `closed`; it is registered for `closed` and is also the closed handler of the run gate. It does what the operator guide says under "A close before the approval discards the story":
 
-1. `target_of(event)`. When `definition.stages[stage].approval` is true it returns and does nothing: the send-back is F0007-S0005's to fill in there. It does not raise `CannotHandle`.
+1. `target_of(event)`. When `definition.stages[stage].approval` is true the handler sends the story back instead (see "A close at the approval sends the story back") and does not discard it.
 2. `WorkItemRecorder.check_out(MAIN_BRANCH)`, then `Git.move` of the story to `destination_path(path, "backlog")`. The file is moved and not rewritten, so its text is main's, the human's.
 3. `publish(MAIN_BRANCH, commit_subject(id, "closed before the approval, back in the backlog"))`; a push that is not `pushed` raises `PushFailed` and the branch is kept.
 4. Only then `WorkItemRecorder.delete_branch(branch)`. The branch's cost records go with it, so a later start has an empty bill.
 
 It makes no hosting-service call. Tests: `tests/application/handlers/test_closed.py`.
+
+### A close at the approval sends the story back
+
+`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true; the operator guide says what the operator sees under "A close at the approval sends the story back". The rules are pure functions in `factory.domain.send_back`:
+
+- `send_back_target(definition, approval)` is `next[1]` of the approval, or `None` when `next` has fewer than two stages. `None` is `CannotHandle("closed", ...)` before anything is written.
+- `send_back_cap(definition, approval)` is the `round_cap` of the first stage whose `next[0]` is the approval and that has a cap, or `None`.
+- `recorded_since_latest_result(document, kind)` is true when a record of `kind` is numbered after the latest `result` record (any record of the kind, when there is no result). `reason_given(document)` is that test for `comment`.
+
+The reason is judged from records, never from text (see "No code reads data from the journal's text"): the human gave a reason when a `comment` record follows the latest `result`.
+
+The order is fixed, and each step that changes the work item is pushed on its own, so a kill leaves a state the next attempt finishes:
+
+1. Record the close, on the branch: `CommentCopier.unread` and `append` copy the unread comments, a `human` entry of kind `close` is added unless `recorded_since_latest_result(document, "close")` already holds, and `handed_over` is cleared. Commit subject `close recorded`; nothing is committed when the document is unchanged.
+2. `HostingService.reopen`, then `set_draft(number, True)`.
+3. Record the decision: a `send_back` entry (`send_back_entry_text(stage, round)`), and, when `send_back_question(round, cap, reason_given(closed))` returns a text, a `question` entry and `blocked = "send_back"`. The state gets `stage` = the target, `round` + 1 and `claim = None` (not through `ClaimService.release`, which needs an instance name). Subject `sent back`.
+4. `set_labels(number, labels_for(state))` last; a failing call raises and the decision stays recorded.
+
+The handler posts nothing; `AskHandler` posts the question. Tests: `tests/application/handlers/test_closed_send_back.py`, `tests/domain/test_send_back.py`, `tests/domain/test_send_back_texts.py`.
+
+### A comment can end a wait
+
+`CommentHandler(boundaries)` (`factory.application.handlers.comments`) handles `comment`. It takes `target_of(event)` and `require_pull_request(target, "comment")`, then copies with `CommentCopier.copy`:
+
+- `blocked` unset: the comments are only copied.
+- `blocked` set: `copy` gets an `adjust` function, so the answer lands in the same commit as the copied comments. `adjust` finds the factory's post of the wait, the comment listed with `by_factory` and the key `PostKey(work_item, <the blocked value>, str(<number of the latest question record>))`. It applies `unblock` when a comment of this copy has a non-blank body and an id greater than the post's. With no such post (not posted yet, or only an earlier question's) or no such comment, the document is unchanged and the wait stays.
+- `unblock(state)` (`factory.domain.answers`) sets `blocked` to `None`, resets `attempts` to 0 when the wait was `attempts_cap` and `crashes` to 0 when it was `crash_cap`, and keeps `round`, so a later send-back at the cap asks again. A state that does not wait is returned as it is.
+
+The answer is read from ids and keys, never from the comment's text. Tests: `tests/application/handlers/test_comment_handler.py`, `tests/domain/test_answers.py`.
+
+### The hand-over at the approval
+
+`HandOverHandler(boundaries, definition)` (`factory.application.handlers.hand_over`) handles `hand_over`. It takes `target_of(event)` and `require_pull_request`, checks out the branch and reads the work item. A stage that is not an approval is `CannotHandle("hand_over", ...)`. A work item whose `handed_over` already equals its stage returns at once. Otherwise, in this order:
+
+1. `HostingService.set_description` with `hand_over_description(document, commits)` (`factory.domain.hand_over`): the sections Description and Acceptance criteria (`section_text` of the body), the reports Tests, Review, Documentation and Smoke test (`REPORT_SECTIONS`: the latest `result` record of `tester`, `reviewer`, `documenter` and `smoke-tester`), Commits (a fenced block of the first seven characters of each id and the subject, from `Git.log` of `origin/<branch>` since `origin/main`) and `HAND_OVER_CLOSING`. A missing or empty section, and a report with no `result` record, read `none`. The reports are found by `last_record(speaker=..., kind="result")`, so the speaker comes from the record and not from the visible line; `entry_text` is read only here, which is why the module is on the list in "No code reads data from the journal's text".
+2. `set_draft(number, False)`.
+3. `post_comment` of `cost_table_post(cost_table(bills_by_stage(records)))`, read from the cost records file on the branch, with the key `PostKey(work_item, "cost_table", str(<number of the latest result record>))`, or `"0"` with no result.
+4. Record `handed_over = <stage>` with the subject `handed over at <stage>`.
+
+The first three effects are safe to repeat, so a failure or a kill anywhere before the record is retried whole; the record comes last. Tests: `tests/application/handlers/test_hand_over.py`, `tests/domain/test_hand_over.py`.
 
 ### An illegal stage change is put back
 
@@ -791,7 +831,7 @@ A bill is a sum of cost records and nothing else. The cost line a `done` journal
 
 The journal's text is for people; its data is the front matter and the sidecar. `tests/test_no_journal_reading.py` parses every module under `src/factory` (`modules()` of `tests/source_search.py`) and fails when:
 
-- `entry_text` is referenced (imported, used as a name or as an attribute) outside `factory.domain.journal`, `factory.application.handlers.hand_over` and `factory.application.handlers.questions`;
+- `entry_text` is referenced (imported, used as a name or as an attribute) outside `factory.domain.journal`, `factory.domain.hand_over` and `factory.application.handlers.questions`;
 - `JOURNAL` of `factory.domain.sections` is referenced outside `factory.domain.sections`, `factory.domain.journal`, `factory.domain.story_form`, `factory.adapters.work_item_markdown` and `factory.application.opening`;
 - a string literal equal to `Journal` or `## Journal` stands outside `factory.domain.sections`.
 
