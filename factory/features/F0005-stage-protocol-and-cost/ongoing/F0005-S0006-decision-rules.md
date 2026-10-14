@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 63
 blocked: null
 comments_seen: 0
@@ -144,3 +144,11 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
    - Quality: names and docstrings are fine. Rules 1 to 3, 6 and 7 build their result in the private helpers `_stay` and `_move`; rule 4 builds its own. The one comment explains why ("forward is next[0] ... wherever it points").
    - Ticket hygiene: the log gives the main decision (forward is `next[0]`) and what was rejected (`PipelineDefinition.position`). `Assignment` matches what was built, and the docs criterion (18) still says what the documenter must write.
    - Out of scope: `git diff main...HEAD` also lists changes under `planning/`, `docs/runs/` and `factory/features/F0007-*`. They come from the human's commit c3044cd, which is on `origin/main` and reached this branch through the merge 76fa9ee; the local `main` is behind `origin/main`. They are not the ticket's work, and I did not review them.
+6. documenter: wrote the documentation for criterion 18. `make check` is green.
+   - `docs/project-guide.md`: new section "The decision rules", placed before "Kill points". It has the forward/rework rule, the table of rules 1, 2, 3, 4, 6 and 7 (with 5 marked as the checks') and what each does to stage, `blocked`, `round` and `question`. It says that rounds and attempts are counted apart and that `decide` never touches `attempts` or `crashes`. It also names the two question texts and the `TYPE_CHECKING` import in `post_texts`.
+   - `docs/operator-guide.md`: new section "The factory's own questions", before the `pipeline_definition_invalid` stop. It gives the exact texts of the form-findings question and the round-cap question, what the stage and round do while blocked, and which answers are accepted: a comment, or closing the pull request to discard the work item. It also says a stage without `round_cap` never asks.
+   - Cross-read against the diff: the project guide's pipeline-definition section (`next[0]` forward, `round_cap`), its state table (`blocked` values), its "After the agent run" section and the operator guide's stall section. All are current.
+   - Not touched: nothing stale found. I did not run the demo again, but the text I wrote follows the code and the reviewer's trace.
+   - Code vs Interface: no findings.
+
+   `make check`: check: green

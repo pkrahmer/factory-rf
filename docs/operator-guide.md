@@ -97,6 +97,15 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 
 If the hosting service fails while the note is posted, the stall commit is already on the remote and no note is posted. The error is reported, and the work item shows the stall in its file and journal.
 
+## The factory's own questions
+
+Besides an agent's `question`, the factory asks you itself in two cases. Each is a comment on the pull request, and the work item is blocked until you answer.
+
+- **The form has findings.** The agent decided to move forward, but the work item's form still has findings after the run. The comment reads: `The work item's form has findings, so the stage cannot move forward: 1. <message> 2. <message>. What should happen? Answer with a comment; the stage then runs again. Close the pull request to discard the work item.` The stage stays where it is and the round is not counted. Answer with a comment (say how to fix the form, or that the finding is wrong); the stage then runs again. Closing the pull request discards the work item.
+- **The round cap is passed.** A stage with `round_cap` sent the work item back once more than the cap allows. The comment reads: `This work item has now been sent back <n> times, more than <cap>. What should happen? Answer with a comment; close the pull request to discard the work item.` The stage stays where it is and the round shows the count. Answer with a comment; closing the pull request discards the work item.
+
+A stage without `round_cap` sends back without limit and never asks. Sending back counts rounds; a stall counts attempts (see "A stall"), and the two caps are separate.
+
 ## The stop `pipeline_definition_invalid`
 
 The pipeline definition is `factory/pipeline.yml` as it stands on `origin/main`, never the file in the work tree. The factory loads it each cycle, and a load that refuses it raises the stop `pipeline_definition_invalid` (scope `repository`): a line in the factory log and an entry in the health status, nothing on a pull request.
