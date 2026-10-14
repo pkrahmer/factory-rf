@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 86
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -164,3 +164,25 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: Built the send-back at the approval and committed it as c985a77. Every new test passes except one, and that one fails because of how the test is built, not because of the code. `make check` is red only because of that test.
+
+   What I built:
+   - `src/factory/domain/send_back.py`: `reason_given`, `send_back_target` and `send_back_cap`. It also has a public helper, `recorded_since_latest_result(document, kind)`. `reason_given` uses it for `comment`, and the handler uses it for `close`, so both read the records with the same "after the latest `result`" rule.
+   - `src/factory/domain/post_texts.py`: `CLOSE_ENTRY_TEXT`, `SEND_BACK_QUESTION`, `send_back_entry_text` and `send_back_question`.
+   - `src/factory/application/handlers/closed.py`: `ClosedHandler` now handles a close at an approval stage. It checks the pull request and the send-back target first, then works in four steps:
+     1. Records the close: copies the unread comments with `CommentCopier.unread` and `append`, adds a `close` entry unless one is already recorded since the latest `result`, unsets `handed_over`, and pushes only if the document changed.
+     2. Reopens the pull request as a draft.
+     3. Records the decision: the `send_back` entry, plus a `question` entry and `blocked="send_back"` when `send_back_question` returns a question; it sets `stage`, `round` and `claim=None` directly in the state.
+     4. Calls `set_labels(labels_for(...))`.
+   - Main design decision: I copy the comments inside the "close recorded" commit with `append`, rather than through `CommentCopier.copy`, which would be a separate push. One push keeps a kill between the two from leaving comments recorded without the close. That matches the Interface's step 1.
+
+   The failing test: `tests/application/handlers/test_closed_send_back.py::test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question` (criterion 11). The test's `CLAIM` is `Claim(stage="smoke-test", ...)`, and the `publish` fixture builds `WorkItemState(stage="approval", claim=CLAIM)`. `WorkItemState._claim_is_for_the_current_stage` refuses that pairing with a `ValidationError` in the fixture, before the handler runs. No change to the handler can make this test pass.
+
+   Options:
+   - (a) Change the test's `CLAIM` to `stage="approval"`. The criterion's check that `claim` ends up unset stays a real check. **I'd choose this.**
+   - (b) Drop `claim=CLAIM` from that test, which leaves "claim is unset" checked only against a state that never had one.
+   - (c) Relax the domain validator. I'd reject this: it is a rule outside this ticket.
+
+   If you choose (a) or (b), I'll end the next run with `tests` and name exactly that change for the tester.
+
+   Not yet done: the refactor pass. I'll do it with `make check` green, after the test is fixed.
