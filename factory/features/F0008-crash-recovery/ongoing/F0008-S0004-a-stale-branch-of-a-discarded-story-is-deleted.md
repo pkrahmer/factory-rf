@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 98
 blocked: null
 comments_seen: 2
@@ -216,3 +216,23 @@ Expect: the factory log line on standard output first, time-stamped and ending w
      - Criterion 15 still describes what the operator guide, the project guide and the decision log must say.
    - Not judged: the diff also carries the human's own commits, which reached the branch through the merge of main: a new line in the `CLAUDE.md` Tests section, `docs/runs/…/night-log.md` and `planning/overnight/restructure-after-f0011.md`. Those are the human's files, not this ticket's work.
    - Open, for the documenter: criterion 15.
+10. documenter: wrote the stale-branch documentation, found no code finding, and `make check` is green after the edits. I did not run the ticket's demo script.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "A stale branch is deleted by the tick". It covers:
+      - the tick deletes the branch of a story back in `backlog/`, and of a merged story in `done/`;
+      - the hosting service closes an open pull request when its branch goes (the factory makes no hosting call);
+      - a refused deletion is logged and tried again on the next tick;
+      - a story started before that tick still finds the old branch, so wait for the log line;
+      - when a branch is kept (same id in `in-progress/`, or an unpushed move).
+      - I also changed the "when it goes wrong" bullets of the discard and merge sections. They told the operator to delete the branch by hand, which is no longer true, so they now point to the new section.
+    - `docs/project-guide.md`: the tick is now six steps (fetch, load, restore, clean up, evaluate, dispatch). A new paragraph "The stale branch" describes `delete_stale_branches`: inputs, the log lines, the return order, the reads it is limited to, and that it does not catch `GitError`.
+    - `docs/decisions.md`: new decision, "A stale branch is deleted by the tick, not by the discard handler". It gives the reason (after a kill no event is raised again for a story in `backlog/` or `done/`), the rejected options, and why a refused deletion is a log line and not a stop.
+
+    Cross-read and found current: README, the tick's stops table in the operator guide, and the guide's restore text.
+
+    I checked the docs against the diff of `recovery.py` and `tick.py`, including the order of the tick and the log texts.
+
+    Stale but not touched: nothing seen.
+
+    `make check`: check: green
