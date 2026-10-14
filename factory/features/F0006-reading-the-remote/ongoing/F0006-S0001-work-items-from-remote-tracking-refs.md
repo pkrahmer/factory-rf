@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 68
 blocked: null
 comments_seen: 0
@@ -129,3 +129,28 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
    - Demo: runnable, and uses the stated API. Its `Expect:` line gives the two exact output lines, which can be checked.
    - Architecture: the reader is in `factory.application` and uses only the `Git` interface and `WorkItemReader`. The DTOs are frozen Pydantic models in `factory.domain`. No lower layer imports a higher one.
    - Scope: within F0006 "Reading work items (R18)". The caller's fetch is left to S0004, and nothing in Out of scope is touched.
+3. tester: wrote red tests for every criterion, one test function (or one parametrized test) per criterion.
+   - criterion 1: tests/application/test_work_items.py::test_in_progress_stories_are_listed_with_their_parts
+   - criterion 2: tests/application/test_work_items.py::test_stories_only_in_the_checkout_are_not_listed (a file only in the work tree, then the same file in an unpushed local commit)
+   - criterion 3: tests/application/test_work_items.py::test_stories_are_listed_in_plain_id_order
+   - criterion 4: tests/application/test_work_items.py::test_files_that_are_not_story_files_are_not_listed (parametrized over the six non-story files, each next to one real story)
+   - criterion 5: tests/application/test_work_items.py::test_backlog_and_done_list_only_their_own_stories
+   - criterion 6: tests/application/test_work_items.py::test_a_story_with_a_remote_branch_is_read_from_its_head
+   - criterion 7: tests/application/test_work_items.py::test_a_pushed_branch_wins_over_a_stale_local_branch
+   - criterion 8: tests/application/test_work_items.py::test_a_branch_only_in_the_checkout_is_not_read
+   - criterion 9: tests/application/test_work_items.py::test_a_started_story_without_a_branch_is_at_the_first_stage
+   - criterion 10: tests/application/test_work_items.py::test_a_started_story_without_a_branch_keeps_its_body_and_ignores_its_keys
+   - criterion 11: tests/application/test_work_items.py::test_a_branch_merged_into_main_is_still_read_from_the_branch
+   - criterion 12: tests/application/test_work_items.py::test_a_story_missing_on_its_branch_is_a_format_error (the branch is pushed before the start, so the in-progress file is missing at its tip)
+   - criterion 13: tests/application/test_work_items.py::test_unreadable_front_matter_on_the_branch_is_a_format_error
+   - criterion 14: tests/application/test_work_items.py::test_unreadable_front_matter_on_main_without_a_branch_is_a_format_error
+   - criterion 15: tests/application/test_work_items.py::test_only_in_progress_stories_are_read
+   - criterion 16: tests/application/test_work_items.py::test_snapshots_come_in_plain_id_order_and_one_per_story_file (F0001-S0002 appears twice, in F0001-alpha and in F0001-beta, and the two are ordered by path)
+   - criterion 17: tests/application/test_work_items.py::test_ongoing_and_drafts_files_are_neither_listed_nor_read (parametrized over ongoing and drafts; checks every lifecycle folder's list and `read`)
+   - criterion 18: tests/domain/test_work_item_snapshot.py::test_an_unknown_key_is_refused, ::test_a_field_cannot_be_assigned, ::test_branch_commit_is_forty_lower_case_hex_characters_or_none, ::test_folder_is_a_lifecycle_folder, ::test_id_is_a_work_item_id. Each is parametrized over both models where the field exists. The models are built through `type[BaseModel]`, and fields are assigned with `setattr` and a field name held in a variable.
+   - criteria 19 and 20 are for `make check` and the documenter; no tests.
+   Files created: tests/domain/test_work_item_snapshot.py, tests/application/test_work_items.py. The pipeline definition comes from `boundaries.pipeline_reader.parse(PIPELINE_YAML)`, whose first stage is `intake`. Branch heads are compared with `remote_commit(remote, branch)`.
+   `make test` fails as expected at collection: `factory.domain.work_item` has no `StoryFile` or `WorkItemSnapshot` yet, and the module `factory.application.work_items` does not exist. `make lint` is green. I ran `ruff format` on the two new files only. Nothing needed interpreting, so nothing is open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
