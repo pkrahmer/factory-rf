@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 58
 blocked: null
 comments_seen: 0
@@ -259,3 +259,4 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
    - The demo is consistent with criteria 1, 2 (`question` appended after the stage's `next`), 3 (line order), 5 (format of the findings line) and 7 (no `Mode:` line when `test_change_entry` is None).
    - No criterion is contradicted.
    - Criteria 8–22 are for `TaskComposer`, `StoryFormChecker` and the model limits. This demo does not exercise them; they are covered by the tests named in entry 3.
+8. done (pull request merged); cost: 6 runs, 7.3 min, 51 turns, 165k tokens in (1289k more from cache), 28k out, $1.95
