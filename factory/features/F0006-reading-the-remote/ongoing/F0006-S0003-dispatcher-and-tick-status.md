@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 73
 blocked: null
 comments_seen: 0
@@ -207,3 +207,9 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
       - Noticed, not touched: line 105 of dispatcher.py (a report failing with a non-hosting `Exception`, e.g. `GitError` from the stop service) is not covered by a test; coverage is still 99 %.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read each of the tests for criteria 1–24 against its criterion, and each one tests what its criterion says. Limits are tested on both sides: the cap at count 2 and 3, `count` 0 refused and 1 accepted, and `remote_state` refused at 39 hex characters and with an upper-case letter (40 lower-case is accepted in every other test). Failing sides are tested too: an unhandled kind (7, 15), a report that fails while the branch is on the remote (19), the branch-not-on-remote exception (18), and a kill passing through and leaving the status alone (21). The coder's entry gives `make check` green.
+      - Architecture: the counts, the text and `UnhandledEvent` are in domain. `Handler` is an `abc.ABC` whose one method is abstract with a docstring-only body. `Dispatcher` imports only application (`StopService`, `FactoryLog`) and domain. No tool is called directly.
+      - Security: there are no new markers. The two broad `except Exception` clauses are required by the Interface (R28), and each has a comment saying why. `InjectedKill` is a `BaseException`, so it passes through as the rules require.
+      - Quality: `record_error` reuses `clear_errors`, so one path handles both counting up and replacing on a new state. The report title uses the existing `sections.title` helper. Docstrings are on every public name.
+      - Left open, not a finding: `dispatcher.py` line 105 has no test. That line handles a report that fails with something other than `HostingServiceError` (for example `GitError` from `StopService`). It falls under the rule criterion 19 already tests, so it is extra coverage, not a missing side. Also, the dispatcher drops the pull request number that `StopPosted` returns when it opens a draft. The Interface does not ask for that number to be recorded, and S0004/S0007 (the handlers and wiring) may want to.
