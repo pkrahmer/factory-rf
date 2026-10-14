@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 62
 blocked: null
 comments_seen: 0
@@ -105,3 +105,40 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Demo: both commands are runnable. The first Expect has five lines, which matches what the code would print (`tester result`, `wrote the tests`, an empty line, the paragraph, `None`). The second Expect is checkable against pytest output.
    - Architecture: `agent_entry` is pure and sits in the domain. `AfterAgent` is in the application layer and uses the S0004 stall service, the F0004 undo service and the form checker, all through interfaces. It adds no dependency and no top-level package.
    - Scope: this is the feature's "After the agent" item. It covers decisions 13, 14, 15, 27 and 28 and stays out of the decision rules (S0006) and the result commit (S0007).
+3. tester: Wrote red tests for every criterion except 22 and 23. One `make test` run fails with 2 collection errors, both from missing names: `agent_entry` in `factory.domain.decisions` and `AfterAgent`/`AgentAftermath` in `factory.application.stage`. `make lint` is green. The type check was skipped as the stage says.
+
+   Files created: `tests/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_after_agent.py::test_a_completed_run_with_an_allowed_decision_gives_its_aftermath
+   - criterion 2: tests/application/test_after_agent.py::test_a_checkout_left_on_another_branch_stalls_as_left_branch (the module's own `SwitchingRuntime(ObservingRuntime)`)
+   - criterion 3: tests/application/test_after_agent.py::test_a_run_that_did_not_complete_stalls_with_its_reason_and_one_attempt_more (died, time_limit, budget, no_result)
+   - criterion 4: tests/application/test_after_agent.py::test_the_stall_note_names_the_first_permission_denial (one denial; two denials)
+   - criterion 5: tests/application/test_after_agent.py::test_a_decision_that_is_not_allowed_stalls_naming_it_and_the_allowed_ones
+   - criterion 6: tests/application/test_after_agent.py::test_a_file_written_outside_the_write_paths_is_undone_and_reported
+   - criterion 7: tests/application/test_after_agent.py::test_the_agents_state_and_journal_edits_give_way_to_the_stage_start (at review)
+   - criterion 8: tests/application/test_after_agent.py::test_a_body_edit_is_kept_only_where_the_role_may_write_the_work_item (review kept; tests reverted)
+   - criterion 9: tests/application/test_after_agent.py::test_the_entry_is_the_roles_result_with_the_agents_text; tests/domain/test_agent_entry.py::test_a_result_entry_is_spoken_by_the_role_with_the_agents_text
+   - criterion 10: tests/application/test_after_agent.py::test_a_question_gives_a_question_entry_spoken_by_the_role; tests/domain/test_agent_entry.py::test_a_question_entry_has_kind_question_and_the_role_as_speaker
+   - criterion 11: tests/domain/test_agent_entry.py::test_a_leading_role_or_stage_name_is_removed_once; tests/application/test_after_agent.py::test_the_entry_loses_a_leading_role_or_stage_name
+   - criterion 12: tests/domain/test_agent_entry.py::test_undone_paths_end_the_text_with_a_paragraph_sorted_and_joined and ::test_nothing_undone_adds_no_paragraph; tests/application/test_after_agent.py::test_undone_paths_are_named_in_a_last_paragraph_of_the_entry
+   - criterion 13: tests/domain/test_agent_entry.py::test_a_blank_text_after_the_prefix_gives_no_entry; tests/application/test_after_agent.py::test_an_entry_blank_after_the_prefix_stalls_as_no_result
+   - criterion 14: tests/application/test_after_agent.py::test_a_broken_form_stalls_with_the_agents_entry_right_above_the_stall (also checks attempts +1)
+   - criterion 15: tests/application/test_after_agent.py::test_a_finding_present_before_and_after_the_run_does_not_stall and ::test_a_finding_the_agent_fixed_does_not_stall
+   - criterion 16: tests/application/test_after_agent.py::test_a_finding_whose_line_number_moved_does_not_stall
+   - criterion 17: tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls
+   - criterion 18: tests/application/test_after_agent.py::test_the_form_stall_note_joins_only_the_new_findings (the old finding is a missing `## Interface`)
+   - criterion 19: tests/application/test_after_agent.py::test_the_aftermath_lists_every_finding_after_the_run (clean; with a finding)
+   - criterion 20: tests/application/test_after_agent.py::test_the_own_cost_record_file_is_not_named_as_undone (with an outside file; sidecar only)
+   - criterion 21: tests/application/test_after_agent.py::test_the_aftermath_is_frozen_and_forbids_unknown_keys
+   - criteria 22 and 23 are not test criteria: `make check` and the docs.
+
+   Notes for the coder:
+   - In the agent-edit tests the agent writes the work item file with a state of its own choosing: the branch body plus a different state, without the stage-start claim. The tests rely on the undo and restore putting the stage-start state and journal back.
+   - The domain test expects `None` for a blank text even when `undone` is not empty. This follows the Interface, where the blank check comes before the paragraph.
+   - Criterion 5 builds the allowed list from `request.allowed_decisions` joined by ", ".
+
+   Modules the test runner could not import: `factory.domain.decisions.agent_entry`, `factory.application.stage.AfterAgent` and `AgentAftermath`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
