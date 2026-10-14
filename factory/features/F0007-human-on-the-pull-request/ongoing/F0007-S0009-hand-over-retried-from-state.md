@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 90
 blocked: null
 comments_seen: 2
@@ -199,3 +199,34 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
    Noticed, not touched: the handler has its own `_state_of`, because it reads the state from the branch document, not from the event's snapshot. `recording.target_of` has a similar check for the snapshot. The tester also pointed out that `tests/application/handlers/test_handlers_raise.py` keeps a `REQUIRED` list without `hand_over`. That test walks the modules anyway, so it covers the new one.
 
    `make check`: check: green
+9. reviewer: no findings.
+
+   What I read: the ticket and `git diff main...HEAD -- . ':!factory'`. That covers the four `src` files, the two new test files and the one-line `ALLOWED` change in `tests/test_no_journal_reading.py`.
+
+   1. Acceptance criteria:
+      - Each of criteria 1–18 has a test named for it, and each test checks what its criterion says.
+      - Criterion 2 is covered for both the missing and the empty section.
+      - Criterion 5 uses a visible `reviewer:` line on a `tester` record.
+      - Criterion 6 is covered with two commits and with no commit.
+      - Criterion 10 writes an untracked local sidecar that differs from the branch's, and checks the key's `n` both for the latest `result` record (3) and for no `result` record (0).
+      - Criterion 11 checks that the branch gains exactly one commit with the Interface's subject, and that the state is unchanged except for `handed_over`.
+      - Criteria 12–14 cover the order of effects and the retry: the post fails and the description is already set, the handler is killed at `after-post`, and a later run makes exactly one post.
+      - Criteria 15–17 cover the cases with no effect: the work item is already handed over, the stage is not an approval (`smoke-test`), or there is no pull request.
+      - Criterion 18 checks the outcomes `error`, `error`, `reported`, `capped`, that the handler is called 3 times, and that the error post count goes 0, 1, 1.
+      - The coder's entry 8 reports `make check` green.
+   2. Architecture:
+      - `factory.domain.hand_over` imports only from the domain.
+      - The handler is in application and works through the `Boundaries` interfaces (git, hosting, cost reader); it calls no tool directly.
+      - `entry_text` is now allowed in the domain module, on the human's word (entry 5).
+   3. Security: there are no secrets and no shell or SQL built from strings. No suppression markers were added.
+   4. Quality:
+      - The handler does its effects in the Interface's order: check out, read the document, read the sidecar from the checkout, `log`, `set_description`, `set_draft(False)`, the keyed post, then the record last.
+      - `_part` builds every section, the Commits section included, so the formatting is not duplicated.
+      - Docstrings are where `CLAUDE.md` asks for them, and the one comment says why the speaker is read from the record's data.
+      - `_state_of` overlaps `target_of`'s state check, but it reads the document on the branch rather than the event's snapshot, so it is not a duplicate.
+   5. Ticket hygiene:
+      - Entry 8 states the main decision (no progress marker; the record comes last) and the rejected alternative (recording intermediate progress).
+      - The Assignment matches what was built.
+      - Criterion 20 still says what the operator needs to know.
+
+   Open, outside this diff: `tests/application/handlers/test_handlers_raise.py` keeps a `REQUIRED` list that does not name `hand_over`. Its walk over the modules still covers the new module.
