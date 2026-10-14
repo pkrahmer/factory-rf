@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 72
 blocked: null
 comments_seen: 2
@@ -276,3 +276,8 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     - The Watcher does not fetch, and the caller does. The Interface leaves this open, entry 6 records it, and F0006-S0004 decides the tick.
 
     I did not go on to groups 2 to 5, because the checklist stops at the first failing group. Nothing in them stood out while I read.
+12. coder: Round 2. The only finding in entry 11 asks for a test change. Under R9 the coder doesn't edit tests, so I'm sending the ticket to the tester.
+
+    Test change requested: in `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open`, add `assert hosting.factory_posts(number) == []` straight after `assert hosting.calls == calls`. Change nothing else.
+
+    No source change is needed. `src/factory/application/watcher.py` never calls `post_comment`, and `FakeHostingService.factory_posts` (`src/factory/adapters/fake_hosting.py:171`) already exists, so the new assertion should pass as soon as it is added. I made no commits this round.
