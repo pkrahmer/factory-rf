@@ -98,3 +98,14 @@ def error_report_text(event_key: str, error: str, remote_state: CommitId, cap: i
         f" Last error: {error}. A new commit on the work item's branch"
         f" (now at {remote_state[:12]}) makes the factory try again."
     )
+
+
+def attempts_cap_question(stage: str, attempts: int, last_stall: str) -> str:
+    """The question asked when a work item has stalled as often as its attempts allow."""
+    return (
+        f"Stage {stage} stalled {attempts} times. The last time: {last_stall}\n"
+        "\n"
+        "Comment anything to retry: the attempts go back to 0 and the stage runs again."
+        " Close the pull request to discard the story instead: it goes back to the backlog"
+        " as you wrote it, and its branch and bill are deleted."
+    )

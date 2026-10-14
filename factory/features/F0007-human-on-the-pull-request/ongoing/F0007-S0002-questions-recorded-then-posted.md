@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 83
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Questions recorded, then posted
 
 ## Assignment (as of log entry 1)
@@ -89,3 +97,86 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: `attempts_cap_question` and `AskHandler(boundaries, definition)` are named with signatures and module paths. The text, the key, the recording subject and every `CannotHandle` case are stated. `Blocked` in `work_item.py` is a closed Literal of exactly the five values the rules list, so no blocked value is left unspecified.
+   - Criteria: each can be tested by one test function. The text (1), the key and prefix (2, 8) and the latest question (4, 16) are covered. Each rule has its failing side: no question record (6), attempts below the cap (9), no stall record (10), no pull request (15) and a failed post (11). The Interface's no-commit rule for recorded questions is in 3. The kill and restart cases are 5, 12, 13 and 14. No criterion covers a `GitError` or `PushFailed` during the recording; this is minor, since the failing-call rule is tested through `HostingServiceError` and the recorder is S0001's.
+   - Demo: the command is runnable against existing classes (`FakeHostingService`, `PipelineDefinition`, snapshots). Its `Expect:` line gives checkable output: the two-paragraph text, the count `1` and the exact list of body lines.
+   - Architecture: the handler sits in `application/handlers`, the text in `domain/post_texts`, and the hosting service is reached through its interface and the recorder. Domain code does no I/O.
+   - Scope: this is the scope line "Questions" of F0007, and nothing in "Out of scope" is touched. The crash-cap and send-back questions are only posted here.
+3. tester: red tests written for the ask handler and the attempts-cap question text.
+      - criterion 1: tests/domain/test_question_post_texts.py::test_the_attempts_cap_question_names_the_stage_the_stalls_and_the_answers
+      - criterion 2: tests/application/handlers/test_questions.py::test_an_agents_question_is_posted_with_its_speaker_and_keyed_to_its_entry
+      - criterion 3: tests/application/handlers/test_questions.py::test_a_recorded_question_is_posted_under_its_blocked_kind_without_a_commit (round_cap, crash_cap, send_back, attempts_cap)
+      - criterion 4: tests/application/handlers/test_questions.py::test_of_several_questions_the_latest_is_posted
+      - criterion 5: tests/application/handlers/test_questions.py::test_a_question_already_posted_is_not_posted_again
+      - criterion 6: tests/application/handlers/test_questions.py::test_a_blocked_work_item_without_a_question_record_cannot_be_handled (all five `Blocked` values)
+      - criterion 7: tests/application/handlers/test_questions.py::test_at_the_attempts_cap_the_question_is_recorded_in_one_pushed_commit (two stall entries, so the test can check that the latest one is used; checks the subject `work item <id>: attempts cap question recorded`)
+      - criterion 8: tests/application/handlers/test_questions.py::test_the_recorded_attempts_cap_question_is_posted_by_the_factory
+      - criterion 9: tests/application/handlers/test_questions.py::test_below_the_attempts_cap_nothing_is_asked_and_above_it_the_question_is (attempts 1 and 3; criterion 7 covers 2, the cap itself)
+      - criterion 10: tests/application/handlers/test_questions.py::test_at_the_attempts_cap_without_a_stall_record_nothing_is_recorded
+      - criterion 11: tests/application/handlers/test_questions.py::test_the_attempts_cap_question_is_recorded_before_a_failing_post
+      - criterion 12: tests/application/handlers/test_questions.py::test_after_a_failing_post_the_recorded_question_is_posted_once_and_not_recorded_again
+      - criterion 13: tests/application/handlers/test_questions.py::test_a_kill_after_the_post_leaves_one_post_and_a_repeat_posts_nothing_more
+      - criterion 14: tests/application/handlers/test_questions.py::test_a_kill_before_the_push_leaves_the_branch_and_a_repeat_records_and_posts_once
+      - criterion 15: tests/application/handlers/test_questions.py::test_a_work_item_without_a_pull_request_cannot_be_asked
+      - criterion 16: tests/application/handlers/test_questions.py::test_comments_after_a_question_leave_the_post_keyed_to_the_question
+      - criteria 17 (make check) and 18 (docs) have no tests: they are the coder's and the documenter's.
+      - Files created: tests/domain/test_question_post_texts.py, tests/application/handlers/test_questions.py. The handler tests use the `boundaries`, `hosting`, `remote`, `checkout`, `human`, `kill_points` and `pull_request` fixtures, plus a local `publish` fixture that pushes a document built with `append_entry` to `work-item/F0001-S0001`. The pipeline definition is the demo's, with `attempts_cap` at its default of 2.
+      - `make test`: both files fail at collection because the code under test does not exist yet: `factory.application.handlers.questions` (`AskHandler`) and `attempts_cap_question` in `factory.domain.post_texts`. `make lint` is green. I skipped the type check, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built the ask handler and the attempts-cap question text. `make check` is green and the demo prints what its `Expect:` line says.
+      - `src/factory/domain/post_texts.py`: I added `attempts_cap_question(stage, attempts, last_stall)`, which returns the two-paragraph text from the Interface.
+      - `src/factory/application/handlers/questions.py`: I added `AskHandler(boundaries, definition)`. `handle` takes `target_of`, then `require_pull_request(target, "ask")`.
+        - When `blocked` is set, it posts the snapshot's latest `question` record (found with `last_record`) as `<speaker>: <entry_text>`, with the key `PostKey(id, blocked, n=<record number>)`. It makes no commit.
+        - When `blocked` is unset and `attempts` is at or above `definition.attempts_cap`, it records first: it checks out the branch with `WorkItemRecorder`, reads the work item, and takes the text of the latest `stall` entry. It then appends the factory's `question` entry, sets `blocked="attempts_cap"`, and records with the subject `attempts cap question recorded`. Only after that does it post the new entry from the recorded document.
+        - It raises `CannotHandle("ask", …)` when `attempts` is below the cap, when there is no stall record (before anything is recorded), and when there is no question record. Errors from the hosting service or git are raised and not caught.
+      - Main design decision: the handler never checks whether a question was already posted. Repeats and restarts are safe because `HostingService.post_comment` already treats a post with an existing key as a no-op, and the key is built from the recorded entry's number. I rejected the alternative of listing comments first to skip known keys, because it would duplicate what the hosting service already guarantees.
+      - Refactor: I read the diff and found nothing worth a separate commit. A small private `_state_of` helper is duplicated in spirit from `handlers/comments.py`. I left it as it is because merging the two would be a change outside this ticket.
+      - Commit: `ticket F0007-S0002: feat(application): ask handler records and posts questions`.
+      - Open: the documentation criterion (18) is the documenter's.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Criteria: I read each test against its criterion. All 16 tested criteria have a test that checks what the criterion says. The coder's entry records a green `make check`.
+        - Both limits are tested on both sides. For the attempts cap: 1 (refused), 2 (at the cap, criterion 7) and 3 (above it). For the rules that refuse: no question record (all five `Blocked` values), no stall record and no pull request.
+        - The kill points come from the real adapters, so the kill tests (13, 14) run the real path: `AFTER_POST` in `FakeHostingService.post_comment` and `BEFORE_PUSH` in `GitCli.push`.
+      - Intake's noted gap (no criterion for a `GitError` or `PushFailed` while recording): I do not count it as a finding. The handler catches nothing, so every failure propagates. The failing-call rule is tested through `HostingServiceError` (criterion 11). The push failure is tested through the before-push kill (criterion 14) and by S0001's recorder tests.
+      - Architecture: `AskHandler` is in `factory.application.handlers`. It reaches git only through `WorkItemRecorder` and the hosting service only through `Boundaries.hosting`. `attempts_cap_question` is pure domain code. No new dependencies.
+      - Security: no secrets, no strings built into shell or SQL commands, no suppression markers.
+      - Quality: there are docstrings on the module, the public class and the public functions. The private `_state_of` follows the same local pattern already used in `comments.py`, `claims.py` and `stage.py`, so it adds no new duplication for this ticket to fix.
+      - Ticket hygiene: the coder's entry states the main decision and the rejected alternative. The decision is to rely on the keyed `post_comment` no-op instead of listing comments first. The Assignment matches what was built. Criterion 18 still describes what the documenter must write.
+6. documenter: I wrote the documentation criterion 18 asks for, and `make check` is green.
+   - `docs/operator-guide.md`:
+     - "The factory's own questions" now says a question is recorded first and then posted. It has a table of the questions you can meet (an agent's, the findings question, the round cap, the attempts cap, the send-back and the crash cap), with how a comment and a close answer each. It gives the attempts-cap text and says the post is keyed to the recorded entry, so a repeat posts nothing.
+     - "Stops of one work item", the stall-cap bullets and "An event that keeps failing" no longer say that posting a question arrives with F0007. They say `AskHandler` is built but no tick registers it yet, so `ask` is still a counted error today.
+   - `docs/project-guide.md`:
+     - New section "Asking the human", with the handler's rules, the key made from the recorded entry's number and the failure behaviour.
+     - Pointers added in "The marker and the post key" and in the post texts list.
+     - The statement about which handlers are registered is corrected.
+   - Cross-read against the diff and found current: `README.md`, `docs/decisions.md`, and the rest of both guides. The source-search rule that lists `questions` for `entry_text` already matches the code.
+   - I did not run the demo command; the coder's entry records that its output matches `Expect:`.
+   - Stale but unrelated, not touched: none seen. `NOT_YET_HANDLED` and `build_handlers` still list `ask` as unregistered, which matches the code.
+   - Findings for the coder: none.
+
+   `make check`: check: green
+7. demo: I ran the one demo command from the repository root exactly as written. It exited with status 0 and its output matches its `Expect:` line. There are no findings.
+
+   ```
+   Stage doing stalled 2 times. The last time: the agent gave no result
+
+   Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+   1
+   ['reviewer: Send it back?', '', '<!-- factory -->', '<!-- factory key=F0001-S0001:round_cap:2 -->']
+   ```
+
+   - Expect met:
+     - The attempts-cap question prints as two paragraphs with exactly the expected text.
+     - Then comes `1`: the second `handle` posted nothing.
+     - Then comes the exact list of body lines, with the key `F0001-S0001:round_cap:2`.
+   - Criteria checked against the output:
+     - It agrees with criterion 1 (the text).
+     - It agrees with criteria 2 and 3: the prefix is `<speaker>: `, the key's kind is the `blocked` value and its `n` is the question entry's number.
+     - It agrees with criterion 5: a repeat posts nothing.
+     - No criterion is contradicted. The demo does not exercise the attempts-cap recording path (criteria 7–14), and that path is covered by the tests the reviewer checked.

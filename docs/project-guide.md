@@ -92,7 +92,7 @@ The models in `factory.domain.hosting` are frozen, forbid unknown keys, and hold
 
 ### The marker and the post key
 
-Every post the factory makes ends with two lines: the marker `<!-- factory -->` and a key comment `<!-- factory key=<work item>:<kind>:<n> -->`, for example `<!-- factory key=F0001-S0001:question:7 -->`. `n` is lowercase hex and not empty; `kind` is one of `question`, `attempts_cap`, `round_cap`, `crash_cap`, `send_back`, `stall`, `expiry`, `correction`, `error`, `cost_table`.
+Every post the factory makes ends with two lines: the marker `<!-- factory -->` and a key comment `<!-- factory key=<work item>:<kind>:<n> -->`, for example `<!-- factory key=F0001-S0001:question:7 -->`. `n` is lowercase hex and not empty; the key is made from the recorded journal entry's number, so a repeat or a restart posts nothing (see "Asking the human"); `kind` is one of `question`, `attempts_cap`, `round_cap`, `crash_cap`, `send_back`, `stall`, `expiry`, `correction`, `error`, `cost_table`.
 
 - `render_post(text, key)` gives `text` without trailing whitespace, a blank line, the marker, and the key comment. Nothing follows.
 - `parse_post_key(body)` reads only the last non-blank line, which must be exactly a valid key comment (trailing whitespace and `\r` are ignored). Anything else gives `None`.
@@ -481,7 +481,7 @@ The watcher turns what the remote shows into one `Event`. The evaluation keeps n
 
 `idle` and `acceptance_due` take no work item; every other kind needs one. `feature` is set for `acceptance_due` and only for it. A violation raises `ValidationError`. `remote_state` is the snapshot's `branch_commit`, else the head of `origin/main`; an event with no work item carries `origin/main`'s head.
 
-The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); handling it, the move back, belongs to F0007-S0006. Handlers exist only for `idle` and `run` so far; the others belong to later features.
+The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); handling it, the move back, belongs to F0007-S0006. Handlers are registered only for `idle` and `run` so far (`AskHandler` is built but not yet registered); the others belong to later features.
 
 ### The four tiers
 
@@ -557,6 +557,18 @@ Because the checkout is rebuilt every tick and no local state is read, a rejecte
 `NOT_YET_HANDLED` is a tuple of the event kinds that have no handler in `build_handlers`, in the order of `EventKind`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`. It and the keys of `build_handlers`' result partition `EventKind`. A story that registers a handler adds it to `build_handlers` and removes its kinds from `NOT_YET_HANDLED`. Until then the dispatcher counts an event of such a kind as an error (`UnhandledEvent: no handler for event kind <kind>`), never silence.
 
 `RunHandler(boundaries, instance, definition, environment)` (`factory.application.handlers.run`) turns a `run` event into one stage: it builds `StageRunner(boundaries, instance, definition, environment)` and calls `run(work_item.id, work_item.path)`. Any other kind is a `ValueError`. The `StageReport` is dropped, because a stall is already recorded by the stage; whatever `StageRunner.run` raises (a `HostingServiceError`, for example) propagates and is a counted error of the dispatcher. The handler adds nothing to the environment and takes nothing from it.
+
+### Asking the human
+
+`AskHandler(boundaries, definition)` (`factory.application.handlers.questions`) handles `ask`. A question is recorded before it is posted, and every post carries `PostKey(work_item, <the blocked value>, str(<the question record's number>))`. The handler never checks whether it already posted: `HostingService.post_comment` treats a key the pull request holds as a no-op, so a repeat or a restart posts nothing twice.
+
+- `handle` takes `target_of(event)` and `require_pull_request(target, "ask")` (no pull request: `CannotHandle`).
+- `blocked` set: the question is the latest `question` record (`last_record`), whatever records follow it (the human's comments are recorded after a question that waits to be posted). The text is `<speaker>: <entry_text>`. No commit is made. A `blocked` value with no `question` record is `CannotHandle`. This covers the agent's question, `round_cap`, `send_back` and `crash_cap`, which other code records.
+- `blocked` unset and `attempts >= definition.attempts_cap`: the handler records, then posts. It checks out the branch with `WorkItemRecorder`, takes the text of the latest `stall` entry (none: `CannotHandle`, nothing recorded), appends a `factory` `question` entry with `attempts_cap_question(stage, attempts, last_stall)` (`factory.domain.post_texts`), sets `blocked="attempts_cap"` and records with the subject `work item <id>: attempts cap question recorded`. Then it posts the new entry with kind `attempts_cap`.
+- `blocked` unset below the cap: `CannotHandle`.
+- Failures (`HostingServiceError`, `GitError`, `PushFailed`) propagate; a recorded entry stays recorded, and the next attempt posts it without a second entry.
+
+`question_posted` compares the post's `n` with the number of the latest `question` record, so a comment recorded after the question does not raise `ask` again. Tests: `tests/application/handlers/test_questions.py`, `tests/domain/test_question_post_texts.py`.
 
 ### Recording the human's act
 
@@ -1230,7 +1242,7 @@ The rules are tried in v1's order; rule 5 (a red check) is not decided here but 
 
 Rules 3, 6 and 7 move, so they clear a `blocked` of `question`. `findings` matter only to a forward decision. Rule 6 only says the move; its checks run afterwards.
 
-The factory's own question texts are in `factory.domain.post_texts`: `round_cap_question(rounds, cap)` and `findings_question(findings)` (the messages numbered from 1, joined by one space). That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
+The factory's own question texts are in `factory.domain.post_texts`: `round_cap_question(rounds, cap)`, `findings_question(findings)` (the messages numbered from 1, joined by one space) and `attempts_cap_question(stage, attempts, last_stall)`. That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
 
 Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.py`.
 
