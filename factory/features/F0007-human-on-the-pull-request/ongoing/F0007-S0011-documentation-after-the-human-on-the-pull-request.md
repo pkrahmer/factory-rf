@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 93
 blocked: null
 comments_seen: 2
@@ -165,3 +165,52 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
 
    **Findings:** none apart from command 3, which is what the question above is about.
 8. human (pull request comment, 2026-10-14): (b): not a finding, and the demo is accepted as it is. Command 3's pattern was too broad: line 638 names the real module of `HandOverHandler` in the new subsection, and the journal-reading rule at line 834 lists `factory.domain.hand_over` as the docs criterion asks. Record in your entry that command 3 printed that one line and why it meets the criterion's intent.
+9. demo: I re-ran the five commands after the human's answer (b) in entry 8. Commands 1, 2, 4 and 5 meet their `Expect:` line. Command 3 printed one line. Following the human's ruling, I do not count it as a finding. Accepted.
+
+   Command 1: met (no line printed)
+   ```
+   $ grep -n "registers it yet\|Once it is registered\|today comments are not handled\|these comments do not appear" docs/operator-guide.md
+   (no output, rc=1)
+   ```
+
+   Command 2: met (no line printed)
+   ```
+   $ grep -n "sends the story back again" docs/operator-guide.md
+   (no output, rc=1)
+   ```
+
+   Command 3: one line printed. Its literal `Expect:` is not met, but the human's answer in entry 8 says it is not a finding.
+   ```
+   638:`HandOverHandler(boundaries, definition)` (`factory.application.handlers.hand_over`) handles `hand_over`. It takes `target_of(event)` and `require_pull_request`, checks out the branch and reads the work item. …
+   ```
+   Why this line meets the intent of the criterion:
+   - Line 638 is in the new subsection "The hand-over at the approval".
+   - It names the module where `HandOverHandler` really lives, `src/factory/application/handlers/hand_over.py`.
+   - It is not the journal-reading rule. That rule is at line 834 and now reads "outside `factory.domain.journal`, `factory.domain.hand_over` and `factory.application.handlers.questions`". This matches `ALLOWED["entry_text"]` in `tests/test_no_journal_reading.py`.
+   - The other half of the grep pattern, "F0007-S0005's to fill in", matches nothing.
+   - The pattern was simply too broad.
+
+   Command 4: met (the send-back, comment and hand-over subsections are present)
+   ```
+   563:### Asking the human
+   575:### Recording the human's act
+   583:### The merge archives the story
+   596:### A close before the approval discards the story
+   607:### A close at the approval sends the story back
+   626:### A comment can end a wait
+   636:### The hand-over at the approval
+   647:### An illegal stage change is put back
+   659:### A stop with no work to do is an error
+   667:### Comments are copied by id
+   ```
+
+   Command 5: met (the first line printed is the summary paragraph of `README.md`, and it names the handlers)
+   ```
+   README.md:3:… The handlers start a stage and answer the human's acts on the pull request: comments are copied into the journal, questions are recorded and then posted, a merge archives the story, a close discards it or sends it back, an illegal stage change is moved back, and the pull request is handed over at the approval. The pipeline itself does not run on its own yet: a tick can run a stage and handle these events, but no command runs ticks before F0010.
+   docs/operator-guide.md:3:The guide for the person who runs the factory … Parts are built: …
+   docs/operator-guide.md:144:| An agent's | `question` | `<role>: <the agent's words>` | answers it; the stage runs again | discards the story |
+   ```
+
+   Criteria: nothing in the demo contradicts criterion 2. I checked the rest of it by reading in entry 7, and the branch has not changed since. I did not run criterion 1 (make check) here; the factory runs it after this stage.
+
+   Findings: none.
