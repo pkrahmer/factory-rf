@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 93
 blocked: null
 comments_seen: 0
 round: 0
@@ -67,3 +67,9 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: "None: no code changes", and no Interface comment states a behaviour, so there is nothing to test or pin down. The files named (README.md, docs/operator-guide.md, docs/project-guide.md) exist. The stale passages the Assignment cites are there: operator-guide.md line 138 ("no tick registers it yet, so today these comments do not appear"), and the `ALLOWED` set in tests/test_no_journal_reading.py lists `factory.domain.hand_over`, as the story says.
+   - Criteria: only two exist, `make check` and `docs:`. The `docs:` criterion is for the documenter, and its bullets can be checked by reading and by the Demo greps. No rule has a failing side. The tester has no test to write; I judge that fine because the story says so in its Assignment.
+   - Demo: all five blocks are runnable and every `Expect:` line is checkable. I ran the sed range of block 4 and it works: the "Asking the human" and "Comments are copied by id" headings exist in docs/project-guide.md. I ran the grep of block 5: today it prints lines from docs/operator-guide.md and none from README.md, which matches the story's "before this story README.md prints none".
+   - Architecture: documentation only, so no layer or interface is touched. docs/decisions.md changes only where it contradicts the new text.
+   - Scope: the story fits F0007 (it is listed in FEATURE.md as proposed by the feature acceptance). It touches no test, no code and nothing out of scope.
