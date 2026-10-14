@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 87
 blocked: null
 comments_seen: 2
@@ -60,8 +60,10 @@ Tests: `tests/domain/test_correction_texts.py` (a new file: `tests/domain/test_p
 15. An illegal stage change followed by a commit that touches only another file (the head is that later commit) is moved back all the same: the remote branch's head is a new commit on top of the later one, the work item file at it has the stage before the illegal change, and one `move_back` entry is added.
 16. A stage change that is itself a correction (its commit appended a `move_back` record) raises `CannotHandle` with kind `reject`, and nothing is written or posted.
 17. With a pull request, afterwards `hosting.labels(<pull request>)` is `["stage:doing"]` for a change from `doing` to `approval`; without one no label call is made (two cases, one test).
-18. make check stays green.
-19. docs: `docs/operator-guide.md` describes the correction note and what the factory did when it moved a stage back; `docs/project-guide.md` states that the factory puts an illegal stage change back with a commit whose subject contains `moved back` and whose journal gains a `move_back` entry, that the `move_back` entry is what exempts the correction from the move rule, that the change is taken from the same source as the watcher's (the newest commit that touched the work item's file), and that only the work item's branch is written.
+18. When `set_labels` fails after the push, `handle` raises and the remote branch still holds the correction commit with the restored stage and the `move_back` entry.
+19. A branch whose newest commit that touched the work item's file has a parent whose work item file cannot be read (for example invalid frontmatter) raises `CannotHandle` with kind `reject`, and nothing is written or posted.
+20. make check stays green.
+21. docs: `docs/operator-guide.md` describes the correction note and what the factory did when it moved a stage back; `docs/project-guide.md` states that the factory puts an illegal stage change back with a commit whose subject contains `moved back` and whose journal gains a `move_back` entry, that the `move_back` entry is what exempts the correction from the move rule, that the change is taken from the same source as the watcher's (the newest commit that touched the work item's file), and that only the work item's branch is written.
 
 ## Demo
 
@@ -82,3 +84,9 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
    2. The Interface lists an unreadable parent among the cases that raise `CannotHandle("reject", ...)`. Criterion 14 covers only a parent without the work item file. Option A (my choice): add a criterion for a parent whose work item file cannot be read (for example invalid frontmatter) that raises `CannotHandle` with kind `reject` and writes and posts nothing. Option B: drop "an unreadable parent" from the Interface list, since F0006-S0005 owns that case.
    The other checks passed: Interface, Demo, architecture and scope.
 3. human (pull request comment, 2026-10-14): 1 A and 2 A: add both criteria before the two closing ones, as you worded them (the failing `set_labels` after the push raises and leaves the correction on the remote branch; a parent whose work item file cannot be read raises `CannotHandle` with kind `reject` and writes and posts nothing). The Interface stays as it is.
+4. intake: accepted. Both additions come from log entry 3 (the human's answer: 1 A and 2 A); they are the human's edit carried in, not mine. I added criterion 18 (a failing `set_labels` after the push raises and the remote branch keeps the correction commit with the restored stage and the `move_back` entry) and criterion 19 (a parent whose work item file cannot be read raises `CannotHandle` with kind `reject` and writes and posts nothing). Both went before the two closing criteria, which are now 20 (`make check`) and 21 (`docs:`). The Interface is unchanged and the Assignment's meaning is unchanged.
+   - Interface: names concrete modules and signatures (`post_texts.py` additions, `RejectHandler`). Its comments state exact texts, the post key, the recorded change and the subject marker.
+   - Criteria: each is testable by one test function. Every Interface rule with a failing side now has a criterion for it: merge commit (12), no stage change (13), parent without the file (14), unreadable parent (19), a change that is itself a correction (16), a failing `set_labels` (18).
+   - Demo: runnable with `uv run python -c`. The Expect line gives the three exact lines to compare against.
+   - Architecture: the domain texts live in `factory.domain.post_texts`. The handler is in `factory.application.handlers` and uses Boundaries, WorkItemRecorder and HostingService, so no layer is crossed.
+   - Scope: it matches the `reject` item of FEATURE.md and is not in its Out of scope.
