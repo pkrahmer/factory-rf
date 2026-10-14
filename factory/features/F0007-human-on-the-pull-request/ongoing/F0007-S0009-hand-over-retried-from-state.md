@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 90
 blocked: null
 comments_seen: 2
@@ -252,3 +252,25 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
     `make check`: green (coverage 99.21 %). The later background notification was only my polling loop timing out; the check itself had already finished green.
 
     `make check`: check: green
+11. demo: accepted. I ran the one demo command from the repository root exactly as written, and it met its `Expect:` line.
+
+    Command 1 (`uv run python -c "…"`, which builds `hand_over_description` for a document with a `tester` result record and one commit):
+
+    ```
+    ['## Description', '## Acceptance criteria', '## Tests', '## Review', '## Documentation', '## Smoke test', '## Commits']
+    wrote the tests.
+    none
+    True True
+    ```
+
+    Expect: four lines: the seven headings in order; then `wrote the tests.`; then `none` (no reviewer record); then `True True`. Met: every line matches.
+
+    Checked against the acceptance criteria:
+    - The headings are in the order criterion 1 asks for, and the description ends with `HAND_OVER_CLOSING` (criteria 1 and 8).
+    - The Tests section holds the text of the `tester` result record (criterion 3).
+    - The Review section is `none` because there is no reviewer `result` record (criterion 4).
+    - The commit line is the first seven characters of the id, a space and the subject (criterion 6).
+
+    The demo contradicts no criterion. It does not exercise the handler (criteria 9–18); those are covered by the tests the reviewer checked in entry 9.
+
+    Findings: none.
