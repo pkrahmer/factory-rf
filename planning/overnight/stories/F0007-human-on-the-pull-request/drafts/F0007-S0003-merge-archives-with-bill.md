@@ -21,7 +21,7 @@ def done_entry_text(bill: Bill) -> str: ...
 `src/factory/application/handlers/merged.py`
 
 ```python
-class MergedHandler:
+class MergedHandler(Handler):      # Handler: factory.application.dispatcher (F0006-S0003)
     def __init__(self, boundaries: Boundaries) -> None: ...
     def handle(self, event: Event) -> None: ...
 ```
@@ -31,12 +31,12 @@ Rules:
 - `destination_path(path, folder)` returns the same file name in the folder `folder` of the same feature directory (`factory/features/F0001-slug/in-progress/F0001-S0001-x.md` becomes `factory/features/F0001-slug/done/F0001-S0001-x.md`). A path that `folder_of` places in no lifecycle folder raises `ValueError`.
 - `done_entry_text(bill)` is `done (pull request merged); cost: ` followed by `cost_line(bill)`.
 - `handle` takes `target_of(event)`. It calls `WorkItemRecorder.check_out(MAIN_BRANCH)`, so it works on the remote's main branch, and reads the story at `snapshot.path`. The bill is `bill(records)` of the records that `CostRecordReader.read` returns for `cost_records_path(snapshot.path)`; a missing record file gives no records.
-- The archived document has `stage == "done"` (the constant `DONE_STAGE`), `blocked` unset and `claim` unset; every other state field is as it was. One journal entry is appended: `NewEntry(speaker=FACTORY, kind="done", text=done_entry_text(<the bill>))`.
+- The archived document has `stage == "done"` (the constant `DONE_STAGE`), `blocked` unset and `claim` unset; every other state field is as it was. The claim is dropped by setting the field to `None` in the state, not through `ClaimService.release`, because that service is built for an instance name and a pipeline definition that this handler does not hold (`MergedHandler(boundaries)`); `tests/test_claim_ownership.py` forbids only building a claim and judging a lease outside the service. One journal entry is appended: `NewEntry(speaker=FACTORY, kind="done", text=done_entry_text(<the bill>))`.
 - The story file is moved with `Git.move(snapshot.path, destination_path(snapshot.path, "done"))`, and its cost record file the same way when it exists at `HEAD`; the document is written at the new path. The commit has the subject `commit_subject(id, "merged, archived")` and is pushed with `WorkItemRecorder.publish(MAIN_BRANCH, ...)`; a push that is not `pushed` raises `PushFailed`.
-- After the archive is pushed, the branch is deleted: `Git.delete_remote_branch(snapshot.branch)` when `origin/<branch>` resolves, and `Git.delete_branch(snapshot.branch)` when the local branch resolves. A branch that is already gone is not an error.
+- After the archive is pushed, the branch is deleted: `Git.delete_remote_branch(snapshot.branch)` and then `Git.delete_branch(snapshot.branch)`. A branch that is already gone is not an error: F0001's `delete_remote_branch` counts it as `"pushed"` and clears the stale `origin/<branch>`, and `delete_branch` ignores a missing branch. Any outcome of `delete_remote_branch` other than `"pushed"` (`"rejected"`, `"unreachable"`) raises `PushFailed(branch, outcome)`; the archive stays pushed, no event is raised for the story again (it is under `done/`), and the branch is left as after a kill (decision 6 of the feature).
 - The handler posts nothing and does not touch the pull request.
 
-Tests: `tests/domain/test_archive.py`, `tests/domain/test_post_texts.py` and `tests/application/handlers/test_merged.py`. The tests set a story up on a work item branch with `human`, merge it with `human.merge(branch, "merge")`, and read `origin/main` afterwards.
+Tests: `tests/domain/test_archive.py`, `tests/domain/test_archive_texts.py` (a new file: `tests/domain/test_post_texts.py` is F0003-S0003's) and `tests/application/handlers/test_merged.py`. The tests set a story up on a work item branch with `human`, merge it with `human.merge(branch, "merge")`, and read `origin/main` afterwards; the rejected deletion is made by setting `receive.denyDeletes` to `true` in the bare remote's configuration.
 
 ## Acceptance criteria
 
@@ -44,7 +44,7 @@ Tests: `tests/domain/test_archive.py`, `tests/domain/test_post_texts.py` and `te
 2. `destination_path` raises `ValueError` for a path that is in no lifecycle folder.
 3. `done_entry_text(bill)` starts with `done (pull request merged); cost: ` and ends with `cost_line(bill)`.
 4. After `MergedHandler.handle`, the story is on `origin/main` under `done/` with its file name, and no longer under `in-progress/`.
-5. In the archived file `stage` is `done`, `blocked` is unset and `claim` is unset, and `round`, `attempts`, `crashes` and `pull_request` are as they were.
+5. In the archived file `stage` is `done`, `blocked` is unset and `claim` is unset (a story merged while it held a claim included), and `round`, `attempts`, `crashes`, `pull_request`, `comments_read`, `handed_over` and the old journal records are as they were.
 6. A story merged while it was at `tests`, at `doing` and at `approval` is archived the same way (three cases, one test).
 7. The archived journal gains one entry numbered after the last: speaker `factory`, kind `done`, text `done_entry_text(bill(records))`, with a matching record in `state.journal`.
 8. The bill in that entry counts every record of the story's cost record file: a file with three records, one of them with `end_reason == "died"` and one with an unknown cost, gives an entry text equal to `done_entry_text` of the bill of those three.
@@ -56,8 +56,9 @@ Tests: `tests/domain/test_archive.py`, `tests/domain/test_post_texts.py` and `te
 14. A kill at `after-push` leaves the archive on `origin/main` and the branch still on the remote: the branch is deleted only after the archive is pushed.
 15. When the remote's main branch moved since the checkout (the human pushed to it), `handle` raises `PushFailed` with outcome `rejected`, and the branch is not deleted.
 16. A merge posts nothing: the pull request has no factory post afterwards.
-17. make check stays green.
-18. docs: `docs/operator-guide.md` says that a merge, by any method, archives the story at whatever stage it has reached, writes its bill into the journal, moves its cost records beside it and deletes its branch, and what to do about a branch that a kill left behind; the other three documents do not change.
+17. When the remote refuses the deletion of the branch (`receive.denyDeletes` set in the bare remote), `handle` raises `PushFailed` with outcome `rejected` after the archive is pushed: `origin/main` holds the archive and the branch is still on the remote.
+18. make check stays green.
+19. docs: `docs/operator-guide.md` says that a merge, by any method, archives the story at whatever stage it has reached, writes its bill into the journal, moves its cost records beside it and deletes its branch, and what to do about a branch that a kill or a refused deletion left behind.
 
 ## Demo
 
