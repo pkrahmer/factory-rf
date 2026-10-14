@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 97
 blocked: null
 comments_seen: 0
 round: 0
@@ -185,3 +185,9 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: names concrete modules and signatures (`post_texts.expiry_note`, `stall_note` as already built, `recovery.expiry_entry_text`, `RecoveryHandler.handle` steps 1, 3, 4b and 5, `wiring.NOT_YET_HANDLED` and `build_handlers`). Every text and behaviour it states is exact: the two note wordings, the entry text, the guard per claim status, the step 4b post key, and the pull request number recorded when the stop opens one.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 cover both sides of the note cap, 3 both sides for `stall_note`, 6 both sides of the lease limit (59:59 and 60:00), 7 the refused statuses (`own` and no claim; `held` is the 59:59 case in 6), 12 and 13 the rerun below the cap and the question at it, and 14 a failed post. Criteria 15 and 16 cover a missing pull request below and at the cap, and 17 covers the wiring and `NOT_YET_HANDLED`. Every rule has its failing side.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output (`1 0 True`, `1`, `1 expiry 3`, `True`, and `True False`).
+   - Architecture: the texts and the entry text are in `domain`, the handler is in `application`, and the registration is in `entry.wiring`, so the layering holds. The post goes through `StopService`.
+   - Scope: inside F0008's scope item "expired lease handled as a crash" and its notes wording. It builds neither the watcher nor the lease functions, and the stall half belongs to F0005-S0004. Decisions 11, 12, 13 and 16 of FEATURE.md are carried out as written.
