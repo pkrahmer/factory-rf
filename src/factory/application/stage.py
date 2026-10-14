@@ -265,13 +265,9 @@ class StageFinisher:
         )
         ran: list[CheckResult] = []
         if move.rule == 6:
-            stage = self._definition.stages[started.stage]
-            for check in stage.checks:
-                result = self._run_command(check)
-                if not result.passed:
-                    return self._stall_red(aftermath, ran, result)
-                ran.append(result)
-            ran.extend(self._run_command(report) for report in stage.reports)
+            ran, red = self._run_checks_and_reports(started.stage)
+            if red is not None:
+                return self._stall_red(aftermath, ran, red)
         document = append_entry(aftermath.document, _with_command_lines(aftermath.entry, ran))
         if move.question is not None:
             question = NewEntry(speaker=FACTORY, kind="question", text=move.question)
@@ -290,6 +286,19 @@ class StageFinisher:
             pull_request=started.pull_request.number,
             stall=None,
         )
+
+    def _run_checks_and_reports(
+        self, stage_name: str
+    ) -> tuple[list[CheckResult], CheckResult | None]:
+        stage = self._definition.stages[stage_name]
+        green: list[CheckResult] = []
+        for check in stage.checks:
+            result = self._run_command(check)
+            if not result.passed:
+                return green, result
+            green.append(result)
+        reports = [self._run_command(report) for report in stage.reports]
+        return green + reports, None
 
     def _run_command(self, name: str) -> CheckResult:
         minutes = self._definition.project_commands[name].time_limit
