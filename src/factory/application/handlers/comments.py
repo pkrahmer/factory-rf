@@ -6,10 +6,18 @@ from datetime import UTC
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
-from factory.application.handlers.recording import WorkItemRecorder, commit_subject
+from factory.application.dispatcher import Handler
+from factory.application.handlers.recording import (
+    WorkItemRecorder,
+    commit_subject,
+    require_pull_request,
+    target_of,
+)
+from factory.domain.answers import unblock
+from factory.domain.events import Event
 from factory.domain.git import CommitId
-from factory.domain.hosting import PullRequestComment
-from factory.domain.journal import HUMAN, NewEntry, append_entry
+from factory.domain.hosting import PostKey, PullRequestComment
+from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 
 Adjust = Callable[[WorkItemDocument, Sequence[PullRequestComment]], WorkItemDocument]
@@ -90,3 +98,49 @@ class CommentCopier:
         subject = commit_subject(snapshot.id, "comments from the pull request")
         commit = recorder.record(snapshot.branch, snapshot.path, appended, subject)
         return CopyResult(recorded=[comment.id for comment in unread], commit=commit)
+
+
+def _question_post(
+    work_item: str, document: WorkItemDocument, listed: Sequence[PullRequestComment]
+) -> PullRequestComment | None:
+    """Return the factory's post of the question the document waits on, if it is posted."""
+    state = _state_of(document)
+    question = last_record(document, kind="question")
+    if state.blocked is None or question is None:
+        return None
+    key = PostKey(work_item=work_item, kind=state.blocked, n=str(question.number))
+    return next((comment for comment in listed if comment.by_factory and comment.key == key), None)
+
+
+def _answer_after(post: PullRequestComment, comments: Sequence[PullRequestComment]) -> bool:
+    return any(comment.body.strip() and comment.id > post.id for comment in comments)
+
+
+class CommentHandler(Handler):
+    """Records the human's comments; one written after the posted question ends the wait."""
+
+    def __init__(self, boundaries: Boundaries) -> None:
+        """Read and record through the boundaries' hosting service and git."""
+        self._boundaries = boundaries
+
+    def handle(self, event: Event) -> None:
+        """Copy the unread comments and, for a waiting work item, end the wait they answer."""
+        target = target_of(event)
+        pull_request = require_pull_request(target, "comment")
+        copier = CommentCopier(self._boundaries)
+        if target.state.blocked is None:
+            copier.copy(target.snapshot, pull_request)
+            return
+        listed = self._boundaries.hosting.list_comments(pull_request)
+        work_item = target.snapshot.id
+
+        # A comment the human wrote before the question was posted cannot answer it.
+        def adjust(
+            document: WorkItemDocument, comments: Sequence[PullRequestComment]
+        ) -> WorkItemDocument:
+            post = _question_post(work_item, document, listed)
+            if post is None or not _answer_after(post, comments):
+                return document
+            return document.model_copy(update={"state": unblock(_state_of(document))})
+
+        copier.copy(target.snapshot, pull_request, adjust)
