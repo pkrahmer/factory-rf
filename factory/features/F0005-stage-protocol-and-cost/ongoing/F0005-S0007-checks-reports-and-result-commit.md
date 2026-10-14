@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 64
 blocked: null
 comments_seen: 0
 round: 0
@@ -109,3 +109,9 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory/domain/labels.py`, `factory/application/stage.py`: `StageReport`, `StageFinisher`, `StageRunner`, `STALL_TAIL_LINES`). The eight `finish` steps and the `run` order are spelled out. The test Makefile setup is described.
+   - Criteria: each is testable by one test function. Every Interface behaviour has a criterion: tail of 15 lines (5), entry lines (8), `crashes` reset (14), labels (15), time limits (21), environment (22), one commit (18). The failing sides are covered: red check (4 to 6), failing report (7), rejected push (17), failed label write (16), merge conflict (19), died run (20), rule 4 cap (13), and the `StageReport` limits on both sides (23). The two closing criteria are in place.
+   - Demo: both commands are runnable. Each `Expect:` line can be checked against the output.
+   - Architecture: `labels_for` is in the domain; the stage protocol is in the application layer and uses only the boundaries (project commands, hosting service, git). No concrete tool is named.
+   - Scope: within the F0005 scope (decision rules, checks and reports, result commit, labels). The hand-over, cost table and draft flag stay with F0007. Nothing in the story is out of scope.
