@@ -9,6 +9,7 @@ from factory.domain.events import Event, EventKind
 from factory.domain.git import CommitId
 from factory.domain.hosting import PullRequestComment, PullRequestView
 from factory.domain.lease import ClaimStatus
+from factory.domain.move_rule import IllegalChange
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemSnapshot, WorkItemState
 
@@ -23,18 +24,23 @@ class PullRequestObservation(BaseModel):
 
 
 class EvaluationInput(BaseModel):
-    """The facts one evaluation judges: the definition, the work items in id order, main's head."""
+    """The facts one evaluation judges: the definition, the work items in id order, main's head.
+
+    `illegal_changes` holds the stage changes made outside the pipeline, as the watcher found them.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     definition: PipelineDefinition
     snapshots: list[WorkItemSnapshot]
     main_commit: CommitId
+    illegal_changes: list[IllegalChange] = []
 
 
 PullRequestLookup = Callable[[int], PullRequestObservation]
 ClaimStatusOf = Callable[[WorkItemState], ClaimStatus]
 _Pairs = Sequence[tuple[WorkItemSnapshot, WorkItemState]]
+_LookupResult = PullRequestObservation | HostingServiceError | None
 
 _CLAIM_EVENTS: dict[ClaimStatus, EventKind] = {"own": "crash", "expired": "expired"}
 
@@ -68,6 +74,9 @@ def evaluate(
 ) -> Event:
     """The first event of the four tiers: integrity, the human, the agent at work, new work.
 
+    The pull request of the first waiting work item is read before an illegal stage change is
+    rejected, so a merged pull request is never mistaken for one.
+
     Raises `ValueError` for a work item with no state or in a stage the definition lacks.
     """
     duplicate = _duplicate(facts)
@@ -75,8 +84,11 @@ def evaluate(
         return duplicate
     states = [_validated_state(snapshot, facts.definition) for snapshot in facts.snapshots]
     pairs = list(zip(facts.snapshots, states, strict=True))
+    waiting_pair = _first_waiting(facts.definition, pairs)
+    looked_up = None if waiting_pair is None else _looked_up(waiting_pair[1], lookup)
     return (
-        _human_signal(facts, pairs, lookup)
+        _reject(facts, waiting_pair, looked_up)
+        or _human_signal(facts, waiting_pair, looked_up)
         or _agent_at_work(facts, pairs, claim_status)
         or _new_work(facts, pairs)
         or Event(kind="idle", work_item=None, remote_state=facts.main_commit)
@@ -104,29 +116,60 @@ def _validated_state(snapshot: WorkItemSnapshot, definition: PipelineDefinition)
     return state
 
 
-def _human_signal(facts: EvaluationInput, pairs: _Pairs, lookup: PullRequestLookup) -> Event | None:
+def _first_waiting(
+    definition: PipelineDefinition, pairs: _Pairs
+) -> tuple[WorkItemSnapshot, WorkItemState] | None:
     # Only the first waiting work item is looked up, so an idle tick costs at most one lookup.
-    for snapshot, state in pairs:
-        if waiting(state, facts.definition):
-            return _signal_of(facts, snapshot, state, lookup)
+    waiting_pairs = (pair for pair in pairs if waiting(pair[1], definition))
+    return next(waiting_pairs, None)
+
+
+def _looked_up(state: WorkItemState, lookup: PullRequestLookup) -> _LookupResult:
+    if state.pull_request is None:
+        return None
+    try:
+        return lookup(state.pull_request)
+    except HostingServiceError as error:
+        return error
+
+
+def _reject(
+    facts: EvaluationInput,
+    waiting_pair: tuple[WorkItemSnapshot, WorkItemState] | None,
+    looked_up: _LookupResult,
+) -> Event | None:
+    changes = {illegal.work_item: illegal.change for illegal in facts.illegal_changes}
+    merged = isinstance(looked_up, PullRequestObservation) and looked_up.view.state == "merged"
+    for snapshot in facts.snapshots:
+        change = changes.get(snapshot.id)
+        if change is None:
+            continue
+        # A merge by any method can look like a stage change on the branch; the merge wins.
+        if merged and waiting_pair is not None and snapshot is waiting_pair[0]:
+            continue
+        detail = (
+            f"stage changed from {change.from_stage} to {change.to_stage},"
+            " which the pipeline definition does not allow"
+        )
+        return _event("reject", snapshot, facts.main_commit, detail=detail)
     return None
 
 
-def _signal_of(
+def _human_signal(
     facts: EvaluationInput,
-    snapshot: WorkItemSnapshot,
-    state: WorkItemState,
-    lookup: PullRequestLookup,
-) -> Event:
+    waiting_pair: tuple[WorkItemSnapshot, WorkItemState] | None,
+    looked_up: _LookupResult,
+) -> Event | None:
+    if waiting_pair is None:
+        return None
+    snapshot, state = waiting_pair
     main = facts.main_commit
-    if state.pull_request is None:
+    if looked_up is None:
         return _event("ask", snapshot, main, detail="no pull request")
-    try:
-        observation = lookup(state.pull_request)
-    except HostingServiceError as error:
-        return _event("pull_request_lookup", snapshot, main, detail=str(error))
-    view = observation.view
-    kind, detail = _signal_of_observation(facts.definition, snapshot, state, observation)
+    if isinstance(looked_up, HostingServiceError):
+        return _event("pull_request_lookup", snapshot, main, detail=str(looked_up))
+    view = looked_up.view
+    kind, detail = _signal_of_observation(facts.definition, snapshot, state, looked_up)
     if kind is None:
         return Event(
             kind="idle",
