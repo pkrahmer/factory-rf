@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 48
 blocked: null
 comments_seen: 2
@@ -319,3 +319,4 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
     - The remote branch head is still the first instance's stage-start commit.
 
     Against the acceptance criteria: the demo is consistent with criteria 1, 2, 3, 5, 6 and 9 and contradicts none of them. It does not exercise criteria 4, 7, 8 and 10–17 (subject line, untouched fields, re-claim, unreachable remote, kill point, invalid inputs, new-branch opening, `StageStart` model rules); the tests cover those. No findings.
+14. done (pull request merged); cost: 11 runs, 9.6 min, 71 turns, 250k tokens in (1270k more from cache), 34k out, $2.72
