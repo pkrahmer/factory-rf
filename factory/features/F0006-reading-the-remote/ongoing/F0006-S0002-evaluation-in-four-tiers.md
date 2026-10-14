@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 72
 blocked: null
 comments_seen: 2
-round: 1
+round: 2
 attempts: 0
 ---
 # The watcher's evaluation in four tiers
@@ -254,3 +254,25 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     `make check`: check: green (coverage 99.38%).
 
     `make check`: check: green
+11. reviewer: Round 1. One finding, in group 1 (acceptance criteria).
+
+    I read the full diff of `src/` and `tests/` against the Interface and criteria 1 to 25. Entry 9 fixed the earlier finding from entry 7: `test_a_remote_without_main_is_a_git_error` now matches `origin/main`. Entry 10 reports `make check` green.
+
+    Criteria 1 to 19 and 21 to 25 each have a test that checks what the criterion says, including the refused sides:
+    - the Event pairings and the 39-character and upper-case `remote_state`
+    - attempts 1 and 2, and leases of 59, 60 and 61 minutes
+    - an unknown stage and a missing state, each named in the message
+    - a later question that outdates an earlier post
+    - the idles of tier 2 and tier 3 at `main_commit`
+
+    1. `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open`:
+       - The Interface says hosting calls are counted by overriding every operation except `post_comment`, and that "posts are counted with `factory_posts`". The test never checks `factory_posts`. A Watcher that posted a comment while looking up a waiting work item would still pass, so criterion 20's "exactly one `get_pull_request` and one `list_comments`" is not fully tested.
+       - In the no-waiting test there is no pull request, so a post would already fail there.
+       - Fix: add `assert hosting.factory_posts(number) == []` after the `calls` assertion. This is a test change, so the coder hands it to the tester (`tests`) with exactly this change. No source change is expected: `src/factory/application/watcher.py` makes no post.
+
+    Rejected as findings:
+    - `src/factory/domain/evaluation.py` `_duplicate` uses identity (`first is not snapshot`), so a list that holds the same snapshot object twice would not count as a duplicate. The only real input is `RemoteWorkItems.read`, which builds one snapshot per path, so this cannot happen.
+    - In `_agent_at_work`, the `state.claim is not None` part of the `"held"` branch only narrows the type for mypy.
+    - The Watcher does not fetch, and the caller does. The Interface leaves this open, entry 6 records it, and F0006-S0004 decides the tick.
+
+    I did not go on to groups 2 to 5, because the checklist stops at the first failing group. Nothing in them stood out while I read.
