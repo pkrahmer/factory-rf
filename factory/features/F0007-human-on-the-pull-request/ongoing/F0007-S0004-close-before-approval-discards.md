@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 85
 blocked: null
 comments_seen: 0
@@ -181,3 +181,23 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
       - Security: none of the checklist's issues are present. No suppression markers.
       - Quality: commit 2c6c0de pulls the remote-then-local branch deletion that `MergedHandler` duplicated into `WorkItemRecorder.delete_branch` (`src/factory/application/handlers/recording.py`). Behaviour is the same, and it leaves no dead imports in `merged.py`. The docstrings are present and accurate. The early return at an approval stage (`closed.py`) is the one uncovered line. It is the place S0005 fills in, its comment says why, and this story specifies no behaviour there. I accepted it rather than ask for an invented error.
       - Ticket hygiene: the log gives the main decision (approval-stage return, `CannotHandle` rejected) and the refactor. `Assignment` matches the code. The docs criterion (criterion 14) still says what the operator must know.
+6. documenter: wrote the documentation for the close-before-approval discard; no findings. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "A close before the approval discards the story".
+     - What the handler does: the story is moved back to `backlog/` as the human wrote it, the branch and its bill are deleted, nothing is posted, and the pull request stays closed.
+     - The handler is not registered yet.
+     - It lists the failure cases: a rejected push, a kill before the push, and a kill after the push or a refused deletion.
+     - A branch left behind must be deleted by hand before the story is started again. This is the criterion 14 text.
+   - `docs/project-guide.md`:
+     - New section on `ClosedHandler`, in order, including the early return at an approval stage.
+     - `WorkItemRecorder.delete_branch` added to the recorder description. The merged and closed handlers share it.
+     - The "F0007-S0004 reuses it" note now points at the new section.
+
+   Cross-read and found current: README (it doesn't mention handlers), the existing "A merge archives the story" section, the `NOT_YET_HANDLED` lists in both guides (`closed` is still unregistered, so they are still true), and the rest of the operator guide.
+
+   I did not run the ticket's demo script.
+
+   Stale but not touched: none seen.
+
+   `make check`: check: green

@@ -428,6 +428,25 @@ When it goes wrong:
 - **The factory dies before the push**: `main` and the branch are as they were, and the story is archived once on the next tick.
 - **The factory dies after the push, or the remote refuses to delete the branch** (`PushFailed` naming the branch, outcome `rejected`, for example when the remote forbids deletions): the archive stays on `main` and the story is under `done/`, so no event is raised for it again. The branch `work-item/<id>` is left on the remote. Delete it yourself (`git push origin --delete work-item/<id>`) after you have lifted the refusal, if any; nothing in the factory reads it any more. An unreachable remote during the deletion leaves the branch in the same way.
 
+## A close before the approval discards the story
+
+When you close a story's pull request while the story is at any stage that is not an approval stage, you have said you do not want this version. The closed handler (`ClosedHandler`) then discards the story on `main`, in one commit with the subject `work item <id>: closed before the approval, back in the backlog`:
+
+- the story file moves from `in-progress/` back to `backlog/` of its feature. It is moved, not rewritten: it is the text you wrote on `main`, whatever the work item's branch held;
+- the commit changes nothing else.
+
+After that push the handler deletes the work item's branch, on the remote and in the factory's checkout, and with it the branch's journal and cost records. So a story you start again begins with an empty bill. A branch that is already gone is no error. The handler posts nothing, and the pull request stays closed.
+
+A close at an approval stage is a send-back, not a discard; that handler is not built yet (F0007-S0005), and `ClosedHandler` does nothing there.
+
+Not yet running: `closed` is still in `NOT_YET_HANDLED` (see "An event that keeps failing"), because the handler is not registered until F0007 wires its handlers.
+
+When it goes wrong:
+
+- **The push of the move is rejected** (`PushFailed`, outcome `rejected`): `main` moved since the checkout. Nothing is discarded and the branch is kept. The next tick fetches and discards then; do nothing.
+- **The factory dies before the push**: `main` and the branch are as they were, and the story is discarded once on the next tick.
+- **The factory dies after the push, or the remote refuses or cannot be reached for the deletion** (`PushFailed` naming the branch, for example when the remote forbids deletions): the story is under `backlog/` on `main`, so no event is raised for it again, and the branch `work-item/<id>` is left on the remote. Delete it yourself (`git push origin --delete work-item/<id>`) after you have lifted the refusal, if any, **before you start the story again**. Otherwise the new start finds the old branch with its old state and bill.
+
 ## Branch deletion on merge must be off
 
 The factory reads a work item's state from its branch `origin/work-item/<id>`. A story in `in-progress/` on `main` with no such branch is read as a new start: it is at the first stage with fresh counters, whatever its file says. So turn off the hosting setting that deletes head branches when a pull request is merged ("Automatically delete head branches" on GitHub). With it on, a merged story whose file is still in `in-progress/` loses its branch and starts again.
