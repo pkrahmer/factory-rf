@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 50
 blocked: null
 comments_seen: 0
 round: 0
@@ -76,3 +76,9 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: rules 10 and 11 are in `src/factory/domain/pipeline_definition.py`, continuing S0007's numbering. Each fault text, the order of the stages, and the order of rules (10 before 11, both after 1 to 9) are exact. The condition for applying them (a stage named `DONE_STAGE` exists) is stated.
+   - Criteria: each criterion is testable by one function with no further decisions. Each rule has its refused side (criteria 2 to 5) and its accepted side (criteria 1 to 3). Criterion 6 covers the ordering after S0007's faults. Criterion 7 covers the no-`done` case, and criterion 8 covers the load stop.
+   - Demo: the script is runnable. Its `Expect:` line gives three exact lines. I checked that `PIPELINE_YAML` in `tests/git_support.py` has `doing`, `review`, `acceptance`, `approval` and `done` as the criteria assume.
+   - Architecture: the change is in the domain validator only. The existing error and stop carry the faults, so no layer rule is touched.
+   - Scope: the story stays within F0003's load-time validation and is not in "Out of scope".
