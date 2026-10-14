@@ -9,11 +9,11 @@ Build the handlers of the `duplicate` and `pull_request_lookup` events and prove
 `src/factory/application/handlers/lookups.py`
 
 ```python
-class DuplicateHandler:
+class DuplicateHandler(Handler):      # Handler: factory.application.dispatcher (F0006-S0003)
     def __init__(self) -> None: ...
     def handle(self, event: Event) -> None: ...
 
-class PullRequestLookupHandler:
+class PullRequestLookupHandler(Handler):
     def __init__(self) -> None: ...
     def handle(self, event: Event) -> None: ...
 ```
@@ -26,7 +26,7 @@ Rules:
 - No module under `factory.application.handlers` catches `Exception` or `BaseException`, and none has a bare `except`: a handler that cannot do its work lets the error leave (R28).
 - The report itself is the dispatcher's (F0006) and the stop service's (F0003): a `WorkItemStop` posted with `PostKey(kind="error", n=<first 12 digits of the remote state>)`.
 
-Tests: `tests/application/handlers/test_lookups.py` and `tests/application/handlers/test_handlers_raise.py`. The dispatcher tests build `Dispatcher({kind: handler}, TickStatus(), StopService(boundaries))` with the real handler and count its calls with a small wrapper that delegates to it.
+Tests: `tests/application/handlers/test_lookups.py` and `tests/application/handlers/test_handlers_raise.py`. The dispatcher tests build `Dispatcher({kind: handler}, TickStatus(), StopService(boundaries))` with the real handler and count its calls with a small wrapper, a subclass of `Handler`, that delegates to it. `StopService.post` opens a draft pull request only for a branch that is on the remote with a commit beyond `main` (F0003-S0003); otherwise the dispatcher turns the report into a factory log line and posts nothing (F0006-S0003). The tests of criteria 4 to 7 therefore push the work item's branch with `human.push_file` (one commit beyond `main`) and give the snapshot that branch's head as `branch_commit`; for criteria 4, 5 and 7 the state holds the number of a pull request created in the fake on that branch, for criterion 6 it holds none. The test of criterion 6 calls `checkout.fetch()` after the push, so that `origin/work-item/<id>` resolves in the factory's checkout (`StopService` checks the branch through that remote-tracking ref), and takes `branch_commit` from it.
 
 ## Acceptance criteria
 
@@ -35,7 +35,7 @@ Tests: `tests/application/handlers/test_lookups.py` and `tests/application/handl
 3. Neither handler changes anything: after `handle` the hosting service has no new comment and the remote has no new commit.
 4. A `duplicate` event dispatched four times on the same remote state gives the outcomes `error`, `error`, `reported`, `capped`; the handler is called three times; the work item's pull request has no factory post after the second dispatch, exactly one after the third, with key kind `error`, and still exactly one after the fourth.
 5. A `pull_request_lookup` event gives the same sequence: outcomes `error`, `error`, `reported`, `capped`, three calls, one post of kind `error` after the third dispatch and still one after the fourth.
-6. An `ask` event for a work item that has no pull request, dispatched four times, gives the same outcomes and three calls of the `AskHandler`; after the third dispatch a draft pull request exists on the work item's branch and holds exactly one factory post of kind `error`, and after the fourth still exactly one.
+6. An `ask` event for a work item that has no pull request but whose branch is pushed (one commit beyond `main`), dispatched four times, gives the same outcomes and three calls of the `AskHandler`; after the third dispatch a draft pull request exists on the work item's branch and holds exactly one factory post of kind `error`, and after the fourth still exactly one.
 7. After the report on a `duplicate` event, a new `TickStatus` (a restart) lets the same event be tried three times again, and the pull request still has exactly one factory post of kind `error`.
 8. A search test over every module of `factory.application.handlers` (found by walking the package, and at least `recording`, `comments`, `questions`, `merged`, `closed`, `reject` and `lookups`) finds no `except` clause that is bare or that names `Exception` or `BaseException`.
 9. make check stays green.
