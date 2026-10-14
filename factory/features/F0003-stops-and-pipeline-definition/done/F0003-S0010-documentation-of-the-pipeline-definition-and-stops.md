@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 51
 blocked: null
 comments_seen: 0
@@ -135,3 +135,4 @@ Expect: one line, a number of at least `2`: the status names the health status f
    - The README status sentence summarises the built parts, names the stops, the health status file and the pipeline definition, and points to `docs/project-guide.md`.
 
    Findings: none. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 3.2 min, 33 turns, 73k tokens in (341k more from cache), 9k out, $0.63
