@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 55
 blocked: null
 comments_seen: 0
@@ -186,3 +186,24 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
    - Stale but unrelated, not touched: none seen.
 
    `make check`: check: green
+7. demo: ran both demo blocks from the repository root, as written. There are no findings.
+
+   Command 1 (the guard run as `python -m factory.entry.guard --settings <file>` on four Write payloads):
+   ```
+   src/app.py 0 ''
+   docs/a.md 2 'docs/a.md is outside the write paths of this stage.'
+   pyproject.toml 2 'pyproject.toml is owned by the human; a change there is a question.'
+   src/../pyproject.toml 2 'pyproject.toml is owned by the human; a change there is a question.'
+   ```
+   Met its Expect line. All four lines match exactly, and the `..` traversal is resolved before the verdict.
+
+   Command 2 (`echo '{}' | uv run python -m factory.entry.guard; echo "status $?"`):
+   ```
+   usage: factory-guard --settings <file>
+   status 2
+   ```
+   Met its Expect line. I ran it a second time with the two streams sent to separate files to check which stream each line was on. Standard output was empty and standard error held `usage: factory-guard --settings <file>`. So the guard writes nothing to standard output, and the only line on standard output in the original run is the shell's `status 2`.
+
+   Against the criteria: the demo contradicts none of them. It confirms 2 and 3 (the exact refusal messages), 5 (the `..` resolution), 13 (status 2 and the usage line when `--settings` is missing) and 15 (status 0 for an allowed payload, status 2 with the message on standard error and nothing on standard output for a refused one). The demo does not exercise the other criteria; the tests cover them, per the earlier entries.
+
+   Open, not a finding: a `file_path` that resolves to the root itself (`.`) is passed to `refusal(".")`. Intake, the coder and the reviewer already noted this.
