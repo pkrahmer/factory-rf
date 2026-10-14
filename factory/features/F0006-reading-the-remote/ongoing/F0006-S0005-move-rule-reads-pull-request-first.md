@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 75
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -138,3 +138,4 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
    - The Demo is runnable, and its `Expect:` line is checkable.
    - The architecture is respected: the rule is pure in `domain`, the reading is in `application`, and the watcher fills the input.
    - The scope matches `FEATURE.md`.
+3. human (pull request comment, 2026-10-14): 1 and 2: add both as new criteria, as you worded them, before the `make check` and `docs:` criteria: a newest commit that deleted the work item's file gives `None`; a commit that changes the stage and leaves the journal the same length gives `correction=False`, also when the journal's last record (an older one) has kind `move_back`. The Interface stays as it is.
