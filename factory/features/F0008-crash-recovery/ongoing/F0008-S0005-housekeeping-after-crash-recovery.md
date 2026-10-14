@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 100
 blocked: null
 comments_seen: 0
@@ -99,3 +99,9 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
       - Noticed, not touched: the tester added a private `_log_lines` helper to `tests/application/test_tick_stale_branch.py` that copies the one in `tests/application/test_stale_branches.py`. The reviewer may want to judge whether it belongs in a shared test helper. Tests are not mine to edit.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` touches only `tests/application/test_stale_branches.py` (+51 lines) and `tests/application/test_tick_stale_branch.py` (+67/−1). `src/` is unchanged, as the Assignment expects. No existing test function, fixture or helper changed.
+      - Criteria: 1 is `test_an_id_in_the_backlog_and_done_is_logged_as_done`. Its id is in both `backlog/` and `done/`, it gets `[SECOND_BRANCH]`, exactly one log line names the branch, and that line ends with `its story is done`. 2 is `test_an_unreachable_deletion_is_logged_and_tried_again_on_the_next_call`. The remote is moved away after the fetch, two calls each return `[]`, the `unreachable` line count goes from 1 to 2, and after the move back the branch is deleted. 3 is `test_a_tick_that_ends_at_the_restore_stop_deletes_nothing`. A locked directory is chmodded back in a `finally`, the test is skipped as root, the stop is `checkout_restore_failed`, the branch stays at its commit, and the next tick deletes it. 4 is `test_a_tick_that_ends_at_the_fetch_stop_tries_no_deletion`. It gets `fetch_failed`, no log line contains `stale branch` (so no deletion was tried, not even one that failed), and the tick after the move back deletes the branch. 5 is the existing `test_a_tick_that_ends_at_a_repository_stop_deletes_nothing`, unchanged. Tests 3 and 4 install the agents first, as the Interface requires, so they get past the load. The coder's entry reports `make check` green.
+      - Rule sides: the stale-branch rule has both sides. Deleted: backlog, done, both folders. Kept: in progress, no owner. The "could not delete" rule is covered for `rejected` (already tested) and `unreachable` (new). The cleanup ordering is covered for all three repository stops, with the deleting side of each in the same test.
+      - Considered, not a finding: `_log_lines` in `test_tick_stale_branch.py` is the fourth private copy of this 3-line helper. `test_tick.py`, `test_pipeline_loading.py` and `test_stale_branches.py` already have one each. CLAUDE.md's rule against second copies covers helpers in `src/factory`. Sharing the helper would mean changing the existing helper of `test_stale_branches.py`, and the Interface rules that out. A shared log-reading helper in `tests/` would be a story of its own, if the human wants one.
+      - Ticket hygiene: the coder's log entry explains why nothing in `src/` changed and why criterion 7 was left to the documenter (CLAUDE.md gives those four documents to the documenter). The Assignment matches what was built. All four items of the docs criterion are still open and still describe what is needed: the `build_handlers` sentence, the both-folders rule under "The stale branch", the kill-points section, and the one-sentence additions to README and the operator guide.
