@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 59
 blocked: null
 comments_seen: 0
 round: 0
@@ -79,3 +79,9 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: `src/factory/application/opening.py` names `PreparedWorkItem` and `WorkItemOpening` (`prepare`, `ensure_pull_request`) with signatures and types. It names the collaborators: `show_file`, `checkout(start_point=)`, `merge`, `find_open_pull_request`, `initial_state`, `append_entry`, `branch_name`, `title` and `first_stage` all exist in `src`. Every behaviour in the Interface comments is tested: the journal-section rule (criteria 5 and 6), the entry date (4), the PR choice order (13 to 16) and no file changes (19).
+   - Criteria: each can be tested by one test function. Every rule has its failing side: absent file (7), a closed or merged PR not reused (16), a missing title (17), a hosting error (18), a conflict (11), a stale local branch (9), no fetch (12) and the frozen model (20).
+   - Demo: `uv run pytest tests/application/test_opening.py` is runnable. Its `Expect:` line is checkable: the last line says `passed` and the output has no `failed` or `error`.
+   - Architecture: the module sits in `factory.application` and reaches git and hosting only through the `Git` and hosting interfaces via `Boundaries`. It imports only domain types, so it respects the layering.
+   - Scope: this is the opening of the work item's branch and its draft PR, which is in F0005's scope. No out-of-scope item (hand-over, PR state reading, claim) is touched.
