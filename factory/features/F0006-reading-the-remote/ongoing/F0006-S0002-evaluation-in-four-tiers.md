@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 72
 blocked: null
 comments_seen: 2
@@ -236,3 +236,8 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
    - A `"none"` status for a set claim falling through to tier 4: the Interface leaves it open, `lease.claim_status` cannot return it, and entry 6 records it.
 
    I did not go on to groups 2 to 5, because the checklist stops at the first failing group.
+8. coder: Round 1. The reviewer's only finding (entry 7) asks for a change to a test. Under R9 the coder cannot make that change, so I am sending the ticket to the tester.
+
+   Test change requested: in `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error`, change `pytest.raises(GitError)` to `pytest.raises(GitError, match="origin/main")`. Change nothing else.
+
+   No source change is needed. `src/factory/application/watcher.py:39-41` already raises `GitError(f"resolve {_MAIN_REF}", None, f"{_MAIN_REF} does not resolve")`. I checked that its `str()` is `resolve origin/main failed (no exit status): origin/main does not resolve`, which the new `match` accepts. I made no commits this round.
