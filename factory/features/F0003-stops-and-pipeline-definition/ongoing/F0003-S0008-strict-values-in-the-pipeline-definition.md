@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 49
 blocked: null
 comments_seen: 0
@@ -130,3 +130,12 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
       - Quality: the diff is small and has no dead code. It uses pydantic's built-in strict mode instead of custom validators. The comment on `WritePath` says in words what the regex `\S` means. It is also the only description of a public alias, so I accept it.
       - Ticket hygiene: the coder's entry gives the main decision (pydantic strict mode plus a pattern constraint) and the rejected alternative (an `AfterValidator` with the factory's own "must not be blank" message, rejected because the Interface asks for pydantic's message). `Assignment` matches what was built. Criterion 9 still says what the documenter must write.
       - Open for the human, not a finding: a blank write path is refused with pydantic's message `String should match pattern '\S'`. The Interface asks for that message, but an operator may find it hard to read. A clearer message would need a new story.
+6. documenter: wrote the docs criterion and cross-read the rest; no findings.
+   - docs/project-guide.md, "The pipeline definition": a new first bullet says values are taken only in their YAML type (limits are integers, `approval` is `true` or `false`, text fields are strings) and that a write path must not be blank. It gives the refused examples and the fault position, `roles.<role>.write_paths[<n>]`, and says the message is pydantic's `String should match pattern '\S'`.
+   - docs/decisions.md: new entry "The pipeline definition validates in strict mode". It gives the reason (decision "forbids unknown keys": no setting the project did not choose) and the rejected alternative (lax mode with a warning, which nothing would show the operator).
+   - Cross-read and found current: README.md, docs/operator-guide.md (stop `pipeline_definition_invalid`), and the "Faults" and "The rules of the definition" sections of the project guide. The field-faults-first order is unchanged.
+   - Code and docstrings agree with the Interface.
+   - Not touched: nothing stale seen.
+   - I did not run the demo; the coder and the reviewer did, and the code has not changed since. `make check` is green.
+
+   `make check`: check: green
