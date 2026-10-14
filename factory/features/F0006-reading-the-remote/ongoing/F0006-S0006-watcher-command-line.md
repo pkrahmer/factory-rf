@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 76
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The watcher's command line
 
 ## Assignment (as of log entry 1)
@@ -134,3 +142,91 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/board.py`, `application/board.py`, `entry/watch.py`). Every rule is stated with types and behaviour. `Blocked` is a plain string literal in `domain/work_item.py`, so a set value renders as itself, with no open choice.
+   - Criteria: each can be tested by one test function. Rules have both sides. The title comes from the body or falls back to the id (4). The feature title comes from the mapping or falls back to the directory name (3, 10). `running_since` is set or `None` (5). A valid definition gives 0 and an invalid one gives 1 (12, 16). A missing `origin/main` raises `GitError` (17). `--follow` is refused (18, 19, 23), and missing boundaries give 2 (20). Counts reject -1 and accept 0, `pull_request` rejects 0, and the unknown-key, frozen, folder, acceptance and naive-datetime cases are covered (24). The Interface comments on conversion, format and defaults (the `Z` UTC time, `-` for absent values, the event line with detail) each have a criterion (6, 7, 8, 12).
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable against the output (`exit 2` on standard output, the usage and `--follow` error on standard error, the exact four board lines).
+   - Architecture: `domain/board.py` is pure. `application/board.py` reads through `RemoteWorkItems` and `Git.show_file`. `entry/watch.py` is the command line and wires nothing beyond what it is given. This follows the four layers in `CLAUDE.md`.
+   - Scope: within F0006's scope ("The command line", SI3.1, SI3.2). The acceptance column stays empty (F0009) and the instance wiring is left to F0010-S0001, both listed under Out of scope in `FEATURE.md`.
+3. tester: wrote red tests for every acceptance criterion against the Interface.
+   - criterion 1: tests/domain/test_board.py::test_feature_rows_count_the_story_files_of_each_folder
+   - criterion 2: tests/domain/test_board.py::test_feature_rows_are_one_per_feature_in_plain_id_order
+   - criterion 3: tests/domain/test_board.py::test_a_feature_title_comes_from_the_mapping_else_the_directory_name
+   - criterion 4: tests/domain/test_board.py::test_a_work_item_row_is_filled_from_the_snapshot (cases: first `# ` title, and no title, which falls back to the id)
+   - criterion 5: tests/domain/test_board.py::test_running_since_is_the_claims_start
+   - criterion 6: tests/domain/test_board.py::test_render_board_writes_the_features_and_the_work_items
+   - criterion 7: tests/domain/test_board.py::test_an_empty_board_has_only_its_two_headings
+   - criterion 8: tests/domain/test_board.py::test_render_board_writes_running_since_in_utc_with_a_z (the input is +02:00, so the output must be converted to UTC)
+   - criterion 9: tests/application/test_board_reader.py::test_only_story_files_count_on_main
+   - criterion 10: tests/application/test_board_reader.py::test_a_feature_title_comes_from_its_feature_file_else_its_directory
+   - criterion 11: tests/application/test_board_reader.py::test_each_story_in_progress_is_a_row_with_its_state_from_its_branch
+   - criterion 12: tests/entry/test_watch.py::test_run_watch_writes_the_event_a_blank_line_and_the_board and ::test_an_event_is_written_as_its_key_and_its_detail
+   - criterion 13: tests/entry/test_watch.py::test_run_watch_evaluates_once
+   - criterion 14: tests/entry/test_watch.py::test_run_watch_writes_nothing
+   - criterion 15: tests/entry/test_watch.py::test_run_watch_fetches_nothing
+   - criterion 16: tests/entry/test_watch.py::test_an_invalid_definition_is_reported_without_a_stop (the expected fault comes from `PipelineLoader.load(<commit id>)`, which touches no stop)
+   - criterion 17: tests/entry/test_watch.py::test_run_watch_without_origin_main_raises_git_error
+   - criterion 18: tests/entry/test_watch.py::test_follow_is_an_unknown_option
+   - criterion 19: tests/entry/test_watch.py::test_the_console_script_refuses_follow_from_sys_argv
+   - criterion 20: tests/entry/test_watch.py::test_main_without_instance_settings_returns_2 (parametrized: boundaries None, instance None)
+   - criterion 21: tests/entry/test_watch.py::test_help_names_no_follow_mode
+   - criterion 22: tests/entry/test_watch.py::test_no_tick_and_no_watch_run_writes_a_last_line_file
+   - criterion 23: tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode (reads the bytes of every file under src/factory)
+   - criterion 24: tests/domain/test_board.py::test_a_row_refuses_an_unknown_key, ::test_a_row_refuses_an_assignment, ::test_a_feature_count_is_not_negative, ::test_a_board_row_accepts_only_its_values, ::test_a_feature_row_accepts_only_an_acceptance_status; tests/application/test_board_reader.py::test_a_board_view_refuses_an_unknown_key, ::test_a_board_view_refuses_an_assignment
+
+   Files created: tests/domain/test_board.py, tests/application/test_board_reader.py, tests/entry/test_watch.py. The entry tests use a local `_CountingHosting` subclass that copies the one in test_watcher.py and does not override `post_comment`. Posts are checked through `factory_posts` and labels through `labels`.
+
+   Result: `make test` stops at collection on purpose, with ModuleNotFoundError for `factory.domain.board` and `factory.application.board` (`factory.entry.watch` is missing too, behind the first error). `make lint` is green. I skipped the type check as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: `factory-watch` is built and `make check` is green. The tests were not changed.
+      - `src/factory/domain/board.py`: `AcceptanceStatus`, `BoardRow`, `FeatureRow` (frozen, no unknown keys), `work_item_row`, `feature_rows` and `render_board`. A row's time is converted to UTC and written as `%Y-%m-%dT%H:%M:%SZ`. An absent value is written as `-`.
+      - `src/factory/application/board.py`: `BoardView` and `BoardReader`. The stories come from `RemoteWorkItems.list_stories` for all three folders and the rows from `RemoteWorkItems.read`. Each feature title is the first `# ` title of `origin/main:factory/features/<dir>/feature.md`. Only directories that have at least one story file are looked up, so a directory with only `feature.md` gets no row.
+      - `src/factory/entry/watch.py`: `render_event`, `run_watch` and `main`. `run_watch` resolves `origin/main`, raising `GitError` when it does not resolve, the same way `Watcher._main_commit` does. It then loads the definition with `PipelineLoader.load(<commit id>)` and not with the default ref, which is what leaves the stop alone. Then it runs one `Watcher.evaluate` and reads the board. `main` parses with an `ArgumentParser(prog="factory-watch")` that has no options before it checks anything else, then reports the missing settings with exit status 2.
+      - Main decision: the board is read by a separate `BoardReader`, and the snapshots behind the `Event` are not reused. I rejected sharing them because the interface keeps `Watcher.evaluate` returning one event. The cost is that the remote-tracking refs are read twice, which is cheap and touches no network.
+      - Refactor (2a79ad8): `main` now picks the default output streams once instead of in each branch. Nothing else needed changing.
+      - Process slip: my first refactor commit was made while `make check` was red. A pipe through `tail` hid the failure, which was a missing blank line in `watch.py`. I fixed the formatting and amended that same commit, and `make check` was green before the amend.
+      - Noticed, not touched: in `feature_rows`, the branch where `parse_feature_directory_name` returns `None` can never be taken for a `StoryFile` built by `RemoteWorkItems`. It shows as one partial branch in coverage. The `__main__` line and the wired `run_watch` call in `main` are uncovered until F0010-S0001 wires the boundaries.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read criteria 1–24 against their named tests in `tests/domain/test_board.py`, `tests/application/test_board_reader.py` and `tests/entry/test_watch.py`, and each test checks its criterion. The refused sides are tested: counts at -1 and 0, `pull_request` at 0, 1 and `None`, folder `ongoing`, acceptance `other`, a naive `running_since`, unknown keys and assignment on all three models. The UTC conversion is tested with a +02:00 input. Criterion 14 checks the health and log paths the `boundaries` fixture really uses (`tmp_path/state/health.json` and `factory.log`), so it is not vacuous. Criterion 16 checks the fault string through `PipelineLoader.load(<commit>)`. The coder's entry records `make check` green.
+      - Architecture: `domain/board.py` is pure and imports only domain modules. `application/board.py` reads only through `RemoteWorkItems` and `Git.show_file`. `entry/watch.py` wires nothing of its own; when boundaries are missing it ends with status 2, as the assignment says. The new models are frozen and refuse unknown keys.
+      - Security: no secrets, no shell or SQL built from strings, and no suppression markers. Errors print only the definition's fault.
+      - Quality: names and docstrings are in order and I found no dead code. `run_watch` repeats the three-line resolve-or-`GitError` of `Watcher._main_commit`, and `application/board.py` defines its own `_MAIN_REF` next to `PIPELINE_REF`. Both follow the codebase's existing private-constant habit and the Interface's explicit rule for `run_watch`, so I don't count them as findings. Sharing them would mean making a `Watcher` method public, which is outside this story.
+      - Ticket hygiene: the log gives the main decision, a separate `BoardReader` over reusing the watcher's snapshots, with its cost. `Assignment` matches what was built. Criterion 26 still tells the documenter what to write.
+      - Open, for the human: the Interface's default for `main`'s `err` (standard error when `None`) has no criterion and no test. Today it only matters on the not-wired path, which F0010-S0001 replaces.
+6. documenter: wrote the `factory-watch` documentation. `make check` is green.
+   - `README.md`: "Three commands" is now four. `factory-watch` shows the next event and the board, reads the last fetch, changes nothing and has no `--follow` mode. It ends with status 2 until F0010 wires the instance settings.
+   - `docs/operator-guide.md`: the intro lists `factory-watch`. A new section, "Looking at the remote: `factory-watch`", gives the output shape, what the board counts and shows, and the exit statuses 0, 1 and 2. It also says the command fetches and writes nothing, raises no stop, and that v1's `--follow` and `factory-last-line` are gone. The sample output uses the placeholder `event: <key>  <detail>` because I did not run the command: the installed script ends with 2 until F0010.
+   - `docs/project-guide.md`: a new section, "The watcher's command line", before "The tick". It covers `run_watch`, `main`, the board modules, and why `BoardReader` does not reuse the watcher's snapshots.
+   - Cross-read: the sections on the tick, the evaluation and the remote's work items match the diff. No code contradicts the Interface. I found no findings for the coder.
+   - Not touched: nothing stale. The "Open" note in the review (the default for `main`'s `err` has no test) is for the human, not a docs matter.
+
+   `make check`: check: green
+7. demo: I ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines. No finding.
+
+   1. `main(['--follow'], boundaries=None, instance='factory-1')`, with `SystemExit` caught and its code printed.
+
+      Standard output:
+      ```
+      exit 2
+      ```
+      Standard error:
+      ```
+      usage: factory-watch [-h]
+      factory-watch: error: unrecognized arguments: --follow
+      ```
+      Met. Standard output is the single line `exit 2`. Standard error has the `usage: factory-watch` line and the "unrecognized arguments" error, which names `--follow`. The boundaries were `None`, and parsing still refused the option before anything else (criteria 18 and 20, the order in which `main` checks).
+
+   2. `render_board` of one `FeatureRow` and one `BoardRow`. I piped the output through `cat -A`, so `$` marks each line end:
+      ```
+      features$
+      F0001  Todo service  backlog=1  in-progress=2  done=3  acceptance=-$
+      work items$
+      F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=-  running_since=-  pull_request=7$
+      ```
+      Met. The output is exactly the four expected lines, each ending in a newline. Fields are separated by two spaces, and every absent value is written as `-`.
+
+   Against the acceptance criteria: the output agrees with criterion 6, apart from the claim, which is `-` here because the demo sets none. It also agrees with criteria 18 and 21: the usage line shows only `-h`, with no `follow` option. Nothing in either demo contradicts a criterion.

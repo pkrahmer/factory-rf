@@ -9,7 +9,7 @@ uv sync                       # install
 make check                    # everything the pipeline checks: lint, types, layers, sast, secrets, licenses, tests
 ```
 
-When it works, `make check` ends with the line `check: green`. Three commands exist so far: you run `uv run factory-check-story <path>...` to check a story before it starts and `uv run factory-bill [<work item id>]` to see what a work item cost, and the agent runtime runs `factory-guard` to refuse writes outside a role's write paths (see `docs/operator-guide.md`).
+When it works, `make check` ends with the line `check: green`. Four commands exist so far: you run `uv run factory-check-story <path>...` to check a story before it starts, `uv run factory-bill [<work item id>]` to see what a work item cost and `uv run factory-watch` to see what the next tick would do and the board of features and work items (it reads the last fetch, changes nothing and has no `--follow` mode; until the instance settings arrive with F0010 it ends with status 2 and a line that says so), and the agent runtime runs `factory-guard` to refuse writes outside a role's write paths (see `docs/operator-guide.md`).
 
 ## Where to look next
 
