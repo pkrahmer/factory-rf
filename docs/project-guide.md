@@ -546,7 +546,17 @@ The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, 
 
 `run` returns `TickOutcome(stopped=..., event=..., dispatch=...)`: `stopped` is set and the others are `None` when the tick ended at a stop. `WorkItemFormatError`, `ValueError` from the evaluation and a `GitError` outside the fetch and the restore are not caught; no stop exists for them. The tick reads and writes no run record and no lock. `IdleHandler` does nothing and is the handler of `idle`.
 
-Because the checkout is rebuilt every tick and no local state is read, a rejected push leaves no trace: the next tick judges the remote. The dispatcher's count of errors per event and remote state is the only memory, and it is in the `TickStatus`. A push to the work item's branch changes the remote state and so retries a capped event. `HandlerFactory` is `Callable[[PipelineDefinition], Mapping[EventKind, Handler]]`; the production factory comes with F0006-S0007.
+Because the checkout is rebuilt every tick and no local state is read, a rejected push leaves no trace: the next tick judges the remote. The dispatcher's count of errors per event and remote state is the only memory, and it is in the `TickStatus`. A push to the work item's branch changes the remote state and so retries a capped event. `HandlerFactory` is `Callable[[PipelineDefinition], Mapping[EventKind, Handler]]`; the production factory is `handler_factory` (see "The handlers of the events").
+
+## The handlers of the events
+
+`factory.entry.wiring.build_handlers(boundaries, definition, instance, environment)` is the one place that registers a handler (R5, nothing else wires); production code never builds a `Dispatcher` from a hand-written mapping. It returns `{"idle": IdleHandler(), "run": RunHandler(boundaries, instance, definition, environment)}`. `handler_factory(boundaries, instance, environment)` returns the `HandlerFactory` the tick takes: a function of the loaded definition that calls `build_handlers`, so the handlers always hold the definition the tick has just loaded. No command builds a `Tick` yet; `factory-run` will.
+
+`NOT_YET_HANDLED` is a tuple of the event kinds that have no handler in `build_handlers`, in the order of `EventKind`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`. It and the keys of `build_handlers`' result partition `EventKind`. A story that registers a handler adds it to `build_handlers` and removes its kinds from `NOT_YET_HANDLED`. Until then the dispatcher counts an event of such a kind as an error (`UnhandledEvent: no handler for event kind <kind>`), never silence.
+
+`RunHandler(boundaries, instance, definition, environment)` (`factory.application.handlers.run`) turns a `run` event into one stage: it builds `StageRunner(boundaries, instance, definition, environment)` and calls `run(work_item.id, work_item.path)`. Any other kind is a `ValueError`. The `StageReport` is dropped, because a stall is already recorded by the stage; whatever `StageRunner.run` raises (a `HostingServiceError`, for example) propagates and is a counted error of the dispatcher. The handler adds nothing to the environment and takes nothing from it.
+
+The agent run's environment is made by `agent_environment(scripts, home)`: exactly `PATH` = `<scripts>:/usr/local/bin:/usr/bin:/bin` and `HOME` = `str(home)`. `production_environment()` calls it with the directory of `sys.executable` (where the `factory-guard` console script is installed) and `Path.home()`. F0010 scrubs the environment, probes the `PATH` and completes `build_boundaries` from the instance settings.
 
 ## Reading and writing a work item file
 

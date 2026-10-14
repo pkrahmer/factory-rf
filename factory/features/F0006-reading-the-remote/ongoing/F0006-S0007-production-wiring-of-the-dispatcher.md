@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 77
 blocked: null
 comments_seen: 2
@@ -197,3 +197,17 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
       - The docs criterion (11) still says what the reader must know.
 
    Open, carried from the coder's entry: no command-line entry point builds a `Tick` yet. `handler_factory` is used only by the tests until `factory-run` is wired in a later story.
+8. documenter: Documented the run handler and the production wiring, with no findings. `make check` is green. I did not run the ticket's demo command in this stage.
+
+   Files changed:
+   - `docs/project-guide.md`:
+     - New section "The handlers of the events". It covers `build_handlers` as the one place that registers handlers, `handler_factory`, `NOT_YET_HANDLED` and how it shrinks, `RunHandler`, and how `agent_environment` and `production_environment` make the agent's environment.
+     - The sentence in "The tick" that said the production handler factory was still to come now points to that section.
+   - `docs/operator-guide.md`: under "`factory-guard` on the agent run's `PATH`", I added that the agent gets only a `PATH` and a `HOME`. `PATH` is the directory of the factory's Python followed by `/usr/local/bin:/usr/bin:/bin`. So `factory-guard` must be installed in the factory's own environment.
+   - `docs/decisions.md`: new entry explaining why the handlers are built from the loaded definition on every tick, and why a constant lists the unhandled kinds, not a test.
+
+   Cross-read and found current against the diff: the guard and agent runtime sections of the project guide, the tick section, the "Reading and writing a work item file" section, and the operator guide's agent runtime section. Nothing else in `README.md` or `docs/` mentions the changed names.
+
+   Stale but untouched: the project guide says `build_boundaries` and the concrete adapters are not wired yet. That stays true until F0010. The `factory-run` command that builds a `Tick` does not exist yet, and the new text says so.
+
+   `make check`: check: green
