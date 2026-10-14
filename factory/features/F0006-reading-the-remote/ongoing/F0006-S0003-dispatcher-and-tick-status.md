@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 73
 blocked: null
 comments_seen: 0
@@ -222,3 +222,12 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
    - Stale text I saw but did not touch, as unrelated: the operator guide's opening paragraph lists the built parts and does not mention the dispatcher. It should be extended when the tick and handlers arrive (S0004, S0007).
 
    `make check`: check: green
+7. demo: ran the one `## Demo` command from the repository root, exactly as written. It exited 0. No findings.
+
+   ```
+   ['error', 'error', 'reported', 'capped', 'capped']
+   1 The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at cccccccccccc) makes the factory try again.
+   ```
+
+   - Matches its `Expect:` line. There are two lines. The first is exactly `['error', 'error', 'reported', 'capped', 'capped']`. The second matches the expected text exactly: one post, which is the full report text.
+   - Checked against the criteria: the output is consistent with 10–13. The first two failures return "error" with no post. The third returns "reported" and makes exactly one post on the pull request. The two dispatches after that return "capped" and post nothing more. The post text matches the `error_report_text` format in 23, with the short remote state `cccccccccccc`. The demo contradicts no other criterion. It does not exercise 14–22 (new remote state, unhandled kind, no pull request, no branch, failed post, kill, no work item); the tests listed in entry 3 cover those.
