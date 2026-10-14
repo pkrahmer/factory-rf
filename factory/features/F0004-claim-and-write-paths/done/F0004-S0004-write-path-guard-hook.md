@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 55
 blocked: null
 comments_seen: 0
@@ -207,3 +207,4 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
    Against the criteria: the demo contradicts none of them. It confirms 2 and 3 (the exact refusal messages), 5 (the `..` resolution), 13 (status 2 and the usage line when `--settings` is missing) and 15 (status 0 for an allowed payload, status 2 with the message on standard error and nothing on standard output for a refused one). The demo does not exercise the other criteria; the tests cover them, per the earlier entries.
 
    Open, not a finding: a `file_path` that resolves to the root itself (`.`) is passed to `refusal(".")`. Intake, the coder and the reviewer already noted this.
+8. done (pull request merged); cost: 6 runs, 6.0 min, 43 turns, 139k tokens in (656k more from cache), 24k out, $1.51
