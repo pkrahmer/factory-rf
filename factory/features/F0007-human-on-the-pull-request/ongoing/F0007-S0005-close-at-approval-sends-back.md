@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 86
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -116,3 +116,4 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
 2. intake: 1. The Interface rule for step 1 of `ClosedHandler.handle` says a `close` entry is added "unless the journal already holds a record of kind `close` numbered after the latest record of kind `result` (any `close` record counts when there is no `result` record)". No criterion tests the side where a `close` is added: a journal that holds an older `close` numbered before the latest `result`, as after an earlier send-back and rework, gets a new `close` entry. Criteria 10 and 20 only cover a `close` after the latest `result` that is not repeated. Without this criterion a coder can skip any earlier `close` and pass every test. I'd add a criterion before the two closing ones: "A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records." Please confirm or reword it.
    2. Optional, not blocking: `any close counts when there is no result` has no case either. I'd fold it into the same criterion as a second case (a `close` and no `result` record: no second `close`). Do you want that?
    The other checks passed. The Interface, the Demo and the other criteria are fine. The scope and architecture match `FEATURE.md`.
+3. human (pull request comment, 2026-10-14): 1: confirmed as you worded it. 2: yes, fold it into the same criterion as a second case. The criterion, before the two closing ones: "A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry." The Interface stays as it is.
