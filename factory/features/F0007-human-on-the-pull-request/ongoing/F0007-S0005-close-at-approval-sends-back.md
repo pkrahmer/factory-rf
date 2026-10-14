@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 86
 blocked: null
 comments_seen: 4
@@ -192,3 +192,21 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: The tester's change from log entry 9 is in and every test passes. I did the refactor pass that was still open and committed it as 40a1916. `make check` is green (coverage 99.25 %).
+
+    What I built (implementation in c985a77, unchanged in this run):
+    - `src/factory/domain/send_back.py`: `reason_given`, `send_back_target` and `send_back_cap`, plus a public helper, `recorded_since_latest_result(document, kind)`. `reason_given` uses the helper for `comment` and the handler uses it for `close`, so both follow the same "after the latest `result`" rule and read only the records, never the text.
+    - `src/factory/domain/post_texts.py`: `CLOSE_ENTRY_TEXT`, `SEND_BACK_QUESTION`, `send_back_entry_text` and `send_back_question`.
+    - `src/factory/application/handlers/closed.py`: `ClosedHandler._send_back` checks the pull request and the send-back target before it records anything, so a missing one raises `CannotHandle("closed", ...)`. Then it runs four steps:
+      1. `_record_close`: copies the unread comments, adds a `close` entry unless one is already recorded since the latest `result`, unsets `handed_over`, and makes the "close recorded" commit only if the document changed.
+      2. Reopens the pull request, then sets it to draft.
+      3. `_record_decision`: adds the `send_back` entry, plus a `question` entry and `blocked="send_back"` when there is a question, and sets `stage`, `round` and `claim=None` directly in the state; the commit is "sent back".
+      4. `set_labels(labels_for(...))`.
+
+    Main design decision: the unread comments go into the "close recorded" commit through `CommentCopier.append`, not through `CommentCopier.copy`, which would make its own push. With one push, a kill cannot leave the comments recorded without the close. I rejected the two-push version for that reason.
+
+    Refactor pass (40a1916): I read the whole diff. The only change was the module docstring of `closed.py`, which read badly ("at it sends it back"). Nothing else needed changing: no duplication or dead code.
+
+    Noticed but not touched: `_state_of` in `closed.py` raises `ValueError` for a document without a state. `target_of` already guarantees a state, so that branch exists only to narrow the type for mypy.
+
+    `make check`: check: green
