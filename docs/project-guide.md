@@ -578,6 +578,19 @@ A handler that answers an act of the human on a pull request first records the a
 - `commit_subject(work_item, text)` gives `work item <id>: <text>`. Nothing parses commit subjects.
 - `WorkItemRecorder(boundaries)` does the git work. `check_out(branch)` resets to `HEAD`, switches to the branch at `origin/<branch>` and resets to it, so whatever a killed handler left (uncommitted changes, untracked files, an unpushed commit) is gone. It does not fetch: the caller must have fetched, as the tick does. `read` and `write` use the work item reader and writer on a path in the checkout. `publish(branch, subject)` commits and pushes, and raises `PushFailed` for any outcome but `pushed`. `record(branch, path, document, subject)` is `write` then `publish`.
 
+### The merge archives the story
+
+`MergedHandler(boundaries)` (`factory.application.handlers.merged`) handles `merged`; it is built but not yet registered (F0007 does that, `NOT_YET_HANDLED` still lists `merged`). It does what the operator guide says under "A merge archives the story", in this order:
+
+1. `target_of(event)`, then `WorkItemRecorder.check_out(MAIN_BRANCH)`: it works on the remote's main, not on the work item's branch.
+2. It reads the story at `snapshot.path` and appends `NewEntry(FACTORY, "done", done_entry_text(bill(records)))`. The records are `cost_reader.read(cost_records_path(path))`; a missing file gives none. `done_entry_text(bill)` is in `factory.domain.post_texts`: `done (pull request merged); cost: ` and `cost_line(bill)`.
+3. It sets `stage` to `DONE_STAGE`, `blocked` and `claim` to `None`. The claim is dropped in the state and not through `ClaimService.release`, which needs an instance name and a pipeline definition the handler does not hold.
+4. `Git.move` of the story to `destination_path(path, "done")`, and of its cost record file when `show_file("HEAD", ...)` finds one. The sidecar's destination is `cost_records_path(<the story's destination>)`, because `folder_of` knows only `.md` work item files.
+5. It writes the document at the new path and publishes on main with `commit_subject(id, "merged, archived")`; a push that is not `pushed` raises `PushFailed`.
+6. Only then `Git.delete_remote_branch(branch)`, which counts a branch already gone as `"pushed"`; any other outcome raises `PushFailed(branch, outcome)` and the archive stays pushed. Then `Git.delete_branch(branch)`.
+
+It posts nothing and does not touch the pull request. `destination_path(path, folder)` (`factory.domain.archive`) returns the same file name in `folder` of the same feature directory, and raises `ValueError` for a path that `folder_of` places in no lifecycle folder; the discard (F0007-S0004) reuses it. Tests: `tests/application/handlers/test_merged.py`, `tests/domain/test_archive.py`, `tests/domain/test_archive_texts.py`.
+
 ### Comments are copied by id
 
 `CommentCopier(boundaries)` (`factory.application.handlers.comments`) copies the human's comments on a pull request into the journal.
