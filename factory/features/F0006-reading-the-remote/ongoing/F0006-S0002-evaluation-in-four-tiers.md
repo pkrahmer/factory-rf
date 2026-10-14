@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 72
 blocked: null
 comments_seen: 2
@@ -118,8 +118,9 @@ Tests: `tests/domain/test_events.py`, `tests/domain/test_evaluation.py` (hand-bu
 22. `Watcher.evaluate` on a clone of an empty bare repository, where `origin/main` does not resolve, raises `GitError`.
 23. `Event` refuses a `work_item` for the kinds `idle` and `acceptance_due`, a missing `work_item` for each of the other eleven kinds, a `feature` for any kind but `acceptance_due` and a missing `feature` for `acceptance_due`, each with `ValidationError`; every accepted pairing builds.
 24. `Event`, `PullRequestObservation` and `EvaluationInput` refuse an unknown key and an assignment to a field; `Event` accepts `kind="idle"` and refuses `kind="other"`, accepts a `remote_state` of 40 lower-case hex characters and refuses 39 characters and 40 with an upper-case letter, all with `ValidationError`.
-25. make check stays green.
-26. docs: `docs/project-guide.md` lists the event kinds, the four tiers in their order and when each event is made, the rule that a waiting work item holds back new work, and that the evaluation validates every stage against the definition before it looks anything up; `docs/operator-guide.md` explains that an `idle` tick can mean a work item waiting for the human or a claim held by another instance.
+25. The `idle` events of tier 2 and tier 3 have `remote_state` equal to `main_commit`; `duplicate`, `crash`, `expired` and `ask` have the `branch_commit` of their snapshot, and `main_commit` when it has none.
+26. make check stays green.
+27. docs: `docs/project-guide.md` lists the event kinds, the four tiers in their order and when each event is made, the rule that a waiting work item holds back new work, and that the evaluation validates every stage against the definition before it looks anything up; `docs/operator-guide.md` explains that an `idle` tick can mean a work item waiting for the human or a claim held by another instance.
 
 ## Demo
 
@@ -156,3 +157,9 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
 
    All other checks pass: the Interface names concrete modules and signatures, the tiers and validation order are covered by criteria 1 to 17 including each failing side, the Demo is runnable with a checkable `Expect:`, and the architecture and scope match `FEATURE.md`.
 3. human (pull request comment, 2026-10-14): (a): add the criterion before the two closing ones, as you worded it: "the `idle` events of tier 2 and tier 3 have `remote_state` equal to `main_commit`; `duplicate`, `crash`, `expired` and `ask` have the `branch_commit` of their snapshot, and `main_commit` when it has none". The Interface sentence stays as it is.
+4. intake: accepted. Carried in from log entry 3 (the human's answer (a) to the question in entry 2): I added new criterion 25, worded as the human gave it, before the two closing ones. The closing ones are now 26 (`make check`) and 27 (`docs:`). I changed nothing else, and the Assignment's meaning is the same.
+   - Interface: it names concrete modules and signatures (`events.py`, `evaluation.py`, `watcher.py`). The rules cover tier order, validation order and the `Event` shape. Every comment-stated behaviour, including `remote_state`, now has a criterion.
+   - Criteria: each is testable by one test function. Each rule has its failing side: duplicate ids (2), no state or unknown stage (3), no pull request (5), lookup failure (6), the factory's own or read comments giving no `comment` (9), `handed_over` equal giving no `hand_over` (11), `question_posted` false cases (13), attempts below the cap (17), and the `Event` pairing and field refusals (23, 24). Origin/main not resolving is covered by 22.
+   - Demo: it is runnable. Its `Expect:` line is checkable: `merged:F0001-S0001 [7]` and `run:F0001-S0002 []`.
+   - Architecture: pure rules and DTOs are in `factory.domain`, and the `Watcher` is in `factory.application` using `Boundaries`. This fits the layer rules.
+   - Scope: the story is within the feature's scope. The `reject` event, the handlers and the dispatcher stay with later stories and features.
