@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 97
 blocked: null
 comments_seen: 0
@@ -191,3 +191,32 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
    - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output (`1 0 True`, `1`, `1 expiry 3`, `True`, and `True False`).
    - Architecture: the texts and the entry text are in `domain`, the handler is in `application`, and the registration is in `entry.wiring`, so the layering holds. The post goes through `StopService`.
    - Scope: inside F0008's scope item "expired lease handled as a crash" and its notes wording. It builds neither the watcher nor the lease functions, and the stall half belongs to F0005-S0004. Decisions 11, 12, 13 and 16 of FEATURE.md are carried out as written.
+3. tester: Tests written from the Interface and the criteria. They use S0001's setup: `factory-1` claims the stage through `tests/crash_support.py::claim`, `factory-2` handles the event, and `clock.advance` runs the lease out.
+   - criterion 1: tests/domain/test_post_texts_notes.py::test_the_expiry_note_below_the_crash_cap_says_retrying
+   - criterion 2: tests/domain/test_post_texts_notes.py::test_the_expiry_note_at_or_past_the_crash_cap_asks_and_does_not_say_retrying (crashes 2 and 3)
+   - criterion 3: tests/domain/test_post_texts_notes.py::test_the_stall_note_says_retrying_only_below_the_attempts_cap (every StallReason × attempts 1/2/3, cap 2)
+   - criterion 4: tests/test_retrying_wording.py::test_no_string_outside_the_post_texts_says_retrying (ast over `source_search.modules()`, skips module, class and function docstrings)
+   - criterion 5: tests/domain/test_recovery_expiry_text.py::test_the_expiry_entry_names_the_stage_the_count_and_the_commit
+   - criterion 6: tests/application/test_recovery_expiry.py::test_an_expired_event_is_handled_only_once_the_lease_has_run_out (59:59 refused, 60:00 handled)
+   - criterion 7: tests/application/test_recovery_expiry.py::test_an_expired_event_on_an_own_claim_or_no_claim_is_refused_and_pushes_nothing (own at 0 and at 60 minutes, no claim)
+   - criterion 8: tests/application/test_recovery_expiry.py::test_an_expiry_counts_one_crash_clears_the_claim_and_charges_no_attempt
+   - criterion 9: tests/application/test_recovery_expiry.py::test_the_journal_ends_with_a_factory_expiry_entry_naming_the_stage_start
+   - criterion 10: tests/application/test_recovery_expiry.py::test_the_checkout_is_discarded_before_the_expiry_is_recorded
+   - criterion 11: tests/application/test_recovery_expiry.py::test_the_expiry_note_is_posted_once_under_the_expiry_entrys_key
+   - criterion 12: tests/application/test_recovery_expiry.py::test_below_the_cap_the_handling_instance_reruns_the_stage_once
+   - criterion 13: tests/application/test_recovery_expiry.py::test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns
+   - criterion 14: tests/application/test_recovery_expiry.py::test_a_failed_note_raises_after_the_expiry_is_pushed_and_nothing_reruns
+   - criterion 15: tests/application/test_recovery_expiry.py::test_without_a_pull_request_the_note_opens_a_draft_whose_number_is_recorded_and_rerun (titled and untitled)
+   - criterion 16: tests/application/test_recovery_expiry.py::test_at_the_cap_without_a_pull_request_both_posts_land_on_one_new_draft. "The number is committed once" is checked as exactly two commits after the stage start: the expiry commit and the commit of the pull request number.
+   - criterion 17: tests/entry/test_wiring_recovery_expired.py::test_expired_shares_the_crash_handler_and_is_no_longer_listed_as_unhandled
+
+   New files: tests/domain/test_post_texts_notes.py, tests/domain/test_recovery_expiry_text.py, tests/test_retrying_wording.py, tests/application/test_recovery_expiry.py, tests/entry/test_wiring_recovery_expired.py.
+
+   One run of `make test`: three collection errors, as intended. `expiry_note` cannot be imported from `factory.domain.post_texts` (this breaks tests/domain/test_post_texts_notes.py and tests/application/test_recovery_expiry.py), and `expiry_entry_text` cannot be imported from `factory.domain.recovery` (tests/domain/test_recovery_expiry_text.py). The wiring test collects and fails, because `expired` is not registered yet.
+
+   The tests for criteria 3 and 4 already describe the current code. For criterion 3 the ticket says so. For criterion 4, today only `post_texts.py` contains the word, so that test is a guard rather than a red test.
+
+   `make lint` is green. The type check was skipped, as this stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
