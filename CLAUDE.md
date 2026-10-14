@@ -47,6 +47,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 ## Checks
 - `make check` must be green before any stage reports done. It runs `make lint` (ruff check and format check, including the docstring rules), `make types` (`mypy --strict` over `src` and `tests`), `make layers` (import-linter), `make sast` (semgrep with the rules in `security/semgrep`, and bandit over `src`), `make secrets` (detect-secrets against `.secrets.baseline`), `make licenses` (pip-licenses against an allow list for the production dependencies) and `make test` (pytest with branch coverage of `src/factory`, at least 90 %).
 - `make lint` and `make test` run those two alone; the pipeline knows only these three targets (`check`, `lint`, `test`).
+- Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends and the stage runs until the command times out.
 - Run Python through `uv run`. All dependencies, runtime and development, are declared and pinned in `pyproject.toml`; the lockfile is `uv.lock`.
 
 ## The human's files
