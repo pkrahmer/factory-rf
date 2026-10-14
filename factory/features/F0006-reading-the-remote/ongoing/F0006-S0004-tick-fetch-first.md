@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 74
 blocked: null
 comments_seen: 4
@@ -190,3 +190,8 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
 7. human (pull request comment, 2026-10-14): 1 (a): record `remote_commit(remote, BRANCH)` right after the first `tick.run()` and compare both assertions against that recorded head, as criterion 9 says.
    2 (a): push a different text without front matter, `"# First story, edited\n"` (the empty-commit trap in `CLAUDE.md`).
    End with `tests` and name exactly these two changes.
+8. coder: the human's answer in log entry 7 asks for two test changes. I do not edit tests, so I am sending the story back to the tester with exactly these changes, both in `tests/application/test_tick.py`:
+   1. `test_a_rejected_push_leaves_no_trace_for_the_next_tick` (criterion 9): record `remote_commit(remote, BRANCH)` right after the first `tick.run()`. Compare both `second.event.remote_state` and `handler.events[1].remote_state` against that recorded head, not against `remote_commit(remote, BRANCH)` read after the second tick.
+   2. `test_an_unreadable_work_item_file_raises_without_a_stop` (criterion 19): pass `"# First story, edited\n"` to `human.push_file(BRANCH, PATH, …)` instead of `BODY`. The text still has no front matter, but it no longer matches what `human.start` already put there, so the commit is not empty.
+
+   The code stays as it is in 447294b (`src/factory/application/tick.py`). Every other part of `make check` was green, and these two tests were the only red ones. I have not done the refactor pass yet. I will do it once these tests are fixed and `make check` is green.
