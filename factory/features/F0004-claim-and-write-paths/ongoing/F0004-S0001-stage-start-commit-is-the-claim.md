@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 48
 blocked: null
 comments_seen: 0
 round: 0
@@ -162,3 +162,9 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.errors.PushFailed`, `factory.application.claims` with `StageStart`, `started_text`, `ClaimService.__init__` and `claim`). Every rule is stated exactly: the instance regex, the order of the preconditions, the claim's fields, the commit subject, the journal text and the push handling. The format check passed.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for its failing side. Instance name: 14. Preconditions (no state, stage mismatch, no role, unknown stage): 12. Wrong checked-out branch: 13. Branch not the item's own, and a file name that is no work item's: 15. Push rejected: 9. Push unreachable: 10. Kill before push: 11. `StageStart` field limits (39 characters, uppercase, unknown field, frozen): 17. Pass sides are covered by 1–8 and 16. Interface behaviours (lease copy, UTC, journal line, the previous claim replaced, the uncommitted opening) map to 2, 1, 6, 8 and 16.
+   - Demo: runnable as written, using only the interface sheet's adapters. Each `Expect:` line gives checkable output: six lines with exact values, including the rejected second instance and the unchanged remote head.
+   - Architecture: `ClaimService` is in `factory.application` and reaches git and the clock only through `Boundaries`. The error is in `factory.domain`. The DTO is frozen Pydantic. No layer violation and no new dependency.
+   - Scope: within the feature's Scope (first bullet) and the FEATURE.md decisions 1–4, 17 and 18. Nothing from "Out of scope" (agent start, status, release, write paths) is touched.
