@@ -1010,6 +1010,33 @@ The stage-start commit does not change `pull_request`: it is `None` for a new wo
 
 Tests: `tests/application/test_stage_launch.py`. `ObservingRuntime` (`tests/observing_runtime.py`) is an `AgentRuntime` that records the remote branch's head, the checkout's `HEAD` and the pull requests in the hosting fake at the moment `run` is called, then delegates to `FakeAgentRuntime`.
 
+## Stalls
+
+A stall is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService.stall` (`factory.application.stalls`) does it; the later stories (the branch, the decision, the form, a red check, a merge conflict) call it with their reason.
+
+### The reasons
+
+`factory.domain.decisions.StallReason` is one of `died`, `time_limit`, `budget`, `no_result`, `decision_not_allowed`, `left_branch`, `form_invalid`, `check_red`, `merge_conflict`. `stall_reason_of(result)` maps the end reason of an `AgentRunResult` to the reason of the same name and `completed` to `None`.
+
+`factory.domain.post_texts.stall_cause(reason, detail="")` gives the reason's sentence, and `<sentence>: <detail>` with a detail. `stall_note(reason, attempts, attempts_cap, *, detail="")` gives `Stalled (attempt <n> of <cap>): <cause>. ` and then `Retrying on the next tick.` when `attempts < attempts_cap`, otherwise `The attempts cap is reached; the factory asks you next.` The word "retry" appears only in the first case.
+
+### `StallService.stall(context, reason, detail="")`
+
+`StallService(boundaries, instance, definition)`. `StallContext` (frozen, no unknown keys) holds `work_item`, `stage`, `branch`, `path`, `stage_start` (a `StageStart`, or `None` when the stage never started, for example a merge conflict at the preparation) and optionally the `document` and `pull_request` the caller already holds. The steps, in this order:
+
+1. With a `stage_start`: when the checkout is not on `context.branch`, what the agent left on the other branch is discarded with `reset_to("HEAD")` (that branch keeps its head) and the branch is checked out at the stage-start commit. Then `UndoService.undo` runs, whatever the reason; its report is `StallResult.undo`. Without a `stage_start` nothing is undone and `undo` is `None`.
+2. The document is `context.document`, else the work item file read from the work tree.
+3. The pull request is `context.pull_request`, else `WorkItemOpening.ensure_pull_request` (an open pull request of the branch, or a new draft).
+4. The new state has `attempts` + 1, the claim released (`ClaimService.release`) and `pull_request` set; `stage`, `blocked`, `round`, `crashes`, `comments_read` and `handed_over` stay. One entry is appended: speaker `factory`, kind `stall`, text `Stage <stage> stalled (attempt <n> of <cap>): <cause>`.
+5. The file is written, everything in the work tree is committed in one commit and pushed. Any push outcome but `pushed` raises `PushFailed`.
+6. After the push, the note is posted with `PostKey(work_item, "stall", <the stall entry's number>)`.
+
+So a stall keeps the writes inside the write paths (the undo reverts the rest) and releases the claim, which keeps a later tick from taking the stalled stage for a crash. The stall adds one commit: above the stage-start commit when the agent committed nothing, above the agent's last commit when it did (those commits stay in the history).
+
+A `HostingServiceError` is not a stall and propagates unchanged: from step 3 before anything is written, committed or pushed, so the remote is unchanged; from step 6 after the push, so the stall commit stays on the remote and no note is posted. `StallResult` (frozen, no unknown keys) holds `reason`, `attempts`, `attempts_cap`, `commit` (the pushed head), `pull_request` (the last three at least 1), `note` (the `PostOutcome`) and `undo`.
+
+Tests: `tests/domain/test_decisions.py`, `tests/domain/test_stall_texts.py`, `tests/application/test_stalls.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
+
 ## Kill points: testing a crash
 
 A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).
