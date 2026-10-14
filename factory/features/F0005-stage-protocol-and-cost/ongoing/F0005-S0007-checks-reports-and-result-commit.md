@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 64
 blocked: null
 comments_seen: 2
@@ -205,3 +205,10 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Noticed but not touched: `claims.py`, `stalls.py` and now `stage.py` each have their own private `_state_of` helper. Merging them into one would reach beyond this story.
 
    `make check`: check: green
+9. reviewer: no findings.
+
+   Read the diff of `src/factory/application/stage.py`, `src/factory/domain/labels.py`, `tests/domain/test_labels.py`, `tests/application/test_stage_finish.py` and `tests/application/test_stage_run.py` against the criteria and the Interface.
+   - Criteria 1 to 23 each have a test that checks what the criterion says. The limits and failing sides are covered: tails of 20 and 10 lines, with make's error line and `line 6` absent. Red check, failing report, rejected push, failed label write, merge conflict and died run are all tested. `StageReport` is tested on both sides of each limit: rule 0/8 against 1–7/None, pull_request 0/1, commit of 39/40 characters, an unknown key, and frozen. The coder's entry 8 reports `make check` green.
+   - `StageFinisher.finish` does the eight steps in the Interface's order. A red check goes through `StallService.stall` with the stage-start commit and the document that already holds the entry and the green-check lines. Only rule 6 resets `crashes`. Labels are written after the push, and `PushFailed` and `HostingServiceError` propagate unchanged. `StageRunner.run` handles the merge-conflict stall without launching the agent and reports every stall with rule `None`.
+   - Layers hold: the application imports only application and domain, and `labels_for` lives in the domain. Commands run only through `ProjectCommands`. No suppression markers, secrets or string-built shell.
+   - Considered and accepted: the red-check stall detail puts the command's name in front of the 15-line tail. It adds information and removes none, and the log (entries 4 and 8) records it as a design decision. The third private `_state_of` copy follows the existing pattern in `claims.py` and `stalls.py`; the coder noted it and left it alone as out of scope.
