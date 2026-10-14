@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 98
 blocked: null
 comments_seen: 2
@@ -262,3 +262,4 @@ Expect: the factory log line on standard output first, time-stamped and ending w
     - The demo does not exercise the refused deletion (8), the done story (13), the tick step (10–12) or the checks that nothing else is touched (9). Those are covered by the tests mapped in entry 3, and the reviewer judged them in entry 9.
 
     Open: nothing.
+12. done (pull request merged); cost: 9 runs, 28.6 min, 74 turns, 213k tokens in (1548k more from cache), 32k out, $2.39
