@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Stages that cannot move are refused at load
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
