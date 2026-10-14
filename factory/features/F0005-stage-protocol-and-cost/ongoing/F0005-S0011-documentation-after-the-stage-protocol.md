@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 70
 blocked: null
 comments_seen: 0
@@ -84,3 +84,21 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
       - Architecture, security, quality: nothing to judge, because no code changed.
       - Ticket hygiene: the log says why there are no tests and no code. The Assignment matches the empty diff.
       - Open: the second demo's pattern `stop of one work item` does not match the heading "Stops of one work item". The intake and the coder both noted this. The other three patterns still print the lines the Expect needs, so it is harmless. Changing it is the human's call.
+6. documenter: documented the stage protocol, the stage-run traces and the stop corrections. `make check` is green.
+
+   Files changed:
+   - `README.md`: the built-parts summary now names the stage protocol (claim to result commit, stalls, v1's decision rules) and the cost records with the bill. It still says nothing starts a stage before F0006.
+   - `docs/operator-guide.md`, opening: names the same built parts and still names `factory-check-story`, `factory-bill` and `factory-guard`.
+   - `docs/operator-guide.md`, new section "What a stage run shows": the draft pull request (title `<id>: <title>`, the work item's text as description, only an open pull request reused), the stage-start commit with the entry `factory: started <stage> as <instance>.` pushed before any agent, the agent's entry with one `` `<command>`: <last line> `` line per green check and report, the single factory commit, and the label `stage:<stage>`. Checked against the project guide's "Opening a work item", "Starting a stage", "Stalls" and "The stage protocol".
+   - `docs/operator-guide.md`, "Stops of one work item": says its rules are those of `StopService.post`, which nothing built calls yet, and that a question is recorded today and posted from F0007. A stall is no longer counted among the stops that get the stop description or are posted on a closed pull request.
+   - `docs/operator-guide.md`, "A stall: the stall note": the first sentence points to the nine causes below it. The cap paragraph says stopping at the cap and the attempts-cap question are not built yet (F0006's evaluation, F0007's question), and keeps what the operator does once they are. A new bullet gives the stall's own pull-request rule: reuse an open pull request, otherwise a new draft with the work item's text.
+   - `docs/operator-guide.md`, "A stall by a red check": the cap bullet got the same "not built yet" note.
+   - `docs/operator-guide.md`, "The factory's own questions": a question is today a journal entry of kind `question` with `blocked` set, and posting it on the pull request arrives with F0007. The quoted texts are unchanged and match `factory.domain.post_texts`.
+
+   Cross-read and found current: `docs/project-guide.md` ("Opening a work item", "Starting a stage", "Stalls", "The stage protocol", the decision rules) and `docs/decisions.md`. Neither contradicts the new text, so I left both alone.
+
+   Not touched: the second demo `grep` pattern `stop of one work item` does not match the heading "Stops of one work item" (already noted by intake and the reviewer). The other patterns still print the needed lines. I did not re-run the demo greps after editing; the changed sections contain `started <stage> as` and `stage:<stage>`.
+
+   No findings for the coder.
+
+   `make check`: check: green
