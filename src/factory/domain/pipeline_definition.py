@@ -1,9 +1,16 @@
 """The pipeline definition: the project's stages, roles, caps and project commands."""
 
 import re
-from typing import Self
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field, PositiveInt, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PositiveInt,
+    StringConstraints,
+    model_validator,
+)
 
 from factory.domain.identifiers import Name
 
@@ -16,13 +23,16 @@ RESERVED_NAMES = ("human", "factory", "question")
 _CONTRACT_FORM = re.compile(r"([0-9]+)\.[0-9]+")
 _FAULT_SEPARATOR = "; "
 
+# A write path holds at least one character that is not whitespace.
+WritePath = Annotated[str, StringConstraints(pattern=r"\S")]
+
 
 class RoleDefinition(BaseModel):
     """What an agent of one role may write and how long its runs may take, in minutes."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
-    write_paths: list[str]
+    write_paths: list[WritePath]
     lease_duration: PositiveInt = 60
     time_limit: PositiveInt = 40
 
@@ -30,7 +40,7 @@ class RoleDefinition(BaseModel):
 class StageDefinition(BaseModel):
     """One stage: who works there, where it may move and what is checked after the agent."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
     role: Name | None = None
     # next[0] is the forward move; the others are moves back.
@@ -44,7 +54,7 @@ class StageDefinition(BaseModel):
 class ProjectCommandDefinition(BaseModel):
     """One project command and the minutes it may run."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
     time_limit: PositiveInt = 10
 
@@ -56,7 +66,7 @@ def _default_project_commands() -> dict[str, ProjectCommandDefinition]:
 class PipelineDefinition(BaseModel):
     """The whole pipeline definition; the order of `stages` is the pipeline's order."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
     contract: str
     stages: dict[Name, StageDefinition]
