@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 64
 blocked: null
 comments_seen: 0
@@ -115,3 +115,44 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Demo: both commands are runnable. Each `Expect:` line can be checked against the output.
    - Architecture: `labels_for` is in the domain; the stage protocol is in the application layer and uses only the boundaries (project commands, hosting service, git). No concrete tool is named.
    - Scope: within the F0005 scope (decision rules, checks and reports, result commit, labels). The hand-over, cost table and draft flag stay with F0007. Nothing in the story is out of scope.
+3. tester: Wrote the red tests for every acceptance criterion. `make lint` is green. `make test` stops at collection with 3 errors: `factory.domain.labels`, `STALL_TAIL_LINES`, `StageReport`, `StageFinisher` and `StageRunner` in `factory.application.stage` don't exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_stage_finish.py::test_a_forward_decision_with_green_checks_moves_the_work_item
+   - criterion 2: tests/application/test_stage_finish.py::test_the_checks_run_in_the_stages_order_each_once
+   - criterion 3: tests/application/test_stage_finish.py::test_the_checks_see_the_work_tree_after_the_undo
+   - criterion 4: tests/application/test_stage_finish.py::test_a_red_check_stalls_the_stage_and_runs_nothing_after_it
+   - criterion 5: tests/application/test_stage_finish.py::test_the_stall_note_of_a_red_check_carries_the_tail_of_its_output (20 lines and 10 lines; checks make's `Error 1` line and that `line 6` is absent)
+   - criterion 6: tests/application/test_stage_finish.py::test_after_a_red_check_the_agents_entry_with_the_green_checks_stays_above_the_stall
+   - criterion 7: tests/application/test_stage_finish.py::test_the_reports_run_in_order_after_the_checks_and_a_failing_one_holds_nothing
+   - criterion 8: tests/application/test_stage_finish.py::test_each_green_check_and_each_report_adds_its_last_line_to_the_entry, ::test_an_entry_of_a_stage_without_checks_or_reports_gains_no_lines (the review stage)
+   - criterion 9: tests/application/test_stage_finish.py::test_a_question_blocks_the_stage_without_running_a_check
+   - criterion 10: tests/application/test_stage_finish.py::test_a_rework_moves_to_the_decisions_stage_without_running_a_check (rule 3: docs → doing; rule 7: doing → tests; both stages have checks)
+   - criterion 11: tests/application/test_stage_finish.py::test_a_forward_decision_with_findings_after_the_run_asks_the_findings_question
+   - criterion 12: tests/application/test_stage_finish.py::test_a_first_stage_that_fixed_the_only_finding_moves_forward
+   - criterion 13: tests/application/test_stage_finish.py::test_a_rework_past_the_cap_blocks_the_stage_with_the_round_cap_question
+   - criterion 14: tests/application/test_stage_finish.py::test_a_move_keeps_the_counters_and_resets_crashes_only_on_a_forward_move (rules 6, 1, 2, 3, 4, 7)
+   - criterion 15: tests/application/test_stage_finish.py::test_the_labels_after_the_push_are_the_new_stages_label, tests/domain/test_labels.py::test_the_labels_are_the_stage_label_of_the_state
+   - criterion 16: tests/application/test_stage_finish.py::test_a_failed_label_write_raises_after_the_result_commit_is_pushed
+   - criterion 17: tests/application/test_stage_finish.py::test_a_rejected_push_of_the_result_raises_before_any_label_is_written
+   - criterion 18: tests/application/test_stage_run.py::test_a_run_adds_exactly_one_commit_of_its_own (move, question and stall from a red check; each with and without an agent commit), ::test_the_result_commit_holds_what_a_check_created_unless_it_is_ignored
+   - criterion 19: tests/application/test_stage_run.py::test_a_branch_that_cannot_take_the_main_branch_stalls_before_the_claim
+   - criterion 20: tests/application/test_stage_run.py::test_a_died_agent_run_ends_in_a_stall_report
+   - criterion 21: tests/application/test_stage_finish.py::test_each_check_and_report_runs_with_its_commands_time_limit
+   - criterion 22: tests/application/test_stage_run.py::test_the_agent_runs_with_exactly_the_environment_given_to_the_runner
+   - criterion 23: tests/application/test_stage_finish.py::test_a_stage_report_accepts_values_its_types_allow, ::test_a_stage_report_refuses_values_its_types_refuse, ::test_a_stage_report_is_frozen
+   - criteria 24 and 25: not tests (make check; documenter).
+
+   Files created: tests/domain/test_labels.py, tests/application/test_stage_finish.py, tests/application/test_stage_run.py.
+
+   Notes for the coder:
+   - The finish tests use their own pipeline definition, derived from the fixture's `PIPELINE_YAML`. It adds the project command `coverage` (time_limit 3) and a matching Makefile target, so two reports can be checked for order. Its `tests` stage has `checks: [lint, check]` and `reports: [test, coverage]`, and `intake` has `checks: [lint]`.
+   - The criterion-18 "file a check created" assertion is made on a forward move only. A question runs no check, and a stall undoes files outside the write paths.
+   - The tests set the work item's state directly to reach rules 3, 4 and 7 and the crashes case: they push the branch file with that state, the same way the after-agent tests do.
+
+   Rejected: a `ProjectCommands` fake for the checks. The criteria call for real make targets, so only criterion 21 wraps `MakeProjectCommands` in a recorder.
+
+   Nothing open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
