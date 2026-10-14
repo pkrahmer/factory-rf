@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 77
 blocked: null
 comments_seen: 2
@@ -113,3 +113,32 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
    - Demo: runnable, and its `Expect:` line is checkable. It prints the sorted keys, the `which` result, `HOME` and `NOT_YET_HANDLED`.
    - Architecture: `RunHandler` is in `application.handlers`, and the wiring is in `entry.wiring`. The layering holds.
    - Scope: inside the feature's "Production wiring" scope, and it touches nothing under "Out of scope".
+5. tester: I wrote red tests for criteria 1–9. Criteria 10 and 11 are for `make check` and the documenter.
+
+   - criterion 1: tests/application/handlers/test_run.py::test_a_run_event_runs_the_stage_with_exactly_the_given_environment
+   - criterion 2: tests/application/handlers/test_run.py::test_an_event_of_another_kind_is_refused_without_an_agent_run (parametrized over `comment` with a work item, and `idle`)
+   - criterion 3: tests/application/handlers/test_run.py::test_a_failure_of_the_stage_propagates
+   - criterion 4: tests/entry/test_wiring_handlers.py::test_build_handlers_registers_exactly_the_idle_and_the_run_handler
+   - criterion 5: tests/entry/test_wiring_handlers.py::test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled
+   - criterion 6: tests/entry/test_wiring_handlers.py::test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home (parametrized guard-present / guard-absent; checks the exact `PATH`, and that `shutil.which` returns the script or `None`)
+   - criterion 7: tests/entry/test_wiring_handlers.py::test_the_production_environment_uses_the_interpreter_directory_and_the_home (sets `HOME` through `monkeypatch`)
+   - criterion 8: tests/entry/test_wiring_handlers.py::test_a_tick_over_the_handler_factory_runs_one_stage
+   - criterion 9: tests/entry/test_wiring_handlers.py::test_an_event_not_yet_handled_is_a_counted_error
+
+   Files created:
+   - tests/application/handlers/__init__.py (empty, like tests/application/__init__.py)
+   - tests/application/handlers/test_run.py
+   - tests/entry/test_wiring_handlers.py
+
+   Test setup:
+   - The run tests start a complete story (every section of the story form) through `human.push_file` and `human.start`, and fill the agent home with `install_agents` for every role of `PIPELINE_YAML`.
+   - They take the `run` event from `Watcher(boundaries, "factory-1").evaluate(definition)`.
+   - They queue one completed `ScriptedRun` with decision `tests`, because the first stage is intake and its next stage is `tests`.
+   - The `comment` event for criterion 2 reuses the watcher's snapshot.
+   - Criterion 9 builds its snapshot by hand with remote state `"a" * 40`.
+   - Criterion 2 checks only that `ValueError` is raised, not its message, because the criteria do not state the message.
+
+   `make test`: both new modules fail at collection, as expected, because `factory.application.handlers.run` and the new names in `factory.entry.wiring` (`NOT_YET_HANDLED`, `agent_environment`, `production_environment`, `build_handlers`, `handler_factory`) do not exist yet. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
