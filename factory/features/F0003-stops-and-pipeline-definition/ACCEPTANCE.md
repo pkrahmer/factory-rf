@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 52
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0003-S0001, F0003-S0002, F0003-S0003, F0003-S0004, F0003-S0005, F0003-S0006, F0003-S0007, F0003-S0008, F0003-S0009, F0003-S0010]
+outcome: accepted
 ---
 # Acceptance of Stops and the pipeline definition
 
@@ -541,3 +542,4 @@ This acceptance is not in the sum.
          6 Decisions: FEATURE.md's 20 are followed. Decision 20, taken by the session for the human, needs confirmation, and merging confirms it. Log decisions: pydantic strict mode plus a pattern rather than custom validators (S0008), `_moving_stages` (S0009), and no tests or code for a docs story (S0010). Open: the operator-readable value messages, the meaning of checks on approval stages, and S0011 dropping ruamel's context line.
          7 Slow checks: none offered.
          8 Cost: 69 runs, 59.9 min, $15.28 ($1.53 per story). S0001 still stands out at 11 runs. S0008 to S0010 are the cheapest ($0.96, $0.76, $0.63) with no rework. The docs-only S0010 spent 4 of its 6 runs confirming there was nothing to do.
+2. done (pull request merged); cost: 2 runs, 12.3 min, 89 turns, 267k tokens in (7035k more from cache), 62k out, $4.78
