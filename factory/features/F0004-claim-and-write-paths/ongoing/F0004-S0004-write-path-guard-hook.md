@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 55
 blocked: null
 comments_seen: 0
@@ -175,3 +175,14 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
       - Security: no new `nosec`, `nosemgrep` or baseline entry. The `# noqa: S603` at `tests/entry/test_guard.py:128` states its reason. The same marker is already used in `tests/entry/test_check_story.py:245` and `tests/test_layers.py:22`, and criterion 15 requires the subprocess.
       - Quality: the docstrings are present and accurate, and the comments explain why. Parsing `--settings` by hand instead of with argparse is justified in the coder's entry: argparse would exit on its own and print its own usage text.
       - Open, not a finding: a `file_path` that resolves to the root itself reaches `refusal(".")`. Intake and the coder both noted this; S0003's `refusal` handles it, and no Interface rule covers it.
+6. documenter: wrote the guard documentation; `make check` is green. I ran no examples, because I added none; the demo blocks are the ticket's.
+   - `docs/project-guide.md`:
+     - New section "The guard command". It covers the command and its registration as `factory.entry.guard:main`, the settings file it reads (and that it reads nothing else), exit 0 and exit 2 with the usage and settings-error cases, real-path judging, and failing open on an unreadable payload.
+     - Replaced the stale "not built yet" sentence in the `claude -p` runtime section with a pointer to the new section.
+     - Replaced "the guard hook normalises the path" in "The write paths" with the real-path rule.
+   - `docs/operator-guide.md`: named `factory-guard` among the commands in the intro. New subsection "`factory-guard` on the agent run's `PATH`": the run's `PATH` must contain it, F0010's preflight will probe it, and nothing probes it until then.
+   - `docs/decisions.md`: new entry (F0004-S0004). The guard reads only the settings file taken at the stage-start commit and keeps v1's fail-open reading of the payload. It records the alternatives rejected.
+   - Cross-read and found current: README.md (it does not mention the commands), the rest of both guides, and the code against the Interface. I found no disagreement, so there are no findings for the coder.
+   - Stale but unrelated, not touched: none seen.
+
+   `make check`: check: green
