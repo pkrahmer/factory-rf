@@ -18,7 +18,7 @@ KEY_NOT_APPLIED = "key not applied by the agent runtime"
 `src/factory/application/pipeline_loading.py` (the loader of F0003-S0006):
 
 - `PipelineLoader.load` calls `boundaries.agent_definitions.read(role)` for every role of the definition, in the order of `roles`, after its other checks pass; an `AgentDefinitionInvalid` it meets is raised to the caller.
-- At `PIPELINE_REF` it first raises `RepositoryStop(scope="repository", reason="agent_definition_invalid", detail="<agent name>: <fault>", at=<now>)` through `StopService.raise_stop`, and a load that succeeds clears the stop `agent_definition_invalid`, exactly as it does for `pipeline_definition_invalid`. A load at any other ref raises the same error and touches no stop.
+- At `PIPELINE_REF` it first raises `RepositoryStop(scope="repository", reason="agent_definition_invalid", detail="<agent name>: <fault>", at=<now>)` through `StopService.raise_stop`, and a load that succeeds clears the stop `agent_definition_invalid`, exactly as it does for `pipeline_definition_invalid`. A definition that passes its own checks clears `pipeline_definition_invalid` at `PIPELINE_REF` before the agent files are read, so a refused agent file leaves only the stop `agent_definition_invalid`. A load at any other ref raises the same error and touches no stop.
 
 `src/factory/application/tick.py`: `Tick._load` turns an `AgentDefinitionInvalid` into the end of the tick, `TickOutcome(stopped="agent_definition_invalid")`, as it does for `PipelineDefinitionInvalid`. The tick raises and clears no stop for it.
 
@@ -30,7 +30,7 @@ Tests: `tests/adapters/test_agent_file_keys.py` (agent files written to `tmp_pat
 
 1. `APPLIED_AGENT_KEYS` is exactly `model`, `tools`, `effort` and `budget_usd`.
 2. An agent file with only applied keys is read: its `model`, `tools`, `effort` and `budget_usd` are those of the file and its `instructions` is the file's body.
-3. An agent file that adds any one of `name`, `description`, `permissionMode`, `hooks`, `background`, `disallowedTools` or `skills` is refused with `AgentDefinitionInvalid` whose `key` is that key, whose `fault` is `key not applied by the agent runtime: <key>` and whose message contains the key (SI4.1: a test per key the runner does not apply; the first six are v1's dead keys).
+3. An agent file that adds any one of `name`, `description`, `permissionMode`, `hooks`, `background`, `disallowedTools` or `skills` is refused with `AgentDefinitionInvalid` whose `name` is the agent, whose `key` is that key, whose `fault` is `key not applied by the agent runtime: <key>` and whose message contains the key (SI4.1: a test per key the runner does not apply; the first six are v1's dead keys).
 4. A key the runner has never heard of (`colour`) and a known key written in another case (`Model`) are refused in the same way (this replaces F0003's test that left `colour` aside).
 5. A file with two unapplied keys, `hooks` listed before `description`, is refused naming `hooks`, the first in the file's order.
 6. A file with `colour` and no `model` is refused for `colour`, not for the missing `model`.
@@ -40,13 +40,14 @@ Tests: `tests/adapters/test_agent_file_keys.py` (agent files written to `tmp_pat
 10. A definition with one role whose agent is not installed and another whose file holds an unapplied key raises `PipelineDefinitionInvalid` naming the missing agent: the other checks come first.
 11. A load of `origin/main` that raises `AgentDefinitionInvalid` leaves exactly one stop in the health status: scope `repository`, reason `agent_definition_invalid`, a detail that is `<agent name>: key not applied by the agent runtime: <key>` (SI4.3).
 12. A load of `origin/main` that succeeds afterwards clears the stop `agent_definition_invalid`.
-13. A load at another ref (a commit id) of a definition with an agent file that holds an unapplied key raises the same error and leaves the health status as it was, with no stop raised and none cleared.
-14. A tick whose pipeline definition names a role with an unapplied key returns `TickOutcome(stopped="agent_definition_invalid")` and the health status holds the stop of criterion 11.
-15. That tick does nothing else: no agent run is requested and no event is dispatched, although a started story is waiting on the remote.
-16. After the agent file is corrected, the next tick returns `stopped=None`, dispatches the `run` event with the outcome `handled`, and the stop `agent_definition_invalid` is gone.
-17. `run_watch` with the same refusal returns 1, writes `factory-watch: agent <name>: key not applied by the agent runtime: <key>` to `err` and nothing to `out`, and leaves the health status as it was.
-18. make check stays green.
-19. docs: `docs/project-guide.md` lists the four keys an agent file may hold (`model`, `tools`, `effort`, `budget_usd`) with what each does and says that any other key is refused at load; `docs/operator-guide.md` describes the stop `agent_definition_invalid` and that the operator fixes the named file in the agent home, and its agent-file section no longer says that other keys are ignored; `docs/decisions.md` rewrites the entry "Agent files: keys beyond the four are not interpreted until F0010" to say that F0010 decided: the four are applied, every other key is refused at load, and the loader raises the stop.
+13. A load of `origin/main` that raised `pipeline_definition_invalid`, followed by a load of a valid definition whose second role's file holds an unapplied key, leaves the stop `agent_definition_invalid` and no stop `pipeline_definition_invalid`.
+14. A load at another ref (a commit id) of a definition with an agent file that holds an unapplied key raises the same error and leaves the health status as it was, with no stop raised and none cleared.
+15. A tick whose pipeline definition names a role with an unapplied key returns `TickOutcome(stopped="agent_definition_invalid")` and the health status holds the stop of criterion 11.
+16. That tick does nothing else: no agent run is requested and no event is dispatched, although a started story is waiting on the remote.
+17. After the agent file is corrected, the next tick returns `stopped=None`, dispatches the `run` event with the outcome `handled`, and the stop `agent_definition_invalid` is gone.
+18. `run_watch` with the same refusal returns 1, writes `factory-watch: agent <name>: key not applied by the agent runtime: <key>` to `err` and nothing to `out`, and leaves the health status as it was.
+19. make check stays green.
+20. docs: `docs/project-guide.md` lists the four keys an agent file may hold (`model`, `tools`, `effort`, `budget_usd`) with what each does and says that any other key is refused at load; `docs/operator-guide.md` describes the stop `agent_definition_invalid` and that the operator fixes the named file in the agent home, and its agent-file section no longer says that other keys are ignored; `docs/decisions.md` rewrites the entry "Agent files: keys beyond the four are not interpreted until F0010" to say that F0010 decided: the four are applied, every other key is refused at load, and the loader raises the stop.
 
 ## Demo
 
