@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 88
 blocked: null
 comments_seen: 2
@@ -134,3 +134,19 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I built `unblock` and `CommentHandler`. All the tests pass and `make check` is green. Commits: 03142bf (feat), dd73dd8 (refactor).
+      - `src/factory/domain/answers.py`: `unblock(state)` clears `blocked`. It sets `attempts` to 0 for `attempts_cap` and `crashes` to 0 for `crash_cap`. It never changes `round`. A state with nothing blocked comes back as it is. Demo 1 prints the six expected lines.
+      - `src/factory/application/handlers/comments.py`: I added `CommentHandler(Handler)` next to `CommentCopier`.
+        - Not blocked: it calls `copy(snapshot, number)` with no `adjust`.
+        - Blocked: it first calls `hosting.list_comments(number)`, then passes `copy` an `adjust` built by `_ending_the_wait(work_item, listed)`.
+        - `adjust` takes the document's latest `question` record and looks for a factory post keyed `PostKey(work_item, kind=document.state.blocked, n=<that number>)`. If the post exists and one of the unread comments has a non-blank body and an id greater than the post's, the state becomes `unblock(state)`. Otherwise the document comes back unchanged.
+        - It catches nothing. With no unread comment, the copier writes nothing.
+      - Main decision: `adjust` reads `blocked` and the question record from the document it is handed (the one freshly read from the branch), not from the event's snapshot. That way the post key matches the document being committed. Rejected: computing the post once in `handle` from the snapshot, which could disagree with the branch if the branch moved in between.
+      - Refactor (dd73dd8):
+        - Moved the answer rule out of a closure inside `handle` into the module-level factory `_ending_the_wait`.
+        - Dropped a docstring on a private function, per CLAUDE.md.
+        - Widened the module docstring to cover answers.
+        - My first refactor commit had a long-line lint error because piping `make check` through `tail` hid the failure. I fixed it and amended that local commit before handing over.
+      - Noticed, not touched: `_state_of` is now defined separately in `comments.py`, `questions.py` and other handlers. Sharing it would be a cross-module clean-up beyond this ticket. The docs criterion (21) is the documenter's.
+
+   `make check`: check: green
