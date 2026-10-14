@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 66
 blocked: null
 comments_seen: 0
@@ -212,3 +212,31 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Stale but unrelated, not touched: nothing seen.
 
    `make check`: check: green
+7. demo: I ran both Demo commands from the repository root, exactly as written. Both met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   Command 1 (the demo records through `cost_table` and `cost_line`), exit 0:
+   ```
+   | stage | runs | min | turns | in | cached | out | USD |
+   | :-- | --: | --: | --: | --: | --: | --: | --: |
+   | tests | 1 | 1.0 | 7 | 62 | 1000 | 300 | 0.35 |
+   | doing | 2 | 2.5 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |
+   | **total** | 3 | 3.5 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |
+   3 runs, 3.5 min, 12 turns, 72 tokens in (1500 more from cache), 400 out, $1.55 + 1 unknown
+   ```
+   Met. There are six lines and each one matches its expected line character for character.
+
+   Against the criteria:
+   - The `died` run counts in runs and in duration: the `doing` row shows 2 runs and 2.5 min (criterion 2).
+   - The unknown cost shows as ` + 1 unknown`, not as zero (criteria 3 and 5).
+   - The rows follow the order in which each stage first appears, and the total row comes last (criteria 4 and 7).
+   - 0.345 rounds half up to 0.35, and 1.545 rounds half up to 1.55 (criterion 6).
+   - The in column is input plus cache_creation: 12 + 50 = 62 and 22 + 50 = 72 (criterion 1).
+
+   Command 2 (`uv run pytest tests/domain/test_bills.py tests/application/test_bill_service.py tests/entry/test_bill.py tests/test_no_journal_reading.py`), exit 0:
+   ```
+   ..................................................                       [100%]
+   50 passed in 3.61s
+   ```
+   Met. The last line reports `passed`, and the output contains neither `failed` nor `error`.
+
+   Not run by me: `make check`. The factory runs it after this stage, and the coder and documenter entries report it green. The `factory-bill` command was not run against a live remote, because the Demo does not ask for it; criteria 15 to 19 are covered by the tests in command 2.
