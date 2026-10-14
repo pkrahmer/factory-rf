@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 85
 blocked: null
 comments_seen: 0
 round: 0
@@ -104,3 +104,16 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `ClosedHandler(Handler)` in `src/factory/application/handlers/closed.py` has a constructor and `handle`. The Git and recorder calls (`check_out`, `move`, `publish`, `delete_remote_branch`, `delete_branch`, `destination_path`, `commit_subject`) are named. The order is stated: the move is pushed first, then the remote branch is deleted, then the local one.
+   - Criteria: each one is testable by one test function. The Interface rules and their failing sides are covered:
+     - A push that is not `pushed` raises `PushFailed`: criterion 10, with the branch kept.
+     - A refused branch deletion raises `PushFailed`: criterion 12, via `receive.denyDeletes`.
+     - A branch that is already gone is not an error: criterion 7.
+     - No hosting-service call: criterion 11.
+     - The kill points: criteria 8 and 9.
+     - The unreachable outcome of `delete_remote_branch` has no criterion of its own. It takes the same path as `rejected`, so I did not make it a question.
+     - The approval-stage close is S0005's and is excluded.
+   - Demo: the Python block is runnable and self-contained. Its `Expect:` line is checkable: the first line is the backlog path, then the human's text, and the last line is `main`.
+   - Architecture: the handler sits in `factory.application` and uses only the Git and recorder boundaries. It makes no hosting call and has no layer violation.
+   - Scope: this is decision 7 of FEATURE.md, the discard in its Scope list. The approval-stage close and the acceptance are excluded. Decision 21, the leftover branch when the human starts the story again, is flagged in FEATURE.md for the human and is not an intake finding.
