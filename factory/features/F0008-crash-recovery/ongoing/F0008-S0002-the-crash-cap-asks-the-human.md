@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 96
 blocked: null
 comments_seen: 0
 round: 0
@@ -169,3 +169,9 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.recovery.at_crash_cap` and `asking_crash_cap`, `factory.domain.post_texts.crash_cap_question`, `RecoveryHandler.handle` steps 3 and 5, `RecoveryHandler.ask_crash_cap`). The question text, the PostKey, the title fallback and the pull-request-number recording are all stated exactly. The test files are named.
+   - Criteria: each is testable by one test function without further decisions. Every rule has its failing side. `at_crash_cap` is tested below and at the cap (1), the ask-versus-rerun table covers both sides (2), and `ask_crash_cap` has `CannotHandle` for the wrong `blocked` (12) and for a missing question record (13). The repeated post is a no-op (9), a failed post is recoverable (8), a missing pull request is covered by opening one (10 and 11), and a title-less body is covered (10). The behaviours stated in the Interface comments (the question text, the keyed post, `unblock` through `CommentHandler`, the boundary-error path) are covered by 6, 7, 14, 15 and 16.
+   - Demo: both commands are runnable. Each `Expect:` line is concrete and checkable: the exact output lines, including the journal number 4 for the question.
+   - Architecture: the pure rules are in `factory.domain`. The handler is in `factory.application` and reaches git and the hosting service only through `Boundaries`, `StopService` and `WorkItemRecorder`. The `ALLOWED["entry_text"]` change is explicit and is the tester's one change in `tests/test_no_journal_reading.py`.
+   - Scope: it is within the feature's Scope (crash cap, the boundary-error path) and touches nothing in "Out of scope". The counter's resets are used, not changed.
