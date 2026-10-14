@@ -129,7 +129,7 @@ What to do:
 
 - Below the attempts cap nothing: the next tick runs the stage again, and the agent sees the journal.
 - At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch. Fix what is wrong (the code, the target, or a tool missing on the machine), then answer on the pull request. Stopping at the cap and asking the attempts-cap question are not built yet (F0006's evaluation, F0007's question); the answer is what the operator does once they are.
-- Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move: a failing report adds no line to the entry and stops nothing.
+- Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move. Every report that ran adds one line `` `<command>`: <last line of its output> `` to the agent's entry, passed or failed; the line has the same form either way, so only its last line shows whether the report passed. A failing report holds nothing and stops nothing.
 
 The result commit of every stage holds the whole work tree. Make sure the project's `.gitignore` covers whatever its checks create (build output, caches, coverage files); otherwise the factory commits it.
 
