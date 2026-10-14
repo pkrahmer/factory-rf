@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 86
 blocked: null
 comments_seen: 4
@@ -239,3 +239,26 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
     I ran no examples; no new runnable examples were written. I found no findings for the coder: the code matches the Interface and the criteria.
 
     `make check`: check: green
+13. demo: Ran the one demo command under `## Demo` from the repository root, exactly as written.
+
+    Command 1 (`uv run python -c "…"`, the send-back domain functions on a four-stage definition), exit 0:
+
+    ```
+    doing 3
+    False
+    True
+    None
+    True
+    True
+    ```
+
+    Met its Expect line: six lines, `doing 3`, `False`, `True`, `None`, `True`, `True`.
+
+    Checked against the acceptance criteria. The output agrees with criteria 1–4, 7 and 8:
+    - `send_back_target` is `doing` and `send_back_cap` is 3, the `round_cap` of `smoke-test`.
+    - `reason_given` is false with no `comment` record, and true with a `comment` after the latest `result`, judged from the records alone because the body has no journal text.
+    - `send_back_question(3, 3, True)` is `None` at the cap.
+    - Without a reason, the question gets the "closed without a comment" prefix.
+    - Past the cap, the question gets the "sent back 4 times, more than 3" prefix.
+
+    The demo contradicts no criterion. The handler-level criteria (9–22) and the docs criterion (24) are outside what this demo runs. Their checks are the tests and the factory's `make check`, which I did not run here. No findings.
