@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 97
 blocked: null
 comments_seen: 0
@@ -242,3 +242,10 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
 5. reviewer: one finding, in group 4 (quality). Groups 1 to 3 pass. Every criterion from 1 to 17 has a test that checks what the criterion says. Both sides of the lease limit are tested (59:59 and 60:00), and both sides of each note cap (1 against 2 and 3). The refused statuses own, own after the lease, no claim and held are each tested. The coder's entry reports `make check` green. The layers hold, the post goes through `StopService`, and the diff adds no markers that silence a check. The diff also contains `CLAUDE.md`, `docs/runs/` and `planning/`; those changes are the human's commit b6af571, so I did not review them.
 
    1. `src/factory/application/recovery.py:43` (`_REQUIRED_STATUS: dict[EventKind, str]`): the values are typed `str`, but they are compared with the `ClaimStatus` that `ClaimService.status` returns. Under `mypy --strict` a mistyped status ("expird") would therefore type-check and make the guard refuse every event. The map is also a second hand-kept copy, reversed, of `_CLAIM_EVENTS` in `src/factory/domain/evaluation.py:46` (own → crash, expired → expired). Fix: derive the required status from the domain's mapping by making it or its inverse public in `factory.domain`, and if that is not possible, at least type the values as `factory.domain.lease.ClaimStatus`.
+6. coder: coder (round 1): Fixed the reviewer's one finding in commit b0bb531. `make check` is green, with coverage at 99.14 %.
+      - `src/factory/domain/evaluation.py`: renamed the private `_CLAIM_EVENTS` to the public `CLAIM_EVENTS` (typed `dict[ClaimStatus, EventKind]`, with a docstring) and added `required_claim_status(kind: EventKind) -> ClaimStatus | None`, the inverse lookup. `claim_event` evaluation uses the renamed map; its behaviour is unchanged.
+      - `src/factory/application/recovery.py`: removed `_REQUIRED_STATUS`. The guard in `_dead_run` now calls `required_claim_status(event.kind)`, so the required status is typed `ClaimStatus` and comes from the domain's one map. A kind the map does not raise (anything other than `crash` or `expired`) still yields None and is refused with `CannotHandle`. Dropped the import of `EventKind`, which is no longer used.
+      - Rejected: only retyping the values of the local map as `ClaimStatus`. That would still keep a second copy of the map by hand, which the finding names.
+      - No tests changed. Nothing else was touched.
+
+   `make check`: check: green
