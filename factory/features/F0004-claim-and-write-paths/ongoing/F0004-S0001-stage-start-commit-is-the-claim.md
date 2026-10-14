@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 48
 blocked: null
 comments_seen: 2
@@ -264,3 +264,19 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
     I noticed nothing else and touched nothing else.
 
     `make check`: check: green
+11. reviewer: reviewer (round 1): no findings.
+
+    - Both findings from entry 9 are fixed in 2c15695. `_lease_duration_of` (`src/factory/application/claims.py:357-363`) first refuses a stage that is not in `self._definition.stages`, then uses `PipelineDefinition.role_of` and refuses a `None` role. Nothing shadows the pipeline definition any more. `claim` narrows the state once (line 328) and passes it to `_check_preconditions` and `_with_claim`, so the check that could never fail is gone.
+    - Precondition order: it matches the Interface. The checks run in this order: no state, stage mismatch, unknown stage or stage without a role, the work item's own branch (including a file name that is no work item's), then the checked-out branch.
+    - Acceptance criteria: I read criteria 1–17 against `tests/application/test_claims.py` again, and each test checks what its criterion says. The Interface states these failing sides, and each one has a test:
+      - the instance regex: four names refused, `factory-1` and `f` accepted
+      - each precondition, with a before-and-after snapshot showing nothing was written
+      - a rejected push and an unreachable remote
+      - an `InjectedKill` at `BEFORE_PUSH`
+      - the `CommitId` limit on both sides: 39 characters and uppercase refused, 40 lowercase accepted
+      - the frozen model and the unknown field
+    - `make check`: the coder's entry 10 reports it green, with 99.72 % coverage.
+    - Architecture: `ClaimService` reaches git, the clock and the writer only through `Boundaries`. `PushFailed` is in `factory.domain.errors` and imports only `factory.domain.git`. No new dependency.
+    - Security: no strings passed to a shell, no suppression markers, no secrets.
+    - Quality: the docstrings are present and say what they should. There is no dead code and no lookup that duplicates `role_of`.
+    - Ticket hygiene: the log records the main decision (the lease comes from the definition given to the constructor) and the rejected alternatives. `Assignment` matches what was built. Criterion 19 still says what the documenter must write.
