@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 53
 blocked: null
 comments_seen: 0
@@ -166,3 +166,12 @@ Expect: one line, `['src/factory/application/claims.py']`.
       - Security: there is no process, string-built command, secret or suppression marker. The `ValueError` message reveals no internals.
       - Quality: names and docstrings are in place for the new module, the three functions and the two methods. `release` uses `model_copy` on the state and the document. The coder's reason for not reusing `_state_of` (its error message is about claiming) holds. There is no dead code.
       - Ticket hygiene: entry 4 names the main decision and what was rejected. `Assignment` matches what was built. Criterion 17 still says what the documenter must write in the operator guide, the project guide and the decision log.
+6. documenter: wrote the documentation criterion 17 asks for. No findings. `make check` is green.
+   - `docs/operator-guide.md`: new section "Claims, leases and the clock". It covers `lease_duration` per role (default 60), that a claim keeps the value it was made with, that an own claim is rerun at once, that another instance's claim is waited for until its lease has run out, and that instances need a synchronised clock.
+   - `docs/project-guide.md`, "The claim service": removed the "not part of this service yet" sentence. Added `status`, the lease clock and `release`. Stated that `ClaimService` is the only module that builds or judges claims, enforced by the search tests in `tests/test_claim_ownership.py`.
+   - `docs/decisions.md`: new entry saying that expiry compares the recorded start time with the checking instance's own clock. It gives the reasons and the rejected alternatives.
+   - Cross-read and found current: README, which does not mention claims. In the operator guide, the lease-versus-`time_limit` rules. In the project guide, the Claim data section, the pipeline definition section and the Boundaries section.
+   - I did not run the new text as examples. The behaviour comes from the ticket's demo, which the coder ran.
+   - Stale but untouched: nothing.
+
+   `make check`: check: green
