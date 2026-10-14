@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 68
 blocked: null
 comments_seen: 0
 round: 0
@@ -123,3 +123,9 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.work_item`: `WorkItemSnapshot`, `StoryFile`; `factory.application.work_items`: `RemoteWorkItems.__init__/list_stories/read`) and the errors raised (`WorkItemFormatError` with `path`, `GitError`). I found nothing left to decide.
+   - Criteria: each is testable by one test function. Every behaviour the Interface comments state has a criterion: order (3, 16), `folder` (6, 15), `branch_commit` None/hex (6, 9, 18), the document source with and without a branch (6, 8, 9, 10). Every rule has its failing side: a missing branch file (12), unreadable branch front matter (13), unreadable main text (14), a non-story file (4), a local-only branch or file (2, 8), ongoing/drafts (17), a bad `branch_commit`, `folder` or `id` (18).
+   - Demo: runnable, and uses the stated API. Its `Expect:` line gives the two exact output lines, which can be checked.
+   - Architecture: the reader is in `factory.application` and uses only the `Git` interface and `WorkItemReader`. The DTOs are frozen Pydantic models in `factory.domain`. No lower layer imports a higher one.
+   - Scope: within F0006 "Reading work items (R18)". The caller's fetch is left to S0004, and nothing in Out of scope is touched.
