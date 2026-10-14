@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 62
 blocked: null
 comments_seen: 2
@@ -228,3 +228,16 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
     `make lint`: lint: green
     `make test`: test: green
+12. coder: Round 1. `make check` is now green, and I did not change any code or test in this round.
+
+    - The reviewer's one finding, the gap in criterion 17, is closed. The human extended the criterion in entry 7, and the tester added the note assertions in entries 9 and 11 to `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls`.
+    - The tester's `assert original.line is not None` fixed the mypy error I reported in entry 10, so `make types` passes.
+    - The current `_new_findings` in `src/factory/application/stage.py` passes the new assertion without a change. It counts the earlier of two equal findings (masked messages) as old, so the stall note names the second block and not the original one.
+
+    The code is still the round-0 commits: 48b1e27 (feat) and beecd7f (refactor). There was nothing new to refactor.
+
+    Still open from entry 4: the uncovered line where `AfterAgent._entry` raises for a stage without a role (line 99), and the `decision is None` guard that exists only for the type checker (line 192). Criterion 23 (docs) is left for the documenter.
+
+    `make check`: check: green (coverage 99.47 %)
+
+    `make check`: check: green
