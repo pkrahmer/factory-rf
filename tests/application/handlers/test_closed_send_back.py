@@ -54,7 +54,7 @@ EARLIER_SEND_BACK = NewEntry(
 )
 CLAIM = Claim(
     instance="laptop",
-    stage="smoke-test",
+    stage="approval",
     started_at=datetime(2026, 10, 12, 11, 0, tzinfo=UTC),
     lease_duration=60,
 )

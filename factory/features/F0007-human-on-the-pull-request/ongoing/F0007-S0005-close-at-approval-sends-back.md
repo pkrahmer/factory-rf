@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 86
 blocked: null
 comments_seen: 4
@@ -188,3 +188,7 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
    Not yet done: the refactor pass. I'll do it with `make check` green, after the test is fixed.
 7. human (pull request comment, 2026-10-14): (a): change that test's `CLAIM` to `stage="approval"`, so the check that `claim` ends up unset stays a real one; the domain validator stays as it is. End with `tests` and name exactly that change.
 8. coder: Back to the tester, following the human's answer in log entry 7 (option (a)). The test change: in `tests/application/handlers/test_closed_send_back.py`, change the module constant `CLAIM` (line 55) from `stage="smoke-test"` to `stage="approval"`. That constant is used only by `test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question` (criterion 11). With the change, the `publish` fixture can build `WorkItemState(stage="approval", claim=CLAIM)` without `_claim_is_for_the_current_stage` refusing it, and the check that `claim` ends up unset is still a real one. The domain validator stays as it is. No code changes in this run. The implementation is still c985a77. The refactor pass is still open and will happen in the next doing run, once `make check` is green.
+9. tester: tester (approved test change): I made the change the human chose in log entry 7 (option (a)), as the coder's entry 8 names it. In `tests/application/handlers/test_closed_send_back.py`, the module constant `CLAIM` now has `stage="approval"` instead of `stage="smoke-test"`. Only `test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question` (criterion 11) uses it. The `publish` fixture can now build `WorkItemState(stage="approval", claim=CLAIM)` without `_claim_is_for_the_current_stage` refusing it, and the test still really checks that `claim` ends up unset. Nothing else changed, and no code was touched. `make test`: test: green (total coverage 99.25%). Still open for the coder: the refactor pass that entry 8 names.
+
+   `make lint`: lint: green
+   `make test`: test: green
