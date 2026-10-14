@@ -6,6 +6,7 @@ from pathlib import PurePosixPath
 from factory.application.files import WorkItemReader
 from factory.application.git import Git
 from factory.domain.errors import WorkItemFormatError
+from factory.domain.git import CommitId
 from factory.domain.identifiers import (
     branch_name,
     feature_of,
@@ -14,12 +15,14 @@ from factory.domain.identifiers import (
     parse_work_item_file_name,
     work_item_order,
 )
+from factory.domain.move_rule import StageChange
 from factory.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, LifecycleFolder, folder_of
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import (
     StoryFile,
     WorkItemDocument,
     WorkItemSnapshot,
+    WorkItemState,
     initial_state,
 )
 
@@ -52,6 +55,39 @@ class RemoteWorkItems:
         """
         first_stage = definition.first_stage()
         return [self._snapshot(story, first_stage) for story in self.list_stories("in-progress")]
+
+    def last_stage_change(self, snapshot: WorkItemSnapshot) -> StageChange | None:
+        """The stage change of the newest commit beyond origin/main that touched the file.
+
+        `None` when there is no such commit, when it is a merge or the branch's opening commit,
+        when the file is missing before or after it, when the earlier text cannot be read, or
+        when the stage stayed the same.
+        """
+        if snapshot.branch_commit is None:
+            return None
+        commits = self._git.log(f"{REMOTE}/{snapshot.branch}", since=_MAIN_REF, path=snapshot.path)
+        if not commits or len(commits[0].parents) != 1:
+            return None
+        commit, parent = commits[0].commit, commits[0].parents[0]
+        # The opening commit's parent is the text the human started on main, not a stage change.
+        if self._git.is_ancestor(parent, _MAIN_REF):
+            return None
+        before = self._state_at(parent, snapshot.path)
+        after = self._state_at(commit, snapshot.path)
+        if before is None or after is None or before.stage == after.stage:
+            return None
+        return StageChange(
+            from_stage=before.stage, to_stage=after.stage, correction=_is_correction(before, after)
+        )
+
+    def _state_at(self, commit: CommitId, path: str) -> WorkItemState | None:
+        text = self._git.show_file(commit, path)
+        if text is None:
+            return None
+        try:
+            return self._reader.parse(text).state
+        except WorkItemFormatError:
+            return None
 
     def _snapshot(self, story: StoryFile, first_stage: str) -> WorkItemSnapshot:
         branch = branch_name(story.id)
@@ -87,6 +123,11 @@ class RemoteWorkItems:
             body=specification.body,
             ignored_keys=specification.ignored_keys,
         )
+
+
+def _is_correction(before: WorkItemState, after: WorkItemState) -> bool:
+    appended = len(after.journal) > len(before.journal)
+    return appended and after.journal[-1].kind == "move_back"
 
 
 def _parsed(parse: Callable[[str], WorkItemDocument], text: str, path: str) -> WorkItemDocument:
