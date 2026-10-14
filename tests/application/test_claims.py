@@ -35,6 +35,11 @@ LEASE_45_YAML = PIPELINE_YAML.replace(
     'intake: {write_paths: ["{work_item}"]}',
     'intake: {write_paths: ["{work_item}"], lease_duration: 45}',
 )
+LEASE_5_YAML = PIPELINE_YAML.replace(
+    'intake: {write_paths: ["{work_item}"]}',
+    'intake: {write_paths: ["{work_item}"], lease_duration: 5, time_limit: 5}',
+)
+OTHER_INSTANCE = "factory-2"
 
 
 def _state(stage: str = STAGE) -> WorkItemState:
@@ -404,3 +409,78 @@ def test_stage_start_commit_is_a_commit_id(clock: ManualClock, commit: str, acce
     else:
         with pytest.raises(ValidationError):
             StageStart(commit=commit, claim=claim)
+
+
+def _service(boundaries: Boundaries, text: str = PIPELINE_YAML) -> ClaimService:
+    return ClaimService(boundaries, INSTANCE, _definition(boundaries, text))
+
+
+def _claimed_state(instance: str, started_at: datetime, lease_duration: int = 60) -> WorkItemState:
+    claim = Claim(
+        instance=instance, stage=STAGE, started_at=started_at, lease_duration=lease_duration
+    )
+    return _state().model_copy(update={"claim": claim})
+
+
+def test_status_follows_the_boundaries_clock(boundaries: Boundaries, clock: ManualClock) -> None:
+    service = _service(boundaries)
+    own = _claimed_state(INSTANCE, clock.now())
+    other = _claimed_state(OTHER_INSTANCE, clock.now())
+
+    assert service.status(_state()) == "none"
+    assert service.status(own) == "own"
+    clock.advance(timedelta(minutes=59))
+    assert service.status(other) == "held"
+    clock.advance(timedelta(minutes=1))
+    assert service.status(other) == "expired"
+    assert service.status(own) == "own"
+
+
+def test_status_judges_by_the_claims_own_lease_duration(
+    boundaries: Boundaries, clock: ManualClock
+) -> None:
+    service = _service(boundaries, LEASE_5_YAML)
+    state = _claimed_state(OTHER_INSTANCE, clock.now(), lease_duration=60)
+    clock.advance(timedelta(minutes=30))
+
+    assert service.status(state) == "held"
+
+
+def test_release_clears_the_claim_and_keeps_everything_else(
+    boundaries: Boundaries, clock: ManualClock
+) -> None:
+    given = _claimed_state(OTHER_INSTANCE, clock.now()).model_copy(
+        update={
+            "round": 1,
+            "attempts": 1,
+            "crashes": 1,
+            "pull_request": 48,
+            "comments_read": [3, 5],
+            "handed_over": "tester",
+        }
+    )
+    document = WorkItemDocument(state=given, body=BODY)
+
+    released = _service(boundaries).release(document)
+
+    assert released.state is not None
+    assert released.state.claim is None
+    assert released.state.journal == given.journal
+    assert released.state.model_copy(update={"claim": given.claim}) == given
+    assert released.body == BODY
+    assert released.ignored_keys == document.ignored_keys
+
+
+def test_release_of_a_document_without_a_claim_returns_an_equal_document(
+    boundaries: Boundaries,
+) -> None:
+    document = WorkItemDocument(state=_state(), body=BODY)
+
+    assert _service(boundaries).release(document) == document
+
+
+def test_release_of_a_document_without_state_raises_value_error(boundaries: Boundaries) -> None:
+    document = WorkItemDocument(state=None, body=BODY)
+
+    with pytest.raises(ValueError, match=r".+"):
+        _service(boundaries).release(document)

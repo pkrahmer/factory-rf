@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 53
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # One service for claim, expiry and recognition
 
 ## Assignment (as of log entry 1)
@@ -97,3 +105,99 @@ Expect: one line, `['src/factory/application/claims.py']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: `factory.domain.lease` (`ClaimStatus`, `lease_age`, `lease_expired`, `claim_status`) and `ClaimService.status` / `release` in `factory.application.claims` have concrete signatures. The rules are stated precisely: the `>=` boundary, a negative age, "own" without consulting `now`, no look at the definition's `lease_duration`, and `ValueError` for a document with no state.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for each side. Passing side: 1, 2, 4, 5, 6, 7, 9, 11. Failing or refused side: 2 (59:59 not expired), 3 (negative age), 7 (held versus expired), 10 (the definition's value is ignored), 12 (no claim), 13 (`state` is `None`). Search tests: 14 and 15. The "variable called `claim_status` is not a finding" clause is covered through 14's finding of exactly the imports and attribute accesses. Criterion 8 covers "reads no clock".
+   - Demo: both blocks are runnable. Every `Expect:` line is checkable against the printed output (six lines; one list).
+   - Architecture: the pure functions sit in `domain`, the service in `application`. `Claim`, `WorkItemState` and `WorkItemDocument` are the existing DTOs. No layer is crossed.
+   - Scope: the story stays inside F0004's scope (lease clock, `status`, `release`, search tests, R20 and R21). It leaves out the watcher and the rerun after a crash, which `FEATURE.md` assigns to F0006 and F0008.
+3. tester: Wrote red tests for every criterion from the Interface and the acceptance criteria. No criterion needed interpreting, so there is no question for the human.
+   - criterion 1: tests/domain/test_lease.py::test_lease_age_is_now_minus_the_start (45 minutes after, 5 minutes before)
+   - criterion 2: tests/domain/test_lease.py::test_lease_expires_when_its_age_reaches_the_lease_duration (59m59s false, 60m true, 60m1s true)
+   - criterion 3: tests/domain/test_lease.py::test_a_negative_age_is_not_expired (lease_duration 1 and 60; age -1s and -5m)
+   - criterion 4: tests/domain/test_lease.py::test_lease_expired_uses_the_claims_own_lease_duration (30 expired, 90 not)
+   - criterion 5: tests/domain/test_lease.py::test_no_claim_has_status_none
+   - criterion 6: tests/domain/test_lease.py::test_an_own_claim_is_own_whatever_its_age (before the start, within the lease, 3 days later)
+   - criterion 7: tests/domain/test_lease.py::test_another_instances_claim_is_held_until_its_lease_has_run_out (59m59s held, 60m and 60m1s expired)
+   - criterion 8: tests/domain/test_lease.py::test_the_lease_module_reads_no_clock. It parses the module's source with ast and refuses any call to a Name or Attribute named now, utcnow, today or time.
+   - criterion 9: tests/application/test_claims.py::test_status_follows_the_boundaries_clock. It covers none, own, held at 59 minutes and expired at 60 minutes, with the `clock` fixture advanced between calls; own is checked again after the advance.
+   - criterion 10: tests/application/test_claims.py::test_status_judges_by_the_claims_own_lease_duration. The definition sets the intake role's lease_duration and time_limit to 5 (new constant LEASE_5_YAML). The claim was made by another instance with 60 minutes and reads held after 30 minutes.
+   - criterion 11: tests/application/test_claims.py::test_release_clears_the_claim_and_keeps_everything_else
+   - criterion 12: tests/application/test_claims.py::test_release_of_a_document_without_a_claim_returns_an_equal_document
+   - criterion 13: tests/application/test_claims.py::test_release_of_a_document_without_state_raises_value_error
+   - criterion 14: tests/test_claim_ownership.py::test_only_the_claim_service_uses_the_lease_functions
+     - The set of modules whose `imported_modules` holds `factory.domain.lease.<name>` must equal exactly {factory.application.claims}, so the test fails when that module imports none of the three.
+     - No other module may have an ast.Attribute with one of the three names whose value is `lease` or the dotted `factory.domain.lease`.
+     - Plain variables or parameters named `claim_status` are not matched.
+   - criterion 15: tests/test_claim_ownership.py::test_only_the_claim_service_constructs_a_claim. It looks for Call nodes whose func is the Name `Claim` or an Attribute `.Claim`; the set of modules that have one must equal {factory.application.claims}. This test already passes against current code, which is correct.
+   - criteria 16 and 17: not test criteria.
+
+   Files:
+   - created tests/domain/test_lease.py and tests/test_claim_ownership.py
+   - extended tests/application/test_claims.py (my own module from S0001): constants LEASE_5_YAML and OTHER_INSTANCE, helpers _service and _claimed_state, and the five tests above.
+
+   Not importable: `factory.domain.lease`. The `make test` run stops at collection of tests/domain/test_lease.py with "ImportError: cannot import name 'lease' from 'factory.domain'". Once that module exists, these are expected to fail until implemented:
+   - the status/release tests, because ClaimService has no `status` or `release` yet
+   - the first search test, because the importer set is empty
+
+   `make lint` is green. I did not run the type check, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented the lease clock and the claim service's `status` and `release` (commit 5125046). `make check` is green, and both demo blocks print the expected output.
+   - `src/factory/domain/lease.py` (new) holds `ClaimStatus`, `lease_age`, `lease_expired` and `claim_status`. They are pure functions: `now` is always passed in, and expiry uses `>=` against the claim's own `lease_duration`. An own claim returns "own" before `now` is looked at.
+   - `src/factory/application/claims.py`:
+     - `ClaimService.status(state)` calls `claim_status` with the service's instance and `boundaries.clock.now()`. It never reads the definition's `lease_duration`.
+     - `ClaimService.release(document)` uses `model_copy` to set `state.claim` to None and leaves everything else as it was. A document without state raises `ValueError`.
+     - The class docstring now says the service claims, judges and releases.
+   - Design decision: `release` does not reuse `_state_of`, because that helper's error message talks about claiming. It checks for missing state inline with its own message instead. I rejected adding a parameter to `_state_of` for the message as more machinery than two lines are worth.
+   - Refactor: I re-read the diff and found nothing to change, so there is no refactor commit.
+   - Noticed, not touched: none.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–15 has a test that checks what the criterion says. `make check` was green after the coder, as the coder's entry 4 reports.
+        - Both sides of the `>=` boundary are tested: 59m59s, 60m and 60m1s, in `tests/domain/test_lease.py` and through `ClaimService.status`.
+        - A negative age is tested with lease durations 1 and 60.
+        - The claim's own `lease_duration` is tested with 30 against 90. `LEASE_5_YAML` replaces the same `intake` line that the passing `LEASE_45_YAML` case already replaces, so criterion 10's test really runs against a definition with 5.
+        - The refused side of `release` is tested: a document whose `state` is `None` raises `ValueError`.
+        - The search tests use `source_search.modules` and `source_search.imported_modules` without changing them. The first search test requires the importer set to equal `{factory.application.claims}`, so it fails when that module imports none of the three functions.
+      - Architecture: `factory.domain.lease` is pure. It imports only `datetime`, `typing` and `factory.domain.work_item`, and it reads no clock. `ClaimService` in `factory.application.claims` takes the clock from `boundaries`. No layer is crossed and no `dict[str, Any]` crosses a boundary.
+      - Security: there is no process, string-built command, secret or suppression marker. The `ValueError` message reveals no internals.
+      - Quality: names and docstrings are in place for the new module, the three functions and the two methods. `release` uses `model_copy` on the state and the document. The coder's reason for not reusing `_state_of` (its error message is about claiming) holds. There is no dead code.
+      - Ticket hygiene: entry 4 names the main decision and what was rejected. `Assignment` matches what was built. Criterion 17 still says what the documenter must write in the operator guide, the project guide and the decision log.
+6. documenter: wrote the documentation criterion 17 asks for. No findings. `make check` is green.
+   - `docs/operator-guide.md`: new section "Claims, leases and the clock". It covers `lease_duration` per role (default 60), that a claim keeps the value it was made with, that an own claim is rerun at once, that another instance's claim is waited for until its lease has run out, and that instances need a synchronised clock.
+   - `docs/project-guide.md`, "The claim service": removed the "not part of this service yet" sentence. Added `status`, the lease clock and `release`. Stated that `ClaimService` is the only module that builds or judges claims, enforced by the search tests in `tests/test_claim_ownership.py`.
+   - `docs/decisions.md`: new entry saying that expiry compares the recorded start time with the checking instance's own clock. It gives the reasons and the rejected alternatives.
+   - Cross-read and found current: README, which does not mention claims. In the operator guide, the lease-versus-`time_limit` rules. In the project guide, the Claim data section, the pipeline definition section and the Boundaries section.
+   - I did not run the new text as examples. The behaviour comes from the ticket's demo, which the coder ran.
+   - Stale but untouched: nothing.
+
+   `make check`: check: green
+7. demo: ran both `## Demo` commands from the repository root, exactly as written. Both met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+   1. The lease clock and claim status, run with `uv run python -`. Exit code 0.
+   ```
+   2700.0
+   own
+   held
+   expired
+   none
+   False
+   ```
+   Met. The output is six lines, in order:
+   - `2700.0` (45 minutes; criterion 1).
+   - `own` for the same instance 30 minutes after the lease ran out (criterion 6).
+   - `held` at 59 minutes (criterion 7).
+   - `expired` at exactly 60 minutes (criteria 2 and 7).
+   - `none` for no claim (criterion 5).
+   - `False` for a `now` before the start (criterion 3).
+
+   2. The ast search for imports of the three lease functions from `factory.domain.lease`. Exit code 0.
+   ```
+   ['src/factory/application/claims.py']
+   ```
+   Met. The output is one line, and `factory.application.claims` is the only importer (criterion 14).
+
+   Cross-check against the criteria: nothing in the output contradicts criteria 1–15. Criterion 16 (`make check`) is the factory's gate after this stage; the coder and the documenter each reported it green. Criterion 17 (the docs) was not exercised by the demo; the documenter's entry 6 covers it.
