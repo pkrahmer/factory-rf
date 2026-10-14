@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 88
 blocked: null
 comments_seen: 2
@@ -150,3 +150,13 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
       - Noticed, not touched: `_state_of` is now defined separately in `comments.py`, `questions.py` and other handlers. Sharing it would be a cross-module clean-up beyond this ticket. The docs criterion (21) is the documenter's.
 
    `make check`: check: green
+7. reviewer: no findings.
+      - Criteria 1-19: each has its own test, and I read each against its criterion. `tests/domain/test_answers.py` compares each whole state with `model_copy`, so "nothing else changes" is proven, not sampled. `tests/application/handlers/test_comment_handler.py` checks the one-commit claims with `_new_commits(...) == 1` and the claims that nothing moved with `remote_commit(...) == snapshot.branch_commit`.
+      - Failing sides of the rules: these all have tests. A work item that is not blocked (9, 10), no new comment (7), comments with the marker only (8), an older comment (13), and the three cases where the question has no post (14: no post, no `question` record, a post keyed to an earlier question). Also a blank body (16), a failing `list_comments` (11) and no pull request (12).
+      - `ERROR_CAP` is tested on both sides. Dispatches 1-2 give `error` and no post; dispatch 3 gives `reported` and one post; dispatch 4 gives `capped`. This holds for `comment` (17) and for `ask` (18). In 18 the failure is a work item at the default `attempts_cap` of 2 with no stall entry. After a restart (19) there are three more calls and still one post.
+      - The coder's entry says `make check` was green.
+      - Architecture: `factory.domain.answers` is pure. `CommentHandler` (in `factory.application`) uses only `Boundaries`, `HostingService` through its interface, and domain code. Nothing is wired here, and no `dict[str, Any]` crosses a function boundary (the `update` dict in `unblock` stays local).
+      - Security: no shell or SQL built from strings, no suppression markers, no secrets. The test hex values are low-entropy.
+      - Quality: `_question_post`, `_answer_after` and `_ending_the_wait` each do one thing. The one comment gives the reason. Public names have docstrings and private ones do not.
+      - Non-issue: `_state_of` was already in `comments.py` before this story, so the duplication the coder noticed is not new.
+      - Ticket: the log names the main decision and what was rejected. The decision is to read `blocked` and the question record from the document freshly read from the branch, not from the snapshot. `Assignment` matches what was built, and criterion 21 still says what the documenter must write.
