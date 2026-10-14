@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 69
 blocked: null
 comments_seen: 0
@@ -155,3 +155,17 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
    - Security: no suppression markers, no shell or SQL strings, no secrets.
    - Quality: the stall docstring and the `stall_note` docstring are updated. The comment on `_text_block` says why the block is fenced. `domain/sections.py` only parses fences and does not build one, so nothing is duplicated.
    - Ticket hygiene: the coder's entry names the main decision and the rejected alternative (labelling in `ensure_pull_request`). `Assignment` matches what was built, and criterion 14 still says what the documenter must write.
+6. documenter: wrote the documentation for the fenced stall note and the stall's stage label. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: "A stall: the stall note" says the stall also writes the `stage:` label, and that a multi-line detail goes in a code block. The failure paragraph covers a failed note (no label) and a failed label write (note posted, label missing). "A stall by a red check" now shows a sample note with its output in a block.
+   - `docs/project-guide.md`, "Stalls": `stall_note`'s block rule (first line in the sentence, the rest fenced, the fence longer than any backtick run of three or more, trailing breaks removed). Step 7 (`set_labels` with `labels_for`) and the `HostingServiceError` paragraph for steps 6 and 7. The two new test files are in the Tests line.
+   - `docs/decisions.md`: new entry on why the output is fenced (GitHub renders Markdown) and why the stall writes the label, with the rejected alternatives.
+
+   Cross-read and found current: the stage-protocol section of the project guide, where the red-check detail is described as the command name plus the last 15 lines. That describes the detail passed to the stall and is still true. The journal entry is unchanged, and the docs say so.
+
+   I did not run the sample note or the demo commands myself. The tests run in `make check` cover the note's layout.
+
+   Nothing stale found that I left untouched, and no findings against the code.
+
+   `make check`: check: green

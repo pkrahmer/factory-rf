@@ -82,7 +82,7 @@ A stop of one work item (a question, a stall, a cap reached) appears as one comm
 
 ## A stall: the stall note
 
-A stall is a stage that ended without a result the factory can keep: the agent run died, ran past its time limit, spent its budget (and the resume too), or gave no valid decision and entry. A stall costs one attempt of the work item and is never a crash. The factory keeps what the agent wrote inside the stage's write paths, undoes the rest, releases the claim and pushes one commit with a `stall` entry in the journal. Only then does it post the stall note on the pull request. The note's key is `<work item>:stall:<n>`, where `n` is the number of the stall entry.
+A stall is a stage that ended without a result the factory can keep: the agent run died, ran past its time limit, spent its budget (and the resume too), or gave no valid decision and entry. A stall costs one attempt of the work item and is never a crash. The factory keeps what the agent wrote inside the stage's write paths, undoes the rest, releases the claim and pushes one commit with a `stall` entry in the journal. Only then does it post the stall note on the pull request and write the pull request's `stage:` label for the stalled stage, so a work item whose first stage stalls has its label too. The note's key is `<work item>:stall:<n>`, where `n` is the number of the stall entry.
 
 The note reads:
 
@@ -91,15 +91,26 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 ```
 
 - `attempt n of m`: `n` is the work item's attempts after this stall; `m` is `attempts_cap` of the pipeline definition.
-- The cause is one sentence. The reasons are: the agent run died without a result; it reached its time limit; it spent its budget, and the resume too; the agent gave no valid decision and entry; the agent's decision is not an allowed one; the agent left the work item's branch; the work item's form broke during the stage; a check is red after the stage; merging the main branch conflicts and the merge was aborted. A detail, such as the output of a red check, follows the sentence after a colon.
+- The cause is one sentence. The reasons are: the agent run died without a result; it reached its time limit; it spent its budget, and the resume too; the agent gave no valid decision and entry; the agent's decision is not an allowed one; the agent left the work item's branch; the work item's form broke during the stage; a check is red after the stage; merging the main branch conflicts and the merge was aborted. A detail, such as the name of a red check, follows the sentence after a colon. A detail of several lines (the output of a red check) puts its first line in the sentence and the other lines in a code block below it; see "A stall by a red check".
 - The note says "Retrying on the next tick." only while `n` is below `m`. Nothing for you to do then; the next tick runs the stage again from what the stall kept.
 - At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. Read the cause and the stall entries in the work item's journal, fix what stops the stage (the agent, the stage's time limit or budget, the pipeline definition, the project's checks, a conflict with `main`), and answer on the pull request. The factory does not run the stage again until you have.
 
-If the hosting service fails while the note is posted, the stall commit is already on the remote and no note is posted. The error is reported, and the work item shows the stall in its file and journal.
+If the hosting service fails while the note is posted, the stall commit is already on the remote, no note is posted and no label is written. If it fails while the label is written, the note is posted and the label is missing. The error is reported, and the work item shows the stall in its file and journal.
 
 ## A stall by a red check
 
-When the agent decides to move forward and the stage has checks, the factory runs them itself, in the order of the pipeline definition, and stops at the first that is red. A check is green only when its make target exits 0. A red check is a stall that costs one attempt; the stage, the round and the crash count stay. On the pull request you see the stall note with the cause `a check is red after the stage` and, after a colon, the check's name and the last 15 lines of its output (all of them when it printed fewer). In the work item's journal the agent's entry comes first, ending with one line per check that was green, and the `factory` stall entry follows.
+When the agent decides to move forward and the stage has checks, the factory runs them itself, in the order of the pipeline definition, and stops at the first that is red. A check is green only when its make target exits 0. A red check is a stall that costs one attempt; the stage, the round and the crash count stay. On the pull request you see the stall note with the cause `a check is red after the stage` and, after a colon, the check's name; below the sentence, in a code block, come the last 15 lines of its output (all of them when it printed fewer). The block keeps GitHub from rendering the output as Markdown. A note looks like this:
+
+````text
+Stalled (attempt 1 of 2): a check is red after the stage: `check`. Retrying on the next tick.
+
+```text
+  File "x.py", line 1, in <module>
+make: *** [Makefile:6: check] Error 1
+```
+````
+
+In the work item's journal the agent's entry comes first, ending with one line per check that was green, and the `factory` stall entry follows.
 
 What to do:
 
