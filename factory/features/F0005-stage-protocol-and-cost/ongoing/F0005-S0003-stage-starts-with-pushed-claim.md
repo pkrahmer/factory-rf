@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 60
 blocked: null
 comments_seen: 0
@@ -201,3 +201,15 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Stale and untouched: nothing seen. The three uncovered defensive branches the coder noted (`stage.py` state-is-None, `task.py` unknown stage, `task.py:120`) are coverage notes, not documentation issues.
 
    `make check`: check: green
+9. demo: ran the one demo command from the repository root. It met its `Expect:` line, and I found nothing.
+
+   Command 1: `uv run pytest tests/application/test_stage_launch.py`
+   ```
+   ....................                                                     [100%]
+   20 passed in 3.31s
+   ```
+   Expect: the last line reports `passed` and the output contains neither `failed` nor `error`. **Met.** The last line is `20 passed`. A case-insensitive grep of the full output for `failed|error` finds 0 matches; the full output is these two lines.
+
+   Criteria check: the 20 cases are the tester's mapping of criteria 1–16, with 6, 13 and 14 parametrised. All of them pass, so the demo contradicts no criterion. Criteria 17 (`make check`) and 18 (docs) are not exercised by this command. The coder's, reviewer's and documenter's entries record `make check` green, and the factory runs the gate itself. The documenter's entry covers criterion 18.
+
+   Open: nothing.
