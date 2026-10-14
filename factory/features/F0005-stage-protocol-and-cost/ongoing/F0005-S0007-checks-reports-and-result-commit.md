@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 64
 blocked: null
 comments_seen: 2
@@ -225,3 +225,21 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
     Stale text seen but not touched: none that is unrelated to this story.
 
     `make check`: check: green
+11. demo: both commands ran from the repository root as written. Both met their `Expect:` lines, and there are no findings.
+
+    1. `uv run python -c "…labels_for(initial_state('tests'))…"`
+    ```
+    ['stage:tests']
+    ```
+    Met: one line, `['stage:tests']`, exit 0.
+
+    2. `uv run pytest tests/domain/test_labels.py tests/application/test_stage_finish.py tests/application/test_stage_run.py`
+    ```
+    .......................................................                  [100%]
+    55 passed in 8.61s
+    ```
+    Met: the last line says `passed`. I ran the command a second time and grepped its whole output for `failed` and `error` (case-insensitive): 0 matches. Exit 0.
+
+    Criteria check: nothing in the demo contradicts any criterion. Command 1 agrees with criterion 15 (`labels_for` returns `["stage:<stage>"]`). Command 2 runs the tests for criteria 1 to 23 (mapped in entry 3), and all of them pass. The demo does not test criteria 24 (`make check`) and 25 (docs). The factory runs `make check` itself, and entries 8 to 10 report it green.
+
+    Nothing open.
