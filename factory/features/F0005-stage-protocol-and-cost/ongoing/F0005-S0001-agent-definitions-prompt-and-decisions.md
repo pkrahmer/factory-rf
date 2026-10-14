@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 58
 blocked: null
 comments_seen: 0
@@ -232,3 +232,30 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
    No findings for the coder.
 
    `make check`: check: green
+7. demo: ran the one command under `## Demo` from the repository root, exactly as written. It exited with code 0. No findings.
+
+   Command 1 (`uv run python -c "…allowed_decisions…compose_prompt…"`), output:
+
+   ```
+   ['review', 'doing', 'question']
+   Work item: factory/features/F0001-demo/in-progress/F0001-S0003-demo.md
+   Id: F0001-S0003
+   Stage: intake
+   Allowed decisions: tests, question
+   Branch: work-item/F0001-S0003
+   Pull request: 7
+   Round: 0
+   Format check found: 1. the criteria are not numbered 2. the Journal section is missing
+   End with your decision and your journal entry; the factory commits, pushes and moves the work item.
+   ```
+
+   Met its `Expect:` line. The output has 10 lines and each one matches the expected text exactly:
+   - line 1 is the list with `question` last;
+   - lines 2–8 are the facts, in order;
+   - line 9 is the numbered `Format check found:` line, with a single space between the items and no final full stop;
+   - line 10 is `END_LINE`.
+
+   Checked against the criteria:
+   - The demo is consistent with criteria 1, 2 (`question` appended after the stage's `next`), 3 (line order), 5 (format of the findings line) and 7 (no `Mode:` line when `test_change_entry` is None).
+   - No criterion is contradicted.
+   - Criteria 8–22 are for `TaskComposer`, `StoryFormChecker` and the model limits. This demo does not exercise them; they are covered by the tests named in entry 3.
