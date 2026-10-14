@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 77
 blocked: null
 comments_seen: 2
@@ -160,3 +160,40 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
    Noticed but not touched: no command-line entry point builds a `Tick` yet. `handler_factory` is used only by the tests until `factory-run` is wired in a later story. The docs criterion (11) is for the documenter.
 
    `make check`: check: green
+7. reviewer: No findings.
+
+   I reviewed `git diff main...HEAD -- . ':!factory'` against the ticket. The changes under `planning/` and `docs/runs/` came from the human's own commit 7cd543e. They are the human's files and not this ticket's work, so I did not review them.
+
+   1. Acceptance criteria:
+      - Criteria 1–9 each have a test named after them that checks what the criterion says:
+        - Criterion 1: the handler gets a mapping and the request's `environment` equals it, so it adds no entry. The branch `origin/work-item/F0001-S0001` exists after the fetch.
+        - Criterion 2: a `comment` event and an `idle` event each raise `ValueError` and leave no request.
+        - Criterion 3: `fail_next("create_pull_request")` makes the handler raise `HostingServiceError`.
+        - Criterion 4: the mapping's keys are `{idle, run}` with the right types.
+        - Criterion 5: `unhandled_kinds` equals `list(NOT_YET_HANDLED)`, the eleven kinds are listed in order, and no kind is both handled and listed.
+        - Criterion 6: `PATH` is checked exactly, with the guard present and absent.
+        - Criterion 7: `HOME` is set through `monkeypatch`.
+        - Criterion 8: a `Tick` over `handler_factory` returns `handled` for the `run` event, with the environment equal.
+        - Criterion 9: dispatching `comment` returns `error`, and the last error is `UnhandledEvent: no handler for event kind comment`.
+      - Every Interface rule has a test for its failing side: the wrong kind (criterion 2), the stage failure that propagates (3), the missing guard (6) and the unhandled kind (9). The partition is covered by criteria 4 and 5.
+      - The coder's entry reports `make check` green.
+   2. Architecture: the layering holds.
+      - `RunHandler` is in `factory.application.handlers.run` and imports only application and domain modules.
+      - The wiring is in `factory.entry.wiring`.
+      - The only `Dispatcher` built in `src` is the one inside `Tick`, which builds it from the handler factory, so no production code hand-writes a mapping.
+   3. Security:
+      - No secrets, no suppression markers and no shell commands built from strings.
+      - The environment is a fixed two-key dict.
+   4. Quality:
+      - The names are clear.
+      - The one comment in `run.py` explains why the `StageReport` is dropped.
+      - The docstrings are present and accurate.
+      - `_SYSTEM_PATH` avoids repeating the `PATH` tail as a magic string.
+      - The `event.work_item is None` guard is needed to narrow the type for mypy, so it is not dead code.
+      - The `STORY` text is copied into both new test modules, the same pattern the existing tests under `tests/application/` already follow.
+   5. Ticket hygiene:
+      - The coder's entry names the main decision (a new `StageRunner` for each `handle`) and what was rejected.
+      - The Assignment matches what was built.
+      - The docs criterion (11) still says what the reader must know.
+
+   Open, carried from the coder's entry: no command-line entry point builds a `Tick` yet. `handler_factory` is used only by the tests until `factory-run` is wired in a later story.
