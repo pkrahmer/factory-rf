@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 80
 blocked: null
 comments_seen: 0
@@ -136,3 +136,4 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
    - I did not run `make check` again here; the factory runs it after this stage. The documenter's entry records it green.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 5.3 min, 38 turns, 91k tokens in (455k more from cache), 11k out, $0.77
