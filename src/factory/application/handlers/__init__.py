@@ -1,1 +1,1 @@
-"""The handlers of the dispatcher, one module per kind of event."""
+"""The handlers of the events of a pull request, among them those of the human's acts on it."""
