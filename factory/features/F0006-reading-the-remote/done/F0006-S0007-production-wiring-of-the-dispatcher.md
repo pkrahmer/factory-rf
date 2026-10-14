@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 77
 blocked: null
 comments_seen: 2
@@ -231,3 +231,4 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
    - Criterion 10 (`make check`) is the factory's gate after this stage.
 
    Open, carried from earlier entries: no command-line entry point builds a `Tick` yet. `handler_factory` is used only by the tests until a later story wires `factory-run`.
+10. done (pull request merged); cost: 7 runs, 7.2 min, 50 turns, 152k tokens in (933k more from cache), 22k out, $1.57
