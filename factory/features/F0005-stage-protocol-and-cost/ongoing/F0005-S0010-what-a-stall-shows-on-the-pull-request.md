@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # What a stall shows on the pull request: the red check's output as a block, and the stage label
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
