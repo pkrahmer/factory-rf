@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
+from factory.application.costs import CostRecorder, CostRun
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
@@ -55,6 +56,7 @@ class LaunchedStage(BaseModel):
     started: StartedStage
     request: AgentRunRequest
     result: AgentRunResult
+    cost: CostRun
 
 
 class StageLauncher:
@@ -69,14 +71,17 @@ class StageLauncher:
     ) -> None:
         """Launch as `instance` under `definition`; agent runs get `environment` unchanged."""
         self._boundaries = boundaries
+        self._definition = definition
         self._claims = ClaimService(boundaries, instance, definition)
         self._opening = WorkItemOpening(boundaries, definition)
         self._composer = TaskComposer(boundaries, definition, environment)
+        self._costs = CostRecorder(boundaries)
 
     def launch(self, prepared: PreparedWorkItem) -> LaunchedStage:
         """Push the claim, then ensure the pull request, compose the request and run the agent.
 
-        Nothing reaches the remote but the claim, and no agent runs before it is pushed.
+        Nothing reaches the remote but the claim, and no agent runs before it is pushed. The
+        run's cost record is begun before it and completed after it, in the work tree only.
         `ValueError` for a conflicted work item or a stage without a role, before anything is
         read or pushed; `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError`
         propagate. A run that ends early is a result, not an error.
@@ -96,8 +101,16 @@ class StageLauncher:
             guard=WritePathService(self._boundaries).at(started.stage_start, started.path),
         )
         request = self._composer.compose(context, agent)
+        begun = self._costs.begin(started, self._role(stage))
         result = self._boundaries.agent_runtime.run(request)
-        return LaunchedStage(started=started, request=request, result=result)
+        cost = self._costs.complete(begun, result)
+        return LaunchedStage(started=started, request=request, result=result, cost=cost)
+
+    def _role(self, stage: str) -> str:
+        role = self._definition.stages[stage].role
+        if role is None:
+            raise ValueError(f"stage {stage} has no role, so no agent runs there")
+        return role
 
     def _launchable_stage(self, prepared: PreparedWorkItem) -> str:
         if prepared.merge_conflict:
@@ -140,6 +153,7 @@ class AgentAftermath(BaseModel):
     entry: NewEntry
     undo: UndoReport
     form_findings: list[FormFinding]
+    cost: CostRun
 
 
 class AfterAgent:
@@ -152,6 +166,7 @@ class AfterAgent:
         self._boundaries = boundaries
         self._definition = definition
         self._stalls = StallService(boundaries, instance, definition)
+        self._costs = CostRecorder(boundaries)
 
     def process(self, launched: LaunchedStage) -> AgentAftermath | StallResult:
         """Test the branch and the result, undo, build the entry and check the form again.
@@ -161,26 +176,28 @@ class AfterAgent:
         """
         started = launched.started
         if self._boundaries.git.status().branch != started.branch:
-            return self._stall(started, "left_branch")
+            return self._stall(launched, "left_branch")
         result = launched.result
         reason = stall_reason_of(result)
         if reason is not None:
-            return self._stall(started, reason, _first_denial(result))
+            return self._stall(launched, reason, _first_denial(result))
         decision = result.decision
         allowed = launched.request.allowed_decisions
         if decision is None or decision not in allowed:
             detail = f"decision '{decision}' is not one of {', '.join(allowed)}"
-            return self._stall(started, "decision_not_allowed", detail)
+            return self._stall(launched, "decision_not_allowed", detail)
         undo = UndoService(self._boundaries).undo(started.stage_start, started.path)
+        # The undo reverts the sidecar like any path outside the write paths.
+        self._costs.write(launched.cost)
         document = self._boundaries.work_item_reader.read(self._boundaries.checkout / started.path)
         entry = self._entry(started, decision, result.entry or "", undo)
         if entry is None:
-            return self._stall(started, "no_result", "the entry is empty")
+            return self._stall(launched, "no_result", "the entry is empty")
         findings = StoryFormChecker(self._boundaries).findings(document)
         new = _new_findings(started.findings, findings)
         if new:
             detail = "; ".join(finding.message for finding in new)
-            return self._stall(started, "form_invalid", detail, append_entry(document, entry))
+            return self._stall(launched, "form_invalid", detail, append_entry(document, entry))
         return AgentAftermath(
             started=started,
             request=launched.request,
@@ -190,6 +207,7 @@ class AfterAgent:
             entry=entry,
             undo=undo,
             form_findings=findings,
+            cost=launched.cost,
         )
 
     def _entry(
@@ -207,11 +225,12 @@ class AfterAgent:
 
     def _stall(
         self,
-        started: StartedStage,
+        launched: LaunchedStage,
         reason: StallReason,
         detail: str = "",
         document: WorkItemDocument | None = None,
     ) -> StallResult:
+        started = launched.started
         context = StallContext(
             work_item=started.work_item,
             stage=started.stage,
@@ -220,6 +239,7 @@ class AfterAgent:
             stage_start=started.stage_start,
             document=document,
             pull_request=started.pull_request,
+            cost=launched.cost,
         )
         return self._stalls.stall(context, reason, detail)
 
@@ -317,6 +337,7 @@ class StageFinisher:
             stage_start=started.stage_start,
             document=document,
             pull_request=started.pull_request,
+            cost=aftermath.cost,
         )
         tail = "\n".join(red.output_tail.splitlines()[-STALL_TAIL_LINES:])
         stall = self._stalls.stall(context, "check_red", f"`{red.command}`\n{tail}")

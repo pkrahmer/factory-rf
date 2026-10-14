@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
+from factory.application.costs import CostRecorder, CostRun
 from factory.application.opening import WorkItemOpening
 from factory.application.undo import UndoReport, UndoService
 from factory.domain.decisions import StallReason
@@ -29,6 +30,7 @@ class StallContext(BaseModel):
     stage_start: StageStart | None
     document: WorkItemDocument | None = None
     pull_request: PullRequestView | None = None
+    cost: CostRun | None = None
 
 
 class StallResult(BaseModel):
@@ -65,6 +67,9 @@ class StallService:
         from the note after the push.
         """
         undo = None if context.stage_start is None else self._undo(context, context.stage_start)
+        if context.cost is not None:
+            # The undo reverts the sidecar like any path outside the write paths.
+            CostRecorder(self._boundaries).write(context.cost)
         document = context.document or self._read(context.path)
         pull_request = context.pull_request or self._opening.ensure_pull_request(
             context.work_item, document
