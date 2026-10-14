@@ -111,7 +111,6 @@ class RecoveryHandler(Handler):
         )
 
     def _note_expiry(self, work_item: WorkItemSnapshot) -> WorkItemSnapshot:
-        """Post the expiry note once and return the work item as last written."""
         document = work_item.document
         state = _state_of(work_item.id, document)
         expiry = last_record(document, speaker=FACTORY, kind="expiry")
