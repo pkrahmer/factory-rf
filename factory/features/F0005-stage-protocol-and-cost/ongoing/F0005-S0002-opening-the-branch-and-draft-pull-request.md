@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 59
 blocked: null
 comments_seen: 0
@@ -122,3 +122,17 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
       - Noticed, not touched: a state that has no `pull_request` and a document without state are handled the same way (fall through to the branch lookup). Docs for criterion 22 are the documenter's.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read each of criteria 1 to 20 against its test in `tests/application/test_opening.py`, and each test checks what its criterion says.
+        - The criterion 15 test sets up two open PRs on the branch, so it can tell the recorded PR apart from the one `find_open_pull_request` returns.
+        - Criterion 16 is parametrised over closed and merged.
+        - The criterion 12 test would see a fetch: `origin/main` would move and the new file would appear in the work tree.
+        - The criterion 17 test checks that no PR was created.
+        - The criterion 20 test uses `setattr` with the field name in a variable and builds the model through a variable typed `type[BaseModel]`.
+        - The failing side of every rule the Interface states has a test: absent file, closed or merged PR, missing title, hosting error, merge conflict, stale local branch, unknown key. The Interface states no numeric limits.
+        - The coder's entry reports `make check` green.
+      - Architecture: `src/factory/application/opening.py` imports only `factory.domain` and `factory.application.boundaries`. It reaches git, the hosting service, the reader and the clock only through `Boundaries`. No `dict[str, Any]`, no command-line tool.
+      - Security: no secrets, no strings built into commands, no suppression markers.
+      - Quality: the module docstring and the public docstrings are present. The two comments in the module say why. Nothing dead or duplicated: the journal-section check uses `sections`/`JOURNAL`, and the body comes from the reader's `parse_specification`.
+        - Judged acceptable: the `ensure_pull_request` docstring says a missing title line raises, but the code only checks the title when it has to create a PR. That matches the Interface, where the title is only defined for the create call.
+      - Ticket hygiene: the log names the main decision (check the recorded PR with `get_pull_request` before the branch lookup) and what was rejected. `Assignment` matches what was built. Criterion 22 still describes what the documenter must write.
