@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 66
 blocked: null
 comments_seen: 0
 round: 0
@@ -139,3 +139,9 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (domain/bills.py, application/costs.py, entry/bill.py, entry/wiring.py). Every stated behaviour has a rule: the sums, the unknown-is-skipped rule, stage grouping, the line and table formats, rounding, the ref choice, and the in_flight and run outputs. The types it imports are named with their modules.
+   - Criteria: each is testable by one test function. The failing sides are covered: a failed run still counts (2), unknown cost, turns and tokens are skipped (3), no id on any ref gives None (10), local unpushed commits and journal text are ignored (11, 12), other branches are ignored (14), a bad id, an unknown id and too many arguments (16), and negative or unknown fields (22). Minor gap, not blocking: the tests for 17 may also cover an in-flight id without a bill being skipped, since the Interface states that rule.
+   - Demo: both commands are runnable. I checked the expected figures by hand: 210 s is 3.5 min, input 22 + cache_creation 50 is 72, and 1.545 rounds half up to 1.55. The `Expect:` lines are checkable against the output.
+   - Architecture: pure sums and formats sit in domain, the service in application behind the Git and CostRecordReader interfaces, and the command and wiring in entry, with `bill.py` importing only from `wiring`. This matches CLAUDE.md.
+   - Scope: the story stays within the feature's Bills scope and touches none of the Out of scope items (the hand-over posting is F0007).
