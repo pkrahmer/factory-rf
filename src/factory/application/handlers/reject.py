@@ -38,10 +38,7 @@ class RejectHandler(Handler):
         document = recorder.read(snapshot.path)
         state = _state_of(document)
         if state.pull_request is not None:
-            # Posted before the record and keyed by the entry to come, so a retry posts no twin.
-            key = PostKey(work_item=snapshot.id, kind="correction", n=str(len(state.journal) + 1))
-            text = correction_note(change.from_stage, change.to_stage)
-            self._boundaries.hosting.post_comment(state.pull_request, text, key)
+            self._post_note(snapshot.id, state, change, state.pull_request)
         moved_back = self._moved_back(document, change)
         text = f"stage {change.to_stage} -> {change.from_stage}, {MOVED_BACK_MARKER}"
         subject = commit_subject(snapshot.id, text)
@@ -59,6 +56,14 @@ class RejectHandler(Handler):
         if change.correction:
             raise CannotHandle(_KIND, f"work item {snapshot.id}'s stage change is a correction")
         return change
+
+    def _post_note(
+        self, work_item: str, state: WorkItemState, change: StageChange, pull_request: int
+    ) -> None:
+        # Posted before the record and keyed by the entry to come, so a retry posts no twin.
+        key = PostKey(work_item=work_item, kind="correction", n=str(len(state.journal) + 1))
+        text = correction_note(change.from_stage, change.to_stage)
+        self._boundaries.hosting.post_comment(pull_request, text, key)
 
     def _moved_back(self, document: WorkItemDocument, change: StageChange) -> WorkItemDocument:
         text = move_back_entry_text(change.from_stage, change.to_stage)
