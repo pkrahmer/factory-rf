@@ -291,7 +291,7 @@ The arguments, in this order (`<session>` is a new `uuid4` per run):
 Files under `state_directory` (created with its parents when missing), written before the call and removed when the run ends, whether by a result, `InjectedKill` or `AgentRuntimeError`:
 
 - `instructions-<session>.md`: the agent's instructions.
-- With a guard only: `guard-<session>.json` (the `GuardSettings` as JSON) and `hooks-<session>.json`, a `PreToolUse` hook on `Edit|Write` whose command is `factory-guard --settings <guard file, shell-quoted>`. The `factory-guard` command itself is not built yet.
+- With a guard only: `guard-<session>.json` (the `GuardSettings` as JSON) and `hooks-<session>.json`, a `PreToolUse` hook on `Edit|Write` whose command is `factory-guard --settings <guard file, shell-quoted>`. The command is described in "The guard command".
 
 Environment: the call gets `request.environment` plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1` and `PYTHONDONTWRITEBYTECODE=1`. Nothing is inherited from the factory's process and no `PATH` is added; `factory-guard` is found only if the request's own `PATH` holds it. The call runs in `request.working_directory`, and `request.os_user` is not used yet.
 
@@ -830,9 +830,35 @@ Errors: `ValueError` when `work_item_path` is not `factory/features/<feature dir
 2. `<path> is owned by the human; a change there is a question.` (matches `guard.protected_paths`, even when a write path also matches)
 3. `<path> is outside the write paths of this stage.` (matches no write path)
 
-The guard hook normalises the path it judges; the undo takes git's paths as they are.
+The guard hook resolves the path it judges to a real path relative to the root (see "The guard command"); the undo takes git's paths as they are.
 
 Tests: `tests/domain/test_write_paths.py`, `tests/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
+
+## The guard command
+
+`factory-guard --settings <file>` refuses an agent's `Edit` or `Write` outside its write paths while the agent runs. `pyproject.toml` registers it as `factory-guard = "factory.entry.guard:main"`; `python -m factory.entry.guard` does the same. `ClaudeCodeRuntime` registers it as a `PreToolUse` hook on `Edit|Write` (see "The `claude -p` runtime").
+
+### What it reads
+
+- The settings file named by `--settings`: the stage's `GuardSettings` as JSON, as `GuardSettings.model_dump_json()` wrote it, with an absolute `root`. The runtime writes it from `WritePathService.at`, that is from the definition at the stage-start commit. The guard reads no other file and takes no write path from the pipeline definition in the work tree, so rewriting that file changes no verdict.
+- The hook payload on standard input: the JSON Claude Code sends. Only `tool_input.file_path` is looked at, whatever the tool.
+
+### Verdict and exit status
+
+`factory.adapters.claude_guard.judge(payload, settings)` returns a `GuardVerdict` (`allowed`, `message`) and never raises; `read_guard_settings(path)` returns the settings or raises `GuardSettingsInvalid(path, fault)`. `factory.entry.guard.main(argv, *, stdin, stderr)` returns the status; `None` means `sys.argv[1:]`, `sys.stdin` and `sys.stderr`, read at the call. The entry module reaches the adapter only through `factory.entry.wiring`.
+
+- Exit 0, nothing written: the call is allowed.
+- Exit 2, the message and a newline on standard error: the call is refused. Claude Code blocks the tool call on status 2 and shows standard error to the agent. Status 2 is also the answer when `--settings` is missing or has no value (`usage: factory-guard --settings <file>`) and when the settings file cannot be read (`guard settings <file>: <fault>`), so a broken setup refuses rather than allows. Nothing is written to standard output, and `main` never ends in an exception.
+
+### Which path is judged
+
+A relative `file_path` is taken relative to `root`. The guard takes `os.path.realpath`, so `..` segments and symbolic links are resolved before the verdict: `src/../pyproject.toml` is judged as `pyproject.toml`, and a link inside `src` to a file outside the checkout is outside. Containment is tested on path parts, not on a string prefix (`<root>-x/a.py` is outside `<root>`). A path outside the real root, or one whose real path cannot be computed (a NUL character), is refused with `<file_path as given> is outside the checkout.`. A path inside goes to `refusal` with its POSIX path relative to the real root; its text is the message.
+
+### Failing open
+
+A payload that is not JSON, not an object, has no `tool_input` object, no `file_path`, or an empty or non-string `file_path` is allowed, as in v1. The guard cannot judge what it cannot read, and a tool without a path (such as `Bash`) is not its concern. The payload is read through a private Pydantic model, so no `Any` is inspected by hand. A `file_path` that resolves to the root itself (`.`) reaches `refusal` with `.`.
+
+Tests: `tests/adapters/test_claude_guard.py`, `tests/entry/test_guard.py` (the second runs the module in a subprocess).
 
 ## The agent definition reader
 

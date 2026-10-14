@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 55
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The write-path guard hook
 
 ## Assignment (as of log entry 1)
@@ -104,3 +112,98 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`GuardSettingsInvalid`, `GuardVerdict`, `read_guard_settings`, `judge`, `main`, the wiring re-export and `__all__`). The payload model, exit statuses, messages and the fail-open rule are fully specified.
+   - Criteria: 20 criteria, each testable by one test function. Every Interface comment and rule has one. Each rule has both sides. Allowed and refused cover inside/outside the root, `..`, symlinks and a relative path. Readable and unreadable payloads are covered (8, 17). A valid settings file (9) and every kind of invalid one (10) are covered. Allowed `main` (11), refused `main` (12) and usage and settings errors (13) are covered. Frozen and `extra="forbid"` are covered (18). Criterion 20 is the docs item and `make check` stays last but one.
+   - Demo: both blocks are runnable. Every `Expect:` line gives checkable output: exit codes, stderr text, and the resolved traversal.
+   - Architecture: the guard sits in `factory.entry` and reaches the adapter only through `wiring`, which matches the existing import test. The verdict reuses the domain's `refusal` from S0003, as decisions 9, 11 and 12 describe.
+   - Scope: inside F0004's scope (the guard hook). Writing the settings file and registering the hook stay with F0001-S0009 and are not touched here.
+   - Minor gap, not blocking: a `file_path` that resolves to the root itself (for example `.`) has no criterion. It falls to S0003's `refusal` for an empty path.
+3. tester: wrote red tests for criteria 1–18, one test function per criterion. Criteria with several cases use parametrize.
+      - criterion 1: tests/adapters/test_claude_guard.py::test_a_path_inside_the_write_paths_is_allowed (Edit and Write)
+      - criterion 2: tests/adapters/test_claude_guard.py::test_a_path_outside_the_write_paths_is_refused
+      - criterion 3: tests/adapters/test_claude_guard.py::test_a_protected_path_is_refused_although_a_write_path_matches
+      - criterion 4: tests/adapters/test_claude_guard.py::test_a_path_outside_the_checkout_is_refused (sibling, `<root>-x/a.py`, `/etc/passwd`)
+      - criterion 5: tests/adapters/test_claude_guard.py::test_parent_segments_are_resolved_before_the_verdict
+      - criterion 6: tests/adapters/test_claude_guard.py::test_a_relative_path_is_taken_relative_to_the_root
+      - criterion 7: tests/adapters/test_claude_guard.py::test_a_link_to_outside_the_checkout_is_refused, ::test_a_link_to_a_protected_path_is_refused, ::test_a_link_to_a_writable_path_is_allowed
+      - criterion 8: tests/adapters/test_claude_guard.py::test_a_payload_the_guard_cannot_read_is_allowed (7 payloads)
+      - criterion 9: tests/adapters/test_claude_guard.py::test_the_settings_file_reads_back_what_model_dump_json_wrote
+      - criterion 10: tests/adapters/test_claude_guard.py::test_an_unreadable_settings_file_is_refused_naming_the_file_and_the_fault (missing, directory, `b"\xff\xfe"`, not JSON, not valid GuardSettings)
+      - criterion 11: tests/entry/test_guard.py::test_an_allowed_payload_returns_0_and_writes_nothing
+      - criterion 12: tests/entry/test_guard.py::test_a_refused_payload_returns_2_and_writes_the_refusal
+      - criterion 13: tests/entry/test_guard.py::test_a_missing_settings_option_returns_2_with_the_usage, ::test_a_missing_or_invalid_settings_file_returns_2_naming_the_file
+      - criterion 14: tests/entry/test_guard.py::test_a_rewritten_definition_in_the_work_tree_changes_no_verdict (shared fixtures, WritePathService.at for stage `tests`, work tree pipeline.yml widened to `*`)
+      - criterion 15: tests/entry/test_guard.py::test_the_module_runs_as_the_guard_command (subprocess `sys.executable -m factory.entry.guard`; carries `# noqa: S603` as tests/entry/test_check_story.py does)
+      - criterion 16: tests/entry/test_guard.py::test_main_without_arguments_reads_the_process_streams
+      - criterion 17: tests/adapters/test_claude_guard.py::test_a_path_with_a_nul_character_is_refused_as_outside_the_checkout, tests/entry/test_guard.py::test_a_path_with_a_nul_character_returns_2
+      - criterion 18: tests/adapters/test_claude_guard.py::test_a_verdict_is_frozen, ::test_a_verdict_forbids_an_unknown_field
+      Files created: tests/adapters/test_claude_guard.py, tests/entry/test_guard.py. `make lint` passes. `make test` stops at collection, as expected: `factory.adapters.claude_guard` and `factory.entry.guard` do not exist yet, and `GuardSettingsInvalid` is not in `factory.domain.errors` yet. No test covers the wiring re-export or `__all__` directly. The existing `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` will hold `guard.py` to importing through `wiring`. The type check was skipped, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the write-path guard; all tests from the tester pass and `make check` is green.
+      - `src/factory/domain/errors.py`: `GuardSettingsInvalid(path, fault)`. Its message is `guard settings <path>: <fault>`.
+      - `src/factory/adapters/claude_guard.py`: `GuardVerdict`, `read_guard_settings` and `judge`.
+        - `read_guard_settings` turns `OSError`, `UnicodeDecodeError` and `ValidationError` into `GuardSettingsInvalid`.
+        - `judge` reads the payload through the private models `_Payload` and `_ToolInput` (`extra="ignore"`, `StrictStr | None`). A payload it cannot read, or an empty `file_path`, is allowed.
+        - It joins `root / file_path`, takes `os.path.realpath` of that path and of the root, and checks containment with `Path.is_relative_to`. A `ValueError` or `OSError` from `realpath` counts as "outside the checkout". A path inside the root goes to the domain's `refusal` with its POSIX path relative to the root.
+      - `src/factory/entry/guard.py`: `main(argv, *, stdin, stderr)`. It returns 0, or 2 with one line on stderr, and never writes to stdout. It has the `__main__` guard.
+      - `src/factory/entry/wiring.py`: re-exports `judge` and `read_guard_settings` with `__all__`. `pyproject.toml` already registered `factory-guard`, so it is unchanged.
+      - Commits: 172ed22 (feat) and c3cb4e9 (refactor).
+      - Refactor: dropped the `json.JSONDecodeError` catch. Pydantic's `model_validate_json` reports malformed JSON as a `ValidationError`, so that catch could never run.
+      - Main decision: `main` reads `--settings` by hand (look up the option, take the next argument) and does not use argparse. Argparse exits on its own and prints its own usage text. That would get in the way of the fixed usage line and of "status 2, never an exception".
+      - Noticed, not touched:
+        - A `file_path` that resolves to the root itself (`.`) reaches `refusal(".")`, as intake noted.
+        - The only uncovered line in `guard.py` is the `__main__` line, because the subprocess test does not count toward coverage.
+        - The second demo block prints the usage line on stderr and `status 2`, as expected.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Criteria 1–18: each has a test that checks what the criterion says. I read the tests against the code; I did not run them. The coder's entry reports that the factory's `make check` was green.
+      - Interface rules, both sides:
+        - Containment is checked with `Path.is_relative_to`, not a string prefix. The `<root>-x/a.py` case tests this.
+        - NUL characters and `OSError` from `os.path.realpath` give "outside the checkout"; criterion 17 covers this.
+        - All seven payloads the guard cannot read fail open (criterion 8).
+        - Every kind of settings failure raises `GuardSettingsInvalid` (criterion 10). A malformed JSON file reaches it as a `ValidationError` from `model_validate_json`.
+        - Both usage cases (no `--settings`, and `--settings` with no value) return 2.
+      - Criterion 14 is a real test: the replacement string matches `tests/git_support.py:26`, so the work-tree definition really widens `tester` to `*`.
+      - Architecture:
+        - `src/factory/entry/guard.py` imports the adapter only through `factory.entry.wiring`, which re-exports it with `__all__`.
+        - `src/factory/adapters/claude_guard.py` reuses the domain's `refusal` and reads the payload through private Pydantic models, so it inspects no `Any` by hand.
+        - `GuardVerdict` is frozen with `extra="forbid"`.
+      - Security: no new `nosec`, `nosemgrep` or baseline entry. The `# noqa: S603` at `tests/entry/test_guard.py:128` states its reason. The same marker is already used in `tests/entry/test_check_story.py:245` and `tests/test_layers.py:22`, and criterion 15 requires the subprocess.
+      - Quality: the docstrings are present and accurate, and the comments explain why. Parsing `--settings` by hand instead of with argparse is justified in the coder's entry: argparse would exit on its own and print its own usage text.
+      - Open, not a finding: a `file_path` that resolves to the root itself reaches `refusal(".")`. Intake and the coder both noted this; S0003's `refusal` handles it, and no Interface rule covers it.
+6. documenter: wrote the guard documentation; `make check` is green. I ran no examples, because I added none; the demo blocks are the ticket's.
+   - `docs/project-guide.md`:
+     - New section "The guard command". It covers the command and its registration as `factory.entry.guard:main`, the settings file it reads (and that it reads nothing else), exit 0 and exit 2 with the usage and settings-error cases, real-path judging, and failing open on an unreadable payload.
+     - Replaced the stale "not built yet" sentence in the `claude -p` runtime section with a pointer to the new section.
+     - Replaced "the guard hook normalises the path" in "The write paths" with the real-path rule.
+   - `docs/operator-guide.md`: named `factory-guard` among the commands in the intro. New subsection "`factory-guard` on the agent run's `PATH`": the run's `PATH` must contain it, F0010's preflight will probe it, and nothing probes it until then.
+   - `docs/decisions.md`: new entry (F0004-S0004). The guard reads only the settings file taken at the stage-start commit and keeps v1's fail-open reading of the payload. It records the alternatives rejected.
+   - Cross-read and found current: README.md (it does not mention the commands), the rest of both guides, and the code against the Interface. I found no disagreement, so there are no findings for the coder.
+   - Stale but unrelated, not touched: none seen.
+
+   `make check`: check: green
+7. demo: ran both demo blocks from the repository root, as written. There are no findings.
+
+   Command 1 (the guard run as `python -m factory.entry.guard --settings <file>` on four Write payloads):
+   ```
+   src/app.py 0 ''
+   docs/a.md 2 'docs/a.md is outside the write paths of this stage.'
+   pyproject.toml 2 'pyproject.toml is owned by the human; a change there is a question.'
+   src/../pyproject.toml 2 'pyproject.toml is owned by the human; a change there is a question.'
+   ```
+   Met its Expect line. All four lines match exactly, and the `..` traversal is resolved before the verdict.
+
+   Command 2 (`echo '{}' | uv run python -m factory.entry.guard; echo "status $?"`):
+   ```
+   usage: factory-guard --settings <file>
+   status 2
+   ```
+   Met its Expect line. I ran it a second time with the two streams sent to separate files to check which stream each line was on. Standard output was empty and standard error held `usage: factory-guard --settings <file>`. So the guard writes nothing to standard output, and the only line on standard output in the original run is the shell's `status 2`.
+
+   Against the criteria: the demo contradicts none of them. It confirms 2 and 3 (the exact refusal messages), 5 (the `..` resolution), 13 (status 2 and the usage line when `--settings` is missing) and 15 (status 0 for an allowed payload, status 2 with the message on standard error and nothing on standard output for a refused one). The demo does not exercise the other criteria; the tests cover them, per the earlier entries.
+
+   Open, not a finding: a `file_path` that resolves to the root itself (`.`) is passed to `refusal(".")`. Intake, the coder and the reviewer already noted this.
