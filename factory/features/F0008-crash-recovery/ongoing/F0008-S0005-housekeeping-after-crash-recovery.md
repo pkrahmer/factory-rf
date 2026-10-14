@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 100
 blocked: null
 comments_seen: 0
@@ -84,3 +84,13 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
    - Demo: the three commands are runnable, and each `Expect:` line is checkable. The grep expects a line without `expired`, and the pytest count is given for root and non-root.
    - Architecture: tests only, plus docs. `src/` is expected to stay unchanged, and the layers are untouched.
    - Scope: this is the housekeeping from F0008's feature acceptance, and decision 20 of `FEATURE.md` covers growing S0004's test modules. Nothing in it is in "Out of scope".
+3. tester: Tests written for criteria 1 to 5. As the Assignment says, the code already behaves as the criteria say, so the new tests pass rather than fail: `make test` ended `test: green` (99.15 % coverage) and `make lint` is green. There are no red tests this time. The coder's job is the docs criterion 7, and it should leave `src/` unchanged.
+   - criterion 1: tests/application/test_stale_branches.py::test_an_id_in_the_backlog_and_done_is_logged_as_done
+   - criterion 2: tests/application/test_stale_branches.py::test_an_unreachable_deletion_is_logged_and_tried_again_on_the_next_call (the remote is moved to `tmp_path / "away.git"` and back; the test checks for one log line after the first call and two after the second, then that the branch is deleted)
+   - criterion 3: tests/application/test_tick_stale_branch.py::test_a_tick_that_ends_at_the_restore_stop_deletes_nothing (skipped as root, the same as test_tick.py's restore test)
+   - criterion 4: tests/application/test_tick_stale_branch.py::test_a_tick_that_ends_at_the_fetch_stop_tries_no_deletion
+   - criterion 5: the existing tests/application/test_tick_stale_branch.py::test_a_tick_that_ends_at_a_repository_stop_deletes_nothing, unchanged
+   Files changed: tests/application/test_stale_branches.py and tests/application/test_tick_stale_branch.py, where I added `import os` and the import of `CHECKOUT` from git_support, plus a private `_log_lines` helper that copies the one in test_stale_branches.py. No existing test function, fixture or helper changed. No module failed to import. Nothing was open to interpretation, so I have no question.
+
+   `make lint`: lint: green
+   `make test`: test: green
