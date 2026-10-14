@@ -144,3 +144,19 @@ def send_back_question(round_number: int, cap: int | None, has_reason: bool) -> 
     if not has_reason:
         return "The pull request was closed without a comment. " + SEND_BACK_QUESTION
     return None
+
+
+MOVED_BACK_MARKER = "moved back"
+
+
+def move_back_entry_text(old: str, new: str) -> str:
+    """The journal text of an illegal stage change from `old` to `new` that was put back."""
+    return f"illegal stage change {old} -> {new}, {MOVED_BACK_MARKER}."
+
+
+def correction_note(old: str, new: str) -> str:
+    """The note posted on the pull request when an illegal stage change was put back."""
+    return (
+        f"The stage was changed from {old} to {new}, which factory/pipeline.yml does not allow;"
+        f" it is back at {old}."
+    )
