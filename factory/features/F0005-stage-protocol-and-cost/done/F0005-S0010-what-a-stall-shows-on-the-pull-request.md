@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 69
 blocked: null
 comments_seen: 0
@@ -197,3 +197,4 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
    Met: the last line says `passed`, and the output has no `failed` and no `error`. The six tests are criteria 7 to 12.
 
    Checked against criteria 1 to 14: nothing in the demo goes against any of them. Criterion 2 (the wording at the cap), criterion 4 (trailing line breaks) and criterion 6 (fence length) are not exercised by the demo. Their tests are listed in the tester's entry, and the reviewer checked them. Criterion 13: the documenter's entry reports `make check` green, and the factory runs it after this stage. Criterion 14 is documented in the documenter's entry. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 7.9 min, 43 turns, 140k tokens in (886k more from cache), 23k out, $1.56
