@@ -23,6 +23,8 @@ class CostRecorder:
 
 Changes to earlier modules, each with its criterion:
 
+The tester of this story adds `cost=` to each test of S0003, S0005 or S0007 that builds `LaunchedStage` or `AgentAftermath` directly, and adds the sidecar's path to each exact comparison of an `UndoReport` there; no other earlier test changes.
+
 ```python
 class LaunchedStage(BaseModel):
     started: StartedStage
@@ -62,7 +64,7 @@ Types: `CostRecord` from `factory.domain.cost_records`, `AgentRunResult` from `f
 - No cost record is committed or pushed before the run: the stage-start commit holds the records of earlier stages only.
 - The sidecar is a file the factory rewrites itself, so S0005 leaves `cost_records_path(started.path)` out of the paths the entry says were undone (S0005 rule 5, FEATURE decision 27): an agent that wrote only inside its write paths gets an entry without the paragraph about undone changes, and the pushed sidecar holds the completed record.
 
-Tests: `tests/application/test_costs.py`; the stage, stall and result paths are driven through `StageRunner` and `StallService` with `FakeAgentRuntime` and an `ObservingRuntime` (`tests/observing_runtime.py`, S0003) that reads the sidecar from the work tree and from `origin/<branch>` when it is called. `CostRun` and the models grown above refuse unknown keys (criterion 15).
+Tests: `tests/application/test_costs.py`; the stage, stall and result paths are driven through `StageRunner` and `StallService` with `FakeAgentRuntime` and a subclass of `ObservingRuntime` (S0003's `tests/observing_runtime.py`, which stays as S0003 wrote it) in this story's own test module, that reads the sidecar from the work tree and from `origin/<branch>` when it is called. `CostRun` and the models grown above refuse unknown keys (criterion 15). Unless a criterion sets form findings, the work items are complete stories (every section of the fixture's form, criteria ending with `make check` … `green` and `docs:`, a smoke-test block followed by `Expect:`).
 
 ## Acceptance criteria
 

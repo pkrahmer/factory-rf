@@ -40,9 +40,9 @@ Tests: `tests/application/test_opening.py`. It uses the `remote`, `checkout`, `h
 
 1. `prepare` for a started work item without a remote branch leaves the checkout on `work-item/<id>` with its head equal to the head of `origin/main`, sets `branch_existed` and `merge_conflict` to `False`, pushes nothing (`origin/work-item/<id>` still does not exist) and leaves the work tree clean.
 2. The new document's state equals `initial_state(first stage)`, where the first stage is the first key of the pipeline definition's `stages`.
-3. A backlog file whose front matter says `stage: doing`, `attempts: 1`, `blocked: question` and carries a `journal` list gives a document whose state is the initial state; the writer's rendering of the document contains none of those values.
+3. A backlog file whose front matter says `stage: doing`, `attempts: 1`, `blocked: question` and carries a `journal` list gives a document whose state is the initial state; the writer's rendering of the document contains neither `stage: doing`, `attempts: 1` nor `blocked: question`, and its journal list holds the one record of entry 1.
 4. The new document's journal has exactly one record, number 1, speaker `human`, kind `created`, and the writer's rendering of the document shows the line `1. 2026-10-12 human: created.` for the fixture clock, under a `## Journal` section that the backlog story already had.
-5. A backlog story without a `## Journal` section (the body `# First story\n`) gets one: the rendering of the new document is the body, a blank line, `## Journal`, a blank line and `1. 2026-10-12 human: created.`, and the text before the section is unchanged.
+5. A backlog story without a `## Journal` section (the body `# First story\n`) gets one: the new document's body is exactly `# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n` (the text, a blank line, `## Journal`, a blank line and the entry).
 6. A backlog story whose `## Journal` section already holds an entry (`1. 2026-10-10 human: created.`) is not refused: `prepare` returns a document whose state has one record, and `check_story_form(document, form, folder="in-progress")` reports `the journal data lists 1 entries but the text shows 2`.
 7. `prepare` raises `WorkItemFormatError` with `path` equal to the given path when the file is absent at `origin/main`.
 8. For a work item with a branch on the remote, `branch_existed` is `True` and the document is read from the branch: a branch whose file says `stage: doing` and `round: 1` gives that state.
@@ -53,8 +53,8 @@ Tests: `tests/application/test_opening.py`. It uses the `remote`, `checkout`, `h
 13. `ensure_pull_request` for a document without a pull request number and a branch without a pull request creates one draft, titled `<id>: <title>`, with the document's body as its description, of the work item's branch; the fake holds exactly one pull request.
 14. `ensure_pull_request` returns the open pull request of the branch when one exists and creates no second one.
 15. `ensure_pull_request` returns the pull request whose number is in `document.state.pull_request` when that one is open, and creates none.
-16. A pull request that the human closed is not reused: with its number in `document.state.pull_request`, `ensure_pull_request` creates a new draft whose number differs.
-17. A document whose body has no title line makes `ensure_pull_request` raise `WorkItemFormatError`, and no pull request is created.
+16. A pull request that the human closed, and one that was merged (`merge_by_human`; parametrised), is not reused: with its number in `document.state.pull_request`, `ensure_pull_request` creates a new draft whose number differs.
+17. A document whose body has no title line makes `ensure_pull_request` raise `WorkItemFormatError` with fault `the work item has no title line`, and no pull request is created.
 18. A `HostingServiceError` raised by the hosting service during `ensure_pull_request` (armed with `fail_next("create_pull_request")`) propagates unchanged.
 19. `ensure_pull_request` changes no file: the work tree is clean and the work item file has the same bytes after the call as before it.
 20. `PreparedWorkItem` is frozen and forbids unknown keys: assigning to `branch` (through `setattr`, the field's name in a variable) and building it with an unknown field both raise `ValidationError`.

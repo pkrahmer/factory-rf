@@ -47,7 +47,7 @@ Tests: `tests/application/test_stage_launch.py`. It uses `ObservingRuntime(Agent
 
 ## Acceptance criteria
 
-1. When the runtime's `run` is called, `origin/<branch>` already holds the stage-start commit: the work item file there has a state whose `claim` names the launching instance and the stage, with `started_at` equal to the fixture clock, and the journal's last record is (`factory`, `started`).
+1. When the runtime's `run` is called, `origin/<branch>` already holds the stage-start commit: the work item file there has a state whose `claim` names the launching instance and the stage, with `started_at` equal to the fixture clock, and the journal's last record is (`factory`, `started`); `StartedStage.document` equals that file as the work item reader parses it.
 2. For a work item that already had a branch, when `origin/main` holds no commit the branch lacks, the stage-start commit is exactly one commit above the previous head of `origin/<branch>`, and `StartedStage.stage_start.commit` equals both `origin/<branch>` and the checkout's `HEAD` at the moment of the run.
 3. For a new work item the stage-start commit is the opening commit: `log("origin/<branch>", since="origin/main")` holds exactly one commit, and the file there has the initial state with the claim, with journal records (1, `human`, `created`) and (2, `factory`, `started`).
 4. When another clone pushes to the work item's branch between `prepare` and `launch`, the claim push is rejected: `launch` raises `PushFailed` with outcome `rejected` and `FakeAgentRuntime.requests()` stays empty.
@@ -60,9 +60,9 @@ Tests: `tests/application/test_stage_launch.py`. It uses `ObservingRuntime(Agent
 11. The request the runtime received equals `LaunchedStage.request`; its `guard` equals `WritePathService.at(stage_start, path)`; its prompt's `Pull request:` line carries the number of the draft.
 12. The request's `environment` equals the mapping given to `StageLauncher` (a `PATH` and a `HOME` in the test), and it holds no other entry.
 13. For a work item at the first stage whose story lacks a required section, the prompt has a `Format check found:` line and `StartedStage.findings` is the same non-empty list; for a complete story the prompt has `Format check: passed` and the list is empty.
-14. `LaunchedStage.result` is the runtime's result unchanged: a scripted result with end reason `died` is returned without an exception.
+14. `LaunchedStage.result` is the runtime's result unchanged: a scripted result with end reason `died`, `time_limit` or `budget` (parametrised) is returned without an exception.
 15. An `AgentRuntimeError` raised by the runtime propagates unchanged, and the stage-start commit stays on `origin/<branch>`.
-16. `StartedStage` and `LaunchedStage` are frozen and forbid unknown keys: assigning to `branch` (through `setattr`, the field's name in a variable) and building each with an unknown field raise `ValidationError`.
+16. `StartedStage` and `LaunchedStage` are frozen and forbid unknown keys: assigning to `branch` of `StartedStage` and to `result` of `LaunchedStage` (through `setattr`, the field's name in a variable) and building each with an unknown field raise `ValidationError`.
 17. make check stays green.
 18. docs: `docs/project-guide.md` states the order of a stage's start (agent definition, form check, claim pushed, pull request, guard, prompt, run) and that no agent run precedes the pushed claim; `docs/decisions.md` records that the pull request number travels with the stage's next commit and that no local run record is kept (the board reads the claim).
 

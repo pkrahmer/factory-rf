@@ -19,7 +19,7 @@ Every stage runs the same steps in the same order around one agent run: open or 
 
 - The hand-over at the approval and the cost table posted there: F0007
 - Reading the pull request's state before the agent run, the merge and close handlers, the recorded questions posted on the pull request: F0007
-- The word "retrying" in the expiry note and the rerun after a crash: F0008 (ST1.4); the crash discard, the crash counter and its reset: F0008
+- The word "retrying" in the expiry note and the rerun after a crash: F0008 (ST1.4); the crash discard and the crash counter's increment: F0008 (its reset on a forward move is S0007's, decision 17)
 - The image recorded in each cost record: F0010 (ST5.4); the content of an agent run's environment (F0006's wiring supplies it, F0010 scrubs it and probes `PATH` and `HOME`) and the second OS user: F0010
 - The acceptance reviewer's facts, the acceptance branch and an acceptance's own cost line: F0009
 - Dispatching the `run` event to the stage runner and the tick: F0006
@@ -57,7 +57,7 @@ Product decisions taken while writing the stories, for the human to review in on
 15. When the factory undid paths, its paragraph `The factory undid changes outside the write paths: <paths>.` is added to the agent's entry. (S0005, story text)
 16. A forward decision while the form has findings after the run becomes a question to the human (rule 1), with the findings in a `factory` entry of kind `question`; the round-cap question (rule 4) is such an entry too. A first stage that fixes every finding and decides forward moves by rule 6. (S0006, S0007, story text)
 17. A forward move (rule 6 with every check green) resets `crashes` to 0 (R23); every other move and every stall leave it as it is. The function `decide` says nothing about `crashes`; the result commit sets it. (S0006, S0007, story text)
-18. A red check is a stall whose note carries the last 15 lines of the check's output, not counting make's own lines (those starting with `make:` or `make[`); a red report holds nothing; a label that cannot be written raises after the result commit is pushed and keeps the commit. (S0007, story text)
+18. A red check is a stall whose note carries the last 15 lines of the check's output as the project command reports it (make's own error line included); a red report holds nothing; a label that cannot be written raises after the result commit is pushed and keeps the commit. (S0007, story text)
 19. Each green check and each report adds a line `` `<command>`: <last line> `` below the agent's entry in the journal. (S0007, story text)
 20. The sidecar file of cost records is rewritten from memory after every undo, because the undo reverts every path outside the write paths and the sidecar is such a path. (S0008, story text)
 21. The cost line reads `<n> runs, <m> min, <t> turns, <i> tokens in (<c> more from cache), <o> out, $<usd>`, with cost rounded half up to two decimals and minutes to one; "in" is new input plus tokens written to the cache; a run whose cost is unknown adds `+ <n> unknown` after the dollars. (S0009, story text)
@@ -71,3 +71,4 @@ Product decisions taken while writing the stories, for the human to review in on
 29. A `HostingServiceError` during a stall propagates: raised while the pull request is ensured, nothing has been written yet; raised while the note is posted, the stall commit is already pushed and stays. (S0004, story text)
 30. The factory adds exactly one commit (the stall or the result commit) above the stage-start commit or, when the agent committed itself, above the agent's last commit; the agent's own commits stay in the history (F0004 decision 15). (S0004, S0007, story text)
 31. The result commit holds everything in the work tree: a file a check creates is committed unless the project's `.gitignore` covers it. The operator guide says so. (S0007, story text)
+32. The stage's next commit holds the completed cost record only; the started record is replaced in place, so GH4.1's "both states in the next commit" means that neither is pushed before it. (S0008, story text)
