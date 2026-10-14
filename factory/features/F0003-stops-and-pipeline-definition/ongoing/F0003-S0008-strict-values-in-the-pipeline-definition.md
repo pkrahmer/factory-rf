@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 49
 blocked: null
 comments_seen: 0
@@ -92,3 +92,19 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
    - Demo: runnable as written. The `Expect:` line is checkable: five lines, no `accepted`.
    - Architecture: the change stays in `factory.domain`, pure Pydantic models, and the reader and loader are only exercised. This fits the layer rules in `CLAUDE.md`.
    - Scope: it is inside F0003's scope (the schema, the validation, and the stop `pipeline_definition_invalid`). The multi-line YAML fault is excluded, as FEATURE.md decision 20 says. It does not touch "Out of scope".
+3. tester: wrote red tests for criteria 1–7. Every case is built from `PIPELINE_YAML` by text replacement, as the Interface asks. No existing test was changed.
+   - criterion 1: tests/adapters/test_pipeline_strict_values.py::test_the_test_pipeline_definition_still_parses
+   - criterion 2 (refused side, 6 paths × `true`, `'30'`, `30.0`): tests/adapters/test_pipeline_strict_values.py::test_an_integer_limit_not_written_as_an_integer_is_refused
+   - criterion 2 (accepted side: 50 for lease_duration, 10 for lint.time_limit, 30 for the rest): tests/adapters/test_pipeline_strict_values.py::test_an_integer_limit_written_as_an_integer_is_accepted
+   - criterion 3: tests/adapters/test_pipeline_strict_values.py::test_an_approval_not_written_as_a_boolean_is_refused (`'yes'`, `'off'`, `1`, `0`), ::test_an_approval_written_as_true_is_accepted, ::test_an_approval_written_as_false_is_accepted (on the stage `doing`)
+   - criterion 4: tests/adapters/test_pipeline_strict_values.py::test_a_blank_write_path_is_refused_at_its_position (`''`, `'  '`), ::test_a_write_path_with_text_is_accepted (`'src/*'`, `'{work_item}'`)
+   - criterion 5: tests/adapters/test_pipeline_strict_values.py::test_a_number_in_a_text_list_is_refused (checks[0] on `doing`, reports[0] on `tests`)
+   - criterion 6: tests/adapters/test_pipeline_strict_values.py::test_a_strict_value_fault_comes_alone_before_a_fault_of_the_rules (`time_limit: true` together with `next: [review, ship]`; the fault starts with `invalid roles.coder.time_limit:` and does not contain `ship`)
+   - criterion 7: tests/application/test_pipeline_loading_strict_values.py::test_a_time_limit_written_as_a_boolean_is_one_reported_stop (uses the fixtures `boundaries`, `agent_home`, `human` and `checkout`, plus `install_agents`)
+
+   Files created: tests/adapters/test_pipeline_strict_values.py and tests/application/test_pipeline_loading_strict_values.py.
+
+   Every module imports, because the reader and the loader already exist. The tests fail on wrong results: lax mode still accepts these values, so no fault is raised where the tests expect one. One `make test` run showed failures in the refused-side tests, for example the blank write path, the fault-order test and the load stop. All accepted-side tests are expected to pass. `make lint` is green. I did not run the type check, as the stage skill says. No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_pipeline_loading_strict_values.py::test_a_time_limit_written_as_a_boolean_is_one_reported_stop
