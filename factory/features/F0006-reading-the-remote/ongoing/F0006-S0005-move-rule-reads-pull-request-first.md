@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 75
 blocked: null
 comments_seen: 2
@@ -250,3 +250,31 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
    Cross-read and found current: README, `docs/decisions.md`, and the project-guide sections *The tick*, *The remote's work items* and *The stage protocol*. I saw nothing stale that is unrelated to this story.
 
    `make check`: check: green
+9. demo: I ran the one command under `## Demo` from the repository root, exactly as it is written. Its output matched the `Expect:` line, and nothing in it contradicts any acceptance criterion. No findings.
+
+   Command 1 (`uv run python -c "…"`: `is_legal_change` on four pairs and on a correction, then `factory_moves`, both for a definition with stages `work`, `approval` and `done`):
+
+   ```
+   work approval True
+   work done False
+   approval done True
+   approval approval True
+   True
+   [('work', 'approval'), ('approval', 'work'), ('approval', 'done')]
+   ```
+
+   It met its `Expect:` line. The output has the six expected lines, in order:
+   - `work approval True`
+   - `work done False`
+   - `approval done True`: the approval stage may move to `done` although its `next` lists only `work`.
+   - `approval approval True`
+   - `True`: a correction is legal.
+   - the `factory_moves` list `[('work', 'approval'), ('approval', 'work'), ('approval', 'done')]`.
+
+   Against the criteria:
+   - The output agrees with criteria 1 and 2: a pair listed in `next` is legal, an unchanged stage is legal, and a skipped stage is not.
+   - It agrees with criterion 4: `done` is legal from an approval stage even when `next` does not list it.
+   - It agrees with criterion 5: a correction is legal.
+   - It agrees with criteria 6 and 7: `factory_moves` lists the `next` pairs in the definition's order, then `(approval, done)` once with no duplicate pair, and every move it lists is legal.
+
+   The demo does not exercise the git and watcher criteria (8–25). They rest on the tests the reviewer checked in log entry 7.
