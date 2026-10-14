@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 101
 blocked: null
 comments_seen: 0
@@ -110,3 +110,13 @@ Expect: two lines, `doing` and then `no state here`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: added `require_state(document, error)` and moved all 17 call sites onto it. `make check` is green and coverage is 99.54 %.
+   - Built: `require_state` is in `src/factory/domain/work_item.py`. It returns `document.state`, or raises the exact instance it was given.
+   - Copies removed: the nine `_state_of` copies are gone from `application/{recovery,claims,stage,stalls}.py` and from `application/handlers/{closed,questions,comments,reject,hand_over}.py`. Each module now has a private `_no_state()` that builds the same exception as before. In `recovery.py` it is `_no_state(work_item)`, because the message includes the id. Each call is now `require_state(doc, _no_state())`.
+   - Inline checks replaced: the eight inline checks in `claims.release`, `handlers/merged._archived`, `adapters/work_item_markdown.render`, `costs.begin`, `handlers/recording.target_of`, `stage._launchable_stage`, `task._round` and `domain/evaluation._validated_state` now pass their exception to `require_state`, either directly or through a local variable named `error`. Exception types and messages are unchanged.
+   - `src/factory/domain/journal.py` keeps its own `_state_of`. A one-line comment above it explains the reason: `work_item` imports `JournalRecord` from that module.
+   - Design decision: I used a small builder function per module for the copies. The alternative was a module-level exception constant, which I rejected because raising one shared instance again and again would pile up its `__traceback__` across raises. The exception is built at each call, before the state check. That is cheap, and the Interface asks for this signature.
+   - Commits: 036c280 is the change. e31c599 is the refactor, which collapses two import lists that ruff had left multi-line after `WorkItemState` was dropped. Apart from that, the refactor pass found nothing to change.
+   - Seen but not touched: `domain/story_form._check_started` also checks `document.state is None`. It returns a finding rather than raising, so it is outside the rule and was left alone. The docs criterion (project-guide) belongs to the documenter.
+
+   `make check`: check: green
