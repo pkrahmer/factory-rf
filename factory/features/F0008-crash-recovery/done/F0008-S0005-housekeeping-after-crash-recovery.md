@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 100
 blocked: null
 comments_seen: 0
@@ -146,3 +146,4 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
    - Criterion 6: the factory runs `make check` itself after this stage. I did not run it here; earlier stages reported it green.
 
    Findings: none.
+8. done (pull request merged); cost: 6 runs, 10.8 min, 31 turns, 150k tokens in (330k more from cache), 11k out, $1.26
