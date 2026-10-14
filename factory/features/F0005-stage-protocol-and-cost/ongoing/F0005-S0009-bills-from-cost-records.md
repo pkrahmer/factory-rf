@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 66
 blocked: null
 comments_seen: 0
@@ -145,3 +145,38 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Demo: both commands are runnable. I checked the expected figures by hand: 210 s is 3.5 min, input 22 + cache_creation 50 is 72, and 1.545 rounds half up to 1.55. The `Expect:` lines are checkable against the output.
    - Architecture: pure sums and formats sit in domain, the service in application behind the Git and CostRecordReader interfaces, and the command and wiring in entry, with `bill.py` importing only from `wiring`. This matches CLAUDE.md.
    - Scope: the story stays within the feature's Bills scope and touches none of the Out of scope items (the hand-over posting is F0007).
+3. tester: wrote red tests for criteria 1–22. `make lint` is green. `make test` stops at collection on purpose because the modules under test don't exist yet.
+   - criterion 1: tests/domain/test_bills.py::test_the_bill_of_the_demo_records_sums_every_known_value, ::test_the_bill_of_no_records_is_all_zero
+   - criterion 2: tests/domain/test_bills.py::test_a_failed_run_counts_in_runs_and_duration (parametrised over died, time_limit, budget)
+   - criterion 3: tests/domain/test_bills.py::test_an_unknown_cost_turns_or_tokens_is_skipped_never_zero
+   - criterion 4: tests/domain/test_bills.py::test_bills_by_stage_groups_in_first_order_and_a_returning_stage_joins_its_first_group
+   - criterion 5: tests/domain/test_bills.py::test_the_cost_line_of_the_demo_bill
+   - criterion 6: tests/domain/test_bills.py::test_minutes_and_dollars_round_half_up (0.125 → $0.13, 3 s → 0.1 min; half-even would give $0.12 and 0.0)
+   - criterion 7: tests/domain/test_bills.py::test_the_cost_table_of_the_demo_stage_bills
+   - criterion 8: tests/application/test_bill_service.py::test_a_work_item_with_a_branch_is_billed_from_the_branch (main holds a 1-record sidecar, the branch a 2-record one)
+   - criterion 9: tests/application/test_bill_service.py::test_an_archived_work_item_is_billed_from_its_sidecar_on_main
+   - criterion 10: tests/application/test_bill_service.py::test_an_id_without_a_file_has_no_bill, ::test_a_work_item_without_a_sidecar_has_an_empty_bill
+   - criterion 11: tests/application/test_bill_service.py::test_the_cost_line_in_the_journal_has_no_influence
+   - criterion 12: tests/application/test_bill_service.py::test_a_local_commit_that_was_not_pushed_has_no_influence
+   - criterion 13: tests/application/test_bill_service.py::test_a_fresh_clone_gives_the_same_bill
+   - criterion 14: tests/application/test_bill_service.py::test_in_flight_lists_the_work_item_branches_in_work_item_order (ignores `feature/notes` and `work-item/notes`)
+   - criterion 15: tests/entry/test_bill.py::test_one_id_prints_the_table_and_the_cost_line
+   - criterion 16: tests/entry/test_bill.py::test_a_wrong_argument_prints_why_and_returns_its_status (parametrised: no bill, `F1`, two arguments)
+   - criterion 17: tests/entry/test_bill.py::test_no_argument_prints_every_in_flight_work_item_that_has_a_bill (it also covers the gap intake raised: the branch `work-item/F0001-S0003` has no work item file and is skipped)
+   - criterion 18: tests/entry/test_bill.py::test_main_reads_the_id_from_sys_argv_in_the_current_checkout, ::test_main_with_a_list_uses_the_list_instead_of_sys_argv
+   - criterion 19: tests/entry/test_bill.py::test_the_module_runs_as_a_program_and_exits_with_the_status (wraps `runpy` in `pytest.warns(RuntimeWarning)` because the module imports `factory.entry.bill` at the top)
+   - criterion 20: tests/test_no_journal_reading.py::test_no_module_reads_data_from_the_journal_text
+   - criterion 21: tests/test_no_journal_reading.py::test_a_journal_reference_outside_the_allowed_modules_is_found (8 cases: `entry_text` and `JOURNAL` each by import, name and attribute, plus the literals "Journal" and "## Journal"). The allowed side is ::test_a_journal_reference_in_an_allowed_module_is_not_found.
+   - criterion 22: tests/domain/test_bills.py::test_a_bill_count_of_zero_is_accepted, ::test_a_negative_bill_count_is_refused, ::test_a_bill_is_frozen, ::test_a_stage_bill_is_frozen, ::test_a_bill_refuses_an_unknown_key, ::test_a_stage_bill_refuses_an_unknown_key; tests/application/test_bill_service.py::test_a_work_item_bill_is_frozen, ::test_a_work_item_bill_refuses_an_unknown_key
+
+   Files created: tests/domain/test_bills.py, tests/application/test_bill_service.py, tests/entry/test_bill.py, tests/test_no_journal_reading.py, tests/bill_support.py (a helper that builds completed records and renders their sidecar with `JsonLinesCostRecordWriter`).
+
+   Setup notes for the coder:
+   - The service tests call `checkout.fetch()` before they use `BillService`. The Interface does not say the service fetches, so the tests do not rely on it either way.
+   - `violations(trees)` is defined in the test module itself.
+   - The search test on the real tree is a guard and may already pass: only `factory.domain.journal` references `entry_text` today, and `JOURNAL` appears only in allowed modules.
+
+   Imports that fail during collection: `factory.domain.bills` (the module is missing), `BillService` and `WorkItemBill` from `factory.application.costs` (the names are missing), and `factory.entry.bill` (the module is missing).
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
