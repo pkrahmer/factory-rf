@@ -185,3 +185,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 2026-10-14 15:05 | F0007-S0001 merged (#82; 6 runs, 10.3 agent minutes, $2.06, first-pass). Every approval check passed; archived. `F0007: start S0002` | #82 | the human's go |
 | 2026-10-14 15:22 | F0007-S0002 merged (#83; 6 runs, 8.3 agent minutes, $1.77, first-pass). Every approval check passed; archived. `F0007: start S0003` | #83 | the human's go |
 | 2026-10-14 15:39 | F0007-S0003 merged (#84; 6 runs, 8.5 agent minutes, $2.02, first-pass). Every approval check passed; archived. `F0007: start S0004` | #84 | the human's go |
+| 2026-10-14 15:58 | F0007-S0004 merged (#85; 6 runs, 9.2 agent minutes, $1.43, first-pass). Every approval check passed; archived. `F0007: start S0005` | #85 | the human's go |
