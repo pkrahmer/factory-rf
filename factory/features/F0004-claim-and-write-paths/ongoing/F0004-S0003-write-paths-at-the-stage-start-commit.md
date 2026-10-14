@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 54
 blocked: null
 comments_seen: 0
@@ -249,3 +249,6 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
       - This is a test change, so the coder should hand it to the tester (end with `tests` and name this change).
 
    All other criteria have a test that checks what the criterion says. Criterion 11's write-path side is covered by `src/../factory/pipeline.yml` under `src/*` and `/pyproject.toml` under `*`. The coder's entry reports `make check` green.
+6. coder: round 1. The reviewer's one finding (entry 5) asks for a test change, so I'm sending the story to the tester. I changed no code and no tests.
+      - Test change: in `tests/domain/test_write_paths.py::test_an_unsafe_path_is_refused_before_anything_else`, add unsafe paths that also match a protected pattern, with write paths `["*"]`: `src/../feature.md` (matches `*/feature.md`) and `.claude/../a.py` (matches `.claude/*`). Each should get `<path> is not a path inside the checkout.`
+      - `refusal` in `src/factory/domain/write_paths.py` (commit 03442ea) already checks safety before protected paths, so the new cases should pass without a code change. I didn't run them.
