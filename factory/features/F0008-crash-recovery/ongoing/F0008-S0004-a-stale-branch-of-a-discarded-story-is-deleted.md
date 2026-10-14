@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 98
+blocked: null
+comments_seen: 2
+round: 0
+attempts: 0
+---
 # A discarded story's stale branch is deleted by the tick
 
 ## Assignment (as of log entry 1)
@@ -95,3 +103,162 @@ Expect: the factory log line on standard output first, time-stamped and ending w
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `delete_stale_branches(boundaries) -> list[str]` in `src/factory/application/recovery.py` and the one added step in `Tick.run` are concrete. The inputs and outputs are `RemoteWorkItems.list_stories`, `Git.remote_branches`, `Git.delete_remote_branch` and `work_item_of_branch`. The log lines and the return order are fixed.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for both sides. Deletion is covered by 1, 6, 7, 10 and 13. The kept side is covered by 2, 3, 4 and 5, plus 12 for a tick that stops early. The refused or unreachable deletion is covered by 8. Reads limited to `origin/main` are covered by the unpushed move in 4. Nothing else touched is covered by 9. GH4.3 after a kill is covered by 10 and 11.
+   - Demo: the script runs on the real modules and `Expect:` names five checkable outputs (the log line, `['work-item/F0001-S0001']`, `None`, `['main']`, `[]`).
+   - Architecture: the function sits in the application layer's recovery module and uses only existing interfaces (`Git`, the log). The tick step is in `tick.py`. No new dependency and no hosting call.
+   - Scope: this is within FEATURE.md Scope (last bullet) and Decisions 17 and 19, and touches nothing under Out of scope.
+   - Not asked, for the tester to know: the "keep when the id also has an `in-progress` file" rule is tested only with a backlog story (criterion 5). The same rule for a `done/` story is in the Interface and the test setup text but has no criterion of its own. I judged it covered by the same code path and did not add a criterion.
+3. tester: Wrote the red tests for every acceptance criterion except 14 and 15.
+
+   Mapping:
+   - criterion 1: tests/application/test_stale_branches.py::test_the_branch_of_a_story_back_in_the_backlog_is_deleted
+   - criterion 2: tests/application/test_stale_branches.py::test_the_branch_of_a_story_in_progress_stays
+   - criterion 3: tests/application/test_stale_branches.py::test_a_branch_no_work_item_owns_stays (parametrized: `main`, `scratch`, `work-item/not-an-id`)
+   - criterion 4: tests/application/test_stale_branches.py::test_a_backlog_story_without_a_branch_changes_nothing and ::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch (the move is a rename in the checkout's work tree after `reset_to("origin/main")`, never committed or pushed)
+   - criterion 5: tests/application/test_stale_branches.py::test_an_id_with_a_story_file_in_progress_as_well_keeps_its_branch (parametrized over `backlog` and `done`). The `done` case is the Interface's rule "backlog and done stories that no in-progress story file shares", which intake judged covered without a criterion of its own. It uses id F0001-S0002 with a second file `F0001-S0002-other.md` in `in-progress/`.
+   - criterion 6: tests/application/test_stale_branches.py::test_two_stale_branches_are_deleted_in_the_order_of_their_names (the S0002 branch is pushed first)
+   - criterion 7: tests/application/test_stale_branches.py::test_a_deleted_branch_is_named_in_one_log_line
+   - criterion 8: tests/application/test_stale_branches.py::test_a_refused_deletion_is_logged_and_tried_again_on_the_next_call (`receive.denyDeletes` is set, then removed with `git config --unset`)
+   - criterion 9: tests/application/test_stale_branches.py::test_the_cleanup_leaves_the_pull_request_the_hosting_service_and_the_checkout
+   - criterion 10: tests/application/test_tick_stale_branch.py::test_the_next_tick_deletes_the_branch_a_killed_discard_left_and_stays_idle
+   - criterion 11: tests/application/test_tick_stale_branch.py::test_a_story_started_again_after_the_cleanup_starts_from_the_first_stage
+   - criterion 12: tests/application/test_tick_stale_branch.py::test_a_tick_that_ends_at_a_repository_stop_deletes_nothing. This test probably passes already, because the stop comes before any cleanup. It guards the order of the steps.
+   - criterion 13: tests/application/test_stale_branches.py::test_the_branch_of_a_done_story_is_deleted
+   - criteria 14 and 15: no test (`make check` and docs)
+
+   Files created: tests/application/test_stale_branches.py and tests/application/test_tick_stale_branch.py. tests/application/test_tick.py is unchanged.
+
+   Setup of the tick tests: the `discarded` fixture runs F0007's `ClosedHandler` with `KillPoint.AFTER_PUSH` armed, checks that the branch is still on the remote, and installs the agents. Criterion 12 installs no agents.
+
+   Not tested: the `"unreachable"` outcome, because no criterion names it.
+
+   `make test` result: collection fails with `ImportError: cannot import name 'delete_stale_branches' from 'factory.application.recovery'`. This is the missing function and the right failure. The tick test file imports only names that already exist, so it fails at runtime once collection gets past the missing function.
+
+   `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: question about a test that fails in its own setup. The implementation is committed in 983df7a.
+
+   Built:
+   - `delete_stale_branches(boundaries)` is in `src/factory/application/recovery.py`. It collects the ids of the `backlog` and `done` stories on `origin/main` that no `in-progress` file shares. If an id is in both `backlog` and `done`, the log line says "done". It deletes each matching remote-tracking branch, in name order, through `Git.delete_remote_branch`. A `"pushed"` outcome is logged as `deleted stale branch …` and added to the result. Any other outcome is logged as `could not delete stale branch …: <outcome>`.
+   - `Tick.run` in `src/factory/application/tick.py` calls it after the restore step and before the evaluation. A stop ends the tick before the cleanup is reached.
+   - Rejected: putting the cleanup inside `_restore`. A `GitError` there would raise `checkout_restore_failed`, but the Interface says a `GitError` from the cleanup is left uncaught.
+
+   The question: in `make check`, every other test passes and coverage is 99%. The one failure is `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, and it fails in its own setup before the function under test runs:
+   - `human.start(BACKLOG_PATH)` moves the fixture's only backlog story, so the `backlog/` directory is empty.
+   - Git does not keep empty directories, so after `checkout.reset_to("origin/main")` the checkout has no `factory/features/F0001-example/backlog/` directory.
+   - `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)` then raises `FileNotFoundError`.
+
+   No change to the code under test can make this pass.
+
+   Options:
+   - (a) Recommended: the tester adds `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the rename. The test then checks criterion 4's second half as intended. I expect it to pass against the current implementation, but I have not run it.
+   - (b) Drop that test and leave the work-tree half of criterion 4 untested. I advise against this.
+
+   Refactor step: not done yet, because `make check` is not green. The diff is small (one function, one helper, one call in the tick) and I see nothing to clean up so far. The refactor will follow once the test is fixed.
+
+   Not touched: `docs/` (criterion 15 is the documenter's).
+5. human (pull request comment, 2026-10-14): (a): the tester adds `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the rename in `test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, and changes nothing else. End with `tests` and name exactly that change.
+6. coder: the human chose option (a) in entry 5, so this goes to the tester for one test change. In `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, add `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the line `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)` (line 103). Change nothing else.
+
+   The implementation is unchanged: commit 983df7a, `delete_stale_branches` in `src/factory/application/recovery.py` and the cleanup step in `Tick.run`. I have not run `make check` again in this round. With the fixed test, I expect it to go green. Once the ticket is back in doing, I will run `make check`, do the refactor step, and hand it to review.
+7. tester: made the one test change the human approved in entry 5, as the coder named it in entry 6.
+
+   - Change: in `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, I added `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)`. Nothing else changed.
+   - Why: `human.start` empties `backlog/`. Git keeps no empty directory, so after `checkout.reset_to("origin/main")` the directory was gone and the rename raised `FileNotFoundError` in the test's own setup. That happened before the code under test ran.
+   - `make test`: green, with total coverage at 99.15%.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: `make check` is green after the tester's one-line fix to the test (entry 7), with total coverage at 99.15%. The implementation has not changed since 983df7a.
+
+   Built:
+   - `delete_stale_branches(boundaries)` in `src/factory/application/recovery.py`, with the private helper `_stale_reasons`:
+     - It reads the `backlog`, `done` and `in-progress` stories on `origin/main` through `RemoteWorkItems`.
+     - The stale ids are the backlog and done ids that no in-progress file shares.
+     - It walks `Git.remote_branches()` in name order and deletes each branch whose `work_item_of_branch` is a stale id, using `Git.delete_remote_branch`.
+     - A `"pushed"` outcome is logged as `deleted stale branch <name>: <reason>` and added to the result. Any other outcome is logged as `could not delete stale branch <name>: <outcome>`.
+     - It makes no hosting call and does not catch `GitError`.
+   - `Tick.run` in `src/factory/application/tick.py` calls it after the restore and before the evaluation, so a repository stop returns before the cleanup. The module and `run` docstrings now name the cleanup step.
+
+   Main decision: the cleanup is its own step in `Tick.run`, not part of `_restore`. Inside `_restore`, a `GitError` would turn into `checkout_restore_failed`, but the Interface says it stays uncaught.
+
+   If an id is in both `backlog/` and `done/`, the log line says "its story is done", because done is filled into the reasons last. The Interface does not decide this case.
+
+   Refactor step: I read `git diff main...HEAD -- src` as a reviewer would. The change is one function, one helper and one call, and there is nothing to rename, simplify or deduplicate, so there is no refactor commit.
+
+   Noticed, not touched: no test covers the `"unreachable"` outcome, because no criterion names it; the code handles it the same way as `"rejected"`. `docs/` is left for the documenter (criterion 15).
+
+   `make check`: check: green
+9. reviewer: no findings.
+
+   - Acceptance criteria: criteria 1 to 13 each have a test that checks what the criterion says. They are in `tests/application/test_stale_branches.py` and `tests/application/test_tick_stale_branch.py`, as the tester's entry 3 maps them. Both sides of the Interface's rules are tested:
+     - deleted: backlog (1, 6, 7), done (13) and the tick (10).
+     - kept: in progress (2), branches no work item owns (3), work-tree-only move (4), an id that also has an in-progress file, for both backlog and done (5), and a tick that stops early (12).
+     - refused, then tried again (8).
+     - no hosting call and the checkout left as it was (9).
+     - GH4.3 after a kill (11).
+   - Untested: the `"unreachable"` outcome. I do not count this as a finding, because the code handles every outcome other than `"pushed"` in one `else` branch, and the `"rejected"` row tests that branch.
+   - `make check`: the coder's entry 8 reports it green, with coverage at 99.15%.
+   - Architecture: `delete_stale_branches` and `_stale_reasons` are in `factory.application.recovery`. They use only `Git`, `RemoteWorkItems`, `work_item_of_branch` and the log. They import no adapter, call no tool and make no hosting call.
+   - The tick step: it is in `Tick.run` after `_restore` and outside the `_Stopped` try block, so a stop returns before the cleanup and a `GitError` is not caught, as the Interface says.
+   - Security: no shell, no strings built into commands, no suppression markers.
+   - Quality:
+     - The names say what things are, and the docstrings are present and accurate.
+     - The `_stale_reasons` comments explain why: the duplicate case, and done taking precedence over backlog.
+     - Not duplicated: `RecordingSession.delete_branch` (`handlers/recording.py`) raises `PushFailed` on a refused deletion and also deletes the local branch, so it does not do what the cleanup needs. `Tick._work_items_with_branches` collects local-branch ids for the restore. Neither covers the cleanup.
+   - Ticket hygiene:
+     - The coder's entries 4 and 8 give the main decision (the cleanup is its own tick step rather than part of `_restore`, so a `GitError` stays uncaught) and the case the Interface leaves open (an id in both backlog and done is logged as done).
+     - The Assignment matches what was built.
+     - Criterion 15 still describes what the operator guide, the project guide and the decision log must say.
+   - Not judged: the diff also carries the human's own commits, which reached the branch through the merge of main: a new line in the `CLAUDE.md` Tests section, `docs/runs/…/night-log.md` and `planning/overnight/restructure-after-f0011.md`. Those are the human's files, not this ticket's work.
+   - Open, for the documenter: criterion 15.
+10. documenter: wrote the stale-branch documentation, found no code finding, and `make check` is green after the edits. I did not run the ticket's demo script.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "A stale branch is deleted by the tick". It covers:
+      - the tick deletes the branch of a story back in `backlog/`, and of a merged story in `done/`;
+      - the hosting service closes an open pull request when its branch goes (the factory makes no hosting call);
+      - a refused deletion is logged and tried again on the next tick;
+      - a story started before that tick still finds the old branch, so wait for the log line;
+      - when a branch is kept (same id in `in-progress/`, or an unpushed move).
+      - I also changed the "when it goes wrong" bullets of the discard and merge sections. They told the operator to delete the branch by hand, which is no longer true, so they now point to the new section.
+    - `docs/project-guide.md`: the tick is now six steps (fetch, load, restore, clean up, evaluate, dispatch). A new paragraph "The stale branch" describes `delete_stale_branches`: inputs, the log lines, the return order, the reads it is limited to, and that it does not catch `GitError`.
+    - `docs/decisions.md`: new decision, "A stale branch is deleted by the tick, not by the discard handler". It gives the reason (after a kill no event is raised again for a story in `backlog/` or `done/`), the rejected options, and why a refused deletion is a log line and not a stop.
+
+    Cross-read and found current: README, the tick's stops table in the operator guide, and the guide's restore text.
+
+    I checked the docs against the diff of `recovery.py` and `tick.py`, including the order of the tick and the log texts.
+
+    Stale but not touched: nothing seen.
+
+    `make check`: check: green
+11. demo: I ran the one command under `## Demo` from the repository root, as written. It exited 0 and met its `Expect:` line. There are no findings.
+
+    Command 1 (the `uv run python -c` script: a bare remote, a backlog story on `main`, a pushed `work-item/F0001-S0001` branch, `delete_stale_branches` called twice):
+    ```
+    2026-10-12T00:00:00Z deleted stale branch work-item/F0001-S0001: its story is back in the backlog
+    ['work-item/F0001-S0001']
+    None
+    ['main']
+    []
+    ```
+    Met `Expect:`:
+    - The first line is the time-stamped factory log line, ending with `deleted stale branch work-item/F0001-S0001: its story is back in the backlog`.
+    - Then come the four expected lines in order:
+      - `['work-item/F0001-S0001']`: the stale branch was deleted.
+      - `None`: its remote-tracking ref is gone.
+      - `['main']`: only `main` is left on the remote.
+      - `[]`: the second call deleted nothing and wrote no log line.
+
+    Checked against the acceptance criteria:
+    - The output agrees with criterion 1: the function returned the branch name, the remote-tracking ref is gone and the branch is gone from the remote.
+    - It agrees with criterion 7: there is exactly one log line for the deleted branch, with the text the criterion fixes.
+    - It agrees with the "no stale branch → no line, `[]`" rule: the second call printed no line and returned `[]`.
+    - Nothing in the output contradicts any other criterion.
+    - The demo does not exercise the refused deletion (8), the done story (13), the tick step (10–12) or the checks that nothing else is touched (9). Those are covered by the tests mapped in entry 3, and the reviewer judged them in entry 9.
+
+    Open: nothing.

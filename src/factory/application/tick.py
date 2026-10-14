@@ -1,4 +1,4 @@
-"""The tick: fetch, load, restore the checkout, evaluate the remote and dispatch one event."""
+"""The tick: fetch, load, restore, clean up stale branches, evaluate and dispatch one event."""
 
 from collections.abc import Callable, Mapping
 from typing import NoReturn
@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, DispatchOutcome, Handler
 from factory.application.pipeline_loading import PipelineLoader
+from factory.application.recovery import delete_stale_branches
 from factory.application.stops import StopService
 from factory.application.watcher import Watcher
 from factory.application.work_items import RemoteWorkItems
@@ -75,7 +76,7 @@ class Tick:
         return self._status
 
     def run(self) -> TickOutcome:
-        """Fetch, load, restore, evaluate and dispatch; a repository stop ends the tick.
+        """Fetch, load, restore, clean up, evaluate and dispatch; a repository stop ends the tick.
 
         Raises `WorkItemFormatError`, `ValueError` from the evaluation, and `GitError`
         outside the fetch and the restore: no stop exists for them.
@@ -86,6 +87,7 @@ class Tick:
             self._restore()
         except _Stopped as stopped:
             return TickOutcome(stopped=stopped.reason)
+        delete_stale_branches(self._boundaries)
         event = Watcher(self._boundaries, self._instance).evaluate(definition)
         dispatcher = Dispatcher(
             self._handlers(definition), self._status, self._stops, self._boundaries.log

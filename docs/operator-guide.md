@@ -439,6 +439,15 @@ Every step before the record can be repeated safely, and nothing is recorded unt
 
 A hand-over that fails every time is a counted error like any other: it is tried on three ticks, and then one report is posted on the pull request and the event is capped (see "An event that keeps failing").
 
+## A stale branch is deleted by the tick
+
+After the restore of the checkout and before it looks at any work item, every tick deletes the remote branch `work-item/<id>` of each story whose file is in `backlog/` on `origin/main`. That is the leftover of a discard (see "A close before the approval discards the story") that was killed after it pushed the move, or whose deletion the remote refused. The branch of a story whose file is in `done/` is deleted the same way: it is the leftover of a merge (see "A merge archives the story") that was killed or refused between the archive and the deletion. Nothing for you to do after a kill.
+
+- **A pull request still open on the branch** is closed by the hosting service when the branch goes (GitHub does so). The factory itself makes no call to the hosting service and posts nothing; a pull request that is already closed stays as it is.
+- **A refused or unreachable deletion** is no stop. The factory log gets `could not delete stale branch <name>: rejected` (or `unreachable`), and the next tick tries again. A deletion is logged as `deleted stale branch <name>: its story is back in the backlog` (`its story is done` for a merged story).
+- **Start the story again only after the tick has deleted the branch.** A story you start before that still finds the old branch with its old state and bill, and is discarded again. If the remote refuses deletions, lift the refusal and wait for a tick (the log line confirms it) before you start.
+- **A branch is kept** when the same id also has a story file in `in-progress/` (two work items with one id are reported as a duplicate), and when no story file of its id is in `backlog/` or `done/` on `origin/main`. A move to `backlog/` that is not pushed to `main` deletes nothing. Branches that are not `work-item/<id>` (`main`, your own) are never touched.
+
 ## A merge archives the story
 
 A merge of a story's pull request, by any method (merge commit, squash or rebase), accepts the story as it is, at whatever stage it has reached: working, waiting for you, or at an approval stage. The merged handler (`MergedHandler`) then archives it on `main`, in one commit with the subject `work item <id>: merged, archived`:
@@ -455,7 +464,7 @@ When it goes wrong:
 
 - **The push of the archive is rejected** (`PushFailed`, outcome `rejected`): `main` moved since the checkout. Nothing is archived and the branch is kept. The next tick fetches, and the story is archived then; do nothing.
 - **The factory dies before the push**: `main` and the branch are as they were, and the story is archived once on the next tick.
-- **The factory dies after the push, or the remote refuses to delete the branch** (`PushFailed` naming the branch, outcome `rejected`, for example when the remote forbids deletions): the archive stays on `main` and the story is under `done/`, so no event is raised for it again. The branch `work-item/<id>` is left on the remote. Delete it yourself (`git push origin --delete work-item/<id>`) after you have lifted the refusal, if any; nothing in the factory reads it any more. An unreachable remote during the deletion leaves the branch in the same way.
+- **The factory dies after the push, or the remote refuses to delete the branch** (`PushFailed` naming the branch, outcome `rejected`, for example when the remote forbids deletions): the archive stays on `main` and the story is under `done/`, so no event is raised for it again. The branch `work-item/<id>` is left on the remote. The next tick deletes it (see "A stale branch is deleted by the tick"); nothing in the factory reads it meanwhile. An unreachable remote during the deletion leaves the branch in the same way.
 
 ## A close before the approval discards the story
 
@@ -474,7 +483,7 @@ When it goes wrong:
 
 - **The push of the move is rejected** (`PushFailed`, outcome `rejected`): `main` moved since the checkout. Nothing is discarded and the branch is kept. The next tick fetches and discards then; do nothing.
 - **The factory dies before the push**: `main` and the branch are as they were, and the story is discarded once on the next tick.
-- **The factory dies after the push, or the remote refuses or cannot be reached for the deletion** (`PushFailed` naming the branch, for example when the remote forbids deletions): the story is under `backlog/` on `main`, so no event is raised for it again, and the branch `work-item/<id>` is left on the remote. Delete it yourself (`git push origin --delete work-item/<id>`) after you have lifted the refusal, if any, **before you start the story again**. Otherwise the new start finds the old branch with its old state and bill.
+- **The factory dies after the push, or the remote refuses or cannot be reached for the deletion** (`PushFailed` naming the branch, for example when the remote forbids deletions): the story is under `backlog/` on `main`, so no event is raised for it again, and the branch `work-item/<id>` is left on the remote. You do nothing: the next tick deletes it (see "A stale branch is deleted by the tick"). If the remote keeps refusing, lift the refusal; the tick tries again every tick.
 
 ## A close at the approval sends the story back
 
