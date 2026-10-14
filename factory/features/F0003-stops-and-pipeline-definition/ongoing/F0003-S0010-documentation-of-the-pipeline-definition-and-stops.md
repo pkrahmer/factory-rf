@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 51
 blocked: null
 comments_seen: 0
 round: 0
@@ -59,3 +59,9 @@ Expect: one line, a number of at least `2`: the status names the health status f
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: "None: no code changes" is consistent with a documentation-only story. No Interface comment states a behaviour, so no criterion is missing.
+   - Criteria: only `make check` green and the `docs:` criterion. The docs criterion names the concrete checks: the example parses with `RuamelPipelineDefinitionReader().parse`, the keys with their defaults, the `done` stage, contract major 1, the lease rule, strict YAML types, blank write paths, `next` and a role or approval, the pointer to the faults list, the `agent_definitions` field order, and `WritePathService` removed. No rule states a limit, so there is no failing side to cover. The documenter judges the docs criterion, and the tester has nothing to write.
+   - Demo: all three commands are runnable (sed/grep over existing files), and each Expect line is checkable by a count or a matching line. The README count of at least 2 is loose but checkable.
+   - Architecture: no code, no layer touched. The edits are confined to README.md, docs/operator-guide.md and docs/project-guide.md, which the documenter owns.
+   - Scope: within F0003 (listed as S0010 in FEATURE.md) and outside no "Out of scope" item. The decision on the README summary is recorded as decision 20.
