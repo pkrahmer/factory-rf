@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 51
 blocked: null
 comments_seen: 0
@@ -88,3 +88,12 @@ Expect: one line, a number of at least `2`: the status names the health status f
       - Architecture, security and quality: nothing to judge, because no code, tests, dependencies or check markers changed.
       - Ticket hygiene: the tester and coder entries both explain the main decision (no tests and no code, by design) and what they rejected (prose-grepping tests, and the coder editing docs outside its lane). The Assignment matches what was built, which is nothing yet. The docs criterion still says everything the documenter must write: the operator guide's pipeline-definition section with an example that parses, the keys and defaults, the `done` stage, contract major 1, the lease rule, strict YAML types, blank write paths, `next` plus a role or approval, the pointer to the faults list and the `pipeline_definition_invalid` pointer; the F0003 parts in the opening list; `agent_definitions` in "Boundaries" in the dataclass's order; `WritePathService` removed from "The pipeline loader"; and the README status summary.
       Open: the whole docs criterion, for the documenter.
+6. documenter: wrote the three repairs; no findings against the code. `make check` is green (coverage 99.72 %).
+   - `docs/operator-guide.md`: added "The pipeline definition", before "The agent files". It has an example that `RuamelPipelineDefinitionReader().parse` accepted when I ran it, the keys with their defaults, and the stage and role fields. It also states the rules an operator meets: `done: {}`, contract major 1, `next` plus a role or `approval: true`, the lease arithmetic (40+10+10=60 fits, 70 does not), strict YAML types, a write path that is not blank, unknown keys refused, and `project_commands` replacing the default set. It points to the project guide's "The rules of the definition" for the full list of faults. The `pipeline_definition_invalid` table row now points to the new section. The opening list of built parts now names the F0003 parts: factory log, health file, the stops, the pipeline definition with its reader, rules and loader, and the agent definition reader.
+   - `docs/project-guide.md`: "Boundaries" now lists `…, cost_reader, cost_writer, pipeline_reader, agent_definitions, clock, …`, the dataclass's order (it had `pipeline_reader` before the cost fields). In "The pipeline loader", `WritePathService.at` is replaced by a sentence that F0004's write paths will parse the definition directly with `pipeline_reader`. The loader paragraph also points to the rules section.
+   - `README.md`: the status sentence is now a summary of the built parts. It names the stops, the factory log and health status file, and the pipeline definition with its agent files. It points to `docs/project-guide.md`, as decision 20 says.
+   - Cross-read and found current: the rest of the operator guide (agent files, stops, story check) and the project guide's pipeline definition and agent reader sections, against `boundaries.py` and the pipeline YAML example.
+   - Ran the three demo commands: `agent_definitions` count in Boundaries is 1, the new section heading is present, and the README match count is 2.
+   - Stale but not touched: the README and operator guide still describe `factory-check-story` as the only command, which is true. The guide's line "The documenter stage extends this" is unrelated and left as is.
+
+   `make check`: check: green
