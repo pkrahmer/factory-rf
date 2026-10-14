@@ -49,14 +49,15 @@ class ClaimService:
         The push is the claim. Raises `ValueError` before writing anything when the work item
         cannot be claimed here, and `PushFailed` when the push does not reach the remote.
         """
-        lease_duration = self._check_preconditions(branch, path, document, stage)
+        state = _state_of(document)
+        lease_duration = self._check_preconditions(branch, path, state, stage)
         claim = Claim(
             instance=self._instance,
             stage=stage,
             started_at=self._boundaries.clock.now(),
             lease_duration=lease_duration,
         )
-        claimed = self._with_claim(document, claim)
+        claimed = self._with_claim(document, state, claim)
         self._boundaries.work_item_writer.write(self._boundaries.checkout / path, claimed)
         git = self._boundaries.git
         commit = git.commit(f"{stage} starts as {self._instance}")
@@ -65,10 +66,7 @@ class ClaimService:
             raise PushFailed(branch, outcome)
         return StageStart(commit=commit, claim=claim)
 
-    def _check_preconditions(
-        self, branch: str, path: str, document: WorkItemDocument, stage: str
-    ) -> int:
-        state = _state_of(document)
+    def _check_preconditions(self, branch: str, path: str, state: WorkItemState, stage: str) -> int:
         if stage != state.stage:
             raise ValueError(f"the work item is in stage {state.stage}, not {stage}")
         lease_duration = self._lease_duration_of(stage)
@@ -81,19 +79,21 @@ class ClaimService:
         return lease_duration
 
     def _lease_duration_of(self, stage: str) -> int:
-        definition = self._definition.stages.get(stage)
-        if definition is None:
+        if stage not in self._definition.stages:
             raise ValueError(f"{stage} is not a stage of the pipeline definition")
-        if definition.role is None:
+        role = self._definition.role_of(stage)
+        if role is None:
             raise ValueError(f"stage {stage} has no role to claim it for")
-        return self._definition.roles[definition.role].lease_duration
+        return role.lease_duration
 
-    def _with_claim(self, document: WorkItemDocument, claim: Claim) -> WorkItemDocument:
-        state = _state_of(document).model_copy(update={"claim": claim})
+    def _with_claim(
+        self, document: WorkItemDocument, state: WorkItemState, claim: Claim
+    ) -> WorkItemDocument:
+        claimed_state = state.model_copy(update={"claim": claim})
         entry = NewEntry(
             speaker="factory", kind="started", text=started_text(claim.stage, self._instance)
         )
-        return append_entry(document.model_copy(update={"state": state}), entry)
+        return append_entry(document.model_copy(update={"state": claimed_state}), entry)
 
 
 def _state_of(document: WorkItemDocument) -> WorkItemState:
