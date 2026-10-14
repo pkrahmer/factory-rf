@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 48
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -210,3 +210,4 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
    I would choose (a). It keeps the "the definition on main holds 45" setup for the 45 case, and the default case becomes a plain claim against the fixture's definition. After your answer I will end with `tests` and name exactly that change.
 
    Not refactored yet: the refactor pass comes after the tests are green.
+5. human (pull request comment, 2026-10-14): (a): the parametrization carries `None` for "keep the fixture's definition", and the test pushes to `main` only when it is set; the `role-sets-45` case keeps its push. Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
