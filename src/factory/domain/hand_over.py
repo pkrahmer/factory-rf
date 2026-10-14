@@ -45,7 +45,7 @@ def hand_over_description(document: WorkItemDocument, commits: Sequence[CommitIn
         _part(DESCRIPTION, section_text(document.body, DESCRIPTION)),
         _part(ACCEPTANCE_CRITERIA, section_text(document.body, ACCEPTANCE_CRITERIA)),
         *(_part(title, _report_text(document, speaker)) for title, speaker in REPORT_SECTIONS),
-        f"## Commits\n\n{_commits_block(commits)}",
+        _part("Commits", _commits_block(commits)),
         HAND_OVER_CLOSING,
     ]
     return "\n\n".join(parts) + "\n"
