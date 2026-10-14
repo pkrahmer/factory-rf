@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 91
 blocked: null
 comments_seen: 0
@@ -121,3 +121,43 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
    - Demo: runnable with the fake hosting service. Its `Expect:` line gives the exact output list.
    - Architecture: the gate is in the application layer and uses only `Boundaries` and the hosting-service interface. Registration stays in `factory.entry.wiring`, with no second registry, as the human decided in questionnaire 1 Q20 (A).
    - Scope: within FEATURE.md ("the pull request read before every agent run"). The rerun after a crash stays with F0008. Nothing here falls under "Out of scope".
+3. tester: Wrote red tests for every acceptance criterion. `make lint` is green. `make test` stops at collection because `factory.application.handlers.run_gate` does not exist yet, which is the expected failure.
+
+   Criterion → test:
+   - criterion 1: tests/application/handlers/test_run_gate.py::test_a_work_item_without_a_pull_request_runs_unchanged_without_a_read
+   - criterion 2: tests/application/handlers/test_run_gate.py::test_an_open_pull_request_is_read_once_and_the_stage_runs_with_the_view
+   - criterion 3: tests/application/handlers/test_run_gate.py::test_the_pull_request_is_read_before_the_run_handler_is_entered
+   - criterion 4: tests/application/handlers/test_run_gate.py::test_a_closed_pull_request_goes_to_the_closed_handler_as_a_closed_event
+   - criterion 5: tests/application/handlers/test_run_gate.py::test_a_merged_pull_request_goes_to_the_merged_handler_as_a_merged_event
+   - criterion 6: tests/application/handlers/test_run_gate.py::test_a_failing_read_raises_and_calls_no_handler
+   - criterion 7: tests/application/handlers/test_run_gate.py::test_a_story_closed_while_its_stage_was_due_is_discarded_without_a_run
+   - criterion 8: tests/application/handlers/test_run_gate.py::test_a_story_merged_while_its_stage_was_due_is_archived_without_a_run
+   - criterion 9: tests/entry/test_wiring_human_handlers.py::test_build_handlers_registers_the_kinds_of_the_human_on_the_pull_request
+   - criterion 10: tests/entry/test_wiring_human_handlers.py::test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_handlers
+   - criterion 11: tests/entry/test_wiring_human_handlers.py::test_the_run_entry_runs_the_stage_of_a_started_story_without_a_pull_request. It drives a `Tick` over `build_handlers`.
+   - criterion 12: tests/entry/test_wiring_human_handlers.py::test_only_the_crash_expiry_and_acceptance_kinds_are_not_yet_handled
+   - criterion 13: tests/entry/test_wiring_handlers.py::test_an_event_not_yet_handled_is_a_counted_error, changed to dispatch a `crash` event (this is F0006-S0007's criterion 9).
+
+   Unit-test setup for the gate:
+   - The three handlers are recording subclasses of `Handler`.
+   - Hosting reads are counted by a `CountingHosting` subclass of `FakeHostingService`, swapped into the `boundaries` fixture with `dataclasses.replace`.
+   - The run handler's stand-in records how many reads had happened when it was entered; criterion 3 uses this.
+   - Criteria 7 and 8 use the real `ClosedHandler` and `MergedHandler`, real git through `human`/`checkout`, and the fake hosting service's `close_by_human`/`merge_by_human`.
+
+   Changed tests in tests/entry/test_wiring_handlers.py, exactly the three the Interface names (the human's leave, Q20 A):
+   - The criterion 4 test was renamed to test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler. It now checks that the keys include `idle` and `run`, that `idle` is an `IdleHandler` and that `run` is a `RunGate`.
+   - The criterion 5 test now compares `unhandled_kinds` with `list(NOT_YET_HANDLED)` only.
+   - The criterion 9 test now dispatches `crash` and expects `UnhandledEvent: no handler for event kind crash`.
+   - The import of `RunHandler` became `RunGate`.
+
+   Files created:
+   - tests/application/handlers/test_run_gate.py
+   - tests/entry/test_wiring_human_handlers.py
+
+   File modified:
+   - tests/entry/test_wiring_handlers.py
+
+   Modules that could not be imported: factory.application.handlers.run_gate. All three test modules fail at collection because of it.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
