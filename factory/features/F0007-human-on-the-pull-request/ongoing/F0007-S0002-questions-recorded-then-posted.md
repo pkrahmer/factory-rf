@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 83
 blocked: null
 comments_seen: 0
@@ -103,3 +103,26 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
    - Demo: the command is runnable against existing classes (`FakeHostingService`, `PipelineDefinition`, snapshots). Its `Expect:` line gives checkable output: the two-paragraph text, the count `1` and the exact list of body lines.
    - Architecture: the handler sits in `application/handlers`, the text in `domain/post_texts`, and the hosting service is reached through its interface and the recorder. Domain code does no I/O.
    - Scope: this is the scope line "Questions" of F0007, and nothing in "Out of scope" is touched. The crash-cap and send-back questions are only posted here.
+3. tester: red tests written for the ask handler and the attempts-cap question text.
+      - criterion 1: tests/domain/test_question_post_texts.py::test_the_attempts_cap_question_names_the_stage_the_stalls_and_the_answers
+      - criterion 2: tests/application/handlers/test_questions.py::test_an_agents_question_is_posted_with_its_speaker_and_keyed_to_its_entry
+      - criterion 3: tests/application/handlers/test_questions.py::test_a_recorded_question_is_posted_under_its_blocked_kind_without_a_commit (round_cap, crash_cap, send_back, attempts_cap)
+      - criterion 4: tests/application/handlers/test_questions.py::test_of_several_questions_the_latest_is_posted
+      - criterion 5: tests/application/handlers/test_questions.py::test_a_question_already_posted_is_not_posted_again
+      - criterion 6: tests/application/handlers/test_questions.py::test_a_blocked_work_item_without_a_question_record_cannot_be_handled (all five `Blocked` values)
+      - criterion 7: tests/application/handlers/test_questions.py::test_at_the_attempts_cap_the_question_is_recorded_in_one_pushed_commit (two stall entries, so the test can check that the latest one is used; checks the subject `work item <id>: attempts cap question recorded`)
+      - criterion 8: tests/application/handlers/test_questions.py::test_the_recorded_attempts_cap_question_is_posted_by_the_factory
+      - criterion 9: tests/application/handlers/test_questions.py::test_below_the_attempts_cap_nothing_is_asked_and_above_it_the_question_is (attempts 1 and 3; criterion 7 covers 2, the cap itself)
+      - criterion 10: tests/application/handlers/test_questions.py::test_at_the_attempts_cap_without_a_stall_record_nothing_is_recorded
+      - criterion 11: tests/application/handlers/test_questions.py::test_the_attempts_cap_question_is_recorded_before_a_failing_post
+      - criterion 12: tests/application/handlers/test_questions.py::test_after_a_failing_post_the_recorded_question_is_posted_once_and_not_recorded_again
+      - criterion 13: tests/application/handlers/test_questions.py::test_a_kill_after_the_post_leaves_one_post_and_a_repeat_posts_nothing_more
+      - criterion 14: tests/application/handlers/test_questions.py::test_a_kill_before_the_push_leaves_the_branch_and_a_repeat_records_and_posts_once
+      - criterion 15: tests/application/handlers/test_questions.py::test_a_work_item_without_a_pull_request_cannot_be_asked
+      - criterion 16: tests/application/handlers/test_questions.py::test_comments_after_a_question_leave_the_post_keyed_to_the_question
+      - criteria 17 (make check) and 18 (docs) have no tests: they are the coder's and the documenter's.
+      - Files created: tests/domain/test_question_post_texts.py, tests/application/handlers/test_questions.py. The handler tests use the `boundaries`, `hosting`, `remote`, `checkout`, `human`, `kill_points` and `pull_request` fixtures, plus a local `publish` fixture that pushes a document built with `append_entry` to `work-item/F0001-S0001`. The pipeline definition is the demo's, with `attempts_cap` at its default of 2.
+      - `make test`: both files fail at collection because the code under test does not exist yet: `factory.application.handlers.questions` (`AskHandler`) and `attempts_cap_question` in `factory.domain.post_texts`. `make lint` is green. I skipped the type check, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
