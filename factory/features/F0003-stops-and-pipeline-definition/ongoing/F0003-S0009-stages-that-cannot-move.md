@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 50
 blocked: null
 comments_seen: 0
@@ -112,3 +112,12 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
    - Security: no subprocess, strings or suppression markers were added.
    - Quality: `_moving_stages` holds the "only when `done` exists" condition once. Its comment says why, not what. The rule functions are private, so no docstrings are needed. Rule 11's check `role is None and not approval` matches `StageDefinition` (`role: Name | None`, `approval: bool`).
    - Ticket hygiene: the coder's log names the main decision (one helper for the `done` condition) and what was rejected (checking for `done` inside each rule). Assignment and Interface match the code. The docs criterion still describes what the documenter must write.
+6. documenter: no findings. The code matches the Interface.
+   - `docs/project-guide.md`, "The rules of the definition": now says eleven rules. Added rows 10 and 11 with their faults, and a paragraph saying they apply only when `done` exists. The paragraph gives the reason, the fault order, and that there is still no reachability rule.
+   - `docs/decisions.md`: new entry "A stage other than done must be able to move". It records why both shapes are refused, why the rules wait for `done`, and the alternative rejected.
+   - Cross-read and found current: the operator guide's fault row (it still points to the project guide's list, which now holds rules 10 and 11), and the README. The other "nine" hits are unrelated (the nineteen Git operations).
+   - Ran the demo: it printed `doing`, `stage doing: next is empty`, `stage gate: has neither a role nor approval`.
+   - `make check` is green.
+   - Stale but untouched: nothing seen.
+
+   `make check`: check: green
