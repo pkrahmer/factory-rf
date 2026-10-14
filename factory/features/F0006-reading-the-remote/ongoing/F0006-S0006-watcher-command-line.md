@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 76
 blocked: null
 comments_seen: 0
@@ -205,3 +205,28 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
    - Not touched: nothing stale. The "Open" note in the review (the default for `main`'s `err` has no test) is for the human, not a docs matter.
 
    `make check`: check: green
+7. demo: I ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines. No finding.
+
+   1. `main(['--follow'], boundaries=None, instance='factory-1')`, with `SystemExit` caught and its code printed.
+
+      Standard output:
+      ```
+      exit 2
+      ```
+      Standard error:
+      ```
+      usage: factory-watch [-h]
+      factory-watch: error: unrecognized arguments: --follow
+      ```
+      Met. Standard output is the single line `exit 2`. Standard error has the `usage: factory-watch` line and the "unrecognized arguments" error, which names `--follow`. The boundaries were `None`, and parsing still refused the option before anything else (criteria 18 and 20, the order in which `main` checks).
+
+   2. `render_board` of one `FeatureRow` and one `BoardRow`. I piped the output through `cat -A`, so `$` marks each line end:
+      ```
+      features$
+      F0001  Todo service  backlog=1  in-progress=2  done=3  acceptance=-$
+      work items$
+      F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=-  running_since=-  pull_request=7$
+      ```
+      Met. The output is exactly the four expected lines, each ending in a newline. Fields are separated by two spaces, and every absent value is written as `-`.
+
+   Against the acceptance criteria: the output agrees with criterion 6, apart from the claim, which is `-` here because the demo sets none. It also agrees with criteria 18 and 21: the usage line shows only `-h`, with no `follow` option. Nothing in either demo contradicts a criterion.
