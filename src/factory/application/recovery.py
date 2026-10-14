@@ -13,7 +13,8 @@ from factory.application.handlers.recording import (
 )
 from factory.application.stops import StopService
 from factory.domain.errors import CannotHandle
-from factory.domain.events import Event, EventKind
+from factory.domain.evaluation import required_claim_status
+from factory.domain.events import Event
 from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey
 from factory.domain.journal import (
@@ -39,8 +40,6 @@ from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkIte
 
 _KIND: Final = "crash"
 _EXPIRED: Final = "expired"
-# The claim status each handled event requires: an own claim crashed, another's expired.
-_REQUIRED_STATUS: dict[EventKind, str] = {_KIND: "own", _EXPIRED: "expired"}
 
 
 def _state_of(work_item: str, document: WorkItemDocument) -> WorkItemState:
@@ -168,7 +167,7 @@ class RecoveryHandler(Handler):
         return work_item.model_copy(update={"branch_commit": commit, "document": opened})
 
     def _dead_run(self, event: Event) -> Target:
-        required = _REQUIRED_STATUS.get(event.kind)
+        required = required_claim_status(event.kind)
         if required is None:
             raise CannotHandle(
                 event.kind, f"the recovery handler handles {_KIND} and {_EXPIRED} events only"
