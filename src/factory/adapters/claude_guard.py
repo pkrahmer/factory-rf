@@ -1,6 +1,5 @@
 """The verdict of the write-path guard on a Claude Code `PreToolUse` payload."""
 
-import json
 import os
 from pathlib import Path
 
@@ -61,7 +60,8 @@ def judge(payload: str, settings: GuardSettings) -> GuardVerdict:
 def _file_path(payload: str) -> str | None:
     try:
         tool_input = _Payload.model_validate_json(payload).tool_input
-    except (json.JSONDecodeError, ValidationError):
+    # Pydantic reports malformed JSON as a ValidationError too.
+    except ValidationError:
         return None
     return None if tool_input is None else tool_input.file_path
 
