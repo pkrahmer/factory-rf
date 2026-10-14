@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 84
 blocked: null
 comments_seen: 0
@@ -229,3 +229,31 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
    - Stale prose I saw and did not touch: none that is unrelated to this story.
 
    `make check`: check: green
+7. demo: ran both demo blocks from the repository root, exactly as written. No findings.
+
+   Command 1 (`destination_path` and `done_entry_text`):
+   ```
+   factory/features/F0001-todo/done/F0001-S0001-model.md
+   factory/features/F0001-todo/backlog/F0001-S0001-model.md
+   True
+   ValueError
+   ```
+   Met its Expect line: four lines, the `done/` path, then the `backlog/` path, then `True`, then `ValueError`. This agrees with criteria 1, 2 and 3.
+
+   Command 2 (`MergedHandler.handle` on a merged story at `approval` with one cost record, against a real bare remote in a temporary directory):
+   ```
+   factory/features/F0001-todo/done/F0001-S0001-model.costs.jsonl
+   factory/features/F0001-todo/done/F0001-S0001-model.md
+   done None [(1, 'human', 'created'), (2, 'factory', 'done')]
+   True
+   main
+   ```
+   Met its Expect line:
+   - `origin/main` holds exactly the archived story and its cost record file under `done/`, and nothing remains under `in-progress/`.
+   - The stage is `done` and `blocked` is unset.
+   - The journal gains one factory `done` entry numbered 2, and the body has the `done (pull request merged); cost: ` line.
+   - `main` is the only branch left on the remote.
+
+   This agrees with criteria 4, 5 (stage and blocked), 7, 9 and 11.
+
+   Checked against all the criteria: the demo contradicts none of them. The demo does not exercise criteria 6, 8, 10 and 12–17 (other stages, the bill content, failure paths, kills, posting nothing). The tests listed in the tester's entry cover them. I fixed nothing.
