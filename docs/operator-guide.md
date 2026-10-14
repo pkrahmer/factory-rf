@@ -499,7 +499,19 @@ Neither is a fault. With neither, an idle tick means no work item has anything t
 
 ## A stage changed by hand
 
-The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. Handling the event, moving the stage back, is not built before F0007-S0006. Until then a `reject` is a counted error (see "An event that keeps failing"): after three ticks one report is posted on the pull request, then the event is capped and holds back all new work. A push to the work item's branch makes the factory try again, and the `reject` returns for as long as the newest commit beyond `origin/main` that touched the story's file is the illegal change.
+The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. The handler of `reject` is built (`RejectHandler`) but not yet registered in `build_handlers`, so until it is, a `reject` is a counted error (see "An event that keeps failing"): after three ticks one report is posted on the pull request, then the event is capped and holds back all new work. Once it is registered, the factory puts the stage back as described below. Either way, a push to the work item's branch makes the factory try again, and the `reject` returns for as long as the newest commit beyond `origin/main` that touched the story's file is the illegal change.
+
+### What the factory does when it moves a stage back
+
+The factory corrects the change on the work item's branch, and only there; `main` is never written. It makes one new commit on top of the branch's head (also when later commits touched only other files) that:
+
+- sets `stage` back to the one before the illegal change (`from`);
+- clears the claim, since a claim belongs to the stage at the head and `to` is no longer it;
+- appends a journal entry from `factory` of kind `move_back`: `illegal stage change <from> -> <to>, moved back.`
+
+The commit's subject is `work item <id>: stage <to> -> <from>, moved back`; search the branch's history for `moved back` to find the corrections. When the work item has a pull request, the factory also posts one note there, `The stage was changed from <from> to <to>, which factory/pipeline.yml does not allow; it is back at <from>.`, and sets the `stage:<from>` label again, so the label does not keep the illegal stage.
+
+If the factory is killed in the middle, do nothing: the note is posted first and keyed by the number of the entry to come, so the next tick makes the correction again from the same event and posts no second note. A failing label call after the push is an error of the event; the correction stays on the branch. A `reject` that cannot be corrected (the newest commit is a merge commit, changed no stage, has a parent without the story's file or with an unreadable one, or is itself a correction) is refused with `CannotHandle` and writes and posts nothing.
 
 Not counted as such a change:
 

@@ -481,7 +481,7 @@ The watcher turns what the remote shows into one `Event`. The evaluation keeps n
 
 `idle` and `acceptance_due` take no work item; every other kind needs one. `feature` is set for `acceptance_due` and only for it. A violation raises `ValidationError`. `remote_state` is the snapshot's `branch_commit`, else the head of `origin/main`; an event with no work item carries `origin/main`'s head.
 
-The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); handling it, the move back, belongs to F0007-S0006. Handlers are registered only for `idle` and `run` so far (`AskHandler` is built but not yet registered); the others belong to later features.
+The kinds: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`, `idle`. `evaluate` makes all of them except `acceptance_due` (F0009). `reject` is an illegal stage change (see *The move rule*); `RejectHandler` handles it (see *An illegal stage change is put back*). Handlers are registered only for `idle` and `run` so far (`AskHandler` is built but not yet registered); the others belong to later features.
 
 ### The four tiers
 
@@ -601,6 +601,18 @@ It posts nothing and does not touch the pull request. `destination_path(path, fo
 4. Only then `WorkItemRecorder.delete_branch(branch)`. The branch's cost records go with it, so a later start has an empty bill.
 
 It makes no hosting-service call. Tests: `tests/application/handlers/test_closed.py`.
+
+### An illegal stage change is put back
+
+`RejectHandler(boundaries)` (`factory.application.handlers.reject`) handles `reject`; it is built but not yet registered (`NOT_YET_HANDLED` still lists `reject`). It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. The operator guide says what the operator sees.
+
+1. `target_of(event)`, then `WorkItemRecorder.check_out(snapshot.branch)`.
+2. The change is taken from the same source as the watcher's: `RemoteWorkItems(git, work_item_reader).last_stage_change(snapshot)`, the newest commit beyond `origin/main` that touched the work item's file, whatever later commits touched other files. `None` (no change, a merge commit, a parent without the file or with an unreadable one) and a change that is itself a correction raise `CannotHandle("reject", ...)` before anything is posted or written.
+3. With a pull request, `correction_note(from, to)` is posted first, keyed `PostKey(kind="correction", n=len(journal) + 1)`, the number the new entry will get. A kill after the post, or before the push, leaves one note, and the next run adds one entry.
+4. The recorded state has `stage` set to `from_stage`, `claim` set to `None` directly in the state (not through `ClaimService.release`, which needs an instance and a definition the handler does not hold) and one `factory` entry of kind `move_back` with `move_back_entry_text(from, to)`.
+5. With a pull request, after the push `set_labels(number, labels_for(<recorded state>))`. A failing call raises; the correction stays on the branch.
+
+Only the work item's branch is written: `main` is never checked out, written or pushed, so a killed correction cannot leave it dirty. Tests: `tests/application/handlers/test_reject.py`, `tests/domain/test_correction_texts.py`.
 
 ### Comments are copied by id
 

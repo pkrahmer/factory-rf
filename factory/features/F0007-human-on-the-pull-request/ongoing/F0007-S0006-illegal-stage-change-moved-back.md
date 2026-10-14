@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 87
 blocked: null
 comments_seen: 2
@@ -154,3 +154,10 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
       - Quality: docstrings are present and comments say why. The private `_state_of` now appears in three handlers, as the coder noted. I don't count it as a finding: each copy raises a different error, and no shared module covers it today. It is a possible later clean-up.
       - Not wired: `RejectHandler` is not registered in `factory.entry.wiring.build_handlers`, and neither are the other F0007 handlers. FEATURE.md places that registration in F0006's `build_handlers`. It is outside this story's Assignment, but someone still has to do it.
       - Ticket hygiene: the log gives the main decision: clear the claim directly in the state, with no `ClaimService.release` and no pipeline definition in the handler. The Assignment matches what was built, and criterion 21 still describes what the documenter must write.
+8. documenter: wrote the documentation for criterion 21, with no findings. `make check` is green.
+   - `docs/operator-guide.md`: in "A stage changed by hand", replaced the "not built before F0007-S0006" sentence. It now says the handler is built but not yet registered, so a `reject` is still a counted error until it is. Added "What the factory does when it moves a stage back": the commit and its subject, the cleared claim, the `move_back` entry, the correction note, the label, what a kill leaves, and which cases are refused.
+   - `docs/project-guide.md`: in the evaluation section, the `reject` sentence now points at the handler. Added "An illegal stage change is put back": the `moved back` subject, the `move_back` entry that exempts the correction from the move rule, the same source as the watcher's (the newest commit that touched the file), the note keyed by the number of the entry to come, the claim cleared directly in the state, the label after the push, and that only the work item's branch is written.
+   - Cross-read and found current: the move-rule section of `docs/project-guide.md`, "The handlers of the events" (`NOT_YET_HANDLED` still lists `reject`, as the code does), and "An event that keeps failing" in the operator guide. The README has no mention of this.
+   - Not touched, outside this story: `RejectHandler` is not registered in `build_handlers` (the reviewer noted this). The docs now say so plainly. Registration is for whoever owns F0006's `build_handlers`.
+
+   `make check`: check: green
