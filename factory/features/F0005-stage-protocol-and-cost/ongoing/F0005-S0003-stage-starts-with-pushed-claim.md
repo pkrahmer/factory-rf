@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 60
 blocked: null
 comments_seen: 0
@@ -126,3 +126,25 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the start of a stage in `src/factory/application/stage.py` (commit 61fd765). It holds `StartedStage`, `LaunchedStage` and `StageLauncher`. All 20 cases in `tests/application/test_stage_launch.py` pass, and `make check` is green (total coverage 99.55 %, `stage.py` 94 %).
+
+   What `launch` does, in the interface's order:
+   1. `_launchable_stage` refuses a work item with `merge_conflict` set, a document without a state, a stage missing from the pipeline definition, or a stage without a role. Each raises `ValueError` naming the branch or the stage, before anything is read.
+   2. It reads the agent definition with `TaskComposer.agent`.
+   3. It takes the form findings with `StoryFormChecker` from `prepared.document`.
+   4. `ClaimService.claim` writes the stage-start commit and pushes it. This is the only remote write.
+   5. It reads the work item file back from the checkout.
+   6. `WorkItemOpening.ensure_pull_request` finds or creates the pull request.
+   7. `WritePathService.at` gives the guard.
+   8. `TaskComposer.compose` builds the request, using the environment the launcher was given.
+   9. `AgentRuntime.run` runs the agent.
+
+   `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError` are not caught, so they reach the caller unchanged. The `ClaimService`, `WorkItemOpening` and `TaskComposer` objects are built once in `__init__`.
+
+   Main decision: the launcher checks the role itself in step 1 instead of relying on `TaskComposer.agent`'s `ValueError`. That keeps the refusal ahead of every read. It also keeps the error for a stage missing from the pipeline definition a `ValueError` rather than a `KeyError` from the stages table. Rejected: building the guard and composing the request before the claim. The claim's commit is the guard's input (`WritePathService.at(stage_start, …)`), and the request's pull request number only exists after step 6.
+
+   Refactor pass: I read the diff as a reviewer would and found nothing to rename, simplify or remove, so there is no refactor commit.
+
+   Noticed, not touched: two defensive refusals in `_launchable_stage` have no test, which leaves `stage.py` lines 93 and 96 uncovered. One is a document without a state, which `prepare` never produces; the other is a stage that is not in the pipeline definition. Neither is a limit the Interface states. The `docs:` criterion is the documenter's.
+
+   `make check`: check: green
