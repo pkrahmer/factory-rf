@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 96
 blocked: null
 comments_seen: 0
@@ -201,3 +201,17 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the crash cap. All of the tester's tests pass unchanged, and `make check` is green (coverage 99.17 %). Commits: 0b77a43 (feature) and c58d119 (refactor).
+      - `src/factory/domain/recovery.py`: added `at_crash_cap` (`crashes >= crash_cap`) and `asking_crash_cap` (a copy with `blocked="crash_cap"`).
+      - `src/factory/domain/post_texts.py`: added `crash_cap_question`, which returns the exact text from the Interface.
+      - `src/factory/application/recovery.py`:
+        - `_crash_recorded` checks `at_crash_cap` on the crashed state. At the cap it applies `asking_crash_cap` before the claim release and appends the `question` entry by `factory` after the `crash` entry, so one commit holds both.
+        - `handle` records and pushes as before. When the pushed state is blocked on `crash_cap`, it calls `ask_crash_cap` with the snapshot of the new document and commit, and returns without calling `run`.
+        - `ask_crash_cap` raises `CannotHandle("crash", …)` when `blocked` is not `crash_cap` or when there is no `last_record(speaker=FACTORY, kind="question")`. Otherwise it posts a `WorkItemStop` through `StopService`: key `PostKey(kind="crash_cap", n=<question number>)`, title `<id>: <title>` or just `<id>`, body `factory: <entry_text>`, the same comment `AskHandler` posts.
+        - When `StopPosted.opened` is true, `_record_pull_request` checks the branch out (`WorkItemRecorder.check_out`), reads the work item, sets `state.pull_request` and records it with the subject "pull request opened". `record` raises `PushFailed` on a push that is not `pushed`.
+      - Design decision: the cap is decided once, in the recorded document. `handle` branches on the pushed state's `blocked` instead of calling `at_crash_cap` a second time, so what is pushed and what is done next cannot disagree. Rejected alternative: appending the question in a separate step after the release. That needed an `assert` on the optional state in `src`, which bandit flags, and it split one decision across two methods.
+      - Refactor: three "work item has no state" checks are now one helper, `_state_of(work_item_id, document)`. Nothing else needed changing.
+      - Noticed but not touched: `AskHandler._post` (`src/factory/application/handlers/questions.py`) looks up the question with `last_record(kind="question")` and no speaker filter, while `ask_crash_cap` filters on `speaker=FACTORY` as the Interface says. The two agree as long as the crash-cap question is the work item's last question.
+      - Open: the docs criterion is for the documenter (`operator-guide.md`, `project-guide.md`, `decisions.md`).
+
+   `make check`: check: green
