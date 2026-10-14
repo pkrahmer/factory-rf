@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 70
 blocked: null
 comments_seen: 0
@@ -77,3 +77,10 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
       `make check`: check: green (coverage 99.35 %)
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Diff: `git diff main...HEAD -- . ':!factory'` is empty. The branch has only the factory's stage commits (9c458c5, ddd0c29, a322f82, a900dc4) and no code, test or docs change. That is what this story asks for: the Interface says "None: no code changes", and the Assignment hands all the writing to the documenter.
+      - Criterion 1 (`make check` stays green): the coder's entry records the factory's `make check` as green (coverage 99.35 %). Nothing changed since that run.
+      - Criterion 2 (docs): this is the documenter's work, which comes next. The bullets name each statement `README.md` and `docs/operator-guide.md` must make, and the texts that must match the code (`factory.domain.post_texts`, `stage:<stage>`, `factory: started <stage> as <instance>.`). It still describes what the reader must know after this story.
+      - Architecture, security, quality: nothing to judge, because no code changed.
+      - Ticket hygiene: the log says why there are no tests and no code. The Assignment matches the empty diff.
+      - Open: the second demo's pattern `stop of one work item` does not match the heading "Stops of one work item". The intake and the coder both noted this. The other three patterns still print the lines the Expect needs, so it is harmless. Changing it is the human's call.
