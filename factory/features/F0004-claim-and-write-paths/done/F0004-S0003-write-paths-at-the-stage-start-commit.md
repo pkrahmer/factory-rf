@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 54
 blocked: null
 comments_seen: 0
@@ -320,3 +320,4 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
     Met its Expect line: three lines, as expected. The write paths are `['src/*', <work item path>]` with `{work_item}` expanded, root is the checkout, and there are 10 protected paths (criterion 12). After `factory/pipeline.yml` in the work tree was rewritten to widen `src/*` to `*`, `at` returned equal `GuardSettings` (criteria 14/15, read at the stage-start commit and not from the work tree). `refusal` still says `docs/extra.md` is outside the write paths (criterion 9).
 
     I read the acceptance criteria again: the demo contradicts none of them. The demo does not exercise the error paths (criteria 5, 16–19, 22), `{feature}` expansion through `at` (13), the no-agent-file case (21) or `make check` (23). The tests cover those, and the factory runs `make check` itself. No findings.
+12. done (pull request merged); cost: 10 runs, 7.4 min, 62 turns, 214k tokens in (875k more from cache), 28k out, $2.21
