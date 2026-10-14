@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 62
 blocked: null
 comments_seen: 2
@@ -209,3 +209,12 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: Round 1. I did not touch any code or test. The current `_new_findings` passes the tester's new assertion at runtime: `make test` is green. But `make check` is red at `make types`, and the error is in the test the tester changed in entry 9:
+
+    `tests/application/test_after_agent.py:681: error: Unsupported operand types for + ("None" and "int")  [operator]`. The left operand is `original.line`, which is typed `int | None` because `FormFinding.line` is `PositiveInt | None`.
+
+    The change for the tester: in `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls`, add `assert original.line is not None` directly after `[original] = launched.started.findings`. mypy then narrows the type before `original.line + 4`, and the assertion itself does not change.
+
+    The code needs no change, because this is a typing fault in the test, not a behaviour gap. The feature and refactor commits are still 48b1e27 and beecd7f. Once the test is fixed, the next doing stage only reruns `make check` and hands on to review.
+
+    `make check`: red. `make lint`: green. `make types`: 1 error, in the test file only.
