@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 58
 blocked: null
 comments_seen: 0
 round: 0
@@ -123,3 +123,9 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`factory/domain/prompts.py`, `factory/application/task.py`), types and imports named. Each stated behaviour is pinned down: line order, the `Mode:` and `Format check` text, the `show_file("origin/main", STORY_FORM_FILE)` read, the `ValueError` for a stage without a role, the request fields, and the rule for which `result` record sets the test change.
+   - Criteria: each is testable by one test function. Every Interface comment has a criterion: allowed decisions 1-2, prompt lines 3-7, findings only at the first stage 8, `Mode:` 9-11, request fields 12-15, `agent` 16-18, form checker 19-21. Failing sides are covered: a tester with a `tester`-speaker or missing `result` record (10), a stage without a role (17), a missing agent file (18), a missing form (21), a form change in the work tree only (20), and both sides of every model limit with unknown keys and frozen models (22).
+   - Demo: a runnable `uv run python -c` command. The Expect line (10 lines: the list, then 9 prompt lines) matches what the Interface produces.
+   - Architecture: the pure prompt rules are in the domain layer; `TaskComposer` and `StoryFormChecker` are in the application layer. Git is reached through the `Git` interface and the agent home through `AgentDefinitionReader`, so no layer rule is broken.
+   - Scope: inside F0005's scope (agent definitions, prompt, allowed decisions, environment passed unchanged, form check). The environment's content, the claim and stalls are left to other stories, as the feature says.
