@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 51
 blocked: null
 comments_seen: 0
@@ -82,3 +82,9 @@ Expect: one line, a number of at least `2`: the status names the health status f
       `make check`: check: green
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the ticket. That matches a documentation-only story, whose Interface is "None: no code changes".
+      - Acceptance criteria: criterion 1 (`make check` stays green) is met. The coder's entry says `make check` is green on the unchanged branch (coverage 99.72 %), and the factory recorded green after the coder. Criterion 2 (docs) is the documenter's to write next. No pytest test can cover it, and the tester explained why it wrote none. The Interface states no rule or limit, so no failing side goes untested.
+      - Architecture, security and quality: nothing to judge, because no code, tests, dependencies or check markers changed.
+      - Ticket hygiene: the tester and coder entries both explain the main decision (no tests and no code, by design) and what they rejected (prose-grepping tests, and the coder editing docs outside its lane). The Assignment matches what was built, which is nothing yet. The docs criterion still says everything the documenter must write: the operator guide's pipeline-definition section with an example that parses, the keys and defaults, the `done` stage, contract major 1, the lease rule, strict YAML types, blank write paths, `next` plus a role or approval, the pointer to the faults list and the `pipeline_definition_invalid` pointer; the F0003 parts in the opening list; `agent_definitions` in "Boundaries" in the dataclass's order; `WritePathService` removed from "The pipeline loader"; and the README status summary.
+      Open: the whole docs criterion, for the documenter.
