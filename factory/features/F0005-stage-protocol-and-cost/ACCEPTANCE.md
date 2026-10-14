@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 67
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0005-S0001, F0005-S0002, F0005-S0003, F0005-S0004, F0005-S0005, F0005-S0006, F0005-S0007, F0005-S0008, F0005-S0009]
+outcome: accepted
 ---
 # Acceptance of Stage protocol and cost
 
@@ -601,3 +602,4 @@ These three account for $9.87 of the $21.49. Their extra runs went into tests th
          - S0007: 9 runs, $3.53, 16.6 min; the test definition broke the lease rule.
          - S0004: 9 runs, $2.94; a test could not pass mypy.
         Together they are $9.87, spent on tests the tester stage cannot type-check, not on code.
+2. done (pull request merged); cost: 1 runs, 11.1 min, 62 turns, 192k tokens in (7148k more from cache), 51k out, $4.00
