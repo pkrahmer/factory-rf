@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 69
 blocked: null
 comments_seen: 0
@@ -169,3 +169,31 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
    Nothing stale found that I left untouched, and no findings against the code.
 
    `make check`: check: green
+7. demo: I ran both demo commands from the repository root as written. Both met their `Expect:` lines and neither contradicts an acceptance criterion. No findings.
+
+   Command 1 (`uv run python -c "... stall_note(...) ..."`), exit 0:
+   ```
+   Stalled (attempt 1 of 2): a check is red after the stage: `check`. Retrying on the next tick.
+
+   ```text
+     File "x.py", line 1, in <module>
+   make: *** [Makefile:6: check] Error 1
+   ```
+   --
+   Stalled (attempt 1 of 2): a check is red after the stage: 3 failed. Retrying on the next tick.
+   ```
+   Met:
+   - The first line is the expected sentence, and the follow-up comes right after `` `check` ``.
+   - Next come an empty line, `` ```text ``, the traceback line with its two leading spaces and `<module>` kept, make's error line and the closing `` ``` ``.
+   - After `--`, the one-line note is the old note, unchanged.
+
+   This output agrees with criteria 1, 3 and 5.
+
+   Command 2 (`uv run pytest tests/application/test_stall_labels.py`), exit 0:
+   ```
+   ......                                                                   [100%]
+   6 passed in 2.93s
+   ```
+   Met: the last line says `passed`, and the output has no `failed` and no `error`. The six tests are criteria 7 to 12.
+
+   Checked against criteria 1 to 14: nothing in the demo goes against any of them. Criterion 2 (the wording at the cap), criterion 4 (trailing line breaks) and criterion 6 (fence length) are not exercised by the demo. Their tests are listed in the tester's entry, and the reviewer checked them. Criterion 13: the documenter's entry reports `make check` green, and the factory runs it after this stage. Criterion 14 is documented in the documenter's entry. Open: nothing.
