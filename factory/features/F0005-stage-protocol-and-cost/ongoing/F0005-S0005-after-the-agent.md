@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 62
 blocked: null
 comments_seen: 2
@@ -241,3 +241,22 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
     `make check`: check: green (coverage 99.47 %)
 
     `make check`: check: green
+13. reviewer: Round 1. No findings, so the story goes on to docs.
+
+    - **Round-0 finding is closed.** Criterion 17 now pins which of two equal findings is new. `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls` builds the added block's message from the original finding with its line number moved by four. I counted the lines in `doubled`: the added block's fence really is four lines below the original. The test asserts that the note contains that message and not `original.message`. In `src/factory/application/stage.py`, `_new_findings` lets the earlier equal findings use up the old count, so this assertion checks the Interface's ordering rule.
+    - **Acceptance criteria 1–21:** each has a test that checks what the criterion says, and the refused sides are covered. The criteria and their tests:
+      - non-ok results (3, 4), including attempts going up by exactly one on the pushed state;
+      - the disallowed decision, with its detail in the journal (5);
+      - the body edit kept at `review` and reverted at `tests` (8);
+      - prefix removal, with in-the-middle, no-colon and space-before-colon cases (11);
+      - the paragraph present and absent (12, 20);
+      - a blank entry with and without undone paths (13);
+      - the form findings: new, old, fixed, moved line number, second of a kind, and the `; ` join (14–18);
+      - frozen and unknown keys (21).
+    - **`make check`:** green per the coder's entry 12.
+    - **Architecture:** `agent_entry` is pure and sits in `factory.domain.decisions`. `AfterAgent` is in the application layer and reaches git, the reader and the stall and undo services only through `Boundaries`. There is no new dependency and no top-level package.
+    - **Security:** there are no suppression markers, secrets or command strings.
+    - **Quality:** every public name has its docstring, and the comments say why (masking line numbers, the earlier findings counted as old, the sidecar left out).
+      - Left as it is: the role-less `ValueError` in `_entry` and the `decision is None` guard. Both are defensive code the coder explained in entry 4, not dead logic.
+      - Left as it is: `agent_entry` sorts `undone` itself, as the Interface asks, even though the caller already sorts.
+    - **Ticket hygiene:** the log explains the main decision (reusing `StallService` unchanged, which runs its own undo a second time without effect) and what was rejected. The Assignment matches what was built. Criterion 23 still describes what the documenter must write.
