@@ -179,3 +179,11 @@ Date: 2026-10-14 (F0006-S0003). The dispatcher counts a handler's errors per eve
 ## The report of a work item without a branch on the remote is a log line
 
 Date: 2026-10-14 (F0006-S0003). `StopService` opens a draft pull request only for a branch on the remote with a commit beyond `main`. When the report fails with a `HostingServiceError` and the snapshot's `branch_commit` is `None`, no later tick could change that, and retrying would make the report fail for ever and the event never reach `capped`. The report then becomes the line `error cap reached on <event>: <last error>` in the factory log and the entry is marked reported, which is also the report of an event with no work item. Any other failure of the report is retried. Alternatives rejected: retrying for ever (a hopeless report on every tick); dropping the report silently (the operator would not learn of the cap).
+
+## The checkout is disposable and restored to `origin/main` at the start of every tick
+
+Date: 2026-10-14 (F0006-S0004). The tick fetches, loads the definition, and then resets the checkout to `main` at `origin/main`: uncommitted changes and untracked files are removed (one log line names them), and the local branches of the work items are deleted. The remote is the only truth, so a local commit that a rejected push left behind, a half-finished stage or a stray file must not decide anything. Rejected: repairing local state case by case (a second writer of the checkout that could itself fail), and keeping a local record of what the last tick did (a second truth that a fresh clone lacks). A restore that fails is the repository stop `checkout_restore_failed`; the load of the definition comes before the restore, so an invalid definition leaves the checkout alone.
+
+## A capped event holds back all new work
+
+Date: 2026-10-14 (F0006-S0004). The evaluation keeps no memory, so a work item whose `run` event the dispatcher has capped is still the first runnable one on every later tick, and the tick dispatches it as `capped` instead of starting the next work item. This is the same rule as for a waiting work item: while the first work item needs a human (here, a push to its branch), no new work starts. Rejected: skipping a capped event to run the next work item, which would let work pile up behind a failure nobody has seen.
