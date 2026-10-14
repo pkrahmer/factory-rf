@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 56
 blocked: null
 comments_seen: 2
@@ -342,3 +342,4 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     Findings: none.
 
     Open, not a finding: as entries 9, 13 and 17 said, no acceptance criterion states the allowed side of the in-progress rule. The tests cover it; the story text does not.
+20. done (pull request merged); cost: 17 runs, 14.8 min, 122 turns, 355k tokens in (2380k more from cache), 48k out, $4.08
