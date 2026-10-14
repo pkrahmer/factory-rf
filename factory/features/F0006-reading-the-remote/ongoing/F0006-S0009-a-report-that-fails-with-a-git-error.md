@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 79
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A report that fails with a git error
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
@@ -42,3 +50,65 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: no new names; it names the unchanged `Dispatcher.dispatch` in `src/factory/application/dispatcher.py`. It names the test module, the fixtures and helpers to reuse, and how the `GitError` is produced: the real `GitCli`, with `.git` renamed to `git-away` and back.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 cover the failing report and the retry. Criterion 3 covers the log-line exception, with both its failing side (a `GitError` gives `"error"` and no log line) and its passing side (a `HostingServiceError` gives the log line and `"reported"`). Every behaviour in the Interface comment has a criterion: `"error"`, the unchanged count and `last_error`, no log line, the retry that skips the handler, and `"capped"` afterwards.
+   - Demo: the pytest command is runnable. The `Expect:` line checks against the output: 100% coverage of the dispatcher with an empty `Missing` column, and `<n> passed` with no failed, error or skipped count.
+   - Architecture: tests only, no new layer or dependency. The real git wrapper is used and not faked, as CLAUDE.md requires.
+   - Scope: this is within F0006's dispatcher scope, and the feature's story list names it as proposed by the feature acceptance. It touches nothing under Out of scope.
+3. tester: added three test functions to tests/application/test_dispatcher.py. They use the module's existing fixtures and helpers (`Failing`, `RecordingLog`, `_snapshot`, `_event`, `_entry`, `_report_key`). I did not change any existing test, helper or import.
+      - criterion 1: tests/application/test_dispatcher.py::test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported
+      - criterion 2: tests/application/test_dispatcher.py::test_a_report_that_failed_with_a_git_error_is_made_again_once_git_is_back
+      - criterion 3: tests/application/test_dispatcher.py::test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line
+      - New private helper `_dispatch_without_git(dispatcher, event, checkout)`: it renames `boundaries.checkout / ".git"` to `checkout.with_name("git-away")` for one dispatch and renames it back in a `finally`. The `GitError` therefore comes from the real `GitCli.resolve`, with no test double. Its return type is `str` rather than `DispatchOutcome`, so the module's imports stay unchanged.
+      - Files created: none (one existing test module extended).
+      - Modules the test runner could not import: none.
+      - The tests pass rather than fail. That is expected: the ticket says `Dispatcher.dispatch` already behaves this way and needs no code change. `make test` is green (total coverage 99.35%) and `make lint` is green. I skipped the type check, as this stage says.
+      - Open for the coder: confirm that no code change is needed and run `make check`. Criterion 5 (the operator-guide sentence) is the documenter's.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: confirmed that no code change is needed and built nothing. The assignment expected this.
+      - I ran `make check` on the tester's commit and it is green: all checks pass, total coverage is 99.35%. The three new tests in tests/application/test_dispatcher.py pass against the unchanged code.
+      - Why they pass: `Dispatcher._report` in src/factory/application/dispatcher.py has two handlers. `except HostingServiceError` writes the log line only when `branch_commit is None`. The separate `except Exception: return "error"` comes after it, so a `GitError` from `StopService.post` (via `GitCli.resolve`) never reaches `_report_to_log` or `_mark_reported`. The entry stays unreported, and the next dispatch goes back into `_report` without calling the handler.
+      - Refactor: I have no diff of my own, so there was nothing to refactor.
+      - I did not touch criterion 5 (the operator-guide sentence). It is the documenter's.
+      - Nothing else noticed.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` contains only tests/application/test_dispatcher.py, with 97 lines added. Nothing under src/ changes, which matches the assignment's expectation that no code change is needed. No existing test, helper or import in the module changed.
+      - Criterion 1 is `test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported`. The branch is on the remote, so the third dispatch would return `"reported"` if `.git` were present. The test asserts `"error"`, so it tells the git failure apart from a working report. It also asserts not `reported`, count 3, `last_error == "ValueError: boom"`, no pull request and an empty log. It kills the surviving mutant: any `except Exception` path that marked the entry reported would fail this test.
+      - Criterion 2 is `test_a_report_that_failed_with_a_git_error_is_made_again_once_git_is_back`. The handler is called 3 times, so the retry did not call it. The test checks for one draft pull request on `BRANCH`, exactly one post keyed `_report_key(STATE)`, `"reported"`, then `"capped"` with the post count still 1.
+      - Criterion 3 is `test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line`. With `branch_commit=None`, a `GitError` gives `"error"` with no log line, so it is not mistaken for the `HostingServiceError` exception. Once git is back, the `HostingServiceError` path writes exactly `error cap reached on <key>: ValueError: boom`, returns `"reported"` without calling the handler, and leaves no pull request. Both the failing side and the passing side of the log-line rule are covered.
+      - The `GitError` comes from the real `GitCli`: `_dispatch_without_git` renames `boundaries.checkout / ".git"` to `checkout.with_name("git-away")` and restores it in a `finally`, as the Interface specifies. No git double is used.
+      - Coder's `make check`: green (log entry 4).
+      - Architecture, security and quality: the change is tests only. It adds no dependencies and no suppression markers. The helper's return type is `str` rather than `DispatchOutcome` so that the module's imports stay unchanged, as the Interface requires. That is acceptable.
+      - Ticket hygiene: the coder's entry explains why the tests pass against the unchanged `Dispatcher._report`: `except Exception` comes after the `HostingServiceError` handler. The Assignment matches what was built. Criterion 5 still fits docs/operator-guide.md:433, where the "(the hosting service is down)" sentence is the place to name the git failure in the checkout.
+      - Open for the documenter: criterion 5.
+6. documenter: changed docs/operator-guide.md (line 433, "An event that keeps failing"). The sentence on a report that cannot be posted now names a git failure in the factory's checkout, next to the hosting service being down, as a reason the report is tried again on the next tick without counting as an error. This is criterion 5. `make check` is green (coverage 99.35%).
+   Cross-read: the rest of that section of the operator guide matches the diff. The diff is tests only, with no code change, so nothing else could have gone stale. I did not read README, project-guide or decisions.
+   Stale but untouched: nothing seen.
+   Findings: none.
+
+   `make check`: check: green
+7. demo: ran the one demo command from the repository root. It met its `Expect:` line. No findings.
+
+   Command 1: `uv run pytest --no-header -p no:cacheprovider --cov=factory.application.dispatcher --cov-branch --cov-report=term-missing tests/application/test_dispatcher.py`
+   ```
+   .....................                                                    [100%]
+   ================================ tests coverage ================================
+   Name                                    Stmts   Miss Branch BrPart  Cover   Missing
+   -----------------------------------------------------------------------------------
+   src/factory/application/dispatcher.py      76      0     14      0   100%
+   -----------------------------------------------------------------------------------
+   TOTAL                                      76      0     14      0   100%
+   Required test coverage of 90.0% reached. Total coverage: 100.00%
+   21 passed in 3.66s
+   ```
+   Met: the coverage line for dispatcher.py shows `100%` and its `Missing` column is empty. The last line reads `21 passed in 3.66s`, with no failed, error or skipped count.
+
+   Criteria check:
+   - Criteria 1–3: each one's test (named in log entry 3) is among the 21 that passed. Nothing in the run contradicts them.
+   - Criterion 4: I did not run `make check` here. The factory runs it after this stage.
+   - Criterion 5: docs/operator-guide.md:433 now says "(the hosting service is down, or git fails in the factory's checkout while the report resolves the branch)" and gives that as a reason the report is tried again on the next tick. This matches the criterion.
