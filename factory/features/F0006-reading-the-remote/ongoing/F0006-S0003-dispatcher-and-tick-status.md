@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 73
 blocked: null
 comments_seen: 0
@@ -213,3 +213,12 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
       - Security: there are no new markers. The two broad `except Exception` clauses are required by the Interface (R28), and each has a comment saying why. `InjectedKill` is a `BaseException`, so it passes through as the rules require.
       - Quality: `record_error` reuses `clear_errors`, so one path handles both counting up and replacing on a new state. The report title uses the existing `sections.title` helper. Docstrings are on every public name.
       - Left open, not a finding: `dispatcher.py` line 105 has no test. That line handles a report that fails with something other than `HostingServiceError` (for example `GitError` from `StopService`). It falls under the rule criterion 19 already tests, so it is extra coverage, not a missing side. Also, the dispatcher drops the pull request number that `StopPosted` returns when it opens a draft. The Interface does not ask for that number to be recorded, and S0004/S0007 (the handlers and wiring) may want to.
+6. documenter: wrote the two documents criterion 26 asks for. `make check` is green.
+   - `docs/operator-guide.md`: new section "An event that keeps failing", placed before "Claims, leases and the clock". After three errors on one event and one remote state, the factory posts one keyed report on the pull request and stops retrying until the work item's branch changes. The section gives the report text and what to do about it: read the last error, fix the cause and push a commit to the branch. It also covers the shared report for two events of one work item, the counts being in memory only, the log line when the branch is not on the remote, and the retry of a report that could not be posted. It says nothing calls the dispatcher yet.
+   - `docs/decisions.md`: two entries. One records why errors are counted per event and remote state and why the report is keyed. The other records why the report of a work item without a branch on the remote is a log line.
+   - I did not run the demo command. I read the dispatcher code and the tests' behaviour against the text I wrote instead.
+   - Cross-read against the diff: the "Stops of one work item" section in `docs/operator-guide.md` (its `StopService.post` rules and the branch-not-on-remote error) and `docs/project-guide.md` line 472 (the watcher keeps no memory). Both are current. `docs/project-guide.md` has no section for the dispatcher or the tick status, and criterion 26 does not ask for one.
+   - No findings. The code matches the Interface.
+   - Stale text I saw but did not touch, as unrelated: the operator guide's opening paragraph lists the built parts and does not mention the dispatcher. It should be extended when the tick and handlers arrive (S0004, S0007).
+
+   `make check`: check: green
