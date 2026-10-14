@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 98
 blocked: null
 comments_seen: 0
 round: 0
@@ -103,3 +103,10 @@ Expect: the factory log line on standard output first, time-stamped and ending w
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `delete_stale_branches(boundaries) -> list[str]` in `src/factory/application/recovery.py` and the one added step in `Tick.run` are concrete. The inputs and outputs are `RemoteWorkItems.list_stories`, `Git.remote_branches`, `Git.delete_remote_branch` and `work_item_of_branch`. The log lines and the return order are fixed.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for both sides. Deletion is covered by 1, 6, 7, 10 and 13. The kept side is covered by 2, 3, 4 and 5, plus 12 for a tick that stops early. The refused or unreachable deletion is covered by 8. Reads limited to `origin/main` are covered by the unpushed move in 4. Nothing else touched is covered by 9. GH4.3 after a kill is covered by 10 and 11.
+   - Demo: the script runs on the real modules and `Expect:` names five checkable outputs (the log line, `['work-item/F0001-S0001']`, `None`, `['main']`, `[]`).
+   - Architecture: the function sits in the application layer's recovery module and uses only existing interfaces (`Git`, the log). The tick step is in `tick.py`. No new dependency and no hosting call.
+   - Scope: this is within FEATURE.md Scope (last bullet) and Decisions 17 and 19, and touches nothing under Out of scope.
+   - Not asked, for the tester to know: the "keep when the id also has an `in-progress` file" rule is tested only with a backlog story (criterion 5). The same rule for a `done/` story is in the Interface and the test setup text but has no criterion of its own. I judged it covered by the same code path and did not add a criterion.
