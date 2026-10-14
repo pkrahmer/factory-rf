@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 74
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -119,3 +119,6 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
    2. Interface, Restore rule: local `work-item/<id>` branches are deleted for each id that has `origin/work-item/<id>` OR a story file in `in-progress/` on `origin/main`. Criterion 18 covers only the case with a remote branch. A started story with no remote branch and a local `work-item/<id>` branch (the claim push was rejected before any branch existed) has no criterion. Options: (a) add a criterion for that case (my choice); (b) narrow the Interface to ids with a remote branch.
 
    Everything else I checked is fine: the Interface names concrete modules and signatures, the criteria are single-test and cover both sides of the rules (the fetch fails and recovers in 2 to 4, the definition is invalid and repaired in 5 and 6, the restore fails and recovers in 8, `TickOutcome` refuses bad values in 22), the Demo is runnable with a checkable `Expect:`, and the story fits the layers and the feature's scope. The format check passed.
+3. human (pull request comment, 2026-10-14): 1 (a): extend criterion 7 so the line equals the exact text `discarded uncommitted changes: <path>, <path>` with the paths in `Git.status()` order.
+   2 (a): add a criterion: a story file in `in-progress/` on `origin/main` with no `origin/work-item/<id>` and a local `work-item/<id>` branch has that local branch deleted by the restore.
+   The Interface stays as it is.
