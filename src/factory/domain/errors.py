@@ -1,5 +1,7 @@
 """The root of the errors the factory raises on purpose."""
 
+from factory.domain.git import PushOutcome
+
 
 class FactoryError(Exception):
     """Every error the factory raises on purpose."""
@@ -44,6 +46,19 @@ class FetchFailed(GitError):
 
 class NothingToCommit(GitError):
     """A commit was asked for, but no change was staged."""
+
+
+class PushFailed(FactoryError):
+    """A push did not reach the remote: the branch and how the push ended."""
+
+    branch: str
+    outcome: PushOutcome
+
+    def __init__(self, branch: str, outcome: PushOutcome) -> None:
+        """Name the branch and the push's outcome."""
+        super().__init__(f"push of {branch} failed: {outcome}")
+        self.branch = branch
+        self.outcome = outcome
 
 
 class ProjectCommandError(BoundaryError):

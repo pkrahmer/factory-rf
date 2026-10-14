@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 48
+blocked: null
+comments_seen: 2
+round: 1
+attempts: 0
+---
 # The stage-start commit is the claim
 
 ## Assignment (as of log entry 1)
@@ -154,3 +162,160 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.errors.PushFailed`, `factory.application.claims` with `StageStart`, `started_text`, `ClaimService.__init__` and `claim`). Every rule is stated exactly: the instance regex, the order of the preconditions, the claim's fields, the commit subject, the journal text and the push handling. The format check passed.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for its failing side. Instance name: 14. Preconditions (no state, stage mismatch, no role, unknown stage): 12. Wrong checked-out branch: 13. Branch not the item's own, and a file name that is no work item's: 15. Push rejected: 9. Push unreachable: 10. Kill before push: 11. `StageStart` field limits (39 characters, uppercase, unknown field, frozen): 17. Pass sides are covered by 1–8 and 16. Interface behaviours (lease copy, UTC, journal line, the previous claim replaced, the uncommitted opening) map to 2, 1, 6, 8 and 16.
+   - Demo: runnable as written, using only the interface sheet's adapters. Each `Expect:` line gives checkable output: six lines with exact values, including the rejected second instance and the unchanged remote head.
+   - Architecture: `ClaimService` is in `factory.application` and reaches git and the clock only through `Boundaries`. The error is in `factory.domain`. The DTO is frozen Pydantic. No layer violation and no new dependency.
+   - Scope: within the feature's Scope (first bullet) and the FEATURE.md decisions 1–4, 17 and 18. Nothing from "Out of scope" (agent start, status, release, write paths) is touched.
+3. tester: wrote the red tests for the claim service in one new file, `tests/application/test_claims.py`. A helper `_prepare` fetches, checks out `work-item/F0001-S0001` from `origin/main` and writes the work item at `factory/features/F0001-example/in-progress/F0001-S0001-first.md`. The work item has `initial_state("intake")`, journal entry 1 and a `## Journal` section. By default the helper commits and pushes it; with `committed=False` it leaves the item uncommitted, the opening for criterion 16. The remote side is read through a second `GitCli` clone and `git_support.remote_commit`. The "writes nothing" checks compare a snapshot before and after `claim`: `git.status()`, the file text and the remote's head of the branch.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_claims.py::test_claim_records_instance_stage_and_start_time_in_utc
+   - criterion 2: tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role (parametrized: the fixture's role gives 60; with 45 set on `intake`, pushed to main and passed to the service, it gives 45)
+   - criterion 3: tests/application/test_claims.py::test_stage_start_commit_is_pushed_to_the_remote
+   - criterion 4: tests/application/test_claims.py::test_stage_start_commit_is_one_commit_on_the_previous_head_with_its_subject
+   - criterion 5: tests/application/test_claims.py::test_pushed_work_item_holds_the_returned_claim
+   - criterion 6: tests/application/test_claims.py::test_claim_appends_one_started_journal_entry (also checks `started_text`)
+   - criterion 7: tests/application/test_claims.py::test_claim_keeps_every_other_state_field_and_the_body_outside_the_journal
+   - criterion 8: tests/application/test_claims.py::test_a_document_with_a_claim_is_claimed_anew
+   - criterion 9: tests/application/test_claims.py::test_a_rejected_push_raises_push_failed_and_leaves_the_remote_without_claim
+   - criterion 10: tests/application/test_claims.py::test_an_unreachable_remote_raises_push_failed (the bare remote is renamed away)
+   - criterion 11: tests/application/test_claims.py::test_a_kill_before_push_is_not_caught_and_leaves_the_remote_without_claim
+   - criterion 12: tests/application/test_claims.py::test_claim_refuses_a_document_or_stage_it_cannot_claim_and_writes_nothing (parametrized: no state, other stage, `approval`, unknown stage `nowhere`)
+   - criterion 13: tests/application/test_claims.py::test_claim_refuses_when_another_branch_is_checked_out_and_writes_nothing
+   - criterion 14: tests/application/test_claims.py::test_service_refuses_an_instance_name_that_is_no_name and ::test_service_accepts_an_instance_name
+   - criterion 15: tests/application/test_claims.py::test_claim_refuses_a_branch_that_is_not_the_work_items_own_and_writes_nothing and ::test_claim_refuses_a_path_whose_file_name_is_no_work_items_and_writes_nothing
+   - criterion 16: tests/application/test_claims.py::test_claim_on_a_new_branch_commits_the_uncommitted_opening_on_main
+   - criterion 17: tests/application/test_claims.py::test_stage_start_is_frozen, ::test_stage_start_forbids_an_unknown_field and ::test_stage_start_commit_is_a_commit_id (parametrized: `"a"*40` accepted, `"a"*39` and `"A"*40` refused)
+   - criteria 18 and 19 are not tested here: 18 is `make check`, 19 is the docs stage.
+
+   Files created: tests/application/test_claims.py.
+
+   Not importable: `factory.application.claims` (ModuleNotFoundError at collection), so the whole module fails to collect, as intended. `factory.domain.errors.PushFailed` is missing too. `make lint` is green.
+
+   Rejected: a separate domain test for `PushFailed`. Criterion 9 already checks its fields and message, and no other criterion names it.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: the claim service is built and committed (3ac70cc): `PushFailed` is in `src/factory/domain/errors.py` and `StageStart`, `started_text` and `ClaimService` are in `src/factory/application/claims.py`. `make lint`, types, layers, sast, secrets and licences are green. Of the tests, everything passes except one, and that one fails because of a fault in the test itself, not in the code.
+
+   Failing test: `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role[role-default]`. In both cases the test first runs `human.push_file("main", PIPELINE_FILE, pipeline)`. In the `role-default` case `pipeline` is `PIPELINE_YAML`, and the fixture's `main` already holds exactly that text at `factory/pipeline.yml`. So the human's commit has nothing to commit and `HumanClone.push_file` raises `NothingToCommit` before `claim` is called. No implementation can make this case pass. The `role-sets-45` case passes.
+
+   Options:
+   (a) The tester skips the push to `main` when `pipeline == PIPELINE_YAML`. For example, the parametrization could carry `None` for "keep the fixture's definition" and push only when it is set.
+   (b) The tester drops the push from the test and passes only the parsed definition to `ClaimService`. The lease is read from the definition given to the constructor, not from the file on `main`, so the push is not what criterion 2 checks.
+   (c) Change `HumanClone.push_file` so it tolerates an unchanged file. This touches a shared test helper and changes its behaviour for every test, so I would not do it.
+
+   I would choose (a). It keeps the "the definition on main holds 45" setup for the 45 case, and the default case becomes a plain claim against the fixture's definition. After your answer I will end with `tests` and name exactly that change.
+
+   Not refactored yet: the refactor pass comes after the tests are green.
+5. human (pull request comment, 2026-10-14): (a): the parametrization carries `None` for "keep the fixture's definition", and the test pushes to `main` only when it is set; the `role-sets-45` case keeps its push. Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
+6. coder: the human's answer (entry 5, option (a)) calls for one test change. The code in 3ac70cc is unchanged and I did not touch the test. Change for the tester: in `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role`, the `role-default` case's parameter becomes `None` instead of `PIPELINE_YAML`, meaning "keep the fixture's definition". The test calls `human.push_file("main", PIPELINE_FILE, pipeline)` and builds the definition from `pipeline` only when it is set; when it is `None`, the test claims with the fixture's definition, as the other tests do through `_claim(boundaries, document)`. The `role-sets-45` case keeps its push of `LEASE_45_YAML` and its expected 45, and `HumanClone.push_file` stays as it is. Still open after the tests come back: the refactor pass, then `review`. `## Assignment` is unchanged, because the answer does not change what the task means.
+7. tester: tester (test change the human approved, entry 5 option (a), named in the coder's entry 6): changed one test, `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role`. The `role-default` case's parameter is now `None` instead of `PIPELINE_YAML`, meaning "keep the fixture's definition", and `pipeline` is typed `str | None`. Only when `pipeline` is set does the test call `human.push_file("main", PIPELINE_FILE, pipeline)` and build the definition with `_definition(boundaries, pipeline)`. Otherwise it passes `None` to `_claim`, which falls back to the fixture's definition the way the other tests do. The `role-sets-45` case still pushes `LEASE_45_YAML` and expects 45. The `role-default` case still expects 60. I left `HumanClone.push_file` and every other test unchanged.
+
+   Why: the fixture's `main` already holds `PIPELINE_YAML`, so pushing it again raised `NothingToCommit` before `claim` was called. No implementation could make that case pass.
+
+   `make test`: green, total coverage 99.72%. `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: the claim service from 3ac70cc now passes every test. The tester's change from entry 7 fixed the one failing case, and the code needed no change for it. `make check` is green and coverage is 99.72%.
+
+   Built:
+   - `src/factory/domain/errors.py`: `PushFailed(FactoryError)`, which carries `branch` and `outcome` and has the message "push of <branch> failed: <outcome>".
+   - `src/factory/application/claims.py`: `StageStart` (frozen, forbids extra fields, holds a `CommitId` and a `Claim`), `started_text`, and `ClaimService`.
+     - The constructor checks the instance name against the full pattern `[a-z][a-z0-9-]*` and raises `ValueError` otherwise.
+     - `claim` checks the preconditions in the Interface's order before it writes anything: there is a state, the stage matches, the stage is in the definition and has a role (this check also yields the lease), the branch is the work item's own branch, and the checkout is on that branch.
+     - It then builds the claim from `clock.now()`, sets `state.claim`, and adds the "started" entry with `append_entry`. It writes the work item at `checkout / path`, commits it as "<stage> starts as <instance>" and pushes.
+     - Any push outcome other than "pushed" raises `PushFailed`. `InjectedKill` from the push is not caught.
+
+   Main decision: the lease is read from the `PipelineDefinition` passed to the constructor, not loaded again from `origin/main`. This follows the Interface: the caller loads the definition once. I rejected having the service read the definition through `pipeline_reader` itself, because that would give it a second source of truth for the definition.
+
+   Refactor pass: I read the diff (`git diff main...HEAD -- src`) and found nothing to rename, simplify or remove, so there is no refactor commit.
+
+   Noticed, not touched:
+   - `_with_claim` gets the state through `_state_of` a second time. This is harmless because the preconditions have already guaranteed a state exists.
+   - The docs criterion (19) is left to the documenter stage.
+
+   `make check`: check: green
+9. reviewer: groups 1–3 pass, group 4 (quality) fails.
+
+   - Criteria: I read every one of criteria 1–17 against its test in `tests/application/test_claims.py`. Each test checks what its criterion says.
+   - Failing sides: every failing side the Interface states is tested. That covers the instance regex (four refused names, two accepted), each precondition with a writes-nothing snapshot, a rejected push, an unreachable remote, `BEFORE_PUSH` through the `kill_points` fixture that `boundaries` shares, and the `CommitId` limits (39, uppercase, 40).
+   - Checks: the coder's entry 8 reports `make check` green.
+   - Architecture: `ClaimService` reaches git, the clock and the writer only through `Boundaries`. `PushFailed` sits in `factory.domain.errors` and imports only `factory.domain.git`.
+   - Security: no strings passed to a shell, no suppression markers, no secrets.
+
+   Findings:
+   1. `src/factory/application/claims.py:83-89` (`_lease_duration_of`): this repeats the stage-to-role lookup that `PipelineDefinition.role_of` (`src/factory/domain/pipeline_definition.py:83`) already does. It also names a `StageDefinition` `definition`, right next to `self._definition`, which is the pipeline definition. Fix: refuse `stage not in self._definition.stages`, then use `self._definition.role_of(stage)`, raise `ValueError` when it is `None`, and return its `lease_duration`.
+   2. `src/factory/application/claims.py:92` (`_with_claim`): this calls `_state_of(document)` a second time, after `_check_preconditions` (line 71) has already narrowed the state, so the `ValueError` branch can never run on this path. Fix: pass the narrowed `WorkItemState` from `claim` into `_with_claim`, for example by having `_check_preconditions` return it with the lease, so the check happens once.
+
+   Not a finding: `StageStart` is a Pydantic model in `factory.application`. That is where the Interface puts it, and intake accepted it.
+10. coder: coder (round 1): I fixed both of the reviewer's findings from entry 9 in one refactor commit, 2c15695. It changes only `src/factory/application/claims.py`. Behaviour and tests are unchanged. `make check` is green, with total coverage at 99.72%.
+
+    1. `_lease_duration_of` no longer repeats the lookup from stage to role. It first refuses a stage that is not in `self._definition.stages`. It then calls `self._definition.role_of(stage)`, refuses a `None` role and returns `role.lease_duration`. The `StageDefinition` variable named `definition` is gone, so nothing shadows the pipeline definition any more. The order of the preconditions and their `ValueError` messages are the same as before.
+    2. `claim` now narrows the state once, with `state = _state_of(document)`, and gives that `WorkItemState` to both `_check_preconditions` (whose parameter changes from `document` to `state`) and `_with_claim(document, state, claim)`. The second `_state_of` call, which could never fail, is gone. "No state" is still the first precondition checked.
+
+    What I rejected: the reviewer suggested making `_check_preconditions` return a `(state, lease)` tuple. Narrowing the state in `claim` does the same job with no tuple return value.
+
+    Process note: my first commit for this round piped `make check` into `tail`, so its failed exit status was hidden and the commit went in with an unformatted line. I ran `ruff format`, ran `make check` again (green) and amended the local commit, which had not been pushed, so only 2c15695 remains.
+
+    I noticed nothing else and touched nothing else.
+
+    `make check`: check: green
+11. reviewer: reviewer (round 1): no findings.
+
+    - Both findings from entry 9 are fixed in 2c15695. `_lease_duration_of` (`src/factory/application/claims.py:357-363`) first refuses a stage that is not in `self._definition.stages`, then uses `PipelineDefinition.role_of` and refuses a `None` role. Nothing shadows the pipeline definition any more. `claim` narrows the state once (line 328) and passes it to `_check_preconditions` and `_with_claim`, so the check that could never fail is gone.
+    - Precondition order: it matches the Interface. The checks run in this order: no state, stage mismatch, unknown stage or stage without a role, the work item's own branch (including a file name that is no work item's), then the checked-out branch.
+    - Acceptance criteria: I read criteria 1–17 against `tests/application/test_claims.py` again, and each test checks what its criterion says. The Interface states these failing sides, and each one has a test:
+      - the instance regex: four names refused, `factory-1` and `f` accepted
+      - each precondition, with a before-and-after snapshot showing nothing was written
+      - a rejected push and an unreachable remote
+      - an `InjectedKill` at `BEFORE_PUSH`
+      - the `CommitId` limit on both sides: 39 characters and uppercase refused, 40 lowercase accepted
+      - the frozen model and the unknown field
+    - `make check`: the coder's entry 10 reports it green, with 99.72 % coverage.
+    - Architecture: `ClaimService` reaches git, the clock and the writer only through `Boundaries`. `PushFailed` is in `factory.domain.errors` and imports only `factory.domain.git`. No new dependency.
+    - Security: no strings passed to a shell, no suppression markers, no secrets.
+    - Quality: the docstrings are present and say what they should. There is no dead code and no lookup that duplicates `role_of`.
+    - Ticket hygiene: the log records the main decision (the lease comes from the definition given to the constructor) and the rejected alternatives. `Assignment` matches what was built. Criterion 19 still says what the documenter must write.
+12. documenter: wrote the claim documentation (criterion 19). `make check` is green.
+
+    Files changed:
+    - `docs/project-guide.md`: added `PushFailed` to *Errors*. Added a new section, *The claim service*, which covers:
+      - the constructor and the instance-name rule;
+      - the order of the preconditions;
+      - what `claim` builds and writes, and the commit subject;
+      - that the push is the claim;
+      - that the stage-start commit is the last commit before the agent run, so anything the caller left uncommitted, a new branch's opening included, is part of it;
+      - how to set a work item up in tests.
+    - `docs/decisions.md`: added an entry on why the push is the claim (R19, R20), and why a rejected push leaves the local commit to the next tick's restore (F0006). It also says why the lease comes from the definition the caller gave the service.
+
+    Cross-read and found current: the project guide's claim data section (`Claim`, `state.claim`), *Boundaries*, *Kill points* (`BEFORE_PUSH` is reached by the git wrapper's push, as `claim` relies on) and *The git wrapper*'s push outcomes. I did not cross-read `README.md` or `docs/operator-guide.md`, but a grep of them for claim wording found nothing stale.
+
+    No findings for the coder. The code matches the Interface, and `claims.py` has the docstrings `CLAUDE.md` asks for.
+
+    I did not run the ticket's demo script and wrote no new runnable examples.
+
+    `make check`: check: green
+13. demo: Demo, round 1: ran the one command under `## Demo` from the repository root, exactly as written (the heredoc script through `uv run python -`). Exit code 0.
+
+    ```
+    factory-1 coder 60
+    True
+    True [(1, 'human', 'created'), (2, 'factory', 'started')]
+    ['2. factory: started coder as factory-1.']
+    PushFailed work-item/F0004-S0001 rejected
+    True
+    ```
+
+    The output meets its `Expect:` line. It has six lines, and each matches the expected text in order:
+    - The claim records the instance `factory-1`, the stage `coder` and lease 60, the default for a role that sets none.
+    - `origin/<branch>` resolves to the returned commit.
+    - The work item on the remote has the returned claim and exactly one new `started` record, numbered 2.
+    - The journal line reads `2. factory: started coder as factory-1.`
+    - The second instance's clone was stale, so its claim raised `PushFailed` with the branch and `rejected`.
+    - The remote branch head is still the first instance's stage-start commit.
+
+    Against the acceptance criteria: the demo is consistent with criteria 1, 2, 3, 5, 6 and 9 and contradicts none of them. It does not exercise criteria 4, 7, 8 and 10–17 (subject line, untouched fields, re-claim, unreachable remote, kill point, invalid inputs, new-branch opening, `StageStart` model rules); the tests cover those. No findings.
