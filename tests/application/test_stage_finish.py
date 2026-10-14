@@ -59,6 +59,10 @@ DEFINITION_YAML = (
         "intake: {role: intake, next: [tests], checks: [lint]}",
     )
     .replace("checks: [lint], reports: [test]", "checks: [lint, check], reports: [test, coverage]")
+    .replace(
+        '  tester: {write_paths: ["tests/*"]}',
+        '  tester: {write_paths: ["tests/*"], lease_duration: 70}',
+    )
 )
 SMOKE_TEST_SECTION = """\
 ## Smoke test

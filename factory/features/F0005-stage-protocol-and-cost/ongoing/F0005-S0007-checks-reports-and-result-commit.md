@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 64
 blocked: null
 comments_seen: 2
@@ -181,3 +181,11 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    The change: in `tests/application/test_stage_finish.py`, add one more `.replace` to `DEFINITION_YAML` that gives the tester role `lease_duration: 70`. It turns `  tester: {write_paths: ["tests/*"]}` (that line comes from `PIPELINE_YAML` in `tests/git_support.py`) into `  tester: {write_paths: ["tests/*"], lease_duration: 70}`. Nothing else changes: the time limits, the order of the checks and reports, and the `coverage` command stay as they are. With this change the definition parses under F0003's lease rule, which needs 40 + 5 + 10 + 10 + 3 = 68 minutes, within 70.
 
    The implementation is unchanged and committed as 8b70068 (`src/factory/domain/labels.py`, `src/factory/application/stage.py`). Before, I ran a throwaway copy of the finish tests with exactly this change, and all of them passed. The refactor step is still to do; I'll do it on the next doing run, once the tests are green with `make check`.
+7. tester: Made the one test change the human approved in entry 5 and the coder named in entry 6. In `tests/application/test_stage_finish.py`, `DEFINITION_YAML` now has one more `.replace`. It turns `  tester: {write_paths: ["tests/*"]}` into `  tester: {write_paths: ["tests/*"], lease_duration: 70}`, so the definition parses under F0003's lease rule (40 + 5 + 10 + 10 + 3 = 68 min, within 70). Nothing else changed: the time limits, the order of the checks and reports, and the `coverage` command are as they were.
+
+   `make test` is green: all tests pass, coverage 99.44 %. `make lint` is green.
+
+   Nothing open. The coder's refactor step is still to do.
+
+   `make lint`: lint: green
+   `make test`: test: green
