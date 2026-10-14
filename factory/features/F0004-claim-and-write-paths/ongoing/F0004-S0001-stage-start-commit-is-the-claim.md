@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 48
 blocked: null
 comments_seen: 0
@@ -168,3 +168,33 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
    - Demo: runnable as written, using only the interface sheet's adapters. Each `Expect:` line gives checkable output: six lines with exact values, including the rejected second instance and the unchanged remote head.
    - Architecture: `ClaimService` is in `factory.application` and reaches git and the clock only through `Boundaries`. The error is in `factory.domain`. The DTO is frozen Pydantic. No layer violation and no new dependency.
    - Scope: within the feature's Scope (first bullet) and the FEATURE.md decisions 1–4, 17 and 18. Nothing from "Out of scope" (agent start, status, release, write paths) is touched.
+3. tester: wrote the red tests for the claim service in one new file, `tests/application/test_claims.py`. A helper `_prepare` fetches, checks out `work-item/F0001-S0001` from `origin/main` and writes the work item at `factory/features/F0001-example/in-progress/F0001-S0001-first.md`. The work item has `initial_state("intake")`, journal entry 1 and a `## Journal` section. By default the helper commits and pushes it; with `committed=False` it leaves the item uncommitted, the opening for criterion 16. The remote side is read through a second `GitCli` clone and `git_support.remote_commit`. The "writes nothing" checks compare a snapshot before and after `claim`: `git.status()`, the file text and the remote's head of the branch.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_claims.py::test_claim_records_instance_stage_and_start_time_in_utc
+   - criterion 2: tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role (parametrized: the fixture's role gives 60; with 45 set on `intake`, pushed to main and passed to the service, it gives 45)
+   - criterion 3: tests/application/test_claims.py::test_stage_start_commit_is_pushed_to_the_remote
+   - criterion 4: tests/application/test_claims.py::test_stage_start_commit_is_one_commit_on_the_previous_head_with_its_subject
+   - criterion 5: tests/application/test_claims.py::test_pushed_work_item_holds_the_returned_claim
+   - criterion 6: tests/application/test_claims.py::test_claim_appends_one_started_journal_entry (also checks `started_text`)
+   - criterion 7: tests/application/test_claims.py::test_claim_keeps_every_other_state_field_and_the_body_outside_the_journal
+   - criterion 8: tests/application/test_claims.py::test_a_document_with_a_claim_is_claimed_anew
+   - criterion 9: tests/application/test_claims.py::test_a_rejected_push_raises_push_failed_and_leaves_the_remote_without_claim
+   - criterion 10: tests/application/test_claims.py::test_an_unreachable_remote_raises_push_failed (the bare remote is renamed away)
+   - criterion 11: tests/application/test_claims.py::test_a_kill_before_push_is_not_caught_and_leaves_the_remote_without_claim
+   - criterion 12: tests/application/test_claims.py::test_claim_refuses_a_document_or_stage_it_cannot_claim_and_writes_nothing (parametrized: no state, other stage, `approval`, unknown stage `nowhere`)
+   - criterion 13: tests/application/test_claims.py::test_claim_refuses_when_another_branch_is_checked_out_and_writes_nothing
+   - criterion 14: tests/application/test_claims.py::test_service_refuses_an_instance_name_that_is_no_name and ::test_service_accepts_an_instance_name
+   - criterion 15: tests/application/test_claims.py::test_claim_refuses_a_branch_that_is_not_the_work_items_own_and_writes_nothing and ::test_claim_refuses_a_path_whose_file_name_is_no_work_items_and_writes_nothing
+   - criterion 16: tests/application/test_claims.py::test_claim_on_a_new_branch_commits_the_uncommitted_opening_on_main
+   - criterion 17: tests/application/test_claims.py::test_stage_start_is_frozen, ::test_stage_start_forbids_an_unknown_field and ::test_stage_start_commit_is_a_commit_id (parametrized: `"a"*40` accepted, `"a"*39` and `"A"*40` refused)
+   - criteria 18 and 19 are not tested here: 18 is `make check`, 19 is the docs stage.
+
+   Files created: tests/application/test_claims.py.
+
+   Not importable: `factory.application.claims` (ModuleNotFoundError at collection), so the whole module fails to collect, as intended. `factory.domain.errors.PushFailed` is missing too. `make lint` is green.
+
+   Rejected: a separate domain test for `PushFailed`. Criterion 9 already checks its fields and message, and no other criterion names it.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
