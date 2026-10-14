@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 69
 blocked: null
 comments_seen: 0
@@ -145,3 +145,13 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
    Noticed but not touched: the journal's stall entry still carries the multi-line `stall_cause(reason, detail)`, as the Assignment keeps it. The docs criterion (14) is the documenter's.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: criteria 1 to 12 each have a test, listed in the tester's entry, and each test checks what its criterion says. `tests/domain/test_stall_note_block.py` matches criterion 1 exactly. It covers the at-cap wording with no `retry` (2), the one-line and empty detail (3), trailing line breaks on both the one-line and the multi-line side (4), lines kept unchanged with their leading spaces (5), and the fence for runs of 2, 3 and 5 backticks (6). Runs of 2 and 3 are the two sides of the "three or longer" boundary.
+   - `tests/application/test_stall_labels.py` covers the rest. Through `StageRunner` the block holds lines 7 to 20 and then make's error line, line 6 is absent, and the journal entry still has the tail (7). The label is written after a first-stage `died` stall (8), a merge-conflict stall at `doing` (9) and an `already_posted` note (10). Both failing sides are tested: `set_labels` fails after the push and the single note (11), and `post_comment` fails with no label written (12). The coder's entry reports `make check` green.
+   - Code: `src/factory/domain/post_texts.py` `stall_note` matches the Interface. It strips trailing `\n`, puts the first line through the unchanged `stall_cause`, and adds the private `_text_block` with a fence of `max(3, longest_run + 1)` backticks.
+   - `src/factory/application/stalls.py:86`: `set_labels(pull_request.number, labels_for(state))` runs after `post_comment` returns, for both outcomes. `state` is the stalled state, and `StallResult` is unchanged.
+   - Architecture: the note text stays in `domain` and the label write stays in `application` behind the hosting-service interface. The only new import is stdlib `re`. No layer is crossed and no dependency is added.
+   - Security: no suppression markers, no shell or SQL strings, no secrets.
+   - Quality: the stall docstring and the `stall_note` docstring are updated. The comment on `_text_block` says why the block is fenced. `domain/sections.py` only parses fences and does not build one, so nothing is duplicated.
+   - Ticket hygiene: the coder's entry names the main decision and the rejected alternative (labelling in `ensure_pull_request`). `Assignment` matches what was built, and criterion 14 still says what the documenter must write.
