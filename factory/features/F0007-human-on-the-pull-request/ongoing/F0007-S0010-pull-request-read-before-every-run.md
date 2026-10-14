@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 91
 blocked: null
 comments_seen: 0
 round: 0
@@ -109,3 +109,15 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `RunGate` in `application/handlers/run_gate.py` (constructor, `handle`, and the `run`, `closed` and `merged` properties) and the grown `entry/wiring.py` (`NOT_YET_HANDLED`, `build_handlers`) are concrete. They name the modules, the handler instances and the three F0006-S0007 tests that change (its criteria 4, 5 and 9). Their new assertions are stated.
+   - Criteria: each is testable by one test function. The rules and their failing sides are covered:
+     - No pull request: criterion 1 (no read).
+     - Open: criteria 2 and 3.
+     - Closed: criteria 4 and 7.
+     - Merged: criteria 5 and 8.
+     - A failing read: criterion 6 (raises, no handler called).
+     - Wiring: criteria 9 to 13 (exact keys, instance types, the shared `closed` and `merged` instances, the `crash` error).
+   - Demo: runnable with the fake hosting service. Its `Expect:` line gives the exact output list.
+   - Architecture: the gate is in the application layer and uses only `Boundaries` and the hosting-service interface. Registration stays in `factory.entry.wiring`, with no second registry, as the human decided in questionnaire 1 Q20 (A).
+   - Scope: within FEATURE.md ("the pull request read before every agent run"). The rerun after a crash stays with F0008. Nothing here falls under "Out of scope".
