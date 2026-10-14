@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 83
 blocked: null
 comments_seen: 0
@@ -126,3 +126,15 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built the ask handler and the attempts-cap question text. `make check` is green and the demo prints what its `Expect:` line says.
+      - `src/factory/domain/post_texts.py`: I added `attempts_cap_question(stage, attempts, last_stall)`, which returns the two-paragraph text from the Interface.
+      - `src/factory/application/handlers/questions.py`: I added `AskHandler(boundaries, definition)`. `handle` takes `target_of`, then `require_pull_request(target, "ask")`.
+        - When `blocked` is set, it posts the snapshot's latest `question` record (found with `last_record`) as `<speaker>: <entry_text>`, with the key `PostKey(id, blocked, n=<record number>)`. It makes no commit.
+        - When `blocked` is unset and `attempts` is at or above `definition.attempts_cap`, it records first: it checks out the branch with `WorkItemRecorder`, reads the work item, and takes the text of the latest `stall` entry. It then appends the factory's `question` entry, sets `blocked="attempts_cap"`, and records with the subject `attempts cap question recorded`. Only after that does it post the new entry from the recorded document.
+        - It raises `CannotHandle("ask", …)` when `attempts` is below the cap, when there is no stall record (before anything is recorded), and when there is no question record. Errors from the hosting service or git are raised and not caught.
+      - Main design decision: the handler never checks whether a question was already posted. Repeats and restarts are safe because `HostingService.post_comment` already treats a post with an existing key as a no-op, and the key is built from the recorded entry's number. I rejected the alternative of listing comments first to skip known keys, because it would duplicate what the hosting service already guarantees.
+      - Refactor: I read the diff and found nothing worth a separate commit. A small private `_state_of` helper is duplicated in spirit from `handlers/comments.py`. I left it as it is because merging the two would be a change outside this ticket.
+      - Commit: `ticket F0007-S0002: feat(application): ask handler records and posts questions`.
+      - Open: the documentation criterion (18) is the documenter's.
+
+   `make check`: check: green
