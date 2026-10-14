@@ -553,7 +553,7 @@ A hand-made change that a later commit on the branch buried is not seen: only th
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
 
-The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`) and of the stage run are registered, and so is `crash` (see "A restart during a stage"). The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `expired` and `acceptance_due`. An event of such a kind leads to this today:
+The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`) and of the stage run are registered, and so are `crash` and `expired` (see "A restart during a stage" and "An expired lease"). The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `acceptance_due`. An event of such a kind leads to this today:
 
 It ends in the one report of its work item and remote state, and then holds back all new work, until a later story registers its handler. A push to the branch makes the factory try again.
 
@@ -595,7 +595,7 @@ What it does, in one call:
 
 A commit that you pushed to the branch while the stage ran is on the remote, so it stays; the journal entry names the commit the discard went back to. The stage-start commit and its `started` entry stay in the history too.
 
-If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. A claim of another instance name that has expired is not handled yet.
+If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. A claim of another instance name is handled only once its lease has expired (see "An expired lease").
 
 ### The crash cap
 
@@ -612,10 +612,27 @@ Stage doing crashed 2 times, which is the crash cap of 2. The factory has not re
 - A boundary error after the factory pushed its claim (hosting service, agent runtime, project command, git, a rejected result push) leaves the claim on the remote. The next look treats it as a crash and reruns the stage. If that fails again, it is the second crash and ends here with this question, not in the error report of "An event that keeps failing", because each rerun is a new event on a new remote state.
 - If posting fails, the question stays recorded and pushed; the failure is a counted error of the event. A question lost between its record and its post is posted again by the `ask` handler when the work item has a pull request; for a work item without one it is not posted again.
 
+## An expired lease
+
+When an instance finds a claim of another name whose lease has run out (the claim's age is at least its `lease_duration`, 60 minutes by default), it treats the holder as gone and takes the stage over. Before that, the claim is waited for and nothing is touched.
+
+What it does, in one call, is what a restart does (see "A restart during a stage"):
+
+- It throws away what is not on the remote and records the expiry in one commit: the claim is cleared, `crashes` goes up by one, and the journal gets an entry of kind `expiry`: "expiry 1: the lease of stage doing ran out. Its work is discarded back to commit <commit>."
+- `attempts` is not raised. An expiry is a crash, not a failed attempt, and it counts toward the crash cap.
+- After the push it posts a note on the pull request (a draft is opened for it if there is none): "The run that held this stage ended without finishing: its lease expired (crash 1 of 2). Retrying."
+- Then it reruns the stage itself. At the crash cap it does not: the note reads "... (crash 2 of 2). The factory does not rerun it and asks you instead." and is followed by the question of "The crash cap", on the same pull request.
+
+The notes of the factory say "retrying" only where a rerun follows. A note without it means the factory has stopped and waits for you.
+
+If the post of the note fails, the expiry stays recorded and pushed, the failure is a counted error of the event, and the note is not posted again. The stage is not rerun in that call; the next look finds no claim.
+
+Your own claim is never an expiry, however old it is: that is the restart case. A claim whose lease has not run out is refused as before.
+
 ## Claims, leases and the clock
 
 An instance claims a stage by pushing the stage-start commit; the claim records the instance's name, the start time and the role's `lease_duration` (60 minutes unless the pipeline definition says otherwise, per role). The claim keeps the value it was made with: changing `lease_duration` in the definition affects new claims only, never one that is running.
 
 - Your own claim is recognised whatever its age. After a restart with the same instance name, the instance reruns its stage at once and does not wait for the lease.
-- Another instance's claim is waited for until its lease has run out (the age reaches `lease_duration`); then it counts as expired.
+- Another instance's claim is waited for until its lease has run out (the age reaches `lease_duration`); then it counts as expired and the factory handles it as above.
 - Instances need a synchronised clock (NTP). Expiry compares the start time recorded by the claiming instance with the checking instance's own clock, so a clock that is off by minutes makes a lease end early or late.

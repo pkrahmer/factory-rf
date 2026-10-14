@@ -43,7 +43,13 @@ _Pair = tuple[WorkItemSnapshot, WorkItemState]
 _Pairs = Sequence[_Pair]
 _LookupResult = PullRequestObservation | HostingServiceError | None
 
-_CLAIM_EVENTS: dict[ClaimStatus, EventKind] = {"own": "crash", "expired": "expired"}
+CLAIM_EVENTS: dict[ClaimStatus, EventKind] = {"own": "crash", "expired": "expired"}
+"""The event a claim raises by its status: an own claim crashed, another's lease expired."""
+
+
+def required_claim_status(kind: EventKind) -> ClaimStatus | None:
+    """The claim status that raises an event of `kind`, or None when no claim raises it."""
+    return next((status for status, raised in CLAIM_EVENTS.items() if raised == kind), None)
 
 
 def waiting(state: WorkItemState, definition: PipelineDefinition) -> bool:
@@ -217,7 +223,7 @@ def _agent_at_work(
     if status == "held" and state.claim is not None:
         detail = f"{snapshot.id} is held by {state.claim.instance}"
         return Event(kind="idle", work_item=None, remote_state=facts.main_commit, detail=detail)
-    kind = _CLAIM_EVENTS.get(status)
+    kind = CLAIM_EVENTS.get(status)
     return None if kind is None else _event(kind, snapshot, facts.main_commit)
 
 

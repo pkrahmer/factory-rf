@@ -123,6 +123,18 @@ def crash_cap_question(stage: str, crashes: int, crash_cap: int) -> str:
     )
 
 
+def expiry_note(crashes: int, crash_cap: int) -> str:
+    """The note posted after an expired lease; it promises a retry only below the crash cap."""
+    if crashes < crash_cap:
+        follow_up = "Retrying."
+    else:
+        follow_up = "The factory does not rerun it and asks you instead."
+    return (
+        "The run that held this stage ended without finishing:"
+        f" its lease expired (crash {crashes} of {crash_cap}). {follow_up}"
+    )
+
+
 def cost_table_post(table: str) -> str:
     """The post that shows the human the cost table at the approval."""
     return f"Cost of this work item so far\n\n{table}"

@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 97
+blocked: null
+comments_seen: 0
+round: 2
+attempts: 0
+---
 # An expired lease, and notes that say retrying only when true
 
 ## Assignment (as of log entry 1)
@@ -177,3 +185,134 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: names concrete modules and signatures (`post_texts.expiry_note`, `stall_note` as already built, `recovery.expiry_entry_text`, `RecoveryHandler.handle` steps 1, 3, 4b and 5, `wiring.NOT_YET_HANDLED` and `build_handlers`). Every text and behaviour it states is exact: the two note wordings, the entry text, the guard per claim status, the step 4b post key, and the pull request number recorded when the stop opens one.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 cover both sides of the note cap, 3 both sides for `stall_note`, 6 both sides of the lease limit (59:59 and 60:00), 7 the refused statuses (`own` and no claim; `held` is the 59:59 case in 6), 12 and 13 the rerun below the cap and the question at it, and 14 a failed post. Criteria 15 and 16 cover a missing pull request below and at the cap, and 17 covers the wiring and `NOT_YET_HANDLED`. Every rule has its failing side.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output (`1 0 True`, `1`, `1 expiry 3`, `True`, and `True False`).
+   - Architecture: the texts and the entry text are in `domain`, the handler is in `application`, and the registration is in `entry.wiring`, so the layering holds. The post goes through `StopService`.
+   - Scope: inside F0008's scope item "expired lease handled as a crash" and its notes wording. It builds neither the watcher nor the lease functions, and the stall half belongs to F0005-S0004. Decisions 11, 12, 13 and 16 of FEATURE.md are carried out as written.
+3. tester: Tests written from the Interface and the criteria. They use S0001's setup: `factory-1` claims the stage through `tests/crash_support.py::claim`, `factory-2` handles the event, and `clock.advance` runs the lease out.
+   - criterion 1: tests/domain/test_post_texts_notes.py::test_the_expiry_note_below_the_crash_cap_says_retrying
+   - criterion 2: tests/domain/test_post_texts_notes.py::test_the_expiry_note_at_or_past_the_crash_cap_asks_and_does_not_say_retrying (crashes 2 and 3)
+   - criterion 3: tests/domain/test_post_texts_notes.py::test_the_stall_note_says_retrying_only_below_the_attempts_cap (every StallReason × attempts 1/2/3, cap 2)
+   - criterion 4: tests/test_retrying_wording.py::test_no_string_outside_the_post_texts_says_retrying (ast over `source_search.modules()`, skips module, class and function docstrings)
+   - criterion 5: tests/domain/test_recovery_expiry_text.py::test_the_expiry_entry_names_the_stage_the_count_and_the_commit
+   - criterion 6: tests/application/test_recovery_expiry.py::test_an_expired_event_is_handled_only_once_the_lease_has_run_out (59:59 refused, 60:00 handled)
+   - criterion 7: tests/application/test_recovery_expiry.py::test_an_expired_event_on_an_own_claim_or_no_claim_is_refused_and_pushes_nothing (own at 0 and at 60 minutes, no claim)
+   - criterion 8: tests/application/test_recovery_expiry.py::test_an_expiry_counts_one_crash_clears_the_claim_and_charges_no_attempt
+   - criterion 9: tests/application/test_recovery_expiry.py::test_the_journal_ends_with_a_factory_expiry_entry_naming_the_stage_start
+   - criterion 10: tests/application/test_recovery_expiry.py::test_the_checkout_is_discarded_before_the_expiry_is_recorded
+   - criterion 11: tests/application/test_recovery_expiry.py::test_the_expiry_note_is_posted_once_under_the_expiry_entrys_key
+   - criterion 12: tests/application/test_recovery_expiry.py::test_below_the_cap_the_handling_instance_reruns_the_stage_once
+   - criterion 13: tests/application/test_recovery_expiry.py::test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns
+   - criterion 14: tests/application/test_recovery_expiry.py::test_a_failed_note_raises_after_the_expiry_is_pushed_and_nothing_reruns
+   - criterion 15: tests/application/test_recovery_expiry.py::test_without_a_pull_request_the_note_opens_a_draft_whose_number_is_recorded_and_rerun (titled and untitled)
+   - criterion 16: tests/application/test_recovery_expiry.py::test_at_the_cap_without_a_pull_request_both_posts_land_on_one_new_draft. "The number is committed once" is checked as exactly two commits after the stage start: the expiry commit and the commit of the pull request number.
+   - criterion 17: tests/entry/test_wiring_recovery_expired.py::test_expired_shares_the_crash_handler_and_is_no_longer_listed_as_unhandled
+
+   New files: tests/domain/test_post_texts_notes.py, tests/domain/test_recovery_expiry_text.py, tests/test_retrying_wording.py, tests/application/test_recovery_expiry.py, tests/entry/test_wiring_recovery_expired.py.
+
+   One run of `make test`: three collection errors, as intended. `expiry_note` cannot be imported from `factory.domain.post_texts` (this breaks tests/domain/test_post_texts_notes.py and tests/application/test_recovery_expiry.py), and `expiry_entry_text` cannot be imported from `factory.domain.recovery` (tests/domain/test_recovery_expiry_text.py). The wiring test collects and fails, because `expired` is not registered yet.
+
+   The tests for criteria 3 and 4 already describe the current code. For criterion 3 the ticket says so. For criterion 4, today only `post_texts.py` contains the word, so that test is a guard rather than a red test.
+
+   `make lint` is green. The type check was skipped, as this stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the expiry takeover. `make check` is green, with coverage at 99.14 %. Commits: 23e1676 (feat), f2fc903 (refactor).
+      - `src/factory/domain/post_texts.py`: added `expiry_note`. It ends with "Retrying." only below the crash cap.
+      - `src/factory/domain/recovery.py`: added `expiry_entry_text`.
+      - `src/factory/application/recovery.py` (`RecoveryHandler`):
+        - Guards: the handler now accepts `crash` (the claim must be `own`) and `expired` (the claim must be `expired`), using the `_REQUIRED_STATUS` map. Any other kind is refused, and every `CannotHandle` it raises carries the event's kind.
+        - Record: for `expired` the journal entry is of kind `expiry`, with the text from `expiry_entry_text`, in the same single commit as a crash. At the cap that commit also holds the crash-cap question. The commit subject is "expiry of stage X recorded".
+        - Note (new `_note_expiry`): runs after the push. It posts through `StopService` under key `expiry:<entry number>`.
+        - Step 5: the rerun or `ask_crash_cap` gets the snapshot as last written. That means the PR number recorded with the note is already in it, so at the cap the question lands on the same draft without a second write of the number.
+        - `_record_pull_request` now returns the updated snapshot (new commit and document) instead of None.
+        - The stop title logic is shared in `_stop_title`, which `ask_crash_cap` now uses too.
+      - `src/factory/entry/wiring.py`: one `RecoveryHandler` instance is registered under both `crash` and `expired`. `NOT_YET_HANDLED` is now `("acceptance_due",)`.
+      - Design decision: I extended the existing handler, choosing the journal kind from the event kind. I rejected a separate `ExpiryHandler` or a subclass: the discard, record and push steps and the cap logic are identical, and the ticket asks for the same instance under both keys.
+      - Refactor: I removed a docstring from the private `_note_expiry`, since the project gives none to private names. Nothing else needed changing.
+      - Noticed, not touched:
+        - The `expiry is None` guard in `_note_expiry` cannot be reached, because the entry was appended just before. It is uncovered, and it mirrors the guard on the question in `ask_crash_cap`.
+        - `_state_of` and `_remote_head` still raise `CannotHandle` with kind `crash`, as they did before this story.
+        - Docs are left to the documenter (criterion 19).
+
+   `make check`: check: green
+5. reviewer: one finding, in group 4 (quality). Groups 1 to 3 pass. Every criterion from 1 to 17 has a test that checks what the criterion says. Both sides of the lease limit are tested (59:59 and 60:00), and both sides of each note cap (1 against 2 and 3). The refused statuses own, own after the lease, no claim and held are each tested. The coder's entry reports `make check` green. The layers hold, the post goes through `StopService`, and the diff adds no markers that silence a check. The diff also contains `CLAUDE.md`, `docs/runs/` and `planning/`; those changes are the human's commit b6af571, so I did not review them.
+
+   1. `src/factory/application/recovery.py:43` (`_REQUIRED_STATUS: dict[EventKind, str]`): the values are typed `str`, but they are compared with the `ClaimStatus` that `ClaimService.status` returns. Under `mypy --strict` a mistyped status ("expird") would therefore type-check and make the guard refuse every event. The map is also a second hand-kept copy, reversed, of `_CLAIM_EVENTS` in `src/factory/domain/evaluation.py:46` (own → crash, expired → expired). Fix: derive the required status from the domain's mapping by making it or its inverse public in `factory.domain`, and if that is not possible, at least type the values as `factory.domain.lease.ClaimStatus`.
+6. coder: coder (round 1): Fixed the reviewer's one finding in commit b0bb531. `make check` is green, with coverage at 99.14 %.
+      - `src/factory/domain/evaluation.py`: renamed the private `_CLAIM_EVENTS` to the public `CLAIM_EVENTS` (typed `dict[ClaimStatus, EventKind]`, with a docstring) and added `required_claim_status(kind: EventKind) -> ClaimStatus | None`, the inverse lookup. `claim_event` evaluation uses the renamed map; its behaviour is unchanged.
+      - `src/factory/application/recovery.py`: removed `_REQUIRED_STATUS`. The guard in `_dead_run` now calls `required_claim_status(event.kind)`, so the required status is typed `ClaimStatus` and comes from the domain's one map. A kind the map does not raise (anything other than `crash` or `expired`) still yields None and is refused with `CannotHandle`. Dropped the import of `EventKind`, which is no longer used.
+      - Rejected: only retyping the values of the local map as `ClaimStatus`. That would still keep a second copy of the map by hand, which the finding names.
+      - No tests changed. Nothing else was touched.
+
+   `make check`: check: green
+7. reviewer: reviewer (round 1): one finding, in group 4 (quality). Groups 1 to 3 pass.
+
+   - Every criterion from 1 to 17 has a test that checks what the criterion says.
+   - Both sides of the lease limit are tested (59:59 refused as `held`, 60:00 handled). Both note caps are tested on both sides (1 against 2 and 3, for every `StallReason`). The refused statuses own, own after the lease, and no claim are each tested.
+   - The rejected push of the pull-request number goes through the shared `_record_pull_request`, which S0002's test covers.
+   - The coder's entry reports `make check` green. The layers hold, the post goes through `StopService`, and the diff adds no marker that silences a check.
+   - Last round's finding is fixed: `required_claim_status` in `src/factory/domain/evaluation.py` derives the required status from the one `CLAIM_EVENTS` map, typed `ClaimStatus`.
+   - The diff also holds changes to `CLAUDE.md`, `docs/runs/` and `planning/`. They come from the human's commit, so I did not review them.
+
+   1. `src/factory/application/recovery.py:190` (`_remote_head`): for an `expired` event it raises `CannotHandle(_KIND, ...)`, which names the kind `crash`. That breaks the contract of `CannotHandle` ("the event's kind", `src/factory/domain/errors.py:178`). It also disagrees with the guard on the missing branch commit in `_dead_run`, which this diff changed to `event.kind` for the same case. The coder's entry noticed this and left it. Fix: pass the event's kind into `_remote_head` (from `handle`) and raise with it, as `_dead_run` does. `_state_of` in `ask_crash_cap` may keep `crash`.
+8. coder: coder (round 2): Fixed the reviewer's one finding in commit 8b346b7. `make check` is green, with coverage at 99.14 %.
+      - `src/factory/application/recovery.py`: `_remote_head` now takes the event's kind (`kind: EventKind`), which `handle` passes as `event.kind`. When the branch is gone from the remote it raises `CannotHandle(kind, ...)`. An expiry is no longer reported as `crash`, and this matches the guards in `_dead_run`. `EventKind` is now imported from `factory.domain.events`.
+      - As the finding allows, `_state_of` in `ask_crash_cap` still raises with `crash`.
+      - Rejected: storing the event's kind on the handler. It would add state to a handler that is shared between `crash` and `expired`. A parameter is simpler.
+      - No refactor was needed for this one-line change. No tests were changed.
+
+      `make check`: check: green
+
+   `make check`: check: green
+9. reviewer: reviewer (round 2): no findings. All five groups pass.
+
+   - Acceptance criteria: each of criteria 1 to 17 has a test that checks what the criterion says. Both sides of the lease limit are tested: 59:59 is refused as `held` with kind `expired`, and 60:00 is handled. Both note caps are tested on both sides: the expiry note at 1, 2 and 3 crashes, and the stall note for every `StallReason` at attempts 1, 2 and 3 against a cap of 2. The refused statuses are each tested: own, own after the lease, and no claim. For the other refusals, the existing test for a kind other than `crash` or `expired` (`tests/application/test_recovery_crash.py`, kind `run`) still holds after the guard moved to `required_claim_status`, and the S0001 tests still cover the missing state and the missing branch commit. The coder's entry reports `make check` green.
+   - Last round's finding is fixed: `_remote_head` in `src/factory/application/recovery.py` now takes the event's kind and raises `CannotHandle(kind, ...)`. This matches the guards in `_dead_run`. `_state_of` in `ask_crash_cap` keeps `crash`, as the finding allowed.
+   - Architecture: the note and entry texts are in `factory.domain`, and `required_claim_status` derives from the one `CLAIM_EVENTS` map in `factory/domain/evaluation.py`. The handler is in `factory.application`, the note is posted through `StopService`, and the registration is in `factory.entry.wiring`, with the same instance under `crash` and `expired`.
+   - Security: the diff adds no marker that silences a check, and builds no shell or SQL from strings.
+   - Quality: `_stop_title` is shared with `ask_crash_cap` rather than copied. The guard `expiry is None` in `_note_expiry` narrows the type of `last_record`'s result for mypy, as the coder's entry says. It is not dead logic.
+   - Ticket hygiene: the log names the main decision, extending `RecoveryHandler` rather than writing an `ExpiryHandler`, and what was rejected. `Assignment` matches what was built. Criterion 19 still says what the documenter has to write.
+   - Not reviewed: the diff also changes `CLAUDE.md`, `docs/runs/` and `planning/`. Those changes come from the human's commit b6af571.
+10. documenter: docs (round 2): wrote the documentation for criterion 19. `make check` is green (coverage 99.14 %). I found no contradictions between the code and the Interface, so there are no findings.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "An expired lease". It covers the takeover of another instance's expired claim, counting it as a crash with no attempt charged, the `expiry` entry, the note (both texts) and the crash-cap question that follows it. It also says that notes say "retrying" only where a rerun follows, that a note whose post failed is not posted again, and that your own claim is never an expiry. I updated the lists that named `expired` as unhandled: the dispatcher section (only `acceptance_due` is left) and the restart section. The clock paragraph in "Claims, leases and the clock" already required synchronised clocks and now points to the new section.
+    - `docs/project-guide.md`: `build_handlers` now has twelve kinds, with `expired` registered as the same `RecoveryHandler` instance as `crash`. `NOT_YET_HANDLED` is now only `acceptance_due`. `RecoveryHandler`'s description now covers `expired`: the guard through `required_claim_status`, the `expiry` entry text, step 4b (the note, its key, the pull-request number record, no repost) and the note that a `crash` still posts nothing.
+    - `docs/decisions.md`: new entry saying an expiry is a crash and costs no attempt. It records why one handler instance serves both kinds and why the expiry note is posted. It also records the rejected v1 behaviour, which charged an attempt and said "Retrying." even when the next tick asked the human.
+
+    Cross-read and found current: the stall-note sections of the operator guide, the claims and lease section of the project guide, and the earlier crash decisions. I ran no examples because I wrote no runnable ones. The note and entry texts in the guides match the Interface strings.
+
+    Stale but not touched: none seen.
+
+    `make check`: check: green
+11. demo: demo (round 2): ran the three commands under `## Demo` from the repository root, as written and in order. All three exited 0, and each output matches its `Expect:` line. Nothing in the output contradicts any acceptance criterion. No findings.
+
+    1. Note texts and entry text:
+    ```
+    The run that held this stage ended without finishing: its lease expired (crash 1 of 2). Retrying.
+    The run that held this stage ended without finishing: its lease expired (crash 2 of 2). The factory does not rerun it and asks you instead.
+    True False
+    expiry 1: the lease of stage doing ran out. Its work is discarded back to commit bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.
+    ```
+    Met. These are the four expected lines. The note below the cap ends with `Retrying.` (criterion 1). The note at the cap does not contain "retrying" (criterion 2). The stall note says "retrying" below its cap and not at it (criterion 3). The entry text is exact (criterion 5).
+
+    2. `factory-1` claims the stage, the clock advances by 60 minutes, and `factory-2` takes the stage over:
+    ```
+    1 0 True
+    1
+    1 expiry 3
+    True
+    ```
+    Met. The expiry is counted as a crash, no attempt is charged and the claim is cleared (criterion 8). The stage is rerun once (criterion 12). There is one post, of kind `expiry`, keyed by journal entry 3 (criteria 9 and 11). The body starts with `expiry_note(1, 2)` (criterion 11).
+
+    3. Registration:
+    ```
+    True False
+    ```
+    Met. `expired` shares the `crash` handler instance, and `expired` is no longer in `NOT_YET_HANDLED` (criterion 17).
+
+    Open: none. The demo does not run the cap side, the lease limit at 59:59, the refused statuses or the missing pull request (criteria 6, 7, 13 to 16). The reviewer reports tests for each of them, and nothing in the demo contradicts them.
