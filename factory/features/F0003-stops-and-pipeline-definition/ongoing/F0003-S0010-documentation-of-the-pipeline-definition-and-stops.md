@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 51
 blocked: null
 comments_seen: 0
@@ -97,3 +97,41 @@ Expect: one line, a number of at least `2`: the status names the health status f
    - Stale but not touched: the README and operator guide still describe `factory-check-story` as the only command, which is true. The guide's line "The documenter stage extends this" is unrelated and left as is.
 
    `make check`: check: green
+7. demo: I ran all three demo commands from the repository root. Each one met its `Expect:` line, and I found nothing that contradicts a criterion.
+
+   1. `sed -n '/^### Boundaries/,/^## /p' docs/project-guide.md | grep -c agent_definitions`
+   ```
+   1
+   ```
+   Met: one line, a number of at least 1.
+
+   2. `grep -n "^## " docs/operator-guide.md | grep -i "pipeline definition"`
+   ```
+   101:## The pipeline definition
+   ```
+   Met: there is a section on the pipeline definition. "The stop `pipeline_definition_invalid`" is a separate heading at line 79. Its name has no space between "pipeline" and "definition", so this grep does not match it.
+
+   3. `grep -ci "health\|pipeline definition\|project.guide" README.md`
+   ```
+   2
+   ```
+   Met: one line, a number of at least 2.
+
+   Criteria checked beyond the commands:
+   - The YAML example in "The pipeline definition" of the operator guide parses. I took it out of the guide and ran it through `factory.adapters.pipeline_yaml.RuamelPipelineDefinitionReader().parse`, which returned a `PipelineDefinition` with the stages `['testing', 'doing', 'review', 'done']`.
+   - The section covers everything the docs criterion names:
+     - the table of keys with their defaults;
+     - `done: {}`;
+     - contract major 1;
+     - `next` plus a role or `approval: true`;
+     - the lease rule, with the default sum 40+10+10=60;
+     - values taken only in their YAML type;
+     - a write path that is not blank;
+     - the pointer to the project guide's "The rules of the definition".
+   - The fix column for the rules-fault row in the `pipeline_definition_invalid` table points to "The pipeline definition".
+   - The operator guide's opening list of built parts names the F0003 parts: the factory log, the health status file, the stops, the pipeline definition with its reader, rules and loader, and the agent definition reader.
+   - The project guide's "Boundaries" lists `…, cost_writer, pipeline_reader, agent_definitions, clock, …`, in the dataclass's order.
+   - `grep WritePathService` over `docs/*.md` and `README.md` finds nothing.
+   - The README status sentence summarises the built parts, names the stops, the health status file and the pipeline definition, and points to `docs/project-guide.md`.
+
+   Findings: none. Open: nothing.
