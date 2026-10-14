@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 97
 blocked: null
 comments_seen: 0
@@ -277,3 +277,15 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
    - Quality: `_stop_title` is shared with `ask_crash_cap` rather than copied. The guard `expiry is None` in `_note_expiry` narrows the type of `last_record`'s result for mypy, as the coder's entry says. It is not dead logic.
    - Ticket hygiene: the log names the main decision, extending `RecoveryHandler` rather than writing an `ExpiryHandler`, and what was rejected. `Assignment` matches what was built. Criterion 19 still says what the documenter has to write.
    - Not reviewed: the diff also changes `CLAUDE.md`, `docs/runs/` and `planning/`. Those changes come from the human's commit b6af571.
+10. documenter: docs (round 2): wrote the documentation for criterion 19. `make check` is green (coverage 99.14 %). I found no contradictions between the code and the Interface, so there are no findings.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "An expired lease". It covers the takeover of another instance's expired claim, counting it as a crash with no attempt charged, the `expiry` entry, the note (both texts) and the crash-cap question that follows it. It also says that notes say "retrying" only where a rerun follows, that a note whose post failed is not posted again, and that your own claim is never an expiry. I updated the lists that named `expired` as unhandled: the dispatcher section (only `acceptance_due` is left) and the restart section. The clock paragraph in "Claims, leases and the clock" already required synchronised clocks and now points to the new section.
+    - `docs/project-guide.md`: `build_handlers` now has twelve kinds, with `expired` registered as the same `RecoveryHandler` instance as `crash`. `NOT_YET_HANDLED` is now only `acceptance_due`. `RecoveryHandler`'s description now covers `expired`: the guard through `required_claim_status`, the `expiry` entry text, step 4b (the note, its key, the pull-request number record, no repost) and the note that a `crash` still posts nothing.
+    - `docs/decisions.md`: new entry saying an expiry is a crash and costs no attempt. It records why one handler instance serves both kinds and why the expiry note is posted. It also records the rejected v1 behaviour, which charged an attempt and said "Retrying." even when the next tick asked the human.
+
+    Cross-read and found current: the stall-note sections of the operator guide, the claims and lease section of the project guide, and the earlier crash decisions. I ran no examples because I wrote no runnable ones. The note and entry texts in the guides match the Interface strings.
+
+    Stale but not touched: none seen.
+
+    `make check`: check: green
