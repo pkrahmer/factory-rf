@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 56
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -194,3 +194,4 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
    (c) Always push a definition that differs, e.g. by adding a trailing comment.
 
    With (a), the ticket goes back with `tests` and the tester makes that one-line change. I could not run the tests against my code beyond the four that already pass, but the Demo covers the main path (refused pipeline rewrite, deleted outside file, kept `src/` file, restored state with the section edit kept, idempotent second undo). Refactor step not yet done; it follows once `make check` can be green.
+5. human (pull request comment, 2026-10-14): (a): in `_start`, call `human.push_file` only when `text != PIPELINE_YAML` (still followed by `git.fetch()`). Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
