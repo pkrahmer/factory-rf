@@ -1,4 +1,4 @@
-"""The human's comments on a pull request, copied into the work item's journal by comment id."""
+"""The human's comments on a pull request, copied into the journal by id, and what they answer."""
 
 from collections.abc import Callable, Sequence
 from datetime import UTC
@@ -103,7 +103,6 @@ class CommentCopier:
 def _question_post(
     work_item: str, document: WorkItemDocument, listed: Sequence[PullRequestComment]
 ) -> PullRequestComment | None:
-    """Return the factory's post of the question the document waits on, if it is posted."""
     state = _state_of(document)
     question = last_record(document, kind="question")
     if state.blocked is None or question is None:
@@ -114,6 +113,19 @@ def _question_post(
 
 def _answer_after(post: PullRequestComment, comments: Sequence[PullRequestComment]) -> bool:
     return any(comment.body.strip() and comment.id > post.id for comment in comments)
+
+
+def _ending_the_wait(work_item: str, listed: Sequence[PullRequestComment]) -> Adjust:
+    # A comment the human wrote before the question was posted cannot answer it.
+    def adjust(
+        document: WorkItemDocument, comments: Sequence[PullRequestComment]
+    ) -> WorkItemDocument:
+        post = _question_post(work_item, document, listed)
+        if post is None or not _answer_after(post, comments):
+            return document
+        return document.model_copy(update={"state": unblock(_state_of(document))})
+
+    return adjust
 
 
 class CommentHandler(Handler):
@@ -132,15 +144,4 @@ class CommentHandler(Handler):
             copier.copy(target.snapshot, pull_request)
             return
         listed = self._boundaries.hosting.list_comments(pull_request)
-        work_item = target.snapshot.id
-
-        # A comment the human wrote before the question was posted cannot answer it.
-        def adjust(
-            document: WorkItemDocument, comments: Sequence[PullRequestComment]
-        ) -> WorkItemDocument:
-            post = _question_post(work_item, document, listed)
-            if post is None or not _answer_after(post, comments):
-                return document
-            return document.model_copy(update={"state": unblock(_state_of(document))})
-
-        copier.copy(target.snapshot, pull_request, adjust)
+        copier.copy(target.snapshot, pull_request, _ending_the_wait(target.snapshot.id, listed))
