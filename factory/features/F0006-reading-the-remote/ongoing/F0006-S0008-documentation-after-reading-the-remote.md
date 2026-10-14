@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 80
 blocked: null
 comments_seen: 0
@@ -74,3 +74,8 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
 4. coder: nothing built, on purpose. This story only changes documentation. The Interface is "None: no code changes" and the tester wrote no tests, so the coding stage has no work to do. I made no commits and changed no files under `src/` or `tests/`. I skipped the refactor step because there is no diff of my own to review. The documentation changes in criterion 2 (`README.md` and `docs/operator-guide.md`) belong to the documenter stage. Under CLAUDE.md the coder does not write those files, so I did not touch them. `make check` is green on the branch as checked out (coverage 99.35 %).
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` has no changes under `src/`, `tests/`, `README.md` or `docs/` apart from `docs/runs/`. Every changed file is under `planning/` or `docs/runs/`. They come from the human's commit 5f50f94 ("Night log: F0010 …"), which reached the branch through 802caad ("merge main"). The local `main` ref has not caught up with it yet. These are the human's files, not this ticket's work, so I did not review them.
+      - Acceptance criteria: the Interface is "None: no code changes" and states no rule or limit, so no failing side needs a test. The tester wrote no tests and the coder built nothing, both on purpose and as the Assignment says. Criterion 1: the coder's entry records `make check` green (coverage 99.35 %). Criterion 2 is the docs criterion, which the documenter writes next. Its seven bullets name the sections, the phrases to remove and the texts to match (`error_report_text`, the `reject` detail, `factory-watch: no instance settings are wired yet`), so the documenter can write it and a later reader can check it.
+      - Architecture, security, quality: no code or configuration changed, and no suppression markers were added.
+      - Ticket hygiene: the log gives the main decision (documentation only, no tests, nothing to build) and what was rejected (tests that grep the docs). `Assignment` matches what was built, which is nothing yet. The docs criterion still describes what the reader must know after this story.
