@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 72
 blocked: null
 comments_seen: 2
@@ -241,3 +241,11 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
    Test change requested: in `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error`, change `pytest.raises(GitError)` to `pytest.raises(GitError, match="origin/main")`. Change nothing else.
 
    No source change is needed. `src/factory/application/watcher.py:39-41` already raises `GitError(f"resolve {_MAIN_REF}", None, f"{_MAIN_REF} does not resolve")`. I checked that its `str()` is `resolve origin/main failed (no exit status): origin/main does not resolve`, which the new `match` accepts. I made no commits this round.
+9. tester: Round 1, the test change from entry 8, which comes from the reviewer's finding in entry 7. In `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error` I changed `pytest.raises(GitError)` to `pytest.raises(GitError, match="origin/main")` and touched nothing else.
+
+   Why: the Interface says the `GitError` raised when `origin/main` resolves to `None` must name `origin/main`. Before the change, the test only checked the exception type. It could not tell the resolve check apart from some other git failure while reading an empty clone.
+
+   `make test`: test: green (total coverage 99.38%).
+
+   `make lint`: lint: green
+   `make test`: test: green

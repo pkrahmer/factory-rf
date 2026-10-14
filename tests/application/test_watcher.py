@@ -187,5 +187,5 @@ def test_a_remote_without_main_is_a_git_error(boundaries: Boundaries, tmp_path: 
     git.clone(str(tmp_path / "empty.git"))
     empty = replace(boundaries, git=git)
 
-    with pytest.raises(GitError):
+    with pytest.raises(GitError, match="origin/main"):
         Watcher(empty, INSTANCE).evaluate(_definition(boundaries))
