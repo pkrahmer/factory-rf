@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 59
 blocked: null
 comments_seen: 0
@@ -136,3 +136,11 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
       - Quality: the module docstring and the public docstrings are present. The two comments in the module say why. Nothing dead or duplicated: the journal-section check uses `sections`/`JOURNAL`, and the body comes from the reader's `parse_specification`.
         - Judged acceptable: the `ensure_pull_request` docstring says a missing title line raises, but the code only checks the title when it has to create a PR. That matches the Interface, where the title is only defined for the create call.
       - Ticket hygiene: the log names the main decision (check the recorded PR with `get_pull_request` before the branch lookup) and what was rejected. `Assignment` matches what was built. Criterion 22 still describes what the documenter must write.
+6. documenter: documented the opening of a work item; no findings. `make check` is green.
+   - `docs/project-guide.md`: new section "Opening a work item". It covers `prepare` (new branch from `origin/main`, initial state, backlog front matter ignored, empty `## Journal` added, existing entries left for the form check, entry 1; existing branch reset to the remote's, `origin/main` merged, conflict aborted), `ensure_pull_request` (the order of reuse, only an open pull request reused) and the tests.
+   - `docs/decisions.md`: new entry recording that the local branch is reset to the remote's (R18), so v1's fast-forward stall does not exist. It also records that the recorded pull request is checked before the branch lookup.
+   - Cross-read: the claim service and form check sections of `docs/project-guide.md` already match this behaviour (they say the opening writes entry 1 and that the stage-start commit is the opening commit for a new branch). `README.md` and `docs/operator-guide.md` do not touch this story.
+   - I did not run the demo command; I checked the docs against `src/factory/application/opening.py`. The new docs contain no code examples to run.
+   - Stale but unrelated: nothing seen.
+
+   `make check`: check: green
