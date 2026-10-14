@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 77
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -94,3 +94,15 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: Intake asks one question (the format check passed, so nothing from it).
+
+   1. The Interface comment for `agent_environment` states the exact value `{"PATH": f"{scripts}:/usr/local/bin:/usr/bin:/bin", "HOME": str(home)}`. Criterion 6 tests only that the first `PATH` entry is `str(scripts)`, that `factory-guard` is found when present and not found when absent, that `HOME` equals `str(home)`, and that the keys are exactly `PATH` and `HOME`. The fixed tail `:/usr/local/bin:/usr/bin:/bin` has no criterion, so two coders could write different tails and both would pass the tests.
+      - Option A, which I would choose: extend criterion 6 so that `PATH` equals `f"{scripts}:/usr/local/bin:/usr/bin:/bin"` exactly.
+      - Option B: drop the tail from the Interface comment and state only that `scripts` comes first.
+
+   Everything else checked out.
+   - Interface: concrete modules and signatures.
+   - Criteria: each is testable by one function. The failing sides are covered by 2 (wrong kind), 3 (stage failure propagates), 6 (guard absent) and 9 (unhandled kind is a counted error).
+   - Demo: runnable, and its `Expect:` line is checkable.
+   - Architecture: `RunHandler` sits in `application`, and the wiring sits in `entry`.
+   - Scope: inside the feature's "Production wiring" scope, and it touches nothing under "Out of scope".
