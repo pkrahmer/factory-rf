@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 97
 blocked: null
 comments_seen: 0
@@ -316,3 +316,4 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
     Met. `expired` shares the `crash` handler instance, and `expired` is no longer in `NOT_YET_HANDLED` (criterion 17).
 
     Open: none. The demo does not run the cap side, the lease limit at 59:59, the refused statuses or the missing pull request (criteria 6, 7, 13 to 16). The reviewer reports tests for each of them, and nothing in the demo contradicts them.
+12. done (pull request merged); cost: 10 runs, 20.3 min, 84 turns, 289k tokens in (1763k more from cache), 40k out, $3.22
