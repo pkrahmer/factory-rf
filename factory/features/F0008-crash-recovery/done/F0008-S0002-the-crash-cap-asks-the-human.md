@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 96
 blocked: null
 comments_seen: 0
@@ -266,3 +266,4 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
    Exit 0. Met its Expect line: the crash count reached the cap of 2, no attempt was charged, the item was blocked with `crash_cap` and the claim was cleared. The run handler was not called. Exactly one post was made, of kind `crash_cap` and keyed by journal entry 4. Its body starts with the `factory: ` question text.
 
    Checked against the acceptance criteria: the output agrees with criteria 1, 3, 4, 6, 7, 14, 15 (through `unblock`) and 17, and contradicts none. The demo does not exercise the other criteria (failed post, already_posted, opening the draft pull request, a checkout on main, CannotHandle, the boundary-error path, docs). It contradicts none of them either. No findings.
+8. done (pull request merged); cost: 6 runs, 30.4 min, 48 turns, 158k tokens in (1275k more from cache), 30k out, $2.19
