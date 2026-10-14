@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 64
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -156,3 +156,22 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: the tests' own pipeline definition is invalid, so all 28 tests in `tests/application/test_stage_finish.py` fail before they reach the code under test.
+
+   `DEFINITION_YAML` in that file gives the `tests` stage `checks: [lint, check]` and `reports: [test, coverage]`. The tester role keeps its default `time_limit` 40 and `lease_duration` 60. The existing lease rule in `src/factory/domain/pipeline_definition.py` (`_lease_faults`) adds up the role's time limit and the time limits of the stage's project commands: 40 + 5 + 10 + 10 + 3 = 68. That is more than 60, so `pipeline_reader.parse` raises `PipelineDefinitionInvalid: role tester at stage tests: 68 min exceed lease_duration 60 min` in `_definition`.
+
+   The implementation is done and committed as 8b70068:
+   - `src/factory/domain/labels.py` holds `labels_for`.
+   - `src/factory/application/stage.py` holds `STALL_TAIL_LINES`, `StageReport`, `StageFinisher` and `StageRunner`.
+
+   The 15 tests in `tests/domain/test_labels.py` and `tests/application/test_stage_run.py` pass. I ran a throwaway copy of the finish test file whose only change was `lease_duration: 70` on the tester role, and all 43 of its tests passed. I deleted the copy; it was never committed. `make check` is green apart from these 28 tests (lint, types, layers, sast, secrets, licenses all green).
+
+   The options I see:
+   (a) The tester changes `DEFINITION_YAML` so that it parses: give the tester role a longer lease (for example `tester: {write_paths: ["tests/*"], lease_duration: 70}`, or `time_limit: 30`). Time limits, order and coverage stay as they are. I recommend this.
+   (b) Relax or remove the lease rule. That changes a decision made in an earlier story and is outside this one's scope, so I would not do it.
+
+   If you choose (a), the next run ends with `tests`, naming that one change in `DEFINITION_YAML`.
+
+   Design (for the review afterwards): a red check reuses `StallService.stall` with the stage-start commit. The document given to it is the undone one with the agent's entry and the green checks' lines appended, so the entry stays above the stall record. The stall detail is the command's name followed by the last 15 lines of `output_tail`. I rejected a separate stall path in the finisher because it would have duplicated the attempt counting and the note.
+
+   Refactor step: not done yet, because the checks are not green.
