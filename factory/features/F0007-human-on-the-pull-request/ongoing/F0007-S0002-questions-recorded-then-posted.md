@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 83
 blocked: null
 comments_seen: 0
@@ -161,3 +161,22 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
    - Findings for the coder: none.
 
    `make check`: check: green
+7. demo: I ran the one demo command from the repository root exactly as written. It exited with status 0 and its output matches its `Expect:` line. There are no findings.
+
+   ```
+   Stage doing stalled 2 times. The last time: the agent gave no result
+
+   Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+   1
+   ['reviewer: Send it back?', '', '<!-- factory -->', '<!-- factory key=F0001-S0001:round_cap:2 -->']
+   ```
+
+   - Expect met:
+     - The attempts-cap question prints as two paragraphs with exactly the expected text.
+     - Then comes `1`: the second `handle` posted nothing.
+     - Then comes the exact list of body lines, with the key `F0001-S0001:round_cap:2`.
+   - Criteria checked against the output:
+     - It agrees with criterion 1 (the text).
+     - It agrees with criteria 2 and 3: the prefix is `<speaker>: `, the key's kind is the `blocked` value and its `n` is the question entry's number.
+     - It agrees with criterion 5: a repeat posts nothing.
+     - No criterion is contradicted. The demo does not exercise the attempts-cap recording path (criteria 7–14), and that path is covered by the tests the reviewer checked.
