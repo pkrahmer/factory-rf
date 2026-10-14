@@ -1051,6 +1051,30 @@ What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `re
 
 Tests: `tests/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
 
+## The decision rules
+
+`factory.domain.decisions.decide(definition, state, decision, findings=())` turns the agent's decision into a `StageMove` (frozen, no unknown keys): `rule`, `stage`, `blocked`, `round` and `question`. It is pure; the stage's result commit (F0005-S0007) applies the move. It never touches `attempts` or `crashes`: a rework counts rounds, a stall counts attempts, and the two are kept apart.
+
+"Forward" is a decision equal to `next[0]` of the state's stage; a "rework" is any other entry of `next`. This is the only rule for counting rounds, wherever in the pipeline definition the named stage sits. A stage missing from the definition, or a decision that is neither in `next` nor `question`, raises `ValueError` naming it.
+
+The rules are tried in v1's order; rule 5 (a red check) is not decided here but by the checks after the move:
+
+| Rule | When | Stage | `blocked` | `round` | `question` |
+|---|---|---|---|---|---|
+| 1 | forward, and `findings` is not empty | unchanged | `question` | unchanged | `findings_question(findings)` |
+| 2 | decision `question` (findings do not matter) | unchanged | `question` | unchanged | `None`: the agent's own entry is the question |
+| 3 | rework, stage has `round_cap`, `round + 1 <= round_cap` | the decision | `None` | `round + 1` | `None` |
+| 4 | rework, stage has `round_cap`, `round + 1 > round_cap` | unchanged | `round_cap` | `round + 1` | `round_cap_question(round + 1, round_cap)` |
+| 5 | forward, but a check is red | (the checks, S0007) | | | |
+| 6 | forward, no findings | `next[0]` | `None` | unchanged | `None` |
+| 7 | rework, stage has no `round_cap` | the decision | `None` | unchanged | `None` |
+
+Rules 3, 6 and 7 move, so they clear a `blocked` of `question`. `findings` matter only to a forward decision. Rule 6 only says the move; its checks run afterwards.
+
+The factory's own question texts are in `factory.domain.post_texts`: `round_cap_question(rounds, cap)` and `findings_question(findings)` (the messages numbered from 1, joined by one space). That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
+
+Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.py`.
+
 ## Kill points: testing a crash
 
 A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).

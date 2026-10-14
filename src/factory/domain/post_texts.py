@@ -1,7 +1,16 @@
 """The texts the factory writes on the hosting service."""
 
-from factory.domain.decisions import StallReason
+# Postponed annotations let this module name StallReason while decisions imports these texts.
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
 from factory.domain.identifiers import WorkItemId
+
+if TYPE_CHECKING:
+    from factory.domain.decisions import StallReason
+    from factory.domain.story_form import FormFinding
 
 
 def opened_for_stop_description(work_item: WorkItemId) -> str:
@@ -41,3 +50,24 @@ def stall_note(reason: StallReason, attempts: int, attempts_cap: int, *, detail:
     else:
         follow_up = "The attempts cap is reached; the factory asks you next."
     return f"Stalled (attempt {attempts} of {attempts_cap}): {cause}. {follow_up}"
+
+
+def round_cap_question(rounds: int, cap: int) -> str:
+    """The question asked when a rework would send the work item back more often than its cap."""
+    return (
+        f"This work item has now been sent back {rounds} times, more than {cap}."
+        " What should happen? Answer with a comment;"
+        " close the pull request to discard the work item."
+    )
+
+
+def findings_question(findings: Sequence[FormFinding]) -> str:
+    """The question asked when a forward decision leaves the form with findings."""
+    numbered = " ".join(
+        f"{number}. {finding.message}" for number, finding in enumerate(findings, start=1)
+    )
+    return (
+        f"The work item's form has findings, so the stage cannot move forward: {numbered}."
+        " What should happen? Answer with a comment; the stage then runs again."
+        " Close the pull request to discard the work item."
+    )

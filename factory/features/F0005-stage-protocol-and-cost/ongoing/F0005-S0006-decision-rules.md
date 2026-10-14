@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 63
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The decision rules: questions, rework rounds and caps
 
 ## Assignment (as of log entry 1)
@@ -88,3 +96,81 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `decide`, `StageMove`, `round_cap_question` and `findings_question` are named with modules and signatures. The types come from existing modules. The TYPE_CHECKING import of `StallReason` is specified. The "forward = next[0], rework = other entry" rule is explicit.
+   - Criteria: each is testable by one test function. Every rule has its failing side: rule 4 covers the cap on both sides (criterion 6, rounds 0 to 3). Unknown decision (11) and unknown stage (12) raise ValueError. Rule 2 with findings (4) and findings with a rework (9) are covered. `blocked` clearing is covered (10). Both texts are exact (14, 15). The `StageMove` limits are tested on both sides (16).
+   - Demo: the command is runnable and matches the Interface. I traced the output. Rounds 0 and 1 give rule 3. Round 2 gives rule 4, stage review, round 3 and `round_cap`. The question text for 3 and 2 follows the template. The last two lines are 6 and `question`, six lines in all. Each `Expect:` line is checkable.
+   - Architecture: the code is pure domain, with no I/O. `post_texts` and `decisions` stay in `factory.domain`. The import direction is stated, so there is no layer problem.
+   - Scope: within F0005 (decision rules 1 to 4, 6 and 7). Rule 5 and `crashes` are left to S0007, and decisions 16, 17 and 26 are respected. Nothing is out of scope.
+3. tester: Wrote the tests for the decision rules and the factory's own question texts. In `tests/domain/test_decision_rules.py`, a local fixture `definition` builds the pipeline: `doing` has next review, tests and no round_cap; `review` has next docs, doing and round_cap 3. Its other stages are tests, docs and done.
+   - criterion 1: tests/domain/test_decision_rules.py::test_a_forward_decision_without_findings_moves_to_the_first_next_stage
+   - criterion 2: tests/domain/test_decision_rules.py::test_a_forward_decision_with_findings_becomes_a_question
+   - criterion 3: tests/domain/test_decision_rules.py::test_the_decision_question_blocks_the_work_item_at_its_stage
+   - criterion 4: tests/domain/test_decision_rules.py::test_findings_do_not_add_a_question_to_the_decision_question
+   - criterion 5: tests/domain/test_decision_rules.py::test_a_rework_within_the_round_cap_moves_and_counts_a_round
+   - criterion 6: tests/domain/test_decision_rules.py::test_a_rework_past_the_round_cap_asks_the_human (parametrized: rounds 0, 1 and 2 give rule 3; round 3 gives rule 4; the new round is rounds + 1)
+   - criterion 7: tests/domain/test_decision_rules.py::test_a_rework_past_the_round_cap_stays_blocked_with_the_round_cap_question
+   - criterion 8: tests/domain/test_decision_rules.py::test_a_rework_at_a_stage_without_round_cap_moves_without_counting
+   - criterion 9: tests/domain/test_decision_rules.py::test_findings_do_not_change_a_rework
+   - criterion 10: tests/domain/test_decision_rules.py::test_a_move_clears_a_blocked_question (parametrized over rules 3, 6 and 7)
+   - criterion 11: tests/domain/test_decision_rules.py::test_a_decision_outside_next_is_refused_by_name (decision `done` at stage `review`)
+   - criterion 12: tests/domain/test_decision_rules.py::test_a_stage_outside_the_pipeline_definition_is_refused_by_name
+   - criterion 13: tests/domain/test_decision_rules.py::test_a_stage_move_has_no_attempts_or_crashes
+   - criterion 14: tests/domain/test_question_texts.py::test_the_round_cap_question_names_the_rounds_and_the_cap
+   - criterion 15: tests/domain/test_question_texts.py::test_the_findings_question_numbers_the_findings_messages
+   - criterion 16: tests/domain/test_decision_rules.py::test_a_stage_move_accepts_each_rule (rules 1, 2, 3, 4, 6 and 7 with round 0), ::test_a_stage_move_refuses_what_its_types_refuse (rule 5, round -1 and an unknown key, each built through `type[BaseModel]`) and ::test_a_stage_move_is_frozen (setattr on `stage`)
+   - criteria 17 and 18: not test criteria (make check, docs).
+
+   Files created: tests/domain/test_decision_rules.py and tests/domain/test_question_texts.py.
+
+   `make test` stopped at collection with 2 errors, one for each new file. The test runner could not import `StageMove` and `decide` from `factory.domain.decisions`, or `findings_question` and `round_cap_question` from `factory.domain.post_texts`. `make lint` is green. Nothing open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built the decision rules. All tests pass and `make check` is green. The demo prints the six expected lines.
+      - `src/factory/domain/decisions.py`: `StageMove` (frozen, `extra="forbid"`) and `decide`. `decide` looks up the stage and raises `ValueError` naming an unknown stage or a decision outside `next`/`question`. It then tries the rules in order 1, 2, 6, 7, 3/4. Each rule's conditions exclude the others, so this is the same result as v1's order 1, 2, 3, 4, 6, 7. Two private helpers do the work: `_stay` (rules 1 and 2) and `_move` (rules 3, 6 and 7, which always clear `blocked`). It never touches `attempts` or `crashes`.
+      - `src/factory/domain/post_texts.py`: `round_cap_question` and `findings_question`. The module now uses `from __future__ import annotations` and imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, as the Interface says. This breaks the import cycle now that `decisions` imports `post_texts`.
+      - Main decision: "forward" is `stage.next[:1] == [decision]` and every other entry of `next` is a rework. Rounds are counted from the order of `next` alone, as FEATURE decision 26 says. I rejected comparing stage positions in the pipeline definition (`PipelineDefinition.position`), which the Interface rules out.
+      - Refactor pass: after the first lint run I made `_move` take no state and renamed its `round` parameter to `rounds`, so it no longer shadows the builtin. That change is in the same commit (7b2d1fb). The final diff needed nothing further, so there is no separate refactor commit.
+      - Open: docs criterion 18 is for the documenter. Nothing else noticed.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: criteria 1 to 16 each have a test in `tests/domain/test_decision_rules.py` or `tests/domain/test_question_texts.py`, and each test checks what its criterion says. The round cap is tested on both sides: rounds 0 to 2 give rule 3 and round 3 gives rule 4. `round` is tested with -1 and 0, and `rule` with 5 and with each allowed value. An unknown key goes through a variable typed `type[BaseModel]`, and the frozen test uses `setattr` with the field name in a variable. Both `ValueError` sides are tested (unknown decision, unknown stage). The coder's entry says `make check` was green.
+   - Rule order: `decide` in `src/factory/domain/decisions.py` tries the rules as 1, 2, 6, 7, 3/4, not 1, 2, 3, 4, 6, 7. I checked the conditions, including the edge case where `question` is an entry of `next`. They exclude each other, so the result is the same as v1's order.
+   - Architecture: everything is pure `factory.domain` code. `post_texts` imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, with postponed annotations, so the cycle with `decisions` is broken as the Interface says. There is no `Any` and no `dict[str, Any]`.
+   - Security: nothing relevant. No suppression markers were added.
+   - Quality: names and docstrings are fine. Rules 1 to 3, 6 and 7 build their result in the private helpers `_stay` and `_move`; rule 4 builds its own. The one comment explains why ("forward is next[0] ... wherever it points").
+   - Ticket hygiene: the log gives the main decision (forward is `next[0]`) and what was rejected (`PipelineDefinition.position`). `Assignment` matches what was built, and the docs criterion (18) still says what the documenter must write.
+   - Out of scope: `git diff main...HEAD` also lists changes under `planning/`, `docs/runs/` and `factory/features/F0007-*`. They come from the human's commit c3044cd, which is on `origin/main` and reached this branch through the merge 76fa9ee; the local `main` is behind `origin/main`. They are not the ticket's work, and I did not review them.
+6. documenter: wrote the documentation for criterion 18. `make check` is green.
+   - `docs/project-guide.md`: new section "The decision rules", placed before "Kill points". It has the forward/rework rule, the table of rules 1, 2, 3, 4, 6 and 7 (with 5 marked as the checks') and what each does to stage, `blocked`, `round` and `question`. It says that rounds and attempts are counted apart and that `decide` never touches `attempts` or `crashes`. It also names the two question texts and the `TYPE_CHECKING` import in `post_texts`.
+   - `docs/operator-guide.md`: new section "The factory's own questions", before the `pipeline_definition_invalid` stop. It gives the exact texts of the form-findings question and the round-cap question, what the stage and round do while blocked, and which answers are accepted: a comment, or closing the pull request to discard the work item. It also says a stage without `round_cap` never asks.
+   - Cross-read against the diff: the project guide's pipeline-definition section (`next[0]` forward, `round_cap`), its state table (`blocked` values), its "After the agent run" section and the operator guide's stall section. All are current.
+   - Not touched: nothing stale found. I did not run the demo again, but the text I wrote follows the code and the reviewer's trace.
+   - Code vs Interface: no findings.
+
+   `make check`: check: green
+7. demo: I ran the one demo command from the repository root, exactly as written. It met its `Expect:` line and I found nothing.
+
+   Command 1 (`uv run python -c "…decide…"`, a pipeline definition with `review` at `round_cap` 2):
+   ```
+   0 3 doing 1 None
+   1 3 doing 2 None
+   2 4 review 3 round_cap
+   This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the work item.
+   6
+   question
+   ```
+   It met the `Expect:` line: there are 6 lines, and each one matches its expected text exactly.
+   - Lines 1 to 3: rule 3 below the cap, then rule 4 once the new round passes the cap. The stage stays at review, round is 3 and `blocked` is `round_cap`.
+   - Line 4: the `round_cap_question(3, 2)` text.
+   - Line 5: rule 6 for the forward decision.
+   - Line 6: `blocked` is `question` for the decision `question`.
+
+   Acceptance criteria check: the output contradicts none of the criteria. It shows criteria 5, 6 and 7 working at a different cap (2): the rounds increase, the cap applies on both sides, and rule 4 keeps the stage, gives round + 1, `blocked="round_cap"` and the exact question text. It also shows criterion 1 (forward decision gives rule 6), criterion 3 (`question` blocks) and criterion 14 (the template of the round-cap text).
+
+   The demo does not exercise criteria 2, 4, 8 to 13, 15, 16 and 18. The tester's and reviewer's entries cover those through tests and docs. According to the documenter, the last `make check` was green. I did not run it in this stage.
+
+   Open: nothing.
