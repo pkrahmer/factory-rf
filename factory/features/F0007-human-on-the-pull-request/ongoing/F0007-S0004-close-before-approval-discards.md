@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 85
 blocked: null
 comments_seen: 0
@@ -167,3 +167,17 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
    - Nothing else noticed.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–12 has a test in `tests/application/handlers/test_closed.py`, and each test checks the criterion it is named after.
+        - Criterion 2 compares the backlog file with main's text from before the close, while the branch holds a different body.
+        - Criterion 3 covers all five stages, and each one is a non-approval stage in `PIPELINE_YAML`.
+        - Criterion 4 checks the exact list of `ChangedPath`.
+        - Criterion 5 checks the remote ref, the local ref and `origin/<branch>`.
+        - Criterion 8 checks that a second run makes exactly one commit.
+        - Criteria 10 and 12 test the failing sides of the push rules: main rejected with the branch kept, and the deletion refused after the move.
+        - The coder's entry says `make check` was green.
+        - The `unreachable` outcome of `delete_remote_branch` has no test. It goes through the same `outcome != "pushed"` branch as `rejected`, which is tested. Intake and tester already recorded this, so it is not a gap in the story.
+      - Architecture: `src/factory/application/handlers/closed.py` imports only from `factory.application` and `factory.domain`. It makes no call to the hosting service and none to a tool.
+      - Security: none of the checklist's issues are present. No suppression markers.
+      - Quality: commit 2c6c0de pulls the remote-then-local branch deletion that `MergedHandler` duplicated into `WorkItemRecorder.delete_branch` (`src/factory/application/handlers/recording.py`). Behaviour is the same, and it leaves no dead imports in `merged.py`. The docstrings are present and accurate. The early return at an approval stage (`closed.py`) is the one uncovered line. It is the place S0005 fills in, its comment says why, and this story specifies no behaviour there. I accepted it rather than ask for an invented error.
+      - Ticket hygiene: the log gives the main decision (approval-stage return, `CannotHandle` rejected) and the refactor. `Assignment` matches the code. The docs criterion (criterion 14) still says what the operator must know.
