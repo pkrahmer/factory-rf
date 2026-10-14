@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 74
 blocked: null
 comments_seen: 4
@@ -203,3 +203,20 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: The tester's two changes from log entry 9 are in, and `make check` is green with no change to the feature code (commit 447294b): all 23 criteria pass and coverage is 99.39 %.
+
+    What I built: `src/factory/application/tick.py`, which holds `HandlerFactory`, `TickOutcome`, `IdleHandler` and `Tick`. A tick runs fetch, load, restore, evaluate and dispatch, in that order. A private `_Stopped` exception ends the tick once a repository stop has been raised through `StopService`. When the fetch or the restore succeeds, its stop is cleared. The definition's stop is left to `PipelineLoader`.
+
+    Main design decision: the restore does these steps in order:
+    1. It reads `status` and writes the discarded line.
+    2. It runs `reset_to("HEAD")` to clean the current branch in place.
+    3. It runs `checkout("main", start_point="origin/main")`.
+    4. It deletes the local `work-item/<id>` branch of every id that has an `origin/work-item/` branch or an `in-progress/` story on `origin/main`.
+
+    Rejected: `reset_to("origin/main")` on the current branch. It would move a non-work-item branch such as `scratch` when the checkout is on it.
+
+    Refactor (commit 7cc0e7f): I typed `_stop` as `NoReturn`, since it always raises. That makes the end of the fetch and restore steps explicit. Nothing else needed changing.
+
+    Noticed but not touched: nothing.
+
+    `make check`: check: green
