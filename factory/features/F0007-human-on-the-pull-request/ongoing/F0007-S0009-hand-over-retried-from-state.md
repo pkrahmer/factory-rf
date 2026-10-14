@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 90
 blocked: null
 comments_seen: 2
@@ -185,3 +185,17 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: review. With the tester's change from entry 7, `make check` is green (coverage 99.21 %).
+
+   Built (feature commit 82ef94e, refactor f737212):
+   - `src/factory/domain/hand_over.py`: `HAND_OVER_CLOSING`, `REPORT_SECTIONS`, `hand_over_description`. Each report is found by `last_record(speaker=..., kind="result")` from the record's data, and its text is read with `entry_text`. A missing section, an empty section or a missing record gives `none`. Commits go in a fenced block of 7-character ids and subjects.
+   - `src/factory/domain/sections.py`: `DESCRIPTION`. `src/factory/domain/post_texts.py`: `cost_table_post`.
+   - `src/factory/application/handlers/hand_over.py`: `HandOverHandler`. It checks out the branch and reads the work item. It raises `CannotHandle("hand_over")` when the state is missing or the stage is not an approval, and returns with no effect when `handed_over == stage`. Otherwise it reads the cost records from the checkout after `check_out`, takes `git.log(origin/<branch>, since=origin/main)`, then calls set_description, set_draft(False) and the post keyed `cost_table`/n (n is the latest `result` record's number, 0 when there is none). It records `handed_over` last, with the subject `handed over at <stage>`.
+
+   Main decision: every visible effect is repeatable (the description is replaced, the draft flag is set, the post is keyed), so the handler keeps no progress marker. The one record comes last, and a retry repeats the whole sequence. I rejected recording intermediate progress in the state, because that adds commits and states that recovery would have to handle.
+
+   Refactor: the Commits section now uses the same `_part` helper as the other sections. Nothing else needed changing.
+
+   Noticed, not touched: the handler has its own `_state_of`, because it reads the state from the branch document, not from the event's snapshot. `recording.target_of` has a similar check for the snapshot. The tester also pointed out that `tests/application/handlers/test_handlers_raise.py` keeps a `REQUIRED` list without `hand_over`. That test walks the modules anyway, so it covers the new one.
+
+   `make check`: check: green
