@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 95
 blocked: null
 comments_seen: 0
@@ -246,3 +246,27 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built crash recovery for a stage that this instance claimed itself. `make check` is green (coverage 99.20%). Commit cbf0fdb.
+
+   What I built:
+   - `src/factory/domain/recovery.py`: `crashed` uses `model_copy` to raise `crashes` by one and leaves the claim alone. `crash_entry_text` returns the exact one-line text the Interface gives.
+   - `src/factory/application/recovery.py`: `RecoveryHandler(boundaries, definition, claims, run)` with a `run` property. `handle` follows the five ordered steps.
+     1. Guards: the kind must be `crash`, then `target_of`, then the claim status must be `own`, then `branch_commit` must be set.
+     2. Discard: `WorkItemRecorder.check_out(branch)`, then `resolve("origin/{branch}")`.
+     3. Record: `crashed`, then `ClaimService.release`, then `append_entry` of a factory `crash` entry.
+     4. Push: `recorder.record`, which raises `PushFailed` for any push outcome but "pushed".
+     5. Rerun: one call of `run.handle` with a `run` event whose snapshot carries the new document and `branch_commit`/`remote_state` set to the crash commit.
+     Nothing is posted, and nothing is caught.
+   - `src/factory/entry/wiring.py`: `crash` is registered as `RecoveryHandler(boundaries, definition, ClaimService(boundaries, instance, definition), run)`, where `run` is the same `RunGate` instance that is registered for `run`. `NOT_YET_HANDLED` is now `("expired", "acceptance_due")`.
+
+   Main design decision: the handler sits in `factory.application.recovery`, where the Interface puts it, and not under `application/handlers/`. It reuses `WorkItemRecorder` for both the discard and the push, so it has no git logic of its own.
+   - Rejected alternative: resolving the remote head before the discard, and refusing with `CannotHandle` when it is missing. That would turn criterion 23's `GitError` (branch not on the remote) into a `CannotHandle`.
+   - Instead, `_remote_head` resolves the head after the discard. Its `None` case raises `CannotHandle`. That case cannot happen in practice because the discard has just checked the ref out; the git interface simply types the result as optional. It is the one line in the module that the tests do not cover.
+
+   Refactor pass: I read the diff and found nothing to change, so there is no separate refactor commit.
+
+   Noticed, not touched:
+   - `RecoveryHandler` stores `definition` but does not use it yet. The Interface requires the parameter, and the crash cap (S0002) will need it.
+   - I did not run the three demo commands myself; the tests cover the same behaviour.
+
+   `make check`: check: green
