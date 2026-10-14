@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 86
 blocked: null
 comments_seen: 4
@@ -262,3 +262,4 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
     - Past the cap, the question gets the "sent back 4 times, more than 3" prefix.
 
     The demo contradicts no criterion. The handler-level criteria (9–22) and the docs criterion (24) are outside what this demo runs. Their checks are the tests and the factory's `make check`, which I did not run here. No findings.
+14. done (pull request merged); cost: 10 runs, 17.1 min, 86 turns, 263k tokens in (1995k more from cache), 42k out, $3.04
