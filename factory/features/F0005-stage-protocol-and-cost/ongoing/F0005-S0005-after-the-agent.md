@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 62
 blocked: null
 comments_seen: 2
@@ -8,7 +8,7 @@ attempts: 0
 ---
 # After the agent: the branch, the undo, the entry, the form again
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 7)
 
 Build what the factory does with an agent run's outcome before it decides anything: it believes what it observes, not what the agent reports (kept thing 8). It tests that the checkout is still on the work item's branch, turns every result it cannot keep into a stall (the service of S0004), applies the undo and the restore of F0004 so that the agent's changes outside its write paths and to the state and journal are gone, writes the agent's entry with speaker and kind decided by code (the agent's text with a leading name removed), adds a paragraph naming what was undone, and checks the story form again so that only a finding that was not there before the run stalls. The entry is built here and appended by the stage's result commit (S0007); only in the form-stall case it is appended here, above the stall. Covers GH2.5 as the stage protocol applies it (a run that died or reached its `time_limit` becomes a stall through the service of S0004) and the undo and restore for the runs that complete; keeps kept things 1 (code writes speaker and kind), 4 (state and journal restored), 5 (the form is checked before and after) and 8.
 
@@ -70,7 +70,7 @@ Tests: `tests/domain/test_agent_entry.py` (new, so that S0004's `tests/domain/te
 14. When the agent breaks the story form (its `## Acceptance criteria` section is deleted), `process` returns a `StallResult` with reason `form_invalid`, and in the pushed journal the agent's record (the role, kind `result`) comes directly before the `factory` stall record.
 15. A form finding that exists before and after the run does not stall (`process` returns an `AgentAftermath` and `form_findings` lists it), and a finding the agent fixed does not stall either.
 16. A finding whose message carries a line number does not stall when only the number changed: a smoke-test code block without `Expect:` exists before the run, the agent adds a paragraph above it, and `process` returns an `AgentAftermath`.
-17. A second finding of the same kind is new: the agent adds a second smoke-test code block without `Expect:` to a story that had one, and `process` returns a `StallResult` with reason `form_invalid`.
+17. A second finding of the same kind is new: the agent adds a second smoke-test code block without `Expect:` to a story that had one, and `process` returns a `StallResult` with reason `form_invalid`, and the note of the stall contains the message of the added second block (with its line number) and not the message of the original block.
 18. The note of a `form_invalid` stall holds the messages of the new findings joined by `; `: the agent adds two new findings (it deletes the criteria section and the smoke test section) and the note contains both messages with `; ` between them, the old finding's message not among them.
 19. `AgentAftermath.form_findings` lists all findings after the run, and a stage that ends clean has an empty list.
 20. The own work item's cost-record file is not an undone path: an agent that overwrote the sidecar at `cost_records_path(path)` and wrote `src/b.py` outside its write paths gets an entry whose paragraph names `src/b.py` and not the sidecar; an agent that wrote only the sidecar gets an entry without the paragraph.
@@ -189,3 +189,10 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make check`: green as of the round-0 commits (48b1e27, beecd7f); nothing has changed since.
 7. human (pull request comment, 2026-10-14): (a): extend criterion 17 as you worded it ("… and the note of the stall contains the message of the added second block (with its line number) and not the message of the original block."). The tester adds that assertion to `test_a_second_finding_of_the_same_kind_stalls`. End with `tests` and name exactly that change.
+8. coder: Round 1. The human chose option (a), so this round goes to the tester for one test change. I did not touch any code or test.
+
+   The change for the tester: in `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls`, keep the existing `reason == "form_invalid"` check and add an assertion that the stall note contains the message of the added second smoke-test block (with its line number) and does not contain the message of the original block.
+
+   Ticket: I added the human's wording to criterion 17 ("… and the note of the stall contains the message of the added second block (with its line number) and not the message of the original block.") and moved the Assignment heading to "as of log entry 7".
+
+   Open: I expect the current `_new_findings` in `src/factory/application/stage.py` to pass the new assertion without a change. It takes the earlier equal findings as old, so the second block's finding counts as new. Once the tester has added the assertion, the next doing stage checks this. `make check`: not run this round; it was green at beecd7f and no code has changed since.
