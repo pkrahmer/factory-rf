@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 94
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0007-S0001, F0007-S0002, F0007-S0003, F0007-S0004, F0007-S0005, F0007-S0006, F0007-S0007, F0007-S0008, F0007-S0009, F0007-S0010, F0007-S0011]
+outcome: accepted
 ---
 # Acceptance of The human on the pull request
 
@@ -260,3 +261,4 @@ None. The five findings of the first acceptance are repaired by S0011. The mutat
       6 Decisions: decisions 1–20 and 22–24 were built as written. Decision 21 is now planned as F0008-S0004 (option a), which is a draft. Still for the human: F0008 decision 17 leaves branches of stories in done/ alone, so decision 6's leftover after a merge is never deleted; I recommend widening S0004 to done/ before F0008 starts. Item B, a hand-created branch never judged, is still unanswered and stands by default.
       7 Slow checks: none (no mutants target, no image scan, no SBOM).
       8 Cost: 78 runs, 157.1 min, $20.69. S0011 cost 7 runs, 6.4 min and $0.86, with one extra demo run for the grep question; it does not stand out. Documentation-only stories still pay for empty tester, coder and reviewer runs. Within the feature, S0005 still stands out (10 runs, $3.04).
+2. done (pull request merged); cost: 2 runs, 25.6 min, 113 turns, 288k tokens in (10352k more from cache), 73k out, $5.83
