@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 87
 blocked: null
 comments_seen: 2
@@ -161,3 +161,16 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
    - Not touched, outside this story: `RejectHandler` is not registered in `build_handlers` (the reviewer noted this). The docs now say so plainly. Registration is for whoever owns F0006's `build_handlers`.
 
    `make check`: check: green
+9. demo: ran the one Demo command from the repository root, as written. There are no findings.
+
+   Command 1: `uv run python -c "from factory.domain.post_texts import MOVED_BACK_MARKER, correction_note, move_back_entry_text; print(...) x3"`
+   ```
+   moved back
+   illegal stage change doing -> approval, moved back.
+   The stage was changed from doing to approval, which factory/pipeline.yml does not allow; it is back at doing.
+   ```
+   It meets its Expect line: the three lines match the expected `moved back`, the move_back entry text and the correction note exactly.
+
+   I read the acceptance criteria again against this output. It agrees with criteria 1 and 2, and with the Interface value of `MOVED_BACK_MARKER` that criterion 4 relies on. It contradicts none of the others. Criteria 3–19 cover the handler's behaviour on git and the hosting service, which this demo does not exercise; the tests named in the tester's entry cover them.
+
+   Still open, outside this story and already noted by the reviewer and the documenter: `RejectHandler` is not yet registered in `factory.entry.wiring.build_handlers`.
