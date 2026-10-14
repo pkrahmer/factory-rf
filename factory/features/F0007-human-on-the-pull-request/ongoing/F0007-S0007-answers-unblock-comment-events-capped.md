@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 88
 blocked: null
 comments_seen: 2
@@ -107,3 +107,30 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
    - Demo: both blocks are runnable, and each `Expect:` line names exact output to compare.
    - Architecture: the pure rule is in `factory.domain`, the handler in `factory.application.handlers`, and it uses `HostingService` only through its interface. Nothing is wired here.
    - Scope: within F0007's "Answers and comment events" scope. The crash-cap question and the rerun stay with F0008.
+5. tester: wrote red tests for criteria 1-19, one test function per criterion.
+   - criterion 1: tests/domain/test_answers.py::test_unblock_clears_the_wait_and_changes_nothing_else (parametrized: question, round_cap, send_back)
+   - criterion 2: tests/domain/test_answers.py::test_unblock_at_the_attempts_cap_resets_the_attempts_only
+   - criterion 3: tests/domain/test_answers.py::test_unblock_at_the_crash_cap_resets_the_crashes_only
+   - criterion 4: tests/domain/test_answers.py::test_unblock_of_a_state_that_waits_for_nothing_returns_an_equal_state
+   - criterion 5: tests/application/handlers/test_comment_handler.py::test_an_answer_after_the_posted_question_is_recorded_and_ends_the_wait_in_one_commit
+   - criterion 6: …::test_an_answer_at_the_attempts_cap_also_resets_the_attempts
+   - criterion 7: …::test_without_a_new_human_comment_the_work_item_stays_blocked_and_nothing_is_pushed
+   - criterion 8: …::test_comments_that_carry_the_factory_marker_do_not_answer_and_push_nothing
+   - criterion 9: …::test_a_comment_at_an_approval_is_recorded_and_changes_nothing_else
+   - criterion 10: …::test_a_comment_on_a_work_item_that_waits_for_nothing_changes_no_other_field
+   - criterion 11: …::test_a_failing_comment_listing_raises_and_pushes_nothing
+   - criterion 12: …::test_a_work_item_without_a_pull_request_cannot_be_handled_and_records_nothing
+   - criterion 13: …::test_a_comment_older_than_the_post_is_recorded_and_only_a_later_one_answers
+   - criterion 14: …::test_a_comment_on_a_wait_whose_question_is_not_posted_does_not_answer (parametrized: question-not-posted, no-question-record, earlier-question-posted)
+   - criterion 15: …::test_a_comment_before_and_one_after_the_post_are_both_recorded_and_end_the_wait
+   - criterion 16: …::test_a_blank_comment_after_the_post_is_read_without_an_entry_and_does_not_answer
+   - criterion 17: …::test_a_comment_event_that_always_fails_is_tried_three_times_and_reported_once
+   - criterion 18: …::test_an_ask_event_that_always_fails_is_tried_three_times_and_reported_once (the failure is an AskHandler work item at the attempts cap with no stall entry)
+   - criterion 19: …::test_after_a_restart_the_failing_comment_event_is_tried_again_and_not_reported_twice
+
+   Files created: tests/domain/test_answers.py and tests/application/handlers/test_comment_handler.py. The question post is made with `hosting.post_comment` and the Interface's key (`PostKey(work_item, kind=blocked, n=<latest question record number>)`). The dispatcher tests use a small `Counting` subclass of `Handler` that passes each event to the real handler. Criteria 20 and 21 are the closing ones and get no tests.
+
+   `make test`: both modules fail at collection for the expected reasons. `factory.domain.answers` does not exist, and `CommentHandler` cannot be imported from `factory.application.handlers.comments`. `make lint` is green. The type check was skipped as this stage says to.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
