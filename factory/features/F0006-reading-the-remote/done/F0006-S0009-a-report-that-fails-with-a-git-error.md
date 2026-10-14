@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 79
 blocked: null
 comments_seen: 0
@@ -112,3 +112,4 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
    - Criteria 1–3: each one's test (named in log entry 3) is among the 21 that passed. Nothing in the run contradicts them.
    - Criterion 4: I did not run `make check` here. The factory runs it after this stage.
    - Criterion 5: docs/operator-guide.md:433 now says "(the hosting service is down, or git fails in the factory's checkout while the report resolves the branch)" and gives that as a reason the report is tried again on the next tick. This matches the criterion.
+8. done (pull request merged); cost: 6 runs, 6.8 min, 31 turns, 76k tokens in (376k more from cache), 9k out, $0.77
