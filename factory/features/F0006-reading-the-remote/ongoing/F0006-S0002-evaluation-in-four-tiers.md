@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 72
+blocked: null
+comments_seen: 2
+round: 2
+attempts: 0
+---
 # The watcher's evaluation in four tiers
 
 ## Assignment (as of log entry 1)
@@ -110,8 +118,9 @@ Tests: `tests/domain/test_events.py`, `tests/domain/test_evaluation.py` (hand-bu
 22. `Watcher.evaluate` on a clone of an empty bare repository, where `origin/main` does not resolve, raises `GitError`.
 23. `Event` refuses a `work_item` for the kinds `idle` and `acceptance_due`, a missing `work_item` for each of the other eleven kinds, a `feature` for any kind but `acceptance_due` and a missing `feature` for `acceptance_due`, each with `ValidationError`; every accepted pairing builds.
 24. `Event`, `PullRequestObservation` and `EvaluationInput` refuse an unknown key and an assignment to a field; `Event` accepts `kind="idle"` and refuses `kind="other"`, accepts a `remote_state` of 40 lower-case hex characters and refuses 39 characters and 40 with an upper-case letter, all with `ValidationError`.
-25. make check stays green.
-26. docs: `docs/project-guide.md` lists the event kinds, the four tiers in their order and when each event is made, the rule that a waiting work item holds back new work, and that the evaluation validates every stage against the definition before it looks anything up; `docs/operator-guide.md` explains that an `idle` tick can mean a work item waiting for the human or a claim held by another instance.
+25. The `idle` events of tier 2 and tier 3 have `remote_state` equal to `main_commit`; `duplicate`, `crash`, `expired` and `ask` have the `branch_commit` of their snapshot, and `main_commit` when it has none.
+26. make check stays green.
+27. docs: `docs/project-guide.md` lists the event kinds, the four tiers in their order and when each event is made, the rule that a waiting work item holds back new work, and that the evaluation validates every stage against the definition before it looks anything up; `docs/operator-guide.md` explains that an `idle` tick can mean a work item waiting for the human or a claim held by another instance.
 
 ## Demo
 
@@ -144,3 +153,194 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface rule "`remote_state` of an event with a work item is that snapshot's `branch_commit`, else `main_commit`; of an event with none, `main_commit`" is tested only for `merged`, `closed` (criterion 7), `run` (16, 19) and the empty `idle` (1). No criterion checks it for the `idle` events of tier 2 (waiting work item, nothing new) and tier 3 (held claim), which carry no work item although a work item caused them, nor for `duplicate`, `crash`, `expired` or `ask`. The dispatcher counts errors per event and `remote_state` (F0006-S0003), so a wrong value there is silent. Two coders could pick `main_commit` or the waiting work item's `branch_commit` for those idles, and both would pass. Options: (a) add a criterion before the two closing ones: "the `idle` events of tier 2 and tier 3 have `remote_state` equal to `main_commit`; `duplicate`, `crash`, `expired` and `ask` have the `branch_commit` of their snapshot, and `main_commit` when it has none". This is what I would choose. (b) Drop the sentence from the Interface for those kinds.
+
+   All other checks pass: the Interface names concrete modules and signatures, the tiers and validation order are covered by criteria 1 to 17 including each failing side, the Demo is runnable with a checkable `Expect:`, and the architecture and scope match `FEATURE.md`.
+3. human (pull request comment, 2026-10-14): (a): add the criterion before the two closing ones, as you worded it: "the `idle` events of tier 2 and tier 3 have `remote_state` equal to `main_commit`; `duplicate`, `crash`, `expired` and `ask` have the `branch_commit` of their snapshot, and `main_commit` when it has none". The Interface sentence stays as it is.
+4. intake: accepted. Carried in from log entry 3 (the human's answer (a) to the question in entry 2): I added new criterion 25, worded as the human gave it, before the two closing ones. The closing ones are now 26 (`make check`) and 27 (`docs:`). I changed nothing else, and the Assignment's meaning is the same.
+   - Interface: it names concrete modules and signatures (`events.py`, `evaluation.py`, `watcher.py`). The rules cover tier order, validation order and the `Event` shape. Every comment-stated behaviour, including `remote_state`, now has a criterion.
+   - Criteria: each is testable by one test function. Each rule has its failing side: duplicate ids (2), no state or unknown stage (3), no pull request (5), lookup failure (6), the factory's own or read comments giving no `comment` (9), `handed_over` equal giving no `hand_over` (11), `question_posted` false cases (13), attempts below the cap (17), and the `Event` pairing and field refusals (23, 24). Origin/main not resolving is covered by 22.
+   - Demo: it is runnable. Its `Expect:` line is checkable: `merged:F0001-S0001 [7]` and `run:F0001-S0002 []`.
+   - Architecture: pure rules and DTOs are in `factory.domain`, and the `Watcher` is in `factory.application` using `Boundaries`. This fits the layer rules.
+   - Scope: the story is within the feature's scope. The `reject` event, the handlers and the dispatcher stay with later stories and features.
+5. tester: I wrote red tests for criteria 1 to 25. Criterion 26 is the factory's `make check` gate, and criterion 27 belongs to the documenter.
+
+   Which test covers each criterion:
+   - criterion 1: tests/domain/test_evaluation.py::test_no_work_items_is_idle_at_main_without_a_lookup
+   - criterion 2: tests/domain/test_evaluation.py::test_two_work_items_with_one_id_are_a_duplicate_before_anything_else. Parametrized: the duplicates are runnable or waiting, with or without a waiting work item before them.
+   - criterion 3: tests/domain/test_evaluation.py::test_a_work_item_without_state_or_in_an_unknown_stage_is_a_value_error
+   - criterion 4: tests/domain/test_evaluation.py::test_only_the_first_waiting_work_item_is_looked_up_once. Parametrized: blocked first, or approval first.
+   - criterion 5: tests/domain/test_evaluation.py::test_a_waiting_work_item_without_a_pull_request_asks_without_a_lookup
+   - criterion 6: tests/domain/test_evaluation.py::test_a_failed_lookup_is_a_pull_request_lookup_event
+   - criterion 7: tests/domain/test_evaluation.py::test_a_merged_or_closed_pull_request_is_its_own_event and ::test_events_after_a_successful_lookup_carry_the_view (covers comment, hand_over and ask)
+   - criterion 8: tests/domain/test_evaluation.py::test_unread_human_comments_are_a_comment_event_with_their_count
+   - criterion 9: tests/domain/test_evaluation.py::test_factory_and_read_comments_are_no_comment_event
+   - criterion 10: tests/domain/test_evaluation.py::test_an_approval_not_handed_over_is_a_hand_over_before_comments
+   - criterion 11: tests/domain/test_evaluation.py::test_an_approval_handed_over_is_no_hand_over
+   - criterion 12: tests/domain/test_evaluation.py::test_a_blocked_work_item_whose_question_is_not_posted_asks
+   - criterion 13: tests/domain/test_evaluation.py::test_a_post_keyed_to_the_latest_question_is_the_posted_question, ::test_question_posted_is_false_without_a_post_for_the_latest_question (cases: another number, another kind, not blocked, no question record) and ::test_a_post_for_an_earlier_question_still_asks
+   - criterion 14: tests/domain/test_evaluation.py::test_a_waiting_work_item_with_nothing_new_is_idle_and_holds_back_new_work. Parametrized: the runnable work item has the lower id or the higher one.
+   - criterion 15: tests/domain/test_evaluation.py::test_a_claim_of_this_or_an_expired_instance_comes_before_new_work and ::test_a_claim_held_by_another_instance_is_idle_and_holds_back_new_work. Both also assert that claim status is asked only for the first claimed work item.
+   - criterion 16: tests/domain/test_evaluation.py::test_the_first_work_item_with_a_role_runs_and_done_is_skipped
+   - criterion 17: tests/domain/test_evaluation.py::test_a_work_item_at_the_attempts_cap_asks_instead_of_running (attempts 1 and 2)
+   - criterion 18: tests/domain/test_events.py::test_key_names_the_kind_and_the_work_item_or_feature
+   - criterion 19: tests/application/test_watcher.py::test_a_started_story_without_a_branch_runs_at_the_first_stage
+   - criterion 20: tests/application/test_watcher.py::test_no_waiting_work_item_makes_no_hosting_call and ::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open
+   - criterion 21: tests/application/test_watcher.py::test_the_claim_tier_is_decided_by_the_claim_service. Cases: own claim; other instance at 59, 60 and 61 minutes against a lease of 60.
+   - criterion 22: tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error
+   - criterion 23: tests/domain/test_events.py::test_idle_and_acceptance_due_refuse_a_work_item, ::test_every_other_kind_refuses_a_missing_work_item, ::test_a_feature_is_refused_for_every_kind_but_acceptance_due, ::test_acceptance_due_refuses_a_missing_feature, ::test_every_accepted_pairing_builds and ::test_the_kinds_are_the_thirteen_named
+   - criterion 24: tests/domain/test_events.py::test_event_refuses_an_unknown_key, ::test_event_refuses_an_assignment, ::test_event_accepts_only_a_known_kind and ::test_event_accepts_only_a_full_lower_case_commit_id; tests/domain/test_evaluation.py::test_closed_models_refuse_an_unknown_key and ::test_closed_models_refuse_an_assignment
+   - criterion 25: tests/domain/test_evaluation.py::test_idle_events_of_a_work_item_are_at_main and ::test_work_item_events_are_at_their_branch_else_at_main. The second covers duplicate, crash, expired and both kinds of ask, each with and without a branch commit.
+
+   Files created: tests/domain/test_events.py, tests/domain/test_evaluation.py and tests/application/test_watcher.py.
+
+   `make test` stops with 3 collection errors because the modules under test don't exist yet. They are factory.domain.events, factory.domain.evaluation and factory.application.watcher. `make lint` passes.
+
+   Notes for the coder:
+   - In the Watcher tests, the test calls `boundaries.git.fetch()` before `Watcher.evaluate`. The Interface does not say whether the Watcher fetches, so the tests work either way.
+   - Hosting calls are counted by `_CountingHosting`, a subclass of FakeHostingService that overrides every operation except `post_comment`.
+   - Branch states are written with `FrontmatterWorkItemWriter().render` and pushed with `human.push_file`.
+   - I did not run the type check, as this stage says. `make check` covers it once the modules exist.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I implemented the four-tier evaluation and the watcher. `make check` is green, and all the tester's tests for criteria 1 to 25 pass. Commits: 2bb4467 (feat) and 7e09ef2 (refactor).
+
+   What I built:
+   - `src/factory/domain/events.py` holds `EventKind` and `Event`. Frozen with extra keys forbidden, it has one `model_validator` that ties `work_item` and `feature` to the kind, and `key`.
+   - `src/factory/domain/evaluation.py` holds `PullRequestObservation`, `EvaluationInput`, `PullRequestLookup`, `ClaimStatusOf`, `waiting`, `question_posted` and `evaluate`. `evaluate` first checks for duplicates (tier 1). It then validates every snapshot's state and stage before any definition lookup. Then it chains three private tier functions with `or`: `_human_signal`, `_agent_at_work` and `_new_work`. Each returns `Event | None`, and the empty `idle` at `main_commit` is the fallback. `_event` builds every work-item event, so `remote_state` is the `branch_commit`, else `main_commit`, in one place.
+   - `src/factory/application/watcher.py` holds `Watcher`. It resolves `origin/main` first: a `None` raises `GitError("resolve origin/main", None, "origin/main does not resolve")`. It then reads through `RemoteWorkItems` and passes `ClaimService(...).status` as the claim status. Its lookup calls `get_pull_request` and calls `list_comments` only for an open pull request. The watcher does not fetch; the caller fetches, as the tests do.
+
+   Main design decision: the tiers are three functions that each return `Event | None`, chained with `or`, so the order of the chain is the tier order. I rejected a loop over a tuple of tier functions, because it forced one signature on all of them and left unused parameters.
+
+   Small choices the Interface leaves open:
+   - If `claim_status` returns `"none"` for a set claim, which cannot happen with `claim_status` from `lease`, tier 3 falls through to tier 4.
+   - The detail of a tier-2 `idle` is `"<id> waits for the human"`. The detail of a held-claim `idle` is `"<id> is held by <instance>"`.
+
+   Refactor: I renamed `_open_signal` to `_signal_of_observation`, because it also handles merged and closed pull requests. I also moved the `_Pairs` alias up beside the other aliases. Nothing else needed changing.
+
+   Noticed but not touched: the docs for criterion 27 belong to the documenter.
+
+   `make check`: check: green
+7. reviewer: one finding, in group 1 (acceptance criteria). I read the full diff of `src/` and `tests/` against the Interface and criteria 1 to 25. Criteria 1 to 21 and 23 to 25 each have a test that checks what the criterion says, including the refused sides: 39 characters and an upper-case letter for `remote_state`, the lease at 59/60/61 minutes, attempts 1 and 2, every refused kind/subject pairing, and a no-claim item never being asked for its claim status. The coder's entry 6 reports `make check` green.
+
+   1. `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error`: the Interface says "a `None` from that resolve raises `GitError` whose message names `origin/main`". The test only checks `pytest.raises(GitError)`. Two problems follow:
+      - The message rule has no test.
+      - The test cannot tell the resolve check from some other `GitError` raised while reading an empty clone. A Watcher that read the work items before resolving, and let some other git failure surface, would also pass.
+
+      Fix: `pytest.raises(GitError, match="origin/main")`. This is a test change, so per R9 the coder hands it to the tester (`tests`) with exactly this change. The code in `src/factory/application/watcher.py` (`_main_commit`) already raises `GitError("resolve origin/main", None, "origin/main does not resolve")`, which matches, so no source change is needed.
+
+   Rejected as findings:
+   - `question_posted` with a non-factory comment that carries a matching key: `PullRequestComment.from_body` derives both `by_factory` and `key` from the marker, so that case cannot come from the hosting service.
+   - The `state.claim is not None` guard in `evaluation.py` `_agent_at_work`: it only narrows the type for mypy.
+   - A `"none"` status for a set claim falling through to tier 4: the Interface leaves it open, `lease.claim_status` cannot return it, and entry 6 records it.
+
+   I did not go on to groups 2 to 5, because the checklist stops at the first failing group.
+8. coder: Round 1. The reviewer's only finding (entry 7) asks for a change to a test. Under R9 the coder cannot make that change, so I am sending the ticket to the tester.
+
+   Test change requested: in `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error`, change `pytest.raises(GitError)` to `pytest.raises(GitError, match="origin/main")`. Change nothing else.
+
+   No source change is needed. `src/factory/application/watcher.py:39-41` already raises `GitError(f"resolve {_MAIN_REF}", None, f"{_MAIN_REF} does not resolve")`. I checked that its `str()` is `resolve origin/main failed (no exit status): origin/main does not resolve`, which the new `match` accepts. I made no commits this round.
+9. tester: Round 1, the test change from entry 8, which comes from the reviewer's finding in entry 7. In `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error` I changed `pytest.raises(GitError)` to `pytest.raises(GitError, match="origin/main")` and touched nothing else.
+
+   Why: the Interface says the `GitError` raised when `origin/main` resolves to `None` must name `origin/main`. Before the change, the test only checked the exception type. It could not tell the resolve check apart from some other git failure while reading an empty clone.
+
+   `make test`: test: green (total coverage 99.38%).
+
+   `make lint`: lint: green
+   `make test`: test: green
+10. coder: Round 1. Entry 7 had one finding, and it was about a test. Entry 9 made that change: `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error` now uses `pytest.raises(GitError, match="origin/main")`. The finding needed no source change, and I made none: `src/factory/application/watcher.py` already raises a `GitError` that names `origin/main` (checked in entry 8). No commits this round, and nothing to refactor. Nothing else is open. Criterion 27 (docs) belongs to the documenter.
+
+    `make check`: check: green (coverage 99.38%).
+
+    `make check`: check: green
+11. reviewer: Round 1. One finding, in group 1 (acceptance criteria).
+
+    I read the full diff of `src/` and `tests/` against the Interface and criteria 1 to 25. Entry 9 fixed the earlier finding from entry 7: `test_a_remote_without_main_is_a_git_error` now matches `origin/main`. Entry 10 reports `make check` green.
+
+    Criteria 1 to 19 and 21 to 25 each have a test that checks what the criterion says, including the refused sides:
+    - the Event pairings and the 39-character and upper-case `remote_state`
+    - attempts 1 and 2, and leases of 59, 60 and 61 minutes
+    - an unknown stage and a missing state, each named in the message
+    - a later question that outdates an earlier post
+    - the idles of tier 2 and tier 3 at `main_commit`
+
+    1. `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open`:
+       - The Interface says hosting calls are counted by overriding every operation except `post_comment`, and that "posts are counted with `factory_posts`". The test never checks `factory_posts`. A Watcher that posted a comment while looking up a waiting work item would still pass, so criterion 20's "exactly one `get_pull_request` and one `list_comments`" is not fully tested.
+       - In the no-waiting test there is no pull request, so a post would already fail there.
+       - Fix: add `assert hosting.factory_posts(number) == []` after the `calls` assertion. This is a test change, so the coder hands it to the tester (`tests`) with exactly this change. No source change is expected: `src/factory/application/watcher.py` makes no post.
+
+    Rejected as findings:
+    - `src/factory/domain/evaluation.py` `_duplicate` uses identity (`first is not snapshot`), so a list that holds the same snapshot object twice would not count as a duplicate. The only real input is `RemoteWorkItems.read`, which builds one snapshot per path, so this cannot happen.
+    - In `_agent_at_work`, the `state.claim is not None` part of the `"held"` branch only narrows the type for mypy.
+    - The Watcher does not fetch, and the caller does. The Interface leaves this open, entry 6 records it, and F0006-S0004 decides the tick.
+
+    I did not go on to groups 2 to 5, because the checklist stops at the first failing group. Nothing in them stood out while I read.
+12. coder: Round 2. The only finding in entry 11 asks for a test change. Under R9 the coder doesn't edit tests, so I'm sending the ticket to the tester.
+
+    Test change requested: in `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open`, add `assert hosting.factory_posts(number) == []` straight after `assert hosting.calls == calls`. Change nothing else.
+
+    No source change is needed. `src/factory/application/watcher.py` never calls `post_comment`, and `FakeHostingService.factory_posts` (`src/factory/adapters/fake_hosting.py:171`) already exists, so the new assertion should pass as soon as it is added. I made no commits this round.
+13. tester: Round 2: I made the test change the coder asked for in entry 12, which comes from the reviewer's finding in entry 11. In `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open` I added `assert hosting.factory_posts(number) == []` on the line straight after `assert hosting.calls == calls`. Nothing else changed.
+
+    Why: the Interface says posts are counted with `factory_posts`, and the `calls` list leaves out `post_comment`. Without this assertion, a Watcher that posted a comment while looking up a waiting work item would still pass, so criterion 20's "exactly one `get_pull_request` and one `list_comments`" was not fully tested.
+
+    `make test`: green, total coverage 99.38%. `make lint`: green.
+
+    `make lint`: lint: green
+    `make test`: test: green
+14. coder: Round 2. Entry 11 had one finding, and it was about a test. Entry 13 made that change: `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open` now asserts `hosting.factory_posts(number) == []`. The finding needed no source change and I made none, because `src/factory/application/watcher.py` never posts. No commits this round and nothing to refactor. Nothing else is open; criterion 27 (docs) belongs to the documenter.
+
+    `make check`: check: green (coverage 99.38%).
+
+    `make check`: check: green
+15. reviewer: Round 2. No findings.
+
+    I read the full diff of `src/` and `tests/` (`src/factory/domain/events.py`, `src/factory/domain/evaluation.py`, `src/factory/application/watcher.py`, `tests/domain/test_events.py`, `tests/domain/test_evaluation.py`, `tests/application/test_watcher.py`) and checked it against the Interface and criteria 1 to 25.
+
+    - Group 1, acceptance criteria. Every criterion has a test that checks what the criterion says, and every refused side is tested:
+      - Event: each kind/subject pairing; an unknown key, an assignment, an unknown kind, a 39-character and an upper-case `remote_state`.
+      - Attempts 1 and 2 against a cap of 2, and claims aged 59, 60 and 61 minutes against a lease of 60.
+      - A missing state and an unknown stage, each named in the message.
+      - A post for an earlier question, another kind, not blocked, and no question record.
+      - No lookup when nothing waits, and only the first waiting work item is looked up.
+      - `remote_state` for every kind, with and without a branch commit.
+      - Both earlier findings are fixed: entry 9 made the `GitError` test match `origin/main`, and entry 13 added the `factory_posts` assertion. Entry 14 reports `make check` green.
+    - Group 2, architecture. `evaluation.py` and `events.py` are pure domain code, with no I/O and no `dict[str, Any]`. `Watcher` lives in `factory.application`. It reaches the outside only through `Boundaries`, `RemoteWorkItems` and `ClaimService`.
+    - Group 3, security. Nothing to flag; no suppression markers.
+    - Group 4, quality. The module and public docstrings are present. The two comments say why: one lookup per tick, and comments only while the pull request is open. `_event` sets `remote_state` in one place.
+    - Group 5, ticket hygiene. Entry 6 records the main decision (the tiers chained with `or`) and the rejected one (a loop over tier functions). The Assignment matches what was built, and criterion 27 still describes what the docs need.
+
+    Considered and not findings:
+    - The watcher leaves fetching to its caller; the Interface leaves this open and F0006-S0004 decides the tick.
+    - `_agent_at_work`'s `state.claim is not None` guard only narrows the type for mypy.
+16. documenter: Round 2. No findings; the code matches the Interface and criteria. Earlier rounds had written no docs, so I wrote criterion 27's.
+
+    Files changed:
+    - `docs/project-guide.md`: new section "The evaluation", placed before "Reading and writing a work item file". It covers the Watcher and its `GitError`/`WorkItemFormatError` behaviour, the `Event` rules and the kinds (`reject` and `acceptance_due` are not yet made), and the four tiers in order with when each event is made. It also states that a waiting work item holds back new work, that there is at most one lookup per evaluation, and that stages are validated against the definition before any lookup.
+    - `docs/operator-guide.md`: new section "An idle tick that is not empty". An `idle` tick can mean a work item waiting for the human or a claim held by another instance.
+
+    I did not run the Demo block. `make check` is green (coverage 99.38%).
+
+    Cross-read against the diff and found current: the project-guide section "The remote's work items" (the watcher does not fetch, matching it) and "The claim service" (`status`).
+
+    Stale but not touched: `docs/operator-guide.md` lines 108 and 131 say stopping at the attempts cap and the evaluation "are not built yet". The evaluation now exists and makes the attempts-cap `ask` event. Its handler and the question belong to later stories (F0006/F0007), so the sentence is still true for the operator. I left it for the story that builds the handler.
+
+    `make check`: check: green
+17. demo: Round 2. I ran the single Demo command from the repository root exactly as written. No findings.
+
+    Command 1 (`uv run python -c "…evaluate…"`), exit 0:
+
+    ```
+    merged:F0001-S0001 [7]
+    run:F0001-S0002 []
+    ```
+
+    Expect: two lines, `merged:F0001-S0001 [7]` then `run:F0001-S0002 []`. **Met.**
+
+    Checked against the acceptance criteria:
+    - The first line shows the waiting work item looked up once, with pull request 7. The merged event outranks the runnable F0001-S0002. This matches criteria 4, 7 and 14 (waiting holds back new work) and criterion 18 (the key format).
+    - The second line shows that with nothing waiting, the lookup is never called and the first runnable work item gets `run`. This matches criteria 16, 18 and 20 (no lookup when nothing waits).
+    - Nothing in the output contradicts any other criterion.
+
+    I made no changes to the working tree.
