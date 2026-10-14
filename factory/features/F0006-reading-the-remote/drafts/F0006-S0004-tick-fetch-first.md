@@ -1,0 +1,109 @@
+# The tick: fetch first, then the remote's state
+
+## Assignment (as of log entry 1)
+
+Build the tick: one pass of fetch, load, restore, evaluate and dispatch, in that order, where the remote is the only truth and the local checkout is disposable. The tick fetches first, and a failed fetch (an expired token fails the same way) is a repository stop and ends the tick. It loads and validates the pipeline definition from `origin/main`; an invalid one ends the tick, and the stop for it is the loader's (F0003-S0006), not the tick's. It restores the checkout to `origin/main`, discarding uncommitted changes and writing one line that names them, and it deletes the local branches of the work items, so that the next stage starts from the remote's branch. It evaluates the remote's state and hands the one event to a dispatcher that it builds after the load, from a handler factory, because the handlers take the loaded pipeline definition (F0006-S0007 builds the production factory). The tick keeps the tick status across ticks. Because nothing local is ever read, a rejected push leaves no trace: the next tick judges the remote's state, and at most one report is posted over all later ticks on that state. A push to a work item's remote branch retries the capped event. A capped event holds back all new work, as a waiting work item does (the decision for the human in `FEATURE.md`). A fresh clone continues every work item. A work item whose file cannot be read stops the tick with the error, not with a stop. The tick reads and writes no run record and no lock; v1's leftover files in `.git/` change nothing. Covers GH5.2, GH5.3, GH5.5, GH1.5 and the tick's side of GH5.4; keeps kept thing 3 (the remote is the truth) and 16 (an idle tick costs a fetch and at most one lookup). Uses `Git` (F0001), `PipelineLoader` (F0003-S0006), `StopService` (F0003-S0002), `Watcher` (F0006-S0002), `Dispatcher` (F0006-S0003) and `RemoteWorkItems` (F0006-S0001).
+
+## Interface
+
+`src/factory/application/tick.py`
+
+```python
+HandlerFactory = Callable[[PipelineDefinition], Mapping[EventKind, Handler]]
+
+class TickOutcome(BaseModel):                     # frozen, forbids unknown keys
+    stopped: RepositoryStopReason | None = None   # set when the tick ended at a repository stop
+    event: Event | None = None                    # the evaluated event; None when stopped
+    dispatch: DispatchOutcome | None = None       # None when stopped
+
+class IdleHandler(Handler):
+    def handle(self, event: Event) -> None: ...   # does nothing
+
+class Tick:
+    def __init__(self, boundaries: Boundaries, instance: Name, handlers: HandlerFactory,
+                 status: TickStatus | None = None) -> None: ...
+        # status None is an empty TickStatus
+    @property
+    def status(self) -> TickStatus: ...           # the counts after the last dispatch
+    def run(self) -> TickOutcome: ...
+        # WorkItemFormatError, ValueError (from the evaluation) and GitError (outside the fetch and the restore)
+        # are not caught: no stop exists for them and the tick raises them
+```
+
+Rules for `Tick.run`, in this order; a repository stop ends the tick with `TickOutcome(stopped=<reason>)`, and nothing after it runs:
+
+- Fetch: `boundaries.git.fetch()`. `FetchFailed` raises the stop `fetch_failed` with `detail=str(error)`. When it succeeds the stop `fetch_failed` is cleared.
+- Load: `PipelineLoader(boundaries).load()`. On `PipelineDefinitionInvalid` the tick ends with `TickOutcome(stopped="pipeline_definition_invalid")`. The loader has raised the stop and clears it on a later success (F0003-S0006); the tick raises and clears no stop for the definition.
+- Restore: the checkout is put on branch `main` at `origin/main` with no uncommitted change and no untracked file (ignored paths stay), and every local branch `work-item/<id>` is deleted (`Git.delete_branch`), for each id that has a branch `origin/work-item/<id>` or a story file in `in-progress/` on `origin/main`, after `main` is checked out. When `Git.status()` lists changes before that, one line `discarded uncommitted changes: <path>, <path>` (the paths in the order of `status`) is written to `boundaries.log`; with no changes no line is written. A `GitError` in this step raises the stop `checkout_restore_failed` with `detail=str(error)`. When it succeeds that stop is cleared.
+- Evaluate: `Watcher(boundaries, instance).evaluate(definition)`.
+- Dispatch: a `Dispatcher(handlers(definition), <the tick's status>, StopService(boundaries), boundaries.log)` dispatches the event; the tick's status becomes the dispatcher's status; the outcome is `TickOutcome(event=event, dispatch=<outcome>)`.
+- Every stop raised here is `RepositoryStop(scope="repository", reason=..., detail=..., at=boundaries.clock.now())` raised through `StopService.raise_stop`.
+- The tick reads neither a run record nor a lock, and creates none.
+
+Tests: `tests/application/test_tick.py`, with the shared fixtures `remote`, `checkout`, `human`, `hosting`, `clock`, `kill_points` and `boundaries`, whose log and health file already sit under `tmp_path / "state"`. The agent files come from `install_agents(agent_home, <the roles of the fixture's pipeline definition>)` in `tests/git_support.py`. Handler factories are plain functions that return `Handler` test classes. A fetch is made to fail by moving the bare remote away; a restore is made to fail by an untracked directory that has been made unwritable (the test is skipped when `os.geteuid() == 0`). The closed-model test builds `TickOutcome` through a variable typed `type[BaseModel]` and assigns with `setattr`, the field's name in a variable. Hosting-service calls are counted by a test subclass of `FakeHostingService` that overrides every operation except `post_comment` (`tests/test_hosting_fake_search.py` refuses a test class that defines it); posts are counted with `factory_posts`.
+
+## Acceptance criteria
+
+1. `run` fetches before it reads: a commit that the human pushed to a runnable work item's remote branch since the last tick is the `remote_state` of the event this tick dispatches, and the test never fetches.
+2. GH5.3: when the fetch fails, `run` returns `TickOutcome(stopped="fetch_failed")` with no event and no dispatch, the handler is not called, and the health status holds exactly one stop with scope `repository`, reason `fetch_failed`, a non-empty `detail` and `at` equal to `clock.now()`.
+3. For that stop the factory log holds a line that begins with the clock's UTC time stamp.
+4. On the first tick after the remote is back, the stop `fetch_failed` is gone from the health status and the tick dispatches an event.
+5. An invalid pipeline definition on `origin/main` (a missing key without a default) makes `run` return `TickOutcome(stopped="pipeline_definition_invalid")` whose stop names the missing key in `detail`; nothing is dispatched, a file left untracked in the checkout is still there, and the factory log holds exactly one line for that stop from this tick (one line that contains `stop repository pipeline_definition_invalid`).
+6. After the definition is repaired on `origin/main`, the next tick clears that stop.
+7. The restore restores a modified tracked file to its content on `origin/main` and removes an untracked file, leaves the checkout on `main` at the head of `origin/main`, and writes one line `discarded uncommitted changes:` naming both paths; an ignored file in the checkout is still there, and on a clean checkout no such line is written.
+8. When the restore cannot remove an untracked file, `run` returns `TickOutcome(stopped="checkout_restore_failed")` with the stop in the health status and nothing dispatched; the next tick, after the file can be removed, clears the stop.
+9. GH5.2: a handler of `run` that commits on a copy of the work item's branch made from an older commit and pushes it gets the outcome `rejected` because the human pushed to the branch meanwhile, and raises `PushFailed`; the next tick's event has `remote_state` equal to the head of the remote branch, and the checkout is back on `main` at `origin/main`.
+10. GH5.2: with that handler failing on every tick, six ticks give the dispatch outcomes `error`, `error`, `reported`, `capped`, `capped`, `capped`, and the hosting service holds exactly one factory post on the work item's pull request.
+11. GH5.4: after that report, a new commit pushed by the human to the work item's remote branch makes the next tick call the handler again.
+12. GH5.5: a tick in a fresh clone made with `GitCli.clone` into an empty directory (no local branch of any work item) dispatches the same event for the same work item, with the same `remote_state` and the state the branch holds, as a tick in the original checkout; two work items in different stages are both read from their branches.
+13. GH1.5: with v1's leftover files `.git/factory-run.json`, `.git/factory-tick.lock` and `.git/factory-tick.json` in the checkout, each valid, unreadable or absent, a tick dispatches the same event with the same outcome, and leaves those files as they were.
+14. GH1.5: none of the modules `factory.application.tick`, `factory.application.watcher`, `factory.application.work_items` and `factory.domain.evaluation` contains `run_record`, `RunRecord`, `factory-run.json`, `factory-tick.lock`, `factory-tick.json`, or a match of the regular expression `\block\b`.
+15. A tick on a repository with no work item in progress makes no hosting-service call; with one waiting work item whose pull request is open it makes exactly one `get_pull_request` and one `list_comments`.
+16. The `IdleHandler` changes nothing: a tick whose event is `idle`, with `{"idle": IdleHandler()}` as the handler factory's result, returns dispatch outcome `handled` and leaves the checkout, the remote and the hosting service as they were.
+17. With a handler factory that returns only `{"idle": IdleHandler()}`, a tick whose event is `run` returns dispatch outcome `error`, and the status holds `UnhandledEvent: no handler for event kind run` as the last error (SI2.4 end to end).
+18. A started story whose remote branch exists and whose local branch `work-item/<id>` holds a commit that the remote does not have (the rejected claim push of F0004, made in the test with `checkout.checkout(branch, start_point="origin/main")` and `checkout.commit`) has no local branch `work-item/<id>` after the next tick (`checkout.resolve("work-item/<id>")` is `None`) and `checkout.resolve("origin/work-item/<id>")` is unchanged, so that the next stage starts from the remote's branch; a local branch with another name (`scratch`) is still there.
+19. A story whose branch file has no front matter makes `run` raise `WorkItemFormatError` naming the story's path, with nothing dispatched and no stop in the health status; a work item in a stage that the definition lacks makes `run` raise `ValueError`.
+20. A capped event holds back all new work: with two runnable work items, a handler of `run` that always fails and records the work item of each call, the ticks after the report give dispatch outcome `capped` for the first work item, and the handler is never called for the second; after the human pushes to the first work item's branch, the next tick calls the handler for the first work item again.
+21. The tick keeps its status across ticks: after two failing ticks on one event `tick.status` holds one entry with `count == 2`; a new `Tick` built with no status (a restart) counts the same event from 1.
+22. `TickOutcome` refuses an unknown key and an assignment to a field; `stopped` accepts `"fetch_failed"` and `None` and refuses `"other"`, and `dispatch` accepts `"capped"` and refuses `"other"`, all with `ValidationError`.
+23. make check stays green.
+24. docs: `docs/operator-guide.md` lists the stops `fetch_failed`, `pipeline_definition_invalid` and `checkout_restore_failed`, what each means and what to do, says that an expired or revoked token shows as `fetch_failed`, and says that a work item file that cannot be read stops the tick with an error until a human repairs it; `docs/project-guide.md` states the order of a tick; `docs/decisions.md` records that the checkout is disposable and restored to `origin/main` at the start of every tick, and that a capped event holds back all new work.
+
+## Demo
+
+```bash
+uv run python -c "
+import re, subprocess, tempfile
+from pathlib import Path
+from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.adapters.clock import SystemClock
+from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.adapters.fake_hosting import FakeHostingService
+from factory.adapters.factory_log import TimestampedFactoryLog
+from factory.adapters.git_cli import GitCli
+from factory.adapters.health_file import JsonHealthStatusFile
+from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
+from factory.application.boundaries import Boundaries
+from factory.application.tick import Tick
+base = Path(tempfile.mkdtemp())
+checkout = base / 'checkout'
+subprocess.run(['git', 'init', '-b', 'main', str(checkout)], check=True, capture_output=True)
+subprocess.run(['git', 'remote', 'add', 'origin', str(base / 'missing.git')], cwd=checkout, check=True, capture_output=True)
+clock = SystemClock()
+boundaries = Boundaries(git=GitCli(checkout), hosting=FakeHostingService(), agent_runtime=FakeAgentRuntime(), project_commands=MakeProjectCommands(checkout), work_item_reader=FrontmatterWorkItemReader(), work_item_writer=FrontmatterWorkItemWriter(), cost_reader=JsonLinesCostRecordReader(), cost_writer=JsonLinesCostRecordWriter(), clock=clock, log=TimestampedFactoryLog(base / 'factory.log', clock), health=JsonHealthStatusFile(base / 'health.json'), pipeline_reader=RuamelPipelineDefinitionReader(), agent_definitions=FrontmatterAgentDefinitionReader(base), checkout=checkout)
+tick = Tick(boundaries, 'factory-1', lambda definition: {})
+outcome = tick.run()
+print(outcome.stopped, outcome.event, outcome.dispatch)
+print([stop.scope + ':' + stop.reason for stop in boundaries.health.read().stops])
+lines = (base / 'factory.log').read_text().splitlines()
+print(bool(lines) and all(re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z ', line) for line in lines))
+"
+```
+Expect: the last three lines of the output are `fetch_failed None None` (the fetch from the missing remote stopped the tick before anything was read or dispatched), then `['repository:fetch_failed']`, then `True` (every line the stop wrote to the factory log begins with a UTC time stamp). Before them stand the stop's own stamped lines, which the factory log also writes to standard output: git's message about the missing remote, one stamped line for each line of it.
+
+## Log (append only)
+
+1. 2026-10-12 human: created.
