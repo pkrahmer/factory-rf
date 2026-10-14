@@ -986,6 +986,30 @@ Returns, in this order: the pull request numbered in `document.state.pull_reques
 
 Tests: `tests/application/test_opening.py`.
 
+## Starting a stage
+
+`StageLauncher(boundaries, instance, definition, environment)` (`factory.application.stage`) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent. `instance` and `definition` go to `ClaimService`; `environment` is the environment of the agent run and reaches `TaskComposer` unchanged, so the run holds exactly those entries.
+
+`launch(prepared)` does these steps in this order. The claim in step 4 is the only write to the git remote.
+
+1. Refuse a work item with `merge_conflict` set or without a state: `ValueError`, before anything is read or pushed.
+2. Read the agent definition with `TaskComposer.agent`. A stage without a role (the approval stage) raises `ValueError` naming the stage; a missing agent file raises `AgentDefinitionMissing`. Both come before any push.
+3. Take the story form findings from `prepared.document` (`StoryFormChecker`).
+4. Push the claim: `ClaimService.claim(branch, path, document, stage)` makes the stage-start commit. A rejected push or an unreachable remote raises `PushFailed`.
+5. Read the work item file back from the work tree. `StartedStage.document` is what the stage-start commit holds, not the document given to the claim.
+6. `WorkItemOpening.ensure_pull_request`: find or create the pull request.
+7. `WritePathService.at(stage_start, path)` gives the guard, from the definition at the stage-start commit.
+8. `TaskComposer.compose` builds the request (prompt, guard, environment, allowed decisions).
+9. `AgentRuntime.run`.
+
+**No agent run precedes the pushed claim.** When `run` is called, `origin/<branch>` already holds the stage-start commit with the claim and the journal record (`factory`, `started`); when step 4 fails, no run starts. The stage-start commit is the last commit before the run: for a branch that existed it is one commit above the old head (the merge of `main` in `prepare` comes before it), for a new work item it is also the opening commit.
+
+The stage-start commit does not change `pull_request`: it is `None` for a new work item and otherwise the number already recorded. The number of the pull request found or created in step 6 is in `StartedStage.pull_request` and in the prompt; the stage's next commit records it. No local run record is written; the claim's `started_at` says when the stage began.
+
+`launch` returns a frozen `LaunchedStage`: `started` (a `StartedStage` with the work item, stage, branch, path, `stage_start`, `document`, `pull_request` and the form `findings` taken before the run), `request` and `result`. A run that dies, reaches its `time_limit` or its budget is a result. `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError` propagate unchanged; after an `AgentRuntimeError` the claim stays pushed.
+
+Tests: `tests/application/test_stage_launch.py`. `ObservingRuntime` (`tests/observing_runtime.py`) is an `AgentRuntime` that records the remote branch's head, the checkout's `HEAD` and the pull requests in the hosting fake at the moment `run` is called, then delegates to `FakeAgentRuntime`.
+
 ## Kill points: testing a crash
 
 A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).

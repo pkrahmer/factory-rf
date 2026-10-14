@@ -104,6 +104,8 @@ class TaskComposer:
         )
 
     def _role_name(self, stage: str) -> str:
+        if stage not in self._definition.stages:
+            raise ValueError(f"{stage} is not a stage of the pipeline definition")
         role = self._definition.stages[stage].role
         if role is None:
             raise ValueError(f"stage {stage} has no role, so no agent runs there")
