@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 56
 blocked: null
 comments_seen: 0
 round: 0
@@ -151,3 +151,9 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/application/undo.py` names `UndoReport` (frozen, extra forbidden) and `UndoService.__init__`/`undo` with signatures. It names the collaborators it uses (`WritePathService.at`, `refusal`, `Git.changed_paths`/`show_file`/`revert_paths`, `restore_state_and_journal`, the work item reader and writer). The rules give the order (settings, baseline, refused paths, own file) and the exact in-progress path test.
+   - Criteria: every behaviour stated in the Interface has a criterion. Reverted/deleted lists are 1–5 and 16. Protected paths are 6. In-progress rules are 7. State and journal restore are 8–9. Deleted or broken work item is 10–11. A work item the role may not write is 12. Pipeline rewrites are 13–15. Baseline errors are 17. The frozen/extra model is 18. Each rule has its failing side: paths inside the write paths stay (5), a section-only edit means no restore (9), and a baseline error leaves the work tree untouched (17). Criterion 17 covers two cases (missing and unreadable baseline) and criterion 16 two assertions; both are fine as parametrized or paired tests, not a decision for the coder.
+   - Demo: the script is runnable with the named adapters. Each of the five output lines in `Expect:` can be compared against the output.
+   - Architecture: the use case sits in `factory.application` and reaches git only through the `Git` interface and the file formats through reader/writer interfaces. It takes `Boundaries` and has no concrete tool.
+   - Scope: it matches the feature's undo and restore bullet (WE2.1–WE2.3) and decisions 13–15. When the undo runs and the note in the entry are left to F0005, as the feature's Out of scope says.
