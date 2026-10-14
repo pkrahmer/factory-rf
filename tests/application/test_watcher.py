@@ -146,6 +146,7 @@ def test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open(
 
     assert event.kind == ("merged" if merged else "comment")
     assert hosting.calls == calls
+    assert hosting.factory_posts(number) == []
 
 
 @pytest.mark.parametrize(

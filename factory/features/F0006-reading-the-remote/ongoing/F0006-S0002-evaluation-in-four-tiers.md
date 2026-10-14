@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 72
 blocked: null
 comments_seen: 2
@@ -281,3 +281,11 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     Test change requested: in `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open`, add `assert hosting.factory_posts(number) == []` straight after `assert hosting.calls == calls`. Change nothing else.
 
     No source change is needed. `src/factory/application/watcher.py` never calls `post_comment`, and `FakeHostingService.factory_posts` (`src/factory/adapters/fake_hosting.py:171`) already exists, so the new assertion should pass as soon as it is added. I made no commits this round.
+13. tester: Round 2: I made the test change the coder asked for in entry 12, which comes from the reviewer's finding in entry 11. In `tests/application/test_watcher.py::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open` I added `assert hosting.factory_posts(number) == []` on the line straight after `assert hosting.calls == calls`. Nothing else changed.
+
+    Why: the Interface says posts are counted with `factory_posts`, and the `calls` list leaves out `post_comment`. Without this assertion, a Watcher that posted a comment while looking up a waiting work item would still pass, so criterion 20's "exactly one `get_pull_request` and one `list_comments`" was not fully tested.
+
+    `make test`: green, total coverage 99.38%. `make lint`: green.
+
+    `make lint`: lint: green
+    `make test`: test: green
