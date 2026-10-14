@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 55
 blocked: null
 comments_seen: 0
@@ -142,3 +142,20 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the write-path guard; all tests from the tester pass and `make check` is green.
+      - `src/factory/domain/errors.py`: `GuardSettingsInvalid(path, fault)`. Its message is `guard settings <path>: <fault>`.
+      - `src/factory/adapters/claude_guard.py`: `GuardVerdict`, `read_guard_settings` and `judge`.
+        - `read_guard_settings` turns `OSError`, `UnicodeDecodeError` and `ValidationError` into `GuardSettingsInvalid`.
+        - `judge` reads the payload through the private models `_Payload` and `_ToolInput` (`extra="ignore"`, `StrictStr | None`). A payload it cannot read, or an empty `file_path`, is allowed.
+        - It joins `root / file_path`, takes `os.path.realpath` of that path and of the root, and checks containment with `Path.is_relative_to`. A `ValueError` or `OSError` from `realpath` counts as "outside the checkout". A path inside the root goes to the domain's `refusal` with its POSIX path relative to the root.
+      - `src/factory/entry/guard.py`: `main(argv, *, stdin, stderr)`. It returns 0, or 2 with one line on stderr, and never writes to stdout. It has the `__main__` guard.
+      - `src/factory/entry/wiring.py`: re-exports `judge` and `read_guard_settings` with `__all__`. `pyproject.toml` already registered `factory-guard`, so it is unchanged.
+      - Commits: 172ed22 (feat) and c3cb4e9 (refactor).
+      - Refactor: dropped the `json.JSONDecodeError` catch. Pydantic's `model_validate_json` reports malformed JSON as a `ValidationError`, so that catch could never run.
+      - Main decision: `main` reads `--settings` by hand (look up the option, take the next argument) and does not use argparse. Argparse exits on its own and prints its own usage text. That would get in the way of the fixed usage line and of "status 2, never an exception".
+      - Noticed, not touched:
+        - A `file_path` that resolves to the root itself (`.`) reaches `refusal(".")`, as intake noted.
+        - The only uncovered line in `guard.py` is the `__main__` line, because the subprocess test does not count toward coverage.
+        - The second demo block prints the usage line on stderr and `status 2`, as expected.
+
+   `make check`: check: green
