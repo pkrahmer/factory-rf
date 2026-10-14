@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 95
 blocked: null
 comments_seen: 0
@@ -336,3 +336,4 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
    Met. `handlers['crash']` is a `RecoveryHandler`, its `run` is the very handler registered for `run`, and `crash` is not in `NOT_YET_HANDLED`. This agrees with criteria 20 and 21.
 
    Findings: none. Nothing is open from the demo. The factory runs `make check` itself after this stage.
+8. done (pull request merged); cost: 6 runs, 19.1 min, 67 turns, 219k tokens in (1971k more from cache), 42k out, $2.66
