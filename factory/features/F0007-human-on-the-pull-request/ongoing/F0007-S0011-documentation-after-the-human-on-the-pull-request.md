@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 93
 blocked: null
 comments_seen: 0
@@ -81,3 +81,11 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: nothing built, on purpose. The story only changes documentation. Its Interface says "None: no code changes", the tester wrote no tests, and the Assignment hands the work to the documenter. CLAUDE.md says the coder does not write `README.md` or `docs/`, so I did not edit them, and the branch has no commits from me.
+      - Rejected: writing the doc edits here. That would go outside the coder's lane and take the docs criterion away from the documenter.
+      - Refactor: there is no diff to refactor.
+      - Open for the documenter: everything in the docs criterion. That covers the operator-guide passages about `ask` and `comment`, the `send_back` row, the summaries in `README.md` and the operator guide, step 1 of the close in the project guide, the three new handler subsections, and the journal-reading module name.
+
+      `make check`: check: green (coverage 99.22 %)
+
+   `make check`: check: green
