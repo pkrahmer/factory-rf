@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 77
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -106,3 +106,4 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
    - Demo: runnable, and its `Expect:` line is checkable.
    - Architecture: `RunHandler` sits in `application`, and the wiring sits in `entry`.
    - Scope: inside the feature's "Production wiring" scope, and it touches nothing under "Out of scope".
+3. human (pull request comment, 2026-10-14): A: extend criterion 6 so that `PATH` equals `f"{scripts}:/usr/local/bin:/usr/bin:/bin"` exactly. The Interface stays as it is.
