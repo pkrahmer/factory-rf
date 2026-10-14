@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 73
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The dispatcher and the tick status
 
 ## Assignment (as of log entry 1)
@@ -155,3 +163,71 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/errors.py`, `domain/tick_status.py`, `domain/post_texts.py`, `application/dispatcher.py`). Every comment-stated behaviour is specified: record_error replacement semantics, the last_error format, the report text, the dispatch rule order.
+   - Criteria: 24 testable criteria, each by one test function. Rules have both sides: the cap (5: count 2 false, 3 true; 10-13), reported vs. not reported (13, 19), ErrorCount validation (24: count 0 and 1, 39-hex and upper-case remote_state), the no-branch exception vs. the normal report (18 vs. 19), with and without a log (22), and BaseException passthrough (21). Each stated default and ordering has a criterion (8 for the kind order, 1 for reported False).
+   - Demo: a runnable single command that uses the fake hosting service and real wiring objects. Its Expect line gives the exact outcome list and the exact first post line, so it can be checked.
+   - Architecture: the pure counts, the text and the error are in domain. The Handler ABC and Dispatcher are in application and use StopService and the Boundaries interfaces, with no concrete tool. This matches the layering in CLAUDE.md.
+   - Scope: within the feature's "dispatcher and the tick status" bullet (SI2.4, GH5.4, R28). The handlers, the tick and the wiring are left to S0004 and S0007.
+3. tester: wrote red tests for criteria 1–24, one test per criterion. Criteria 25–26 (make check, docs) have no test.
+      - criterion 1: tests/domain/test_tick_status.py::test_a_first_error_gives_one_unreported_entry_and_leaves_the_input_unchanged
+      - criterion 2: tests/domain/test_tick_status.py::test_a_repeated_error_on_the_same_state_counts_up_and_keeps_the_newer_error
+      - criterion 3: tests/domain/test_tick_status.py::test_an_error_on_another_state_replaces_the_keys_entries_and_keeps_other_keys
+      - criterion 4: tests/domain/test_tick_status.py::test_clearing_removes_every_entry_of_the_key_and_keeps_other_keys
+      - criterion 5: tests/domain/test_tick_status.py::test_the_cap_is_three_errors (parametrized, count 2 and 3)
+      - criterion 6: tests/domain/test_unhandled_event.py::test_an_unhandled_event_is_a_factory_error_that_names_its_kind
+      - criterion 7: tests/application/test_dispatcher.py::test_handler_for_returns_the_registered_handler_and_raises_for_a_missing_one
+      - criterion 8: tests/application/test_dispatcher.py::test_unhandled_kinds_lists_every_kind_without_a_handler_in_order
+      - criterion 9: tests/application/test_dispatcher.py::test_a_succeeding_handler_is_called_once_and_clears_the_earlier_errors. It uses a handler that fails once and then succeeds, so the earlier failure is a real one. The handler sees the event twice: once on the failure and once on the success.
+      - criterion 10: tests/application/test_dispatcher.py::test_a_failing_handler_is_counted_once_and_posts_nothing
+      - criterion 11: tests/application/test_dispatcher.py::test_a_second_failure_counts_two_and_still_posts_nothing
+      - criterion 12: tests/application/test_dispatcher.py::test_the_third_failure_posts_one_keyed_report_on_the_pull_request. It checks the post body as render_post(error_report_text(...), key).
+      - criterion 13: tests/application/test_dispatcher.py::test_a_reported_event_on_the_same_state_is_capped_without_calling_the_handler
+      - criterion 14: tests/application/test_dispatcher.py::test_a_new_remote_state_is_counted_from_one_and_reported_under_another_key
+      - criterion 15: tests/application/test_dispatcher.py::test_an_event_without_a_handler_is_counted_and_reported_like_any_error
+      - criterion 16: tests/application/test_dispatcher.py::test_two_events_of_one_work_item_on_one_state_share_the_one_report
+      - criterion 17: tests/application/test_dispatcher.py::test_the_report_of_a_work_item_without_a_pull_request_opens_a_draft_for_it (parametrized: with a title line, and without one). The branch is pushed by the human clone, and branch_commit is the remote tip.
+      - criterion 18: tests/application/test_dispatcher.py::test_a_report_for_a_branch_not_on_the_remote_becomes_one_log_line
+      - criterion 19: tests/application/test_dispatcher.py::test_a_report_that_cannot_be_posted_is_made_again_without_counting
+      - criterion 20: tests/application/test_dispatcher.py::test_a_report_killed_after_its_post_is_not_posted_again_after_the_restart
+      - criterion 21: tests/application/test_dispatcher.py::test_a_kill_in_the_handler_passes_through_and_leaves_the_status
+      - criterion 22: tests/application/test_dispatcher.py::test_an_event_without_a_work_item_is_reported_as_one_log_line and ::test_an_event_without_a_work_item_is_reported_without_a_log
+      - criterion 23: tests/domain/test_error_report_text.py::test_the_error_report_names_the_event_the_error_and_the_short_remote_state
+      - criterion 24: tests/domain/test_tick_status.py::test_an_error_count_starts_at_one (count 0 refused, 1 accepted), ::test_an_error_count_refuses_a_remote_state_that_is_no_commit_id (39 hex characters; an upper-case letter), ::test_an_error_count_refuses_an_unknown_key_and_an_assignment, ::test_a_tick_status_refuses_an_unknown_key_and_an_assignment
+      Files created: tests/domain/test_tick_status.py, tests/domain/test_unhandled_event.py, tests/domain/test_error_report_text.py, tests/application/test_dispatcher.py. The dispatcher tests define their own small classes: the handlers Succeeding, Failing and FailingOnce, and RecordingLog, which implements FactoryLog.
+      make test: 4 collection errors, one for each new module, because nothing they import exists yet. Missing are factory.domain.tick_status, factory.application.dispatcher, UnhandledEvent in factory.domain.errors, and error_report_text in factory.domain.post_texts. make lint is green. The type check was skipped, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the dispatcher and the tick status; make check green, the demo prints the two expected lines exactly. Commit 62bb91b.
+      - Built: `src/factory/domain/errors.py` (`UnhandledEvent`), `src/factory/domain/tick_status.py` (`ERROR_CAP`, `ErrorCount`, `TickStatus`, `find_error`, `record_error`, `mark_reported`, `clear_errors`, `at_cap`; frozen, extra forbidden), `src/factory/domain/post_texts.py` (`error_report_text`), `src/factory/application/dispatcher.py` (`Handler`, `DispatchOutcome`, `Dispatcher`, `unhandled_kinds`).
+      - Design: `record_error` is built on `clear_errors` plus one new entry, so "same state counts up, another state replaces the key's entries" is a single path. `dispatch` checks the cap before calling the handler, so a capped-but-unreported entry is re-reported without counting; a failed report returns "error" and leaves count/last_error alone. The no-branch exception is decided only on `HostingServiceError` with `branch_commit is None`, as the interface says; any other report failure returns "error". The report title uses `sections.title`, the same helper opening.py uses; a document without a state passes `pull_request=None`.
+      - Rejected: `# noqa: BLE001` on the broad `except Exception` clauses (ruff does not flag them, and markers are restricted); a why-comment stands above each instead. Rejected a separate "new entry vs. increment" branch in record_error that rebuilt the list twice.
+      - Refactor pass: read the diff; nothing needed changing, so no refactor commit.
+      - Noticed, not touched: line 105 of dispatcher.py (a report failing with a non-hosting `Exception`, e.g. `GitError` from the stop service) is not covered by a test; coverage is still 99 %.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read each of the tests for criteria 1–24 against its criterion, and each one tests what its criterion says. Limits are tested on both sides: the cap at count 2 and 3, `count` 0 refused and 1 accepted, and `remote_state` refused at 39 hex characters and with an upper-case letter (40 lower-case is accepted in every other test). Failing sides are tested too: an unhandled kind (7, 15), a report that fails while the branch is on the remote (19), the branch-not-on-remote exception (18), and a kill passing through and leaving the status alone (21). The coder's entry gives `make check` green.
+      - Architecture: the counts, the text and `UnhandledEvent` are in domain. `Handler` is an `abc.ABC` whose one method is abstract with a docstring-only body. `Dispatcher` imports only application (`StopService`, `FactoryLog`) and domain. No tool is called directly.
+      - Security: there are no new markers. The two broad `except Exception` clauses are required by the Interface (R28), and each has a comment saying why. `InjectedKill` is a `BaseException`, so it passes through as the rules require.
+      - Quality: `record_error` reuses `clear_errors`, so one path handles both counting up and replacing on a new state. The report title uses the existing `sections.title` helper. Docstrings are on every public name.
+      - Left open, not a finding: `dispatcher.py` line 105 has no test. That line handles a report that fails with something other than `HostingServiceError` (for example `GitError` from `StopService`). It falls under the rule criterion 19 already tests, so it is extra coverage, not a missing side. Also, the dispatcher drops the pull request number that `StopPosted` returns when it opens a draft. The Interface does not ask for that number to be recorded, and S0004/S0007 (the handlers and wiring) may want to.
+6. documenter: wrote the two documents criterion 26 asks for. `make check` is green.
+   - `docs/operator-guide.md`: new section "An event that keeps failing", placed before "Claims, leases and the clock". After three errors on one event and one remote state, the factory posts one keyed report on the pull request and stops retrying until the work item's branch changes. The section gives the report text and what to do about it: read the last error, fix the cause and push a commit to the branch. It also covers the shared report for two events of one work item, the counts being in memory only, the log line when the branch is not on the remote, and the retry of a report that could not be posted. It says nothing calls the dispatcher yet.
+   - `docs/decisions.md`: two entries. One records why errors are counted per event and remote state and why the report is keyed. The other records why the report of a work item without a branch on the remote is a log line.
+   - I did not run the demo command. I read the dispatcher code and the tests' behaviour against the text I wrote instead.
+   - Cross-read against the diff: the "Stops of one work item" section in `docs/operator-guide.md` (its `StopService.post` rules and the branch-not-on-remote error) and `docs/project-guide.md` line 472 (the watcher keeps no memory). Both are current. `docs/project-guide.md` has no section for the dispatcher or the tick status, and criterion 26 does not ask for one.
+   - No findings. The code matches the Interface.
+   - Stale text I saw but did not touch, as unrelated: the operator guide's opening paragraph lists the built parts and does not mention the dispatcher. It should be extended when the tick and handlers arrive (S0004, S0007).
+
+   `make check`: check: green
+7. demo: ran the one `## Demo` command from the repository root, exactly as written. It exited 0. No findings.
+
+   ```
+   ['error', 'error', 'reported', 'capped', 'capped']
+   1 The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at cccccccccccc) makes the factory try again.
+   ```
+
+   - Matches its `Expect:` line. There are two lines. The first is exactly `['error', 'error', 'reported', 'capped', 'capped']`. The second matches the expected text exactly: one post, which is the full report text.
+   - Checked against the criteria: the output is consistent with 10–13. The first two failures return "error" with no post. The third returns "reported" and makes exactly one post on the pull request. The two dispatches after that return "capped" and post nothing more. The post text matches the `error_report_text` format in 23, with the short remote state `cccccccccccc`. The demo contradicts no other criterion. It does not exercise 14–22 (new remote state, unhandled kind, no pull request, no branch, failed post, kill, no work item); the tests listed in entry 3 cover those.

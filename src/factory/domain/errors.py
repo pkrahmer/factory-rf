@@ -161,3 +161,14 @@ class GuardSettingsInvalid(FactoryError):
         super().__init__(f"guard settings {path}: {fault}")
         self.path = path
         self.fault = fault
+
+
+class UnhandledEvent(FactoryError):
+    """An event's kind has no handler."""
+
+    kind: str
+
+    def __init__(self, kind: str) -> None:
+        """Name the kind without a handler."""
+        super().__init__(f"no handler for event kind {kind}")
+        self.kind = kind

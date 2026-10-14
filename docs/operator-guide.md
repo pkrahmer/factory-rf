@@ -365,6 +365,23 @@ When the factory does nothing, the evaluation may still have a reason. An `idle`
 
 Neither is a fault. With neither, an idle tick means no work item has anything to do.
 
+## An event that keeps failing
+
+The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. Nothing calls the dispatcher yet; the tick that does arrives with later stories, and until then this describes what you will see.
+
+After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "Stops of one work item".
+
+What to do about it:
+
+- Read the last error in the report and fix its cause (a broken checkout, a missing tool, a bad file on the branch).
+- Push a commit to the work item's branch. That is a new remote state: the count starts again at 1 and the event is tried again. Nothing else restarts it; comments do not.
+- Two different events of one work item on one remote state share one report; the one that reached three errors first posts it, and the other is not tried again either.
+- A success clears the event's count.
+
+The counts are kept in memory only. After a restart they begin at zero, so the event is tried up to three more times; the report is not posted twice.
+
+If the work item's branch is not on the remote, no pull request can be opened for the report and no later tick would change that. The report is then one line in the factory log, `error cap reached on <event>: <last error>`, written once; so is the report of an event that belongs to no work item. If the report cannot be posted for another reason (the hosting service is down), the factory tries to post it again on the next tick, without counting that as an error.
+
 ## Claims, leases and the clock
 
 An instance claims a stage by pushing the stage-start commit; the claim records the instance's name, the start time and the role's `lease_duration` (60 minutes unless the pipeline definition says otherwise, per role). The claim keeps the value it was made with: changing `lease_duration` in the definition affects new claims only, never one that is running.
