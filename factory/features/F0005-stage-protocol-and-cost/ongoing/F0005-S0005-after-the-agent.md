@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 62
 blocked: null
 comments_seen: 2
@@ -218,3 +218,13 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
     The code needs no change, because this is a typing fault in the test, not a behaviour gap. The feature and refactor commits are still 48b1e27 and beecd7f. Once the test is fixed, the next doing stage only reruns `make check` and hands on to review.
 
     `make check`: red. `make lint`: green. `make types`: 1 error, in the test file only.
+11. tester: Round 1. I made the test change the coder named in entry 10, and only that change.
+
+    The change: in `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls`, I added `assert original.line is not None` directly after `[original] = launched.started.findings`. It narrows `original.line` from `int | None` to `int`, so mypy accepts `original.line + 4` on the next line. The test's assertions about the stall reason and the note are unchanged.
+
+    I did not run `make types`, because this stage skips the type check. The next doing stage's `make check` covers it.
+
+    `make test`: test: green (coverage 99.47 %). `make lint`: lint: green.
+
+    `make lint`: lint: green
+    `make test`: test: green

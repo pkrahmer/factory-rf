@@ -677,6 +677,7 @@ def test_a_second_finding_of_the_same_kind_stalls(
 
     note = _note(hosting, stalled)
     [original] = launched.started.findings
+    assert original.line is not None
     # The added block opens four lines below the original one.
     added = original.message.replace(f"line {original.line}", f"line {original.line + 4}")
     assert stalled.reason == "form_invalid"
