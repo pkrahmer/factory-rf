@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 96
 blocked: null
 comments_seen: 0
@@ -215,3 +215,19 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
       - Open: the docs criterion is for the documenter (`operator-guide.md`, `project-guide.md`, `decisions.md`).
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` changes `src/factory/application/recovery.py`, `src/factory/domain/post_texts.py` and `src/factory/domain/recovery.py`, adds four test files plus `tests/crash_support.py`, and makes the one-line `ALLOWED["entry_text"]` change in `tests/test_no_journal_reading.py`. That change is exactly what the Interface names.
+      - Criteria: each of criteria 1–17 has one test that checks what the criterion says. I read every test against its criterion.
+        - The limit of `at_crash_cap` is tested on both sides: (1,2) and (0,1) are false, (2,2) and (1,1) are true.
+        - Both refusals of `ask_crash_cap` (the wrong `blocked`, no factory question) are tested and post nothing.
+        - The failing post is tested: `fail_next("post_comment")` leaves the question recorded and pushed.
+        - The repeat is a no-op (`already_posted`).
+        - Both no-pull-request paths are tested: from `handle`, titled and untitled, and on its own from `main`, where `origin/main` is unchanged.
+        - Criterion 16, the boundary error after a pushed claim, is tested through two `crash` events: the second records the cap and does not call `run` again.
+      - Not tested here: the `PushFailed` side of recording the pull request number. It is `WorkItemRecorder.record`'s rule (F0007-S0001), and this story attributes it there. I did not count it as a gap.
+      - `make check`: green after the coder (log entry 4).
+      - Architecture: the new rules are pure functions in `factory.domain`. `RecoveryHandler` reaches git and the hosting service only through `WorkItemRecorder`, `StopService` and `Boundaries`. No new imports cross layers, and the diff adds no tool calls.
+      - Security: no secrets, no suppression markers, no strings built into commands.
+      - Quality: the cap is decided once, in `_crash_recorded`, and `handle` branches on the pushed `blocked`. That is sound and explained in the log. The `_state_of` helper replaces three duplicated checks. The docstrings are present and accurate, and the comments say why.
+      - Ticket hygiene: the log names the main decision and the rejected alternative, and `Assignment` matches what was built.
+      - Left open for the documenter: docs criterion 19. The coder also noted that `AskHandler._post` looks up `last_record(kind="question")` with no speaker filter. That is outside this diff and only matters if the crash-cap question is not the work item's last question.
