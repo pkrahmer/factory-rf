@@ -657,6 +657,7 @@ def test_a_second_finding_of_the_same_kind_stalls(
     human: HumanClone,
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
+    hosting: FakeHostingService,
 ) -> None:
     block = "```bash\ntrue\n```\n"
     doubled = WITHOUT_EXPECT.replace(block, f"{block}\n```bash\nfalse\n```\n")
@@ -674,8 +675,13 @@ def test_a_second_finding_of_the_same_kind_stalls(
 
     stalled = _stalled(boundaries, launched)
 
-    assert len(launched.started.findings) == 1
+    note = _note(hosting, stalled)
+    [original] = launched.started.findings
+    # The added block opens four lines below the original one.
+    added = original.message.replace(f"line {original.line}", f"line {original.line + 4}")
     assert stalled.reason == "form_invalid"
+    assert added in note
+    assert original.message not in note
 
 
 def test_the_form_stall_note_joins_only_the_new_findings(

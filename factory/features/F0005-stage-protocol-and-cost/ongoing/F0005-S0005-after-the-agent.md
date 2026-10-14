@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 62
 blocked: null
 comments_seen: 2
@@ -196,3 +196,16 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Ticket: I added the human's wording to criterion 17 ("… and the note of the stall contains the message of the added second block (with its line number) and not the message of the original block.") and moved the Assignment heading to "as of log entry 7".
 
    Open: I expect the current `_new_findings` in `src/factory/application/stage.py` to pass the new assertion without a change. It takes the earlier equal findings as old, so the second block's finding counts as new. Once the tester has added the assertion, the next doing stage checks this. `make check`: not run this round; it was green at beecd7f and no code has changed since.
+9. tester: Round 1, the test change the human approved in entry 7 and the coder named in entry 8. Only `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls` was changed.
+
+   The change:
+   - The test now takes the `hosting` fixture and reads the stall note through `_note`.
+   - The existing `reason == "form_invalid"` check stays.
+   - The test now checks that the note contains the message of the added second smoke-test block and does not contain `original.message`, the message of the original block.
+   - The added block's message is built from the original finding by moving its line number from `original.line` to `original.line + 4`, because the added block opens four lines below the original one. If that replacement ever stopped working, the two checks would contradict each other and the test would fail rather than pass by accident.
+   - The old `len(launched.started.findings) == 1` check is now the unpacking `[original] = launched.started.findings`.
+
+   Result: as the coder expected, the current `_new_findings` passes the new assertion. `make test`: test: green (coverage 99.47 %). `make lint`: lint: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
