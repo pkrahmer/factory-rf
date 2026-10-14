@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 55
 blocked: null
 comments_seen: 0
@@ -159,3 +159,19 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
         - The second demo block prints the usage line on stderr and `status 2`, as expected.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Criteria 1–18: each has a test that checks what the criterion says. I read the tests against the code; I did not run them. The coder's entry reports that the factory's `make check` was green.
+      - Interface rules, both sides:
+        - Containment is checked with `Path.is_relative_to`, not a string prefix. The `<root>-x/a.py` case tests this.
+        - NUL characters and `OSError` from `os.path.realpath` give "outside the checkout"; criterion 17 covers this.
+        - All seven payloads the guard cannot read fail open (criterion 8).
+        - Every kind of settings failure raises `GuardSettingsInvalid` (criterion 10). A malformed JSON file reaches it as a `ValidationError` from `model_validate_json`.
+        - Both usage cases (no `--settings`, and `--settings` with no value) return 2.
+      - Criterion 14 is a real test: the replacement string matches `tests/git_support.py:26`, so the work-tree definition really widens `tester` to `*`.
+      - Architecture:
+        - `src/factory/entry/guard.py` imports the adapter only through `factory.entry.wiring`, which re-exports it with `__all__`.
+        - `src/factory/adapters/claude_guard.py` reuses the domain's `refusal` and reads the payload through private Pydantic models, so it inspects no `Any` by hand.
+        - `GuardVerdict` is frozen with `extra="forbid"`.
+      - Security: no new `nosec`, `nosemgrep` or baseline entry. The `# noqa: S603` at `tests/entry/test_guard.py:128` states its reason. The same marker is already used in `tests/entry/test_check_story.py:245` and `tests/test_layers.py:22`, and criterion 15 requires the subprocess.
+      - Quality: the docstrings are present and accurate, and the comments explain why. Parsing `--settings` by hand instead of with argparse is justified in the coder's entry: argparse would exit on its own and print its own usage text.
+      - Open, not a finding: a `file_path` that resolves to the root itself reaches `refusal(".")`. Intake and the coder both noted this; S0003's `refusal` handles it, and no Interface rule covers it.
