@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 76
 blocked: null
 comments_seen: 0
@@ -230,3 +230,4 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
       Met. The output is exactly the four expected lines, each ending in a newline. Fields are separated by two spaces, and every absent value is written as `-`.
 
    Against the acceptance criteria: the output agrees with criterion 6, apart from the claim, which is `-` here because the demo sets none. It also agrees with criteria 18 and 21: the usage line shows only `-h`, with no `follow` option. Nothing in either demo contradicts a criterion.
+8. done (pull request merged); cost: 6 runs, 12.6 min, 54 turns, 247k tokens in (1284k more from cache), 35k out, $2.64
