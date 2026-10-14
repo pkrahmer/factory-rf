@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 87
 blocked: null
 comments_seen: 2
@@ -137,3 +137,20 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
    Noticed but not touched: `_state_of` is defined privately in closed.py, questions.py and now reject.py. Sharing it in recording.py would be a separate clean-up. Nothing is open.
 
    `make check`: check: green
+7. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–19 has a test named in the tester's entry, and each test asserts what its criterion says. Specifically:
+        - The refusal cases (12 merge commit, 13 same stage, 14 parent without the file, 16 correction, 19 unreadable parent) all go through `_refused_untouched`. It checks the `reject` kind, an unchanged branch head, an unchanged `origin/main`, no factory posts and no labels.
+        - Both kill tests (9, 10) re-run the handler and count exactly one note and one new entry.
+        - The no-pull-request case of 17 arms `fail_next("set_labels")`, so any label call would make the test fail.
+        - 18 checks that the correction commit and the `move_back` entry survive a failing `set_labels`.
+        - Every Interface rule with a failing side has a test for that side. The coder's entry reports `make check` green.
+      - Implementation, `src/factory/application/handlers/reject.py`:
+        - It follows the Interface order: `target_of`, then `check_out`, then `RemoteWorkItems.last_stage_change`. A `None` change or a correction raises `CannotHandle` before anything is posted.
+        - With a pull request, the note is posted keyed `n=len(journal)+1`. The fake's dedup by key makes a retry a no-op.
+        - The recorded state has `stage=from_stage`, `claim=None` and one FACTORY `move_back` entry, under the subject `stage <new> -> <old>, moved back`. `set_labels(labels_for(...))` runs only after the push.
+        - Main is never checked out or pushed.
+      - Architecture: the handler imports only `factory.application` and `factory.domain`, and the texts live in `factory.domain.post_texts`.
+      - Security: nothing applies; no suppression markers.
+      - Quality: docstrings are present and comments say why. The private `_state_of` now appears in three handlers, as the coder noted. I don't count it as a finding: each copy raises a different error, and no shared module covers it today. It is a possible later clean-up.
+      - Not wired: `RejectHandler` is not registered in `factory.entry.wiring.build_handlers`, and neither are the other F0007 handlers. FEATURE.md places that registration in F0006's `build_handlers`. It is outside this story's Assignment, but someone still has to do it.
+      - Ticket hygiene: the log gives the main decision: clear the claim directly in the state, with no `ClaimService.release` and no pipeline definition in the handler. The Assignment matches what was built, and criterion 21 still describes what the documenter must write.
