@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 82
 blocked: null
 comments_seen: 0
@@ -151,3 +151,41 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
    - Demo: both commands are runnable and each Expect line can be checked against the output.
    - Architecture: the handlers sit in `factory.application` and reach git, hosting and the work item reader and writer only through `Boundaries`. Nothing in the domain does I/O.
    - Scope: the story is within F0007's scope (shared plumbing and comments copied by id). It registers no handler, which matches the feature, and S0007 and S0005 are named as later users.
+3. tester: Wrote red tests for every acceptance criterion except the closing two. `make lint` passes. The one `make test` run stopped at collection with 3 errors, one per new test module, because `factory.domain.errors.CannotHandle`, `factory.application.handlers.recording` and `factory.application.handlers.comments` do not exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_cannot_handle.py::test_cannot_handle_is_a_factory_error_that_names_kind_and_reason
+   - criterion 2: tests/application/handlers/test_recording.py::test_the_target_of_an_event_is_its_work_item_state_and_pull_request
+   - criterion 3: tests/application/handlers/test_recording.py::test_an_event_without_a_work_item_or_without_a_state_cannot_be_handled (parametrized: `idle`, `comment`)
+   - criterion 4: tests/application/handlers/test_recording.py::test_a_pull_request_is_required_of_the_target
+   - criterion 5: tests/application/handlers/test_recording.py::test_check_out_drops_every_local_leftover_and_stands_at_the_remote_head
+   - criterion 6: tests/application/handlers/test_recording.py::test_record_writes_commits_and_pushes_the_document
+   - criterion 7: tests/application/handlers/test_recording.py::test_a_commit_subject_names_the_work_item
+   - criterion 8: tests/application/handlers/test_recording.py::test_publish_raises_push_failed_when_the_push_does_not_reach_the_remote (parametrized: `rejected` is the human's push after `check_out`; `unreachable` is the remote directory renamed away)
+   - criterion 9: tests/application/handlers/test_comments.py::test_unread_leaves_out_every_comment_with_the_marker_whatever_its_author
+   - criterion 10: tests/application/handlers/test_comments.py::test_unread_returns_unmarked_comments_of_any_author_and_any_prefix
+   - criterion 11: tests/application/handlers/test_comments.py::test_unread_leaves_out_the_comments_read_and_keeps_the_listed_order
+   - criterion 12: tests/application/handlers/test_comments.py::test_append_adds_one_dated_human_comment_entry_per_comment_in_order (a `+02:00` `created_at` whose UTC date is the day before; the body `a\r\nb\r\n`)
+   - criterion 13: tests/application/handlers/test_comments.py::test_append_marks_a_blank_comment_read_without_an_entry (an empty body and a whitespace-only body)
+   - criterion 14: tests/application/handlers/test_comments.py::test_append_keeps_comments_read_sorted_without_repeats
+   - criterion 15: tests/application/handlers/test_comments.py::test_copy_records_and_pushes_the_comments_before_anything_else (also asserts that no factory post was made)
+   - criterion 16: tests/application/handlers/test_comments.py::test_copy_with_nothing_unread_records_nothing
+   - criterion 17: tests/application/handlers/test_comments.py::test_a_comment_after_a_factory_post_is_copied_by_the_next_copy
+   - criterion 18: tests/application/handlers/test_comments.py::test_a_deleted_comment_neither_skips_nor_repeats_any_other
+   - criterion 19: tests/application/handlers/test_comments.py::test_adjust_sees_the_appended_document_and_lands_in_the_same_commit (first not called on an empty copy, then called once with the answer and a blank comment; checks for exactly one new commit)
+   - criterion 20: tests/application/handlers/test_comments.py::test_a_kill_before_the_push_leaves_the_remote_and_the_next_copy_records_once
+   - criterion 21: tests/application/handlers/test_recording.py::test_a_target_is_frozen_and_forbids_unknown_keys, tests/application/handlers/test_comments.py::test_a_copy_result_is_frozen_and_forbids_unknown_keys, tests/application/handlers/test_comments.py::test_a_copy_result_commit_is_a_commit_id (40 lower-case accepted; 39, and 40 with one upper-case letter, refused)
+   - criteria 22 and 23: no test (`make check`, docs).
+
+   Files created:
+   - tests/domain/test_cannot_handle.py
+   - tests/application/handlers/conftest.py: fixtures `snapshot_of`, `state_with`, `event_of`, `pull_request` (a draft pull request on the fake), and `work_item` (the human pushes a rendered work item to `work-item/F0001-S0001` and the checkout fetches it)
+   - tests/application/handlers/test_recording.py
+   - tests/application/handlers/test_comments.py
+
+   Unresolved imports: `factory.domain.errors.CannotHandle`, `factory.application.handlers.recording`, `factory.application.handlers.comments`.
+
+   I asked no questions: no criterion needed interpreting. The tests expect `copy` not to fetch: the remote-tracking ref after its own push is enough, and the tests fetch after the human pushes.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
