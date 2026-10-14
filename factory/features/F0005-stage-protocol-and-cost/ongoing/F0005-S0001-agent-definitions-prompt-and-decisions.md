@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 58
 blocked: null
 comments_seen: 0
@@ -168,3 +168,28 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the prompt, the allowed decisions and the request for a stage's agent run. The tester's tests pass without any change, and `make check` is green (total coverage 99.58 %).
+
+   What was built:
+   - `src/factory/domain/prompts.py` holds `TESTER_ROLE`, `CODER_ROLE`, `END_LINE`, `PromptFacts` (frozen, forbids unknown keys), `allowed_decisions` and `compose_prompt`.
+     - `allowed_decisions` returns the `next` stages followed by `QUESTION`.
+     - `compose_prompt` puts the lines in a fixed order. The `Mode:` line is added only when `test_change_entry` is not None, and the `Format check` line only when `findings` is not None.
+   - `src/factory/application/task.py` holds `TaskContext`, `StoryFormChecker` and `TaskComposer`.
+     - `StoryFormChecker` reads the form with `git.show_file(FORM_REF, STORY_FORM_FILE)`, where `FORM_REF = origin/main`. If the form is absent it raises `WorkItemFormatError(path=STORY_FORM_FILE)`.
+     - `TaskComposer.compose` computes the decisions once and gives the same list to both the prompt facts and `AgentRunRequest.allowed_decisions`. It passes `dict(environment)` on unchanged.
+     - Findings go only to `definition.first_stage()`.
+     - The test change entry comes from `last_record(document, kind="result")`: it is set when the stage's role is `tester` and that record's speaker is `coder`. The text of an entry is never read.
+
+   Commits:
+   - a3e3fcf: the feature.
+   - 6bb8ef5: refactor. The error for a stage without a role is now raised in one helper, `_role_name`, which both `agent` and the time-limit lookup use. Before, the same `ValueError` was raised in two places.
+
+   Design decision: the `Format check` and `Mode:` lines are built by small private helpers in the domain module. I did not put a conditional list comprehension inside `compose_prompt`, because the line order stays easier to read as plain appends.
+
+   Added beyond the interface: `compose` raises `WorkItemFormatError("the document has no state", context.path)` when the document has no state. `WorkItemDocument.state` is optional and `mypy --strict` refuses `.state.round` without a check. The error follows the existing `_state_of` in `factory.domain.journal`. No test exercises this branch (`task.py:118`).
+
+   Noticed but not touched:
+   - `TaskComposer.compose` for a stage without a role raises `ValueError`, the same as `agent`. No criterion covers this.
+   - An unknown stage name raises `KeyError` from the definition's `stages` dict.
+
+   `make check`: check: green
