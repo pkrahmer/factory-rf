@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 91
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -170,3 +170,4 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
    (B) Make `MergedHandler` tolerate a body without a journal. This changes an existing handler outside this story's scope and weakens a format rule. I reject it.
 
    I recommend (A). With your answer I will end with `tests` naming exactly that change.
+5. human (pull request comment, 2026-10-14): (A): the tester changes `BODY` in `tests/application/handlers/test_run_gate.py` to include a journal section matching the state's single `created` record, as `test_merged.py` does; `MergedHandler` stays as it is. End with `tests` and name exactly that change.
