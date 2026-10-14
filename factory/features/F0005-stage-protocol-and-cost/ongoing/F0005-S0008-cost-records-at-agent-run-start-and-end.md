@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 65
 blocked: null
 comments_seen: 0
@@ -162,3 +162,23 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    No test changed. `## Assignment` is unchanged.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: each of criteria 1–15 has a test in `tests/application/test_costs.py`, and each test checks what its criterion says:
+     - Criterion 1 checks every measure and `image` for `None` while the runtime runs.
+     - Criterion 3 compares the remote sidecar before the run, for the first stage and for a later stage.
+     - Criterion 6 checks that a reported zero stays zero, not `None`.
+     - Criterion 9 compares the pushed sidecar to an exact `CostRecord`, for both an overwritten and a deleted sidecar.
+     - Criterion 12 counts the run id in the sidecar text.
+     - Criterion 15 covers frozen and unknown keys through `setattr` with the field's name in a variable, and through `type[BaseModel]`.
+     - The coder's entry reports the factory's `make check` green, with 99.4 % coverage.
+   - Interface rules: `begin` is called after compose and right before the runtime, and `complete` right after it (`src/factory/application/stage.py`). The sidecar is rewritten after the undo in `AfterAgent.process` and in `StallService.stall`. `cost` is passed in every `StallContext` that `AfterAgent._stall` and `StageFinisher._stall_red` build. `StartedStage` is imported under `TYPE_CHECKING`.
+   - One side not tested: no test checks that `StallContext(cost=None)` writes no sidecar. Intake already noted this. I did not count it, because with no records there is nothing that could be written.
+   - Architecture: `costs.py` is in `factory.application`. It reaches the sidecar only through `Boundaries.cost_reader` and `cost_writer`. No `dict[str, Any]` crosses a boundary, and `CostRun` is frozen and forbids unknown keys.
+   - Security: nothing found. The diff has no suppression markers, no shell or SQL, and no secrets.
+   - Quality:
+     - `_role_of` removes the duplicated "stage has no role" check.
+     - `_completed` re-validates through `CostRecord` instead of `model_copy`, so the record's started/completed rules are checked.
+     - The `ValueError` for a document without state in `CostRecorder.begin` is needed to narrow the type, and it matches `_launchable_stage`.
+     - Docstrings and why-comments are present and accurate.
+   - Ticket hygiene: the coder's log explains the main decision, taking the role from the pipeline definition, and the rejected alternative, the agent file. `Assignment` matches what was built, and the docs criterion (17) still says what the reader needs to know.
