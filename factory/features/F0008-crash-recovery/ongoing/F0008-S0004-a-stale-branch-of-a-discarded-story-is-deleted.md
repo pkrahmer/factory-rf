@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 98
 blocked: null
 comments_seen: 2
@@ -193,3 +193,26 @@ Expect: the factory log line on standard output first, time-stamped and ending w
    Noticed, not touched: no test covers the `"unreachable"` outcome, because no criterion names it; the code handles it the same way as `"rejected"`. `docs/` is left for the documenter (criterion 15).
 
    `make check`: check: green
+9. reviewer: no findings.
+
+   - Acceptance criteria: criteria 1 to 13 each have a test that checks what the criterion says. They are in `tests/application/test_stale_branches.py` and `tests/application/test_tick_stale_branch.py`, as the tester's entry 3 maps them. Both sides of the Interface's rules are tested:
+     - deleted: backlog (1, 6, 7), done (13) and the tick (10).
+     - kept: in progress (2), branches no work item owns (3), work-tree-only move (4), an id that also has an in-progress file, for both backlog and done (5), and a tick that stops early (12).
+     - refused, then tried again (8).
+     - no hosting call and the checkout left as it was (9).
+     - GH4.3 after a kill (11).
+   - Untested: the `"unreachable"` outcome. I do not count this as a finding, because the code handles every outcome other than `"pushed"` in one `else` branch, and the `"rejected"` row tests that branch.
+   - `make check`: the coder's entry 8 reports it green, with coverage at 99.15%.
+   - Architecture: `delete_stale_branches` and `_stale_reasons` are in `factory.application.recovery`. They use only `Git`, `RemoteWorkItems`, `work_item_of_branch` and the log. They import no adapter, call no tool and make no hosting call.
+   - The tick step: it is in `Tick.run` after `_restore` and outside the `_Stopped` try block, so a stop returns before the cleanup and a `GitError` is not caught, as the Interface says.
+   - Security: no shell, no strings built into commands, no suppression markers.
+   - Quality:
+     - The names say what things are, and the docstrings are present and accurate.
+     - The `_stale_reasons` comments explain why: the duplicate case, and done taking precedence over backlog.
+     - Not duplicated: `RecordingSession.delete_branch` (`handlers/recording.py`) raises `PushFailed` on a refused deletion and also deletes the local branch, so it does not do what the cleanup needs. `Tick._work_items_with_branches` collects local-branch ids for the restore. Neither covers the cleanup.
+   - Ticket hygiene:
+     - The coder's entries 4 and 8 give the main decision (the cleanup is its own tick step rather than part of `_restore`, so a `GitError` stays uncaught) and the case the Interface leaves open (an id in both backlog and done is logged as done).
+     - The Assignment matches what was built.
+     - Criterion 15 still describes what the operator guide, the project guide and the decision log must say.
+   - Not judged: the diff also carries the human's own commits, which reached the branch through the merge of main: a new line in the `CLAUDE.md` Tests section, `docs/runs/…/night-log.md` and `planning/overnight/restructure-after-f0011.md`. Those are the human's files, not this ticket's work.
+   - Open, for the documenter: criterion 15.
