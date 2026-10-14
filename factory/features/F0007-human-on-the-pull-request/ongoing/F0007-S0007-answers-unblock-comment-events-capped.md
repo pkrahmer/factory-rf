@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 88
 blocked: null
 comments_seen: 2
@@ -36,7 +36,7 @@ Rules:
 - The comments and the end of the wait are one commit. When no comment is recorded, nothing is written and the work item stays blocked.
 - A comment at an approval stage, or on a work item whose `blocked` is unset, is recorded and changes nothing else.
 - Every failure leaves `handle` by raising; the handler catches nothing. The dispatcher counts the error per event and remote state, tries it up to `ERROR_CAP` (3) times and reports it once (F0006).
-- F0006-S0002's `question_posted` compares the post's `n` with the number of the latest `question` record, not of the last record, so the comments this story records after a question do not make the watcher raise `ask` again.
+- F0006-S0002's `question_posted` compares the post's `n` with the number of the latest `question` record, not of the last record, so the comments this story records after a question do not make the watcher raise `ask` again. This rule is built and tested by F0006-S0002 (`tests/domain/test_evaluation.py`); this story only relies on it.
 
 Tests: `tests/domain/test_answers.py` and `tests/application/handlers/test_comment_handler.py`. The test for a wait that has a post makes the post with `AskHandler` (S0002) or with `hosting.post_comment` and the key above; the human's comments are `hosting.add_human_comment` before or after it. The dispatcher tests build `Dispatcher({"comment": ..., "ask": ...}, TickStatus(), StopService(boundaries))` and count the handler's calls with a small wrapper, a subclass of `Handler`, that delegates to the real handler; failures are injected with `hosting.fail_next("list_comments", times=10)` and, for `ask`, with a work item at the attempts cap that has no stall entry.
 
@@ -55,7 +55,7 @@ Tests: `tests/domain/test_answers.py` and `tests/application/handlers/test_comme
 11. When `list_comments` fails, `handle` raises `HostingServiceError` and the remote branch does not move.
 12. For a work item whose state has no pull request, `handle` raises `CannotHandle` with kind `comment`, and records nothing.
 13. A human comment written before the factory posted the question (its id is smaller than the post's) is recorded as an entry and its id is in `comments_read`, in one commit, and `blocked` is still set: the next comment, written after the post, ends the wait.
-14. A blocked work item whose question has not been posted yet (the `question` record exists, no factory comment carries its key) records a new human comment and stays blocked, and so does one with `blocked` set and no `question` record at all (two cases, one test).
+14. A blocked work item whose question has not been posted yet (the `question` record exists, no factory comment carries its key) records a new human comment and stays blocked, and so does one with `blocked` set and no `question` record at all, and so does one whose only post is keyed to an earlier question number while a later `question` record is not posted yet (three cases, one test).
 15. Of two new comments, one written before the post and one after it, both are recorded in the journal and the wait ends, in one commit.
 16. A comment with a blank body written after the post gets its id into `comments_read`, gets no entry, and leaves the work item blocked.
 17. A `comment` event that fails every time (ST1.1), dispatched four times on the same remote state, gives the outcomes `error`, `error`, `reported`, `capped`; the handler is called three times; the pull request has no factory post after the second dispatch, exactly one after the third, with key kind `error` and `n` equal to the first 12 digits of the remote state, and still exactly one after the fourth.
@@ -101,3 +101,9 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
    2. The post lookup in `adjust` compares the key's `n` with the latest `question` record. The failing side is untested: a post keyed to an earlier question number, with a later question record that is not posted yet, must not end the wait. Criterion 14 covers only "no post at all". Options: add this as a case of criterion 14, or a new criterion. I would choose a new case in criterion 14.
 3. human (pull request comment, 2026-10-14): 1 (b): F0006-S0002 already tests this rule on both sides in `tests/domain/test_evaluation.py`: `test_a_post_keyed_to_the_latest_question_is_the_posted_question` (parametrized `question-last` and `comment-after-question`) and `test_question_posted_is_false_without_a_post_for_the_latest_question`. Say in the Interface that the rule is built and tested by F0006-S0002 and that this story only relies on it; no new criterion for it.
    2: add it as a new case of criterion 14, as you proposed: a post keyed to an earlier question number, with a later `question` record not posted yet, does not end the wait.
+4. intake: accepted. Carried in the human's answer (log entry 3), nothing else changed: (1b) the last rule of `## Interface` now says the `question_posted` rule is built and tested by F0006-S0002 (`tests/domain/test_evaluation.py`) and that this story only relies on it, with no new criterion; (2) criterion 14 gets a third case: a post keyed to an earlier question number while a later `question` record is not posted yet does not end the wait (now "three cases, one test"). The Assignment's meaning is unchanged.
+   - Interface: `unblock` and `CommentHandler` are named with modules and signatures; the rules for `adjust` (post key, id comparison, blank body) are concrete and read from data.
+   - Criteria: each is testable by one test function. Every rule has its failing side: not blocked (9, 10), no new comment (7), marker-only comments (8), older comment (13), no post, no question record and an earlier-keyed post (14), blank body (16), failing `list_comments` (11), no pull request (12), and the cap on both sides, through `error`, `error`, `reported`, `capped` and the restart (17-19).
+   - Demo: both blocks are runnable, and each `Expect:` line names exact output to compare.
+   - Architecture: the pure rule is in `factory.domain`, the handler in `factory.application.handlers`, and it uses `HostingService` only through its interface. Nothing is wired here.
+   - Scope: within F0007's "Answers and comment events" scope. The crash-cap question and the rerun stay with F0008.
