@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 56
 blocked: null
 comments_seen: 2
@@ -248,3 +248,14 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 
     `make lint`: lint: green
     `make test`: test: green
+12. coder: coder (round 1): this round fixes the reviewer's finding in entry 9. The tester added `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` (entry 11), which tests the allowed side of the "directly in an `in-progress` folder" limit: files in a `backlog/` folder and a nested `in-progress/sub/notes.txt` stay as the agent wrote them under write paths `["*"]`. It passes against the existing implementation in `src/factory/application/undo.py` (commit 4cfd5a1). `_is_in_an_in_progress_folder` matches only exactly three segments after `factory/features/` with `in-progress` in the middle, so I made no code change this round.
+
+    Rejected: refusing nested files under `in-progress/` as well. That would go against the Interface's "directly", and nobody asked for it.
+
+    Refactor: there is no new diff in this round and none was needed after round 0, so there is no refactor commit.
+
+    Open: none. The docs criterion (20) is the documenter's.
+
+    `make check`: check: green (total coverage 99.68 %).
+
+    `make check`: check: green
