@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 82
 blocked: null
 comments_seen: 0
@@ -206,3 +206,18 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
       Noticed, not touched: `copy` does not fetch. It relies on the remote-tracking ref, as the tester noted. Whoever calls it later (S0005, S0007) must have fetched first. The docs criterion (23) is left to the documenter.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Criteria 1–21: each has a test, and each test checks the criterion it is named after. Some details I checked:
+     - The check_out test leaves a local commit that was never pushed, an uncommitted change to a file that differs from `origin/<branch>`, and an untracked file. It checks that all three are gone.
+     - The append test uses a `+02:00` `created_at` that falls on the previous day in UTC, and the body `a\r\nb\r\n`.
+     - The adjust test checks that `adjust` is not called when nothing is unread, that it receives the blank comment as well, and that the branch gains exactly one commit.
+     - The kill test checks that the remote has not moved and that the second copy records each comment once.
+     - The closed-model tests use a variable typed `type[BaseModel]` and `setattr`. The commit-id test covers 40 lower-case characters (accepted), 39 characters, and 40 with an upper-case letter (both refused).
+   - Every rule in the Interface has its failing side tested: no work item, no state, no pull request, a rejected push, an unreachable push, marked comments, comments already read, blank bodies, nothing unread.
+   - The coder's entry reports `make check` green.
+   - Architecture: `recording.py` and `comments.py` import only `factory.application.boundaries` and `factory.domain`. They reach git, hosting and the work-item reader and writer only through `Boundaries`. `CannotHandle` is pure domain code.
+   - Security: no secrets and no command strings. No suppression markers were added.
+   - Quality: the code matches the Interface step by step: the `check_out` sequence, `publish` raising `PushFailed` for any outcome other than `pushed`, `unread` filtering only on `by_factory` and the ids already read, the sorted union in `comments_read`, and the early return in `copy`. Public names have docstrings and the comments explain why.
+   - Hygiene: the log explains the main decision (updating `comments_read` with `model_copy`, rejected: building a new state through validation). Assignment matches what was built, and criterion 23 still describes what the documenter has to write.
+   - Open, not a finding: the coder says `_state_of` in `comments.py` cannot be reached. It can be: `copy` reaches it when the checked-out work item has no state, and `append` reaches it when called directly with a stateless document. It then raises `ValueError`, not `CannotHandle`. The Interface does not cover this case. S0005 and S0007 call `target_of` first, which already needs a state. Also open: `copy` does not fetch, so the stories that call it must fetch first.
