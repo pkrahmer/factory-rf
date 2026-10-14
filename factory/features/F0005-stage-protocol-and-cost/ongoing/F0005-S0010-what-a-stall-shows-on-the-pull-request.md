@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 69
 blocked: null
 comments_seen: 0
@@ -92,3 +92,42 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
    - Demo: both commands are runnable. Each `Expect:` line is checkable against the output.
    - Architecture: the note text stays in `domain` and the label write stays in `application` through the hosting-service interface. No new dependency and no layer is crossed.
    - Scope: within F0005. FEATURE decisions 33 and 34 record this story's choices, and none of the Out-of-scope items is touched.
+3. tester: Wrote the red tests for the fenced stall note and the stall's stage label.
+
+   Criteria → tests:
+   - criterion 1: tests/domain/test_stall_note_block.py::test_a_multi_line_detail_puts_its_rest_in_a_fenced_block
+   - criterion 2: tests/domain/test_stall_note_block.py::test_at_the_cap_the_first_line_says_the_factory_asks_you_next
+   - criterion 3: tests/domain/test_stall_note_block.py::test_a_one_line_or_empty_detail_gives_the_note_as_before
+   - criterion 4: tests/domain/test_stall_note_block.py::test_trailing_line_breaks_neither_make_a_block_nor_reach_one
+   - criterion 5: tests/domain/test_stall_note_block.py::test_the_remaining_lines_are_kept_unchanged_in_the_block
+   - criterion 6: tests/domain/test_stall_note_block.py::test_the_fence_is_longer_than_any_run_of_three_or_more_backticks (parametrized on runs of 2, 3 and 5 backticks, so both sides of the "three or longer" boundary are covered)
+   - criterion 7: tests/application/test_stall_labels.py::test_a_red_check_through_the_stage_runner_posts_its_tail_in_a_block
+   - criterion 8: tests/application/test_stall_labels.py::test_a_new_work_item_whose_first_stage_stalls_gets_its_stage_label
+   - criterion 9: tests/application/test_stall_labels.py::test_a_merge_conflict_stall_leaves_the_label_of_its_stage
+   - criterion 10: tests/application/test_stall_labels.py::test_a_note_already_posted_still_gets_the_label_written
+   - criterion 11: tests/application/test_stall_labels.py::test_a_failing_label_write_raises_after_the_stall_is_pushed_and_said
+   - criterion 12: tests/application/test_stall_labels.py::test_a_failing_note_writes_no_label
+
+   Files created: tests/domain/test_stall_note_block.py and tests/application/test_stall_labels.py. No existing test was changed.
+
+   How the application tests are set up:
+   - **Criterion 7** runs a real `make` Makefile through `StageRunner` at stage `doing`, because that stage's checks are `[check]` in PIPELINE_YAML.
+   - **Criteria 8 and 9** go through `StageRunner`. Criterion 8 uses a work item that is only started on main, so the factory opens it new at `intake`.
+   - **Criteria 10 to 12** call `StallService.stall` directly on a newly prepared `intake` work item with `stage_start=None`.
+     - For criterion 10, the pull request is created first through `WorkItemOpening.ensure_pull_request`, and the note is pre-posted with the stall key `n = len(journal) + 1`.
+     - In criteria 11 and 12, the stall itself creates the pull request.
+
+   Imports: the test runner could import every module; nothing is missing. The tests fail on wrong results.
+
+   What the one `make test` run showed: its tail lists failures in the criterion 4, 5 and 6 tests of tests/domain/test_stall_note_block.py, plus `make: *** [Makefile:51: test] Error 1`. The tail did not show the application file's results.
+
+   Expected without running:
+   - The criterion 3 and criterion 12 tests should already pass on the current code. They guard behaviour that must not change.
+   - Criteria 1, 2, 7, 8, 9, 10 and 11 should fail because the note has no block and no label is written.
+
+   `make lint` is green. The type check was not run, as this stage says.
+
+   Open: nothing.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_stall_note_block.py::test_the_fence_is_longer_than_any_run_of_three_or_more_backticks[run-of-five]
