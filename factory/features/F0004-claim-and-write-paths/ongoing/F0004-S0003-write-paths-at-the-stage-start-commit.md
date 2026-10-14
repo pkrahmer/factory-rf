@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 54
 blocked: null
 comments_seen: 0
@@ -288,3 +288,13 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
         - The missing-file text repeats `pipeline_loading.py:44`. The coder's entry 4 justifies this as two reads with different purposes, and I accept that.
       - Group 5, ticket hygiene. The log records the main decision (a direct parse instead of `PipelineLoader`) and the rejected shared helper. The Assignment matches what was built. Criterion 24 still describes what the documenter must write.
       - Open: criterion 24 (docs) is the documenter's.
+10. documenter: round 1. Wrote the documentation for criterion 24. No findings: the code matches the Interface and the criteria.
+    - `docs/project-guide.md`: new section "The write paths". It covers where the write paths come from (the definition at the stage-start commit, never the work tree; a direct parse, not `PipelineLoader`), matching and safety, the two placeholders, the ten protected paths and that no write path reaches them, the three refusal texts in order, and the errors of `at`. I also changed the pipeline loader bullet that said a reader at another commit "will parse" directly. It now points to `WritePathService`.
+    - `docs/decisions.md`: new entry. The protected paths are the engine's fixed list (a project cannot change them in v1.1). The write paths are read at the stage-start commit (R32) by a direct parse, and `PipelineLoader` stays the one place that loads the definition for the tick. Alternatives rejected are recorded.
+    - `docs/operator-guide.md`: `{feature}` is now described as the feature's path (`factory/features/F0004-x`) instead of its "feature directory". A sentence lists the protected paths, which are outside every write path.
+    - Cross-read against the diff and found current: README (it says nothing on write paths), the rest of the operator guide, and the project-guide sections on the claim service, the agent runtime (`GuardSettings`) and the pipeline definition.
+    - I did not run the two demo blocks. I wrote no new runnable examples. The refusal texts and the lists come from the code in `src/factory/domain/write_paths.py`.
+    - Nothing stale and unrelated seen.
+    - `make check`: check: green.
+
+    `make check`: check: green
