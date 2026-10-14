@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 65
 blocked: null
 comments_seen: 0
@@ -135,3 +135,30 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the cost records for agent runs. `make check` is green and coverage is 99.4 %. Commits: 955e025 (feat) and 4cc62d8 (refactor).
+
+   - `src/factory/application/costs.py` (new):
+     - `CostRun` is frozen and forbids unknown keys.
+     - `CostRecorder.begin` reads the sidecar in the work tree and adds a `started` record. The record has a `uuid4().hex` run id, the state's `attempts` and `Clock.now()`. `begin` writes the sidecar and returns the run.
+     - `complete` replaces the record with the same run id by its completed form. It copies duration, end reason, turns, tokens and cost exactly as reported (`None` stays `None`, a reported zero stays zero), then writes.
+     - `write` replaces the file with the records held in memory.
+     - `StartedStage` is imported only under `TYPE_CHECKING`, as the interface says.
+   - `src/factory/application/stage.py`:
+     - `LaunchedStage.cost` and `AgentAftermath.cost` are added.
+     - `StageLauncher.launch` calls `begin` right before the runtime runs and `complete` right after it returns.
+     - `AfterAgent.process` calls `CostRecorder.write(launched.cost)` right after its undo. Its `_stall` now takes the `LaunchedStage`, so every `StallContext` gets `cost=launched.cost`.
+     - `StageFinisher._stall_red` passes `aftermath.cost`.
+   - `src/factory/application/stalls.py`: `StallContext.cost` is added, defaulting to `None`. `StallService.stall` rewrites the sidecar right after its undo when `cost` is set.
+
+   Main decision: the role passed to `begin` comes from the pipeline definition (`definition.stages[stage].role`), which `StageLauncher` now keeps. The alternative I rejected was reading it from the `AgentDefinition` the composer returns, because that would tie the record to the agent file's naming rather than the stage table.
+
+   Refactor: the "stage has no role" check was now in two places, so I moved it into one module helper, `_role_of`, in `stage.py`. I changed nothing else.
+
+   Noticed but did not touch:
+   - `AfterAgent._entry` already left the sidecar out of the undone paths before this story, so no change was needed for criterion 14.
+   - `begin` raises `ValueError` for a document without state (`costs.py` line 42). That branch is not covered, and the launcher refuses such a document earlier anyway.
+   - Intake noted a gap: no test checks that a `StallContext` with `cost=None` writes no sidecar. The code doesn't write one in that case.
+
+   No test changed. `## Assignment` is unchanged.
+
+   `make check`: check: green
