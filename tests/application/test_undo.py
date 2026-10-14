@@ -59,7 +59,8 @@ def _start(
 ) -> StageStart:
     """Push the definition, commit the work item and the base files on its branch, claim."""
     text = _pipeline(write_paths)
-    human.push_file("main", PIPELINE_FILE, text)
+    if text != PIPELINE_YAML:
+        human.push_file("main", PIPELINE_FILE, text)
     git = boundaries.git
     git.fetch()
     git.checkout(BRANCH, start_point="origin/main")

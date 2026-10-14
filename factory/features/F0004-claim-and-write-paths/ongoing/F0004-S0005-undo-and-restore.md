@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 56
 blocked: null
 comments_seen: 2
@@ -200,3 +200,7 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
    Why: when a test passes no `write_paths`, the helper pushes the text that `main` already has. The commit is then empty and `GitCli.commit` raises `NothingToCommit`, which makes 15 of the 19 tests fail during setup.
 
    The implementation in `src/factory/application/undo.py` (commit 4cfd5a1) is unchanged. I made no code changes in this run, and the refactor step comes once `make check` can go green with the corrected test.
+7. tester: tester (approved test change, entries 5 and 6): in `tests/application/test_undo.py`, the helper `_start` now calls `human.push_file("main", PIPELINE_FILE, text)` only when `text != PIPELINE_YAML`. It still calls `git.fetch()` afterwards. Why: when a test passes no `write_paths`, the helper pushed the text `main` already has. That made an empty commit, and `GitCli.commit` refused it with `NothingToCommit`, so 15 of the 19 tests failed during setup. `HumanClone.push_file` is unchanged, and no other test changed. `make test` is green with the coder's implementation (commit 4cfd5a1), total coverage 99.68 %. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green
