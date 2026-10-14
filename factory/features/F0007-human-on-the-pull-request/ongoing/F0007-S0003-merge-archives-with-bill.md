@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 84
 blocked: null
 comments_seen: 0
@@ -162,3 +162,28 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
    - Demo: both blocks are runnable. Each `Expect:` line names exact output (the four lines, the file list, the stage and journal tuples, and `main` as the only branch left on the remote), so the output can be checked against it.
    - Architecture: the pure path function and text are in `domain`. The handler is in `application` and reaches git, readers and writers only through `Boundaries`. Dropping the claim by setting the field to `None` is allowed, per decision 22 and `tests/test_claim_ownership.py`.
    - Scope: this is within the feature's Merge item (feature decisions 5, 6, 8 and 22). It leaves out the acceptance's merge, which is F0009's, and the discard, which is S0004's. `destination_path` is built here for S0004 to reuse, as the feature plans.
+3. tester: wrote red tests for criteria 1–17 against the Interface.
+      - criterion 1: tests/domain/test_archive.py::test_the_destination_is_the_same_file_in_the_folder_of_the_same_feature (done and backlog)
+      - criterion 2: tests/domain/test_archive.py::test_a_path_in_no_lifecycle_folder_has_no_destination (README.md, a feature.md, a non-lifecycle folder)
+      - criterion 3: tests/domain/test_archive_texts.py::test_the_done_entry_names_the_merge_and_ends_with_the_cost_line (empty bill and a bill of three records)
+      - criterion 4: tests/application/handlers/test_merged.py::test_the_merged_story_is_moved_under_done_on_main (also checks the one commit on main, subject `work item F0001-S0001: merged, archived`)
+      - criterion 5: …::test_the_archived_state_is_done_unblocked_and_unclaimed_and_keeps_the_rest (blocked, claimed, round/attempts/crashes/comments_read/handed_over set, two old records)
+      - criterion 6: …::test_a_story_is_archived_the_same_way_at_whatever_stage_it_was_merged (tests, doing, approval)
+      - criterion 7: …::test_the_archive_appends_one_done_entry_of_the_factory_with_the_bill
+      - criterion 8: …::test_the_bill_counts_every_record_whatever_its_end_and_known_cost
+      - criterion 9: …::test_the_cost_records_move_beside_the_archived_story
+      - criterion 10: …::test_a_story_without_cost_records_is_archived_with_an_empty_bill
+      - criterion 11: …::test_after_the_archive_the_branch_is_gone_from_the_remote_and_the_checkout (the local branch is checked out before handling, so its deletion is observable)
+      - criterion 12: …::test_a_story_whose_branch_is_already_gone_is_archived_without_an_error (the human deletes the remote branch after the merge)
+      - criterion 13: …::test_a_kill_before_the_push_changes_nothing_and_a_second_run_archives_once
+      - criterion 14: …::test_a_kill_after_the_archive_is_pushed_leaves_the_branch_on_the_remote
+      - criterion 15: …::test_a_main_moved_since_the_checkout_rejects_the_archive_and_keeps_the_branch
+      - criterion 16: …::test_a_merge_posts_nothing_on_the_pull_request
+      - criterion 17: …::test_a_refused_branch_deletion_fails_after_the_archive_is_pushed (receive.denyDeletes in the bare remote; asserts PushFailed.branch == work-item/F0001-S0001 and outcome rejected)
+      Setup: a `merge` fixture in test_merged.py starts the seeded backlog story with `human.start` and pushes the state (and optionally a cost record file from `bill_support`) to the work item branch. It merges with `human.merge(branch, "merge")`, then fetches the checkout. Results are read from `origin/main` and the bare remote. It uses the `pull_request` fixture from tests/application/handlers/conftest.py.
+      Files created: tests/domain/test_archive.py, tests/domain/test_archive_texts.py, tests/application/handlers/test_merged.py.
+      `make test`: 3 collection errors, as intended. The modules `factory.domain.archive` and `factory.application.handlers.merged` do not exist, and `factory.domain.post_texts` has no `done_entry_text`. `make lint` is green. Type check skipped as the stage says.
+      No criterion needed interpretation. Not tested: whether a story without a cost record file gets one under `done/`. The criteria leave this open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
