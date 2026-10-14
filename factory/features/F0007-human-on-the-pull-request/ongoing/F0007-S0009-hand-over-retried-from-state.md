@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 90
 blocked: null
 comments_seen: 0
 round: 0
@@ -116,3 +116,9 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures are named (`domain/sections.py`, `domain/hand_over.py`, `domain/post_texts.py`, `application/handlers/hand_over.py`). The rules fix the section order, the `none` cases, the fence format, the post key and the order of effects.
+   - Criteria: each one fits a single test function. Each Interface behaviour has a criterion: order and closing text (1, 8), the verbatim sections and the `none` cases (2, 4), the latest `result` record (3), speaker read from data (5), the fence and the empty-commit case (6), `cost_table_post` (7), the effects and the key (9-11). Each rule has its failing side: a post failure (12, 13), a kill (14), already handed over (15), a non-approval stage (16), no pull request (17) and the error cap (18).
+   - Demo: runnable as written. Each `Expect:` line can be checked against the output.
+   - Architecture: the pure text builders sit in the domain layer. The handler sits in application and uses the Boundaries and hosting interfaces. It calls no tool directly.
+   - Scope: the story is within F0007's "hand-over at the approval" scope item. It touches nothing listed under Out of scope.
