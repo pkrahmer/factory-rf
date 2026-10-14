@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 75
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -125,3 +125,16 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: The format check passed. Two rules in the `## Interface` have no criterion for the side that returns the other result, so two coders could read them differently and both pass:
+
+   1. `last_stage_change` returns `None` "when the file does not exist ... at `C`", where `C` is the newest commit. Criterion 11 covers a file that `C` added, which is missing at the parent. It does not cover a file that `C` deleted, which is missing at `C`. Proposed: add to criterion 11, or as a new criterion before the two closing ones, that a newest commit which deleted the work item's file gives `None`.
+
+   2. `correction` is true only when `C`'s journal is longer than the parent's and its last record has kind `move_back`. Criterion 12 tests only an appended `move_back` record (true) and an appended record of another kind (false). Nothing tests the "longer" condition. Proposed: add a criterion that a commit which changes the stage and leaves the journal the same length gives `correction=False`, even when the last record of that journal has kind `move_back`. The journal would have to hold an older `move_back` record for this test.
+
+   I would choose both additions as new criteria, placed before the `make check` and `docs:` criteria.
+
+   Everything else holds up:
+   - The Interface names concrete modules and signatures.
+   - The Demo is runnable, and its `Expect:` line is checkable.
+   - The architecture is respected: the rule is pure in `domain`, the reading is in `application`, and the watcher fills the input.
+   - The scope matches `FEATURE.md`.
