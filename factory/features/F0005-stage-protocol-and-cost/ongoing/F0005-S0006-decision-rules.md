@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 63
 blocked: null
 comments_seen: 0
@@ -102,3 +102,28 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
    - Demo: the command is runnable and matches the Interface. I traced the output. Rounds 0 and 1 give rule 3. Round 2 gives rule 4, stage review, round 3 and `round_cap`. The question text for 3 and 2 follows the template. The last two lines are 6 and `question`, six lines in all. Each `Expect:` line is checkable.
    - Architecture: the code is pure domain, with no I/O. `post_texts` and `decisions` stay in `factory.domain`. The import direction is stated, so there is no layer problem.
    - Scope: within F0005 (decision rules 1 to 4, 6 and 7). Rule 5 and `crashes` are left to S0007, and decisions 16, 17 and 26 are respected. Nothing is out of scope.
+3. tester: Wrote the tests for the decision rules and the factory's own question texts. In `tests/domain/test_decision_rules.py`, a local fixture `definition` builds the pipeline: `doing` has next review, tests and no round_cap; `review` has next docs, doing and round_cap 3. Its other stages are tests, docs and done.
+   - criterion 1: tests/domain/test_decision_rules.py::test_a_forward_decision_without_findings_moves_to_the_first_next_stage
+   - criterion 2: tests/domain/test_decision_rules.py::test_a_forward_decision_with_findings_becomes_a_question
+   - criterion 3: tests/domain/test_decision_rules.py::test_the_decision_question_blocks_the_work_item_at_its_stage
+   - criterion 4: tests/domain/test_decision_rules.py::test_findings_do_not_add_a_question_to_the_decision_question
+   - criterion 5: tests/domain/test_decision_rules.py::test_a_rework_within_the_round_cap_moves_and_counts_a_round
+   - criterion 6: tests/domain/test_decision_rules.py::test_a_rework_past_the_round_cap_asks_the_human (parametrized: rounds 0, 1 and 2 give rule 3; round 3 gives rule 4; the new round is rounds + 1)
+   - criterion 7: tests/domain/test_decision_rules.py::test_a_rework_past_the_round_cap_stays_blocked_with_the_round_cap_question
+   - criterion 8: tests/domain/test_decision_rules.py::test_a_rework_at_a_stage_without_round_cap_moves_without_counting
+   - criterion 9: tests/domain/test_decision_rules.py::test_findings_do_not_change_a_rework
+   - criterion 10: tests/domain/test_decision_rules.py::test_a_move_clears_a_blocked_question (parametrized over rules 3, 6 and 7)
+   - criterion 11: tests/domain/test_decision_rules.py::test_a_decision_outside_next_is_refused_by_name (decision `done` at stage `review`)
+   - criterion 12: tests/domain/test_decision_rules.py::test_a_stage_outside_the_pipeline_definition_is_refused_by_name
+   - criterion 13: tests/domain/test_decision_rules.py::test_a_stage_move_has_no_attempts_or_crashes
+   - criterion 14: tests/domain/test_question_texts.py::test_the_round_cap_question_names_the_rounds_and_the_cap
+   - criterion 15: tests/domain/test_question_texts.py::test_the_findings_question_numbers_the_findings_messages
+   - criterion 16: tests/domain/test_decision_rules.py::test_a_stage_move_accepts_each_rule (rules 1, 2, 3, 4, 6 and 7 with round 0), ::test_a_stage_move_refuses_what_its_types_refuse (rule 5, round -1 and an unknown key, each built through `type[BaseModel]`) and ::test_a_stage_move_is_frozen (setattr on `stage`)
+   - criteria 17 and 18: not test criteria (make check, docs).
+
+   Files created: tests/domain/test_decision_rules.py and tests/domain/test_question_texts.py.
+
+   `make test` stopped at collection with 2 errors, one for each new file. The test runner could not import `StageMove` and `decide` from `factory.domain.decisions`, or `findings_question` and `round_cap_question` from `factory.domain.post_texts`. `make lint` is green. Nothing open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
