@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 90
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -171,3 +171,4 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
    3. Change the Interface so the handler reads the texts and passes them to `hand_over_description`. That changes the signature and the domain tests.
 
    Refactor step: not done yet, because the check is red.
+5. human (pull request comment, 2026-10-14): 1: the tester changes `ALLOWED["entry_text"]` in `tests/test_no_journal_reading.py` (F0005-S0009's test), replacing `factory.application.handlers.hand_over` with `factory.domain.hand_over`, and changes nothing else in that file. The Interface puts the reading in the domain, and the use is for display only; the speaker is still taken from the record's data. This is the human's word for that one change. End with `tests` and name exactly that change.
