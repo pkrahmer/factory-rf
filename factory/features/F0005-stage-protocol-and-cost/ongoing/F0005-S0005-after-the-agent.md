@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 62
 blocked: null
 comments_seen: 2
@@ -260,3 +260,18 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
       - Left as it is: the role-less `ValueError` in `_entry` and the `decision is None` guard. Both are defensive code the coder explained in entry 4, not dead logic.
       - Left as it is: `agent_entry` sorts `undone` itself, as the Interface asks, even though the caller already sorts.
     - **Ticket hygiene:** the log explains the main decision (reusing `StallService` unchanged, which runs its own undo a second time without effect) and what was rejected. The Assignment matches what was built. Criterion 23 still describes what the documenter must write.
+14. documenter: Docs round 1. Changed `docs/project-guide.md`. I added a section "After the agent run" before the kill-points section. It covers criterion 23 in order:
+    - the branch test;
+    - the stalls for results the factory cannot keep;
+    - the undo and restore, including that the agent's state and journal edits are always discarded;
+    - `agent_entry` (speaker and kind decided by code, the name prefix removed, the undone paragraph, the cost-record file not named);
+    - the form check after the run, where only a new finding stalls, line numbers are masked, and a kind that occurs more often than before counts as new;
+    - `AgentAftermath` and its tests.
+
+    I also replaced the last sentence of the undo section, "When it runs and what the entry says about it are F0005's", with a pointer to the new section.
+
+    Cross-read against the diff: the Stalls and Starting-a-stage sections are still true. There is nothing for README or the operator guide, because this story adds nothing the operator sees.
+
+    Findings: none. The code matches the Interface. I wrote no runnable examples. `make check` is green.
+
+    `make check`: check: green
