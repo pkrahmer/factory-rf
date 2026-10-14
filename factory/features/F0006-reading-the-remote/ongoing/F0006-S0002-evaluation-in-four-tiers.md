@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 72
 blocked: null
 comments_seen: 2
@@ -294,3 +294,23 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     `make check`: check: green (coverage 99.38%).
 
     `make check`: check: green
+15. reviewer: Round 2. No findings.
+
+    I read the full diff of `src/` and `tests/` (`src/factory/domain/events.py`, `src/factory/domain/evaluation.py`, `src/factory/application/watcher.py`, `tests/domain/test_events.py`, `tests/domain/test_evaluation.py`, `tests/application/test_watcher.py`) and checked it against the Interface and criteria 1 to 25.
+
+    - Group 1, acceptance criteria. Every criterion has a test that checks what the criterion says, and every refused side is tested:
+      - Event: each kind/subject pairing; an unknown key, an assignment, an unknown kind, a 39-character and an upper-case `remote_state`.
+      - Attempts 1 and 2 against a cap of 2, and claims aged 59, 60 and 61 minutes against a lease of 60.
+      - A missing state and an unknown stage, each named in the message.
+      - A post for an earlier question, another kind, not blocked, and no question record.
+      - No lookup when nothing waits, and only the first waiting work item is looked up.
+      - `remote_state` for every kind, with and without a branch commit.
+      - Both earlier findings are fixed: entry 9 made the `GitError` test match `origin/main`, and entry 13 added the `factory_posts` assertion. Entry 14 reports `make check` green.
+    - Group 2, architecture. `evaluation.py` and `events.py` are pure domain code, with no I/O and no `dict[str, Any]`. `Watcher` lives in `factory.application`. It reaches the outside only through `Boundaries`, `RemoteWorkItems` and `ClaimService`.
+    - Group 3, security. Nothing to flag; no suppression markers.
+    - Group 4, quality. The module and public docstrings are present. The two comments say why: one lookup per tick, and comments only while the pull request is open. `_event` sets `remote_state` in one place.
+    - Group 5, ticket hygiene. Entry 6 records the main decision (the tiers chained with `or`) and the rejected one (a loop over tier functions). The Assignment matches what was built, and criterion 27 still describes what the docs need.
+
+    Considered and not findings:
+    - The watcher leaves fetching to its caller; the Interface leaves this open and F0006-S0004 decides the tick.
+    - `_agent_at_work`'s `state.claim is not None` guard only narrows the type for mypy.
