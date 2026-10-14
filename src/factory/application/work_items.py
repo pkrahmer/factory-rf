@@ -1,5 +1,6 @@
 """The work items read from main's lifecycle folders and their branches on the remote."""
 
+from collections.abc import Callable
 from pathlib import PurePosixPath
 
 from factory.application.files import WorkItemReader
@@ -73,25 +74,26 @@ class RemoteWorkItems:
         text = self._git.show_file(f"{REMOTE}/{branch}", story.path)
         if text is None:
             raise WorkItemFormatError(f"missing on branch {branch}", story.path)
-        try:
-            return self._reader.parse(text)
-        except WorkItemFormatError as error:
-            raise WorkItemFormatError(error.fault, story.path) from error
+        return _parsed(self._reader.parse, text, story.path)
 
     def _started_document(self, story: StoryFile, first_stage: str) -> WorkItemDocument:
         # The human starts a story by moving it into in-progress; any state its file claims is void.
         text = self._git.show_file(_MAIN_REF, story.path)
         if text is None:
             raise WorkItemFormatError(f"missing on {_MAIN_REF}", story.path)
-        try:
-            specification = self._reader.parse_specification(text)
-        except WorkItemFormatError as error:
-            raise WorkItemFormatError(error.fault, story.path) from error
+        specification = _parsed(self._reader.parse_specification, text, story.path)
         return WorkItemDocument(
             state=initial_state(first_stage),
             body=specification.body,
             ignored_keys=specification.ignored_keys,
         )
+
+
+def _parsed(parse: Callable[[str], WorkItemDocument], text: str, path: str) -> WorkItemDocument:
+    try:
+        return parse(text)
+    except WorkItemFormatError as error:
+        raise WorkItemFormatError(error.fault, path) from error
 
 
 def _story_file(path: str) -> StoryFile | None:
