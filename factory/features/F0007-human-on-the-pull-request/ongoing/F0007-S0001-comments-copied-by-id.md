@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 82
 blocked: null
 comments_seen: 0
 round: 0
@@ -145,3 +145,9 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`domain/errors.py`, `application/handlers/recording.py` and `comments.py`); every rule (message format, target_of failures, subject, check_out sequence, publish outcomes, unread filter, append, copy) is stated precisely. The names the Demo and Interface use exist: `add_human_comment(number, body, *, author=)`, `FACTORY_MARKER`, `Git.reset_to`, `Git.checkout(start_point=)`, `PushFailed`.
+   - Criteria: each is testable by one test function. Every rule has its failing side: no state or no work item (3), no pull request (4), a rejected or unreachable push (8), marked or already-read comments left out (9, 11), blank body (13), nothing unread (16), a kill before push (20), and the closed models refuse unknown keys, assignment and bad commit ids (21). Every behaviour in the Interface comments has a criterion: CRLF and strip (12), UTC date (12), sorted union (14), adjust (19).
+   - Demo: both commands are runnable and each Expect line can be checked against the output.
+   - Architecture: the handlers sit in `factory.application` and reach git, hosting and the work item reader and writer only through `Boundaries`. Nothing in the domain does I/O.
+   - Scope: the story is within F0007's scope (shared plumbing and comments copied by id). It registers no handler, which matches the feature, and S0007 and S0005 are named as later users.
