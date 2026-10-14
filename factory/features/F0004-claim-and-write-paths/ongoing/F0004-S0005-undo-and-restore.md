@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 56
+blocked: null
+comments_seen: 2
+round: 2
+attempts: 0
+---
 # Undo and restore after an agent run
 
 ## Assignment (as of log entry 1)
@@ -143,3 +151,194 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/application/undo.py` names `UndoReport` (frozen, extra forbidden) and `UndoService.__init__`/`undo` with signatures. It names the collaborators it uses (`WritePathService.at`, `refusal`, `Git.changed_paths`/`show_file`/`revert_paths`, `restore_state_and_journal`, the work item reader and writer). The rules give the order (settings, baseline, refused paths, own file) and the exact in-progress path test.
+   - Criteria: every behaviour stated in the Interface has a criterion. Reverted/deleted lists are 1–5 and 16. Protected paths are 6. In-progress rules are 7. State and journal restore are 8–9. Deleted or broken work item is 10–11. A work item the role may not write is 12. Pipeline rewrites are 13–15. Baseline errors are 17. The frozen/extra model is 18. Each rule has its failing side: paths inside the write paths stay (5), a section-only edit means no restore (9), and a baseline error leaves the work tree untouched (17). Criterion 17 covers two cases (missing and unreadable baseline) and criterion 16 two assertions; both are fine as parametrized or paired tests, not a decision for the coder.
+   - Demo: the script is runnable with the named adapters. Each of the five output lines in `Expect:` can be compared against the output.
+   - Architecture: the use case sits in `factory.application` and reaches git only through the `Git` interface and the file formats through reader/writer interfaces. It takes `Boundaries` and has no concrete tool.
+   - Scope: it matches the feature's undo and restore bullet (WE2.1–WE2.3) and decisions 13–15. When the undo runs and the note in the entry are left to F0005, as the feature's Out of scope says.
+3. tester: wrote `tests/application/test_undo.py` (new file, the only file created). One helper, `_start`, does the setup. It pushes a pipeline definition (the fixture's `PIPELINE_YAML`, with the `intake` role's write paths replaced when a test needs other ones), checks out the work item's branch from `origin/main`, and commits `docs/guide.md`, `src/kept.py` and `F0001-S0002-second.md` together with the work item (`initial_state(stage)`, journal entry 1, a `## Journal` section). It then claims with `ClaimService`.
+   - criterion 1: tests/application/test_undo.py::test_a_modified_tracked_file_outside_the_write_paths_is_reverted
+   - criterion 2: tests/application/test_undo.py::test_a_new_untracked_file_outside_the_write_paths_is_deleted
+   - criterion 3: tests/application/test_undo.py::test_a_deleted_tracked_file_outside_the_write_paths_is_restored
+   - criterion 4: tests/application/test_undo.py::test_a_file_changed_in_the_agents_own_commit_is_reverted_without_a_new_commit
+   - criterion 5: tests/application/test_undo.py::test_files_inside_the_write_paths_are_left_as_the_agent_wrote_them
+   - criterion 6: tests/application/test_undo.py::test_protected_paths_are_undone_although_a_write_path_matches_them
+   - criterion 7: tests/application/test_undo.py::test_everything_else_in_an_in_progress_folder_is_undone_whatever_the_write_paths_say
+   - criterion 8: tests/application/test_undo.py::test_the_work_items_state_and_journal_are_restored_and_its_section_edit_kept
+   - criterion 9: tests/application/test_undo.py::test_a_work_item_with_only_a_section_edit_is_left_as_the_agent_left_it
+   - criterion 10: tests/application/test_undo.py::test_a_work_item_the_agent_deleted_is_restored_whole
+   - criterion 11: tests/application/test_undo.py::test_a_work_item_the_agent_broke_is_restored_whole
+   - criterion 12: tests/application/test_undo.py::test_a_work_item_the_role_may_not_write_is_reverted_whole (stage `doing`, the fixture's coder)
+   - criterion 13: tests/application/test_undo.py::test_a_widened_pipeline_definition_in_the_work_tree_widens_nothing
+   - criterion 14: tests/application/test_undo.py::test_an_invalid_pipeline_definition_in_the_work_tree_does_not_stop_the_undo
+   - criterion 15: tests/application/test_undo.py::test_the_guard_refuses_exactly_what_the_undo_puts_back (`judge` from `factory.adapters.claude_guard` on a Write payload, with `WritePathService.at`'s settings)
+   - criterion 16: tests/application/test_undo.py::test_the_lists_ascend_without_repeats_and_a_second_undo_finds_nothing
+   - criterion 17: tests/application/test_undo.py::test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed. It is parametrized over two baselines. The missing one is a `StageStart` on `origin/main`, which does not contain the work item. The unreadable one is a commit whose work item has front matter that is not valid YAML.
+   - criterion 18: tests/application/test_undo.py::test_the_undo_report_is_frozen and ::test_the_undo_report_forbids_unknown_fields
+   - criteria 19 and 20 are not tests.
+
+   Some assertions are exact lists, because each test's setup leaves no other changed path: `reverted == [GUIDE]` in criteria 1, 3 and 4, and `reverted == [PATH]` in criterion 12. Criterion 16 expects `reverted == [docs/guide.md, factory/pipeline.yml, src/kept.py]` and `deleted == [a.txt, docs/b.md, tests/z.py]`; in that test the work item's `attempts` is raised, so `restored_work_item` is true on the first undo. The second undo must equal `UndoReport(reverted=[], deleted=[], restored_work_item=False)`.
+
+   `make test`: a collection error, `ModuleNotFoundError: No module named 'factory.application.undo'`, the expected red. `make lint` is green. The type check was not run, as this stage skips it. No criterion needed interpretation.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented `src/factory/application/undo.py` (commit 4cfd5a1). It holds `UndoReport` and `UndoService.undo`, following the Interface's order. First it gets the settings from `WritePathService.at`. Then it reads the baseline before any path changes; an absent or unreadable baseline raises `WorkItemFormatError` with the path. Then it reverts the refused paths from `changed_paths` with one `revert_paths` call; a path is refused by `refusal`, or because it sits directly in `factory/features/<dir>/in-progress/` and is not the own work item, checked on the string. Last it restores the own work item. A readable work item gets `restore_state_and_journal` and is written only if it changed. A missing or unreadable one is checked out whole. `make lint`, `make types` and `make layers` are green. The ticket's Demo prints exactly the five expected lines.
+
+   `make test` is red because of the test file, not the code. 15 of the 19 tests in `tests/application/test_undo.py` fail in the setup helper `_start` with `NothingToCommit: nothing to commit`, raised from `human.push_file("main", PIPELINE_FILE, text)`. When a test passes no `write_paths`, `_pipeline(None)` returns `PIPELINE_YAML`. That is the same text the `remote` fixture already has on `main` (`REMOTE_FILES` in `tests/git_support.py`). So the human's commit is empty, and `GitCli.commit` correctly refuses it. Only the tests that pass `write_paths` (criteria 5, 6, 7) and the two `UndoReport` model tests get past setup, and those pass. I did not touch the test, not even temporarily (R9).
+
+   Options:
+   (a) In `_start`, call `human.push_file` only when `text != PIPELINE_YAML` (still followed by `git.fetch()`). This changes only the test module and is my recommendation.
+   (b) Make `HumanClone.push_file` skip the commit and push when nothing changed. This changes a shared test helper that other tests rely on.
+   (c) Always push a definition that differs, e.g. by adding a trailing comment.
+
+   With (a), the ticket goes back with `tests` and the tester makes that one-line change. I could not run the tests against my code beyond the four that already pass, but the Demo covers the main path (refused pipeline rewrite, deleted outside file, kept `src/` file, restored state with the section edit kept, idempotent second undo). Refactor step not yet done; it follows once `make check` can be green.
+5. human (pull request comment, 2026-10-14): (a): in `_start`, call `human.push_file` only when `text != PIPELINE_YAML` (still followed by `git.fetch()`). Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
+6. coder: the human answered (entry 5) with option (a), so this goes back to the tester for a change to the test module only. In `tests/application/test_undo.py`, the helper `_start` should call `human.push_file("main", PIPELINE_FILE, text)` only when `text != PIPELINE_YAML`, and still call `git.fetch()` afterwards. `HumanClone.push_file` stays as it is.
+
+   Why: when a test passes no `write_paths`, the helper pushes the text that `main` already has. The commit is then empty and `GitCli.commit` raises `NothingToCommit`, which makes 15 of the 19 tests fail during setup.
+
+   The implementation in `src/factory/application/undo.py` (commit 4cfd5a1) is unchanged. I made no code changes in this run, and the refactor step comes once `make check` can go green with the corrected test.
+7. tester: tester (approved test change, entries 5 and 6): in `tests/application/test_undo.py`, the helper `_start` now calls `human.push_file("main", PIPELINE_FILE, text)` only when `text != PIPELINE_YAML`. It still calls `git.fetch()` afterwards. Why: when a test passes no `write_paths`, the helper pushed the text `main` already has. That made an empty commit, and `GitCli.commit` refused it with `NothingToCommit`, so 15 of the 19 tests failed during setup. `HumanClone.push_file` is unchanged, and no other test changed. `make test` is green with the coder's implementation (commit 4cfd5a1), total coverage 99.68 %. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: the tester corrected the setup helper (entry 7), and `make check` is now green: all 19 tests in `tests/application/test_undo.py` pass, with total coverage at 99.68 %. The implementation is unchanged from commit 4cfd5a1 and stays in `src/factory/application/undo.py`:
+      - `UndoReport` is frozen and forbids unknown fields.
+      - `UndoService.undo` works in the Interface's order. First it gets the settings from `WritePathService.at` at the stage-start commit. Then it reads the baseline before any path changes; an absent or unreadable baseline raises `WorkItemFormatError` naming the path. Next it makes one `revert_paths` call for the refused paths from `changed_paths`. Last it restores the work item: if the file is readable it gets `restore_state_and_journal` and is written only when that changes it; if it is missing or unreadable it is checked out whole.
+
+      Main decision: I check the in-progress rule on the path string (`factory/features/<dir>/in-progress/<file>`, exactly three segments after `FEATURES_DIRECTORY`), in a private helper beside `refusal`. I rejected `folder_of`, because it returns `None` for cost-record files and other non-work-item files, as the Interface says. A work item that was refused and reverted with the other paths then reads back equal to its restore, so it is in `reverted` with `restored_work_item` false (criterion 12), and no special case is needed.
+
+      Refactor: I re-read the diff and found nothing to change. The functions are small and named, and there is no duplication or dead code, so there is no refactor commit.
+
+      Noticed, not touched: writes to ignored paths and outside the checkout are not seen. That is in scope for v2, as the Assignment says. The docs criterion (20) is the documenter's.
+
+   `make check`: check: green
+9. reviewer: one finding, in group 1 (acceptance criteria). The implementation `src/factory/application/undo.py` follows the Interface's order: settings from `WritePathService.at`, then the baseline before any change, then one `revert_paths` for the refused paths, then the own work item. Criteria 1–18 each have a test that checks what the criterion says. The coder's entry 8 reports `make check` green. I did not review groups 2–5 further, because group 1 fails.
+
+   1. tests/application/test_undo.py: nothing tests the allowed side of the Interface's limit "lies *directly* in an `in-progress` folder of a feature". These paths all go untested: a file in another lifecycle folder (`factory/features/F0001-example/backlog/...` or `done/...`), a file nested deeper (`.../in-progress/sub/x.txt`), and an `in-progress` segment outside `factory/features/`. Every path under `factory/features/` that the current tests touch is either in `in-progress/` or is the own work item. So two mutations of `_is_in_an_in_progress_folder` (src/factory/application/undo.py:318) would pass every test: dropping `segments[1] == _IN_PROGRESS`, and changing `len(segments) == 3` to `>= 3`. The first would make the undo delete what the fixture's `acceptance-reviewer` (`{feature}/backlog/*`) may write. CLAUDE.md under *Tests* requires both sides of every stated limit. No criterion states the allowed side, which is also a gap in the story itself. Fix: the coder ends with `tests` and names this change. The tester adds a test with write paths `["*"]` in which the agent changes or adds a file in `factory/features/F0001-example/backlog/` and adds `factory/features/F0001-example/in-progress/sub/notes.txt`. Both must stay as the agent wrote them and be in neither `reverted` nor `deleted`. Alternatively, the tester extends the criterion-7 test with these paths. If the human prefers that nested files under `in-progress/` are refused too, the Interface needs to change first, which is a question for the human.
+10. coder: coder (round 1, the reviewer's finding in entry 9): I agree with the finding, and fixing it needs a new test. I made no change to the code, and the tests stay untouched (R9).
+
+    Test change for the tester: in `tests/application/test_undo.py`, add one test that uses the helper `_start` with write paths `["*"]`. In it, the agent does three things:
+    - changes `factory/features/F0001-example/backlog/<the fixture's backlog story>`, which is present at the stage-start commit;
+    - adds a new file `factory/features/F0001-example/backlog/extra.md`;
+    - adds `factory/features/F0001-example/in-progress/sub/notes.txt`.
+
+    Expected: after `undo`, all three are exactly as the agent wrote them, and none of them is in `reverted` or `deleted`. This tests the allowed side of the Interface's limit, which reads: "lies *directly* in an `in-progress` folder of a feature". Extending the criterion-7 test with the same paths would do the same job; the tester can choose either.
+
+    I checked the current code and expect the test to pass:
+    - `_is_in_an_in_progress_folder` (`src/factory/application/undo.py:92`) only matches paths with exactly three segments after `factory/features/` whose middle segment is `in-progress`.
+    - `PROTECTED_PATHS` (`src/factory/domain/write_paths.py:16`) covers no backlog file and no nested in-progress file, so with `["*"]`, `refusal` allows all three paths.
+
+    Rejected:
+    - Changing the code to refuse nested files under `in-progress/` as well. That would contradict the Interface's "directly", so it would be a question for the human, and the reviewer did not ask for it.
+
+    Open: once the tester adds the test, the ticket comes back to the coder. If the test passes, I will check `make check` and send the ticket to review with no code change.
+11. tester: tester (test change approved; the coder named it in entry 10 after the reviewer's finding in entry 9): I added one new test, `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths`, to `tests/application/test_undo.py`. It sits right after the criterion-7 test. It checks the allowed side of the Interface's rule that a file is undone when it "lies *directly* in an `in-progress` folder of a feature".
+
+    The test claims with write paths `["*"]`. The agent then writes three files:
+    - it changes `factory/features/F0001-example/backlog/F0001-S0001-first.md`, a file that already exists at the stage-start commit (the test asserts that its starting text is different from what the agent writes);
+    - it adds `factory/features/F0001-example/backlog/extra.md`;
+    - it adds `factory/features/F0001-example/in-progress/sub/notes.txt`.
+
+    After `undo`, all three must still hold the agent's text, and `reverted` and `deleted` must both be empty. I kept it as a separate test rather than extending the criterion-7 test, so each test checks one side of the rule. No other test changed, and I did not touch `HumanClone` or `git_support`.
+
+    `make test` is green with the coder's implementation (commit 4cfd5a1), and total coverage is 99.68 %. `make lint` is green.
+
+    `make lint`: lint: green
+    `make test`: test: green
+12. coder: coder (round 1): this round fixes the reviewer's finding in entry 9. The tester added `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` (entry 11), which tests the allowed side of the "directly in an `in-progress` folder" limit: files in a `backlog/` folder and a nested `in-progress/sub/notes.txt` stay as the agent wrote them under write paths `["*"]`. It passes against the existing implementation in `src/factory/application/undo.py` (commit 4cfd5a1). `_is_in_an_in_progress_folder` matches only exactly three segments after `factory/features/` with `in-progress` in the middle, so I made no code change this round.
+
+    Rejected: refusing nested files under `in-progress/` as well. That would go against the Interface's "directly", and nobody asked for it.
+
+    Refactor: there is no new diff in this round and none was needed after round 0, so there is no refactor commit.
+
+    Open: none. The docs criterion (20) is the documenter's.
+
+    `make check`: check: green (total coverage 99.68 %).
+
+    `make check`: check: green
+13. reviewer: reviewer (round 1): one finding, in group 1 (acceptance criteria). The new test `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` covers two of the three gaps that entry 9 named: a file in another lifecycle folder (`backlog/`) and a file nested deeper (`in-progress/sub/notes.txt`). It does not cover the third: an `in-progress` segment outside `factory/features/`. Entries 10–12 do not mention that case or say why it was left out. Criteria 1–18 each have a test that checks what the criterion says, and entry 12 reports `make check` green. I did not review groups 2–5, because group 1 fails.
+
+    1. tests/application/test_undo.py:594: no test has a path outside `factory/features/` whose middle segment is `in-progress`, so the allowed side of the rule's prefix is untested. Deleting the prefix check at `src/factory/application/undo.py:95` (`if not path.startswith(prefix): return False`) would pass every test, yet the undo would then delete a file like `src/in-progress/x.py` even though a role's write paths allow it. Fix: the coder ends with `tests` and names this change: add a three-segment path such as `src/in-progress/notes.txt` to `agent_files` in that test, under write paths `["*"]`. It must stay as the agent wrote it and be in neither `reverted` nor `deleted`. No code change is expected. As entry 9 said, no criterion states this allowed side, which is a gap in the story itself.
+14. coder: coder (round 2, the reviewer's finding in entry 13): I agree. Fixing this needs a test change and no code change. I left the code and the tests untouched (R9).
+
+    Test change for the tester: in `tests/application/test_undo.py`, in `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` (write paths `["*"]`), add the new file `src/in-progress/notes.txt` to `agent_files`. The existing assertions then require that it stays as the agent wrote it and is in neither `reverted` nor `deleted`. This tests the allowed side of the rule's `factory/features/` prefix.
+
+    I expect the test to pass against commit 4cfd5a1, for two reasons:
+    - `_is_in_an_in_progress_folder` (`src/factory/application/undo.py:91`) returns `False` for any path that does not start with `factory/features/`.
+    - With `["*"]`, `refusal` allows `src/in-progress/notes.txt`, because `src/` is not protected.
+
+    Rejected: a separate test for this case. The reviewer named the existing test, and it already checks the "follows the write paths" side.
+
+    Open: once the tester adds the path, the ticket comes back to me. I will run `make check` and send it to review with no code change.
+15. tester: tester (test change approved; the coder named it in entry 14 after the reviewer's finding in entry 13): I added `"src/in-progress/notes.txt": AGENT_TEXT` to `agent_files` in `tests/application/test_undo.py::test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths`, which runs with write paths `["*"]`. This path has three segments with `in-progress` in the middle but sits outside `factory/features/`. The test's existing assertions now cover the allowed side of the rule's `factory/features/` prefix: after the undo the file must still hold the agent's text and appear in neither `reverted` nor `deleted`. I changed nothing else: no other test, no helper, no code.
+
+    `make test` is green against the coder's implementation (commit 4cfd5a1), with total coverage at 99.68 %. `make lint` is green.
+
+    `make lint`: lint: green
+    `make test`: test: green
+16. coder: coder (round 2): this round fixes the reviewer's finding in entry 13. The tester added `src/in-progress/notes.txt` to `agent_files` in `tests/application/test_undo.py::test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` (entry 15). The test now covers the allowed side of the rule's `factory/features/` prefix. It passes against the existing implementation in `src/factory/application/undo.py` (commit 4cfd5a1): `_is_in_an_in_progress_folder` returns `False` for any path outside `factory/features/`, and with write paths `["*"]`, `refusal` allows `src/`. So I made no code change this round.
+
+    All three sides that entry 9 named are now tested: another lifecycle folder, a file nested deeper, and an `in-progress` segment outside `factory/features/`.
+
+    Rejected: changing any code. The finding was only about a missing test.
+
+    Refactor: there is no new diff in this round, so there is no refactor commit.
+
+    Open: none. The docs criterion (20) is the documenter's. As entries 9 and 13 said, no acceptance criterion states the allowed side of the in-progress rule. The tests now cover it, but the story text does not.
+
+    `make check`: green (total coverage 99.68 %).
+
+    `make check`: check: green
+17. reviewer: reviewer (round 2): no findings.
+
+    - Acceptance criteria: I read `tests/application/test_undo.py` against criteria 1–18, and each criterion has a test that checks what it says. Criterion 17 is parametrized over a missing baseline and an unreadable one. In both cases the test asserts that `docs/guide.md` keeps the agent's text, so the baseline is read before any revert. `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` now tests the allowed side of all three parts of the in-progress rule: another lifecycle folder (`backlog/`), a file nested deeper (`in-progress/sub/notes.txt`), and an `in-progress` segment outside `factory/features/` (`src/in-progress/notes.txt`). That closes the findings in entries 9 and 13. Entry 16 reports `make check` green.
+    - Architecture: `src/factory/application/undo.py` imports only `factory.application` and `factory.domain`. It reaches git through the `Git` interface and work items through the reader and writer interfaces on `Boundaries`. It reads the write paths only through `WritePathService.at`, so it never reads the pipeline definition from the work tree. It names no concrete tool and passes no `dict[str, Any]`.
+    - Security: no shell or SQL is built from strings, no secrets, no suppression markers. Paths go to `revert_paths`, which refuses absolute paths and `..` segments.
+    - Quality: the module, both public classes, `__init__` and `undo` have docstrings. The private helpers are small and each does one thing. The comments say why (the baseline is read first; `folder_of` is not used). There is no dead code. The `if refused:` guard skips a `revert_paths` call with nothing to revert.
+    - Ticket hygiene: the Assignment and Interface match what was built. Entry 8 explains the main decision (the in-progress test works on the path string, not `folder_of`) and what was rejected. Criterion 20 still says what the documenter must write.
+
+    Open, not a finding: as entries 9 and 13 said, no acceptance criterion states the allowed side of the in-progress rule. The tests cover it, but the story text does not; the human may want to add it to the criteria.
+18. documenter: docs (round 2): wrote the documentation for criterion 20; no earlier docs round had written any, so this covers all of it.
+
+    Changed:
+    - `docs/project-guide.md`: new section "The undo", placed before "The agent definition reader". It covers:
+      - what the undo reverts or deletes, and why it compares with the stage-start commit;
+      - the two refusal rules: the write paths and protected paths from `WritePathService.at`, and everything directly in an `in-progress` folder except the own work item;
+      - which paths follow the write paths instead: nested files, other lifecycle folders, an `in-progress` folder outside `factory/features/`;
+      - the work item restore (state and journal restored; a deleted or broken file restored whole and not listed in `reverted`; the case where the role may not write it);
+      - the baseline read first and the `WorkItemFormatError`;
+      - the limits: no commit or push, the agent's own commit stays in the history, ignored paths and writes outside the checkout are not seen.
+    - `docs/decisions.md`: new decision. The undo and the guard read the write paths from the stage-start commit (WE2), and a work item the agent breaks is restored whole. It names the rejected alternatives.
+
+    Cross-read and found current against the diff: the "The write paths" and "The guard command" sections of the project guide, the git wrapper table that names `changed_paths` and `revert_paths` as the undo's, and the earlier decisions on the protected paths and the guard. The README and the operator guide do not mention the undo; this story adds no operator-visible behaviour, so I left them alone.
+
+    Findings against the code: none. `UndoService`/`UndoReport` match the Interface. I wrote no runnable examples. `make check` is green (coverage 99.68 %).
+
+    Stale but unrelated, not touched: none seen.
+
+    `make check`: check: green
+19. demo: demo (round 2): I ran the one `## Demo` command from the repository root exactly as written. It exited 0 and printed:
+
+    ```
+    ['factory/pipeline.yml'] ['docs/extra.md'] True
+    True
+    True False
+    0 True
+    reverted=[] deleted=[] restored_work_item=False
+    ```
+
+    Against its Expect line, all five lines match:
+    1. `['factory/pipeline.yml'] ['docs/extra.md'] True`: the widened pipeline definition was reverted, `docs/extra.md` was deleted and the work item was restored.
+    2. `True`: the pipeline definition is back to its text at the stage-start commit.
+    3. `True False`: `src/a.py` stays. `docs/extra.md` is gone, even though the widened definition would have allowed it.
+    4. `0 True`: `attempts` is back to 0 and the agent's section edit stays.
+    5. `reverted=[] deleted=[] restored_work_item=False`: a second undo finds nothing.
+
+    Criteria check: the output agrees with criteria 5 (a new file inside the write paths is untouched), 8 (state and journal restored, other section edit kept, `restored_work_item` true), 13 (WE2.1: a rewritten pipeline definition widens nothing), 15 (the guard and the undo read the same source) and 16 (sorted lists; a second undo is empty). Nothing in the output goes against any other criterion.
+
+    Findings: none.
+
+    Open, not a finding: as entries 9, 13 and 17 said, no acceptance criterion states the allowed side of the in-progress rule. The tests cover it; the story text does not.
