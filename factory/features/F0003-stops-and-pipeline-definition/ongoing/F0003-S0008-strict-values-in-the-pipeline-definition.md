@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 49
 blocked: null
 comments_seen: 0
@@ -117,3 +117,16 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
       - Not touched: the docs criterion (project guide and decision log) belongs to the documenter.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–7 has a test in `tests/adapters/test_pipeline_strict_values.py` or `tests/application/test_pipeline_loading_strict_values.py`, and each test checks what its criterion says.
+        - Criterion 2 runs all six paths with `true`, `'30'` and `30.0`, and also checks the accepted integer for each path: 50 for `lease_duration`, 10 for `lint.time_limit`, 30 for the rest.
+        - Criterion 3 covers `'yes'`, `'off'`, `1` and `0`, plus `true` on the stage `approval` and `false` on the stage `doing`.
+        - Criterion 4 covers `''` and `'  '`, plus `'src/*'` and `'{work_item}'`.
+        - Criterion 6 checks that the fault starts with the field path and does not contain `ship`.
+        - Criterion 7 pushes the file to `main` through `HumanClone`, fetches, then checks that `load` raises and that exactly one `pipeline_definition_invalid` stop exists, with the right detail.
+        - Every Interface rule has a test for both the refused and the accepted side. Every case is built from `PIPELINE_YAML` by text replacement, and `_changed` asserts that each replaced line appears exactly once. No existing test changed. The coder's entry says the factory's `make check` was green.
+      - Architecture: the change touches only `src/factory/domain/pipeline_definition.py`, which is pure Pydantic with no I/O. It adds `strict=True` on the four models, plus `WritePath = Annotated[str, StringConstraints(pattern=r"\S")]`, built the same way as `Name` in `identifiers.py`. The reader and the loader are unchanged.
+      - Security: no markers or secrets, and nothing builds a string into a command or query.
+      - Quality: the diff is small and has no dead code. It uses pydantic's built-in strict mode instead of custom validators. The comment on `WritePath` says in words what the regex `\S` means. It is also the only description of a public alias, so I accept it.
+      - Ticket hygiene: the coder's entry gives the main decision (pydantic strict mode plus a pattern constraint) and the rejected alternative (an `AfterValidator` with the factory's own "must not be blank" message, rejected because the Interface asks for pydantic's message). `Assignment` matches what was built. Criterion 9 still says what the documenter must write.
+      - Open for the human, not a finding: a blank write path is refused with pydantic's message `String should match pattern '\S'`. The Interface asks for that message, but an operator may find it hard to read. A clearer message would need a new story.
