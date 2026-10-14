@@ -1,8 +1,8 @@
 ---
 stage: demo
 pr: 93
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -164,3 +164,4 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
    The demo contradicts nothing else in the criteria. I did not run `make check` here; the factory runs it after this stage.
 
    **Findings:** none apart from command 3, which is what the question above is about.
+8. human (pull request comment, 2026-10-14): (b): not a finding, and the demo is accepted as it is. Command 3's pattern was too broad: line 638 names the real module of `HandOverHandler` in the new subsection, and the journal-reading rule at line 834 lists `factory.domain.hand_over` as the docs criterion asks. Record in your entry that command 3 printed that one line and why it meets the criterion's intent.
