@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 60
 blocked: null
 comments_seen: 0
@@ -186,3 +186,18 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Group 3: no command or SQL is built from strings, no secrets, and no markers that silence a check.
    - Group 4: names, docstrings and the one comment (why the committed file is read back) hold. The uncovered defensive branches (`stage.py` state-is-None, which mypy needs to narrow the type; `task.py` unknown stage) enforce no limit stated in the Interface.
    - Group 5: `Assignment` matches what was built. The log gives the main decision, that the role refusal lives in `TaskComposer`, and what was rejected. The docs criterion still says what the documenter must write.
+8. documenter: wrote the docs criterion; no findings. `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`: new section "Starting a stage" after "Opening a work item". It gives the nine steps of `StageLauncher.launch` in order and says the claim in step 4 is the only remote write. It states that no agent run precedes the pushed claim. It also covers the stage-start commit (one commit above the old head, or the opening commit for a new item), `pull_request` left unchanged, the environment passed through unchanged, what `StartedStage` and `LaunchedStage` hold, which errors propagate, and the `ObservingRuntime` test helper.
+   - `docs/decisions.md`: new entry. The pull request number travels with the stage's next commit because the claim is pushed first. No local run record is kept; the board reads the claim's `started_at`. The alternatives rejected are also recorded.
+
+   Cross-read against the diff and found current:
+   - The sentence in the "Opening a work item" section that the claim makes the first commit.
+   - The "claim service" and "prompt and request" sections of `docs/project-guide.md`.
+   - The operator guide's lease paragraph.
+   - The new section's order of steps matches `stage.py`. The step order the docs criterion lists is the order of effects; in the code, steps 2 and 3 run before the claim, as the Interface says.
+
+   Stale and untouched: nothing seen. The three uncovered defensive branches the coder noted (`stage.py` state-is-None, `task.py` unknown stage, `task.py:120`) are coverage notes, not documentation issues.
+
+   `make check`: check: green
