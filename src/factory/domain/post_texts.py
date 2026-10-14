@@ -7,6 +7,7 @@ import re
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+from factory.domain.bills import Bill, cost_line
 from factory.domain.git import CommitId
 from factory.domain.identifiers import WorkItemId
 
@@ -109,3 +110,8 @@ def attempts_cap_question(stage: str, attempts: int, last_stall: str) -> str:
         " Close the pull request to discard the story instead: it goes back to the backlog"
         " as you wrote it, and its branch and bill are deleted."
     )
+
+
+def done_entry_text(bill: Bill) -> str:
+    """The journal text of a merged work item's archive, with its bill."""
+    return f"done (pull request merged); cost: {cost_line(bill)}"
