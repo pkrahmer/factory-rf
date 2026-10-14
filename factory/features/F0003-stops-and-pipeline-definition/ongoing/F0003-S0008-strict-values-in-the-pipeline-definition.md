@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 49
 blocked: null
 comments_seen: 0
@@ -108,3 +108,12 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
 
    `make lint`: lint: green
    `make test`: FAILED tests/application/test_pipeline_loading_strict_values.py::test_a_time_limit_written_as_a_boolean_is_one_reported_stop
+4. coder: all four models of the pipeline definition now validate in strict mode, and write paths must not be blank. Commit 91c7101.
+      - Built: in `src/factory/domain/pipeline_definition.py`, `RoleDefinition`, `StageDefinition`, `ProjectCommandDefinition` and `PipelineDefinition` set `strict=True` in their `model_config`. A new `WritePath = Annotated[str, StringConstraints(pattern=r"\S")]` types `RoleDefinition.write_paths`. The reader and the loader did not change. Faults keep S0004's spelling `invalid <path>: <pydantic message>`, and pydantic's field errors still come before the `model_validator` rules of S0007.
+      - Main decision: I used pydantic's own strict mode and a pattern constraint rather than custom validators. With strict mode pydantic refuses `true`, `'30'` and `30.0` for integers, and `'yes'`, `1` and `0` for booleans. Ruamel's `CommentedMap` and `CommentedSeq` still pass in strict mode, so `PIPELINE_YAML` and the texts from S0004 and S0007 still parse. Rejected: an `AfterValidator` with a message of our own for blank paths ("must not be blank"). It reads better than `String should match pattern '\S'`, but the Interface asks for pydantic's message. That message is a little cryptic for an operator, and the reviewer may want to weigh that.
+      - Demo: run as written. It prints `30`, then `invalid roles.coder.time_limit` twice, then `invalid stages.gate.approval`, then `invalid roles.coder.write_paths[0]`. No line says `accepted`.
+      - Refactor: I read the diff (one file, 18 lines) and found nothing to change, so there is no refactor commit.
+      - `make check`: green (lint, types, layers, sast, secrets, licenses, and tests with 99.72 % coverage).
+      - Not touched: the docs criterion (project guide and decision log) belongs to the documenter.
+
+   `make check`: check: green
