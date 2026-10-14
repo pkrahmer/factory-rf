@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 62
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -188,3 +188,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    I recommend (a). It is one sentence in the criteria and one assertion in an existing test, and it closes the one untested side of a rule the Interface states.
 
    `make check`: green as of the round-0 commits (48b1e27, beecd7f); nothing has changed since.
+7. human (pull request comment, 2026-10-14): (a): extend criterion 17 as you worded it ("… and the note of the stall contains the message of the added second block (with its line number) and not the message of the original block."). The tester adds that assertion to `test_a_second_finding_of_the_same_kind_stalls`. End with `tests` and name exactly that change.
