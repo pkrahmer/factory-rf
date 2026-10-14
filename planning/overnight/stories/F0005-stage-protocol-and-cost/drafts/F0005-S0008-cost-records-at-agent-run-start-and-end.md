@@ -23,7 +23,7 @@ class CostRecorder:
 
 Changes to earlier modules, each with its criterion:
 
-The tester of this story adds `cost=` to each test of S0003, S0005 or S0007 that builds `LaunchedStage` or `AgentAftermath` directly, and adds the sidecar's path to each exact comparison of an `UndoReport` there; no other earlier test changes.
+The tester of this story adds `cost=` to each test of S0003, S0004, S0005 or S0007 that builds `LaunchedStage` or `AgentAftermath` directly, and adds the sidecar's path to each exact comparison of an `UndoReport` there (`StallResult.undo` included); no other earlier test changes.
 
 ```python
 class LaunchedStage(BaseModel):
@@ -54,7 +54,7 @@ class StallContext(BaseModel):
     cost: CostRun | None = None
 ```
 
-Types: `CostRecord` from `factory.domain.cost_records`, `AgentRunResult` from `factory.domain.agent_runs`, `StartedStage` and `LaunchedStage` from `factory.application.stage`. `CostRun` is frozen and forbids unknown keys; `path` is `cost_records_path(started.path)` and `records` holds every record of the work item, the run's last.
+Types: `CostRecord` from `factory.domain.cost_records`, `AgentRunResult` from `factory.domain.agent_runs`, `StartedStage` and `LaunchedStage` from `factory.application.stage`. `costs` imports `StartedStage` only under `TYPE_CHECKING` (with `from __future__ import annotations`, as `factory.domain.journal` does), because `stage` imports `costs` for `CostRun`. `CostRun` is frozen and forbids unknown keys; `path` is `cost_records_path(started.path)` and `records` holds every record of the work item, the run's last.
 
 - `begin` reads the sidecar in the work tree with `CostRecordReader.read(checkout / path)` (a missing file is `[]`), adds `CostRecord(run=<uuid4 hex>, work_item, stage, role, attempt=<the state's attempts>, status="started", started_at=Clock.now())` with every other field `None`, writes all records with `CostRecordWriter.write` and returns the `CostRun`.
 - `complete` replaces the run's record (same `run`) by `status="completed"`, `duration_seconds=<result.duration in seconds>`, `end_reason`, `turns`, `tokens` and `cost_usd` copied from the result as they are (`None` stays `None`, `Decimal("0")` stays `Decimal("0")`), writes all records and returns the new `CostRun`.

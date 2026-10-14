@@ -53,7 +53,7 @@ Tests: `tests/domain/test_agent_entry.py` (new, so that S0004's `tests/domain/te
 5. A decision that is not allowed (`review` at a stage whose `next` is `doing`) stalls with `decision_not_allowed`; the journal entry of the stall names the decision and the allowed decisions.
 6. A file the agent wrote outside its write paths is gone from the work tree after `process`, and `AgentAftermath.undo` lists it under `reverted` or `deleted`.
 7. An agent that rewrote the work item file's state and journal (another `stage`, `attempts` and `claim`, a changed journal) leaves `AgentAftermath.document` with the stage-start state, claim included, and the stage-start journal records.
-8. An agent's own edit inside the work item file's body (a paragraph added under a section) is kept in `AgentAftermath.document` and in the work tree.
+8. An agent's own edit inside the work item file's body (a paragraph added under a section) is kept in `AgentAftermath.document` and in the work tree at a stage whose role may write the work item (`review`); at a stage whose role may not (`tests`) the edit is gone from `AgentAftermath.document` and from the work tree, and the work item's path is in `AgentAftermath.undo.reverted`.
 9. `AgentAftermath.entry` has speaker equal to the stage's role, kind `result` and the agent's text for a decision that is not `question`.
 10. For the decision `question` the entry's kind is `question` and its speaker is the role.
 11. A leading `<role>:` and a leading `<stage>:` in the agent's text are removed once (`tester: wrote tests` gives `wrote tests`), whitespace after the colon dropped; the same words in the middle of the text, and a name without a colon, stay.
