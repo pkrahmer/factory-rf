@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 91
 blocked: null
 comments_seen: 2
@@ -197,3 +197,29 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
    Noticed but not touched: the Demo of F0006-S0007 prints the old `NOT_YET_HANDLED` and is now out of date, as this ticket's Interface already says. The docs criterion is the documenter's.
 
    `make check`: check: green
+9. reviewer: no findings.
+
+   What I checked in `git diff main...HEAD -- . ':!factory'` (run_gate.py, wiring.py, test_run_gate.py, test_wiring_human_handlers.py, the changed test_wiring_handlers.py):
+   - Acceptance criteria 1 to 13 each map to the test that entry 3 names, and each test checks what its criterion says:
+     - Criterion 1 primes `fail_next` and asserts zero reads. `CountingHosting` counts a read before the failure, so a stray read would show.
+     - Criterion 3 records the read count at the moment the run handler is entered.
+     - Criteria 7 and 8 use the real `ClosedHandler`/`MergedHandler`, real git and the fake hosting service.
+     - Criterion 10 checks the gate's `closed`/`merged` with `is` against the registered instances.
+     - The failing sides the Interface states are tested: no pull request means no read (criterion 1), a failing read raises and calls no handler (criterion 6), the closed and merged handlers are not called for an open pull request (criterion 2). The Interface states no numeric limits.
+     - The coder's entry 8 says the factory's `make check` was green.
+   - Changed F0006-S0007 tests: exactly the three the Interface names (criteria 4, 5 and 9 of that story), changed as stated. The criterion 5 test now compares `unhandled_kinds` with `NOT_YET_HANDLED` only. The disjointness check it dropped is still asserted in test_wiring_human_handlers.py (criterion 12).
+   - Architecture:
+     - `RunGate` is in `factory.application` and imports only application and domain modules. It reads through `Boundaries.hosting` and inherits `Handler`.
+     - Registration stays in `factory.entry.wiring.build_handlers`; the application layer has no second registry.
+     - One `ClosedHandler` and one `MergedHandler` are shared between their own entries and the gate.
+     - `Event.model_copy` sets `kind` and `pull_request` on the frozen model. The values are valid `EventKind`/`PullRequestView` values.
+   - Security: no tool calls, strings or suppression markers added.
+   - Quality:
+     - The gate reuses `target_of` rather than duplicating it.
+     - Module, class and public method docstrings are present and accurate.
+     - The one comment in wiring.py explains why.
+   - Ticket hygiene:
+     - Entry 8 gives the main decision: the gate calls its three handlers directly and does not re-dispatch. It also names what was rejected: handing the gate the registry.
+     - The Assignment matches what was built, and the docs criterion (15) still describes what the documenter must write.
+
+   Open: the Demo of F0006-S0007 is out of date, as the Interface already notes. That is not under this story's review.
