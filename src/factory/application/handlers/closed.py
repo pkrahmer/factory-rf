@@ -26,11 +26,7 @@ from factory.domain.send_back import (
     send_back_cap,
     send_back_target,
 )
-from factory.domain.work_item import (
-    WorkItemDocument,
-    WorkItemSnapshot,
-    require_state,
-)
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
 
 _KIND = "closed"
 

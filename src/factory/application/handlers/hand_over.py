@@ -17,11 +17,7 @@ from factory.domain.journal import last_record
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
-from factory.domain.work_item import (
-    WorkItemDocument,
-    WorkItemSnapshot,
-    require_state,
-)
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
 
 _KIND = "hand_over"
 
