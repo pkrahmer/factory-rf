@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 97
 blocked: null
 comments_seen: 0
@@ -268,3 +268,12 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
       `make check`: check: green
 
    `make check`: check: green
+9. reviewer: reviewer (round 2): no findings. All five groups pass.
+
+   - Acceptance criteria: each of criteria 1 to 17 has a test that checks what the criterion says. Both sides of the lease limit are tested: 59:59 is refused as `held` with kind `expired`, and 60:00 is handled. Both note caps are tested on both sides: the expiry note at 1, 2 and 3 crashes, and the stall note for every `StallReason` at attempts 1, 2 and 3 against a cap of 2. The refused statuses are each tested: own, own after the lease, and no claim. For the other refusals, the existing test for a kind other than `crash` or `expired` (`tests/application/test_recovery_crash.py`, kind `run`) still holds after the guard moved to `required_claim_status`, and the S0001 tests still cover the missing state and the missing branch commit. The coder's entry reports `make check` green.
+   - Last round's finding is fixed: `_remote_head` in `src/factory/application/recovery.py` now takes the event's kind and raises `CannotHandle(kind, ...)`. This matches the guards in `_dead_run`. `_state_of` in `ask_crash_cap` keeps `crash`, as the finding allowed.
+   - Architecture: the note and entry texts are in `factory.domain`, and `required_claim_status` derives from the one `CLAIM_EVENTS` map in `factory/domain/evaluation.py`. The handler is in `factory.application`, the note is posted through `StopService`, and the registration is in `factory.entry.wiring`, with the same instance under `crash` and `expired`.
+   - Security: the diff adds no marker that silences a check, and builds no shell or SQL from strings.
+   - Quality: `_stop_title` is shared with `ask_crash_cap` rather than copied. The guard `expiry is None` in `_note_expiry` narrows the type of `last_record`'s result for mypy, as the coder's entry says. It is not dead logic.
+   - Ticket hygiene: the log names the main decision, extending `RecoveryHandler` rather than writing an `ExpiryHandler`, and what was rejected. `Assignment` matches what was built. Criterion 19 still says what the documenter has to write.
+   - Not reviewed: the diff also changes `CLAUDE.md`, `docs/runs/` and `planning/`. Those changes come from the human's commit b6af571.
