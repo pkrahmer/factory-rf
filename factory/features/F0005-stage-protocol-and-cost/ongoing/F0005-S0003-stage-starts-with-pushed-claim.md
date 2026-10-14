@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 60
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The stage starts with the pushed claim, then the agent run
@@ -148,3 +148,15 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Noticed, not touched: two defensive refusals in `_launchable_stage` have no test, which leaves `stage.py` lines 93 and 96 uncovered. One is a document without a state, which `prepare` never produces; the other is a stage that is not in the pipeline definition. Neither is a limit the Interface states. The `docs:` criterion is the documenter's.
 
    `make check`: check: green
+5. reviewer: one quality finding (group 4). Groups 1–3 pass:
+   - Group 1: criteria 1–16 each have a test that checks what the criterion says. The coder's entry records `make check` green.
+   - Group 2: `stage.py` imports only from `factory.application` and `factory.domain`, and it reaches git, the hosting service and the runtime only through `Boundaries`.
+   - Group 3: no strings are built into commands and no check is silenced.
+
+   Findings:
+   1. `src/factory/application/stage.py:97-98`: the role check repeats `TaskComposer._role_name` (`src/factory/application/task.py:106-110`), with the same message word for word. The log's reason for it ("keeps the refusal ahead of every read") does not hold. `TaskComposer.agent` is step 2, and it raises this `ValueError` in `_role_name` before it calls `agent_definitions.read`, so no read comes first. Criterion 8's test would pass without the copy. Fix: drop the role check from `_launchable_stage` and let step 2 (`self._composer.agent(stage)`) raise it. If the stage-membership check at line 96 is kept so that an unknown stage gives `ValueError` rather than `KeyError`, put it in front of `TaskComposer._role_name` or `agent`, not beside a copy of the role rule.
+
+   Not findings:
+   - The `state is None` refusal at line 93 is needed to narrow the type for mypy.
+   - The criteria and the Interface match what was built.
+   - The docs criterion still describes what the documenter must write.
