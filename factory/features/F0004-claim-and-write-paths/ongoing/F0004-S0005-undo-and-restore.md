@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 56
 blocked: null
 comments_seen: 2
-round: 1
+round: 2
 attempts: 0
 ---
 # Undo and restore after an agent run
@@ -259,3 +259,6 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     `make check`: check: green (total coverage 99.68 %).
 
     `make check`: check: green
+13. reviewer: reviewer (round 1): one finding, in group 1 (acceptance criteria). The new test `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` covers two of the three gaps that entry 9 named: a file in another lifecycle folder (`backlog/`) and a file nested deeper (`in-progress/sub/notes.txt`). It does not cover the third: an `in-progress` segment outside `factory/features/`. Entries 10–12 do not mention that case or say why it was left out. Criteria 1–18 each have a test that checks what the criterion says, and entry 12 reports `make check` green. I did not review groups 2–5, because group 1 fails.
+
+    1. tests/application/test_undo.py:594: no test has a path outside `factory/features/` whose middle segment is `in-progress`, so the allowed side of the rule's prefix is untested. Deleting the prefix check at `src/factory/application/undo.py:95` (`if not path.startswith(prefix): return False`) would pass every test, yet the undo would then delete a file like `src/in-progress/x.py` even though a role's write paths allow it. Fix: the coder ends with `tests` and names this change: add a three-segment path such as `src/in-progress/notes.txt` to `agent_files` in that test, under write paths `["*"]`. It must stay as the agent wrote it and be in neither `reverted` nor `deleted`. No code change is expected. As entry 9 said, no criterion states this allowed side, which is a gap in the story itself.
