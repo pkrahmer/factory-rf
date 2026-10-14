@@ -559,6 +559,18 @@ The counts are kept in memory only. After a restart they begin at zero, so the e
 
 If the work item's branch is not on the remote, no pull request can be opened for the report and no later tick would change that. The report is then one line in the factory log, `error cap reached on <event>: <last error>`, written once; so is the report of an event that belongs to no work item. If the report cannot be posted for another reason (the hosting service is down, or git fails in the factory's checkout while the report resolves the branch), the factory tries to post it again on the next tick, without counting that as an error.
 
+## Stops that cannot be done
+
+Three situations have no work the factory can do. Each is a counted error, never a silent success: the handler raises `CannotHandle`, the dispatcher counts it per event and remote state, tries the event three times, and then posts one report on the work item's pull request (a draft is opened for it first when there is none), as under "An event that keeps failing". A restart posts no second report. The handlers (`DuplicateHandler`, `PullRequestLookupHandler` in `factory.application.handlers.lookups`, and `AskHandler`) are built but not yet registered (`NOT_YET_HANDLED` still lists their kinds), so today the dispatcher reports these events with `no handler for event kind <kind>`; once they are registered the report's last error reads as below.
+
+| Stop | Last error in the report | What to do |
+|---|---|---|
+| A work item that exists twice | `cannot handle duplicate: two work items share the id <id>`, followed by `: <the files>` when they are named | Two files carry the same id. Keep one, and rename or delete the other on `main` (or on its branch); the factory does not choose for you. |
+| A failed pull request lookup | `cannot handle pull_request_lookup: the pull request lookup for <branch> failed`, followed by `: <cause>` when there is one | The hosting service could not say whether the branch has a pull request (rate limit, outage, token). Fix the cause named after the colon. A push to the branch starts the count again; nothing else does. |
+| A question with no pull request to post it on | `cannot handle ask: work item <id> has no pull request` | The question is recorded in the journal but has nowhere to go. Open a pull request for the work item's branch, or push a commit to the branch so the factory tries again; the report itself opened a draft if the branch was on the remote. |
+
+For all three the handler writes, posts and changes nothing itself; only the report is posted.
+
 ## Claims, leases and the clock
 
 An instance claims a stage by pushing the stage-start commit; the claim records the instance's name, the start time and the role's `lease_duration` (60 minutes unless the pipeline definition says otherwise, per role). The claim keeps the value it was made with: changing `lease_duration` in the definition affects new claims only, never one that is running.
