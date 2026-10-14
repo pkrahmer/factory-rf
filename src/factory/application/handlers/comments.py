@@ -53,7 +53,9 @@ class CommentCopier:
         """
         read = set(state.comments_read)
         comments = self._boundaries.hosting.list_comments(pull_request)
-        return [c for c in comments if not c.by_factory and c.id not in read]
+        return [
+            comment for comment in comments if not comment.by_factory and comment.id not in read
+        ]
 
     def append(
         self, document: WorkItemDocument, comments: Sequence[PullRequestComment]
