@@ -67,7 +67,7 @@ That is `stop cleared <reason>`. It is written only when the stop was in the hea
 
 ## Stops of one work item
 
-A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. Today a question is only recorded: a journal entry of kind `question`, with `blocked` set. Posting it on the pull request arrives with F0007. The rules below are those of `StopService.post`, which the dispatcher's error report calls (see "An event that keeps failing"). A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
+A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. A question is first recorded (a journal entry of kind `question`, with `blocked` set, committed and pushed) and then posted; see "The factory's own questions". The rules below are those of `StopService.post`, which the dispatcher's error report calls (see "An event that keeps failing"). A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
 
 ```
 <!-- factory -->
@@ -105,7 +105,7 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 - `attempt n of m`: `n` is the work item's attempts after this stall; `m` is `attempts_cap` of the pipeline definition.
 - The cause is one sentence. The reasons are: the agent run died without a result; it reached its time limit; it spent its budget, and the resume too; the agent gave no valid decision and entry; the agent's decision is not an allowed one; the agent left the work item's branch; the work item's form broke during the stage; a check is red after the stage; merging the main branch conflicts and the merge was aborted. A detail, such as the name of a red check, follows the sentence after a colon. A detail of several lines (the output of a red check) puts its first line in the sentence and the other lines in a code block below it; see "A stall by a red check".
 - The note says "Retrying on the next tick." only while `n` is below `m`. Nothing for you to do then; the next tick runs the stage again from what the stall kept.
-- At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. At the cap the evaluation makes the event `ask` with the detail `attempts cap`. Nothing handles `ask` before F0007, so today it is a counted error (see "An event that keeps failing"). Once F0007 asks the question, you read the cause and the stall entries in the work item's journal, fix what stops the stage (the agent, the stage's time limit or budget, the pipeline definition, the project's checks, a conflict with `main`), and answer on the pull request; the factory does not run the stage again until you have.
+- At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. At the cap the evaluation makes the event `ask` with the detail `attempts cap`. The handler of `ask` is built (see "The factory's own questions") but no tick registers it yet, so today the event is a counted error (see "An event that keeps failing"). Once it is registered, you read the cause and the stall entries in the work item's journal, fix what stops the stage (the agent, the stage's time limit or budget, the pipeline definition, the project's checks, a conflict with `main`), and answer on the pull request; the factory does not run the stage again until you have.
 - The stall's pull request: an open pull request of the work item is reused; otherwise the stall opens a new draft titled `<id>: <title>` with the work item's text as description. It does not use the stop description, and it does not post on a closed pull request.
 
 If the hosting service fails while the note is posted, the stall commit is already on the remote, no note is posted and no label is written. If it fails while the label is written, the note is posted and the label is missing. The error is reported, and the work item shows the stall in its file and journal.
@@ -128,14 +128,35 @@ In the work item's journal the agent's entry comes first, ending with one line p
 What to do:
 
 - Below the attempts cap nothing: the next tick runs the stage again, and the agent sees the journal.
-- At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch. Fix what is wrong (the code, the target, or a tool missing on the machine), then answer on the pull request. At the cap the evaluation makes `ask` (`attempts cap`), a counted error until F0007 asks the question; the answer is what the operator does once it does.
+- At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch. Fix what is wrong (the code, the target, or a tool missing on the machine), then answer on the pull request. At the cap the evaluation makes `ask` (`attempts cap`), the attempts-cap question described under "The factory's own questions" then appears on the pull request, and your comment answers it.
 - Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move. Every report that ran adds one line `` `<command>`: <last line of its output> `` to the agent's entry, passed or failed; the line has the same form either way, so only its last line shows whether the report passed. A failing report holds nothing and stops nothing.
 
 The result commit of every stage holds the whole work tree. Make sure the project's `.gitignore` covers whatever its checks create (build output, caches, coverage files); otherwise the factory commits it.
 
 ## The factory's own questions
 
-Besides an agent's `question`, the factory asks you itself in two cases. Today each question (the agent's, the findings question and the round-cap question) is recorded as a journal entry of kind `question`, and the work item's `blocked` is set until you answer. Posting it as a comment on the pull request arrives with F0007. Once it does, each is a comment on the pull request.
+Besides an agent's `question`, the factory asks you itself. Every question reaches you in two steps: it is recorded first, as a journal entry of kind `question` in the work item's file (committed and pushed, with `blocked` set), and only then posted as one comment on the pull request. If the factory dies or the post fails between the two, the question is already recorded and the next attempt posts it once: the comment's key is made from the recorded entry's number, and a post whose key the pull request already holds is a no-op. The handler of `ask` (`AskHandler`) is built, but no tick registers it yet, so today these comments do not appear (see "An event that keeps failing").
+
+The questions you can meet on a pull request, and how to answer each:
+
+| Question | `blocked` | Comment reads | A comment | Closing the pull request |
+| --- | --- | --- | --- | --- |
+| An agent's | `question` | `<role>: <the agent's words>` | answers it; the stage runs again | discards the story |
+| The form has findings | `question` | see below | answers it; the stage runs again | discards the story |
+| The round cap | `round_cap` | see below | answers it | discards the story |
+| The attempts cap | `attempts_cap` | `factory: ` and the text below | the attempts go back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
+| The send-back | `send_back` | posted by the handler of the approval (F0007-S0005) | answers it | at the approval, sends the story back |
+| The crash cap | `crash_cap` | posted by the handler of crashes (F0008) | answers it | discards the story |
+
+The attempts-cap question is recorded by the `ask` handler itself, when a work item has used all its attempts: an entry by `factory` of kind `question`, and `blocked` set to `attempts_cap`. It reads:
+
+```text
+Stage doing stalled 2 times. The last time: the agent gave no result
+
+Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+```
+
+The last time is the text of the work item's latest `stall` entry. A work item at the cap with no stall entry cannot be asked about, and is a counted error. Comments you write while a question waits to be posted are recorded after it; the post stays keyed to the question's own entry.
 
 - **The form has findings.** The agent decided to move forward, but the work item's form still has findings after the run. The comment reads: `The work item's form has findings, so the stage cannot move forward: 1. <message> 2. <message>. What should happen? Answer with a comment; the stage then runs again. Close the pull request to discard the work item.` The stage stays where it is and the round is not counted. Answer with a comment (say how to fix the form, or that the finding is wrong); the stage then runs again. Closing the pull request discards the work item.
 - **The round cap is passed.** A stage with `round_cap` sent the work item back once more than the cap allows. The comment reads: `This work item has now been sent back <n> times, more than <cap>. What should happen? Answer with a comment; close the pull request to discard the work item.` The stage stays where it is and the round shows the count. Answer with a comment; closing the pull request discards the work item.
@@ -423,7 +444,7 @@ Only the run handler is registered today. The kinds without a handler are those 
 
 - `hand_over`: a work item reached an approval stage.
 - `merged`: you merged a waiting work item's pull request.
-- `ask`: a question waits to be posted (an agent's `question`, or the attempts cap).
+- `ask`: a question waits to be posted (an agent's `question`, or the attempts cap). `AskHandler` exists but is not registered yet.
 - `comment`: you answered on the pull request.
 - `crash`: the instance found its own claim on the remote, after a rejected result push or another boundary error after the stage-start commit, or after a restart when the process died during a stage.
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 83
 blocked: null
 comments_seen: 0
@@ -147,3 +147,17 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
       - Security: no secrets, no strings built into shell or SQL commands, no suppression markers.
       - Quality: there are docstrings on the module, the public class and the public functions. The private `_state_of` follows the same local pattern already used in `comments.py`, `claims.py` and `stage.py`, so it adds no new duplication for this ticket to fix.
       - Ticket hygiene: the coder's entry states the main decision and the rejected alternative. The decision is to rely on the keyed `post_comment` no-op instead of listing comments first. The Assignment matches what was built. Criterion 18 still describes what the documenter must write.
+6. documenter: I wrote the documentation criterion 18 asks for, and `make check` is green.
+   - `docs/operator-guide.md`:
+     - "The factory's own questions" now says a question is recorded first and then posted. It has a table of the questions you can meet (an agent's, the findings question, the round cap, the attempts cap, the send-back and the crash cap), with how a comment and a close answer each. It gives the attempts-cap text and says the post is keyed to the recorded entry, so a repeat posts nothing.
+     - "Stops of one work item", the stall-cap bullets and "An event that keeps failing" no longer say that posting a question arrives with F0007. They say `AskHandler` is built but no tick registers it yet, so `ask` is still a counted error today.
+   - `docs/project-guide.md`:
+     - New section "Asking the human", with the handler's rules, the key made from the recorded entry's number and the failure behaviour.
+     - Pointers added in "The marker and the post key" and in the post texts list.
+     - The statement about which handlers are registered is corrected.
+   - Cross-read against the diff and found current: `README.md`, `docs/decisions.md`, and the rest of both guides. The source-search rule that lists `questions` for `entry_text` already matches the code.
+   - I did not run the demo command; the coder's entry records that its output matches `Expect:`.
+   - Stale but unrelated, not touched: none seen. `NOT_YET_HANDLED` and `build_handlers` still list `ask` as unregistered, which matches the code.
+   - Findings for the coder: none.
+
+   `make check`: check: green
