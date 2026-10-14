@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 83
 blocked: null
 comments_seen: 0
@@ -180,3 +180,4 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
      - It agrees with criteria 2 and 3: the prefix is `<speaker>: `, the key's kind is the `blocked` value and its `n` is the question entry's number.
      - It agrees with criterion 5: a repeat posts nothing.
      - No criterion is contradicted. The demo does not exercise the attempts-cap recording path (criteria 7–14), and that path is covered by the tests the reviewer checked.
+8. done (pull request merged); cost: 6 runs, 8.3 min, 46 turns, 162k tokens in (836k more from cache), 28k out, $1.77
