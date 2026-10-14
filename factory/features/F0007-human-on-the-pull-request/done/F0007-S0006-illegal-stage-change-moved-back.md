@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 87
 blocked: null
 comments_seen: 2
@@ -174,3 +174,4 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
    I read the acceptance criteria again against this output. It agrees with criteria 1 and 2, and with the Interface value of `MOVED_BACK_MARKER` that criterion 4 relies on. It contradicts none of the others. Criteria 3–19 cover the handler's behaviour on git and the hosting service, which this demo does not exercise; the tests named in the tester's entry cover them.
 
    Still open, outside this story and already noted by the reviewer and the documenter: `RejectHandler` is not yet registered in `factory.entry.wiring.build_handlers`.
+10. done (pull request merged); cost: 7 runs, 23.2 min, 60 turns, 181k tokens in (1365k more from cache), 32k out, $2.11
