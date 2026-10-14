@@ -505,6 +505,20 @@ Three rules follow. A waiting work item holds back all new work, so one never st
 
 `waiting(state, definition)` and `question_posted(snapshot, comments)` are public in `factory.domain.evaluation` for the handlers that come later.
 
+## The tick
+
+`Tick(boundaries, instance, handlers, status=None).run()` (`factory.application.tick`) is one pass, in this order. The order matters: the remote is the only truth, so nothing is read before the fetch.
+
+1. **Fetch** (`Git.fetch`). `FetchFailed` raises the repository stop `fetch_failed` (detail: the error's text) and ends the tick; success clears it.
+2. **Load** the pipeline definition with `PipelineLoader` from `origin/main`. `PipelineDefinitionInvalid` ends the tick; the loader raised the stop `pipeline_definition_invalid` and clears it on a later success, the tick does neither.
+3. **Restore** the checkout: one line `discarded uncommitted changes: <path>, <path>` (the paths in the order of `Git.status()`) when there are changes, then `reset_to("HEAD")`, `checkout("main", start_point="origin/main")`, and `delete_branch` for every `work-item/<id>` of an id that has `origin/work-item/<id>` or a story in `in-progress/` on `origin/main`. Other local branches stay. A `GitError` here raises the stop `checkout_restore_failed` and ends the tick; success clears it.
+4. **Evaluate** with `Watcher(boundaries, instance).evaluate(definition)`.
+5. **Dispatch**: `handlers(definition)` is built now, because the handlers take the loaded definition, and a `Dispatcher` with the tick's status handles the event. The tick keeps the dispatcher's status for the next run.
+
+`run` returns `TickOutcome(stopped=..., event=..., dispatch=...)`: `stopped` is set and the others are `None` when the tick ended at a stop. `WorkItemFormatError`, `ValueError` from the evaluation and a `GitError` outside the fetch and the restore are not caught; no stop exists for them. The tick reads and writes no run record and no lock. `IdleHandler` does nothing and is the handler of `idle`.
+
+Because the checkout is rebuilt every tick and no local state is read, a rejected push leaves no trace: the next tick judges the remote. The dispatcher's count of errors per event and remote state is the only memory, and it is in the `TickStatus`. A push to the work item's branch changes the remote state and so retries a capped event. `HandlerFactory` is `Callable[[PipelineDefinition], Mapping[EventKind, Handler]]`; the production factory comes with F0006-S0007.
+
 ## Reading and writing a work item file
 
 Every file format the factory owns has one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`, and validates into Pydantic DTOs; no other module parses or renders that format. For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` (`factory.application.files`) and the classes are `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` (`factory.adapters.work_item_markdown`). That module is the only one that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`. Wiring uses the reader and not yet the writer: `factory.entry.wiring.build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and nothing builds `FrontmatterWorkItemWriter` yet.

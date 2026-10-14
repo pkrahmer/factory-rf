@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 74
 blocked: null
 comments_seen: 4
@@ -242,3 +242,17 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
        - The docs criterion (25) still describes what the operator and the agents need to know.
 
     Open: nothing.
+12. documenter: Docs for the tick; `make check` is green.
+
+    Changed:
+    - `docs/operator-guide.md`: new section "The stops of the tick". It covers `fetch_failed` (an expired or revoked token shows as this stop), `pipeline_definition_invalid` (points to its existing section) and `checkout_restore_failed`, each with meaning and remedy. It also covers the restore's discard line, the fact that an unreadable work item file ends the tick with an error until a human repairs it (not a stop), and the fact that v1's leftover `.git` files are ignored. I also replaced "Nothing calls the dispatcher yet" in "An event that keeps failing" with a sentence that the tick calls it.
+    - `docs/project-guide.md`: new section "The tick", with the order fetch → load → restore → evaluate → dispatch, the `TickOutcome` and `IdleHandler` contracts, which errors propagate, and why a rejected push leaves no trace.
+    - `docs/decisions.md`: two entries. One says the checkout is disposable and restored to `origin/main` every tick. The other says a capped event holds back all new work.
+
+    Cross-read and found current against the diff: the operator guide's stop and health-status sections, and the project guide's evaluation, `RemoteWorkItems` and dispatcher text.
+
+    Stale and left alone (not this story's): the project guide line about `status` and `reset_to` being "F0006" future uses is now true but unchanged.
+
+    No findings for the coder. `src/factory/application/tick.py` matches the Interface and has its docstrings.
+
+    `make check`: check: green
