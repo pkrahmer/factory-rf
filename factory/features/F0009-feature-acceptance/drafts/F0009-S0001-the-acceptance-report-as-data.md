@@ -61,7 +61,7 @@ Tests: `tests/domain/test_acceptance.py`, `tests/adapters/test_work_item_markdow
 11. `AcceptanceState` rejects a `stories` list that is not strictly ascending, with a `ValidationError`, for `["F0001-S0002", "F0001-S0001"]` and for `["F0001-S0001", "F0001-S0001"]`, and accepts `["F0001-S0001", "F0001-S0002"]`.
 12. `AcceptanceState` rejects an acceptance id in `stories` (`["F0001-A0001"]`) with a `ValidationError`.
 13. `AcceptanceState` rejects an `outcome` while the stage is not `done` (`stage="acceptance", outcome="accepted"`) and rejects `stage="done"` without an `outcome`, each with a `ValidationError`; `stage="done", outcome="refused"` is accepted.
-14. The reader, given the text of a document whose front matter is a plain work item's front matter plus `stories: [F0001-S0001, F0001-S0002]` and `outcome: refused` with `stage: done`, returns an `AcceptanceState` with those values.
+14. The reader returns an `AcceptanceState` with those values for the text of a document whose front matter is a plain work item's front matter plus `stories: [F0001-S0001, F0001-S0002]` and `outcome: refused` with `stage: done`, and an `AcceptanceState` with `outcome` `None` for one that adds only `stories: [F0001-S0001]` with `stage: acceptance`: either key is enough (two cases, one test).
 15. The reader, given a front matter with neither `stories` nor `outcome`, returns a state that is a `WorkItemState` and not an `AcceptanceState`.
 16. The reader raises `WorkItemFormatError` for a front matter with the extra key `verdict`, and the error's `fault` names `verdict`.
 17. The reader raises `WorkItemFormatError` whose `fault` names `stories` for an unsorted `stories` list, and one that names `outcome` for `outcome: maybe`.
