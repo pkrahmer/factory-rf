@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 76
 blocked: null
 comments_seen: 0
@@ -180,3 +180,13 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: `factory-watch` is built and `make check` is green. The tests were not changed.
+      - `src/factory/domain/board.py`: `AcceptanceStatus`, `BoardRow`, `FeatureRow` (frozen, no unknown keys), `work_item_row`, `feature_rows` and `render_board`. A row's time is converted to UTC and written as `%Y-%m-%dT%H:%M:%SZ`. An absent value is written as `-`.
+      - `src/factory/application/board.py`: `BoardView` and `BoardReader`. The stories come from `RemoteWorkItems.list_stories` for all three folders and the rows from `RemoteWorkItems.read`. Each feature title is the first `# ` title of `origin/main:factory/features/<dir>/feature.md`. Only directories that have at least one story file are looked up, so a directory with only `feature.md` gets no row.
+      - `src/factory/entry/watch.py`: `render_event`, `run_watch` and `main`. `run_watch` resolves `origin/main`, raising `GitError` when it does not resolve, the same way `Watcher._main_commit` does. It then loads the definition with `PipelineLoader.load(<commit id>)` and not with the default ref, which is what leaves the stop alone. Then it runs one `Watcher.evaluate` and reads the board. `main` parses with an `ArgumentParser(prog="factory-watch")` that has no options before it checks anything else, then reports the missing settings with exit status 2.
+      - Main decision: the board is read by a separate `BoardReader`, and the snapshots behind the `Event` are not reused. I rejected sharing them because the interface keeps `Watcher.evaluate` returning one event. The cost is that the remote-tracking refs are read twice, which is cheap and touches no network.
+      - Refactor (2a79ad8): `main` now picks the default output streams once instead of in each branch. Nothing else needed changing.
+      - Process slip: my first refactor commit was made while `make check` was red. A pipe through `tail` hid the failure, which was a missing blank line in `watch.py`. I fixed the formatting and amended that same commit, and `make check` was green before the amend.
+      - Noticed, not touched: in `feature_rows`, the branch where `parse_feature_directory_name` returns `None` can never be taken for a `StoryFile` built by `RemoteWorkItems`. It shows as one partial branch in coverage. The `__main__` line and the wired `run_watch` call in `main` are uncovered until F0010-S0001 wires the boundaries.
+
+   `make check`: check: green
