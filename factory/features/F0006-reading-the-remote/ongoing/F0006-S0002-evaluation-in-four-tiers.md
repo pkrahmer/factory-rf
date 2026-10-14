@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 72
 blocked: null
 comments_seen: 2
@@ -327,3 +327,20 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
     Stale but not touched: `docs/operator-guide.md` lines 108 and 131 say stopping at the attempts cap and the evaluation "are not built yet". The evaluation now exists and makes the attempts-cap `ask` event. Its handler and the question belong to later stories (F0006/F0007), so the sentence is still true for the operator. I left it for the story that builds the handler.
 
     `make check`: check: green
+17. demo: Round 2. I ran the single Demo command from the repository root exactly as written. No findings.
+
+    Command 1 (`uv run python -c "…evaluate…"`), exit 0:
+
+    ```
+    merged:F0001-S0001 [7]
+    run:F0001-S0002 []
+    ```
+
+    Expect: two lines, `merged:F0001-S0001 [7]` then `run:F0001-S0002 []`. **Met.**
+
+    Checked against the acceptance criteria:
+    - The first line shows the waiting work item looked up once, with pull request 7. The merged event outranks the runnable F0001-S0002. This matches criteria 4, 7 and 14 (waiting holds back new work) and criterion 18 (the key format).
+    - The second line shows that with nothing waiting, the lookup is never called and the first runnable work item gets `run`. This matches criteria 16, 18 and 20 (no lookup when nothing waits).
+    - Nothing in the output contradicts any other criterion.
+
+    I made no changes to the working tree.
