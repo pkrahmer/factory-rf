@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Ship the seven agents of the pipeline in v1.1's names, the settings every agent run shares, and the pipeline definition template they belong to. Each agent file holds only the four keys the runner applies, and each of those keys has an effect that a test sees in the call the runner makes. Each agent's body states its boundary as one sentence and what its entry contains, as v1 did, in the glossary's words (journal entry, smoke test, backlog story, recommendation, write paths). This covers SI4.2, keeps kept thing 6 (each role's boundary in its shipped agent file) and finishes the shipping part of R30. No skills are shipped, because the runner applies no `skills` key: the long stage and role texts of v1's skills are not rewritten overnight and are left to the human, who carries them into the agent bodies. `template/pipeline.yml` is the only file of the template this feature ships (the forms are the human's), and it replaces nothing in `factory/`.
+Ship the seven agents of the pipeline in v1.1's names, the settings every agent run shares, and the pipeline definition template they belong to. Each agent file holds only the four keys the runner applies, and each of those keys has an effect that a test sees in the call the runner makes. Each agent's body starts with its boundary as one sentence and what its entry contains, as v1 did, in the glossary's words (journal entry, smoke test, backlog story, recommendation, write paths); the last story of this feature adds v1's role and stage texts after those two sentences (questionnaire 1, Q29). This covers SI4.2, keeps kept thing 6 (each role's boundary in its shipped agent file) and finishes the shipping part of R30. No skills are shipped, because the runner applies no `skills` key. `template/factory/pipeline.yml` is the only file of the template this feature ships, at the path a project reads it from (`factory/pipeline.yml`, so that the template mirrors a project's tree); the story and feature forms are the human's to add, and a project made from this template has no `factory/story-form.md` until the human adds it, so that `StoryFormChecker` stops every stage until then. The template replaces nothing in `factory/`.
 
 ## Interface
 
@@ -30,7 +30,7 @@ Your entry says what you built (the paths), the main choice and the alternative 
 | `smoke-tester.md` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash |
 | `acceptance-reviewer.md` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write |
 
-The body of each file is exactly two paragraphs, the boundary sentence and the entry sentence of its role:
+The body of each file starts with two paragraphs, the boundary sentence and the entry sentence of its role:
 
 | Role | Boundary sentence | Entry sentence |
 |---|---|---|
@@ -49,7 +49,7 @@ The body of each file is exactly two paragraphs, the boundary sentence and the e
   "permissions": {
     "allow": [
       "Read", "Edit", "Write", "Glob", "Grep",
-      "Bash(uv run *)", "Bash(uv sync*)", "Bash(make *)", "Bash(factory-*)",
+      "Bash(uv run *)", "Bash(uv sync*)", "Bash(make *)", "Bash(factory-check-story *)",
       "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)",
       "Bash(git add *)", "Bash(git commit *)", "Bash(git rev-parse*)"
     ],
@@ -63,7 +63,7 @@ The body of each file is exactly two paragraphs, the boundary sentence and the e
 }
 ```
 
-`template/pipeline.yml` is the pipeline definition below. Its roles are the seven files above, and nothing else is in `template/`.
+`template/factory/pipeline.yml` is the pipeline definition below. Its roles are the seven files above, and nothing else is in `template/`.
 
 ```yaml
 contract: "1.0"
@@ -97,9 +97,10 @@ stages:
 Rules:
 
 - The agents are read with `FrontmatterAgentDefinitionReader(Path("claude"))`: the directory `claude/agents/` is the agent home's `agents/` folder as the entrypoint installs it.
-- The keys the runner applies are shown by the call it makes. For an agent definition read from a shipped file, `ClaudeCodeRuntime` (F0001-S0008) passes `--model <model>`, `--effort <effort>`, `--tools` with the tools, `--max-budget-usd <budget_usd>`, and the file's body in the file named by `--append-system-prompt-file`.
+- The keys the runner applies are shown by the call it makes. For an agent definition read from a shipped file, `ClaudeCodeRuntime` (F0001-S0009 and S0010) passes `--model <model>`, `--effort <effort>`, `--tools` with the tools, `--max-budget-usd <budget_usd>`, and the file's body in the file named by `--append-system-prompt-file`.
+- The settings allow `Bash(factory-check-story *)` and no other `factory-` command: an agent may check a story's form and may not run `factory-run`, `factory-watch` or `factory-bill`.
 
-Tests: `tests/test_claude_files.py` (reads `claude/` and `template/pipeline.yml` from the repository root), `tests/adapters/test_shipped_agents_effect.py` (runs `ClaudeCodeRuntime` against the stand-in executable that F0001-S0008's tests use, which records its arguments and the content of the file named by `--append-system-prompt-file`, over each shipped agent).
+Tests: `tests/test_claude_files.py` (reads `claude/` and `template/factory/pipeline.yml` from the repository root), `tests/adapters/test_shipped_agents_effect.py` (runs `ClaudeCodeRuntime` against the stand-in executable of `tests/adapters/claude_stand_in.py` (`write_stand_in`, `read_calls`), which records its arguments and the content of the file named by `--append-system-prompt-file`, over each shipped agent).
 
 ## Acceptance criteria
 
@@ -111,12 +112,12 @@ Tests: `tests/test_claude_files.py` (reads `claude/` and `template/pipeline.yml`
 6. For each shipped agent, it passes `--tools` with a value that contains every tool of the file's `tools` and no other tool (the key `tools`).
 7. For each shipped agent, it passes `--max-budget-usd` followed by the file's `budget_usd`, equal as a decimal number (the key `budget_usd`).
 8. For each shipped agent, the file named by `--append-system-prompt-file` contains the file's body (the instructions).
-9. The body of each file is exactly its boundary sentence, a blank line and its entry sentence, as in the table (kept 6: the role's boundary is in its file).
+9. The body of each file starts with its boundary sentence, a blank line and its entry sentence, as in the table (kept 6: the role's boundary is in its file).
 10. `claude/settings.json` parses as JSON and equals the document shown above.
-11. `template/pipeline.yml` is read by `RuamelPipelineDefinitionReader` into a valid `PipelineDefinition` whose roles are exactly the names of the seven agent files.
-12. `template/` holds only `pipeline.yml`.
-13. `make check` stays green.
-14. docs: `docs/project-guide.md` lists the seven shipped agents with their model, effort, budget and tools, says that their bodies hold only the boundary and the entry contents and that the long stage texts are the human's to add, and shows `template/pipeline.yml` as the starting pipeline definition; `docs/operator-guide.md` says that the entrypoint installs the agents and the settings into `FACTORY_CLAUDE_HOME` at every start.
+11. `template/factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader` into a valid `PipelineDefinition` whose roles are exactly the names of the seven agent files.
+12. `template/` holds exactly one file, `template/factory/pipeline.yml`, and no other file or directory except `factory`.
+13. make check stays green.
+14. docs: `docs/project-guide.md` lists the seven shipped agents with their model, effort, budget and tools, says that each body starts with the boundary and the entry contents and that the last story of this feature adds v1's role and stage texts after them, says that the forms (`factory/story-form.md`, `factory/feature-form.md`) are the human's to add to a project made from the template and that `StoryFormChecker` stops every stage until `factory/story-form.md` exists, and shows `template/factory/pipeline.yml` as the starting pipeline definition; `docs/operator-guide.md` says that the entrypoint installs the agents and the settings into `FACTORY_CLAUDE_HOME` at every start and that an agent may run `factory-check-story` and no other `factory-` command.
 
 ## Demo
 
@@ -136,7 +137,7 @@ Expect: seven lines in this order: `acceptance-reviewer opus high 8`, `coder opu
 uv run python -c "
 from pathlib import Path
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-definition = RuamelPipelineDefinitionReader().parse(Path('template/pipeline.yml').read_text())
+definition = RuamelPipelineDefinitionReader().parse(Path('template/factory/pipeline.yml').read_text())
 print(definition.first_stage(), sorted(definition.roles))
 "
 ```
