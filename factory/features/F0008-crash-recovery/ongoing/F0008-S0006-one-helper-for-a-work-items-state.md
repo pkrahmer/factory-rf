@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 101
 blocked: null
 comments_seen: 0
@@ -120,3 +120,10 @@ Expect: two lines, `doing` and then `no state here`.
    - Seen but not touched: `domain/story_form._check_started` also checks `document.state is None`. It returns a finding rather than raising, so it is outside the rule and was left alone. The docs criterion (project-guide) belongs to the documenter.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Criteria: criterion 1 is covered by `tests/domain/test_work_item_require_state.py::test_require_state_returns_the_documents_state`. Criterion 2 is the parametrized test over `ValueError`, `CannotHandle` and `WorkItemFormatError`, and it asserts `excinfo.value is error`. Criterion 3 is covered by `tests/test_no_state_copies.py`: one test searches `src/factory`, and one parametrized test runs a written-in source text as an outside module (found) and as the journal (not found). Criterion 4 is covered by the same file: one test searches `src/factory`, one finds the two forms of the check (`<name>.state` and a name assigned from `.state`), and one confirms that `require_state` and the journal's `_state_of` are not reported. Criterion 5: no existing test is in the diff. The coder's entry records `make check` green.
+      - Call sites: I checked all 17 rows of the Interface table against the diff. Every exception type and message is unchanged. `grep` over `src/factory` finds `def _state_of` only in `factory/domain/journal.py`. Every other remaining `state is None` is a conditional expression or a returned finding (`story_form._check_started`), not a raise, so the rule does not cover it. `journal._state_of` has the one-line comment the Interface asks for.
+      - Architecture: `require_state` is in `factory.domain.work_item`. Application, adapters and `domain.evaluation` import it downward, and the journal does not import it. Each module's private `_no_state()` builds an exception and does not check `document.state`, as the Interface allows. The coder rejected a module-level constant because of traceback build-up on a shared instance. I agree with that.
+      - Security: no subprocess, no string-built commands, no suppression markers, no new dependency.
+      - Quality: `require_state` has a docstring. The test helpers use the existing `tests/source_search.modules`, as `test_no_journal_reading.py` does. No dead imports: `WorkItemState` stays only where it is still used.
+      - Hygiene: the Assignment matches what was built. The docs criterion (`docs/project-guide.md` names `require_state`, and the journal's "Imports" bullet gives the reason) is still right for the documenter.
