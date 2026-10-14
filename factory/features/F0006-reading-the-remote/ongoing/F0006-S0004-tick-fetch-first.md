@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 74
 blocked: null
 comments_seen: 2
@@ -134,3 +134,39 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
    - Demo: it is runnable. Its `Expect:` line is checkable against the output.
    - Architecture: `application/tick.py` uses only the `Git`, `PipelineLoader`, `StopService`, `Watcher` and `Dispatcher` interfaces. The `Boundaries` wiring and the fakes are used the way `CLAUDE.md` describes.
    - Scope: the story is inside F0006. It touches no handler of F0007 to F0010, and it matches the feature's decisions 2, 10, 11 and 14.
+5. tester: I wrote the tests for criteria 1 to 23 in `tests/application/test_tick.py`, which is a new file. The branch is now red on purpose. `make test` stops at collection with `ModuleNotFoundError: No module named 'factory.application.tick'`, the module the coder writes. `make lint` is green. I skipped the type check, as the stage says.
+
+   Which test covers which criterion (all in tests/application/test_tick.py):
+   - criterion 1: test_the_tick_fetches_before_it_reads_the_remote
+   - criterion 2: test_a_failed_fetch_is_a_repository_stop_and_ends_the_tick
+   - criterion 3: test_the_fetch_stop_is_logged_with_the_clock_stamp
+   - criterion 4: test_the_first_tick_after_the_remote_is_back_clears_the_fetch_stop
+   - criterion 5: test_an_invalid_pipeline_definition_ends_the_tick_before_the_restore. The missing key is `contract`.
+   - criterion 6: test_the_tick_after_the_definition_is_repaired_clears_its_stop
+   - criterion 7: test_the_restore_discards_changes_and_names_them_in_one_line, and test_a_clean_checkout_writes_no_discarded_line. The ignored file is ignored through `.git/info/exclude`. A newer commit on `main` makes the restore actually move the checkout. The expected order of the two paths is taken from `checkout.status()` before the tick.
+   - criterion 8: test_a_failed_restore_is_a_repository_stop_cleared_by_the_next_tick. It is skipped when running as root.
+   - criterion 9: test_a_rejected_push_leaves_no_trace_for_the_next_tick. The handler `StalePush` checks at the start of each call whether the checkout is on `main` at `origin/main`. It has to check there because on the second tick its push succeeds and the checkout moves off `main`.
+   - criterion 10: test_a_failing_handler_is_reported_once_and_then_capped. Each tick, `StalePush` works on a copy of the branch made from the older commit, so its push is rejected every time.
+   - criterion 11: test_a_human_push_after_the_report_retries_the_capped_event
+   - criterion 12: test_a_fresh_clone_continues_every_work_item_from_its_branch. The first work item's branch holds stage `done`, which has no role, so the event goes to the second work item at `doing`. That `run` event only comes out this way if both work items were read from their branches.
+   - criterion 13: test_v1_leftover_files_change_nothing, run once each for the files being valid, unreadable and absent.
+   - criterion 14: test_the_tick_knows_no_run_record_and_no_lock, run once for each of the four modules.
+   - criterion 15: test_an_idle_tick_makes_no_hosting_call, and test_a_waiting_work_item_costs_one_lookup_and_its_comments
+   - criterion 16: test_the_idle_handler_changes_nothing
+   - criterion 17: test_an_event_without_a_handler_is_a_counted_error
+   - criterion 18: test_the_restore_deletes_a_local_branch_the_remote_has_not_taken
+   - criterion 19: test_an_unreadable_work_item_file_raises_without_a_stop, and test_a_work_item_in_an_unknown_stage_raises_value_error
+   - criterion 20: test_a_capped_event_holds_back_all_new_work
+   - criterion 21: test_the_tick_keeps_its_status_across_ticks_and_a_restart_counts_from_one
+   - criterion 22: test_tick_outcome_refuses_an_unknown_key, test_tick_outcome_refuses_an_assignment, and test_tick_outcome_accepts_only_its_values
+   - criterion 23: test_the_restore_deletes_a_local_branch_of_a_started_story_without_a_remote_branch
+
+   Notes for the coder:
+   - Agent files for every role of `PIPELINE_YAML` are installed by an autouse fixture.
+   - Hosting-service calls are counted by `_CountingHosting`, a subclass of `FakeHostingService` that does not override `post_comment`.
+   - I did not add `assert` lines on the hosting service for criterion 15 beyond the call list; the criterion asks for exactly one `get_pull_request` and one `list_comments`, and the test compares the sorted call list to those two.
+
+   Nothing is open. I did not have to interpret any criterion.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
