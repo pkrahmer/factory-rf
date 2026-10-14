@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 65
 blocked: null
 comments_seen: 0
@@ -196,3 +196,15 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Stale but untouched: none seen.
 
    `make check`: check: green
+7. demo: I ran the single demo command from the repository root. It met its `Expect:` line, so there are no findings.
+
+   1. `uv run pytest tests/application/test_costs.py`
+      ```
+      .......................                                                  [100%]
+      23 passed in 6.16s
+      ```
+      Met. The last line reports `passed`. A case-insensitive grep for `failed` or `error` found nothing. That is two output lines, and I ran the command twice with the same result.
+
+   Against the acceptance criteria: the 23 passing tests are the parametrised cases for criteria 1–15, which the tester and reviewer entries map one by one. Nothing in the demo contradicts any criterion. Criterion 16 (`make check`) is the factory's gate after this stage, so I did not run it here. Criterion 17 (docs) is not something this demo exercises; the documenter's entry covers it.
+
+   Still open: the gap intake noted, that no test checks that a `StallContext` with `cost=None` writes no sidecar, is still untested. It is not a criterion, so I did not count it as a finding.
