@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 81
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0006-S0001, F0006-S0002, F0006-S0003, F0006-S0004, F0006-S0005, F0006-S0006, F0006-S0007, F0006-S0008, F0006-S0009]
+outcome: accepted
 ---
 # Acceptance of Reading the remote
 
@@ -270,3 +271,4 @@ None. The two findings of the first acceptance are repaired (S0008, S0009). The 
       6 Decisions: 1–16 were built as written; the alternatives in decisions 2, 8 and 14 are still the human's. Item A is still open: a branch created by hand is never judged. F0007-S0006's draft still exempts the opening commit, and I still recommend judging that commit in F0007. Item B looks settled per the night log; the human only confirms. Item C (the F0005 leftovers) is untouched.
       7 Slow checks: none (no mutants target, no image scan, no SBOM).
       8 Cost: 69 runs, 101.0 min, $20.30. S0008 and S0009 each ran first-pass (6 runs, $0.77 each). S0002 still stands out at 15 runs. Documentation-only stories spend about half their cost in stages with nothing to do.
+2. done (pull request merged); cost: 2 runs, 20.1 min, 90 turns, 308k tokens in (9262k more from cache), 82k out, $5.96
