@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 97
 blocked: null
 comments_seen: 0
@@ -259,3 +259,12 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
    - The diff also holds changes to `CLAUDE.md`, `docs/runs/` and `planning/`. They come from the human's commit, so I did not review them.
 
    1. `src/factory/application/recovery.py:190` (`_remote_head`): for an `expired` event it raises `CannotHandle(_KIND, ...)`, which names the kind `crash`. That breaks the contract of `CannotHandle` ("the event's kind", `src/factory/domain/errors.py:178`). It also disagrees with the guard on the missing branch commit in `_dead_run`, which this diff changed to `event.kind` for the same case. The coder's entry noticed this and left it. Fix: pass the event's kind into `_remote_head` (from `handle`) and raise with it, as `_dead_run` does. `_state_of` in `ask_crash_cap` may keep `crash`.
+8. coder: coder (round 2): Fixed the reviewer's one finding in commit 8b346b7. `make check` is green, with coverage at 99.14 %.
+      - `src/factory/application/recovery.py`: `_remote_head` now takes the event's kind (`kind: EventKind`), which `handle` passes as `event.kind`. When the branch is gone from the remote it raises `CannotHandle(kind, ...)`. An expiry is no longer reported as `crash`, and this matches the guards in `_dead_run`. `EventKind` is now imported from `factory.domain.events`.
+      - As the finding allows, `_state_of` in `ask_crash_cap` still raises with `crash`.
+      - Rejected: storing the event's kind on the handler. It would add state to a handler that is shared between `crash` and `expired`. A parameter is simpler.
+      - No refactor was needed for this one-line change. No tests were changed.
+
+      `make check`: check: green
+
+   `make check`: check: green
