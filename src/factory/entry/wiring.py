@@ -41,7 +41,7 @@ __all__ = [
 ]
 
 # The kinds with no handler yet, in the order of `EventKind`; registering one removes it here.
-NOT_YET_HANDLED: tuple[EventKind, ...] = ("expired", "acceptance_due")
+NOT_YET_HANDLED: tuple[EventKind, ...] = ("acceptance_due",)
 
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
@@ -80,12 +80,14 @@ def build_handlers(
     run = RunGate(
         boundaries, RunHandler(boundaries, instance, definition, environment), closed, merged
     )
+    recovery = RecoveryHandler(
+        boundaries, definition, ClaimService(boundaries, instance, definition), run
+    )
     return {
         "idle": IdleHandler(),
         "run": run,
-        "crash": RecoveryHandler(
-            boundaries, definition, ClaimService(boundaries, instance, definition), run
-        ),
+        "crash": recovery,
+        "expired": recovery,
         "comment": CommentHandler(boundaries),
         "ask": AskHandler(boundaries, definition),
         "merged": merged,
