@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 80
 blocked: null
 comments_seen: 0
@@ -71,3 +71,6 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: nothing built, on purpose. This story only changes documentation. The Interface is "None: no code changes" and the tester wrote no tests, so the coding stage has no work to do. I made no commits and changed no files under `src/` or `tests/`. I skipped the refactor step because there is no diff of my own to review. The documentation changes in criterion 2 (`README.md` and `docs/operator-guide.md`) belong to the documenter stage. Under CLAUDE.md the coder does not write those files, so I did not touch them. `make check` is green on the branch as checked out (coverage 99.35 %).
+
+   `make check`: check: green
