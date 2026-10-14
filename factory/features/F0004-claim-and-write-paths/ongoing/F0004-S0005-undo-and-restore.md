@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 56
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # Undo and restore after an agent run
@@ -215,3 +215,6 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
       Noticed, not touched: writes to ignored paths and outside the checkout are not seen. That is in scope for v2, as the Assignment says. The docs criterion (20) is the documenter's.
 
    `make check`: check: green
+9. reviewer: one finding, in group 1 (acceptance criteria). The implementation `src/factory/application/undo.py` follows the Interface's order: settings from `WritePathService.at`, then the baseline before any change, then one `revert_paths` for the refused paths, then the own work item. Criteria 1–18 each have a test that checks what the criterion says. The coder's entry 8 reports `make check` green. I did not review groups 2–5 further, because group 1 fails.
+
+   1. tests/application/test_undo.py: nothing tests the allowed side of the Interface's limit "lies *directly* in an `in-progress` folder of a feature". These paths all go untested: a file in another lifecycle folder (`factory/features/F0001-example/backlog/...` or `done/...`), a file nested deeper (`.../in-progress/sub/x.txt`), and an `in-progress` segment outside `factory/features/`. Every path under `factory/features/` that the current tests touch is either in `in-progress/` or is the own work item. So two mutations of `_is_in_an_in_progress_folder` (src/factory/application/undo.py:318) would pass every test: dropping `segments[1] == _IN_PROGRESS`, and changing `len(segments) == 3` to `>= 3`. The first would make the undo delete what the fixture's `acceptance-reviewer` (`{feature}/backlog/*`) may write. CLAUDE.md under *Tests* requires both sides of every stated limit. No criterion states the allowed side, which is also a gap in the story itself. Fix: the coder ends with `tests` and names this change. The tester adds a test with write paths `["*"]` in which the agent changes or adds a file in `factory/features/F0001-example/backlog/` and adds `factory/features/F0001-example/in-progress/sub/notes.txt`. Both must stay as the agent wrote them and be in neither `reverted` nor `deleted`. Alternatively, the tester extends the criterion-7 test with these paths. If the human prefers that nested files under `in-progress/` are refused too, the Interface needs to change first, which is a question for the human.
