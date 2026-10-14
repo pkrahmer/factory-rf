@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 74
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -170,3 +170,20 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I built `src/factory/application/tick.py` (commit 447294b). It has `HandlerFactory`, `TickOutcome`, `IdleHandler` and `Tick`, following the Interface: fetch, then load, then restore, then evaluate, then dispatch. A private `_Stopped` exception ends the tick once a stop has been raised. The restore works in this order:
+   - It reads `status` and writes the discarded line.
+   - `reset_to("HEAD")` cleans the checkout on whatever branch it is on.
+   - `checkout("main", start_point="origin/main")` puts the checkout on main.
+   - `delete_branch` runs for every id that has a remote `work-item/` branch or an `in-progress/` story on origin/main.
+   Cleaning before the switch means the switch to main never meets a local change. I rejected the other order, `reset_to("origin/main")` on the current branch, because it would move a non-work-item branch such as `scratch` when the checkout sits on it.
+
+   lint, types, layers, sast, secrets and licenses are green, and so is every tick test except two. `make test` is red only on these two, and I believe both tests are wrong, not the code.
+
+   1. `test_a_rejected_push_leaves_no_trace_for_the_next_tick` (criterion 9). On the second tick, `StalePush` starts from `event.remote_state`, which is the remote head, so its push succeeds, as the tester's note says. The test checks `second.event.remote_state == remote_commit(remote, BRANCH)` and `handler.events[1].remote_state == remote_commit(remote, BRANCH)` after that push, so the remote has already moved one commit past the event. Observed: event `cc1ae958…`, remote `3bc18f7f…`. No implementation can pass this. Options:
+      - (a) Record `remote_commit(remote, BRANCH)` right after the first `tick.run()` and compare against that. This is my choice, because it is exactly what criterion 9 says: the head the human pushed meanwhile.
+      - (b) Give the handler a `base` or another switch so its second push is not made.
+   2. `test_an_unreadable_work_item_file_raises_without_a_stop` (criterion 19). The test calls `human.push_file(BRANCH, PATH, BODY)`, but `BODY` is `"# First story\n"`, which is exactly what `human.start` already put at `PATH`. The commit is empty and `GitCli.commit` raises `NothingToCommit` in the setup, before the tick runs. This is the trap `CLAUDE.md` warns about. Options:
+      - (a) Push a different text without front matter, for example `"# First story, edited\n"`. This is my choice.
+      - (b) Push the file to a different path.
+
+   Refactor: not done yet, because `make check` is not green. The diff is one new module and I saw nothing to change in it. Once you answer, I will end with `tests` naming the two changes.
