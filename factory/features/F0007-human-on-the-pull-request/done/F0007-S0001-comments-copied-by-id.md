@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 82
 blocked: null
 comments_seen: 0
@@ -250,3 +250,4 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
    Checked against the acceptance criteria: nothing in either output contradicts any criterion. The demo does not exercise the git-backed parts (`check_out`, `record`, `publish`, `copy`, criteria 5, 6, 8 and 15 to 20). The tests cover those, and neither command contradicts them.
 
    Still open, carried from the reviewer's and documenter's entries and not a demo finding: `CommentCopier._state_of` raises `ValueError` rather than `CannotHandle` for a document without a state. Also, `copy` does not fetch, so its later callers (S0005, S0007) must fetch first.
+8. done (pull request merged); cost: 6 runs, 10.3 min, 50 turns, 177k tokens in (1139k more from cache), 32k out, $2.06
