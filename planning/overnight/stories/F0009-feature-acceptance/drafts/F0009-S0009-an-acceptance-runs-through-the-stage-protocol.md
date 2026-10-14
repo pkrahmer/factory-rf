@@ -1,0 +1,62 @@
+# An acceptance runs through the stage protocol
+
+## Assignment (as of log entry 1)
+
+Let an acceptance run its stage through F0005's stage protocol, the same code that runs a story's stages, with the smallest change that makes it work. Two things stop an acceptance today. First, the protocol checks the story form before and after every agent run (`StoryFormChecker`, called by `StageLauncher` and `AfterAgent`); the report `# Acceptance of <title>` with a `## Journal` section has none of the form's `## Description`, `## Interface`, `## Acceptance criteria` and `## Smoke test`, so decision rule 1 (F0005-S0006) would turn the reviewer's forward decision into a question every time and an acceptance would never reach its approval. Second, nothing appends the acceptance reviewer's facts (S0003) to its prompt. This story makes `StoryFormChecker.findings` return no findings for a document whose state is an `AcceptanceState` (the opening always writes one, and the checker receives the document only), and makes `TaskComposer.compose` append `acceptance_prompt(...)` with the facts when the stage is the definition's `acceptance_stage` and the work item is an acceptance. The claim, the draft pull request, the run, the undo, the restore, the entry, the checks and the result commit are the protocol's, unchanged. Covers no handover condition alone; it makes ST2.1's and ST2.2's acceptances runnable, carries the reviewer half of kept thing 19 (the acceptance judges the whole) and keeps kept thing 11 (the prompt's facts are computed by code, not by the agent). Changes F0005's `factory.application.task` by these two additions and nothing else. Uses `AcceptanceService` and `acceptance_prompt` (S0003), `AcceptanceState` (S0001), and the protocol's `StageRunner` (F0005-S0007) for the end-to-end check.
+
+## Interface
+
+`src/factory/application/task.py` (F0005-S0001's module; two methods grow, no signature changes)
+
+```python
+class StoryFormChecker:
+    def findings(self, document: WorkItemDocument) -> list[FormFinding]: ...
+
+class TaskComposer:
+    def compose(self, context: TaskContext, agent: AgentDefinition) -> AgentRunRequest: ...
+```
+
+Rules:
+
+- `StoryFormChecker.findings(document)` returns `[]` when `document.state` is an `AcceptanceState`, before it reads the form: a missing form file is then no `WorkItemFormatError`. For every other document it is the F0005 behaviour exactly.
+- `TaskComposer.compose(context, agent)`: when `context.stage == definition.acceptance_stage` and `is_acceptance(context.work_item)`, the request's `prompt` is `acceptance_prompt(compose_prompt(facts), AcceptanceService(boundaries, definition).facts(feature_of(context.work_item)))`, the composer's own `boundaries` and `definition`. For any other stage or work item, and for a definition whose `acceptance_stage` is `None`, the prompt is `compose_prompt(facts)` as before. Everything else of the request is unchanged.
+- The module `factory.application.task` imports `factory.application.acceptance`: both are in the application layer, and `acceptance` does not import `task`.
+- No test of F0005 changes: its tests (`tests/application/test_task.py`, `test_stage_launch.py`, `test_after_agent.py`) build documents with a plain `WorkItemState` and contexts of stories, which take the unchanged paths.
+
+Tests: `tests/application/test_task_acceptance.py` and `tests/application/test_stage_run_acceptance.py` (new files: the tests of F0005 stay as they are); the fixtures `remote`, `checkout`, `human`, `hosting`, `agent_runtime`, `boundaries`, `agent_home` and `clock`, with `install_agents(agent_home, <the roles of the fixture's pipeline definition>)` from `tests/git_support.py`. The fixture's feature `F0001` has a backlog story and is never due; the tests push a feature `F0002-todo` of their own with `human.push_file("main", ...)` (`feature.md` with the title `Todo service`, story files under `done/`, nothing under `backlog/` or `in-progress/`) and open the acceptance with `AcceptanceService.open`. The checker tests use the fixture's `factory/story-form.md`. The run is scripted on `FakeAgentRuntime` as F0005-S0007's tests do: the decision `approval` and a non-blank entry.
+
+## Acceptance criteria
+
+1. `StoryFormChecker(boundaries).findings(document)` is `[]` for a document whose state is an `AcceptanceState` and whose body is only `# Acceptance of Todo service` and an empty `## Journal` section.
+2. The same call is `[]` for that document when `factory/story-form.md` is missing at `origin/main`, where it raises `WorkItemFormatError` for a document with a plain `WorkItemState`.
+3. The same body with a plain `WorkItemState` still gives findings (the missing sections): the check of a story is unchanged.
+4. `TaskComposer.compose` for an acceptance at the stage `acceptance` returns a request whose `prompt` equals `acceptance_prompt(compose_prompt(<the facts of the context>), AcceptanceService(boundaries, definition).facts("F0002"))`: the usual lines of the prompt, an empty line, and the three lines `Archived stories: ...`, `Next free story number: ...` and `Cost of the stories: ...`.
+5. `compose` for a story, and for an acceptance at a stage other than `acceptance`, returns a prompt with no line that starts with `Archived stories:`.
+6. `compose` with a definition whose `acceptance_stage` is `None` returns the unchanged prompt for any work item, without an error.
+7. `StageRunner(...).run(<the opened acceptance's id>, <its path>)` with the agent scripted to end with the decision `approval` ends with `next_stage == "approval"` and `rule == 6`, with the work item not blocked and no `question` record in its journal, although the report has none of the story form's sections.
+8. In that run the prompt the agent received (`agent_runtime.requests()[0].prompt`) ends with the three fact lines of the feature at `origin/main`.
+9. In that run the stage protocol opened the acceptance's draft pull request titled `F0002-A0001: Acceptance of Todo service`, and the report on `origin/work-item/F0002-A0001` has the stage `approval` and that pull request's number in its state.
+10. make check stays green.
+11. docs: `docs/project-guide.md` states that an acceptance runs through the stage protocol, that the story form check returns no findings for a document whose state is an `AcceptanceState`, and that `TaskComposer.compose` appends the three facts at the definition's `acceptance_stage`.
+
+## Demo
+
+```bash
+uv run python -c "
+from types import SimpleNamespace
+from factory.application.task import StoryFormChecker
+from factory.domain.acceptance import AcceptanceState
+from factory.domain.work_item import WorkItemDocument, WorkItemState
+form = '# Story title\n\n## Description\n\n## Interface\n\n## Acceptance criteria\n\n## Smoke test\n\n## Journal\n'
+boundaries = SimpleNamespace(git=SimpleNamespace(show_file=lambda ref, path: form))
+checker = StoryFormChecker(boundaries)
+body = '# Acceptance of Todo service\n\n## Journal\n'
+print(checker.findings(WorkItemDocument(state=AcceptanceState(stage='acceptance'), body=body)))
+print(len(checker.findings(WorkItemDocument(state=WorkItemState(stage='tests'), body=body))) > 0)
+"
+```
+Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (the same text as a story has findings).
+
+## Log (append only)
+
+1. 2026-10-12 human: created.

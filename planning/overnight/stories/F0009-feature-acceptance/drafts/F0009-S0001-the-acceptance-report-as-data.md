@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Give a feature acceptance the data it needs before anything can open, run or decide one: its id (`F0001-A0001`, one per acceptance, numbered per feature), its report file name, and its state in the front matter (`AcceptanceState`: the work item state plus `stories`, the archived stories the report covers, and `outcome`, the human's result). The reader and the writer of work items learn the two extra keys, so that every service that reads a work item (the undo, the claim, the comment handler) can read a report. Each acceptance is a work item of its own with its own report file and its own cost records; there is no single report that later acceptances overwrite. An acceptance sorts after every story of its feature whatever the feature folder's slug, which is shown here for a slug that starts with a digit and for a missing slug. Covers ST6.3; keeps kept thing 4 (state and journal are data, restored by code) and kept thing 19 (the feature acceptance is a work item beside the stories). No git, no hosting service and no agent runtime are touched by this story.
+Give a feature acceptance the data it needs before anything can open, run or decide one: its id (`F0001-A0001`, one per acceptance, numbered per feature), its report file name, and its state in the front matter (`AcceptanceState`: the work item state plus `stories`, the archived stories the report covers, and `outcome`, the human's result). The reader and the writer of work items learn the two extra keys, so that every service that reads a work item (the undo, the claim, the comment handler) can read a report. Each acceptance is a work item of its own with its own report file and its own cost records; there is no single report that later acceptances overwrite. An acceptance sorts after every story of its feature whatever the feature folder's slug, which is shown here for a slug that starts with a digit and for a missing slug. Covers ST6.3; keeps kept thing 4 (state and journal are data, restored by code) and kept thing 19 (the feature acceptance is a work item beside the stories). No git, no hosting service and no agent runtime are touched by this story. Criteria 8, 9, 21 and 22 pass at once against code that F0002 built (`work_item_order`, `append_entry`, `restore_state_and_journal`); they are the proof of ST6.3 and of kept thing 4 for an acceptance, and they fail the day someone changes those functions.
 
 ## Interface
 
@@ -41,10 +41,10 @@ Rules:
 - `AcceptanceState.stories` is strictly ascending (sorted, no repeats) and holds story ids only, never an acceptance id.
 - `AcceptanceState.outcome` is set exactly when `stage == DONE_STAGE`.
 - The reader returns an `AcceptanceState` exactly when the front matter has a `stories` or an `outcome` key, and a plain `WorkItemState` otherwise. Any other unknown key is still a `WorkItemFormatError` naming the key; an invalid value of `stories` or `outcome` is a `WorkItemFormatError` whose `fault` names that key.
-- The writer writes an `AcceptanceState` with all the keys of `WorkItemState` in their order, then `stories`, then `outcome` (`null` while unset), both always; a plain `WorkItemState` gets neither key.
+- The writer writes an `AcceptanceState` with all the keys of `WorkItemState` in their order, then `stories`, then `outcome` (`null` while unset), both always; a plain `WorkItemState` gets neither key. It dumps the state with `document.state.model_dump()`, never through `document.model_dump()`, which serialises the field by its declared type `WorkItemState` and drops `stories` and `outcome`.
 - `append_entry` and `restore_state_and_journal` (`factory.domain.journal`) keep the state's type and its `stories` and `outcome`.
 
-Tests: `tests/domain/test_acceptance.py`, `tests/adapters/test_work_item_markdown_acceptance.py`, `tests/domain/test_journal_acceptance.py`.
+Tests: `tests/domain/test_acceptance.py`, `tests/adapters/test_work_item_markdown_acceptance.py`, `tests/domain/test_journal_acceptance.py`. The closed-model test of criterion 23 builds the model through a variable typed `type[BaseModel]` and assigns with `setattr`, the field's name in a variable (`CLAUDE.md`, Tests).
 
 ## Acceptance criteria
 
@@ -70,8 +70,9 @@ Tests: `tests/domain/test_acceptance.py`, `tests/adapters/test_work_item_markdow
 20. `parse(render(document))` equals `document` for an `AcceptanceState` document that holds two stories, an outcome and two journal records.
 21. `append_entry` on a document whose state is an `AcceptanceState` returns a document whose state is an `AcceptanceState` with the same `stories` and `outcome`.
 22. `restore_state_and_journal(current, baseline)`, where `current` carries different `stories` and `outcome` than the `AcceptanceState` of `baseline`, returns a document with the baseline's `stories` and `outcome`.
-23. `make check` stays green.
-24. docs: `docs/project-guide.md` states the acceptance's id form (`F0001-A0001`, numbered per feature), its report file name, and that `stories` and `outcome` belong to the factory and are restored after every agent run.
+23. `AcceptanceState` is closed and typed: built through a variable typed `type[BaseModel]`, it refuses an unknown key (`verdict`), and an assignment to `stories` made with `setattr` and the field's name in a variable; `stories` accepts `["F0001-S0001"]` and refuses `["F001-S0001"]`; `outcome` accepts `"refused"` and refuses `"maybe"`, each refusal a `ValidationError`.
+24. make check stays green.
+25. docs: `docs/project-guide.md` states the acceptance's id form (`F0001-A0001`, numbered per feature), its report file name, and that `stories` and `outcome` belong to the factory and are restored after every agent run.
 
 ## Demo
 
