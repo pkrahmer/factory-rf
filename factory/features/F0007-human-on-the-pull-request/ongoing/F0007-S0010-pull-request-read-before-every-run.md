@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 91
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -161,3 +161,12 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built `RunGate` (src/factory/application/handlers/run_gate.py) and the expanded `build_handlers` / `NOT_YET_HANDLED` (src/factory/entry/wiring.py), committed as 38684ce. Lint, types, layers, sast, secrets and licences pass. Coverage is 99 %. Every test passes except one: tests/application/handlers/test_run_gate.py::test_a_story_merged_while_its_stage_was_due_is_archived_without_a_run (criterion 8).
+
+   Why it fails: the test's story body is `BODY = "# First story\n\nRewritten by the factory on the branch.\n"`, which has no `## Journal` section. The gate hands the event to the real `MergedHandler`, as the criterion requires. That handler appends a `done` entry through `append_entry`, which raises `WorkItemFormatError: missing section: ## Journal`. The test is out of line with the existing `MergedHandler`, not with the gate. Every work item has a journal section, and tests/application/handlers/test_merged.py uses a body that contains one. The closed test (criterion 7) passes with the same body only because discarding the story appends no entry.
+
+   Options:
+   (A) The tester changes `BODY` in tests/application/handlers/test_run_gate.py to include a journal section that matches the state's single `created` record, e.g. `"# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"` (as test_merged.py does). Criterion 7 keeps passing with that body.
+   (B) Make `MergedHandler` tolerate a body without a journal. This changes an existing handler outside this story's scope and weakens a format rule. I reject it.
+
+   I recommend (A). With your answer I will end with `tests` naming exactly that change.
