@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 73
 blocked: null
 comments_seen: 0
@@ -169,3 +169,33 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
    - Demo: a runnable single command that uses the fake hosting service and real wiring objects. Its Expect line gives the exact outcome list and the exact first post line, so it can be checked.
    - Architecture: the pure counts, the text and the error are in domain. The Handler ABC and Dispatcher are in application and use StopService and the Boundaries interfaces, with no concrete tool. This matches the layering in CLAUDE.md.
    - Scope: within the feature's "dispatcher and the tick status" bullet (SI2.4, GH5.4, R28). The handlers, the tick and the wiring are left to S0004 and S0007.
+3. tester: wrote red tests for criteria 1–24, one test per criterion. Criteria 25–26 (make check, docs) have no test.
+      - criterion 1: tests/domain/test_tick_status.py::test_a_first_error_gives_one_unreported_entry_and_leaves_the_input_unchanged
+      - criterion 2: tests/domain/test_tick_status.py::test_a_repeated_error_on_the_same_state_counts_up_and_keeps_the_newer_error
+      - criterion 3: tests/domain/test_tick_status.py::test_an_error_on_another_state_replaces_the_keys_entries_and_keeps_other_keys
+      - criterion 4: tests/domain/test_tick_status.py::test_clearing_removes_every_entry_of_the_key_and_keeps_other_keys
+      - criterion 5: tests/domain/test_tick_status.py::test_the_cap_is_three_errors (parametrized, count 2 and 3)
+      - criterion 6: tests/domain/test_unhandled_event.py::test_an_unhandled_event_is_a_factory_error_that_names_its_kind
+      - criterion 7: tests/application/test_dispatcher.py::test_handler_for_returns_the_registered_handler_and_raises_for_a_missing_one
+      - criterion 8: tests/application/test_dispatcher.py::test_unhandled_kinds_lists_every_kind_without_a_handler_in_order
+      - criterion 9: tests/application/test_dispatcher.py::test_a_succeeding_handler_is_called_once_and_clears_the_earlier_errors. It uses a handler that fails once and then succeeds, so the earlier failure is a real one. The handler sees the event twice: once on the failure and once on the success.
+      - criterion 10: tests/application/test_dispatcher.py::test_a_failing_handler_is_counted_once_and_posts_nothing
+      - criterion 11: tests/application/test_dispatcher.py::test_a_second_failure_counts_two_and_still_posts_nothing
+      - criterion 12: tests/application/test_dispatcher.py::test_the_third_failure_posts_one_keyed_report_on_the_pull_request. It checks the post body as render_post(error_report_text(...), key).
+      - criterion 13: tests/application/test_dispatcher.py::test_a_reported_event_on_the_same_state_is_capped_without_calling_the_handler
+      - criterion 14: tests/application/test_dispatcher.py::test_a_new_remote_state_is_counted_from_one_and_reported_under_another_key
+      - criterion 15: tests/application/test_dispatcher.py::test_an_event_without_a_handler_is_counted_and_reported_like_any_error
+      - criterion 16: tests/application/test_dispatcher.py::test_two_events_of_one_work_item_on_one_state_share_the_one_report
+      - criterion 17: tests/application/test_dispatcher.py::test_the_report_of_a_work_item_without_a_pull_request_opens_a_draft_for_it (parametrized: with a title line, and without one). The branch is pushed by the human clone, and branch_commit is the remote tip.
+      - criterion 18: tests/application/test_dispatcher.py::test_a_report_for_a_branch_not_on_the_remote_becomes_one_log_line
+      - criterion 19: tests/application/test_dispatcher.py::test_a_report_that_cannot_be_posted_is_made_again_without_counting
+      - criterion 20: tests/application/test_dispatcher.py::test_a_report_killed_after_its_post_is_not_posted_again_after_the_restart
+      - criterion 21: tests/application/test_dispatcher.py::test_a_kill_in_the_handler_passes_through_and_leaves_the_status
+      - criterion 22: tests/application/test_dispatcher.py::test_an_event_without_a_work_item_is_reported_as_one_log_line and ::test_an_event_without_a_work_item_is_reported_without_a_log
+      - criterion 23: tests/domain/test_error_report_text.py::test_the_error_report_names_the_event_the_error_and_the_short_remote_state
+      - criterion 24: tests/domain/test_tick_status.py::test_an_error_count_starts_at_one (count 0 refused, 1 accepted), ::test_an_error_count_refuses_a_remote_state_that_is_no_commit_id (39 hex characters; an upper-case letter), ::test_an_error_count_refuses_an_unknown_key_and_an_assignment, ::test_a_tick_status_refuses_an_unknown_key_and_an_assignment
+      Files created: tests/domain/test_tick_status.py, tests/domain/test_unhandled_event.py, tests/domain/test_error_report_text.py, tests/application/test_dispatcher.py. The dispatcher tests define their own small classes: the handlers Succeeding, Failing and FailingOnce, and RecordingLog, which implements FactoryLog.
+      make test: 4 collection errors, one for each new module, because nothing they import exists yet. Missing are factory.domain.tick_status, factory.application.dispatcher, UnhandledEvent in factory.domain.errors, and error_report_text in factory.domain.post_texts. make lint is green. The type check was skipped, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
