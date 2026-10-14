@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 56
 blocked: null
 comments_seen: 2
@@ -218,3 +218,20 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 9. reviewer: one finding, in group 1 (acceptance criteria). The implementation `src/factory/application/undo.py` follows the Interface's order: settings from `WritePathService.at`, then the baseline before any change, then one `revert_paths` for the refused paths, then the own work item. Criteria 1–18 each have a test that checks what the criterion says. The coder's entry 8 reports `make check` green. I did not review groups 2–5 further, because group 1 fails.
 
    1. tests/application/test_undo.py: nothing tests the allowed side of the Interface's limit "lies *directly* in an `in-progress` folder of a feature". These paths all go untested: a file in another lifecycle folder (`factory/features/F0001-example/backlog/...` or `done/...`), a file nested deeper (`.../in-progress/sub/x.txt`), and an `in-progress` segment outside `factory/features/`. Every path under `factory/features/` that the current tests touch is either in `in-progress/` or is the own work item. So two mutations of `_is_in_an_in_progress_folder` (src/factory/application/undo.py:318) would pass every test: dropping `segments[1] == _IN_PROGRESS`, and changing `len(segments) == 3` to `>= 3`. The first would make the undo delete what the fixture's `acceptance-reviewer` (`{feature}/backlog/*`) may write. CLAUDE.md under *Tests* requires both sides of every stated limit. No criterion states the allowed side, which is also a gap in the story itself. Fix: the coder ends with `tests` and names this change. The tester adds a test with write paths `["*"]` in which the agent changes or adds a file in `factory/features/F0001-example/backlog/` and adds `factory/features/F0001-example/in-progress/sub/notes.txt`. Both must stay as the agent wrote them and be in neither `reverted` nor `deleted`. Alternatively, the tester extends the criterion-7 test with these paths. If the human prefers that nested files under `in-progress/` are refused too, the Interface needs to change first, which is a question for the human.
+10. coder: coder (round 1, the reviewer's finding in entry 9): I agree with the finding, and fixing it needs a new test. I made no change to the code, and the tests stay untouched (R9).
+
+    Test change for the tester: in `tests/application/test_undo.py`, add one test that uses the helper `_start` with write paths `["*"]`. In it, the agent does three things:
+    - changes `factory/features/F0001-example/backlog/<the fixture's backlog story>`, which is present at the stage-start commit;
+    - adds a new file `factory/features/F0001-example/backlog/extra.md`;
+    - adds `factory/features/F0001-example/in-progress/sub/notes.txt`.
+
+    Expected: after `undo`, all three are exactly as the agent wrote them, and none of them is in `reverted` or `deleted`. This tests the allowed side of the Interface's limit, which reads: "lies *directly* in an `in-progress` folder of a feature". Extending the criterion-7 test with the same paths would do the same job; the tester can choose either.
+
+    I checked the current code and expect the test to pass:
+    - `_is_in_an_in_progress_folder` (`src/factory/application/undo.py:92`) only matches paths with exactly three segments after `factory/features/` whose middle segment is `in-progress`.
+    - `PROTECTED_PATHS` (`src/factory/domain/write_paths.py:16`) covers no backlog file and no nested in-progress file, so with `["*"]`, `refusal` allows all three paths.
+
+    Rejected:
+    - Changing the code to refuse nested files under `in-progress/` as well. That would contradict the Interface's "directly", so it would be a question for the human, and the reviewer did not ask for it.
+
+    Open: once the tester adds the test, the ticket comes back to the coder. If the test passes, I will check `make check` and send the ticket to review with no code change.
