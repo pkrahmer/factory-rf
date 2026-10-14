@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 99
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0008-S0001, F0008-S0002, F0008-S0003, F0008-S0004]
+outcome: accepted
 ---
 # Acceptance of Crash recovery
 
@@ -337,3 +338,4 @@ S0003 stands out in runs. Both of its findings came from a second copy of someth
       7 Slow checks: none (no mutants target, no image scan, no SBOM).
       8 Cost: 31 runs, 98.4 min, $10.46 ($2.62 per story). S0003 stands out with 10 runs: two review rounds, each about a second copy (a hand-kept claim map, then a kind constant). S0004 had 9 runs, from one fixture question (an empty backlog/ directory) answered by the human.
       Drafts: F0008-S0005 housekeeping after crash recovery (the four doc repairs and the three untested sides of the stale-branch step); F0008-S0006 one helper for a work item's state (require_state replaces ten _state_of copies and three inline checks, every exception and message kept).
+2. done (pull request merged); cost: 1 runs, 19.1 min, 71 turns, 192k tokens in (8249k more from cache), 53k out, $4.25
