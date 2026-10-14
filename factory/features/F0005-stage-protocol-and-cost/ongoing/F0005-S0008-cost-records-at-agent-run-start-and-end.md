@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 65
 blocked: null
 comments_seen: 0
 round: 0
@@ -104,3 +104,9 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `costs.py` names `CostRun` and `CostRecorder` with signatures. The changes to `LaunchedStage`, `AgentAftermath` and `StallContext` are concrete. The wiring in `StageLauncher`, `AfterAgent`, `StageFinisher` and `StallService` is stated call by call. The behaviours in the comments are `begin`, `complete`, `write` and the sidecar being left out of the undone paths. Each has a criterion: 1 and 2 for `begin`, 4 to 7 for `complete`, 9 for `write`, 14 for the undone paths.
+   - Criteria: each is testable by one test function. The failing side is covered. Criterion 5 covers unknown staying `None`, and 6 covers a reported zero staying zero. Criterion 13 covers a failing run (`ok` is `False`). Criterion 3 covers nothing pushed before the run. Criterion 12 covers a record not duplicated. Criterion 15 covers unknown keys and frozen. One small gap: a `StallContext` with `cost=None` writes no sidecar. It is a default-path behaviour and not a stated rule, so I did not ask.
+   - Demo: `uv run pytest tests/application/test_costs.py` is runnable. Its `Expect:` line is checkable (last line `passed`, no `failed` or `error`).
+   - Architecture: the module sits in `factory.application`. It reaches the sidecar through `CostRecordReader` and `CostRecordWriter`, and it imports `StartedStage` under `TYPE_CHECKING` to avoid the import cycle. The layers are respected.
+   - Scope: the story is within FEATURE.md's "Cost records" scope. `image` stays `None` (F0010), the bill is S0009's, and the crash discard is F0008's. Decisions 20, 27 and 32 match the story.
