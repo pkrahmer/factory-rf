@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 74
 blocked: null
 comments_seen: 2
@@ -58,7 +58,7 @@ Tests: `tests/application/test_tick.py`, with the shared fixtures `remote`, `che
 4. On the first tick after the remote is back, the stop `fetch_failed` is gone from the health status and the tick dispatches an event.
 5. An invalid pipeline definition on `origin/main` (a missing key without a default) makes `run` return `TickOutcome(stopped="pipeline_definition_invalid")` whose stop names the missing key in `detail`; nothing is dispatched, a file left untracked in the checkout is still there, and the factory log holds exactly one line for that stop from this tick (one line that contains `stop repository pipeline_definition_invalid`).
 6. After the definition is repaired on `origin/main`, the next tick clears that stop.
-7. The restore restores a modified tracked file to its content on `origin/main` and removes an untracked file, leaves the checkout on `main` at the head of `origin/main`, and writes one line `discarded uncommitted changes:` naming both paths; an ignored file in the checkout is still there, and on a clean checkout no such line is written.
+7. The restore restores a modified tracked file to its content on `origin/main` and removes an untracked file, leaves the checkout on `main` at the head of `origin/main`, and writes one line equal to `discarded uncommitted changes: <path>, <path>` with the two paths in the order of `Git.status()`; an ignored file in the checkout is still there, and on a clean checkout no such line is written.
 8. When the restore cannot remove an untracked file, `run` returns `TickOutcome(stopped="checkout_restore_failed")` with the stop in the health status and nothing dispatched; the next tick, after the file can be removed, clears the stop.
 9. GH5.2: a handler of `run` that commits on a copy of the work item's branch made from an older commit and pushes it gets the outcome `rejected` because the human pushed to the branch meanwhile, and raises `PushFailed`; the next tick's event has `remote_state` equal to the head of the remote branch, and the checkout is back on `main` at `origin/main`.
 10. GH5.2: with that handler failing on every tick, six ticks give the dispatch outcomes `error`, `error`, `reported`, `capped`, `capped`, `capped`, and the hosting service holds exactly one factory post on the work item's pull request.
@@ -74,8 +74,9 @@ Tests: `tests/application/test_tick.py`, with the shared fixtures `remote`, `che
 20. A capped event holds back all new work: with two runnable work items, a handler of `run` that always fails and records the work item of each call, the ticks after the report give dispatch outcome `capped` for the first work item, and the handler is never called for the second; after the human pushes to the first work item's branch, the next tick calls the handler for the first work item again.
 21. The tick keeps its status across ticks: after two failing ticks on one event `tick.status` holds one entry with `count == 2`; a new `Tick` built with no status (a restart) counts the same event from 1.
 22. `TickOutcome` refuses an unknown key and an assignment to a field; `stopped` accepts `"fetch_failed"` and `None` and refuses `"other"`, and `dispatch` accepts `"capped"` and refuses `"other"`, all with `ValidationError`.
-23. make check stays green.
-24. docs: `docs/operator-guide.md` lists the stops `fetch_failed`, `pipeline_definition_invalid` and `checkout_restore_failed`, what each means and what to do, says that an expired or revoked token shows as `fetch_failed`, and says that a work item file that cannot be read stops the tick with an error until a human repairs it; `docs/project-guide.md` states the order of a tick; `docs/decisions.md` records that the checkout is disposable and restored to `origin/main` at the start of every tick, and that a capped event holds back all new work.
+23. A started story whose file is in `in-progress/` on `origin/main`, with no `origin/work-item/<id>` and a local branch `work-item/<id>` (the claim push was rejected before any remote branch existed), has no local branch `work-item/<id>` after the next tick (`checkout.resolve("work-item/<id>")` is `None`).
+24. make check stays green.
+25. docs: `docs/operator-guide.md` lists the stops `fetch_failed`, `pipeline_definition_invalid` and `checkout_restore_failed`, what each means and what to do, says that an expired or revoked token shows as `fetch_failed`, and says that a work item file that cannot be read stops the tick with an error until a human repairs it; `docs/project-guide.md` states the order of a tick; `docs/decisions.md` records that the checkout is disposable and restored to `origin/main` at the start of every tick, and that a capped event holds back all new work.
 
 ## Demo
 
@@ -122,3 +123,14 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
 3. human (pull request comment, 2026-10-14): 1 (a): extend criterion 7 so the line equals the exact text `discarded uncommitted changes: <path>, <path>` with the paths in `Git.status()` order.
    2 (a): add a criterion: a story file in `in-progress/` on `origin/main` with no `origin/work-item/<id>` and a local `work-item/<id>` branch has that local branch deleted by the restore.
    The Interface stays as it is.
+4. intake: accepted. I checked the story again with the human's answer in log entry 3. Both answers changed the story, so I wrote exactly them in:
+   - Criterion 7 now says the line equals `discarded uncommitted changes: <path>, <path>`, with the paths in `Git.status()` order (answer 1a).
+   - New criterion 23 covers a started story with no `origin/work-item/<id>` and a local `work-item/<id>` branch: the restore deletes that branch (answer 2a). It sits before the two closing criteria, which are now 24 (`make check`) and 25 (`docs:`).
+   - The Interface and the Assignment are unchanged, as the human said.
+
+   Checks:
+   - Interface: it names `src/factory/application/tick.py` with concrete signatures (`Tick`, `TickOutcome`, `IdleHandler`, `HandlerFactory`). The restore rule's ordering and its two-source branch deletion now each have a criterion.
+   - Criteria: each can be tested by one test function. Every rule has its failing side: the fetch fails and recovers (2 to 4), the definition is invalid and repaired (5, 6), the restore fails and recovers (8), `TickOutcome` refuses bad values (22), and unreadable files and a missing handler raise or count as errors (17, 19).
+   - Demo: it is runnable. Its `Expect:` line is checkable against the output.
+   - Architecture: `application/tick.py` uses only the `Git`, `PipelineLoader`, `StopService`, `Watcher` and `Dispatcher` interfaces. The `Boundaries` wiring and the fakes are used the way `CLAUDE.md` describes.
+   - Scope: the story is inside F0006. It touches no handler of F0007 to F0010, and it matches the feature's decisions 2, 10, 11 and 14.
