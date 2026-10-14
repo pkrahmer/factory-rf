@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 90
 blocked: null
 comments_seen: 2
@@ -230,3 +230,25 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
       - Criterion 20 still says what the operator needs to know.
 
    Open, outside this diff: `tests/application/handlers/test_handlers_raise.py` keeps a `REQUIRED` list that does not name `hand_over`. Its walk over the modules still covers the new module.
+10. documenter: wrote the operator-guide section for the hand-over and found no findings for the coder.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "The hand-over at the approval", placed before "A merge archives the story". It covers:
+      - the description, which replaces what the human wrote, with its sections in order, the `none` cases, and the speaker-and-kind lookup of the reports;
+      - ready for review;
+      - the cost table post (`Cost of this work item so far`, keyed by the latest `result`);
+      - the `handed_over` record and its commit subject, which comes last;
+      - the no-effect, non-approval and no-pull-request cases;
+      - the retry on the next tick after a failure or a kill, with no second post;
+      - the report once at the error cap.
+    - `docs/operator-guide.md`: the `hand_over` bullet under "An event that keeps failing" now says `HandOverHandler` exists but is not registered yet. The diff shows no change to `factory.entry.wiring`, so `NOT_YET_HANDLED` still lists `hand_over`, and I kept that list as it was.
+
+    Cross-read and found current: the other operator-guide sections that mention the hand-over (the close at the approval, the stops, the cost table). `README.md`, `docs/project-guide.md` and `docs/decisions.md` need nothing for this story.
+
+    I ran no examples, because I wrote none.
+
+    Stale but unrelated, not touched: none seen.
+
+    `make check`: green (coverage 99.21 %). The later background notification was only my polling loop timing out; the check itself had already finished green.
+
+    `make check`: check: green
