@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 82
 blocked: null
 comments_seen: 0
@@ -189,3 +189,20 @@ Expect: one line, `True cannot handle comment: work item F0001-S0001 has no pull
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the comment copier and the plumbing the handlers share. All tests pass without any change to them, and `make check` is green.
+      - `src/factory/domain/errors.py`: adds `CannotHandle(kind, reason)`. Its message is `cannot handle <kind>: <reason>`.
+      - `src/factory/application/handlers/__init__.py`: the module docstring now says the package holds the handlers of a pull request's events, among them those of the human's acts on it.
+      - `src/factory/application/handlers/recording.py`: adds `Target` (frozen, forbids unknown keys), `target_of`, `require_pull_request`, `commit_subject` and `WorkItemRecorder`.
+        - `check_out` does `reset_to("HEAD")`, then `checkout(branch, start_point="origin/<branch>")`, then `reset_to("origin/<branch>")`.
+        - `publish` commits and pushes, and raises `PushFailed` for any outcome other than `pushed`. `record` is `write` followed by `publish`.
+      - `src/factory/application/handlers/comments.py`: adds `CopyResult` (frozen, forbids unknown keys, `commit: CommitId | None`) and `CommentCopier`.
+        - `unread` filters on `by_factory` and the ids in `comments_read`, and nothing else.
+        - `append` adds one `human`/`comment` entry per non-blank body, with `\r\n` normalised and the date of `created_at` in UTC. It then sets `comments_read` to the sorted union of the ids.
+        - `copy` checks out, reads, takes the unread comments, appends them, applies `adjust` and records with one commit. With nothing unread it returns early and writes nothing.
+      - Commits: bdcd2b6 (feat) and aaf6309 (refactor). The refactor only renames the one-letter variable in the `unread` filter to `comment`. Apart from that I found nothing to clean up in the diff.
+
+      Main decision: `append` sets the new `comments_read` with `model_copy(update=...)` on the appended document. The other way was to build a new `WorkItemState` through validation; I rejected it because the list is already sorted and has no repeats by construction. A private helper `_state_of` raises `ValueError` when a document has no state. It guards a case that `copy` cannot reach after `check_out`, so no test covers it.
+
+      Noticed, not touched: `copy` does not fetch. It relies on the remote-tracking ref, as the tester noted. Whoever calls it later (S0005, S0007) must have fetched first. The docs criterion (23) is left to the documenter.
+
+   `make check`: check: green
