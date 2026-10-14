@@ -204,6 +204,29 @@ def _acceptance_stage_faults(definition: PipelineDefinition) -> list[str]:
     return []
 
 
+def _moving_stages(definition: PipelineDefinition) -> list[tuple[str, StageDefinition]]:
+    # Without the stage done the end of the pipeline is unknown, and its own fault matters.
+    if DONE_STAGE not in definition.stages:
+        return []
+    return [(name, stage) for name, stage in definition.stages.items() if name != DONE_STAGE]
+
+
+def _empty_next_faults(definition: PipelineDefinition) -> list[str]:
+    return [
+        f"stage {name}: next is empty"
+        for name, stage in _moving_stages(definition)
+        if not stage.next
+    ]
+
+
+def _unworked_stage_faults(definition: PipelineDefinition) -> list[str]:
+    return [
+        f"stage {name}: has neither a role nor approval"
+        for name, stage in _moving_stages(definition)
+        if stage.role is None and not stage.approval
+    ]
+
+
 _RULES = (
     _contract_faults,
     _done_stage_faults,
@@ -213,4 +236,6 @@ _RULES = (
     _command_faults,
     _lease_faults,
     _acceptance_stage_faults,
+    _empty_next_faults,
+    _unworked_stage_faults,
 )

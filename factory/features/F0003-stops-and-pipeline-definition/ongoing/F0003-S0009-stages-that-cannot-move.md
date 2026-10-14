@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 50
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Stages that cannot move are refused at load
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
@@ -68,3 +76,62 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: rules 10 and 11 are in `src/factory/domain/pipeline_definition.py`, continuing S0007's numbering. Each fault text, the order of the stages, and the order of rules (10 before 11, both after 1 to 9) are exact. The condition for applying them (a stage named `DONE_STAGE` exists) is stated.
+   - Criteria: each criterion is testable by one function with no further decisions. Each rule has its refused side (criteria 2 to 5) and its accepted side (criteria 1 to 3). Criterion 6 covers the ordering after S0007's faults. Criterion 7 covers the no-`done` case, and criterion 8 covers the load stop.
+   - Demo: the script is runnable. Its `Expect:` line gives three exact lines. I checked that `PIPELINE_YAML` in `tests/git_support.py` has `doing`, `review`, `acceptance`, `approval` and `done` as the criteria assume.
+   - Architecture: the change is in the domain validator only. The existing error and stop carry the faults, so no layer rule is touched.
+   - Scope: the story stays within F0003's load-time validation and is not in "Out of scope".
+3. tester: wrote red tests for rules 10 and 11. The cases change `PIPELINE_YAML` by text replacement and parse it through `RuamelPipelineDefinitionReader`.
+   - criterion 1: tests/adapters/test_pipeline_stage_moves.py::test_a_stage_no_next_names_is_accepted (it also asserts that no `next` names `acceptance`)
+   - criterion 2: tests/adapters/test_pipeline_stage_moves.py::test_a_stage_needs_a_role_or_approval_and_a_next (parametrized: `limbo: {next: [done]}` refused, the role and approval variants accepted, `limbo: {}` refused by both rules)
+   - criterion 3: tests/adapters/test_pipeline_stage_moves.py::test_a_stage_with_a_role_and_an_empty_next_is_refused (`[]` refused, `[review]` accepted)
+   - criterion 4: tests/adapters/test_pipeline_stage_moves.py::test_an_approval_stage_with_an_empty_next_is_refused
+   - criterion 5: tests/adapters/test_pipeline_stage_moves.py::test_empty_nexts_come_before_stages_without_role_or_approval_in_stage_order
+   - criterion 6: tests/adapters/test_pipeline_stage_moves.py::test_a_fault_of_the_earlier_rules_comes_before_a_stage_that_cannot_move
+   - criterion 7: tests/adapters/test_pipeline_stage_moves.py::test_without_a_done_stage_no_stage_is_refused_for_not_moving
+   - criterion 8: tests/application/test_pipeline_loading_stage_moves.py::test_a_stage_without_role_or_approval_is_one_reported_stop (uses S0006's fixtures `boundaries`, `agent_home`, `human` and `checkout`)
+
+   Files created: tests/adapters/test_pipeline_stage_moves.py, tests/application/test_pipeline_loading_stage_moves.py. No existing test was changed.
+
+   `make test`: every module imports, since the modules under test already exist. The 7 failing tests fail on a wrong result: each case that should be refused is still accepted. The cases that should be accepted already pass, and so does criterion 7. `make lint` is green. The type check was not run in this stage.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_pipeline_loading_stage_moves.py::test_a_stage_without_role_or_approval_is_one_reported_stop
+4. coder: rules 10 and 11 are in `src/factory/domain/pipeline_definition.py` (commit 46fd728). `make check` is green and every test from the tester passes.
+   - `_empty_next_faults` (rule 10) and `_unworked_stage_faults` (rule 11) come at the end of `_RULES`, after S0007's rules. That ordering puts rule 10's faults before rule 11's, and both after rules 1 to 9, each in the order of the stages.
+   - Both rules go through one helper, `_moving_stages`. It returns every stage except `done`, and returns nothing when there is no `done`. That way the "rules wait for done" condition is written in one place.
+   - Rejected: checking for `done` inside each rule. It would repeat the same condition twice.
+   - Refactor: I read the diff and found nothing to change. No separate refactor commit.
+   - Not touched: the docs criterion, which belongs to the documenter.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: criteria 1 to 8 each have a test that checks what the criterion says. Both rules are tested on their refused side and their accepted side: `limbo` with a role or with approval is accepted, `doing` with `[review]` is accepted, and an empty `next` is refused for both a role stage and an approval stage. The `done`-exists condition is tested on its other side by `test_without_a_done_stage_no_stage_is_refused_for_not_moving`. In `tests/git_support.py`, `done` appears only in the `approval` stage's `next` and in the `done` stage itself, so the global rename in that test does what criterion 7 describes. The tests also check the order of the faults: within a rule they follow the order of the stages (criterion 5), and an earlier rule's fault comes first (criterion 6). Criterion 8 checks both the raised `PipelineDefinitionInvalid` and the single health stop with its `detail`. The coder's entry records `make check` green.
+   - Architecture: the change is only in `factory.domain` (`src/factory/domain/pipeline_definition.py`). It adds no I/O and no new imports, and it reuses the existing error and stop.
+   - Security: no subprocess, strings or suppression markers were added.
+   - Quality: `_moving_stages` holds the "only when `done` exists" condition once. Its comment says why, not what. The rule functions are private, so no docstrings are needed. Rule 11's check `role is None and not approval` matches `StageDefinition` (`role: Name | None`, `approval: bool`).
+   - Ticket hygiene: the coder's log names the main decision (one helper for the `done` condition) and what was rejected (checking for `done` inside each rule). Assignment and Interface match the code. The docs criterion still describes what the documenter must write.
+6. documenter: no findings. The code matches the Interface.
+   - `docs/project-guide.md`, "The rules of the definition": now says eleven rules. Added rows 10 and 11 with their faults, and a paragraph saying they apply only when `done` exists. The paragraph gives the reason, the fault order, and that there is still no reachability rule.
+   - `docs/decisions.md`: new entry "A stage other than done must be able to move". It records why both shapes are refused, why the rules wait for `done`, and the alternative rejected.
+   - Cross-read and found current: the operator guide's fault row (it still points to the project guide's list, which now holds rules 10 and 11), and the README. The other "nine" hits are unrelated (the nineteen Git operations).
+   - Ran the demo: it printed `doing`, `stage doing: next is empty`, `stage gate: has neither a role nor approval`.
+   - `make check` is green.
+   - Stale but untouched: nothing seen.
+
+   `make check`: check: green
+7. demo: no findings. I ran the one command under `## Demo` from the repository root, exactly as written.
+
+   Command 1 (`uv run python -c "…"`: parse the three-stage definition, then parse two versions with one change each):
+   ```
+   doing
+   stage doing: next is empty
+   stage gate: has neither a role nor approval
+   ```
+   Met its `Expect:` line. It printed three lines in the expected order: the first stage `doing`, then rule 10's fault for `doing` with `next: []`, then rule 11's fault for `gate` once its `approval: true` was removed.
+
+   Against the acceptance criteria:
+   - The output matches the fault texts in criteria 2 and 3 (`stage <s>: has neither a role nor approval`, `stage <s>: next is empty`).
+   - It shows that a definition containing `done` with both rules met is accepted. The `done` stage itself (`done: {}`, with no role and no `next`) is not refused, which agrees with the rules exempting `done`.
+   - Nothing in the output contradicts any criterion. Criteria 1, 4 to 8 and 10 are not exercised by this demo; their tests and the docs are recorded in log entries 3 to 6.

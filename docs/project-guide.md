@@ -737,7 +737,7 @@ A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward
 
 ### The rules of the definition
 
-`PipelineDefinition` has one validator that applies nine rules, so every reader and every ref gets them. It collects the faults of all rules and refuses once, with the faults joined by `; ` in the order of the rules and, inside a rule, in the order of the stages or roles in the text. The reader reports the validator's message as the `fault`, without pydantic's `Value error, ` prefix.
+`PipelineDefinition` has one validator that applies eleven rules, so every reader and every ref gets them. It collects the faults of all rules and refuses once, with the faults joined by `; ` in the order of the rules and, inside a rule, in the order of the stages or roles in the text. The reader reports the validator's message as the `fault`, without pydantic's `Value error, ` prefix.
 
 **The contract.** `contract` is `<digits>.<digits>`. The major, compared as an integer, must be `CONTRACT_MAJOR` (1): `01.0` is read, `2.0`, `0.9` and `10.0` are not. Any minor is read (`1.0`, `1.7`, `1.10`).
 
@@ -756,6 +756,10 @@ The faults, in the order of the rules (`<s>` a stage, `<t>` a stage name, `<r>` 
 | 7 | `stage <s>: check <c> is not a project command`; `stage <s>: report <c> is not a project command` |
 | 8 | `role <r> at stage <s>: <total> min exceed lease_duration <lease> min` |
 | 9 | `acceptance_stage <t> is not a stage with a role` |
+| 10 | `stage <s>: next is empty` |
+| 11 | `stage <s>: has neither a role nor approval` |
+
+Rules 10 and 11 apply to every stage except `done`, and only when the stage `done` exists. Without it the end of the pipeline is unknown, and rule 3's fault is the one that matters. A stage with an empty `next` has nowhere to send a forward outcome or an approval; a stage with neither a role nor `approval: true` runs no agent and waits for no human. Rule 10's faults come before rule 11's, each in the order of the stages. A stage no `next` names (such as `acceptance`) is accepted: there is no rule on reachability.
 
 Tests: `tests/adapters/test_pipeline_rules.py` (through the reader, comparing `fault`) and `tests/application/test_pipeline_loading_rules.py` (each refusal is one reported stop).
 
