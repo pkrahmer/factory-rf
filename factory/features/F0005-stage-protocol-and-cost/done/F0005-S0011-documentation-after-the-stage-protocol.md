@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 70
 blocked: null
 comments_seen: 0
@@ -129,3 +129,4 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
    - The quoted texts match `src/factory/domain/post_texts.py`: the stop description at line 20, "The attempts cap is reached; the factory asks you next." at line 55, and the round-cap text at line 75.
 
    Open, and harmless: the pattern `stop of one work item` in the second command does not match the heading "Stops of one work item". It does match line 70's sentence, so the command still prints the lines its Expect needs.
+8. done (pull request merged); cost: 6 runs, 4.5 min, 43 turns, 86k tokens in (401k more from cache), 10k out, $0.69
