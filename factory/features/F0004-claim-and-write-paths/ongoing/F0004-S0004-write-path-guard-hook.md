@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 55
 blocked: null
 comments_seen: 0
@@ -119,3 +119,26 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
    - Architecture: the guard sits in `factory.entry` and reaches the adapter only through `wiring`, which matches the existing import test. The verdict reuses the domain's `refusal` from S0003, as decisions 9, 11 and 12 describe.
    - Scope: inside F0004's scope (the guard hook). Writing the settings file and registering the hook stay with F0001-S0009 and are not touched here.
    - Minor gap, not blocking: a `file_path` that resolves to the root itself (for example `.`) has no criterion. It falls to S0003's `refusal` for an empty path.
+3. tester: wrote red tests for criteria 1–18, one test function per criterion. Criteria with several cases use parametrize.
+      - criterion 1: tests/adapters/test_claude_guard.py::test_a_path_inside_the_write_paths_is_allowed (Edit and Write)
+      - criterion 2: tests/adapters/test_claude_guard.py::test_a_path_outside_the_write_paths_is_refused
+      - criterion 3: tests/adapters/test_claude_guard.py::test_a_protected_path_is_refused_although_a_write_path_matches
+      - criterion 4: tests/adapters/test_claude_guard.py::test_a_path_outside_the_checkout_is_refused (sibling, `<root>-x/a.py`, `/etc/passwd`)
+      - criterion 5: tests/adapters/test_claude_guard.py::test_parent_segments_are_resolved_before_the_verdict
+      - criterion 6: tests/adapters/test_claude_guard.py::test_a_relative_path_is_taken_relative_to_the_root
+      - criterion 7: tests/adapters/test_claude_guard.py::test_a_link_to_outside_the_checkout_is_refused, ::test_a_link_to_a_protected_path_is_refused, ::test_a_link_to_a_writable_path_is_allowed
+      - criterion 8: tests/adapters/test_claude_guard.py::test_a_payload_the_guard_cannot_read_is_allowed (7 payloads)
+      - criterion 9: tests/adapters/test_claude_guard.py::test_the_settings_file_reads_back_what_model_dump_json_wrote
+      - criterion 10: tests/adapters/test_claude_guard.py::test_an_unreadable_settings_file_is_refused_naming_the_file_and_the_fault (missing, directory, `b"\xff\xfe"`, not JSON, not valid GuardSettings)
+      - criterion 11: tests/entry/test_guard.py::test_an_allowed_payload_returns_0_and_writes_nothing
+      - criterion 12: tests/entry/test_guard.py::test_a_refused_payload_returns_2_and_writes_the_refusal
+      - criterion 13: tests/entry/test_guard.py::test_a_missing_settings_option_returns_2_with_the_usage, ::test_a_missing_or_invalid_settings_file_returns_2_naming_the_file
+      - criterion 14: tests/entry/test_guard.py::test_a_rewritten_definition_in_the_work_tree_changes_no_verdict (shared fixtures, WritePathService.at for stage `tests`, work tree pipeline.yml widened to `*`)
+      - criterion 15: tests/entry/test_guard.py::test_the_module_runs_as_the_guard_command (subprocess `sys.executable -m factory.entry.guard`; carries `# noqa: S603` as tests/entry/test_check_story.py does)
+      - criterion 16: tests/entry/test_guard.py::test_main_without_arguments_reads_the_process_streams
+      - criterion 17: tests/adapters/test_claude_guard.py::test_a_path_with_a_nul_character_is_refused_as_outside_the_checkout, tests/entry/test_guard.py::test_a_path_with_a_nul_character_returns_2
+      - criterion 18: tests/adapters/test_claude_guard.py::test_a_verdict_is_frozen, ::test_a_verdict_forbids_an_unknown_field
+      Files created: tests/adapters/test_claude_guard.py, tests/entry/test_guard.py. `make lint` passes. `make test` stops at collection, as expected: `factory.adapters.claude_guard` and `factory.entry.guard` do not exist yet, and `GuardSettingsInvalid` is not in `factory.domain.errors` yet. No test covers the wiring re-export or `__all__` directly. The existing `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` will hold `guard.py` to importing through `wiring`. The type check was skipped, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
