@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 60
 blocked: null
 comments_seen: 0
@@ -213,3 +213,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Criteria check: the 20 cases are the tester's mapping of criteria 1–16, with 6, 13 and 14 parametrised. All of them pass, so the demo contradicts no criterion. Criteria 17 (`make check`) and 18 (docs) are not exercised by this command. The coder's, reviewer's and documenter's entries record `make check` green, and the factory runs the gate itself. The documenter's entry covers criterion 18.
 
    Open: nothing.
+10. done (pull request merged); cost: 8 runs, 8.8 min, 64 turns, 207k tokens in (1161k more from cache), 33k out, $2.35
