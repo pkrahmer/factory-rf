@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 69
 blocked: null
 comments_seen: 0
@@ -131,3 +131,17 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
 
    `make lint`: lint: green
    `make test`: FAILED tests/domain/test_stall_note_block.py::test_the_fence_is_longer_than_any_run_of_three_or_more_backticks[run-of-five]
+4. coder: Built the fenced stall note and the stall's stage label (commit 4fa6c8d).
+
+   - `src/factory/domain/post_texts.py`: `stall_note` strips the detail's trailing line breaks and splits off the first line. The first line goes into the sentence through the unchanged `stall_cause`, so the follow-up comes right after it. When lines remain, they follow after an empty line in a fence built by the private `_text_block`. The fence is three backticks, or one more than the longest backtick run in the remaining lines when that run is three or longer (`max(3, run + 1)`). A one-line or empty detail gives exactly the old note.
+   - `src/factory/application/stalls.py`: `StallService.stall` calls `hosting.set_labels(pull_request.number, labels_for(state))` right after `post_comment` returns, whether the note was `posted` or `already_posted`. `state` is the stalled state. A failure in `post_comment` raises before the label write. A failure in `set_labels` propagates after the push and the note. I added this to the docstring.
+
+   Main decision: the label goes right after the note, in `stall`, as the Interface says. I rejected labelling in `WorkItemOpening.ensure_pull_request` because it would miss the stage of a stall that was already open. To find the backtick runs I used a regex over the remaining lines (stdlib `re`), not a hand-written character scan, because it is shorter and clearer.
+
+   Refactor pass: I read the diff and found nothing to change, so there is no refactor commit.
+
+   Checks: `make check` is green (total coverage 99.35 %). The demo prints what it expects.
+
+   Noticed but not touched: the journal's stall entry still carries the multi-line `stall_cause(reason, detail)`, as the Assignment keeps it. The docs criterion (14) is the documenter's.
+
+   `make check`: check: green
