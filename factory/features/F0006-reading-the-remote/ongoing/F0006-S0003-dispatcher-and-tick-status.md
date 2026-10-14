@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 73
 blocked: null
 comments_seen: 0
@@ -199,3 +199,11 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the dispatcher and the tick status; make check green, the demo prints the two expected lines exactly. Commit 62bb91b.
+      - Built: `src/factory/domain/errors.py` (`UnhandledEvent`), `src/factory/domain/tick_status.py` (`ERROR_CAP`, `ErrorCount`, `TickStatus`, `find_error`, `record_error`, `mark_reported`, `clear_errors`, `at_cap`; frozen, extra forbidden), `src/factory/domain/post_texts.py` (`error_report_text`), `src/factory/application/dispatcher.py` (`Handler`, `DispatchOutcome`, `Dispatcher`, `unhandled_kinds`).
+      - Design: `record_error` is built on `clear_errors` plus one new entry, so "same state counts up, another state replaces the key's entries" is a single path. `dispatch` checks the cap before calling the handler, so a capped-but-unreported entry is re-reported without counting; a failed report returns "error" and leaves count/last_error alone. The no-branch exception is decided only on `HostingServiceError` with `branch_commit is None`, as the interface says; any other report failure returns "error". The report title uses `sections.title`, the same helper opening.py uses; a document without a state passes `pull_request=None`.
+      - Rejected: `# noqa: BLE001` on the broad `except Exception` clauses (ruff does not flag them, and markers are restricted); a why-comment stands above each instead. Rejected a separate "new entry vs. increment" branch in record_error that rebuilt the list twice.
+      - Refactor pass: read the diff; nothing needed changing, so no refactor commit.
+      - Noticed, not touched: line 105 of dispatcher.py (a report failing with a non-hosting `Exception`, e.g. `GitError` from the stop service) is not covered by a test; coverage is still 99 %.
+
+   `make check`: check: green
