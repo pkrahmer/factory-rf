@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 100
 blocked: null
 comments_seen: 0
@@ -94,3 +94,8 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: Nothing to change. I ran `make check` on the branch as the tester left it, and it is green (`check: green`, 99.15 % coverage). The new tests for criteria 1 to 4 and the existing test of criterion 5 pass against the current code. `delete_stale_branches` in `src/factory/application/recovery.py` and step 4 of `Tick.run` in `src/factory/application/tick.py` already behave as the Interface says, so `src/` is unchanged and there is no feature or refactor commit.
+      - Decision: I did not write the docs criterion 7 (`docs/project-guide.md`, `README.md`, `docs/operator-guide.md`). CLAUDE.md gives those four documents to the documenter stage and says the coder does not write them. Log entry 3 suggested the coder should do it, but I rejected that because it conflicts with the project's rule. All four items of criterion 7 are still open for the documenter.
+      - Noticed, not touched: the tester added a private `_log_lines` helper to `tests/application/test_tick_stale_branch.py` that copies the one in `tests/application/test_stale_branches.py`. The reviewer may want to judge whether it belongs in a shared test helper. Tests are not mine to edit.
+
+   `make check`: check: green
