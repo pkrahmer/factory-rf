@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 74
 blocked: null
 comments_seen: 4
@@ -220,3 +220,25 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
     Noticed but not touched: nothing.
 
     `make check`: check: green
+11. reviewer: no findings.
+
+    What I read: the ticket, and `git diff main...HEAD -- . ':!factory'`. The diff is two files: `src/factory/application/tick.py` (new) and `tests/application/test_tick.py` (new). I also read the `GitCli` methods the restore depends on (`reset_to`, `checkout`, `delete_branch`, `remote_branches`) and `RemoteWorkItems.list_stories`, to check the restore's behaviour.
+
+    1. Acceptance criteria:
+       - Criteria 1 to 23 each have a test that checks what the criterion says. The coder's entry 10 reports `make check` green.
+       - Failing sides are covered: the fetch fails and recovers (2 to 4), the definition is invalid and is repaired (5, 6), the restore fails and recovers (8), a clean checkout writes no discarded line (7), a local branch with another name, `scratch`, is kept (18), and both sources for deleting a branch are tested (18, 23).
+       - The idle tick makes no hosting call, and a waiting work item costs exactly one lookup and one comment list (15). A missing handler is a counted error (17). An unreadable file and an unknown stage both raise without a stop (19). `TickOutcome` refuses bad keys, assignments and values (22).
+       - The two test changes the human approved in entry 7 are in, as entry 9 describes.
+    2. Architecture: `tick.py` imports only `factory.application` and `factory.domain`. It uses `Git`, `PipelineLoader`, `StopService`, `Watcher`, `Dispatcher` and `RemoteWorkItems`. It calls no tool directly and passes no `dict[str, Any]`. `IdleHandler` inherits `Handler`.
+    3. Security: no secrets, no strings built into commands, and no suppression markers.
+    4. Quality:
+       - Module, class and public method docstrings are present and say what each thing is for.
+       - The comments explain why: the definition's stop belongs to the loader, the checkout is cleaned before switching to `main`, and local work-item branches are deleted so the next stage starts from the remote.
+       - `_stop` is typed `NoReturn`, which makes the end of each step explicit.
+       - I checked the restore order against `GitCli`: `reset_to("HEAD")` is `reset --hard` followed by `clean -d` without `-x`, so ignored files stay. `switch --force-create main origin/main` follows. `delete_branch` does nothing when the branch is missing, so deleting by id from both sources is safe.
+    5. Ticket hygiene:
+       - Entry 10 names the main decision: clean in place, then switch, then delete branches. It also names the rejected option, `reset_to("origin/main")` on the current branch, which would move a `scratch` branch.
+       - The Assignment matches what was built.
+       - The docs criterion (25) still describes what the operator and the agents need to know.
+
+    Open: nothing.
