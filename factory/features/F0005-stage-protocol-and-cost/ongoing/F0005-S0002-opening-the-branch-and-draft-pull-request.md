@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 59
 blocked: null
 comments_seen: 0
@@ -85,3 +85,30 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Demo: `uv run pytest tests/application/test_opening.py` is runnable. Its `Expect:` line is checkable: the last line says `passed` and the output has no `failed` or `error`.
    - Architecture: the module sits in `factory.application` and reaches git and hosting only through the `Git` and hosting interfaces via `Boundaries`. It imports only domain types, so it respects the layering.
    - Scope: this is the opening of the work item's branch and its draft PR, which is in F0005's scope. No out-of-scope item (hand-over, PR state reading, claim) is touched.
+3. tester: wrote red tests for the opening of a work item's branch and its draft pull request.
+   - criterion 1: tests/application/test_opening.py::test_new_work_item_is_branched_from_origin_main_without_pushing
+   - criterion 2: tests/application/test_opening.py::test_new_document_starts_at_the_first_stage
+   - criterion 3: tests/application/test_opening.py::test_backlog_front_matter_is_dropped
+   - criterion 4: tests/application/test_opening.py::test_new_document_journal_holds_the_created_entry
+   - criterion 5: tests/application/test_opening.py::test_story_without_journal_section_gets_one
+   - criterion 6: tests/application/test_opening.py::test_journal_entries_already_in_the_story_are_left_for_the_form_check
+   - criterion 7: tests/application/test_opening.py::test_absent_work_item_file_is_a_format_error
+   - criterion 8: tests/application/test_opening.py::test_existing_branch_gives_the_branch_document
+   - criterion 9: tests/application/test_opening.py::test_stale_local_branch_is_reset_to_the_remote
+   - criterion 10: tests/application/test_opening.py::test_origin_main_is_merged_into_the_branch
+   - criterion 11: tests/application/test_opening.py::test_merge_conflict_is_aborted_and_reported
+   - criterion 12: tests/application/test_opening.py::test_prepare_never_fetches
+   - criterion 13: tests/application/test_opening.py::test_new_draft_pull_request_is_created
+   - criterion 14: tests/application/test_opening.py::test_open_pull_request_of_the_branch_is_reused
+   - criterion 15: tests/application/test_opening.py::test_open_pull_request_of_the_state_is_reused (two open PRs on the branch, the state names the second one, so `find_open_pull_request` alone would return the wrong one)
+   - criterion 16: tests/application/test_opening.py::test_closed_or_merged_pull_request_is_not_reused (parametrised: closed, merged)
+   - criterion 17: tests/application/test_opening.py::test_body_without_title_line_is_refused
+   - criterion 18: tests/application/test_opening.py::test_hosting_service_error_propagates
+   - criterion 19: tests/application/test_opening.py::test_ensuring_the_pull_request_changes_no_file
+   - criterion 20: tests/application/test_opening.py::test_prepared_work_item_is_frozen, ::test_prepared_work_item_forbids_unknown_keys
+   - criteria 21 and 22 are not covered by tests: the first is the `make check` gate and the second is the documenter's job.
+   Files created: tests/application/test_opening.py.
+   `make test` stopped at collection because the test runner could not import `factory.application.opening` (ModuleNotFoundError), which is expected before the code exists. `make lint` passes. I skipped the type check in this stage, as the stage instructs.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
