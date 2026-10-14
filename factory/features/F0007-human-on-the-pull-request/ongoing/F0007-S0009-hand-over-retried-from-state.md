@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 90
 blocked: null
 comments_seen: 2
@@ -172,3 +172,6 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
 
    Refactor step: not done yet, because the check is red.
 5. human (pull request comment, 2026-10-14): 1: the tester changes `ALLOWED["entry_text"]` in `tests/test_no_journal_reading.py` (F0005-S0009's test), replacing `factory.application.handlers.hand_over` with `factory.domain.hand_over`, and changes nothing else in that file. The Interface puts the reading in the domain, and the use is for display only; the speaker is still taken from the record's data. This is the human's word for that one change. End with `tests` and name exactly that change.
+6. coder: tests. The human answered in log entry 5. In `tests/test_no_journal_reading.py`, in `ALLOWED["entry_text"]` (line 12), replace `"factory.application.handlers.hand_over"` with `"factory.domain.hand_over"` and change nothing else in that file.
+
+   The implementation is already in 82ef94e and I did not change it. Once the test is changed, `make check` should go green. The refactor step is still to do: I will do it on the next doing run, when the check is green.
