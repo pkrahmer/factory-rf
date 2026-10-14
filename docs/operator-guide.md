@@ -145,7 +145,7 @@ The questions you can meet on a pull request, and how to answer each:
 | The form has findings | `question` | see below | answers it; the stage runs again | discards the story |
 | The round cap | `round_cap` | see below | answers it | discards the story |
 | The attempts cap | `attempts_cap` | `factory: ` and the text below | the attempts go back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
-| The send-back | `send_back` | posted by the handler of the approval (F0007-S0005) | answers it | at the approval, sends the story back |
+| The send-back | `send_back` | see "A close at the approval sends the story back" | answers it | sends the story back again, or discards it (option 2 of the question) |
 | The crash cap | `crash_cap` | posted by the handler of crashes (F0008) | answers it | discards the story |
 
 The attempts-cap question is recorded by the `ask` handler itself, when a work item has used all its attempts: an entry by `factory` of kind `question`, and `blocked` set to `attempts_cap`. It reads:
@@ -437,7 +437,7 @@ When you close a story's pull request while the story is at any stage that is no
 
 After that push the handler deletes the work item's branch, on the remote and in the factory's checkout, and with it the branch's journal and cost records. So a story you start again begins with an empty bill. A branch that is already gone is no error. The handler posts nothing, and the pull request stays closed.
 
-A close at an approval stage is a send-back, not a discard; that handler is not built yet (F0007-S0005), and `ClosedHandler` does nothing there.
+A close at an approval stage is a send-back, not a discard; see the next section.
 
 Not yet running: `closed` is still in `NOT_YET_HANDLED` (see "An event that keeps failing"), because the handler is not registered until F0007 wires its handlers.
 
@@ -446,6 +446,43 @@ When it goes wrong:
 - **The push of the move is rejected** (`PushFailed`, outcome `rejected`): `main` moved since the checkout. Nothing is discarded and the branch is kept. The next tick fetches and discards then; do nothing.
 - **The factory dies before the push**: `main` and the branch are as they were, and the story is discarded once on the next tick.
 - **The factory dies after the push, or the remote refuses or cannot be reached for the deletion** (`PushFailed` naming the branch, for example when the remote forbids deletions): the story is under `backlog/` on `main`, so no event is raised for it again, and the branch `work-item/<id>` is left on the remote. Delete it yourself (`git push origin --delete work-item/<id>`) after you have lifted the refusal, if any, **before you start the story again**. Otherwise the new start finds the old branch with its old state and bill.
+
+## A close at the approval sends the story back
+
+When you close the pull request of a story that waits at an approval stage, you have said "not like this". `ClosedHandler` then sends the story back to the second stage in the approval's `next` (`doing` in the usual pipeline). An approval with only one stage in `next` cannot be sent back: the handler raises `CannotHandle` for `closed` and records nothing. The same holds for a story without a pull request number.
+
+The handler works in this order, and each step that changes the work item is pushed on its own:
+
+1. **The close is recorded.** Your unread comments are copied into the journal, a `close` entry (speaker `human`, text `closed the pull request.`, dated today in UTC) is added, and `handed_over` is cleared. The subject is `work item <id>: close recorded`. A story that already holds a `close` entry since its latest `result` gets no second one, so a retry does not close twice; after an earlier send-back and a new stage result, a new close is recorded again.
+2. **The pull request is reopened, as a draft.**
+3. **The decision is recorded**, subject `work item <id>: sent back`: a `send_back` entry (`sent back to doing, round 3.`), `stage` set to the target, `round` raised by one, the claim released and, when a question is needed, a `question` entry with `blocked` set to `send_back`.
+4. **The labels** of the pull request are rewritten to the new stage, so it does not keep `stage:approval`.
+
+The handler itself posts nothing. A question is posted by the `ask` handler, like the others in "The factory's own questions".
+
+### The reason and the round cap
+
+A comment of yours counts as the reason when it was written after the latest `result` of the story: either copied earlier or copied at the close. The factory reads only the journal's records, never what you wrote, so the text of the comment does not matter. With a reason, and with the new round within the `round_cap` of the stage that hands over to the approval (the first one in the pipeline definition that has a cap), the story simply goes back to work with your comments as the findings.
+
+Otherwise the factory asks, and `blocked` is `send_back`:
+
+- You closed without a comment: `The pull request was closed without a comment. ` and the question below.
+- The new round is past the cap: `This story has now been sent back <n> times, more than <cap>. ` and the question below. Past the cap the cap text wins, with or without a reason.
+
+The question has three options, all of them things you can already do:
+
+1. Comment what should change; the story is reworked with exactly that.
+2. Close the pull request again to discard the story: it goes back to the backlog as you wrote it, and its branch is deleted.
+3. If closing was a mistake: mark the pull request ready for review and merge it, which accepts the story as it is.
+
+### When something fails or is killed
+
+- **The reopen fails.** The close stays recorded (`HostingServiceError` is the counted error). The next attempt reopens and records the decision without a second `close` entry. A comment you write in between is copied then, and counts as the reason.
+- **The push of the decision is rejected** (you pushed to the branch after the reopen). The close and your commit stay on the branch; the next attempt sends the story back once.
+- **The labels cannot be set.** The decision stays recorded; the label is stale until the next stage's result commit rewrites it.
+- **The factory is killed between the reopen and the recording of the decision.** The pull request is open again as a draft, but the story is still at the approval, so it is handed over again there and you have to repeat the close. Because the close is already recorded, the repeat adds no second `close` entry.
+
+Not yet running: like the other handlers, this one is registered only when F0007 wires them (`closed` is still in `NOT_YET_HANDLED`).
 
 ## Branch deletion on merge must be off
 

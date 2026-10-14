@@ -115,3 +115,32 @@ def attempts_cap_question(stage: str, attempts: int, last_stall: str) -> str:
 def done_entry_text(bill: Bill) -> str:
     """The journal text of a merged work item's archive, with its bill."""
     return f"done (pull request merged); cost: {cost_line(bill)}"
+
+
+CLOSE_ENTRY_TEXT = "closed the pull request."
+SEND_BACK_QUESTION = (
+    "What should happen? 1. Comment what should change; the story is reworked with exactly that. "
+    "2. Close the pull request again to discard the story: it goes back to the backlog "
+    "as you wrote it, and its branch is deleted. 3. If closing was a mistake: "
+    "mark the pull request ready for review and merge it, which accepts the story as it is."
+)
+
+
+def send_back_entry_text(target: str, round_number: int) -> str:
+    """The journal text of a send-back to `target` in round `round_number`."""
+    return f"sent back to {target}, round {round_number}."
+
+
+def send_back_question(round_number: int, cap: int | None, has_reason: bool) -> str | None:
+    """The question a send-back asks, or None when the close says enough.
+
+    Past the cap the cap question wins, whether a reason was given or not.
+    """
+    if cap is not None and round_number > cap:
+        return (
+            f"This story has now been sent back {round_number} times, more than {cap}. "
+            + SEND_BACK_QUESTION
+        )
+    if not has_reason:
+        return "The pull request was closed without a comment. " + SEND_BACK_QUESTION
+    return None

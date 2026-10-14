@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 86
+blocked: null
+comments_seen: 4
+round: 0
+attempts: 0
+---
 # A close at the approval sends back, recorded first
 
 ## Assignment (as of log entry 1)
@@ -76,8 +84,9 @@ Tests: `tests/domain/test_send_back.py`, `tests/domain/test_send_back_texts.py` 
 19. When the push of the decision is rejected (the human pushed to the branch after the reopen), `handle` raises `PushFailed` with outcome `rejected`, the remote branch still holds the `close` entry and the human's commit, and handling the event again sends the story back once: the journal holds one `close` record and one `send_back` record.
 20. A comment that the human writes after the reopen failed and before the retry is copied by the retry as a `comment` entry, and the journal still holds exactly one `close` record (the retry does not close again); that comment counts as the reason.
 21. After the decision is pushed, `hosting.labels(<pull request>)` is `["stage:doing"]`; when `set_labels` fails, `handle` raises `HostingServiceError` and the remote branch holds the decision (two cases, one test).
-22. make check stays green.
-23. docs: `docs/operator-guide.md` explains the close at the approval (the comment that counts as the reason, the round cap, the three options of the send-back question) and that, after a kill between the reopen and the second record, the pull request is handed over again at the approval and the close has to be repeated; `docs/decisions.md` records why the close is recorded before the pull request is reopened.
+22. A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry.
+23. make check stays green.
+24. docs: `docs/operator-guide.md` explains the close at the approval (the comment that counts as the reason, the round cap, the three options of the send-back question) and that, after a kill between the reopen and the second record, the pull request is handed over again at the approval and the close has to be repeated; `docs/decisions.md` records why the close is recorded before the pull request is reopened.
 
 ## Demo
 
@@ -105,3 +114,151 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface rule for step 1 of `ClosedHandler.handle` says a `close` entry is added "unless the journal already holds a record of kind `close` numbered after the latest record of kind `result` (any `close` record counts when there is no `result` record)". No criterion tests the side where a `close` is added: a journal that holds an older `close` numbered before the latest `result`, as after an earlier send-back and rework, gets a new `close` entry. Criteria 10 and 20 only cover a `close` after the latest `result` that is not repeated. Without this criterion a coder can skip any earlier `close` and pass every test. I'd add a criterion before the two closing ones: "A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records." Please confirm or reword it.
+   2. Optional, not blocking: `any close counts when there is no result` has no case either. I'd fold it into the same criterion as a second case (a `close` and no `result` record: no second `close`). Do you want that?
+   The other checks passed. The Interface, the Demo and the other criteria are fine. The scope and architecture match `FEATURE.md`.
+3. human (pull request comment, 2026-10-14): 1: confirmed as you worded it. 2: yes, fold it into the same criterion as a second case. The criterion, before the two closing ones: "A story at the approval whose journal holds a `close` record numbered before the latest `result` record (an earlier send-back) gets a new `close` entry when it is closed again, and the journal then holds two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry." The Interface stays as it is.
+4. intake: accepted. Carried in from log entry 3 (the human's answer): added criterion 22 before the two closing ones ("A story at the approval whose journal holds a `close` record numbered before the latest `result` record ... gets a new `close` entry ... two `close` records; a story whose journal holds a `close` record and no `result` record gets no second `close` entry"), worded as the human gave it. `make check` and `docs:` are now criteria 23 and 24. The Interface and the Assignment are unchanged, as the human said.
+   - Interface: names concrete modules (`domain/send_back.py`, `domain/post_texts.py`, `application/handlers/closed.py`) with signatures and ordered handler steps. Every rule is stated exactly.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for its failing side: no reason, past the cap, one `next` entry, no pull request, a rejected push, a failed reopen, a failed `set_labels`. The two sides of the `close`-record rule are covered by criteria 10, 20 and 22.
+   - Demo: runnable with `uv run python -c`. The `Expect:` line gives six checkable lines, and I traced them against the Interface rules.
+   - Architecture: the pure rules are in domain, the handler is in application and uses the Boundaries interfaces. The claim is set directly in the state, as the Interface explains.
+   - Scope: within the feature's scope (send-back, GH3.3, R22). It leaves the acceptances to F0009 and does not touch the `ask` handler.
+5. tester: Wrote red tests for every acceptance criterion from the Interface. `make lint` is green. `make test` fails with 3 collection errors, as expected: `factory.domain.send_back` does not exist yet, and `factory.domain.post_texts` does not have `CLOSE_ENTRY_TEXT`, `SEND_BACK_QUESTION`, `send_back_entry_text` or `send_back_question` yet.
+
+   Files created:
+   - `tests/domain/test_send_back.py`
+   - `tests/domain/test_send_back_texts.py`
+   - `tests/application/handlers/test_closed_send_back.py`
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_send_back.py::test_a_comment_after_the_latest_result_or_without_any_result_is_a_reason (two cases; the body is `# T\n` with no journal text)
+   - criterion 2: tests/domain/test_send_back.py::test_no_comment_after_the_latest_result_is_no_reason (two cases)
+   - criterion 3: tests/domain/test_send_back.py::test_the_send_back_target_is_the_second_next_of_the_approval_or_none_without_one
+   - criterion 4: tests/domain/test_send_back.py::test_the_send_back_cap_is_the_round_cap_of_the_first_capped_stage_handing_over (three cases; for the `None` case, `doing` has a `round_cap` but does not hand over to the approval)
+   - criterion 5: tests/domain/test_send_back_texts.py::test_the_send_back_question_offers_comment_close_again_and_merge. tests/domain/test_send_back_texts.py::test_the_close_entry_text_says_the_pull_request_was_closed also pins `CLOSE_ENTRY_TEXT` from the Interface.
+   - criterion 6: tests/domain/test_send_back_texts.py::test_the_send_back_entry_names_the_target_and_the_round
+   - criterion 7: tests/domain/test_send_back_texts.py::test_within_the_cap_only_a_missing_reason_asks (three cases; round equal to the cap is the accepted side of the boundary)
+   - criterion 8: tests/domain/test_send_back_texts.py::test_past_the_cap_the_cap_question_wins_with_or_without_a_reason (4 > 3 is the refused side)
+   - criterion 9: tests/application/handlers/test_closed_send_back.py::test_a_failed_reopen_leaves_the_close_recorded_and_the_story_at_the_approval (also checks the subject `close recorded` and the date in the rendered entry; the clock is moved to 2026-10-14 so that date differs from every other date in the test)
+   - criterion 10: …::test_the_event_handled_again_after_a_failed_reopen_sends_back_with_one_close
+   - criterion 11: …::test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question (the state carries a claim before the close, so `claim` unset is a real check)
+   - criterion 12: …::test_a_comment_copied_at_the_close_or_earlier_counts_as_the_reason (two cases)
+   - criterion 13: …::test_a_close_without_a_comment_after_the_latest_result_records_the_question
+   - criterion 14: …::test_a_close_past_the_round_cap_records_the_cap_question_even_with_a_reason
+   - criterion 15: …::test_the_send_back_posts_nothing_and_the_ask_handler_posts_its_question_once (`AskHandler` runs twice and exactly one post is made)
+   - criterion 16: …::test_a_kill_before_the_close_is_pushed_changes_nothing
+   - criterion 17: …::test_an_approval_with_one_next_stage_cannot_be_sent_back_and_nothing_is_recorded (`PIPELINE_YAML` with `approval: next: [done]`, parsed through the pipeline reader)
+   - criterion 18: …::test_a_story_without_a_pull_request_cannot_be_sent_back_and_nothing_is_recorded
+   - criterion 19: …::test_a_rejected_push_of_the_decision_keeps_the_close_and_a_retry_sends_back_once. It uses the test subclass `_PushingOnDraft(FakeHostingService)`: once armed, its `set_draft` pushes `notes.md` to the branch through `human.push_file`. It is swapped in with `dataclasses.replace(boundaries, hosting=...)`.
+   - criterion 20: …::test_a_comment_written_before_the_retry_is_copied_and_counts_as_the_reason
+   - criterion 21: …::test_after_the_decision_the_labels_name_the_target_stage (two cases: labels are `["stage:doing"]`; and a failed `set_labels` raises while the decision stays recorded)
+   - criterion 22: …::test_only_a_close_recorded_since_the_latest_result_spares_a_new_close_entry (two cases: two `close` records, and one)
+   - criteria 23 and 24 are not tests (`make check`, docs).
+
+   Notes for the coder:
+   - The handler tests build each story at stage `approval` on its branch with `handed_over="approval"`. Before the event, the pull request is marked ready and then closed by the human, so "reopened as a draft" is a real change.
+   - The pipeline is the shared `PIPELINE_YAML`. In it, `acceptance` comes after `smoke-test`, so the cap is 3.
+
+   Nothing is open; no criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: Built the send-back at the approval and committed it as c985a77. Every new test passes except one, and that one fails because of how the test is built, not because of the code. `make check` is red only because of that test.
+
+   What I built:
+   - `src/factory/domain/send_back.py`: `reason_given`, `send_back_target` and `send_back_cap`. It also has a public helper, `recorded_since_latest_result(document, kind)`. `reason_given` uses it for `comment`, and the handler uses it for `close`, so both read the records with the same "after the latest `result`" rule.
+   - `src/factory/domain/post_texts.py`: `CLOSE_ENTRY_TEXT`, `SEND_BACK_QUESTION`, `send_back_entry_text` and `send_back_question`.
+   - `src/factory/application/handlers/closed.py`: `ClosedHandler` now handles a close at an approval stage. It checks the pull request and the send-back target first, then works in four steps:
+     1. Records the close: copies the unread comments with `CommentCopier.unread` and `append`, adds a `close` entry unless one is already recorded since the latest `result`, unsets `handed_over`, and pushes only if the document changed.
+     2. Reopens the pull request as a draft.
+     3. Records the decision: the `send_back` entry, plus a `question` entry and `blocked="send_back"` when `send_back_question` returns a question; it sets `stage`, `round` and `claim=None` directly in the state.
+     4. Calls `set_labels(labels_for(...))`.
+   - Main design decision: I copy the comments inside the "close recorded" commit with `append`, rather than through `CommentCopier.copy`, which would be a separate push. One push keeps a kill between the two from leaving comments recorded without the close. That matches the Interface's step 1.
+
+   The failing test: `tests/application/handlers/test_closed_send_back.py::test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question` (criterion 11). The test's `CLAIM` is `Claim(stage="smoke-test", ...)`, and the `publish` fixture builds `WorkItemState(stage="approval", claim=CLAIM)`. `WorkItemState._claim_is_for_the_current_stage` refuses that pairing with a `ValidationError` in the fixture, before the handler runs. No change to the handler can make this test pass.
+
+   Options:
+   - (a) Change the test's `CLAIM` to `stage="approval"`. The criterion's check that `claim` ends up unset stays a real check. **I'd choose this.**
+   - (b) Drop `claim=CLAIM` from that test, which leaves "claim is unset" checked only against a state that never had one.
+   - (c) Relax the domain validator. I'd reject this: it is a rule outside this ticket.
+
+   If you choose (a) or (b), I'll end the next run with `tests` and name exactly that change for the tester.
+
+   Not yet done: the refactor pass. I'll do it with `make check` green, after the test is fixed.
+7. human (pull request comment, 2026-10-14): (a): change that test's `CLAIM` to `stage="approval"`, so the check that `claim` ends up unset stays a real one; the domain validator stays as it is. End with `tests` and name exactly that change.
+8. coder: Back to the tester, following the human's answer in log entry 7 (option (a)). The test change: in `tests/application/handlers/test_closed_send_back.py`, change the module constant `CLAIM` (line 55) from `stage="smoke-test"` to `stage="approval"`. That constant is used only by `test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question` (criterion 11). With the change, the `publish` fixture can build `WorkItemState(stage="approval", claim=CLAIM)` without `_claim_is_for_the_current_stage` refusing it, and the check that `claim` ends up unset is still a real one. The domain validator stays as it is. No code changes in this run. The implementation is still c985a77. The refactor pass is still open and will happen in the next doing run, once `make check` is green.
+9. tester: tester (approved test change): I made the change the human chose in log entry 7 (option (a)), as the coder's entry 8 names it. In `tests/application/handlers/test_closed_send_back.py`, the module constant `CLAIM` now has `stage="approval"` instead of `stage="smoke-test"`. Only `test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_question` (criterion 11) uses it. The `publish` fixture can now build `WorkItemState(stage="approval", claim=CLAIM)` without `_claim_is_for_the_current_stage` refusing it, and the test still really checks that `claim` ends up unset. Nothing else changed, and no code was touched. `make test`: test: green (total coverage 99.25%). Still open for the coder: the refactor pass that entry 8 names.
+
+   `make lint`: lint: green
+   `make test`: test: green
+10. coder: The tester's change from log entry 9 is in and every test passes. I did the refactor pass that was still open and committed it as 40a1916. `make check` is green (coverage 99.25 %).
+
+    What I built (implementation in c985a77, unchanged in this run):
+    - `src/factory/domain/send_back.py`: `reason_given`, `send_back_target` and `send_back_cap`, plus a public helper, `recorded_since_latest_result(document, kind)`. `reason_given` uses the helper for `comment` and the handler uses it for `close`, so both follow the same "after the latest `result`" rule and read only the records, never the text.
+    - `src/factory/domain/post_texts.py`: `CLOSE_ENTRY_TEXT`, `SEND_BACK_QUESTION`, `send_back_entry_text` and `send_back_question`.
+    - `src/factory/application/handlers/closed.py`: `ClosedHandler._send_back` checks the pull request and the send-back target before it records anything, so a missing one raises `CannotHandle("closed", ...)`. Then it runs four steps:
+      1. `_record_close`: copies the unread comments, adds a `close` entry unless one is already recorded since the latest `result`, unsets `handed_over`, and makes the "close recorded" commit only if the document changed.
+      2. Reopens the pull request, then sets it to draft.
+      3. `_record_decision`: adds the `send_back` entry, plus a `question` entry and `blocked="send_back"` when there is a question, and sets `stage`, `round` and `claim=None` directly in the state; the commit is "sent back".
+      4. `set_labels(labels_for(...))`.
+
+    Main design decision: the unread comments go into the "close recorded" commit through `CommentCopier.append`, not through `CommentCopier.copy`, which would make its own push. With one push, a kill cannot leave the comments recorded without the close. I rejected the two-push version for that reason.
+
+    Refactor pass (40a1916): I read the whole diff. The only change was the module docstring of `closed.py`, which read badly ("at it sends it back"). Nothing else needed changing: no duplication or dead code.
+
+    Noticed but not touched: `_state_of` in `closed.py` raises `ValueError` for a document without a state. `target_of` already guarantees a state, so that branch exists only to narrow the type for mypy.
+
+    `make check`: check: green
+11. reviewer: no findings.
+
+    What I checked against `git diff main...HEAD -- . ':!factory'` (`src/factory/application/handlers/closed.py`, `src/factory/domain/post_texts.py`, `src/factory/domain/send_back.py` and the three new test files):
+    - Acceptance criteria: criteria 1–22 each have a test, and each test checks what its criterion says.
+      - The domain tests use a body with no journal text, so `reason_given` is judged from the records alone.
+      - `send_back_question` is tested on both sides of the cap: round 3 against cap 3 asks nothing, round 4 against cap 3 asks the cap question.
+      - Every failing side of the Interface's rules has a test: a failed reopen, a rejected decision push (`_PushingOnDraft`), a failed `set_labels`, an approval with one `next` entry, a story without a pull request, and a kill at `before-push`.
+      - Criterion 11 now starts from a real claim at `approval`, so the check that `claim` ends up unset is real.
+      - The rule "commit only when the document differs" is exercised by the retry in criterion 10: the retry reads an unchanged document, and committing it would raise `NothingToCommit`.
+      - The coder's entry 10 reports `make check` green.
+    - Architecture: `send_back.py` and the new texts are pure domain code. `ClosedHandler` reaches git, the hosting service and the clock only through `Boundaries`. It clears the claim directly in the state, as the Interface allows, and the code comment says why.
+    - Security: no shell commands, no secrets and no check-silencing markers.
+    - Quality:
+      - The handler follows the Interface's order: close recorded and pushed, then reopen and set draft, then the decision pushed, then labels.
+      - The extra public helper `recorded_since_latest_result` holds the one "after the latest result" rule that both `reason_given` and the close check use, and it has a docstring.
+      - `_state_of` and `_with_state` follow the module-local pattern the other handlers already use.
+      - Comments explain why, not what.
+    - Ticket hygiene: the log gives the main decision, `CommentCopier.append` inside the "close recorded" commit, and what was rejected. Looking at the code, `CommentCopier.copy` would also have been wrong because it records nothing when there are no unread comments, so the close would be lost. The Assignment matches what was built, and criterion 24 still says what the documenter has to write.
+12. documenter: wrote the close at the approval for the operator and recorded the decision. `make check` is green.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "A close at the approval sends the story back". It covers the order of the four steps, the comment that counts as the reason (read from the records, never the text), the round cap and its two question openings, the three options, and what happens on a failed reopen, a rejected push, failed labels and a kill between the reopen and the decision (the pull request is handed over again at the approval and the close is repeated, with no second `close` entry). The question table row for `send_back` was updated. The line in "A close before the approval discards the story" that called the send-back unbuilt now points to the new section.
+    - `docs/decisions.md`: new entry on why the close is recorded before the pull request is reopened. It also says why the comments go into the same commit (`CommentCopier.append`), and lists the rejected alternatives.
+
+    Cross-read and found current: `README.md`, `docs/project-guide.md`, and the rest of the operator guide (the `NOT_YET_HANDLED` text is still true).
+
+    I ran no examples; no new runnable examples were written. I found no findings for the coder: the code matches the Interface and the criteria.
+
+    `make check`: check: green
+13. demo: Ran the one demo command under `## Demo` from the repository root, exactly as written.
+
+    Command 1 (`uv run python -c "…"`, the send-back domain functions on a four-stage definition), exit 0:
+
+    ```
+    doing 3
+    False
+    True
+    None
+    True
+    True
+    ```
+
+    Met its Expect line: six lines, `doing 3`, `False`, `True`, `None`, `True`, `True`.
+
+    Checked against the acceptance criteria. The output agrees with criteria 1–4, 7 and 8:
+    - `send_back_target` is `doing` and `send_back_cap` is 3, the `round_cap` of `smoke-test`.
+    - `reason_given` is false with no `comment` record, and true with a `comment` after the latest `result`, judged from the records alone because the body has no journal text.
+    - `send_back_question(3, 3, True)` is `None` at the cap.
+    - Without a reason, the question gets the "closed without a comment" prefix.
+    - Past the cap, the question gets the "sent back 4 times, more than 3" prefix.
+
+    The demo contradicts no criterion. The handler-level criteria (9–22) and the docs criterion (24) are outside what this demo runs. Their checks are the tests and the factory's `make check`, which I did not run here. No findings.
