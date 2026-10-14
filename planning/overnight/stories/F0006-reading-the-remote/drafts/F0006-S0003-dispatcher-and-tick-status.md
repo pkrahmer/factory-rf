@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Build the dispatcher that hands one event to its handler and counts what goes wrong. Every event kind has a handler or raises: a kind without a handler raises `UnhandledEvent` inside the dispatch, and that raise is a counted error like any other. A handler that raises is counted per event and the work item's remote state; at three errors one report is posted on the work item's pull request (keyed, so a repeat after a kill posts nothing), and the same event on the same remote state is not tried again. A push to the work item's remote branch is a new remote state, so the retry that is keyed to it starts again. A success clears the event's counts. The tick status is a local cache that may reset when the process restarts; the keyed report makes that harmless. Covers SI2.4, GH5.4 and R28; keeps kept things 12 (an unknown event raises; errors capped and reported) and 14 (errors counted per event and state). Uses `StopService` and `WorkItemStop` (F0003-S0001, S0002), the fake hosting service and `PostKey` (F0001-S0002), `KillPoints` (F0001-S0001) and `Event` (F0006-S0002).
+Build the dispatcher that hands one event to its handler and counts what goes wrong. Every event kind has a handler or raises: a kind without a handler raises `UnhandledEvent` inside the dispatch, and that raise is a counted error like any other. A handler that raises is counted per event and the work item's remote state; at three errors one report is posted on the work item's pull request (keyed, so a repeat after a kill posts nothing), and the same event on the same remote state is not tried again. A push to the work item's remote branch is a new remote state, so the retry that is keyed to it starts again. A success clears the event's counts. The tick status is a local cache that may reset when the process restarts; the keyed report makes that harmless. A report that cannot be posted because the work item has no branch on the remote is not retried for ever: it becomes a log line. Covers SI2.4, GH5.4 and R28; keeps kept things 12 (an unknown event raises; errors capped and reported) and 14 (errors counted per event and state). Uses `StopService` (F0003-S0002) and `WorkItemStop` (F0003-S0003), the fake hosting service (F0001-S0014) and `PostKey` (F0001-S0002), `KillPoints` (F0001-S0001) and `Event` (F0006-S0002).
 
 ## Interface
 
@@ -37,6 +37,8 @@ def mark_reported(status: TickStatus, event_key: str, remote_state: CommitId) ->
 def clear_errors(status: TickStatus, event_key: str) -> TickStatus: ...    # every entry of that key
 def at_cap(entry: ErrorCount) -> bool: ...                                  # count >= ERROR_CAP
 ```
+
+Every model here is frozen and forbids unknown keys.
 
 `src/factory/domain/post_texts.py` (added)
 
@@ -73,10 +75,11 @@ Rules for `dispatch`, in this order:
 - Otherwise call `handler_for(event.kind).handle(event)`. On success `clear_errors` for the event's key and return `"handled"`.
 - An `Exception` from `handler_for` or from `handle` is recorded with `record_error` (`last_error` is `f"{type(error).__name__}: {error}"`). Below the cap return `"error"`. At the cap make the report.
 - `InjectedKill` and every other `BaseException` that is not an `Exception` pass through; the status is not changed by them.
-- The report of an event with a work item is `StopService.post(WorkItemStop(...))` with `key=PostKey(work_item=<its id>, kind="error", n=event.remote_state[:12])`, `branch` the snapshot's branch, `title` `f"{id}: {story title}"` (just the id when the body has no title line), `pull_request` the state's pull request number, and `text=error_report_text(event.key, entry.last_error, event.remote_state, ERROR_CAP)`. A work item without a pull request therefore gets its draft pull request opened first by the stop service. A successful report (`"posted"` or `"already_posted"`) marks the entry `reported` and returns `"reported"`. A report that raises any `Exception` leaves the entry unreported and returns `"error"`; the next dispatch of the same event on the same state makes the report again.
+- The report of an event with a work item is `StopService.post(WorkItemStop(...))` with `key=PostKey(work_item=<its id>, kind="error", n=event.remote_state[:12])`, `branch` the snapshot's branch, `title` `f"{id}: {story title}"` (just the id when the body has no title line), `pull_request` the state's pull request number, and `text=error_report_text(event.key, entry.last_error, event.remote_state, ERROR_CAP)`. A work item without a pull request therefore gets its draft pull request opened first by the stop service. A successful report (`"posted"` or `"already_posted"`) marks the entry `reported` and returns `"reported"`. A report that raises any `Exception` leaves the entry unreported and returns `"error"`; the next dispatch of the same event on the same state makes the report again. A failed report does not count: the entry's `count` and `last_error` are not changed by it.
+- Exception to that last rule: when the report raises `HostingServiceError` and the work item has no branch on the remote (`branch_commit is None`), the stop service cannot open a pull request (it refuses a branch that is not on the remote with a commit beyond `main`), and no later tick could change that. The report is then the log line of an event without a work item (next rule), and the entry is marked `reported`.
 - The report of an event without a work item is one line, `f"error cap reached on {event.key}: {entry.last_error}"`, to `log` when a log was given; the entry is marked `reported` and the outcome is `"reported"` either way.
 
-Tests: `tests/domain/test_tick_status.py`, `tests/domain/test_unhandled_event.py`, `tests/domain/test_error_report_text.py`, `tests/application/test_dispatcher.py`, with the fixtures `hosting` (`FakeHostingService`, whose `factory_posts` counts the posts), `kill_points`, `boundaries` and `clock`. The handlers are small test classes that implement `Handler`.
+Tests: `tests/domain/test_tick_status.py`, `tests/domain/test_unhandled_event.py`, `tests/domain/test_error_report_text.py`, `tests/application/test_dispatcher.py`, with the fixtures `hosting` (`FakeHostingService`, whose `factory_posts` counts the posts), `kill_points`, `boundaries` and `clock`. The handlers are small test classes that implement `Handler`. The closed-model tests build the models through a variable typed `type[BaseModel]` and assign with `setattr`, the field's name in a variable.
 
 ## Acceptance criteria
 
@@ -87,7 +90,7 @@ Tests: `tests/domain/test_tick_status.py`, `tests/domain/test_unhandled_event.py
 5. `ERROR_CAP` is 3: `at_cap` is false for an entry with `count == 2` and true for `count == 3`.
 6. `UnhandledEvent("merged")` is a `FactoryError`, carries `kind == "merged"`, and its message is `no handler for event kind merged`.
 7. `handler_for` returns the registered handler, and raises `UnhandledEvent` for a kind that has none.
-8. `unhandled_kinds({})` returns all fourteen kinds of `EventKind` in their order, and it returns `[]` when every kind has a handler.
+8. `unhandled_kinds({})` returns all thirteen kinds of `EventKind` in their order, and it returns `[]` when every kind has a handler.
 9. A handler that succeeds is called once with the event and `dispatch` returns `"handled"`; entries recorded by earlier failures of that event key are gone afterwards.
 10. A handler that raises `ValueError("boom")` makes `dispatch` return `"error"`, records one entry for the event key and remote state with `count == 1` and `last_error == "ValueError: boom"`, and posts nothing.
 11. The same failure a second time gives `"error"` with `count == 2` and still no post on the pull request.
@@ -96,14 +99,16 @@ Tests: `tests/domain/test_tick_status.py`, `tests/domain/test_unhandled_event.py
 14. GH5.4: the same event on another remote state (a push to the work item's branch) is counted from 1 and its handler is called; after three errors on that state a second report with a different key is posted, and the two reports are the only posts.
 15. An event whose kind has no handler is counted like any other error with `last_error == "UnhandledEvent: no handler for event kind merged"`, and at the third dispatch it is reported on the pull request (SI2.4).
 16. Two different events (a `comment` and a `merged` event of one work item) that fail every time are each reported once at their third error, and further dispatches of either post nothing.
-17. The report of a work item without a pull request opens a draft pull request on its branch with the title `<id>: <story title>` and posts the report there.
-18. When the report cannot be posted (`hosting.fail_next("post_comment")`), `dispatch` returns `"error"` and the entry is not `reported`; the next dispatch of the event does not call the handler, posts the report and returns `"reported"`.
-19. With the kill point `after-post` armed, the dispatch that makes the report raises `InjectedKill` after the comment exists; a new `Dispatcher` with an empty `TickStatus` (the restart) whose handler fails three times again ends with exactly one comment on the pull request.
-20. A handler that raises `InjectedKill` makes `dispatch` raise it too and leaves `status` as it was.
-21. An event without a work item that fails three times returns `"reported"` and writes exactly one line `error cap reached on <event key>: <last error>` to the given log; the next dispatch returns `"capped"` and writes no second line; without a log nothing is written and no error is raised.
-22. `error_report_text("run:F0001-S0001", "ValueError: boom", "c" * 40, 3)` equals ``The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at cccccccccccc) makes the factory try again.``
-23. `make check` stays green.
-24. docs: `docs/operator-guide.md` says that after three errors on one event and one remote state the factory posts one report on the pull request and stops retrying until the work item's branch changes, and what to do about it; `docs/decisions.md` records why errors are counted per event and remote state and why the report is keyed.
+17. The report of a work item without a pull request, whose branch is on the remote with one commit beyond `main`, opens a draft pull request on its branch with the title `<id>: <story title>` and posts the report there.
+18. When the report of a work item whose branch is not on the remote (`branch_commit` `None`, no pull request) raises `HostingServiceError`, the third failure returns `"reported"`, writes one line `error cap reached on <event key>: <last error>` to the given log, and the next dispatch returns `"capped"` and writes no second line.
+19. When the report cannot be posted (`hosting.fail_next("post_comment")`) for a work item whose branch is on the remote, `dispatch` returns `"error"`, the entry is not `reported`, and its `count` is still 3 and its `last_error` still `ValueError: boom`; the next dispatch of the event does not call the handler, posts the report and returns `"reported"`.
+20. With the kill point `after-post` armed, the dispatch that makes the report raises `InjectedKill` after the comment exists; a new `Dispatcher` with an empty `TickStatus` (the restart) whose handler fails three times again ends with exactly one comment on the pull request.
+21. A handler that raises `InjectedKill` makes `dispatch` raise it too and leaves `status` as it was.
+22. An event without a work item that fails three times returns `"reported"` and writes exactly one line `error cap reached on <event key>: <last error>` to the given log; the next dispatch returns `"capped"` and writes no second line; without a log nothing is written and no error is raised.
+23. `error_report_text("run:F0001-S0001", "ValueError: boom", "c" * 40, 3)` equals ``The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at cccccccccccc) makes the factory try again.``
+24. `ErrorCount` refuses an unknown key, an assignment to `count`, `count` 0 (1 is accepted) and a `remote_state` of 39 hex characters or with an upper-case letter; `TickStatus` refuses an unknown key and an assignment to `errors`; all with `ValidationError`.
+25. make check stays green.
+26. docs: `docs/operator-guide.md` says that after three errors on one event and one remote state the factory posts one report on the pull request and stops retrying until the work item's branch changes, and what to do about it; `docs/decisions.md` records why errors are counted per event and remote state, why the report is keyed, and why the report of a work item without a branch on the remote is a log line.
 
 ## Demo
 
@@ -121,10 +126,9 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.run_record_file import JsonRunRecordFile
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Dispatcher
+from factory.application.dispatcher import Dispatcher, Handler
 from factory.application.stops import StopService
 from factory.domain.events import Event
 from factory.domain.tick_status import TickStatus
@@ -132,11 +136,11 @@ from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial
 base = Path(tempfile.mkdtemp())
 clock = SystemClock()
 hosting = FakeHostingService()
-boundaries = Boundaries(git=GitCli(base), hosting=hosting, agent_runtime=FakeAgentRuntime(), project_commands=MakeProjectCommands(base), work_item_reader=FrontmatterWorkItemReader(), work_item_writer=FrontmatterWorkItemWriter(), cost_reader=JsonLinesCostRecordReader(), cost_writer=JsonLinesCostRecordWriter(), clock=clock, log=TimestampedFactoryLog(base / 'factory.log', clock), health=JsonHealthStatusFile(base / 'health.json'), pipeline_reader=RuamelPipelineDefinitionReader(), agent_definitions=FrontmatterAgentDefinitionReader(base), run_record=JsonRunRecordFile(base / 'run-record.json'), checkout=base)
+boundaries = Boundaries(git=GitCli(base), hosting=hosting, agent_runtime=FakeAgentRuntime(), project_commands=MakeProjectCommands(base), work_item_reader=FrontmatterWorkItemReader(), work_item_writer=FrontmatterWorkItemWriter(), cost_reader=JsonLinesCostRecordReader(), cost_writer=JsonLinesCostRecordWriter(), clock=clock, log=TimestampedFactoryLog(base / 'factory.log', clock), health=JsonHealthStatusFile(base / 'health.json'), pipeline_reader=RuamelPipelineDefinitionReader(), agent_definitions=FrontmatterAgentDefinitionReader(base), checkout=base)
 view = hosting.create_pull_request('work-item/F0001-S0001', 't', 'b', draft=True)
 state = initial_state('intake').model_copy(update={'pull_request': view.number})
 snapshot = WorkItemSnapshot(id='F0001-S0001', path='factory/features/F0001-demo/in-progress/F0001-S0001-x.md', folder='in-progress', branch='work-item/F0001-S0001', branch_commit='c' * 40, document=WorkItemDocument(state=state, body='# Demo story\n'))
-class Boom:
+class Boom(Handler):
     def handle(self, event):
         raise ValueError('boom')
 dispatcher = Dispatcher({'run': Boom()}, TickStatus(), StopService(boundaries))

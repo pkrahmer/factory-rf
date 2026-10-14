@@ -164,7 +164,7 @@ One row per kept thing of handover section 3 and per rule of section 4: the stor
 | R23 | Crash, stall, error | F0003-S0003 (crash cap default 2), F0005-S0004 (a stall), F0008-S0001, F0008-S0002, F0008-S0003 (the crash); see cross-check-1 findings 2 and 6 |
 | R24 | Cost records | F0001-S0008, F0002-S0007, F0005-S0008, F0005-S0009 (unknown never summed as zero), F0008-S0001 (discarded with the stage) |
 | R25 | Project and checkout | F0010-S0001, F0010-S0003 (the compose variables) |
-| R26 | Start only on idle repositories | F0002-S0003 (dropped keys listed), F0006-S0001 (recognition), F0006-S0002 (the event), F0006-S0004 (the stop) |
+| R26 | Start only on idle repositories | Dropped for v1.1 by decision 008 (factory-v2) and questionnaire 1, Q15: v1.1 starts fresh and recognises no v1 work item; F0002-S0003 still lists the keys it drops |
 | R27 | Where stops go | F0003-S0001, F0003-S0002, F0010-S0003, F0011-S0003 |
 | R28 | A handler that cannot do its work is a counted error | F0006-S0003, F0007-S0001, F0007-S0007, F0007-S0008 |
 | R29 | A pinned machine | F0010-S0002, F0010-S0004 |
