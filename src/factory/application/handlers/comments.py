@@ -18,7 +18,12 @@ from factory.domain.events import Event
 from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey, PullRequestComment
 from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    require_state,
+)
 
 Adjust = Callable[[WorkItemDocument, Sequence[PullRequestComment]], WorkItemDocument]
 
@@ -32,10 +37,8 @@ class CopyResult(BaseModel):
     commit: CommitId | None
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise ValueError("a work item without a state has no comments to read")
-    return document.state
+def _no_state() -> ValueError:
+    return ValueError("a work item without a state has no comments to read")
 
 
 def _entry_of(comment: PullRequestComment) -> NewEntry:
@@ -73,7 +76,7 @@ class CommentCopier:
         for comment in comments:
             if comment.body.strip():
                 appended = append_entry(appended, _entry_of(comment))
-        state = _state_of(appended)
+        state = require_state(appended, _no_state())
         read = sorted({*state.comments_read, *(comment.id for comment in comments)})
         return appended.model_copy(
             update={"state": state.model_copy(update={"comments_read": read})}
@@ -89,7 +92,7 @@ class CommentCopier:
         recorder = WorkItemRecorder(self._boundaries)
         recorder.check_out(snapshot.branch)
         document = recorder.read(snapshot.path)
-        unread = self.unread(_state_of(document), pull_request)
+        unread = self.unread(require_state(document, _no_state()), pull_request)
         if not unread:
             return CopyResult(recorded=[], commit=None)
         appended = self.append(document, unread)
@@ -103,7 +106,7 @@ class CommentCopier:
 def _question_post(
     work_item: str, document: WorkItemDocument, listed: Sequence[PullRequestComment]
 ) -> PullRequestComment | None:
-    state = _state_of(document)
+    state = require_state(document, _no_state())
     question = last_record(document, kind="question")
     if state.blocked is None or question is None:
         return None
@@ -123,7 +126,7 @@ def _ending_the_wait(work_item: str, listed: Sequence[PullRequestComment]) -> Ad
         post = _question_post(work_item, document, listed)
         if post is None or not _answer_after(post, comments):
             return document
-        return document.model_copy(update={"state": unblock(_state_of(document))})
+        return document.model_copy(update={"state": unblock(require_state(document, _no_state()))})
 
     return adjust
 

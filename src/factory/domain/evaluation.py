@@ -11,7 +11,7 @@ from factory.domain.hosting import PullRequestComment, PullRequestView
 from factory.domain.lease import ClaimStatus
 from factory.domain.move_rule import IllegalChange
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemSnapshot, WorkItemState
+from factory.domain.work_item import WorkItemSnapshot, WorkItemState, require_state
 
 
 class PullRequestObservation(BaseModel):
@@ -113,9 +113,7 @@ def _duplicate(facts: EvaluationInput) -> Event | None:
 
 
 def _validated_state(snapshot: WorkItemSnapshot, definition: PipelineDefinition) -> WorkItemState:
-    state = snapshot.document.state
-    if state is None:
-        raise ValueError(f"work item {snapshot.id} has no state")
+    state = require_state(snapshot.document, ValueError(f"work item {snapshot.id} has no state"))
     if state.stage not in definition.stages:
         raise ValueError(
             f"work item {snapshot.id}: stage {state.stage} is not in the pipeline definition"

@@ -6,7 +6,12 @@ from factory.application.boundaries import Boundaries
 from factory.domain.errors import CannotHandle, PushFailed
 from factory.domain.events import Event
 from factory.domain.git import CommitId
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    require_state,
+)
 
 
 class Target(BaseModel):
@@ -24,9 +29,8 @@ def target_of(event: Event) -> Target:
     snapshot = event.work_item
     if snapshot is None:
         raise CannotHandle(event.kind, "the event names no work item")
-    state = snapshot.document.state
-    if state is None:
-        raise CannotHandle(event.kind, f"work item {snapshot.id} has no state")
+    error = CannotHandle(event.kind, f"work item {snapshot.id} has no state")
+    state = require_state(snapshot.document, error)
     return Target(snapshot=snapshot, state=state, pull_request=state.pull_request)
 
 

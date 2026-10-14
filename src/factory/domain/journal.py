@@ -106,6 +106,7 @@ def render_entry(number: int, entry: NewEntry) -> str:
     return "\n".join([*rendered, *_closing_line(rendered, indent)])
 
 
+# Not `require_state`: `factory.domain.work_item` imports `JournalRecord` from this module.
 def _state_of(document: WorkItemDocument) -> WorkItemState:
     if document.state is None:
         raise WorkItemFormatError("the document has no state")

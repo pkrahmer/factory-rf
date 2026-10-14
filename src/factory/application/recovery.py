@@ -39,7 +39,11 @@ from factory.domain.recovery import (
 )
 from factory.domain.sections import title
 from factory.domain.stops import StopPosted, WorkItemStop
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    require_state,
+)
 
 _KIND: Final = "crash"
 _EXPIRED: Final = "expired"
@@ -49,10 +53,8 @@ _STALE_REASONS: Final[dict[LifecycleFolder, str]] = {
 }
 
 
-def _state_of(work_item: str, document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise CannotHandle(_KIND, f"work item {work_item} has no state")
-    return document.state
+def _no_state(work_item: str) -> CannotHandle:
+    return CannotHandle(_KIND, f"work item {work_item} has no state")
 
 
 class RecoveryHandler(Handler):
@@ -104,7 +106,7 @@ class RecoveryHandler(Handler):
         rerun = snapshot.model_copy(update={"branch_commit": commit, "document": document})
         if event.kind == _EXPIRED:
             rerun = self._note_expiry(rerun)
-        if _state_of(rerun.id, rerun.document).blocked == "crash_cap":
+        if require_state(rerun.document, _no_state(rerun.id)).blocked == "crash_cap":
             self.ask_crash_cap(rerun)
             return
         self._run.handle(
@@ -118,7 +120,7 @@ class RecoveryHandler(Handler):
 
     def _note_expiry(self, work_item: WorkItemSnapshot) -> WorkItemSnapshot:
         document = work_item.document
-        state = _state_of(work_item.id, document)
+        state = require_state(document, _no_state(work_item.id))
         expiry = last_record(document, speaker=FACTORY, kind="expiry")
         if expiry is None:
             raise CannotHandle(_EXPIRED, f"work item {work_item.id} has no expiry entry")
@@ -140,7 +142,7 @@ class RecoveryHandler(Handler):
         Raises `CannotHandle` when the work item is not blocked on the crash cap or has no
         question by the factory; `HostingServiceError` from the post leaves it recorded.
         """
-        state = _state_of(work_item.id, work_item.document)
+        state = require_state(work_item.document, _no_state(work_item.id))
         if state.blocked != "crash_cap":
             raise CannotHandle(_KIND, f"work item {work_item.id} is not blocked on the crash cap")
         document = work_item.document
@@ -165,7 +167,7 @@ class RecoveryHandler(Handler):
         # The method may be called on its own, with the checkout on another branch.
         recorder.check_out(work_item.branch)
         document = recorder.read(work_item.path)
-        state = _state_of(work_item.id, document)
+        state = require_state(document, _no_state(work_item.id))
         opened = document.model_copy(
             update={"state": state.model_copy(update={"pull_request": number})}
         )

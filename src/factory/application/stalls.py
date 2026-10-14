@@ -16,7 +16,7 @@ from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import stall_cause, stall_note
-from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.domain.work_item import WorkItemDocument, require_state
 
 
 class StallContext(BaseModel):
@@ -77,7 +77,7 @@ class StallService:
         )
         cap = self._definition.attempts_cap
         stalled = self._stalled(document, context.stage, pull_request.number, reason, detail)
-        state = _state_of(stalled)
+        state = require_state(stalled, _no_state())
         commit = self._commit_and_push(context, stalled)
         key = PostKey(work_item=context.work_item, kind="stall", n=str(len(state.journal)))
         note = self._boundaries.hosting.post_comment(
@@ -113,7 +113,7 @@ class StallService:
         reason: StallReason,
         detail: str,
     ) -> WorkItemDocument:
-        state = _state_of(document)
+        state = require_state(document, _no_state())
         attempts = state.attempts + 1
         counted_state = state.model_copy(
             update={"attempts": attempts, "pull_request": pull_request}
@@ -133,7 +133,5 @@ class StallService:
         return commit
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise ValueError("the work item has no state to stall")
-    return document.state
+def _no_state() -> ValueError:
+    return ValueError("the work item has no state to stall")

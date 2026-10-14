@@ -10,7 +10,7 @@ from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import DONE_STAGE
 from factory.domain.post_texts import done_entry_text
-from factory.domain.work_item import WorkItemDocument
+from factory.domain.work_item import WorkItemDocument, require_state
 
 
 class MergedHandler(Handler):
@@ -35,10 +35,9 @@ class MergedHandler(Handler):
         sidecar = self._boundaries.checkout / cost_records_path(path)
         text = done_entry_text(bill(self._boundaries.cost_reader.read(sidecar)))
         appended = append_entry(document, NewEntry(speaker=FACTORY, kind="done", text=text))
-        if appended.state is None:
-            raise ValueError(f"the work item at {path} has no state to archive")
+        error = ValueError(f"the work item at {path} has no state to archive")
         # The claim is dropped in the state: the merge ends the work, whoever held it.
-        state = appended.state.model_copy(
+        state = require_state(appended, error).model_copy(
             update={"stage": DONE_STAGE, "blocked": None, "claim": None}
         )
         return appended.model_copy(update={"state": state})
