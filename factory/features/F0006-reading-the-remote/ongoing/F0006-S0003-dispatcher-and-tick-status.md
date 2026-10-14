@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 73
 blocked: null
 comments_seen: 0
 round: 0
@@ -163,3 +163,9 @@ Expect: two lines. The first is `['error', 'error', 'reported', 'capped', 'cappe
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/errors.py`, `domain/tick_status.py`, `domain/post_texts.py`, `application/dispatcher.py`). Every comment-stated behaviour is specified: record_error replacement semantics, the last_error format, the report text, the dispatch rule order.
+   - Criteria: 24 testable criteria, each by one test function. Rules have both sides: the cap (5: count 2 false, 3 true; 10-13), reported vs. not reported (13, 19), ErrorCount validation (24: count 0 and 1, 39-hex and upper-case remote_state), the no-branch exception vs. the normal report (18 vs. 19), with and without a log (22), and BaseException passthrough (21). Each stated default and ordering has a criterion (8 for the kind order, 1 for reported False).
+   - Demo: a runnable single command that uses the fake hosting service and real wiring objects. Its Expect line gives the exact outcome list and the exact first post line, so it can be checked.
+   - Architecture: the pure counts, the text and the error are in domain. The Handler ABC and Dispatcher are in application and use StopService and the Boundaries interfaces, with no concrete tool. This matches the layering in CLAUDE.md.
+   - Scope: within the feature's "dispatcher and the tick status" bullet (SI2.4, GH5.4, R28). The handlers, the tick and the wiring are left to S0004 and S0007.
