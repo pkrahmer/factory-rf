@@ -35,6 +35,8 @@ Every stage runs the same steps in the same order around one agent run: open or 
 - S0007 — Checks, reports and the stage's result commit
 - S0008 — Cost records at agent run start and end
 - S0009 — Bills from the cost records
+- S0010 — What a stall shows on the pull request (proposed by the feature acceptance)
+- S0011 — Documentation after the stage protocol (proposed by the feature acceptance)
 
 ## Decisions taken for the human
 
@@ -72,3 +74,5 @@ Product decisions taken while writing the stories, for the human to review in on
 30. The factory adds exactly one commit (the stall or the result commit) above the stage-start commit or, when the agent committed itself, above the agent's last commit; the agent's own commits stay in the history (F0004 decision 15). (S0004, S0007, story text)
 31. The result commit holds everything in the work tree: a file a check creates is committed unless the project's `.gitignore` covers it. The operator guide says so. (S0007, story text)
 32. The stage's next commit holds the completed cost record only; the started record is replaced in place, so GH4.1's "both states in the next commit" means that neither is pushed before it. (S0008, story text)
+33. A stall note whose detail has more than one line puts the first line in its sentence, with the follow-up, and the other lines unchanged in a fenced `text` block below, the fence one backtick longer than any run of three or more backticks inside; the journal's stall entry keeps the detail as continuation lines. GitHub renders a comment as Markdown. (S0010, story text)
+34. A stall writes `labels_for` of its state after its note, whether the note was posted or already posted, so a work item whose first stage stalls has its `stage:` label; a `set_labels` that fails raises with the stall commit pushed and the note posted, and a note that fails leaves the label unwritten. On 2026-10-14 the session took the answers to the points the pre-checks of S0010 and S0011 left for the human, as the reports recommend: the label is written in the stall, not when the draft is created; the journal keeps the tail unfenced; S0011 stays in the pipeline and is promoted after S0010 is merged. (S0010, story text)
