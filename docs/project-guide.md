@@ -932,6 +932,41 @@ except AgentDefinitionInvalid as error:
 
 prints `['coder']` and then a line that starts with `tools | invalid tools:`.
 
+## The prompt and the request for a stage
+
+Before a stage's agent runs, `TaskComposer` (`factory.application.task`) builds its `AgentRunRequest`; the caller gives it `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings, the `GuardSettings`). The pure rules are in `factory.domain.prompts`.
+
+### The decisions
+
+`allowed_decisions(next_stages)` returns the stage's `next` in their order, then `question`. It is computed once in `compose`, and the same list goes into the prompt's line and into `AgentRunRequest.allowed_decisions`; the runtime builds its outcome schema from it and the stage protocol validates the agent's decision against it. `question` is always allowed. `stuck` is not a decision here: an agent that cannot finish ends with `question`.
+
+### The prompt
+
+`compose_prompt(PromptFacts)` joins these lines with one newline, no trailing newline:
+
+| Line | When |
+|---|---|
+| `Work item: <path>`, `Id: <work item>`, `Stage: <stage>` | always |
+| `Allowed decisions: <decisions joined by ", ">` | always |
+| `Branch: <branch>`, `Pull request: <number>`, `Round: <round>` | always; the round is the document state's |
+| `Mode: a test change the human approved; the coder's journal entry <n> names it.` | only when `test_change_entry` is set |
+| `Format check: passed`, or `Format check found: 1. <message> 2. <message>` | only when `findings` is set (an empty list is `passed`) |
+| `END_LINE` | always |
+
+The Format check line goes to the first stage of the pipeline definition only; every later stage has `findings=None` and no such line.
+
+The Mode line is decided from the journal's data, never from an entry's text: at a stage whose role is `tester`, `last_record(document, kind="result")` is read, and when its speaker is `coder` the line names its number. The last `result` record is used, not the last record, so a later `stall`, `crash` or `comment` record does not hide the test change. A `result` record by the tester, no `result` record, or any other role gives no Mode line.
+
+### The request
+
+`compose` fills `AgentRunRequest` with the agent as given, the prompt, the decisions, `time_limit` (the role's minutes), `working_directory` (`boundaries.checkout`), `guard` (from the context) and `os_user=None`. `environment` is a copy of the mapping given to `TaskComposer`, passed on unchanged: nothing is added, removed or scrubbed here (the wiring supplies it; scrubbing is F0010's). `agent(stage)` reads the definition of the stage's role through `AgentDefinitionReader`; a stage without a role raises `ValueError` naming it, a missing file lets `AgentDefinitionMissing` through. A document without a state makes `compose` raise `WorkItemFormatError`.
+
+### The story form check
+
+`StoryFormChecker(boundaries).findings(document)` returns `check_story_form(document, form, folder="in-progress")`. The form is read with `Git.show_file("origin/main", STORY_FORM_FILE)`, never from the work tree, so nothing an agent writes there changes it; the checkout must have fetched to see a form the human pushed. A form absent at `origin/main` raises `WorkItemFormatError` with `path == "factory/story-form.md"`. A stage runs the check before and after the agent.
+
+Tests: `tests/domain/test_prompts.py`, `tests/application/test_task.py`.
+
 ## Kill points: testing a crash
 
 A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the tests that use it to prove recovery come with the recovery features (F0008, F0011).

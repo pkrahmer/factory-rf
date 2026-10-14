@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 58
 blocked: null
 comments_seen: 0
@@ -210,3 +210,25 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
    Considered and not raised:
    - `_round` raises `WorkItemFormatError` when the document has no state (`task.py`). This is beyond the Interface and no test covers it. It is not a finding: `mypy --strict` needs the check, it copies `journal._state_of`, and the coder disclosed it. The Interface does not describe a stateless document at all; a later story that relies on this case should state it.
    - `compose` raises `KeyError` for an unknown stage and `ValueError` for a stage without a role. The Interface does not state either rule, so neither is a gap against this story.
+6. documenter: wrote the documentation for criterion 24; `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`: new section "The prompt and the request for a stage", placed after "The agent definition reader". It covers:
+     - the shared decisions list, with `question` always allowed and `stuck` not a decision;
+     - the prompt lines and their order in a table;
+     - the Format check line going to the first stage only;
+     - the Mode line decided from the speaker of the last `result` record;
+     - the request fields, with the environment copied and passed on unchanged;
+     - `agent()` errors;
+     - the story form read from `origin/main`.
+   - `docs/decisions.md`: new entry "The prompt, the request and the validation share one list of decisions". It gives the reasons and the alternatives rejected.
+
+   Cross-read against the diff and found current: the "AgentRunRequest" and "agent definition reader" parts of `docs/project-guide.md`, and the story form check section.
+
+   I did not run the examples, because I wrote none. The demo in the ticket is the coder's and the tester's to run.
+
+   Not touched: `README.md` and `docs/operator-guide.md`, which this story does not change. The mention in the project guide that F0010 scrubs the environment comes from the Assignment.
+
+   No findings for the coder.
+
+   `make check`: check: green
