@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 97
 blocked: null
 comments_seen: 0
@@ -220,3 +220,22 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the expiry takeover. `make check` is green, with coverage at 99.14 %. Commits: 23e1676 (feat), f2fc903 (refactor).
+      - `src/factory/domain/post_texts.py`: added `expiry_note`. It ends with "Retrying." only below the crash cap.
+      - `src/factory/domain/recovery.py`: added `expiry_entry_text`.
+      - `src/factory/application/recovery.py` (`RecoveryHandler`):
+        - Guards: the handler now accepts `crash` (the claim must be `own`) and `expired` (the claim must be `expired`), using the `_REQUIRED_STATUS` map. Any other kind is refused, and every `CannotHandle` it raises carries the event's kind.
+        - Record: for `expired` the journal entry is of kind `expiry`, with the text from `expiry_entry_text`, in the same single commit as a crash. At the cap that commit also holds the crash-cap question. The commit subject is "expiry of stage X recorded".
+        - Note (new `_note_expiry`): runs after the push. It posts through `StopService` under key `expiry:<entry number>`.
+        - Step 5: the rerun or `ask_crash_cap` gets the snapshot as last written. That means the PR number recorded with the note is already in it, so at the cap the question lands on the same draft without a second write of the number.
+        - `_record_pull_request` now returns the updated snapshot (new commit and document) instead of None.
+        - The stop title logic is shared in `_stop_title`, which `ask_crash_cap` now uses too.
+      - `src/factory/entry/wiring.py`: one `RecoveryHandler` instance is registered under both `crash` and `expired`. `NOT_YET_HANDLED` is now `("acceptance_due",)`.
+      - Design decision: I extended the existing handler, choosing the journal kind from the event kind. I rejected a separate `ExpiryHandler` or a subclass: the discard, record and push steps and the cap logic are identical, and the ticket asks for the same instance under both keys.
+      - Refactor: I removed a docstring from the private `_note_expiry`, since the project gives none to private names. Nothing else needed changing.
+      - Noticed, not touched:
+        - The `expiry is None` guard in `_note_expiry` cannot be reached, because the entry was appended just before. It is uncovered, and it mirrors the guard on the question in `ask_crash_cap`.
+        - `_state_of` and `_remote_head` still raise `CannotHandle` with kind `crash`, as they did before this story.
+        - Docs are left to the documenter (criterion 19).
+
+   `make check`: check: green
