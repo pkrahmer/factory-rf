@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 86
 blocked: null
 comments_seen: 4
@@ -228,3 +228,14 @@ Expect: six lines: `doing 3`, `False`, `True`, `None`, `True`, `True`.
       - `_state_of` and `_with_state` follow the module-local pattern the other handlers already use.
       - Comments explain why, not what.
     - Ticket hygiene: the log gives the main decision, `CommentCopier.append` inside the "close recorded" commit, and what was rejected. Looking at the code, `CommentCopier.copy` would also have been wrong because it records nothing when there are no unread comments, so the close would be lost. The Assignment matches what was built, and criterion 24 still says what the documenter has to write.
+12. documenter: wrote the close at the approval for the operator and recorded the decision. `make check` is green.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "A close at the approval sends the story back". It covers the order of the four steps, the comment that counts as the reason (read from the records, never the text), the round cap and its two question openings, the three options, and what happens on a failed reopen, a rejected push, failed labels and a kill between the reopen and the decision (the pull request is handed over again at the approval and the close is repeated, with no second `close` entry). The question table row for `send_back` was updated. The line in "A close before the approval discards the story" that called the send-back unbuilt now points to the new section.
+    - `docs/decisions.md`: new entry on why the close is recorded before the pull request is reopened. It also says why the comments go into the same commit (`CommentCopier.append`), and lists the rejected alternatives.
+
+    Cross-read and found current: `README.md`, `docs/project-guide.md`, and the rest of the operator guide (the `NOT_YET_HANDLED` text is still true).
+
+    I ran no examples; no new runnable examples were written. I found no findings for the coder: the code matches the Interface and the criteria.
+
+    `make check`: check: green
