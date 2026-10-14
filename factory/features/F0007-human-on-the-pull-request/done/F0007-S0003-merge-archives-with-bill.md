@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 84
 blocked: null
 comments_seen: 0
@@ -257,3 +257,4 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
    This agrees with criteria 4, 5 (stage and blocked), 7, 9 and 11.
 
    Checked against all the criteria: the demo contradicts none of them. The demo does not exercise criteria 6, 8, 10 and 12–17 (other stages, the bill content, failure paths, kills, posting nothing). The tests listed in the tester's entry cover them. I fixed nothing.
+8. done (pull request merged); cost: 6 runs, 8.5 min, 54 turns, 175k tokens in (1362k more from cache), 30k out, $2.02
