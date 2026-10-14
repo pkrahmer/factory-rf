@@ -148,3 +148,16 @@ class AgentDefinitionInvalid(AgentDefinitionError):
         """Name the agent, the fault and the key it concerns."""
         super().__init__(name, fault)
         self.key = key
+
+
+class GuardSettingsInvalid(FactoryError):
+    """The guard's settings file cannot be read: its path and the fault."""
+
+    path: str
+    fault: str
+
+    def __init__(self, path: str, fault: str) -> None:
+        """Name the settings file and the fault."""
+        super().__init__(f"guard settings {path}: {fault}")
+        self.path = path
+        self.fault = fault
