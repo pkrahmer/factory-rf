@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 74
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -187,3 +187,6 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
       - (b) Push the file to a different path.
 
    Refactor: not done yet, because `make check` is not green. The diff is one new module and I saw nothing to change in it. Once you answer, I will end with `tests` naming the two changes.
+7. human (pull request comment, 2026-10-14): 1 (a): record `remote_commit(remote, BRANCH)` right after the first `tick.run()` and compare both assertions against that recorded head, as criterion 9 says.
+   2 (a): push a different text without front matter, `"# First story, edited\n"` (the empty-commit trap in `CLAUDE.md`).
+   End with `tests` and name exactly these two changes.
