@@ -212,6 +212,27 @@ def test_everything_else_in_an_in_progress_folder_is_undone_whatever_the_write_p
     assert _text(boundaries, PATH) == edited
 
 
+def test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths(
+    boundaries: Boundaries, human: HumanClone
+) -> None:
+    start = _start(boundaries, human, write_paths=["*"])
+    backlog = "factory/features/F0001-example/backlog"
+    agent_files = {
+        f"{backlog}/F0001-S0001-first.md": AGENT_TEXT,
+        f"{backlog}/extra.md": AGENT_TEXT,
+        f"{IN_PROGRESS}/sub/notes.txt": AGENT_TEXT,
+    }
+    assert _at_start(boundaries, start, f"{backlog}/F0001-S0001-first.md") != AGENT_TEXT
+    write_files(boundaries.checkout, agent_files)
+
+    report = _undo(boundaries, start)
+
+    for path in agent_files:
+        assert _text(boundaries, path) == AGENT_TEXT
+    assert report.reverted == []
+    assert report.deleted == []
+
+
 def test_the_work_items_state_and_journal_are_restored_and_its_section_edit_kept(
     boundaries: Boundaries, human: HumanClone
 ) -> None:

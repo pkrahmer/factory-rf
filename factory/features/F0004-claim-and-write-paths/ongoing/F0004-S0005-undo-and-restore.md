@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 56
 blocked: null
 comments_seen: 2
@@ -235,3 +235,16 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     - Changing the code to refuse nested files under `in-progress/` as well. That would contradict the Interface's "directly", so it would be a question for the human, and the reviewer did not ask for it.
 
     Open: once the tester adds the test, the ticket comes back to the coder. If the test passes, I will check `make check` and send the ticket to review with no code change.
+11. tester: tester (test change approved; the coder named it in entry 10 after the reviewer's finding in entry 9): I added one new test, `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths`, to `tests/application/test_undo.py`. It sits right after the criterion-7 test. It checks the allowed side of the Interface's rule that a file is undone when it "lies *directly* in an `in-progress` folder of a feature".
+
+    The test claims with write paths `["*"]`. The agent then writes three files:
+    - it changes `factory/features/F0001-example/backlog/F0001-S0001-first.md`, a file that already exists at the stage-start commit (the test asserts that its starting text is different from what the agent writes);
+    - it adds `factory/features/F0001-example/backlog/extra.md`;
+    - it adds `factory/features/F0001-example/in-progress/sub/notes.txt`.
+
+    After `undo`, all three must still hold the agent's text, and `reverted` and `deleted` must both be empty. I kept it as a separate test rather than extending the criterion-7 test, so each test checks one side of the rule. No other test changed, and I did not touch `HumanClone` or `git_support`.
+
+    `make test` is green with the coder's implementation (commit 4cfd5a1), and total coverage is 99.68 %. `make lint` is green.
+
+    `make lint`: lint: green
+    `make test`: test: green
