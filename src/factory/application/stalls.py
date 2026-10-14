@@ -13,6 +13,7 @@ from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey, PostOutcome, PullRequestView
 from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.journal import FACTORY, NewEntry, append_entry
+from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemDocument, WorkItemState
@@ -64,7 +65,7 @@ class StallService:
 
         `PushFailed` when the push does not reach the remote, before any note. A
         `HostingServiceError` propagates: from the pull request before anything is written,
-        from the note after the push.
+        from the note or the labels after the push.
         """
         undo = None if context.stage_start is None else self._undo(context, context.stage_start)
         if context.cost is not None:
@@ -82,6 +83,7 @@ class StallService:
         note = self._boundaries.hosting.post_comment(
             pull_request.number, stall_note(reason, state.attempts, cap, detail=detail), key
         )
+        self._boundaries.hosting.set_labels(pull_request.number, labels_for(state))
         return StallResult(
             reason=reason,
             attempts=state.attempts,
