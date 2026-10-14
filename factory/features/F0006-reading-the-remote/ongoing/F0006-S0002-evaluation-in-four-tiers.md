@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 72
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # The watcher's evaluation in four tiers
@@ -222,3 +222,17 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
    Noticed but not touched: the docs for criterion 27 belong to the documenter.
 
    `make check`: check: green
+7. reviewer: one finding, in group 1 (acceptance criteria). I read the full diff of `src/` and `tests/` against the Interface and criteria 1 to 25. Criteria 1 to 21 and 23 to 25 each have a test that checks what the criterion says, including the refused sides: 39 characters and an upper-case letter for `remote_state`, the lease at 59/60/61 minutes, attempts 1 and 2, every refused kind/subject pairing, and a no-claim item never being asked for its claim status. The coder's entry 6 reports `make check` green.
+
+   1. `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error`: the Interface says "a `None` from that resolve raises `GitError` whose message names `origin/main`". The test only checks `pytest.raises(GitError)`. Two problems follow:
+      - The message rule has no test.
+      - The test cannot tell the resolve check from some other `GitError` raised while reading an empty clone. A Watcher that read the work items before resolving, and let some other git failure surface, would also pass.
+
+      Fix: `pytest.raises(GitError, match="origin/main")`. This is a test change, so per R9 the coder hands it to the tester (`tests`) with exactly this change. The code in `src/factory/application/watcher.py` (`_main_commit`) already raises `GitError("resolve origin/main", None, "origin/main does not resolve")`, which matches, so no source change is needed.
+
+   Rejected as findings:
+   - `question_posted` with a non-factory comment that carries a matching key: `PullRequestComment.from_body` derives both `by_factory` and `key` from the marker, so that case cannot come from the hosting service.
+   - The `state.claim is not None` guard in `evaluation.py` `_agent_at_work`: it only narrows the type for mypy.
+   - A `"none"` status for a set claim falling through to tier 4: the Interface leaves it open, `lease.claim_status` cannot return it, and entry 6 records it.
+
+   I did not go on to groups 2 to 5, because the checklist stops at the first failing group.
