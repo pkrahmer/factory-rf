@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 60
 blocked: null
 comments_seen: 0
 round: 0
@@ -84,3 +84,9 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/application/stage.py` names `StartedStage`, `LaunchedStage` and `StageLauncher` with signatures, the nine ordered steps, the source module of every type used, and the errors that propagate. Nothing needs a further decision.
+   - Criteria: each is testable by one test function. Every rule has its failing side. A conflicted work item is criterion 7 and a stage without a role is criterion 8. A rejected push is 4, an unreachable remote is 5, a missing agent file is 6, and a runtime error is 15. A run that dies or hits its limit being returned as a result is 14. The frozen models and the unknown-key refusal are 16. Interface comments on the stage-start commit (one commit above the old head, the opening commit for a new item, `pull_request` unchanged, `document` read back) are covered by 1, 2, 3, 9 and 10. The environment passed on unchanged is 12.
+   - Demo: `uv run pytest tests/application/test_stage_launch.py` is runnable, and its `Expect:` line (last line says `passed`, no `failed` or `error`) can be checked against the output.
+   - Architecture: the module sits in `factory.application` and reaches git, hosting and the runtime only through the interfaces. The test helper `tests/observing_runtime.py` sits at the `tests/` root, like `git_support.py`.
+   - Scope: the story is within the feature's scope (the stage start, the claim pushed first, the guard, the environment). It leaves out the pull request state reading, F0008's crash handling and the cost records, which are the feature's out-of-scope items or later stories.
