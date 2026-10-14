@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 90
 blocked: null
 comments_seen: 2
@@ -274,3 +274,4 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
     The demo contradicts no criterion. It does not exercise the handler (criteria 9–18); those are covered by the tests the reviewer checked in entry 9.
 
     Findings: none.
+12. done (pull request merged); cost: 8 runs, 30.9 min, 51 turns, 158k tokens in (1099k more from cache), 26k out, $2.07
