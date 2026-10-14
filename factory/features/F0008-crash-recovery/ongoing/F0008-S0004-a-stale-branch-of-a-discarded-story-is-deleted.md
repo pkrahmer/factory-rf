@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 98
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -161,3 +161,4 @@ Expect: the factory log line on standard output first, time-stamped and ending w
    Refactor step: not done yet, because `make check` is not green. The diff is small (one function, one helper, one call in the tick) and I see nothing to clean up so far. The refactor will follow once the test is fixed.
 
    Not touched: `docs/` (criterion 15 is the documenter's).
+5. human (pull request comment, 2026-10-14): (a): the tester adds `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the rename in `test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, and changes nothing else. End with `tests` and name exactly that change.
