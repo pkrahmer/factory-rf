@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 95
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A crash discards the stage and reruns it free
 
 ## Assignment (as of log entry 1)
@@ -190,3 +198,141 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.recovery.crashed` and `crash_entry_text`, `factory.application.recovery.RecoveryHandler`, `build_handlers` and `NOT_YET_HANDLED` in `factory.entry.wiring`). The five handler steps are ordered. The three earlier tests it changes are named, with the human's leave (Q20).
+   - Criteria: each is testable by one test function. Every behaviour in the Interface has a criterion. `crashed` is covered by 19 and the exact entry text by 7 and 22. Every guard and failure side has one: a wrong event kind (13), a claim that is held, expired or absent, a snapshot with no state, and a snapshot with no `branch_commit` (12 and 14), a rejected push (16), a kill (17), an exception from the rerun (18), and a `GitError` from the discard (23). The one guard without its own criterion is an event with no work item. `target_of` raises `CannotHandle` for it, and F0007-S0001 owns that rule.
+   - Demo: the three commands are runnable against a real local bare remote or the wiring. Each `Expect:` line gives checkable values (`0 1 0 doing`, `1 0 True`, `False`, `1 run 1`, `True`, and `True True False`).
+   - Architecture: the pure functions are in `domain`, the handler is in `application` and uses `Boundaries`, `WorkItemRecorder` and `ClaimService`, and only `entry.wiring` wires it. No new dependency or package.
+   - Scope: the story is inside F0008's scope (the recovery handler and registering `crash`). It leaves the crash cap (S0002), the expired lease (S0003) and the stale branch (S0004) to their own stories, as FEATURE.md's Scope and Out of scope say.
+3. tester: Wrote the red tests for the crash recovery handler, the pure functions and the `crash` registration. I also changed the three earlier wiring tests that the Interface names, with the human's leave from Q20.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_recovery_crash.py::test_no_remote_branch_holds_a_file_the_dead_run_wrote
+   - criterion 2: tests/application/test_recovery_crash.py::test_the_checkout_holds_none_of_the_dead_runs_writes
+   - criterion 3: tests/application/test_recovery_crash.py::test_the_stage_start_commit_and_its_started_entry_stay
+   - criterion 4: tests/application/test_recovery_crash.py::test_the_crash_changes_only_the_work_item_since_the_stage_start
+   - criterion 5: tests/application/test_recovery_crash.py::test_a_crash_counts_one_crash_clears_the_claim_and_charges_no_attempt (attempts 0 and 1)
+   - criterion 6: tests/application/test_recovery_crash.py::test_the_journal_ends_with_one_factory_crash_record
+   - criterion 7: tests/application/test_recovery_crash.py::test_the_crash_entry_names_the_stage_and_the_stage_start_commit
+   - criterion 8: tests/application/test_recovery_crash.py::test_the_crash_commit_is_pushed
+   - criterion 9: tests/application/test_recovery_crash.py::test_the_dead_stages_cost_records_are_discarded_and_earlier_ones_stay
+   - criterion 10: tests/application/test_recovery_crash.py::test_an_own_crash_posts_nothing
+   - criterion 11: tests/application/test_recovery_crash.py::test_the_stage_reruns_at_once_in_the_same_call (same service / restart)
+   - criterion 12: tests/application/test_recovery_crash.py::test_a_crash_event_on_another_instances_claim_is_not_rerun (held at +0 min, expired at +60 min; each case first asserts the status)
+   - criterion 13: tests/application/test_recovery_crash.py::test_an_event_of_another_kind_is_refused_before_anything_is_touched
+   - criterion 14: tests/application/test_recovery_crash.py::test_a_crash_event_without_an_own_claim_on_the_remote_is_refused (no claim, no state with its reason, no branch_commit)
+   - criterion 15: tests/application/test_recovery_crash.py::test_a_commit_the_human_pushed_to_the_branch_is_kept
+   - criterion 16: tests/application/test_recovery_crash.py::test_a_rejected_push_raises_push_failed_and_does_not_rerun
+   - criterion 17: tests/application/test_recovery_crash.py::test_a_kill_at_the_push_is_counted_once_after_a_restart
+   - criterion 18: tests/application/test_recovery_crash.py::test_an_exception_from_the_rerun_propagates_and_the_crash_stays_recorded
+   - criterion 19: tests/domain/test_recovery.py::test_crashed_raises_the_crash_count_and_keeps_every_other_field (crashes 0 with a claim, crashes 5 without)
+   - criterion 20: tests/entry/test_wiring_recovery.py::test_the_crash_handler_reruns_through_the_very_gate_registered_for_run
+   - criterion 21: tests/entry/test_wiring_recovery.py::test_crash_is_handled_and_the_kinds_not_yet_handled_are_the_kinds_without_a_handler
+   - criterion 22: tests/domain/test_recovery.py::test_the_crash_entry_text_names_the_stage_the_count_and_the_commit
+   - criterion 23: tests/application/test_recovery_crash.py::test_a_git_error_from_the_discard_propagates_and_nothing_is_pushed (a snapshot with an own claim whose branch is not on the remote; after the error the remote has no such branch and `main` is unchanged)
+   - criteria 24 and 25 are the coder's and the documenter's: no tests.
+
+   Files created: tests/domain/test_recovery.py, tests/application/test_recovery_crash.py, tests/entry/test_wiring_recovery.py.
+
+   Earlier tests changed, as the Interface names them:
+   - tests/entry/test_wiring_handlers.py::test_an_event_not_yet_handled_is_a_counted_error now dispatches an `acceptance_due` event (feature F0001, no work item) and expects `UnhandledEvent: no handler for event kind acceptance_due`. The `_snapshot` helper and the constants `WORK_ITEM` and `PATH` were used only by this test, so I removed them and their imports.
+   - In tests/entry/test_wiring_human_handlers.py, the test of F0007-S0010's criterion 9 now asserts that the keys include the ten kinds plus `crash`, no longer that they are exactly the ten.
+   - The test of F0007-S0010's criterion 12 no longer asserts the tuple's value. I renamed it from `test_only_the_crash_expiry_and_acceptance_kinds_are_not_yet_handled` to `test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler`, because the old name says `crash` is not handled. Its body is the three remaining asserts, unchanged.
+   - The criterion 10 test is untouched.
+
+   How the application tests are set up: they follow the setup the Interface describes (push the story with a `## Journal` section to main, start it, check the branch out from origin/main, claim `doing` as factory-1). A dead run is a local commit that is never pushed (src/committed.py), an untracked file (src/dead.py) and an uncommitted change to factory/story-form.md. The rerun is a `Handler` subclass in the test module; it records each event and the clock's time when it was called.
+
+   Not importable, so these modules fail at collection: `factory.domain.recovery` and `factory.application.recovery`. The changed wiring tests fail at runtime until `crash` is registered and removed from `NOT_YET_HANDLED`. `make test` ended with 3 collection errors, as expected; `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built crash recovery for a stage that this instance claimed itself. `make check` is green (coverage 99.20%). Commit cbf0fdb.
+
+   What I built:
+   - `src/factory/domain/recovery.py`: `crashed` uses `model_copy` to raise `crashes` by one and leaves the claim alone. `crash_entry_text` returns the exact one-line text the Interface gives.
+   - `src/factory/application/recovery.py`: `RecoveryHandler(boundaries, definition, claims, run)` with a `run` property. `handle` follows the five ordered steps.
+     1. Guards: the kind must be `crash`, then `target_of`, then the claim status must be `own`, then `branch_commit` must be set.
+     2. Discard: `WorkItemRecorder.check_out(branch)`, then `resolve("origin/{branch}")`.
+     3. Record: `crashed`, then `ClaimService.release`, then `append_entry` of a factory `crash` entry.
+     4. Push: `recorder.record`, which raises `PushFailed` for any push outcome but "pushed".
+     5. Rerun: one call of `run.handle` with a `run` event whose snapshot carries the new document and `branch_commit`/`remote_state` set to the crash commit.
+     Nothing is posted, and nothing is caught.
+   - `src/factory/entry/wiring.py`: `crash` is registered as `RecoveryHandler(boundaries, definition, ClaimService(boundaries, instance, definition), run)`, where `run` is the same `RunGate` instance that is registered for `run`. `NOT_YET_HANDLED` is now `("expired", "acceptance_due")`.
+
+   Main design decision: the handler sits in `factory.application.recovery`, where the Interface puts it, and not under `application/handlers/`. It reuses `WorkItemRecorder` for both the discard and the push, so it has no git logic of its own.
+   - Rejected alternative: resolving the remote head before the discard, and refusing with `CannotHandle` when it is missing. That would turn criterion 23's `GitError` (branch not on the remote) into a `CannotHandle`.
+   - Instead, `_remote_head` resolves the head after the discard. Its `None` case raises `CannotHandle`. That case cannot happen in practice because the discard has just checked the ref out; the git interface simply types the result as optional. It is the one line in the module that the tests do not cover.
+
+   Refactor pass: I read the diff and found nothing to change, so there is no separate refactor commit.
+
+   Noticed, not touched:
+   - `RecoveryHandler` stores `definition` but does not use it yet. The Interface requires the parameter, and the crash cap (S0002) will need it.
+   - I did not run the three demo commands myself; the tests cover the same behaviour.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked in `git diff main...HEAD -- . ':!factory'` (src/factory/domain/recovery.py, src/factory/application/recovery.py, src/factory/entry/wiring.py, and the tests):
+   - Acceptance criteria. Every criterion from 1 to 23 has a test under the name the tester's entry gives. Each test asserts what its criterion says:
+     - 11 checks the clock time of the rerun and the restart case.
+     - 12 first asserts the status `held` or `expired` in each case.
+     - 14 covers no claim, no state (with its reason) and no `branch_commit`.
+     - 17 checks a single crash record after the restart.
+     - 23 checks that the remote has no branch and that `main` is unchanged.
+
+     All four sides of the status guard are tested: `own` passes, and `held`, `expired` and `none` are refused. The coder's entry records `make check` green, with coverage at 99.20%.
+   - The handler's guards and steps run in the order the Interface gives. The discard goes through `WorkItemRecorder.check_out`, then `resolve`, and the record is built from `crashed`, `release`, then `append_entry`. The push goes through `recorder.record`, which raises `PushFailed`. The rerun event carries the new document and the crash commit. Nothing is posted and nothing is caught.
+   - Changed earlier tests. They stay within what the Interface allows, with the human's leave from Q20. The test renamed in tests/entry/test_wiring_human_handlers.py had a name that would now be false. In tests/entry/test_wiring_handlers.py the tester removed `_snapshot`, `WORK_ITEM`, `PATH` and their imports, which only the changed test used.
+   - Architecture: the pure functions are in `domain`, the handler is in `application` and imports only `application` and `domain`, and only `entry.wiring` wires it. The handler reuses the `RunGate` instance registered for `run`.
+   - Security: no strings passed to a shell, and no suppression markers.
+   - Quality: every module, public class and public function has a docstring, and the comments say why. Two things I looked at and accepted:
+     - `_remote_head`'s `None` branch is a typing guard after the discard. It is not dead logic.
+     - `self._definition` is stored but not used yet. The Interface's signature requires it, and S0002 will use it for the crash cap.
+   - Ticket hygiene: the log names the main decision, resolving the head after the discard. It also names the rejected alternative, which would have turned criterion 23's `GitError` into `CannotHandle`. The Assignment matches what was built, and criterion 25 still describes what the docs need.
+
+   Open: none.
+6. documenter: wrote the documentation for crash recovery. `make check` is green. I did not run the three demo commands; the tests cover the same behaviour.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "A restart during a stage". It covers the same-name restart reruns the stage at its first look, the discard of the dead run's work and cost records, the `crash` entry, `crashes` +1 with `attempts` unchanged, nothing posted, a human-pushed commit kept, and a rejected push as a counted error. In "An event that keeps failing", `crash` is now registered and `NOT_YET_HANDLED` lists `expired` and `acceptance_due`. I removed the old `crash` bullet and the "until F0008" wording.
+   - `docs/project-guide.md`: new paragraph in "The handlers of the events" on `RecoveryHandler`, its five steps, its guards and the pure functions in `factory.domain.recovery`. `build_handlers` now returns eleven kinds, with `crash` built on the same `RunGate` that is registered for `run`. The `NOT_YET_HANDLED` text and the evaluation section's line about unregistered kinds are updated.
+   - `docs/decisions.md`: new entry. A crash is charged only to an own claim, and the rerun happens in the same call. It names the rejected alternatives: `git add -A` of the leftovers, charging an attempt, and rerunning on the next tick.
+
+   Cross-read against the diff and found current: README (it has no mention of `crash`), the stop tables in the operator guide, the "Claims, leases and the clock" section (it already says an own claim is rerun at once), the kill points section, the claim service section and the stall section of the project guide.
+
+   Stale but unrelated, not touched: the kill-points section says the recovery tests "come with F0008, F0011". That is still accurate for the later stories.
+
+   No findings against the code. `RecoveryHandler` stores `definition` without using it, as the Interface requires, and the guide says the crash cap (S0002) will use it.
+
+   `make check`: check: green
+7. demo: Demo run from the repository root. I ran the three `## Demo` commands as written and in order, each in its own bash process. All three printed what their `Expect:` lines describe, and nothing in the demo contradicts any acceptance criterion.
+
+   Command 1 (the pure part: `crashed`, `crash_entry_text`):
+   ```
+   0 1 0 doing
+   crash 1: the run of stage doing ended without a result. Its work is discarded back to commit aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+   ```
+   Met. The first line is `0 1 0 doing` and the second is the crash text ending in forty `a` and a full stop, which matches criteria 19 and 22.
+
+   Command 2 (`RecoveryHandler` against a real local bare remote, with an untracked `src/dead.py` left by the dead run):
+   ```
+   1 0 True
+   False
+   1 run 1
+   True
+   ```
+   Met:
+   - `crashes` is 1, `attempts` is 0 and the claim is cleared.
+   - The dead run's file is gone from the work tree.
+   - The `run` handler was called once, inside the same `handle` call, with an event of kind `run` and `crashes` 1.
+   - The stage-start commit is still an ancestor of `origin/<branch>`.
+
+   This agrees with criteria 2, 3, 5 and 11.
+
+   Command 3 (the registration in `build_handlers`):
+   ```
+   True True False
+   ```
+   Met. `handlers['crash']` is a `RecoveryHandler`, its `run` is the very handler registered for `run`, and `crash` is not in `NOT_YET_HANDLED`. This agrees with criteria 20 and 21.
+
+   Findings: none. Nothing is open from the demo. The factory runs `make check` itself after this stage.

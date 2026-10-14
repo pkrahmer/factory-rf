@@ -553,11 +553,9 @@ A hand-made change that a later commit on the branch buried is not seen: only th
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
 
-The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`) and of the stage run are registered. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `crash`, `expired` and `acceptance_due`. The common one leads to this today:
+The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`) and of the stage run are registered, and so is `crash` (see "A restart during a stage"). The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `expired` and `acceptance_due`. An event of such a kind leads to this today:
 
-- `crash`: the instance found its own claim on the remote, after a rejected result push or another boundary error after the stage-start commit, or after a restart when the process died during a stage.
-
-It ends in the one report of its work item and remote state, and then holds back all new work, until F0008 registers its handlers. A push to the branch makes the factory try again.
+It ends in the one report of its work item and remote state, and then holds back all new work, until a later story registers its handler. A push to the branch makes the factory try again.
 
 After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "Stops of one work item".
 
@@ -583,6 +581,21 @@ Three situations have no work the factory can do. Each is a counted error, never
 | A question with no pull request to post it on | `cannot handle ask: work item <id> has no pull request` | The question is recorded in the journal but has nowhere to go. Open a pull request for the work item's branch, or push a commit to the branch so the factory tries again; the report itself opened a draft if the branch was on the remote. |
 
 For all three the handler writes, posts and changes nothing itself; only the report is posted.
+
+## A restart during a stage
+
+If the factory dies while a stage runs and is started again with the same instance name, it finds its own claim on the work item's branch at its first look and treats it as a crash. It does not wait for the lease.
+
+What it does, in one call:
+
+- It throws away everything the dead stage did that is not on the remote: uncommitted and untracked files, commits that were never pushed, and the cost records of the discarded agent runs. Records of earlier stages stay.
+- It records the crash in one commit on top of the remote's head: the claim is cleared, `crashes` goes up by one, and the journal gets an entry of kind `crash`: "crash 1: the run of stage doing ended without a result. Its work is discarded back to commit <commit>."
+- It reruns the stage at once. `attempts` is not raised: a crash is not charged as a failed attempt.
+- It posts nothing on the pull request.
+
+A commit that you pushed to the branch while the stage ran is on the remote, so it stays; the journal entry names the commit the discard went back to. The stage-start commit and its `started` entry stay in the history too.
+
+If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. The `crash_cap` and a claim of another instance name that has expired are not handled yet.
 
 ## Claims, leases and the clock
 

@@ -16,11 +16,8 @@ from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import Event
-from factory.domain.identifiers import branch_name
-from factory.domain.journal import JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.tick_status import TickStatus, find_error
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import (
     NOT_YET_HANDLED,
     agent_environment,
@@ -32,9 +29,7 @@ from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
-WORK_ITEM = "F0001-S0001"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
-PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 STATE = "a" * 40
 STORY = """\
@@ -70,20 +65,6 @@ COMPLETED = AgentRunResult(
 
 def _definition(boundaries: Boundaries) -> PipelineDefinition:
     return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
-def _snapshot() -> WorkItemSnapshot:
-    state = WorkItemState(
-        stage="intake", journal=[JournalRecord(number=1, speaker="human", kind="created")]
-    )
-    return WorkItemSnapshot(
-        id=WORK_ITEM,
-        path=PATH,
-        folder="in-progress",
-        branch=branch_name(WORK_ITEM),
-        branch_commit=STATE,
-        document=WorkItemDocument(state=state, body=STORY),
-    )
 
 
 def test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler(
@@ -163,11 +144,11 @@ def test_a_tick_over_the_handler_factory_runs_one_stage(
 def test_an_event_not_yet_handled_is_a_counted_error(boundaries: Boundaries) -> None:
     handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
     dispatcher = Dispatcher(handlers, TickStatus(), StopService(boundaries))
-    event = Event(kind="crash", work_item=_snapshot(), remote_state=STATE)
+    event = Event(kind="acceptance_due", work_item=None, feature="F0001", remote_state=STATE)
 
     outcome = dispatcher.dispatch(event)
 
     assert outcome == "error"
     entry = find_error(dispatcher.status, event.key, STATE)
     assert entry is not None
-    assert entry.last_error == "UnhandledEvent: no handler for event kind crash"
+    assert entry.last_error == "UnhandledEvent: no handler for event kind acceptance_due"
