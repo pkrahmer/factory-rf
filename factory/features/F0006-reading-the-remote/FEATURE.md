@@ -33,6 +33,8 @@ The order is the story numbers. A later number may start first if it is the only
 - S0005 — The move rule reads the pull request first
 - S0006 — The watcher's command line
 - S0007 — The production wiring of the dispatcher
+- S0009 — A report that fails with a git error (proposed by the feature acceptance)
+- S0008 — Documentation after reading the remote (proposed by the feature acceptance)
 
 ## Decisions taken for the human
 

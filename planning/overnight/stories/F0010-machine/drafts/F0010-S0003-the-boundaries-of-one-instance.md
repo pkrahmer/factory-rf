@@ -12,7 +12,7 @@ Build the one function that turns the instance's settings and its token into the
 AGENT_HOME_DEFAULT = Path("/home/agent/.claude")
 AGENT_HOME_VARIABLE = "FACTORY_CLAUDE_HOME"
 CLAUDE_EXECUTABLE_VARIABLE = "FACTORY_CLAUDE"
-TOKEN_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
+CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"   # no word `token` in the name: ruff's S105 flags a string assigned to such a name, and `tests/test_process_search.py` allows no `noqa` in `src`
 RUNS_DIRECTORY_NAME = "runs"
 
 class InstanceSettings(BaseModel):
@@ -22,7 +22,7 @@ class InstanceSettings(BaseModel):
     token_file: Path | None = None            # the value of FACTORY_TOKEN_FILE; missing or blank is None
 ```
 
-`read_settings` sets `agent_home` from `FACTORY_CLAUDE_HOME`; when that is missing or blank it is `<HOME>/.claude` if `HOME` is set and not blank, else `AGENT_HOME_DEFAULT`. It sets `claude_executable` from `FACTORY_CLAUDE` (missing or blank: `claude`) and `token_file` from `FACTORY_TOKEN_FILE` (missing or blank: `None`).
+`read_settings` sets `agent_home` from `FACTORY_CLAUDE_HOME`; when that is missing or blank it is `<HOME>/.claude` if `HOME` is set and not blank, else `AGENT_HOME_DEFAULT`. It sets `claude_executable` from `FACTORY_CLAUDE` (missing or blank: `claude`) and `token_file` from `FACTORY_TOKEN_FILE` (`CREDENTIAL_FILE_VARIABLE`; missing or blank: `None`).
 
 `src/factory/application/boundaries.py` (extends `Boundaries`)
 
@@ -55,12 +55,12 @@ def build_boundaries(
 
 Rules:
 
-- `pygithub_service(repository, token)` builds `github.Github` with the token as its authentication and takes the repository by name without a request (`Github.get_repo(repository, lazy=True)`), so that construction calls out to nothing, and returns `PyGithubHostingService(<that repository>)`. It is the only code outside the class that touches `github`, and it lives in the module that already imports it.
+- `pygithub_service(repository, token)` builds `github.Github(auth=github.Auth.Token(token), lazy=True)` and takes the repository with `get_repo(repository)`, so that construction calls out to nothing (the `lazy` argument of `get_repo` itself is deprecated in PyGithub 2.10), and returns `PyGithubHostingService(<that repository>)`. It is the only code outside the class that touches `github`, and it lives in the module that already imports it.
 - `git_environment(helper)` returns exactly these five entries: `GIT_CONFIG_COUNT` = `2`, `GIT_CONFIG_KEY_0` = `credential.helper`, `GIT_CONFIG_VALUE_0` = `helper`, `GIT_CONFIG_KEY_1` = `core.sharedRepository`, `GIT_CONFIG_VALUE_1` = `group`. The first pair is the factory's only route to a credential (the helper reads the token file, see the token story); the second keeps the files git creates in the shared checkout writable for the group of the two users.
 - `git_options(settings)` is `GitOptions(identity=settings.git_identity, environment=git_environment())`.
 - `repository_name(url)` reads `owner/name` from `https://<host>/<owner>/<name>`, `https://<host>/<owner>/<name>.git`, `git@<host>:<owner>/<name>.git` and `ssh://git@<host>/<owner>/<name>.git`, with or without a trailing `/` or `.git`; `owner` and `name` are made of letters, digits, `-`, `_` and `.`. Any other text, a local path included, raises `SettingsInvalid` with `variable == "FACTORY_REPOSITORY_URL"`.
 - `read_hosting_token(path)` returns the content of the file without surrounding whitespace. A `None` path, a missing or unreadable file, and a blank content raise `SettingsInvalid` with `variable == "FACTORY_TOKEN_FILE"`.
-- `build_boundaries(settings, token, hosting=None)` returns a `Boundaries` of: `GitCli(settings.checkout, git_options(settings))`; `hosting` when it is given, else `pygithub_service(repository_name(settings.repository_url), token)`; `ClaudeCodeRuntime(settings.claude_executable, settings.state_directory / RUNS_DIRECTORY_NAME)`; `MakeProjectCommands(settings.checkout)`; `FrontmatterWorkItemReader()` and `FrontmatterWorkItemWriter()`; `JsonLinesCostRecordReader()` and `JsonLinesCostRecordWriter()`; `RuamelPipelineDefinitionReader()`; `FrontmatterAgentDefinitionReader(settings.agent_home)`; a `SystemClock()`; `TimestampedFactoryLog(<state directory>/factory.log, <that clock>)`; `JsonHealthStatusFile(<state directory>/health.json)`; `checkout=settings.checkout`; `settings=settings`. It starts no process and writes nothing. The token is used for PyGithub only and is kept nowhere else.
+- `build_boundaries(settings, token, hosting=None)` returns a `Boundaries` of: `GitCli(settings.checkout, git_options(settings))`; `hosting` when it is given, else `pygithub_service(repository_name(settings.repository_url), token)`; `ClaudeCodeRuntime(settings.claude_executable, settings.state_directory / RUNS_DIRECTORY_NAME)`; `MakeProjectCommands(settings.checkout)`; `build_work_item_reader()` (F0002 decision 13) and `FrontmatterWorkItemWriter()`; `JsonLinesCostRecordReader()` and `JsonLinesCostRecordWriter()`; `RuamelPipelineDefinitionReader()`; `FrontmatterAgentDefinitionReader(settings.agent_home)`; a `SystemClock()`; `TimestampedFactoryLog(<state directory>/factory.log, <that clock>)`; `JsonHealthStatusFile(<state directory>/health.json)`; `checkout=settings.checkout`; `settings=settings`. It starts no process and writes nothing. The token is used for PyGithub only and is kept nowhere else.
 - The only construction of `FrontmatterAgentDefinitionReader` in `src/factory` is in `factory.entry.wiring`, and its argument is `settings.agent_home`, so the agents are looked for where `FACTORY_CLAUDE_HOME` points.
 - The settings reach the services through `Boundaries.settings` and, where a story names it, as an argument; the wiring passes one and the same object to both, and a service never builds settings of its own.
 
@@ -71,15 +71,15 @@ Tests: `tests/domain/test_settings_boundaries.py`, `tests/application/test_bound
 1. `read_settings` sets `agent_home` to the value of `FACTORY_CLAUDE_HOME` when it is set, to `<HOME>/.claude` when only `HOME` is set, and to `/home/agent/.claude` when neither is set or both are blank (three cases).
 2. `read_settings` sets `claude_executable` to the value of `FACTORY_CLAUDE`, and to `claude` when the variable is missing or blank.
 3. `read_settings` sets `token_file` to the path in `FACTORY_TOKEN_FILE`, and to `None` when the variable is missing or blank.
-4. `repository_name` reads `owner/project` from `https://github.com/owner/project.git`, `https://github.com/owner/project`, `git@github.com:owner/project.git` and `ssh://git@github.com/owner/project.git`.
-5. `repository_name` raises `SettingsInvalid` with `variable == "FACTORY_REPOSITORY_URL"` for `/srv/project.git`, `https://github.com/project.git` and `https://github.com/a/b/c.git`.
+4. `repository_name` reads `owner/project` from `https://github.com/owner/project.git`, `https://github.com/owner/project`, `https://github.com/owner/project/`, `git@github.com:owner/project.git`, `git@github.com:owner/project` and `ssh://git@github.com/owner/project.git`, and `my.org/my_project-2` from `https://github.com/my.org/my_project-2.git`.
+5. `repository_name` raises `SettingsInvalid` with `variable == "FACTORY_REPOSITORY_URL"` for `/srv/project.git`, `https://github.com/project.git`, `https://github.com/a/b/c.git` and `https://github.com/owner/pro*ject.git`.
 6. `read_hosting_token` returns `example-value` for a file that holds `example-value` and a newline.
-7. `read_hosting_token` raises `SettingsInvalid` naming `FACTORY_TOKEN_FILE` for a `None` path, a missing file, and a file that holds only whitespace.
-8. `git_environment()` has exactly the five entries of the Rules with the helper `/usr/local/bin/git-credential-factory`, and `git_environment("/tmp/helper")` has the same entries with that helper as the value of `GIT_CONFIG_VALUE_0`.
+7. `read_hosting_token` raises `SettingsInvalid` naming `FACTORY_TOKEN_FILE` for a `None` path, a missing file, a path that is a directory (it cannot be read as a file) and a file that holds only whitespace.
+8. `git_environment()` has exactly the five entries of the Rules with the helper `/usr/local/bin/git-credential-factory`, and `git_environment("/opt/other-helper")` has the same entries with that helper as the value of `GIT_CONFIG_VALUE_0`.
 9. `git_options(settings)` has the identity of `settings.git_identity` and the environment `git_environment()`; with `GIT_USER_NAME=Ann` read into the settings, the identity's name is `Ann`.
 10. A `Boundaries` built without `settings` has `settings is None`, and `dataclasses.replace(boundaries, settings=settings)` returns a `Boundaries` holding those settings.
 11. `build_boundaries(settings, "example-value", hosting=fake)` returns a `Boundaries` whose `hosting` is that fake, whose `checkout` is `settings.checkout` and whose `settings` is `settings`.
-12. Its `git` is a `GitCli`, its `agent_runtime` a `ClaudeCodeRuntime`, its `project_commands` a `MakeProjectCommands`, its `agent_definitions` a `FrontmatterAgentDefinitionReader`, its `log` a `TimestampedFactoryLog` and its `health` a `JsonHealthStatusFile` (R5, R6: the concrete tools are picked here and nowhere else).
+12. Its `git` is a `GitCli`, its `agent_runtime` a `ClaudeCodeRuntime`, its `project_commands` a `MakeProjectCommands`, its `work_item_reader` a `FrontmatterWorkItemReader`, its `work_item_writer` a `FrontmatterWorkItemWriter`, its `cost_reader` a `JsonLinesCostRecordReader`, its `cost_writer` a `JsonLinesCostRecordWriter`, its `pipeline_reader` a `RuamelPipelineDefinitionReader`, its `agent_definitions` a `FrontmatterAgentDefinitionReader`, its `clock` a `SystemClock`, its `log` a `TimestampedFactoryLog` and its `health` a `JsonHealthStatusFile` (R5, R6: the concrete tools are picked here and nowhere else); the state directory and the checkout, which do not exist before the call, still do not exist after it (nothing is written).
 13. Its `agent_definitions.names()` lists the agents installed under `settings.agent_home` and not those under the test's own `HOME` (ST4.4, the wiring half).
 14. A search with `ast` over `src/factory` finds exactly one call of `FrontmatterAgentDefinitionReader(...)`, in `factory.entry.wiring`, and its argument is `settings.agent_home`.
 15. Its log and its health file lie under the state directory: after `boundaries.log.line("x")` the file `<state directory>/factory.log` ends with a line that ends in ` x`, and after `boundaries.health.write(HealthStatus())` the file `<state directory>/health.json` exists.
