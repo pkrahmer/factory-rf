@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 48
 blocked: null
 comments_seen: 2
@@ -280,3 +280,22 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
     - Security: no strings passed to a shell, no suppression markers, no secrets.
     - Quality: the docstrings are present and say what they should. There is no dead code and no lookup that duplicates `role_of`.
     - Ticket hygiene: the log records the main decision (the lease comes from the definition given to the constructor) and the rejected alternatives. `Assignment` matches what was built. Criterion 19 still says what the documenter must write.
+12. documenter: wrote the claim documentation (criterion 19). `make check` is green.
+
+    Files changed:
+    - `docs/project-guide.md`: added `PushFailed` to *Errors*. Added a new section, *The claim service*, which covers:
+      - the constructor and the instance-name rule;
+      - the order of the preconditions;
+      - what `claim` builds and writes, and the commit subject;
+      - that the push is the claim;
+      - that the stage-start commit is the last commit before the agent run, so anything the caller left uncommitted, a new branch's opening included, is part of it;
+      - how to set a work item up in tests.
+    - `docs/decisions.md`: added an entry on why the push is the claim (R19, R20), and why a rejected push leaves the local commit to the next tick's restore (F0006). It also says why the lease comes from the definition the caller gave the service.
+
+    Cross-read and found current: the project guide's claim data section (`Claim`, `state.claim`), *Boundaries*, *Kill points* (`BEFORE_PUSH` is reached by the git wrapper's push, as `claim` relies on) and *The git wrapper*'s push outcomes. I did not cross-read `README.md` or `docs/operator-guide.md`, but a grep of them for claim wording found nothing stale.
+
+    No findings for the coder. The code matches the Interface, and `claims.py` has the docstrings `CLAUDE.md` asks for.
+
+    I did not run the ticket's demo script and wrote no new runnable examples.
+
+    `make check`: check: green
