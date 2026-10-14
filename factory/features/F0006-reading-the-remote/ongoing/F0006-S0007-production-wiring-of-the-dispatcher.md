@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 77
 blocked: null
 comments_seen: 2
@@ -211,3 +211,23 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
    Stale but untouched: the project guide says `build_boundaries` and the concrete adapters are not wired yet. That stays true until F0010. The `factory-run` command that builds a `Tick` does not exist yet, and the new text says so.
 
    `make check`: check: green
+9. demo: I ran the one demo command from the repository root exactly as written. It met its `Expect:` line, and I have no findings.
+
+   Command 1 (`uv run python -c "…"`: builds `agent_environment` over a temporary scripts directory that holds an executable `factory-guard`, then prints the environment's keys, the `which` result, `HOME` and `NOT_YET_HANDLED`). It exited with code 0 and printed:
+
+   ```
+   ['HOME', 'PATH']
+   True
+   /home/factory
+   ('comment', 'ask', 'merged', 'closed', 'reject', 'hand_over', 'crash', 'expired', 'duplicate', 'pull_request_lookup', 'acceptance_due')
+   ```
+
+   Met `Expect:`: yes. It printed exactly the four expected lines, in order.
+
+   Checked against the acceptance criteria:
+   - Criterion 5: the output agrees with it. `NOT_YET_HANDLED` is the eleven kinds in the order of `EventKind`.
+   - Criterion 6: the output agrees with it. The keys are exactly `HOME` and `PATH`, `HOME` equals `str(home)`, and `factory-guard` is found on the `PATH`.
+   - The demo does not cover criteria 1–4, 7–9 or 11, and nothing in its output contradicts them.
+   - Criterion 10 (`make check`) is the factory's gate after this stage.
+
+   Open, carried from earlier entries: no command-line entry point builds a `Tick` yet. `handler_factory` is used only by the tests until a later story wires `factory-run`.
