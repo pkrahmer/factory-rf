@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 89
 blocked: null
 comments_seen: 0
@@ -92,3 +92,12 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built `src/factory/application/handlers/lookups.py` with `DuplicateHandler` and `PullRequestLookupHandler` (commit 122f04a). Each one takes `target_of(event).snapshot` and always raises `CannotHandle`. The reasons are `two work items share the id <id>` and `the pull request lookup for <branch> failed`. When `event.detail` is not empty, `: <detail>` is added, and a small shared helper `_with_detail` builds that suffix.
+      - Main design decision: neither handler takes any boundary. Their constructors take no arguments, as the Interface says, so a stop with no work to do cannot write anything. Counting, the cap and the keyed report stay with the dispatcher and `StopService`.
+      - Rejected alternative: passing `Boundaries` in for symmetry with the other handlers. It would go against the "no boundary" rule and would leave the handlers able to write.
+      - Tests: all the tests the tester wrote pass. These include the `ask` stop with no pull request (criterion 6) and the search for broad `except` clauses (criterion 8). The existing handler modules needed no change for either.
+      - Refactor: I read the diff and found nothing to change. The module is 38 lines and has no duplication.
+      - `make check`: green, coverage 99.24 %.
+      - Open: criterion 10 (the operator guide and project guide) belongs to the documenter.
+
+   `make check`: check: green
