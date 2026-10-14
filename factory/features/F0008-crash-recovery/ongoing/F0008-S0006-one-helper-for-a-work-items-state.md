@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 101
 blocked: null
 comments_seen: 0
@@ -127,3 +127,11 @@ Expect: two lines, `doing` and then `no state here`.
       - Security: no subprocess, no string-built commands, no suppression markers, no new dependency.
       - Quality: `require_state` has a docstring. The test helpers use the existing `tests/source_search.modules`, as `test_no_journal_reading.py` does. No dead imports: `WorkItemState` stays only where it is still used.
       - Hygiene: the Assignment matches what was built. The docs criterion (`docs/project-guide.md` names `require_state`, and the journal's "Imports" bullet gives the reason) is still right for the documenter.
+6. documenter: no findings. Documented `require_state` and the journal's private check in `docs/project-guide.md`. `make check` is green (coverage 99.54 %).
+   - Changed `docs/project-guide.md`, "The document and its error": added a paragraph naming `require_state(document, error)` as the one way to get a document's state when it must be there. It says that it returns `document.state` or raises the very instance passed, that the caller builds the exception, and that `tests/test_no_state_copies.py` searches `src/factory` for private copies and inline checks.
+   - Changed `docs/project-guide.md`, the journal's "Imports" bullet: it now says the journal cannot use `require_state` for the same import-cycle reason, and keeps its own private `_state_of`, the one other function that checks a state itself.
+   - Cross-read: `README.md`, `docs/operator-guide.md` and the rest of `docs/project-guide.md`. A grep finds no mention of `_state_of` or the old copies in them, so nothing else was stale. The diff changes no behaviour, exception type or message.
+   - I did not run the two Demo commands. They were not part of what I changed.
+   - Seen but not touched: nothing unrelated to this story.
+
+   `make check`: check: green
