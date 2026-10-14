@@ -14,7 +14,7 @@ from factory.application.handlers.recording import (
 from factory.application.stops import StopService
 from factory.domain.errors import CannotHandle
 from factory.domain.evaluation import required_claim_status
-from factory.domain.events import Event
+from factory.domain.events import Event, EventKind
 from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey
 from factory.domain.journal import (
@@ -87,7 +87,7 @@ class RecoveryHandler(Handler):
         recorder = WorkItemRecorder(self._boundaries)
         # The remote holds everything worth keeping; the dead run's leftovers are not trusted.
         recorder.check_out(branch)
-        head = self._remote_head(branch)
+        head = self._remote_head(branch, event.kind)
         entry_kind: JournalKind = "expiry" if event.kind == _EXPIRED else _KIND
         document = self._crash_recorded(target, head, entry_kind)
         subject = commit_subject(
@@ -184,11 +184,11 @@ class RecoveryHandler(Handler):
             raise CannotHandle(event.kind, f"work item {work_item} has no branch on the remote")
         return target
 
-    def _remote_head(self, branch: str) -> CommitId:
+    def _remote_head(self, branch: str, kind: EventKind) -> CommitId:
         head = self._boundaries.git.resolve(f"origin/{branch}")
         # The discard has just checked this ref out; the git interface only types it optional.
         if head is None:
-            raise CannotHandle(_KIND, f"branch {branch} is gone from the remote")
+            raise CannotHandle(kind, f"branch {branch} is gone from the remote")
         return head
 
     def _crash_recorded(
