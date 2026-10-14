@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 54
 blocked: null
 comments_seen: 0
@@ -252,3 +252,11 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
 6. coder: round 1. The reviewer's one finding (entry 5) asks for a test change, so I'm sending the story to the tester. I changed no code and no tests.
       - Test change: in `tests/domain/test_write_paths.py::test_an_unsafe_path_is_refused_before_anything_else`, add unsafe paths that also match a protected pattern, with write paths `["*"]`: `src/../feature.md` (matches `*/feature.md`) and `.claude/../a.py` (matches `.claude/*`). Each should get `<path> is not a path inside the checkout.`
       - `refusal` in `src/factory/domain/write_paths.py` (commit 03442ea) already checks safety before protected paths, so the new cases should pass without a code change. I didn't run them.
+7. tester: made the test change the human approved, as named in the coder's entry 6. This covers the reviewer's finding in entry 5.
+      - `tests/domain/test_write_paths.py::test_an_unsafe_path_is_refused_before_anything_else`: added two parametrized cases, both with write paths `["*"]`. Each is an unsafe path that also matches a protected pattern: `src/../feature.md` (matches `*/feature.md`) and `.claude/../a.py` (matches `.claude/*`). Both expect `<path> is not a path inside the checkout.` The test now covers criterion 11's protected-path side. Before this change, a `refusal` that checked protected paths before safety would still have passed.
+      - I changed nothing else.
+      - `make test`: test: green. The new cases pass against the existing code (commit 03442ea), as the coder expected.
+      - `make lint`: lint: green.
+
+   `make lint`: lint: green
+   `make test`: test: green

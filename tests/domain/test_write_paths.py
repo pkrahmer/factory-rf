@@ -160,6 +160,8 @@ def test_a_protected_path_is_refused_even_under_a_matching_write_path(path: str)
         ("/pyproject.toml", ["*"]),
         ("../CLAUDE.md", []),
         ("", ["*"]),
+        ("src/../feature.md", ["*"]),
+        (".claude/../a.py", ["*"]),
     ],
 )
 def test_an_unsafe_path_is_refused_before_anything_else(path: str, write_paths: list[str]) -> None:
