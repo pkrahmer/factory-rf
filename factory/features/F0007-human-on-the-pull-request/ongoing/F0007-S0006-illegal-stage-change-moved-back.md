@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 87
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -78,3 +78,6 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface says "A failing `set_labels` raises; the correction stays recorded." No criterion tests it. Two coders could read it two ways and both pass. Option A (my choice): add a criterion before the two closing ones: "When `set_labels` fails after the push, `handle` raises and the remote branch still holds the correction commit with the restored stage and the `move_back` entry." Option B: drop the sentence from the Interface.
+   2. The Interface lists an unreadable parent among the cases that raise `CannotHandle("reject", ...)`. Criterion 14 covers only a parent without the work item file. Option A (my choice): add a criterion for a parent whose work item file cannot be read (for example invalid frontmatter) that raises `CannotHandle` with kind `reject` and writes and posts nothing. Option B: drop "an unreadable parent" from the Interface list, since F0006-S0005 owns that case.
+   The other checks passed: Interface, Demo, architecture and scope.
