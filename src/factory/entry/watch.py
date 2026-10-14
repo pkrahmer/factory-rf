@@ -57,14 +57,12 @@ def main(
     """Parse the arguments, `argv` or the command's, then watch with the boundaries given."""
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.parse_args(sys.argv[1:] if argv is None else argv)
+    out_stream = sys.stdout if out is None else out
+    err_stream = sys.stderr if err is None else err
     if boundaries is None or instance is None:
-        (sys.stderr if err is None else err).write(
-            f"{_PROGRAM}: no instance settings are wired yet\n"
-        )
+        err_stream.write(f"{_PROGRAM}: no instance settings are wired yet\n")
         return _NOT_WIRED
-    return run_watch(
-        boundaries, instance, sys.stdout if out is None else out, sys.stderr if err is None else err
-    )
+    return run_watch(boundaries, instance, out_stream, err_stream)
 
 
 if __name__ == "__main__":
