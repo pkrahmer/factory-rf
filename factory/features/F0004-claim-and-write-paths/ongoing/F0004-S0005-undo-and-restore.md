@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 56
 blocked: null
 comments_seen: 2
@@ -204,3 +204,14 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: the tester corrected the setup helper (entry 7), and `make check` is now green: all 19 tests in `tests/application/test_undo.py` pass, with total coverage at 99.68 %. The implementation is unchanged from commit 4cfd5a1 and stays in `src/factory/application/undo.py`:
+      - `UndoReport` is frozen and forbids unknown fields.
+      - `UndoService.undo` works in the Interface's order. First it gets the settings from `WritePathService.at` at the stage-start commit. Then it reads the baseline before any path changes; an absent or unreadable baseline raises `WorkItemFormatError` naming the path. Next it makes one `revert_paths` call for the refused paths from `changed_paths`. Last it restores the work item: if the file is readable it gets `restore_state_and_journal` and is written only when that changes it; if it is missing or unreadable it is checked out whole.
+
+      Main decision: I check the in-progress rule on the path string (`factory/features/<dir>/in-progress/<file>`, exactly three segments after `FEATURES_DIRECTORY`), in a private helper beside `refusal`. I rejected `folder_of`, because it returns `None` for cost-record files and other non-work-item files, as the Interface says. A work item that was refused and reverted with the other paths then reads back equal to its restore, so it is in `reverted` with `restored_work_item` false (criterion 12), and no special case is needed.
+
+      Refactor: I re-read the diff and found nothing to change. The functions are small and named, and there is no duplication or dead code, so there is no refactor commit.
+
+      Noticed, not touched: writes to ignored paths and outside the checkout are not seen. That is in scope for v2, as the Assignment says. The docs criterion (20) is the documenter's.
+
+   `make check`: check: green
