@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 58
 blocked: null
 comments_seen: 0
@@ -193,3 +193,20 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
    - An unknown stage name raises `KeyError` from the definition's `stages` dict.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`, which covers `src/factory/domain/prompts.py`, `src/factory/application/task.py`, `tests/domain/test_prompts.py` and `tests/application/test_task.py`. I read the code against the Interface and all 24 criteria.
+
+   - Criteria: each of criteria 1–22 has a test that checks what the criterion says.
+     - Failing sides are tested: a stage without a role (17), a missing agent file (18), a form absent at `origin/main` (21), and a form changed only in the work tree (20).
+     - Both sides of every model limit are tested (22): `round` 0/-1, `pull_request` 1/0, `test_change_entry` 1/0. The tests also cover frozen models and unknown keys.
+     - The coder's entry says the factory's `make check` was green.
+   - Architecture: `prompts.py` is in the domain layer and uses only pydantic and domain imports. `task.py` is in the application layer. It reaches git only through `Boundaries.git.show_file` and the agent home only through `AgentDefinitionReader`, and it uses no concrete tool.
+   - Shared decisions: `compose` computes `allowed_decisions` once and passes the same list to `PromptFacts` and to `AgentRunRequest`.
+   - Environment: copied with `dict(...)` and passed on unchanged.
+   - Mode line: decided from `last_record(kind="result")` and its speaker. The entry text is never read.
+   - Security and quality: no secrets, no shell, no suppression markers. Names, docstrings and why-comments (`FORM_REF`, the last-result rule) are as `CLAUDE.md` asks.
+
+   Considered and not raised:
+   - `_round` raises `WorkItemFormatError` when the document has no state (`task.py`). This is beyond the Interface and no test covers it. It is not a finding: `mypy --strict` needs the check, it copies `journal._state_of`, and the coder disclosed it. The Interface does not describe a stateless document at all; a later story that relies on this case should state it.
+   - `compose` raises `KeyError` for an unknown stage and `ValueError` for a stage without a role. The Interface does not state either rule, so neither is a gap against this story.
