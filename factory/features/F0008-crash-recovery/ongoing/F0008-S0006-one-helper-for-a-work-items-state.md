@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 101
 blocked: null
 comments_seen: 0
 round: 0
@@ -91,3 +91,9 @@ Expect: two lines, `doing` and then `no state here`.
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: `require_state(document: WorkItemDocument, error: Exception) -> WorkItemState` in `factory.domain.work_item` is concrete. The table names all 17 call sites with module, location and exact exception. I checked that `src/factory` has 10 `def _state_of` copies and that `factory.domain.journal` imports under `TYPE_CHECKING`, which matches the Assignment.
+   - Criteria: 1 and 2 are each one test function (2 is parametrized over three exception types). 3 and 4 are `ast` search tests with positive cases written into the test and a negative case over `src/factory`. 5, 6 and 7 are the usual closing criteria. The function has two rules, a returned state and the raised instance, and criterion 2 covers the failing side. Every Interface comment has a criterion.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: the grep output and exit code, and the two printed lines.
+   - Architecture: the helper sits in the domain layer, and application and adapters import downward. The journal exception is justified by the import cycle, and a comment will say so.
+   - Scope: this is the refactoring that FEATURE.md lists as S0006, decision 20. It changes no behaviour. CLAUDE.md is not touched, and no test is changed.
