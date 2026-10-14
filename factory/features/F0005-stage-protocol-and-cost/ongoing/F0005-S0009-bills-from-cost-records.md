@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 66
 blocked: null
 comments_seen: 0
@@ -191,3 +191,10 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Noticed, not touched: the search test already passed on the real tree. No module in F0005 had a local variable named `entry_text`, so nothing needed renaming.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read every test against its criterion. Criteria 1–22 each have tests that check what the criterion names. The failing sides are covered: failed runs (died, time_limit, budget), unknown cost, turns and tokens being skipped, no file on any ref giving None, unpushed local commits, journal text, non-work-item branches, `F1`, two arguments, an in-flight branch without a file, and negative counts and unknown keys tested on both sides of zero. The search test's eight failing cases run on `ast.parse` trees, and the allowed modules are tested too. Criterion 8 is a real test: if the service read main, the branch's file would sit at the backlog path with no sidecar there, giving 0 runs, not 2. The coder's entry reports `make check` green.
+      - Architecture: `domain/bills.py` is pure (Pydantic and Decimal only). `BillService` sits in application and depends only on the `Git` and `CostRecordReader` interfaces. `entry/bill.py` reaches the adapters only through `wiring.build_bill_service`, which is in `__all__`. No `dict[str, Any]` crosses a boundary.
+      - Security: nothing to flag. No subprocess, no strings built into commands, no suppression markers. The argument is checked against the id pattern before it is used.
+      - Quality: `bill`, `bills_by_stage` and `total` share one per-record-bill-plus-sum path, so the skip-unknown rule lives in one place (`_record_bill`). `parse_work_item_file_name` already requires `.md`, so a sidecar can never be taken for the work item file. Docstrings are present on the public names and match what the code does.
+      - Rejected as findings: `_is_work_item_id` in `src/factory/entry/bill.py` rebuilds the id regex from the domain's `STORY_ID|ACCEPTANCE_ID` constants instead of calling a public domain predicate. No such public predicate exists, and the coder's entry explains why it rejected the alternatives. It reuses domain constants rather than copying them. The Name and WorkItemId patterns on `StageBill` and `WorkItemBill` have no refused-side test. They are existing domain types, and the Interface lists only the counts and unknown keys as the limits to test.
+      - Ticket hygiene: the Assignment matches what was built. The coder's log explains the main design choice and what it rejected. Criterion 24 still says what the documenter has to write.
