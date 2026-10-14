@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
 from factory.domain.errors import WorkItemFormatError
 
+DESCRIPTION = "Description"
 ACCEPTANCE_CRITERIA = "Acceptance criteria"
 SMOKE_TEST = "Smoke test"
 JOURNAL = "Journal"

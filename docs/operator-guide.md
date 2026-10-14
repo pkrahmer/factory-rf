@@ -420,6 +420,25 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 - Exit status: 0 after printing; 1 when the pipeline definition on `origin/main` is invalid (the fault goes to standard error as `factory-watch: <fault>`, standard output stays empty, no stop is raised); 2 for an unknown option, and while the instance settings are not wired (F0010-S0001): then `factory-watch: no instance settings are wired yet` goes to standard error. Until F0010 the installed command therefore ends with 2; the code is reached by `factory.entry.watch.run_watch`. A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
 - v1's `--follow` mode and its `factory-last-line` file are gone: `--follow` is an unknown option, and nothing writes that file. A file of that name left by v1 is not read and can be deleted.
 
+## The hand-over at the approval
+
+When a work item reaches an approval stage, the factory shows you on its pull request what to decide. `HandOverHandler` (in `factory.application.handlers.hand_over`) does this for the `hand_over` event. It is built but not yet registered (`hand_over` is still in `NOT_YET_HANDLED`), so until it is, the event is a counted error as described under "An event that keeps failing".
+
+It does these things, in this order:
+
+1. **Replaces the pull request description.** What you or the factory wrote there before is gone. The new description has these sections, in this order, each headed `## <name>`: Description and Acceptance criteria (the story's own sections, verbatim), Tests, Review, Documentation and Smoke test (the text of the latest `result` entry of the tester, reviewer, documenter and smoke tester), and Commits (a code block with one line per commit beyond `main`: the first seven characters of the id and the subject). A story section that is missing or empty, and a report whose role never recorded a `result`, show `none`. The reports are found by the journal's data (speaker and kind), never by the text of an entry. The description ends with a paragraph saying that a merge accepts the story and that a close with a comment sends it back.
+2. **Marks the pull request ready for review.** A draft says the factory works; ready says you decide.
+3. **Posts the cost table**, headed `Cost of this work item so far`, read from the cost records committed on the work item's branch (see "What a work item cost"). The post is keyed by the number of the latest `result` entry, so a repeat does not post it twice.
+4. **Records `handed_over = <stage>`** in the work item and pushes, in one commit with the subject `work item <id>: handed over at <stage>`. This comes last.
+
+A work item whose `handed_over` already equals its stage is left alone: no description change, no post, no commit. A stage that is not an approval, or a work item without a pull request, is a `CannotHandle` for `hand_over` and changes nothing.
+
+### When the hand-over fails or is killed
+
+Every step before the record can be repeated safely, and nothing is recorded until they have all happened. A failure or a kill anywhere (the hosting service is down, the factory dies after the post) leaves `handed_over` unset, so the factory raises the event again on the next tick and completes the hand-over. You do nothing; there is never a second cost table post.
+
+A hand-over that fails every time is a counted error like any other: it is tried on three ticks, and then one report is posted on the pull request and the event is capped (see "An event that keeps failing").
+
 ## A merge archives the story
 
 A merge of a story's pull request, by any method (merge commit, squash or rebase), accepts the story as it is, at whatever stage it has reached: working, waiting for you, or at an approval stage. The merged handler (`MergedHandler`) then archives it on `main`, in one commit with the subject `work item <id>: merged, archived`:
@@ -538,7 +557,7 @@ The dispatcher hands each event to its handler and counts what goes wrong, per e
 
 Only the run handler is registered today. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup` and `acceptance_due`. The common ones lead to this today:
 
-- `hand_over`: a work item reached an approval stage.
+- `hand_over`: a work item reached an approval stage. `HandOverHandler` exists but is not registered yet (see "The hand-over at the approval").
 - `merged`: you merged a waiting work item's pull request.
 - `ask`: a question waits to be posted (an agent's `question`, or the attempts cap). `AskHandler` exists but is not registered yet.
 - `comment`: you commented on the pull request. `CommentHandler` exists but is not registered yet.
