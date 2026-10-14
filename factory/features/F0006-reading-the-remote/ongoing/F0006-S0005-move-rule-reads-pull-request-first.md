@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 75
 blocked: null
 comments_seen: 2
@@ -218,3 +218,20 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
    - Docs criterion 27 is the documenter's.
 
    `make check`: check: green
+7. reviewer: no findings.
+
+   What I checked, against `git diff main...HEAD -- . ':!factory'`:
+   - Acceptance criteria 1–25: each one has a test that exercises it. The domain `FIXTURE` in `tests/domain/test_move_rule.py` matches `PIPELINE_YAML` stage for stage. Several tests would fail if the rule they name were removed:
+     - The merge-commit test (criterion 10): without the merge check, git log still lists the merge commit, which differs from both of its parents, so the code would go on to report a stage change.
+     - The tests for the added file and the deleted file (criteria 11 and 24): without the missing-file check, the code would fail on the missing text.
+     - The `move_back` test with an unchanged journal length (criterion 25).
+     - The reject tests (criteria 14–17): they list `illegal_changes` in reverse, so snapshot order is what decides, and they record the lookup's calls to show it is called once or not at all.
+
+     The refused side of every Interface rule is tested: an unknown stage on either side, a skipped stage, `done` from a stage that is not an approval stage, a failed lookup that skips nothing, and the `Name`/`WorkItemId` patterns on both sides. The coder's entry reports `make check` green.
+   - Architecture: `factory.domain.move_rule` imports only from the domain. `RemoteWorkItems.last_stage_change` reaches git only through `Git.log`, `Git.is_ancestor` and `Git.show_file`, and reads files through `WorkItemReader.parse`. `Watcher` fills `illegal_changes`. No new dependency and no `dict[str, Any]`.
+   - Security: no subprocess, no strings built into commands, and no suppression markers.
+   - Quality:
+     - `evaluate` looks up the pull request once, and both `_reject` and `_human_signal` use that one result, so the at-most-once rule is easy to see in the code.
+     - `_reject` recognises the waiting work item by object identity. That is correct because the waiting pair is built from `facts.snapshots` itself.
+     - Nothing dead is left (`_signal_of` is gone and nothing references it), and the public names have docstrings.
+   - Ticket hygiene: log entry 6 names the main decision (a lookup step separate from the step that interprets it) and the alternative it rejected (a callback that remembers its result). The Assignment matches what was built. Criterion 27 still describes what the documenter has to write.
