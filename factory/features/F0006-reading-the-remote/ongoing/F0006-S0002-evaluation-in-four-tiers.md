@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 72
 blocked: null
 comments_seen: 2
@@ -204,3 +204,21 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I implemented the four-tier evaluation and the watcher. `make check` is green, and all the tester's tests for criteria 1 to 25 pass. Commits: 2bb4467 (feat) and 7e09ef2 (refactor).
+
+   What I built:
+   - `src/factory/domain/events.py` holds `EventKind` and `Event`. Frozen with extra keys forbidden, it has one `model_validator` that ties `work_item` and `feature` to the kind, and `key`.
+   - `src/factory/domain/evaluation.py` holds `PullRequestObservation`, `EvaluationInput`, `PullRequestLookup`, `ClaimStatusOf`, `waiting`, `question_posted` and `evaluate`. `evaluate` first checks for duplicates (tier 1). It then validates every snapshot's state and stage before any definition lookup. Then it chains three private tier functions with `or`: `_human_signal`, `_agent_at_work` and `_new_work`. Each returns `Event | None`, and the empty `idle` at `main_commit` is the fallback. `_event` builds every work-item event, so `remote_state` is the `branch_commit`, else `main_commit`, in one place.
+   - `src/factory/application/watcher.py` holds `Watcher`. It resolves `origin/main` first: a `None` raises `GitError("resolve origin/main", None, "origin/main does not resolve")`. It then reads through `RemoteWorkItems` and passes `ClaimService(...).status` as the claim status. Its lookup calls `get_pull_request` and calls `list_comments` only for an open pull request. The watcher does not fetch; the caller fetches, as the tests do.
+
+   Main design decision: the tiers are three functions that each return `Event | None`, chained with `or`, so the order of the chain is the tier order. I rejected a loop over a tuple of tier functions, because it forced one signature on all of them and left unused parameters.
+
+   Small choices the Interface leaves open:
+   - If `claim_status` returns `"none"` for a set claim, which cannot happen with `claim_status` from `lease`, tier 3 falls through to tier 4.
+   - The detail of a tier-2 `idle` is `"<id> waits for the human"`. The detail of a held-claim `idle` is `"<id> is held by <instance>"`.
+
+   Refactor: I renamed `_open_signal` to `_signal_of_observation`, because it also handles merged and closed pull requests. I also moved the `_Pairs` alias up beside the other aliases. Nothing else needed changing.
+
+   Noticed but not touched: the docs for criterion 27 belong to the documenter.
+
+   `make check`: check: green
