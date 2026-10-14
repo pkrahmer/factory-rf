@@ -7,6 +7,7 @@ import re
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+from factory.domain.git import CommitId
 from factory.domain.identifiers import WorkItemId
 
 if TYPE_CHECKING:
@@ -87,4 +88,13 @@ def findings_question(findings: Sequence[FormFinding]) -> str:
         f"The work item's form has findings, so the stage cannot move forward: {numbered}."
         " What should happen? Answer with a comment; the stage then runs again."
         " Close the pull request to discard the work item."
+    )
+
+
+def error_report_text(event_key: str, error: str, remote_state: CommitId, cap: int) -> str:
+    """The report posted when one event failed `cap` times on one remote state."""
+    return (
+        f"The factory failed {cap} times on `{event_key}` and has stopped retrying it."
+        f" Last error: {error}. A new commit on the work item's branch"
+        f" (now at {remote_state[:12]}) makes the factory try again."
     )
