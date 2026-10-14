@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 53
 blocked: null
 comments_seen: 0
 round: 0
@@ -105,3 +105,9 @@ Expect: one line, `['src/factory/application/claims.py']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: `factory.domain.lease` (`ClaimStatus`, `lease_age`, `lease_expired`, `claim_status`) and `ClaimService.status` / `release` in `factory.application.claims` have concrete signatures. The rules are stated precisely: the `>=` boundary, a negative age, "own" without consulting `now`, no look at the definition's `lease_duration`, and `ValueError` for a document with no state.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for each side. Passing side: 1, 2, 4, 5, 6, 7, 9, 11. Failing or refused side: 2 (59:59 not expired), 3 (negative age), 7 (held versus expired), 10 (the definition's value is ignored), 12 (no claim), 13 (`state` is `None`). Search tests: 14 and 15. The "variable called `claim_status` is not a finding" clause is covered through 14's finding of exactly the imports and attribute accesses. Criterion 8 covers "reads no clock".
+   - Demo: both blocks are runnable. Every `Expect:` line is checkable against the printed output (six lines; one list).
+   - Architecture: the pure functions sit in `domain`, the service in `application`. `Claim`, `WorkItemState` and `WorkItemDocument` are the existing DTOs. No layer is crossed.
+   - Scope: the story stays inside F0004's scope (lease clock, `status`, `release`, search tests, R20 and R21). It leaves out the watcher and the rerun after a crash, which `FEATURE.md` assigns to F0006 and F0008.
