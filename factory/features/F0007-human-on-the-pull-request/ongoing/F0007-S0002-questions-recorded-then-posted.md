@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 83
 blocked: null
 comments_seen: 0
 round: 0
@@ -97,3 +97,9 @@ Expect: first the attempts-cap question as two paragraphs: `Stage doing stalled 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: `attempts_cap_question` and `AskHandler(boundaries, definition)` are named with signatures and module paths. The text, the key, the recording subject and every `CannotHandle` case are stated. `Blocked` in `work_item.py` is a closed Literal of exactly the five values the rules list, so no blocked value is left unspecified.
+   - Criteria: each can be tested by one test function. The text (1), the key and prefix (2, 8) and the latest question (4, 16) are covered. Each rule has its failing side: no question record (6), attempts below the cap (9), no stall record (10), no pull request (15) and a failed post (11). The Interface's no-commit rule for recorded questions is in 3. The kill and restart cases are 5, 12, 13 and 14. No criterion covers a `GitError` or `PushFailed` during the recording; this is minor, since the failing-call rule is tested through `HostingServiceError` and the recorder is S0001's.
+   - Demo: the command is runnable against existing classes (`FakeHostingService`, `PipelineDefinition`, snapshots). Its `Expect:` line gives checkable output: the two-paragraph text, the count `1` and the exact list of body lines.
+   - Architecture: the handler sits in `application/handlers`, the text in `domain/post_texts`, and the hosting service is reached through its interface and the recorder. Domain code does no I/O.
+   - Scope: this is the scope line "Questions" of F0007, and nothing in "Out of scope" is touched. The crash-cap and send-back questions are only posted here.
