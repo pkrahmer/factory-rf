@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 63
 blocked: null
 comments_seen: 0
@@ -152,3 +152,25 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
    - Code vs Interface: no findings.
 
    `make check`: check: green
+7. demo: I ran the one demo command from the repository root, exactly as written. It met its `Expect:` line and I found nothing.
+
+   Command 1 (`uv run python -c "…decide…"`, a pipeline definition with `review` at `round_cap` 2):
+   ```
+   0 3 doing 1 None
+   1 3 doing 2 None
+   2 4 review 3 round_cap
+   This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the work item.
+   6
+   question
+   ```
+   It met the `Expect:` line: there are 6 lines, and each one matches its expected text exactly.
+   - Lines 1 to 3: rule 3 below the cap, then rule 4 once the new round passes the cap. The stage stays at review, round is 3 and `blocked` is `round_cap`.
+   - Line 4: the `round_cap_question(3, 2)` text.
+   - Line 5: rule 6 for the forward decision.
+   - Line 6: `blocked` is `question` for the decision `question`.
+
+   Acceptance criteria check: the output contradicts none of the criteria. It shows criteria 5, 6 and 7 working at a different cap (2): the rounds increase, the cap applies on both sides, and rule 4 keeps the stage, gives round + 1, `blocked="round_cap"` and the exact question text. It also shows criterion 1 (forward decision gives rule 6), criterion 3 (`question` blocks) and criterion 14 (the template of the round-cap text).
+
+   The demo does not exercise criteria 2, 4, 8 to 13, 15, 16 and 18. The tester's and reviewer's entries cover those through tests and docs. According to the documenter, the last `make check` was green. I did not run it in this stage.
+
+   Open: nothing.
