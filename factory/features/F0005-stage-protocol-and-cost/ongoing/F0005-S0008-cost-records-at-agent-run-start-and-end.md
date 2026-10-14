@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 65
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Cost records at agent run start and end
 
 ## Assignment (as of log entry 1)
@@ -96,3 +104,107 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `costs.py` names `CostRun` and `CostRecorder` with signatures. The changes to `LaunchedStage`, `AgentAftermath` and `StallContext` are concrete. The wiring in `StageLauncher`, `AfterAgent`, `StageFinisher` and `StallService` is stated call by call. The behaviours in the comments are `begin`, `complete`, `write` and the sidecar being left out of the undone paths. Each has a criterion: 1 and 2 for `begin`, 4 to 7 for `complete`, 9 for `write`, 14 for the undone paths.
+   - Criteria: each is testable by one test function. The failing side is covered. Criterion 5 covers unknown staying `None`, and 6 covers a reported zero staying zero. Criterion 13 covers a failing run (`ok` is `False`). Criterion 3 covers nothing pushed before the run. Criterion 12 covers a record not duplicated. Criterion 15 covers unknown keys and frozen. One small gap: a `StallContext` with `cost=None` writes no sidecar. It is a default-path behaviour and not a stated rule, so I did not ask.
+   - Demo: `uv run pytest tests/application/test_costs.py` is runnable. Its `Expect:` line is checkable (last line `passed`, no `failed` or `error`).
+   - Architecture: the module sits in `factory.application`. It reaches the sidecar through `CostRecordReader` and `CostRecordWriter`, and it imports `StartedStage` under `TYPE_CHECKING` to avoid the import cycle. The layers are respected.
+   - Scope: the story is within FEATURE.md's "Cost records" scope. `image` stays `None` (F0010), the bill is S0009's, and the crash discard is F0008's. Decisions 20, 27 and 32 match the story.
+3. tester: Wrote the tests for every criterion in `tests/application/test_costs.py` (the only file created). It defines `SidecarRuntime`, a subclass of `ObservingRuntime` that stays as S0003 wrote it. When called, it reads the sidecar from the work tree and from the remote branch head, then delegates. The stage, stall and result paths go through `StageRunner`. Criteria 4–7 read `LaunchedStage.cost` from `StageLauncher.launch`. The work item is a complete story, with a Makefile of green `lint`/`check`/`test` targets (`lint` red for criterion 12).
+
+   - criterion 1: tests/application/test_costs.py::test_the_sidecar_holds_a_started_record_while_the_runtime_runs
+   - criterion 2: tests/application/test_costs.py::test_each_run_gets_a_new_hex_id_and_its_record_comes_after_the_earlier_ones (an earlier `intake` record on the branch, then a died run and a completed run)
+   - criterion 3: tests/application/test_costs.py::test_no_cost_record_is_pushed_before_the_run [first-stage, later-stage]
+   - criterion 4: tests/application/test_costs.py::test_a_completed_run_completes_its_record_with_the_reported_measures
+   - criterion 5: tests/application/test_costs.py::test_unreported_measures_of_an_ended_run_stay_unknown [died, time_limit]
+   - criterion 6: tests/application/test_costs.py::test_a_reported_zero_cost_and_zero_tokens_stay_zero
+   - criterion 7: tests/application/test_costs.py::test_the_completed_record_replaces_the_started_one
+   - criterion 8: tests/application/test_costs.py::test_a_run_after_a_stall_records_the_counted_attempt (state starts with `attempts: 1`)
+   - criterion 9: tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo [overwritten, deleted] (the pushed sidecar must equal an exact expected `CostRecord`)
+   - criterion 10: tests/application/test_costs.py::test_the_result_commit_of_a_moving_stage_holds_the_completed_record
+   - criterion 11: tests/application/test_costs.py::test_the_stall_commit_of_an_ended_run_holds_its_record [died, time_limit]
+   - criterion 12: tests/application/test_costs.py::test_the_stall_commit_of_a_red_check_holds_the_record_once
+   - criterion 13: tests/application/test_costs.py::test_a_failing_run_is_committed_with_a_record_that_is_not_ok [no_result, time_limit, budget, died]
+   - criterion 14: tests/application/test_costs.py::test_an_agent_inside_its_write_paths_is_not_told_of_the_sidecar_undo [sidecar-deleted, sidecar-reverted]
+   - criterion 15: tests/application/test_costs.py::test_cost_runs_and_stall_contexts_are_frozen_and_forbid_unknown_keys
+   - criteria 16 and 17 are the factory's `make check` and the documenter's; no tests.
+
+   Earlier tests: none changed. No S0003/S0004/S0005/S0007 test builds `LaunchedStage` or `AgentAftermath` by keywords. The frozen/unknown-key tests use `dict(launched)` and `dict(aftermath)`, which will carry `cost`. `StallContext.cost` defaults to `None`, and no exact `UndoReport` comparison in those modules covers a launched stage's undo. The coder should still watch the earlier launch-driven tests: `begin` now leaves an untracked sidecar in the work tree.
+
+   `make test` once: a collection error, `ModuleNotFoundError: No module named 'factory.application.costs'`. That is the one module the runner could not import. `make lint` is green after `ruff format`. I skipped the type check as the stage says: `StallContext(cost=...)` and `LaunchedStage.cost` do not exist yet.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the cost records for agent runs. `make check` is green and coverage is 99.4 %. Commits: 955e025 (feat) and 4cc62d8 (refactor).
+
+   - `src/factory/application/costs.py` (new):
+     - `CostRun` is frozen and forbids unknown keys.
+     - `CostRecorder.begin` reads the sidecar in the work tree and adds a `started` record. The record has a `uuid4().hex` run id, the state's `attempts` and `Clock.now()`. `begin` writes the sidecar and returns the run.
+     - `complete` replaces the record with the same run id by its completed form. It copies duration, end reason, turns, tokens and cost exactly as reported (`None` stays `None`, a reported zero stays zero), then writes.
+     - `write` replaces the file with the records held in memory.
+     - `StartedStage` is imported only under `TYPE_CHECKING`, as the interface says.
+   - `src/factory/application/stage.py`:
+     - `LaunchedStage.cost` and `AgentAftermath.cost` are added.
+     - `StageLauncher.launch` calls `begin` right before the runtime runs and `complete` right after it returns.
+     - `AfterAgent.process` calls `CostRecorder.write(launched.cost)` right after its undo. Its `_stall` now takes the `LaunchedStage`, so every `StallContext` gets `cost=launched.cost`.
+     - `StageFinisher._stall_red` passes `aftermath.cost`.
+   - `src/factory/application/stalls.py`: `StallContext.cost` is added, defaulting to `None`. `StallService.stall` rewrites the sidecar right after its undo when `cost` is set.
+
+   Main decision: the role passed to `begin` comes from the pipeline definition (`definition.stages[stage].role`), which `StageLauncher` now keeps. The alternative I rejected was reading it from the `AgentDefinition` the composer returns, because that would tie the record to the agent file's naming rather than the stage table.
+
+   Refactor: the "stage has no role" check was now in two places, so I moved it into one module helper, `_role_of`, in `stage.py`. I changed nothing else.
+
+   Noticed but did not touch:
+   - `AfterAgent._entry` already left the sidecar out of the undone paths before this story, so no change was needed for criterion 14.
+   - `begin` raises `ValueError` for a document without state (`costs.py` line 42). That branch is not covered, and the launcher refuses such a document earlier anyway.
+   - Intake noted a gap: no test checks that a `StallContext` with `cost=None` writes no sidecar. The code doesn't write one in that case.
+
+   No test changed. `## Assignment` is unchanged.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: each of criteria 1–15 has a test in `tests/application/test_costs.py`, and each test checks what its criterion says:
+     - Criterion 1 checks every measure and `image` for `None` while the runtime runs.
+     - Criterion 3 compares the remote sidecar before the run, for the first stage and for a later stage.
+     - Criterion 6 checks that a reported zero stays zero, not `None`.
+     - Criterion 9 compares the pushed sidecar to an exact `CostRecord`, for both an overwritten and a deleted sidecar.
+     - Criterion 12 counts the run id in the sidecar text.
+     - Criterion 15 covers frozen and unknown keys through `setattr` with the field's name in a variable, and through `type[BaseModel]`.
+     - The coder's entry reports the factory's `make check` green, with 99.4 % coverage.
+   - Interface rules: `begin` is called after compose and right before the runtime, and `complete` right after it (`src/factory/application/stage.py`). The sidecar is rewritten after the undo in `AfterAgent.process` and in `StallService.stall`. `cost` is passed in every `StallContext` that `AfterAgent._stall` and `StageFinisher._stall_red` build. `StartedStage` is imported under `TYPE_CHECKING`.
+   - One side not tested: no test checks that `StallContext(cost=None)` writes no sidecar. Intake already noted this. I did not count it, because with no records there is nothing that could be written.
+   - Architecture: `costs.py` is in `factory.application`. It reaches the sidecar only through `Boundaries.cost_reader` and `cost_writer`. No `dict[str, Any]` crosses a boundary, and `CostRun` is frozen and forbids unknown keys.
+   - Security: nothing found. The diff has no suppression markers, no shell or SQL, and no secrets.
+   - Quality:
+     - `_role_of` removes the duplicated "stage has no role" check.
+     - `_completed` re-validates through `CostRecord` instead of `model_copy`, so the record's started/completed rules are checked.
+     - The `ValueError` for a document without state in `CostRecorder.begin` is needed to narrow the type, and it matches `_launchable_stage`.
+     - Docstrings and why-comments are present and accurate.
+   - Ticket hygiene: the coder's log explains the main decision, taking the role from the pipeline definition, and the rejected alternative, the agent file. `Assignment` matches what was built, and the docs criterion (17) still says what the reader needs to know.
+6. documenter: wrote the cost-record lifecycle (criterion 17). `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`, *Cost records*: removed "later" and "not wired yet". Added the subsection "When a record is created, completed and committed". It covers `begin` and `complete` around the runtime, and `None` staying `None` while a reported zero stays zero. It says the records travel with the next commit and are never pushed alone, and that `write` rewrites the sidecar after every undo. It also gives the `CostRun` fields.
+   - `docs/project-guide.md`, *StallService.stall*: added `cost` to `StallContext` and the sidecar rewrite right after the undo.
+   - `docs/decisions.md`: new entry. The sidecar is rewritten from memory after every undo, and a crashed stage's records are discarded with the stage (R24). It lists the alternatives rejected.
+
+   Cross-read and current: the *Cost records* format sections; the undo section, whose `in-progress` sidecar rule is unchanged; the AfterAgent entry rule, which already says the sidecar is never named; the operator guide; the README. I did not run the examples, as I added none.
+
+   Findings: none. The code matches the Interface.
+
+   Stale but untouched: none seen.
+
+   `make check`: check: green
+7. demo: I ran the single demo command from the repository root. It met its `Expect:` line, so there are no findings.
+
+   1. `uv run pytest tests/application/test_costs.py`
+      ```
+      .......................                                                  [100%]
+      23 passed in 6.16s
+      ```
+      Met. The last line reports `passed`. A case-insensitive grep for `failed` or `error` found nothing. That is two output lines, and I ran the command twice with the same result.
+
+   Against the acceptance criteria: the 23 passing tests are the parametrised cases for criteria 1–15, which the tester and reviewer entries map one by one. Nothing in the demo contradicts any criterion. Criterion 16 (`make check`) is the factory's gate after this stage, so I did not run it here. Criterion 17 (docs) is not something this demo exercises; the documenter's entry covers it.
+
+   Still open: the gap intake noted, that no test checks that a `StallContext` with `cost=None` writes no sidecar, is still untested. It is not a criterion, so I did not count it as a finding.
