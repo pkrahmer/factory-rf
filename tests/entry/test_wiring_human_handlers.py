@@ -71,7 +71,8 @@ def test_build_handlers_registers_the_kinds_of_the_human_on_the_pull_request(
 ) -> None:
     handlers = _handlers(boundaries)
 
-    assert set(handlers) == {
+    assert set(handlers) >= {
+        "crash",
         "idle",
         "run",
         "comment",
@@ -136,12 +137,11 @@ def test_the_run_entry_runs_the_stage_of_a_started_story_without_a_pull_request(
     assert len(agent_runtime.requests()) == 1
 
 
-def test_only_the_crash_expiry_and_acceptance_kinds_are_not_yet_handled(
+def test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler(
     boundaries: Boundaries,
 ) -> None:
     handlers = _handlers(boundaries)
 
-    assert NOT_YET_HANDLED == ("crash", "expired", "acceptance_due")
     assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
     assert not set(NOT_YET_HANDLED) & set(handlers)
     assert set(get_args(EventKind)) - set(NOT_YET_HANDLED) == set(handlers)

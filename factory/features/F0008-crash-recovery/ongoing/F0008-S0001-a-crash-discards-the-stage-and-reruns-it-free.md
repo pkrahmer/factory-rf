@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 95
 blocked: null
 comments_seen: 0
@@ -204,3 +204,45 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
    - Demo: the three commands are runnable against a real local bare remote or the wiring. Each `Expect:` line gives checkable values (`0 1 0 doing`, `1 0 True`, `False`, `1 run 1`, `True`, and `True True False`).
    - Architecture: the pure functions are in `domain`, the handler is in `application` and uses `Boundaries`, `WorkItemRecorder` and `ClaimService`, and only `entry.wiring` wires it. No new dependency or package.
    - Scope: the story is inside F0008's scope (the recovery handler and registering `crash`). It leaves the crash cap (S0002), the expired lease (S0003) and the stale branch (S0004) to their own stories, as FEATURE.md's Scope and Out of scope say.
+3. tester: Wrote the red tests for the crash recovery handler, the pure functions and the `crash` registration. I also changed the three earlier wiring tests that the Interface names, with the human's leave from Q20.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_recovery_crash.py::test_no_remote_branch_holds_a_file_the_dead_run_wrote
+   - criterion 2: tests/application/test_recovery_crash.py::test_the_checkout_holds_none_of_the_dead_runs_writes
+   - criterion 3: tests/application/test_recovery_crash.py::test_the_stage_start_commit_and_its_started_entry_stay
+   - criterion 4: tests/application/test_recovery_crash.py::test_the_crash_changes_only_the_work_item_since_the_stage_start
+   - criterion 5: tests/application/test_recovery_crash.py::test_a_crash_counts_one_crash_clears_the_claim_and_charges_no_attempt (attempts 0 and 1)
+   - criterion 6: tests/application/test_recovery_crash.py::test_the_journal_ends_with_one_factory_crash_record
+   - criterion 7: tests/application/test_recovery_crash.py::test_the_crash_entry_names_the_stage_and_the_stage_start_commit
+   - criterion 8: tests/application/test_recovery_crash.py::test_the_crash_commit_is_pushed
+   - criterion 9: tests/application/test_recovery_crash.py::test_the_dead_stages_cost_records_are_discarded_and_earlier_ones_stay
+   - criterion 10: tests/application/test_recovery_crash.py::test_an_own_crash_posts_nothing
+   - criterion 11: tests/application/test_recovery_crash.py::test_the_stage_reruns_at_once_in_the_same_call (same service / restart)
+   - criterion 12: tests/application/test_recovery_crash.py::test_a_crash_event_on_another_instances_claim_is_not_rerun (held at +0 min, expired at +60 min; each case first asserts the status)
+   - criterion 13: tests/application/test_recovery_crash.py::test_an_event_of_another_kind_is_refused_before_anything_is_touched
+   - criterion 14: tests/application/test_recovery_crash.py::test_a_crash_event_without_an_own_claim_on_the_remote_is_refused (no claim, no state with its reason, no branch_commit)
+   - criterion 15: tests/application/test_recovery_crash.py::test_a_commit_the_human_pushed_to_the_branch_is_kept
+   - criterion 16: tests/application/test_recovery_crash.py::test_a_rejected_push_raises_push_failed_and_does_not_rerun
+   - criterion 17: tests/application/test_recovery_crash.py::test_a_kill_at_the_push_is_counted_once_after_a_restart
+   - criterion 18: tests/application/test_recovery_crash.py::test_an_exception_from_the_rerun_propagates_and_the_crash_stays_recorded
+   - criterion 19: tests/domain/test_recovery.py::test_crashed_raises_the_crash_count_and_keeps_every_other_field (crashes 0 with a claim, crashes 5 without)
+   - criterion 20: tests/entry/test_wiring_recovery.py::test_the_crash_handler_reruns_through_the_very_gate_registered_for_run
+   - criterion 21: tests/entry/test_wiring_recovery.py::test_crash_is_handled_and_the_kinds_not_yet_handled_are_the_kinds_without_a_handler
+   - criterion 22: tests/domain/test_recovery.py::test_the_crash_entry_text_names_the_stage_the_count_and_the_commit
+   - criterion 23: tests/application/test_recovery_crash.py::test_a_git_error_from_the_discard_propagates_and_nothing_is_pushed (a snapshot with an own claim whose branch is not on the remote; after the error the remote has no such branch and `main` is unchanged)
+   - criteria 24 and 25 are the coder's and the documenter's: no tests.
+
+   Files created: tests/domain/test_recovery.py, tests/application/test_recovery_crash.py, tests/entry/test_wiring_recovery.py.
+
+   Earlier tests changed, as the Interface names them:
+   - tests/entry/test_wiring_handlers.py::test_an_event_not_yet_handled_is_a_counted_error now dispatches an `acceptance_due` event (feature F0001, no work item) and expects `UnhandledEvent: no handler for event kind acceptance_due`. The `_snapshot` helper and the constants `WORK_ITEM` and `PATH` were used only by this test, so I removed them and their imports.
+   - In tests/entry/test_wiring_human_handlers.py, the test of F0007-S0010's criterion 9 now asserts that the keys include the ten kinds plus `crash`, no longer that they are exactly the ten.
+   - The test of F0007-S0010's criterion 12 no longer asserts the tuple's value. I renamed it from `test_only_the_crash_expiry_and_acceptance_kinds_are_not_yet_handled` to `test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler`, because the old name says `crash` is not handled. Its body is the three remaining asserts, unchanged.
+   - The criterion 10 test is untouched.
+
+   How the application tests are set up: they follow the setup the Interface describes (push the story with a `## Journal` section to main, start it, check the branch out from origin/main, claim `doing` as factory-1). A dead run is a local commit that is never pushed (src/committed.py), an untracked file (src/dead.py) and an uncommitted change to factory/story-form.md. The rerun is a `Handler` subclass in the test module; it records each event and the clock's time when it was called.
+
+   Not importable, so these modules fail at collection: `factory.domain.recovery` and `factory.application.recovery`. The changed wiring tests fail at runtime until `crash` is registered and removed from `NOT_YET_HANDLED`. `make test` ended with 3 collection errors, as expected; `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
