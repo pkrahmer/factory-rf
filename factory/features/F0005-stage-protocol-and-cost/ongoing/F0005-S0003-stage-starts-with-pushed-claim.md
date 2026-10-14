@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 60
 blocked: null
 comments_seen: 0
@@ -174,3 +174,15 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    `make check`: check: green
 
    `make check`: check: green
+7. reviewer: reviewer (round 1): no findings.
+
+   - Round 0 finding resolved: `src/factory/application/stage.py` has no copy of the role rule any more. `_launchable_stage` refuses only a conflicted work item and a document without a state. A stage without a role is refused by step 2: `TaskComposer.agent` calls `_role_name` before `agent_definitions.read` (`src/factory/application/task.py:79`), so the refusal still comes before any read or push. The unknown-stage check now sits in `_role_name` (`task.py:107-108`), next to the role rule rather than beside a copy of it.
+   - Group 1: I read each test in `tests/application/test_stage_launch.py` against criteria 1–16, and each one checks what its criterion says:
+     - Run-time observations come from `ObservingRuntime`: the remote head and the checkout `HEAD` (1, 2), and the draft pull request (9).
+     - The failing sides are covered: rejected push (4), unreachable remote (5), missing agent file for a new and an existing branch (6), conflict (7), stage without a role with `match="approval"` (8), runtime error leaving the claim pushed (15).
+     - The other criteria are covered by: environment equality (12), findings for a complete and an incomplete story (13), parametrised end reasons (14), and frozen models and unknown keys through `type[BaseModel]` and `setattr` (16).
+     - The coder's entry records `make check` green.
+   - Group 2: `stage.py` imports only from `factory.application` and `factory.domain`, and it reaches git, the hosting service and the runtime through `Boundaries`. `tests/observing_runtime.py` inherits `AgentRuntime` and sits at the `tests/` root, as the Interface says.
+   - Group 3: no command or SQL is built from strings, no secrets, and no markers that silence a check.
+   - Group 4: names, docstrings and the one comment (why the committed file is read back) hold. The uncovered defensive branches (`stage.py` state-is-None, which mypy needs to narrow the type; `task.py` unknown stage) enforce no limit stated in the Interface.
+   - Group 5: `Assignment` matches what was built. The log gives the main decision, that the role refusal lives in `TaskComposer`, and what was rejected. The docs criterion still says what the documenter must write.
