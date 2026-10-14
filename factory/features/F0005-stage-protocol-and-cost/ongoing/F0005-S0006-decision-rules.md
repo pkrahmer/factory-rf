@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 63
 blocked: null
 comments_seen: 0
@@ -127,3 +127,11 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I built the decision rules. All tests pass and `make check` is green. The demo prints the six expected lines.
+      - `src/factory/domain/decisions.py`: `StageMove` (frozen, `extra="forbid"`) and `decide`. `decide` looks up the stage and raises `ValueError` naming an unknown stage or a decision outside `next`/`question`. It then tries the rules in order 1, 2, 6, 7, 3/4. Each rule's conditions exclude the others, so this is the same result as v1's order 1, 2, 3, 4, 6, 7. Two private helpers do the work: `_stay` (rules 1 and 2) and `_move` (rules 3, 6 and 7, which always clear `blocked`). It never touches `attempts` or `crashes`.
+      - `src/factory/domain/post_texts.py`: `round_cap_question` and `findings_question`. The module now uses `from __future__ import annotations` and imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, as the Interface says. This breaks the import cycle now that `decisions` imports `post_texts`.
+      - Main decision: "forward" is `stage.next[:1] == [decision]` and every other entry of `next` is a rework. Rounds are counted from the order of `next` alone, as FEATURE decision 26 says. I rejected comparing stage positions in the pipeline definition (`PipelineDefinition.position`), which the Interface rules out.
+      - Refactor pass: after the first lint run I made `_move` take no state and renamed its `round` parameter to `rounds`, so it no longer shadows the builtin. That change is in the same commit (7b2d1fb). The final diff needed nothing further, so there is no separate refactor commit.
+      - Open: docs criterion 18 is for the documenter. Nothing else noticed.
+
+   `make check`: check: green
