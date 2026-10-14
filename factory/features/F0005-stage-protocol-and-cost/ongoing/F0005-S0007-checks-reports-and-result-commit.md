@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 64
 blocked: null
 comments_seen: 2
@@ -176,3 +176,8 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    Refactor step: not done yet, because the checks are not green.
 5. human (pull request comment, 2026-10-14): (a): the tester gives the tester role in `DEFINITION_YAML` `lease_duration: 70`, so the definition parses under F0003's lease rule; time limits, order and coverage stay as they are. End with `tests` and name exactly that change. The lease rule stays.
+6. coder: The human chose (a) in entry 5, so this goes back to the tester for one test change. I have not touched any test.
+
+   The change: in `tests/application/test_stage_finish.py`, add one more `.replace` to `DEFINITION_YAML` that gives the tester role `lease_duration: 70`. It turns `  tester: {write_paths: ["tests/*"]}` (that line comes from `PIPELINE_YAML` in `tests/git_support.py`) into `  tester: {write_paths: ["tests/*"], lease_duration: 70}`. Nothing else changes: the time limits, the order of the checks and reports, and the `coverage` command stay as they are. With this change the definition parses under F0003's lease rule, which needs 40 + 5 + 10 + 10 + 3 = 68 minutes, within 70.
+
+   The implementation is unchanged and committed as 8b70068 (`src/factory/domain/labels.py`, `src/factory/application/stage.py`). Before, I ran a throwaway copy of the finish tests with exactly this change, and all of them passed. The refactor step is still to do; I'll do it on the next doing run, once the tests are green with `make check`.
