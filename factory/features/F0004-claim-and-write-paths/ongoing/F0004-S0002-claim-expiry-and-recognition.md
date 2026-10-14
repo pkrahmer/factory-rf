@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 53
 blocked: null
 comments_seen: 0
@@ -111,3 +111,36 @@ Expect: one line, `['src/factory/application/claims.py']`.
    - Demo: both blocks are runnable. Every `Expect:` line is checkable against the printed output (six lines; one list).
    - Architecture: the pure functions sit in `domain`, the service in `application`. `Claim`, `WorkItemState` and `WorkItemDocument` are the existing DTOs. No layer is crossed.
    - Scope: the story stays inside F0004's scope (lease clock, `status`, `release`, search tests, R20 and R21). It leaves out the watcher and the rerun after a crash, which `FEATURE.md` assigns to F0006 and F0008.
+3. tester: Wrote red tests for every criterion from the Interface and the acceptance criteria. No criterion needed interpreting, so there is no question for the human.
+   - criterion 1: tests/domain/test_lease.py::test_lease_age_is_now_minus_the_start (45 minutes after, 5 minutes before)
+   - criterion 2: tests/domain/test_lease.py::test_lease_expires_when_its_age_reaches_the_lease_duration (59m59s false, 60m true, 60m1s true)
+   - criterion 3: tests/domain/test_lease.py::test_a_negative_age_is_not_expired (lease_duration 1 and 60; age -1s and -5m)
+   - criterion 4: tests/domain/test_lease.py::test_lease_expired_uses_the_claims_own_lease_duration (30 expired, 90 not)
+   - criterion 5: tests/domain/test_lease.py::test_no_claim_has_status_none
+   - criterion 6: tests/domain/test_lease.py::test_an_own_claim_is_own_whatever_its_age (before the start, within the lease, 3 days later)
+   - criterion 7: tests/domain/test_lease.py::test_another_instances_claim_is_held_until_its_lease_has_run_out (59m59s held, 60m and 60m1s expired)
+   - criterion 8: tests/domain/test_lease.py::test_the_lease_module_reads_no_clock. It parses the module's source with ast and refuses any call to a Name or Attribute named now, utcnow, today or time.
+   - criterion 9: tests/application/test_claims.py::test_status_follows_the_boundaries_clock. It covers none, own, held at 59 minutes and expired at 60 minutes, with the `clock` fixture advanced between calls; own is checked again after the advance.
+   - criterion 10: tests/application/test_claims.py::test_status_judges_by_the_claims_own_lease_duration. The definition sets the intake role's lease_duration and time_limit to 5 (new constant LEASE_5_YAML). The claim was made by another instance with 60 minutes and reads held after 30 minutes.
+   - criterion 11: tests/application/test_claims.py::test_release_clears_the_claim_and_keeps_everything_else
+   - criterion 12: tests/application/test_claims.py::test_release_of_a_document_without_a_claim_returns_an_equal_document
+   - criterion 13: tests/application/test_claims.py::test_release_of_a_document_without_state_raises_value_error
+   - criterion 14: tests/test_claim_ownership.py::test_only_the_claim_service_uses_the_lease_functions
+     - The set of modules whose `imported_modules` holds `factory.domain.lease.<name>` must equal exactly {factory.application.claims}, so the test fails when that module imports none of the three.
+     - No other module may have an ast.Attribute with one of the three names whose value is `lease` or the dotted `factory.domain.lease`.
+     - Plain variables or parameters named `claim_status` are not matched.
+   - criterion 15: tests/test_claim_ownership.py::test_only_the_claim_service_constructs_a_claim. It looks for Call nodes whose func is the Name `Claim` or an Attribute `.Claim`; the set of modules that have one must equal {factory.application.claims}. This test already passes against current code, which is correct.
+   - criteria 16 and 17: not test criteria.
+
+   Files:
+   - created tests/domain/test_lease.py and tests/test_claim_ownership.py
+   - extended tests/application/test_claims.py (my own module from S0001): constants LEASE_5_YAML and OTHER_INSTANCE, helpers _service and _claimed_state, and the five tests above.
+
+   Not importable: `factory.domain.lease`. The `make test` run stops at collection of tests/domain/test_lease.py with "ImportError: cannot import name 'lease' from 'factory.domain'". Once that module exists, these are expected to fail until implemented:
+   - the status/release tests, because ClaimService has no `status` or `release` yet
+   - the first search test, because the importer set is empty
+
+   `make lint` is green. I did not run the type check, as the stage skill says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
