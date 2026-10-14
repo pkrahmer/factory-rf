@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 98
 blocked: null
 comments_seen: 0
@@ -110,3 +110,33 @@ Expect: the factory log line on standard output first, time-stamped and ending w
    - Architecture: the function sits in the application layer's recovery module and uses only existing interfaces (`Git`, the log). The tick step is in `tick.py`. No new dependency and no hosting call.
    - Scope: this is within FEATURE.md Scope (last bullet) and Decisions 17 and 19, and touches nothing under Out of scope.
    - Not asked, for the tester to know: the "keep when the id also has an `in-progress` file" rule is tested only with a backlog story (criterion 5). The same rule for a `done/` story is in the Interface and the test setup text but has no criterion of its own. I judged it covered by the same code path and did not add a criterion.
+3. tester: Wrote the red tests for every acceptance criterion except 14 and 15.
+
+   Mapping:
+   - criterion 1: tests/application/test_stale_branches.py::test_the_branch_of_a_story_back_in_the_backlog_is_deleted
+   - criterion 2: tests/application/test_stale_branches.py::test_the_branch_of_a_story_in_progress_stays
+   - criterion 3: tests/application/test_stale_branches.py::test_a_branch_no_work_item_owns_stays (parametrized: `main`, `scratch`, `work-item/not-an-id`)
+   - criterion 4: tests/application/test_stale_branches.py::test_a_backlog_story_without_a_branch_changes_nothing and ::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch (the move is a rename in the checkout's work tree after `reset_to("origin/main")`, never committed or pushed)
+   - criterion 5: tests/application/test_stale_branches.py::test_an_id_with_a_story_file_in_progress_as_well_keeps_its_branch (parametrized over `backlog` and `done`). The `done` case is the Interface's rule "backlog and done stories that no in-progress story file shares", which intake judged covered without a criterion of its own. It uses id F0001-S0002 with a second file `F0001-S0002-other.md` in `in-progress/`.
+   - criterion 6: tests/application/test_stale_branches.py::test_two_stale_branches_are_deleted_in_the_order_of_their_names (the S0002 branch is pushed first)
+   - criterion 7: tests/application/test_stale_branches.py::test_a_deleted_branch_is_named_in_one_log_line
+   - criterion 8: tests/application/test_stale_branches.py::test_a_refused_deletion_is_logged_and_tried_again_on_the_next_call (`receive.denyDeletes` is set, then removed with `git config --unset`)
+   - criterion 9: tests/application/test_stale_branches.py::test_the_cleanup_leaves_the_pull_request_the_hosting_service_and_the_checkout
+   - criterion 10: tests/application/test_tick_stale_branch.py::test_the_next_tick_deletes_the_branch_a_killed_discard_left_and_stays_idle
+   - criterion 11: tests/application/test_tick_stale_branch.py::test_a_story_started_again_after_the_cleanup_starts_from_the_first_stage
+   - criterion 12: tests/application/test_tick_stale_branch.py::test_a_tick_that_ends_at_a_repository_stop_deletes_nothing. This test probably passes already, because the stop comes before any cleanup. It guards the order of the steps.
+   - criterion 13: tests/application/test_stale_branches.py::test_the_branch_of_a_done_story_is_deleted
+   - criteria 14 and 15: no test (`make check` and docs)
+
+   Files created: tests/application/test_stale_branches.py and tests/application/test_tick_stale_branch.py. tests/application/test_tick.py is unchanged.
+
+   Setup of the tick tests: the `discarded` fixture runs F0007's `ClosedHandler` with `KillPoint.AFTER_PUSH` armed, checks that the branch is still on the remote, and installs the agents. Criterion 12 installs no agents.
+
+   Not tested: the `"unreachable"` outcome, because no criterion names it.
+
+   `make test` result: collection fails with `ImportError: cannot import name 'delete_stale_branches' from 'factory.application.recovery'`. This is the missing function and the right failure. The tick test file imports only names that already exist, so it fails at runtime once collection gets past the missing function.
+
+   `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
