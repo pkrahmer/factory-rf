@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 91
 blocked: null
 comments_seen: 2
@@ -176,3 +176,24 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: The tester's change from entry 7 is in. `make check` now passes with every test green and total coverage at 99.22 %. I made no code change in this run.
+
+   What I built, all in commit 38684ce:
+   - `RunGate` in src/factory/application/handlers/run_gate.py:
+     - When `target_of(event).pull_request` is `None`, it calls `run` with the event unchanged and does not read the hosting service.
+     - Otherwise it calls `get_pull_request` once, before any handler. The event is copied with `pull_request` set to the view that was read:
+       - `closed` goes to the `closed` handler with kind `closed`.
+       - `merged` goes to the `merged` handler with kind `merged`.
+       - `open` goes to `run` with the kind unchanged.
+     - A failed read raises out of `handle`.
+   - In src/factory/entry/wiring.py:
+     - `build_handlers` now registers the ten kinds the Interface lists. One `ClosedHandler` instance and one `MergedHandler` instance are created first and used twice: they are the values registered for `closed` and `merged`, and the same objects are passed to the `RunGate` that wraps `RunHandler`.
+     - `NOT_YET_HANDLED` is now `("crash", "expired", "acceptance_due")`.
+
+   Main design decision: the gate calls whichever of the three handlers applies; it does not rewrite the event and send it back through the dispatcher. It is given its three handlers, so it stays a plain `Handler` and knows nothing about the registry. That matches the Interface and keeps registration in the entry layer only. The alternative I rejected was giving the gate the `build_handlers` mapping: that would effectively be a second registry in the application layer, which Q20 (A) rules out.
+
+   Refactor step (still open from entry 6): I reread `git diff main...HEAD` outside `factory/` and `tests/` and found nothing to rename, simplify or remove, so there is no refactor commit.
+
+   Noticed but not touched: the Demo of F0006-S0007 prints the old `NOT_YET_HANDLED` and is now out of date, as this ticket's Interface already says. The docs criterion is the documenter's.
+
+   `make check`: check: green
