@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 89
 blocked: null
 comments_seen: 0
@@ -76,3 +76,19 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
    - Demo: runnable with a single `uv run python -c`. The Expect line gives the two exact output lines, which can be compared directly.
    - Architecture: the handlers sit in `factory.application.handlers`, use only domain types and the dispatcher's `Handler`, and call no boundary. This is consistent with the layering in CLAUDE.md.
    - Scope: matches the FEATURE.md scope line "Stops that cannot be done" (ST3.1, R28). Nothing in Out of scope is touched. The setup the tests need is spelled out: pushed branch, `checkout.fetch()` and `branch_commit`.
+3. tester: Wrote the red tests for the duplicate and pull request lookup handlers and for the rule that no handler swallows errors.
+   - criterion 1: tests/application/handlers/test_lookups.py::test_the_duplicate_handler_raises_naming_the_work_item_and_the_detail (parametrized: detail `a.md, b.md` and empty detail)
+   - criterion 2: tests/application/handlers/test_lookups.py::test_the_pull_request_lookup_handler_raises_naming_the_branch_and_the_detail (parametrized: `rate limited` and empty detail)
+   - criterion 3: tests/application/handlers/test_lookups.py::test_a_lookup_handler_changes_nothing_on_the_hosting_service_or_the_remote (parametrized over both handlers. It checks that the comments on the pull request are unchanged and that the remote's `main` and work item branch heads have not moved.)
+   - criterion 4: tests/application/handlers/test_lookups.py::test_a_duplicate_event_is_tried_three_times_and_reported_once
+   - criterion 5: tests/application/handlers/test_lookups.py::test_a_pull_request_lookup_event_is_tried_three_times_and_reported_once
+   - criterion 6: tests/application/handlers/test_lookups.py::test_an_ask_event_without_a_pull_request_is_reported_once_on_a_new_draft (the work item file is pushed with `human.push_file`, then `checkout.fetch()` runs, and `branch_commit` comes from `origin/work-item/<id>`)
+   - criterion 7: tests/application/handlers/test_lookups.py::test_a_restart_tries_a_reported_duplicate_event_three_times_again_without_a_second_post
+   - criterion 8: tests/application/handlers/test_handlers_raise.py::test_the_walk_finds_every_handler_module_of_the_feature (checks that the at-least set is present) and ::test_no_handler_module_catches_every_exception_or_has_a_bare_except (parametrized over every module that `pkgutil.walk_packages` finds; the modules are parsed with `tests/source_search.modules()`)
+
+   Files created: tests/application/handlers/test_lookups.py, tests/application/handlers/test_handlers_raise.py. To wrap each real handler for the call counts, the dispatcher tests use a small `Counting(Handler)` wrapper that delegates to it. Criteria 4, 5 and 7 use the existing handler conftest fixtures `work_item` and `pull_request`: the branch is pushed with one commit beyond `main`, and the state holds a pull request in the fake.
+
+   The test runner could not import `factory.application.handlers.lookups` (ModuleNotFoundError when collecting test_lookups.py). Until the module exists, the walk test in test_handlers_raise.py will also fail because `lookups` is missing. `make lint` is green. The type check was skipped as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
