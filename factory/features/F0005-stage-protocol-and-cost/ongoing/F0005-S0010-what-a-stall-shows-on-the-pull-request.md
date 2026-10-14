@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 69
 blocked: null
 comments_seen: 0
 round: 0
@@ -86,3 +86,9 @@ Expect: the last line says `passed`, and the output holds no `failed` and no `er
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory/domain/post_texts.py::stall_note`, `StallService.stall` step 7 with `labels_for` and `HostingService.set_labels`). The block layout, the follow-up wording and the fence rule are fully specified.
+   - Criteria: each is testable by one test function. Criteria 1 and 3 to 6 cover the stated behaviours of the note (layout, one-line detail, trailing breaks, lines kept unchanged, fence length with runs of 2, 3 and 5). Criteria 8 to 10 cover the label on the pass side. The failing sides are covered: `set_labels` failing (11), `post_comment` failing leaving the labels `[]` (12), and the at-cap follow-up (2).
+   - Demo: both commands are runnable. Each `Expect:` line is checkable against the output.
+   - Architecture: the note text stays in `domain` and the label write stays in `application` through the hosting-service interface. No new dependency and no layer is crossed.
+   - Scope: within F0005. FEATURE decisions 33 and 34 record this story's choices, and none of the Out-of-scope items is touched.
