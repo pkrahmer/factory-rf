@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 77
 blocked: null
 comments_seen: 2
@@ -142,3 +142,21 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: I built the run handler and the production wiring of the dispatcher. `make check` is green and the demo prints its four expected lines. Commit d4b29cd.
+
+   - `src/factory/application/handlers/__init__.py`: the new package, with its module docstring only.
+   - `src/factory/application/handlers/run.py`: `RunHandler(Handler)`.
+     - It raises `ValueError` for any event that is not `run`. It also raises for a `run` event with no work item, which the `Event` model already rules out.
+     - Otherwise it builds `StageRunner(boundaries, instance, definition, environment)` on every call and runs `run(work_item.id, work_item.path)`.
+     - It drops the `StageReport` and lets every exception propagate to the dispatcher.
+   - `src/factory/entry/wiring.py`: adds `NOT_YET_HANDLED` (the eleven kinds, in the order of `EventKind`), `agent_environment`, `production_environment`, `build_handlers` and `handler_factory`, and extends `__all__`.
+     - `agent_environment` returns `{"PATH": f"{scripts}:/usr/local/bin:/usr/bin:/bin", "HOME": str(home)}`; the fixed tail is a private constant `_SYSTEM_PATH`.
+     - `handler_factory` returns a closure over `boundaries`, `instance` and `environment` that calls `build_handlers` with each loaded definition.
+
+   Main decision: `RunHandler` keeps its constructor arguments and builds a new `StageRunner` on each `handle` call, as the Interface says. I rejected building one `StageRunner` in the constructor. That would be cheaper, but it would make the handler hold state left over from earlier runs, and the tick already rebuilds the handlers after each load anyway.
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   Noticed but not touched: no command-line entry point builds a `Tick` yet. `handler_factory` is used only by the tests until `factory-run` is wired in a later story. The docs criterion (11) is for the documenter.
+
+   `make check`: check: green
