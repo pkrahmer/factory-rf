@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 76
 blocked: null
 comments_seen: 0
@@ -148,3 +148,35 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
    - Demo: both blocks are runnable. Each `Expect:` line is checkable against the output (`exit 2` on standard output, the usage and `--follow` error on standard error, the exact four board lines).
    - Architecture: `domain/board.py` is pure. `application/board.py` reads through `RemoteWorkItems` and `Git.show_file`. `entry/watch.py` is the command line and wires nothing beyond what it is given. This follows the four layers in `CLAUDE.md`.
    - Scope: within F0006's scope ("The command line", SI3.1, SI3.2). The acceptance column stays empty (F0009) and the instance wiring is left to F0010-S0001, both listed under Out of scope in `FEATURE.md`.
+3. tester: wrote red tests for every acceptance criterion against the Interface.
+   - criterion 1: tests/domain/test_board.py::test_feature_rows_count_the_story_files_of_each_folder
+   - criterion 2: tests/domain/test_board.py::test_feature_rows_are_one_per_feature_in_plain_id_order
+   - criterion 3: tests/domain/test_board.py::test_a_feature_title_comes_from_the_mapping_else_the_directory_name
+   - criterion 4: tests/domain/test_board.py::test_a_work_item_row_is_filled_from_the_snapshot (cases: first `# ` title, and no title, which falls back to the id)
+   - criterion 5: tests/domain/test_board.py::test_running_since_is_the_claims_start
+   - criterion 6: tests/domain/test_board.py::test_render_board_writes_the_features_and_the_work_items
+   - criterion 7: tests/domain/test_board.py::test_an_empty_board_has_only_its_two_headings
+   - criterion 8: tests/domain/test_board.py::test_render_board_writes_running_since_in_utc_with_a_z (the input is +02:00, so the output must be converted to UTC)
+   - criterion 9: tests/application/test_board_reader.py::test_only_story_files_count_on_main
+   - criterion 10: tests/application/test_board_reader.py::test_a_feature_title_comes_from_its_feature_file_else_its_directory
+   - criterion 11: tests/application/test_board_reader.py::test_each_story_in_progress_is_a_row_with_its_state_from_its_branch
+   - criterion 12: tests/entry/test_watch.py::test_run_watch_writes_the_event_a_blank_line_and_the_board and ::test_an_event_is_written_as_its_key_and_its_detail
+   - criterion 13: tests/entry/test_watch.py::test_run_watch_evaluates_once
+   - criterion 14: tests/entry/test_watch.py::test_run_watch_writes_nothing
+   - criterion 15: tests/entry/test_watch.py::test_run_watch_fetches_nothing
+   - criterion 16: tests/entry/test_watch.py::test_an_invalid_definition_is_reported_without_a_stop (the expected fault comes from `PipelineLoader.load(<commit id>)`, which touches no stop)
+   - criterion 17: tests/entry/test_watch.py::test_run_watch_without_origin_main_raises_git_error
+   - criterion 18: tests/entry/test_watch.py::test_follow_is_an_unknown_option
+   - criterion 19: tests/entry/test_watch.py::test_the_console_script_refuses_follow_from_sys_argv
+   - criterion 20: tests/entry/test_watch.py::test_main_without_instance_settings_returns_2 (parametrized: boundaries None, instance None)
+   - criterion 21: tests/entry/test_watch.py::test_help_names_no_follow_mode
+   - criterion 22: tests/entry/test_watch.py::test_no_tick_and_no_watch_run_writes_a_last_line_file
+   - criterion 23: tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode (reads the bytes of every file under src/factory)
+   - criterion 24: tests/domain/test_board.py::test_a_row_refuses_an_unknown_key, ::test_a_row_refuses_an_assignment, ::test_a_feature_count_is_not_negative, ::test_a_board_row_accepts_only_its_values, ::test_a_feature_row_accepts_only_an_acceptance_status; tests/application/test_board_reader.py::test_a_board_view_refuses_an_unknown_key, ::test_a_board_view_refuses_an_assignment
+
+   Files created: tests/domain/test_board.py, tests/application/test_board_reader.py, tests/entry/test_watch.py. The entry tests use a local `_CountingHosting` subclass that copies the one in test_watcher.py and does not override `post_comment`. Posts are checked through `factory_posts` and labels through `labels`.
+
+   Result: `make test` stops at collection on purpose, with ModuleNotFoundError for `factory.domain.board` and `factory.application.board` (`factory.entry.watch` is missing too, behind the first error). `make lint` is green. I skipped the type check as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
