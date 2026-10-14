@@ -58,3 +58,9 @@ The modules F0008 to F0011 add are placed by the same rule when the story is dra
 - The module lists in `docs/project-guide.md` and `docs/operator-guide.md`.
 - `pyproject.toml`'s console scripts point at `factory.entry.*`, which does not move.
 - Estimate: one mechanical story, $3 to $5; `make check` catches every broken import.
+
+## Duplicates and dead code (added 2026-10-14, the human's decision)
+
+- Now: `CLAUDE.md` Architecture asks the coder to search for an existing helper before writing one, and the reviewer to count a second copy as a finding.
+- In this housekeeping story: run pylint's duplicate-code check (R0801) and vulture once over `src/factory`, and fold their findings (similar blocks, unused functions and classes, such as F0002's four copies of the UTC validator) into the story. Both are run ad hoc (`uvx`), not added as dependencies.
+- For v2: a project command that runs both, wired as a pipeline report (recorded, never blocking) whose findings reach the reviewer and the acceptance reviewer. It needs a new make target and two development dependencies, both for the human to grant then.
