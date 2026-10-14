@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 96
 blocked: null
 comments_seen: 0
@@ -175,3 +175,29 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
    - Demo: both commands are runnable. Each `Expect:` line is concrete and checkable: the exact output lines, including the journal number 4 for the question.
    - Architecture: the pure rules are in `factory.domain`. The handler is in `factory.application` and reaches git and the hosting service only through `Boundaries`, `StopService` and `WorkItemRecorder`. The `ALLOWED["entry_text"]` change is explicit and is the tester's one change in `tests/test_no_journal_reading.py`.
    - Scope: it is within the feature's Scope (crash cap, the boundary-error path) and touches nothing in "Out of scope". The counter's resets are used, not changed.
+3. tester: Wrote the red tests for the crash cap. Each criterion maps to one test function:
+   - criterion 1: tests/domain/test_recovery_cap.py::test_the_crash_cap_is_reached_when_the_crashes_reach_it (parametrized over (crashes, cap): (1,2) false, (2,2) true, (3,2) true, (1,1) true, and (0,1) false for the lower side of cap 1)
+   - criterion 2: tests/application/test_recovery_cap.py::test_the_handler_asks_exactly_when_the_crash_reaches_the_cap (the five (crashes, cap) cases; the cap is set with `definition.model_copy(update={"crash_cap": cap})`)
+   - criterion 3: tests/application/test_recovery_cap.py::test_at_the_cap_the_stage_is_not_rerun_and_the_crash_commit_is_the_remote_head
+   - criterion 4: tests/application/test_recovery_cap.py::test_at_the_cap_the_work_item_is_blocked_with_the_crashes_counted_and_no_claim
+   - criterion 5: tests/application/test_recovery_cap.py::test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothing_else
+   - criterion 6: tests/application/test_recovery_cap.py::test_the_question_entry_is_the_crash_cap_question
+   - criterion 7: tests/application/test_recovery_cap.py::test_the_question_is_posted_once_on_the_pull_request_under_its_key
+   - criterion 8: tests/application/test_recovery_cap.py::test_the_question_is_recorded_and_pushed_before_it_is_posted
+   - criterion 9: tests/application/test_recovery_cap.py::test_asking_again_posts_nothing
+   - criterion 10: tests/application/test_recovery_cap.py::test_at_the_cap_without_a_pull_request_a_draft_is_opened_and_its_number_recorded (two cases: titled and untitled)
+   - criterion 11: tests/application/test_recovery_cap.py::test_asking_on_its_own_from_main_records_the_new_pull_request_on_the_branch (the blocked work item with its question and no pull request is pushed through `human.push_file`)
+   - criterion 12: tests/application/test_recovery_cap.py::test_asking_for_a_work_item_not_blocked_on_the_crash_cap_is_refused (blocked None, "question", "attempts_cap", each with a factory question recorded)
+   - criterion 13: tests/application/test_recovery_cap.py::test_asking_without_a_recorded_factory_question_is_refused (no question at all; a question by a role and not by factory)
+   - criterion 14: tests/domain/test_post_texts_crash_cap.py::test_the_crash_cap_question_names_the_stage_the_count_and_the_cap
+   - criterion 15: tests/application/handlers/test_comments_crash_cap.py::test_an_answer_to_the_crash_cap_question_unblocks_and_resets_the_crashes
+   - criterion 16: tests/application/test_recovery_cap.py::test_a_boundary_error_after_a_pushed_claim_repeats_into_the_crash_cap (the `run` stand-in `_ClaimsAndFails` claims through `ClaimService.claim` and then raises `HostingServiceError`)
+   - criterion 17: tests/domain/test_recovery_cap.py::test_asking_at_the_crash_cap_blocks_on_it_and_changes_nothing_else
+   - criteria 18 and 19 (`make check`, docs) are not tested here.
+
+   Files created: tests/crash_support.py (shared setup: a claimed work item with `crashes` 1 and `attempts` 1 by default, the snapshot, the event and handler builders, and a recording `Rerun`), tests/domain/test_recovery_cap.py, tests/domain/test_post_texts_crash_cap.py, tests/application/test_recovery_cap.py and tests/application/handlers/test_comments_crash_cap.py. Changed: tests/test_no_journal_reading.py, where `"factory.application.recovery"` is added to `ALLOWED["entry_text"]` and nothing else changes.
+
+   `make test` is red as intended. Three files fail at collection: tests/domain/test_recovery_cap.py cannot import `at_crash_cap` and `asking_crash_cap` from `factory.domain.recovery`; tests/domain/test_post_texts_crash_cap.py and tests/application/test_recovery_cap.py cannot import `crash_cap_question` from `factory.domain.post_texts`. The comment test does get collected; it fails until `handle` blocks at the cap. `make lint` is green. I skipped the type check as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
