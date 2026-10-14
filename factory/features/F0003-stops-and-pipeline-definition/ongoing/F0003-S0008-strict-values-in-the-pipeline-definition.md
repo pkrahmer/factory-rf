@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 49
 blocked: null
 comments_seen: 0
 round: 0
@@ -86,3 +86,9 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: names the concrete module `src/factory/domain/pipeline_definition.py`, the four models that become strict, and the `WritePath` type (a str with at least one non-whitespace character). It names the test files and the S0006 fixtures to reuse.
+   - Criteria: each is testable by one function or one parametrized table. Criterion 2 gives the refused values (`true`, `'30'`, `30.0`) and the accepted integer for each of the six paths. Criterion 3 gives refused and accepted `approval` values. Criterion 4 gives the blank write path and the accepted ones. Criterion 5 keeps text fields string-only. Criterion 6 gives the ordering against the rules. Criterion 7 covers the load. Every rule has its failing side and its passing side.
+   - Demo: runnable as written. The `Expect:` line is checkable: five lines, no `accepted`.
+   - Architecture: the change stays in `factory.domain`, pure Pydantic models, and the reader and loader are only exercised. This fits the layer rules in `CLAUDE.md`.
+   - Scope: it is inside F0003's scope (the schema, the validation, and the stop `pipeline_definition_invalid`). The multi-line YAML fault is excluded, as FEATURE.md decision 20 says. It does not touch "Out of scope".
