@@ -58,8 +58,10 @@ Tests: `tests/domain/test_acceptance_booking.py`, `tests/application/test_accept
 16. `AcceptanceMerged.handle` raises `CannotHandle` with the five reasons the Interface gives (another kind of event, a story's event, no acceptance stage, a pull request that is not merged, no report on the main branch), each in its place in the order, and changes nothing.
 17. After `kill_points.arm(KillPoint.AFTER_PUSH)` made the first `handle` raise `InjectedKill` right after the push of the main branch, a second `handle` leaves exactly one `done` record in the report, one new commit on `origin/main`, and the branch gone.
 18. `AcceptanceMerged(boundaries, definition)` with `definition.acceptance_stage` `None` is built without an error.
-19. make check stays green.
-20. docs: `docs/operator-guide.md` explains what the human's merge and close of an acceptance do (accepted or refused whatever the recommendation; where the report lands; that the reason is the human's comments unchanged; that a refusal drops the proposed stories and a merge keeps them in the backlog); `docs/decisions.md` records why each acceptance has its own report and cost records.
+19. When the remote's main branch moved since the last fetch (the human pushed to it), `AcceptanceMerged.handle` raises `PushFailed` with the outcome `rejected`, and the branch `work-item/<id>` is still on the remote.
+20. When the remote refuses the deletion of the branch (`receive.denyDeletes` set in the bare remote), `handle` raises `PushFailed` with the outcome `rejected` after the booking is pushed: `origin/main` holds the report in `done/` and the branch is still on the remote.
+21. make check stays green.
+22. docs: `docs/operator-guide.md` explains what the human's merge and close of an acceptance do (accepted or refused whatever the recommendation; where the report lands; that the reason is the human's comments unchanged; that a refusal drops the proposed stories and a merge keeps them in the backlog); `docs/decisions.md` records why each acceptance has its own report and cost records.
 
 ## Demo
 

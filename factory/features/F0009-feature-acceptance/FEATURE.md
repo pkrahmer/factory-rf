@@ -1,0 +1,65 @@
+# Feature acceptance
+
+## Goal
+
+When a feature is complete, an acceptance reviewer judges the whole feature, and the human's merge or close of the acceptance's pull request decides the result. An acceptance is a work item of its own, with one agent stage (the acceptance reviewer's) and one approval; it has its own report file, its own cost records and an id of the form `F0001-A0001`. It becomes due by counting the feature's story files only, it sorts after its feature's stories whatever the feature folder's slug, its cost line counts only its own records, and an acceptance merged before its approval, or repeated after more stories were archived, is decided without a loop. Done when a feature with archived stories and a `.gitkeep` becomes due, an acceptance sorts after its stories for a slug that starts with a digit and for a missing slug, a merge books it accepted and a close books it refused with the human's reason, a merge before the approval is booked accepted with an entry that says so, a repeated acceptance neither trips `reject` nor stays due, and every handler of an acceptance is registered in the production wiring with `NOT_YET_HANDLED` empty.
+
+## Scope
+
+- The acceptance's id (`F0001-A0001`), its report file name, and its state in the front matter (`AcceptanceState`: `stories` and `outcome` beside the work item's state), read and written by the work item reader and writer
+- When an acceptance is due: story files only, the six statuses (incomplete, due, in flight, merged and not yet recorded, accepted, refused), the due features as the reader gives them, and the reports on the remote
+- The watcher's evaluation takes the due features and the reports in `in-progress/` into account (including a merged report that is not yet recorded), the order after the feature's stories, and the board's acceptance column
+- The acceptance stage: opening the acceptance's branch with the report's head, the acceptance reviewer's facts (archived stories, next free story number, the stories' cost from their records), its write paths, and the acceptance's own cost line
+- The acceptance through F0005's stage protocol: the story form check skipped for it and the facts appended to the reviewer's prompt
+- At the approval: the description built by code (recommendation, findings, proposed stories, closing text), the pull request ready for review, the cost table posted once, and the hand-over retried from state
+- The human's result: a merge books `accepted` and keeps the proposed stories in the backlog; a close, at any stage, books `refused` with the human's reason first under the recommendation and drops the proposed stories
+- A merge before the approval and repeated acceptances (ST2.1, ST2.2, R31); the acceptance's handlers registered in `factory.entry.wiring.build_handlers` (F0006-S0007), the `RunGate` (F0007-S0010) built with the `closed` and `merged` splits, and `acceptance_due` taken out of `NOT_YET_HANDLED`, which is then empty (questionnaire 1, Q20)
+
+## Out of scope
+
+- Validating the report's sections and the proposed stories' form (left for v2)
+- A stopping rule for follow-up stories, and parked backlog stories that hold an acceptance back (left for v2)
+- Preventing the reviewer from overwriting an existing backlog story (the write paths allow the feature's whole backlog, as v1's lane did)
+- The acceptance reviewer's instructions and the shipped agent files: F0010
+- The story's own hand-over, merge, close and send-back: F0007; the claim, the stage protocol and the cost bill: F0004 and F0005, except the two additions to F0005's `StoryFormChecker` and `TaskComposer` that S0009 makes for an acceptance; the watcher's evaluation and board: F0006, except the additions S0008 makes
+
+## Stories
+
+The order is the story numbers, which is the build order: each story needs only the stories before it. The ticks that walk the whole feature come last.
+
+- S0001 — The acceptance report as data, and its place in the order
+- S0002 — When a feature acceptance is due
+- S0003 — The acceptance stage and the acceptance reviewer's facts
+- S0004 — The hand-over at the acceptance's approval
+- S0005 — A merge accepts, a close refuses
+- S0006 — Merged before its approval, and repeated acceptances
+- S0007 — A close is recorded, then booked refused
+- S0008 — The watcher reads acceptances
+- S0009 — An acceptance runs through the stage protocol
+- S0010 — The acceptance's handlers in the production wiring
+- S0011 — Merged, closed and repeated acceptances over ticks
+
+## Decisions taken for the human
+
+1. Every acceptance is a work item of its own with the id `F0001-A0001`, numbered per feature (the highest number plus one, a gap never filled), with its own report file `F0001-A0001-acceptance.md` and its own cost records, instead of one report file that each new acceptance overwrites. It sits in `in-progress/` while it is in flight and moves to `done/` when it is booked. (S0001, story text)
+2. `AcceptanceState` adds two keys to a work item's front matter, `stories` (the archived stories the report covers, ascending) and `outcome` (`accepted` or `refused`, set exactly when the stage is `done`); the work item reader and writer of F0002 are grown to know them. (S0001, story text)
+3. Only story files count when a feature is judged complete: a name that reads as a story id, directly in `backlog/`, `in-progress/` or `done/`. A `.gitkeep`, a note or an acceptance's report never keeps a feature incomplete. Two directories whose names read as one feature id (`F0001-a`, `F0001-b`) are not an error: the first in name order counts and the other is ignored. (S0002, story text)
+4. The status is the first that applies of: in flight, merged and not yet recorded, incomplete, the recorded result (accepted or refused) when its report covers exactly the archived stories, and due. A consequence: after an accepted merge that brought proposed stories, the feature shows as incomplete until the human has started and archived them, and then it is due again. (S0002, story text)
+5. A pipeline definition without an `acceptance_stage` has no acceptances: nothing is ever due, the reader gives no acceptance snapshot, and the board's acceptance column stays empty. The acceptance's handlers are still registered and still construct (a tick of such a project must not fail); one that is handed an event refuses it with `CannotHandle(kind, "no acceptance stage")`, a counted error that shows only for an acceptance that exists on the remote although the definition has no stage for it. (S0002, S0003, S0010, story text)
+6. Opening an acceptance pushes the report's head on a branch `work-item/F0001-A0001` and nothing else: no `created` entry of a human (its journal starts with the stage protocol's `started` entry), no claim and no pull request; the stage protocol takes the acceptance from there like any other work item. (S0003, story text)
+7. The next free story number counts every story file in the feature's backlog, in progress and done, and is written with four digits. (S0003, story text)
+8. The acceptance reviewer's facts are three lines appended to its prompt: `Archived stories: ...`, `Next free story number: ...` and `Cost of the stories: ...`, the cost computed from the archived stories' cost records only. Code builds them in S0003; `TaskComposer` appends them in S0009. (S0003, S0009, story text)
+9. The pull request's description at the approval has four parts, `## Recommendation`, `## Findings in short`, `## Proposed stories` and the closing text; a part the report lacks reads `none`. The findings are the reviewer's last `result` entry as written. (S0004, story text)
+10. The closing text names no merge method (a merge commit, a squash or a rebase all work), and says that comments written while the acceptance waits are only recorded in its journal. (S0004, story text)
+11. The cost table is posted once on the acceptance's pull request at the hand-over, with the key F0007-S0009 uses (`n` is the number of the latest `result` record), so a retry posts it no second time; a hand-over already recorded (`handed_over` equals the stage) does nothing. (S0004, story text)
+12. A merge books the acceptance `accepted` whatever the recommendation says. (S0005, story text)
+13. The reason of a refusal is the human's comments after the reviewer's last result, unchanged and joined with one space (`no reason given` when there are none); it becomes the first paragraph under the recommendation, as `Refused by the human on <date>: <reason>`. (S0005, S0007, story text)
+14. A refusal keeps the report and its cost records on the main branch at `done/` and drops the proposed stories, which were only on the branch; a merge keeps them in the feature's backlog. The report is added with a `## Recommendation` section when the reviewer wrote none, and with the section at the end of the body when it has no journal section either. (S0005, S0007, story text)
+15. An acceptance merged before its approval is booked `accepted` with the journal entry `done (pull request merged before approval); cost: ...`; "before approval" means a stage before the first stage with `approval: true`. (S0006, story text)
+16. A repeated acceptance is a new work item `F0001-A0002`; the earlier report and its cost records stay as they were. (S0006, S0011, story text)
+17. An acceptance runs through F0005's stage protocol unchanged, with two additions in `factory.application.task`. `StoryFormChecker.findings` returns no findings for a document whose state is an `AcceptanceState` (the report has none of the story form's sections, so rule 1 would turn every forward decision into a question); it tells an acceptance by the type of the state because it receives the document only, and the opening always writes an `AcceptanceState`. `TaskComposer.compose` appends the three facts (`acceptance_prompt`) when the stage is the definition's `acceptance_stage`. Alternative for the human: a separate stage runner for acceptances (more code, the same result). (S0009, story text)
+18. The watcher reads acceptances through one reader, `AcceptanceReader.snapshots()`: one snapshot for every acceptance whose report is in `in-progress/` on `origin/main` or on its own branch, so a merged report that is not yet recorded is read again and its `merged` event is raised. `Watcher.evaluate` joins these with the stories in `work_item_order` and passes the due features in the new field `EvaluationInput.due`; the evaluation ranks a due feature after the feature's stories and before the next feature's. `due_features()` replaces the first draft's `due_events()`, because the evaluation builds the event and nothing may read an event's `detail` back. (S0002, S0008, story text)
+19. A close of an acceptance's pull request at any stage books it `refused`, as v1 did (close = refused): while the reviewer works or asks, at the approval, or after a failed hand-over. (S0007, S0011, story text)
+20. The close handler can be run again after its branch is gone: with the report already in `done/` it only finishes the clean-up; with the report in neither place it raises `CannotHandle`. (S0007, story text)
+21. The acceptance's handlers keep the names `AcceptanceHandOver`, `AcceptanceMerged` and `AcceptanceClosed` (the object is the acceptance; F0007's are named `<Kind>Handler`), and every one inherits `Handler`. They reuse F0007's helpers by name (`target_of`, `require_pull_request`, `commit_subject`, `CommentCopier`, `WorkItemRecorder`, `destination_path`, `done_entry_text`, `CLOSE_ENTRY_TEXT`, `cost_table_post`) and differ in the outcome, the refusal paragraph and the description only. One difference is deliberate: the close handler skips the `close` entry when any `close` record exists, because an acceptance ends at its first close. (S0004, S0005, S0007, story text)
+22. Tests of other stories change, in two groups, each with the human's leave. With the leave of questionnaire 1, Q20 (as F0007 decision 23 cites it): F0006-S0007 criterion 9 and F0007-S0010 criteria 10 and 13, as F0008-S0001 left them (S0010). With the human's leave, granted for this feature: `tests/test_no_journal_reading.py` (F0005-S0009) gets `"factory.domain.acceptance"` added to the set `ALLOWED["JOURNAL"]` (S0003) and to the set `ALLOWED["entry_text"]` (S0004), and nothing else of that file changes. The alternative is to move the three functions that read journal text into modules already on the list. (S0003, S0004, S0010, story text)
