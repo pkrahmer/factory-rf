@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 68
 blocked: null
 comments_seen: 0
@@ -169,3 +169,13 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
       - Security: no strings are built into a command, and no suppression markers were added.
       - Quality: the error is wrapped with the path in one place (`_parsed`). Path rules come from `folder_of` and the identifier parsers rather than a second regex. The two uncovered defensive branches (`work_items.py:85`, `:106`) are explained in the coder's entry, and mypy needs them for narrowing. Docstrings and the why-comments on `_branch_document`/`_started_document` meet `CLAUDE.md`.
       - Hygiene: the log gives the main decision and the rejected alternative, the Assignment matches what was built, and criterion 20 still describes what the documenter has to write.
+6. documenter: wrote the three things criterion 20 asks for; `make check` is green.
+   - docs/project-guide.md: new section "The remote's work items" (before "Reading and writing a work item file"). It covers the two DTOs and `RemoteWorkItems`. Work items are read from `in-progress/` on `origin/main` and from `origin/work-item/<id>`, never from a local branch or the work tree. A started story without a branch is at the first stage and its state keys are ignored. The section also states which files count as story files, the order, and the errors.
+   - docs/operator-guide.md: new section "Branch deletion on merge must be off". A merged story whose branch is gone is read as a new start.
+   - docs/decisions.md: new entry on why a branch that is an ancestor of `origin/main` is still read.
+   - Cross-read against the diff and found current: README.md; the git wrapper and the "Identity, order and places" sections of the project guide, which `RemoteWorkItems` only uses. "The document and its error" is also current.
+   - The code matches the Interface and the criteria, so there are no findings.
+   - Stale but unrelated, not touched: the diff stat shows planning/ and F0009 changes from the human's merge commit; they are not mine.
+   - I did not run the ticket's demo myself; I checked the new prose against the code instead.
+
+   `make check`: check: green
