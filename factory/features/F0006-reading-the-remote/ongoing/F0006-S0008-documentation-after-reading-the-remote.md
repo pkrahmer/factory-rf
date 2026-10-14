@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 80
 blocked: null
 comments_seen: 0
@@ -79,3 +79,27 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
       - Acceptance criteria: the Interface is "None: no code changes" and states no rule or limit, so no failing side needs a test. The tester wrote no tests and the coder built nothing, both on purpose and as the Assignment says. Criterion 1: the coder's entry records `make check` green (coverage 99.35 %). Criterion 2 is the docs criterion, which the documenter writes next. Its seven bullets name the sections, the phrases to remove and the texts to match (`error_report_text`, the `reject` detail, `factory-watch: no instance settings are wired yet`), so the documenter can write it and a later reader can check it.
       - Architecture, security, quality: no code or configuration changed, and no suppression markers were added.
       - Ticket hygiene: the log gives the main decision (documentation only, no tests, nothing to build) and what was rejected (tests that grep the docs). `Assignment` matches what was built, which is nothing yet. The docs criterion still describes what the reader must know after this story.
+6. documenter: wrote the seven fixes of the docs criterion. `make check` is green, with coverage at 99.35 %.
+
+   Files changed:
+   - `README.md`: the summary now names reading the remote, the evaluation, the tick, the dispatcher with the run handler, and `factory-watch`. It says a tick can run a stage but no command runs ticks before F0010. "nothing starts a stage before F0006" is gone. It also says `factory-run` and `factory-health` are declared but not built and end with `ModuleNotFoundError` until F0010. The four existing commands are still named.
+   - `docs/operator-guide.md`, opening paragraph: same summary, same F0010 note, same warning about the two unbuilt commands. "there is nothing else to start" is gone.
+   - `docs/operator-guide.md`, "The stops of the tick": the unreadable work item file now has two ways out, repair the file or move the story out of `in-progress/` on `main`. The text no longer names closing the pull request, and says why closing it changes nothing.
+   - `docs/operator-guide.md`, "A stage changed by hand": a `reject` is a counted error until F0007-S0006. It is reported once after three ticks and then capped, which holds back all new work. A push to the branch makes the factory try again, and the `reject` returns while the newest touching commit is the illegal change. The stage a hand-made branch starts with is never judged, because the first commit that gives the file its front matter is the opening commit or has an unreadable previous version. Later stage changes are judged.
+   - `docs/operator-guide.md`, "An event that keeps failing": added the `NOT_YET_HANDLED` kinds. Under them are the five common ones (`hand_over`, `merged`, `ask`, `comment`, `crash`) and what leads to each. Each ends in one report and then holds back all new work, until F0007 and F0008 register their handlers.
+   - `docs/operator-guide.md`, "Stops of one work item": `StopService.post` is now said to be called by the dispatcher's error report. The dispatcher does not record the number of a pull request it opened, and a later stop finds that pull request by its branch.
+   - `docs/operator-guide.md`, "A stall: the stall note" and "A stall by a red check": at the cap the evaluation makes `ask` with the detail `attempts cap`, a counted error until F0007. What the operator does once F0007 arrives is kept.
+
+   Quoted texts checked against the code:
+   - `error_report_text` in `factory.domain.post_texts`
+   - the `reject` detail in `factory.domain.evaluation`
+   - `factory-watch: no instance settings are wired yet`
+   - the `NOT_YET_HANDLED` list in `factory.entry.wiring`
+
+   Cross-read: `docs/project-guide.md` and `docs/decisions.md` have no line contradicting the new text (grepped for the old phrases). The rest of the operator guide is unchanged. I did not run the three Demo greps. I did not check whether the "Stops of the tick" tick explanation still lists the stops correctly beyond the paragraph I changed.
+
+   Stale text unrelated to this story: none seen.
+
+   Code findings: none.
+
+   `make check`: check: green
