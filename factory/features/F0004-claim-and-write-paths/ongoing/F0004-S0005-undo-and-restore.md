@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 56
 blocked: null
 comments_seen: 0
@@ -157,3 +157,30 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
    - Demo: the script is runnable with the named adapters. Each of the five output lines in `Expect:` can be compared against the output.
    - Architecture: the use case sits in `factory.application` and reaches git only through the `Git` interface and the file formats through reader/writer interfaces. It takes `Boundaries` and has no concrete tool.
    - Scope: it matches the feature's undo and restore bullet (WE2.1–WE2.3) and decisions 13–15. When the undo runs and the note in the entry are left to F0005, as the feature's Out of scope says.
+3. tester: wrote `tests/application/test_undo.py` (new file, the only file created). One helper, `_start`, does the setup. It pushes a pipeline definition (the fixture's `PIPELINE_YAML`, with the `intake` role's write paths replaced when a test needs other ones), checks out the work item's branch from `origin/main`, and commits `docs/guide.md`, `src/kept.py` and `F0001-S0002-second.md` together with the work item (`initial_state(stage)`, journal entry 1, a `## Journal` section). It then claims with `ClaimService`.
+   - criterion 1: tests/application/test_undo.py::test_a_modified_tracked_file_outside_the_write_paths_is_reverted
+   - criterion 2: tests/application/test_undo.py::test_a_new_untracked_file_outside_the_write_paths_is_deleted
+   - criterion 3: tests/application/test_undo.py::test_a_deleted_tracked_file_outside_the_write_paths_is_restored
+   - criterion 4: tests/application/test_undo.py::test_a_file_changed_in_the_agents_own_commit_is_reverted_without_a_new_commit
+   - criterion 5: tests/application/test_undo.py::test_files_inside_the_write_paths_are_left_as_the_agent_wrote_them
+   - criterion 6: tests/application/test_undo.py::test_protected_paths_are_undone_although_a_write_path_matches_them
+   - criterion 7: tests/application/test_undo.py::test_everything_else_in_an_in_progress_folder_is_undone_whatever_the_write_paths_say
+   - criterion 8: tests/application/test_undo.py::test_the_work_items_state_and_journal_are_restored_and_its_section_edit_kept
+   - criterion 9: tests/application/test_undo.py::test_a_work_item_with_only_a_section_edit_is_left_as_the_agent_left_it
+   - criterion 10: tests/application/test_undo.py::test_a_work_item_the_agent_deleted_is_restored_whole
+   - criterion 11: tests/application/test_undo.py::test_a_work_item_the_agent_broke_is_restored_whole
+   - criterion 12: tests/application/test_undo.py::test_a_work_item_the_role_may_not_write_is_reverted_whole (stage `doing`, the fixture's coder)
+   - criterion 13: tests/application/test_undo.py::test_a_widened_pipeline_definition_in_the_work_tree_widens_nothing
+   - criterion 14: tests/application/test_undo.py::test_an_invalid_pipeline_definition_in_the_work_tree_does_not_stop_the_undo
+   - criterion 15: tests/application/test_undo.py::test_the_guard_refuses_exactly_what_the_undo_puts_back (`judge` from `factory.adapters.claude_guard` on a Write payload, with `WritePathService.at`'s settings)
+   - criterion 16: tests/application/test_undo.py::test_the_lists_ascend_without_repeats_and_a_second_undo_finds_nothing
+   - criterion 17: tests/application/test_undo.py::test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed. It is parametrized over two baselines. The missing one is a `StageStart` on `origin/main`, which does not contain the work item. The unreadable one is a commit whose work item has front matter that is not valid YAML.
+   - criterion 18: tests/application/test_undo.py::test_the_undo_report_is_frozen and ::test_the_undo_report_forbids_unknown_fields
+   - criteria 19 and 20 are not tests.
+
+   Some assertions are exact lists, because each test's setup leaves no other changed path: `reverted == [GUIDE]` in criteria 1, 3 and 4, and `reverted == [PATH]` in criterion 12. Criterion 16 expects `reverted == [docs/guide.md, factory/pipeline.yml, src/kept.py]` and `deleted == [a.txt, docs/b.md, tests/z.py]`; in that test the work item's `attempts` is raised, so `restored_work_item` is true on the first undo. The second undo must equal `UndoReport(reverted=[], deleted=[], restored_work_item=False)`.
+
+   `make test`: a collection error, `ModuleNotFoundError: No module named 'factory.application.undo'`, the expected red. `make lint` is green. The type check was not run, as this stage skips it. No criterion needed interpretation.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
