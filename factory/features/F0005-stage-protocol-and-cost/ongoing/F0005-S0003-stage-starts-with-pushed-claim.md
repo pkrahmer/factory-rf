@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 60
 blocked: null
 comments_seen: 0
@@ -160,3 +160,17 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - The `state is None` refusal at line 93 is needed to narrow the type for mypy.
    - The criteria and the Interface match what was built.
    - The docs criterion still describes what the documenter must write.
+6. coder: coder (round 1): fixed the reviewer's one finding in commit 6c1cbf5. `make check` is green (total coverage 99.54 %).
+
+   - `src/factory/application/stage.py`: I removed the launcher's copy of the role rule and its stage-membership check from `_launchable_stage`. That method now refuses only a conflicted work item and a document without a state. A stage without a role is now refused by step 2, `TaskComposer.agent` → `_role_name`, which raises this `ValueError` before `agent_definitions.read`. So the refusal still comes before any read or push, and criterion 8's test passes. I also removed the `_definition` attribute, which nothing used any more.
+   - `src/factory/application/task.py`: following the reviewer's suggestion, `_role_name` now checks whether the stage is in the pipeline definition first. An unknown stage raises `ValueError` there instead of `KeyError` from the stages table, so the rule is in one place.
+
+   Rejected: dropping the stage-membership check entirely. An unknown stage would then reach the caller as a bare `KeyError`.
+
+   Noticed, not touched:
+   - Three defensive refusals have no test: `stage.py:92` (a document without a state, needed to narrow the type for mypy), `task.py:108` (an unknown stage) and `task.py:120`, which was already uncovered before this round. None of them is a limit the Interface states.
+   - The `docs:` criterion is the documenter's.
+
+   `make check`: check: green
+
+   `make check`: check: green
