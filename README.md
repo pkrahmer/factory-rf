@@ -1,6 +1,6 @@
 # factory-rf
 
-The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. The built parts so far are the layer packages and the wrappers behind them (git, the build commands, the hosting service, the `claude -p` runtime), the work item and its journal, the story form check, the cost records, the stops of the repository, the machine and a work item with the factory log and the health status file, and the pipeline definition with its agent files. `docs/project-guide.md` describes each part.
+The factory, reimplemented by v1 of itself. The factory takes a feature, split into stories, through tests, code, review, documentation and a smoke test, one agent at a time, with the human approving each story on its pull request. This repository is the second implementation (v1.1): it is built by the first (github.com/pkrahmer/factory), and it is under construction. What is built so far is the groundwork the pipeline will run on: the wrappers for the outside tools, the work item and its files, the stops and the health status, the pipeline definition, and the claim of a stage with its write paths, guard and undo. The pipeline itself does not run yet. `docs/project-guide.md` describes each part.
 
 ## Getting started
 
@@ -9,7 +9,7 @@ uv sync                       # install
 make check                    # everything the pipeline checks: lint, types, layers, sast, secrets, licenses, tests
 ```
 
-When it works, `make check` ends with the line `check: green`. The one command so far checks a story before it starts: `uv run factory-check-story <path>...` (see `docs/operator-guide.md`).
+When it works, `make check` ends with the line `check: green`. Two commands exist so far: you run `uv run factory-check-story <path>...` to check a story before it starts, and the agent runtime runs `factory-guard` to refuse writes outside a role's write paths (see `docs/operator-guide.md`).
 
 ## Where to look next
 
