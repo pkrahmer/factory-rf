@@ -16,6 +16,8 @@ The guide for agents working on `factory-rf`: how the code is laid out, where a 
 
 `PushFailed(branch, outcome)` is a `FactoryError` for a push that did not reach the remote; `outcome` is the git wrapper's `PushOutcome` other than `"pushed"` (`rejected`, `unreachable`), and the message names the branch and the outcome. The claim service raises it (see *The claim service*).
 
+`CannotHandle(kind, reason)` is a `FactoryError` that a handler raises when it cannot do its work, so the dispatcher counts it as an error; `kind` is the event's kind, and the message is `cannot handle <kind>: <reason>`.
+
 `WorkItemFormatError(fault, path=None)` is a `FactoryError` for a work item file that cannot be read (see *The data of a work item*).
 
 `CostRecordFormatError(line, fault)` is a `FactoryError` for a cost record file that cannot be read or written; `line` is counted from 1 and the message is `line <line>: <fault>`.
@@ -555,6 +557,25 @@ Because the checkout is rebuilt every tick and no local state is read, a rejecte
 `NOT_YET_HANDLED` is a tuple of the event kinds that have no handler in `build_handlers`, in the order of `EventKind`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due`. It and the keys of `build_handlers`' result partition `EventKind`. A story that registers a handler adds it to `build_handlers` and removes its kinds from `NOT_YET_HANDLED`. Until then the dispatcher counts an event of such a kind as an error (`UnhandledEvent: no handler for event kind <kind>`), never silence.
 
 `RunHandler(boundaries, instance, definition, environment)` (`factory.application.handlers.run`) turns a `run` event into one stage: it builds `StageRunner(boundaries, instance, definition, environment)` and calls `run(work_item.id, work_item.path)`. Any other kind is a `ValueError`. The `StageReport` is dropped, because a stall is already recorded by the stage; whatever `StageRunner.run` raises (a `HostingServiceError`, for example) propagates and is a counted error of the dispatcher. The handler adds nothing to the environment and takes nothing from it.
+
+### Recording the human's act
+
+A handler that answers an act of the human on a pull request first records the act in the work item's branch and pushes it, and only then posts, reopens or checks out anything else (kept thing 3). If the factory dies after the push, the act is already in the journal and the next tick does not repeat it. `factory.application.handlers.recording` holds what the handlers share:
+
+- `target_of(event)` returns `Target(snapshot, state, pull_request)` for the event's work item. It raises `CannotHandle` (kind: the event's) for an event with no work item (`the event names no work item`) and for a work item whose document has no state (`work item <id> has no state`). `require_pull_request(target, kind)` returns the pull request number, or raises `CannotHandle` of `kind` (`work item <id> has no pull request`).
+- `commit_subject(work_item, text)` gives `work item <id>: <text>`. Nothing parses commit subjects.
+- `WorkItemRecorder(boundaries)` does the git work. `check_out(branch)` resets to `HEAD`, switches to the branch at `origin/<branch>` and resets to it, so whatever a killed handler left (uncommitted changes, untracked files, an unpushed commit) is gone. It does not fetch: the caller must have fetched, as the tick does. `read` and `write` use the work item reader and writer on a path in the checkout. `publish(branch, subject)` commits and pushes, and raises `PushFailed` for any outcome but `pushed`. `record(branch, path, document, subject)` is `write` then `publish`.
+
+### Comments are copied by id
+
+`CommentCopier(boundaries)` (`factory.application.handlers.comments`) copies the human's comments on a pull request into the journal.
+
+- Only the marker tells the factory's comments from the human's: `unread(state, pull_request)` lists the comments, drops those with `by_factory` and those whose id is in `state.comments_read`, and keeps the listed order. The author is never looked at, and a body starting with `factory:` counts as the human's.
+- Comments are tracked by id, never by count, so a factory post in between, or a deleted comment, neither hides nor repeats another one.
+- `append(document, comments)` adds, for each comment with a non-blank body, a `human` entry of kind `comment`, dated with `created_at` in UTC; `\r\n` in the body becomes `\n`, and the edges are stripped as for any entry. A blank comment gets no entry. Every given id joins `comments_read`, which stays sorted without repeats.
+- `copy(snapshot, pull_request, adjust=None)` checks out the branch, reads the work item, appends the unread comments and records them with the subject `work item <id>: comments from the pull request`. It returns `CopyResult(recorded, commit)`: the new ids and the pushed commit, or `([], None)` with nothing written when nothing was unread. `adjust(document, comments)`, when given, changes the appended document and lands in the same commit; it is not called when nothing is unread. A push that fails raises `PushFailed`, and the next `copy` records the same comments once. A work item without a state raises `ValueError`; callers pass `target_of` first, which refuses it with `CannotHandle`.
+
+No handler is registered with this yet: the comment handler and the send-back use `CommentCopier`.
 
 The agent run's environment is made by `agent_environment(scripts, home)`: exactly `PATH` = `<scripts>:/usr/local/bin:/usr/bin:/bin` and `HOME` = `str(home)`. `production_environment()` calls it with the directory of `sys.executable` (where the `factory-guard` console script is installed) and `Path.home()`. F0010 scrubs the environment, probes the `PATH` and completes `build_boundaries` from the instance settings.
 

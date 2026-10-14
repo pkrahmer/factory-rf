@@ -172,3 +172,16 @@ class UnhandledEvent(FactoryError):
         """Name the kind without a handler."""
         super().__init__(f"no handler for event kind {kind}")
         self.kind = kind
+
+
+class CannotHandle(FactoryError):
+    """A handler cannot do its work: the event's kind and the reason."""
+
+    kind: str
+    reason: str
+
+    def __init__(self, kind: str, reason: str) -> None:
+        """Name the event kind and why it cannot be handled."""
+        super().__init__(f"cannot handle {kind}: {reason}")
+        self.kind = kind
+        self.reason = reason
