@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 98
 blocked: null
 comments_seen: 2
@@ -236,3 +236,29 @@ Expect: the factory log line on standard output first, time-stamped and ending w
     Stale but not touched: nothing seen.
 
     `make check`: check: green
+11. demo: I ran the one command under `## Demo` from the repository root, as written. It exited 0 and met its `Expect:` line. There are no findings.
+
+    Command 1 (the `uv run python -c` script: a bare remote, a backlog story on `main`, a pushed `work-item/F0001-S0001` branch, `delete_stale_branches` called twice):
+    ```
+    2026-10-12T00:00:00Z deleted stale branch work-item/F0001-S0001: its story is back in the backlog
+    ['work-item/F0001-S0001']
+    None
+    ['main']
+    []
+    ```
+    Met `Expect:`:
+    - The first line is the time-stamped factory log line, ending with `deleted stale branch work-item/F0001-S0001: its story is back in the backlog`.
+    - Then come the four expected lines in order:
+      - `['work-item/F0001-S0001']`: the stale branch was deleted.
+      - `None`: its remote-tracking ref is gone.
+      - `['main']`: only `main` is left on the remote.
+      - `[]`: the second call deleted nothing and wrote no log line.
+
+    Checked against the acceptance criteria:
+    - The output agrees with criterion 1: the function returned the branch name, the remote-tracking ref is gone and the branch is gone from the remote.
+    - It agrees with criterion 7: there is exactly one log line for the deleted branch, with the text the criterion fixes.
+    - It agrees with the "no stale branch → no line, `[]`" rule: the second call printed no line and returned `[]`.
+    - Nothing in the output contradicts any other criterion.
+    - The demo does not exercise the refused deletion (8), the done story (13), the tick step (10–12) or the checks that nothing else is touched (9). Those are covered by the tests mapped in entry 3, and the reviewer judged them in entry 9.
+
+    Open: nothing.
