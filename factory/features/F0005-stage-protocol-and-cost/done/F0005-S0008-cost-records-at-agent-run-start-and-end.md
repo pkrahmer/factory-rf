@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 65
 blocked: null
 comments_seen: 0
@@ -208,3 +208,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Against the acceptance criteria: the 23 passing tests are the parametrised cases for criteria 1–15, which the tester and reviewer entries map one by one. Nothing in the demo contradicts any criterion. Criterion 16 (`make check`) is the factory's gate after this stage, so I did not run it here. Criterion 17 (docs) is not something this demo exercises; the documenter's entry covers it.
 
    Still open: the gap intake noted, that no test checks that a `StallContext` with `cost=None` writes no sidecar, is still untested. It is not a criterion, so I did not count it as a finding.
+8. done (pull request merged); cost: 6 runs, 10.3 min, 52 turns, 181k tokens in (1271k more from cache), 34k out, $2.19
