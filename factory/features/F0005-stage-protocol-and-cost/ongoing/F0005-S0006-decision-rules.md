@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 63
 blocked: null
 comments_seen: 0
@@ -135,3 +135,12 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
       - Open: docs criterion 18 is for the documenter. Nothing else noticed.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: criteria 1 to 16 each have a test in `tests/domain/test_decision_rules.py` or `tests/domain/test_question_texts.py`, and each test checks what its criterion says. The round cap is tested on both sides: rounds 0 to 2 give rule 3 and round 3 gives rule 4. `round` is tested with -1 and 0, and `rule` with 5 and with each allowed value. An unknown key goes through a variable typed `type[BaseModel]`, and the frozen test uses `setattr` with the field name in a variable. Both `ValueError` sides are tested (unknown decision, unknown stage). The coder's entry says `make check` was green.
+   - Rule order: `decide` in `src/factory/domain/decisions.py` tries the rules as 1, 2, 6, 7, 3/4, not 1, 2, 3, 4, 6, 7. I checked the conditions, including the edge case where `question` is an entry of `next`. They exclude each other, so the result is the same as v1's order.
+   - Architecture: everything is pure `factory.domain` code. `post_texts` imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, with postponed annotations, so the cycle with `decisions` is broken as the Interface says. There is no `Any` and no `dict[str, Any]`.
+   - Security: nothing relevant. No suppression markers were added.
+   - Quality: names and docstrings are fine. Rules 1 to 3, 6 and 7 build their result in the private helpers `_stay` and `_move`; rule 4 builds its own. The one comment explains why ("forward is next[0] ... wherever it points").
+   - Ticket hygiene: the log gives the main decision (forward is `next[0]`) and what was rejected (`PipelineDefinition.position`). `Assignment` matches what was built, and the docs criterion (18) still says what the documenter must write.
+   - Out of scope: `git diff main...HEAD` also lists changes under `planning/`, `docs/runs/` and `factory/features/F0007-*`. They come from the human's commit c3044cd, which is on `origin/main` and reached this branch through the merge 76fa9ee; the local `main` is behind `origin/main`. They are not the ticket's work, and I did not review them.
