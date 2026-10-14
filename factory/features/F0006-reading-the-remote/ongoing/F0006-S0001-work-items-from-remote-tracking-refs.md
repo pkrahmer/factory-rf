@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 68
 blocked: null
 comments_seen: 0
@@ -154,3 +154,11 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the remote reader for work items; all tests pass and `make check` is green (total coverage 99.35 %). I ran the ticket's demo and it prints the two expected lines.
+      - `src/factory/domain/work_item.py`: added `WorkItemSnapshot` and `StoryFile`, both frozen with `extra="forbid"`. `branch_commit` uses `CommitId` from `factory.domain.git`, `folder` uses `LifecycleFolder` from `factory.domain.paths` and `id` uses `WorkItemId`.
+      - `src/factory/application/work_items.py`: added `RemoteWorkItems`. `list_stories` filters `Git.list_files("origin/main", "factory/features")` through `_story_file`, which keeps a path only if `folder_of` accepts it, its feature id matches its directory's and it is not an acceptance. The result is sorted by `(work_item_order(id), path)`. `read` turns each `in-progress` story into a snapshot. If `Git.resolve("origin/work-item/<id>")` finds a branch, the document is `reader.parse` of the file at that tip, with no ancestor check. Otherwise the state is `initial_state(definition.first_stage())`, and body and ignored keys come from `parse_specification` of main's text. A missing file or a `WorkItemFormatError` from the reader is raised again as `WorkItemFormatError(fault, story.path)`.
+      - Main design decision: the work item id and the feature directory are taken from `folder_of` and the identifier parsers in `factory.domain`. I rejected writing a second path regex in the application layer, because two copies of the path rules could drift apart.
+      - Commits: 08bf3d5 adds the feature. 2acdd21 is the refactor: the two identical try/except blocks that added the path became one helper, `_parsed`.
+      - Noticed, not touched: two defensive lines are not covered (`work_items.py:85` and `:106`). Line 85 handles a listed file missing on main; line 106 handles the case where the name parsers return None after `folder_of` accepted the path. No test can reach either one, but mypy needs them to narrow the types.
+
+   `make check`: check: green
