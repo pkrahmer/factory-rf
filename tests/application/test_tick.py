@@ -374,6 +374,7 @@ def test_a_rejected_push_leaves_no_trace_for_the_next_tick(
     tick = _tick(boundaries, {"run": handler})
 
     first = tick.run()
+    head = remote_commit(remote, BRANCH)
 
     assert handler.outcomes == ["rejected"]
     assert first.dispatch == "error"
@@ -382,8 +383,8 @@ def test_a_rejected_push_leaves_no_trace_for_the_next_tick(
     second = tick.run()
 
     assert second.event is not None
-    assert second.event.remote_state == remote_commit(remote, BRANCH)
-    assert handler.events[1].remote_state == remote_commit(remote, BRANCH)
+    assert second.event.remote_state == head
+    assert handler.events[1].remote_state == head
     assert handler.on_main_at_origin[1]
 
 
@@ -604,7 +605,7 @@ def test_an_unreadable_work_item_file_raises_without_a_stop(
     boundaries: Boundaries, human: HumanClone
 ) -> None:
     human.start(BACKLOG_PATH)
-    human.push_file(BRANCH, PATH, BODY)
+    human.push_file(BRANCH, PATH, "# First story, edited\n")
     handler = Recording()
 
     with pytest.raises(WorkItemFormatError, match=re.escape(PATH)):

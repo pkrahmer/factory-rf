@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 74
 blocked: null
 comments_seen: 4
@@ -195,3 +195,11 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
    2. `test_an_unreadable_work_item_file_raises_without_a_stop` (criterion 19): pass `"# First story, edited\n"` to `human.push_file(BRANCH, PATH, …)` instead of `BODY`. The text still has no front matter, but it no longer matches what `human.start` already put there, so the commit is not empty.
 
    The code stays as it is in 447294b (`src/factory/application/tick.py`). Every other part of `make check` was green, and these two tests were the only red ones. I have not done the refactor pass yet. I will do it once these tests are fixed and `make check` is green.
+9. tester: I made the two test changes the human approved in log entry 7, as the coder named them in log entry 8. Both are in `tests/application/test_tick.py`, and I changed nothing else.
+   1. `test_a_rejected_push_leaves_no_trace_for_the_next_tick` (criterion 9): the test now saves `remote_commit(remote, BRANCH)` as `head` right after the first `tick.run()`. Both `second.event.remote_state` and `handler.events[1].remote_state` are compared against that saved head. Before, the test read the remote again after the second tick, and by then the handler's successful push had moved it one commit further. That is why no implementation could pass. Criterion 9 asks for the head the human pushed in the meantime, which is the saved one.
+   2. `test_an_unreadable_work_item_file_raises_without_a_stop` (criterion 19): `human.push_file(BRANCH, PATH, …)` now pushes `"# First story, edited\n"` instead of `BODY`. The text still has no front matter. It now differs from what `human.start` had already put at `PATH`, so the commit is no longer empty and `NothingToCommit` is not raised during setup (the trap described in `CLAUDE.md`).
+
+   I ran `make test` once and it passed, coverage 99.39 %. `make lint` passed.
+
+   `make lint`: lint: green
+   `make test`: test: green
