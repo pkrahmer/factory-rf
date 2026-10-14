@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 72
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -152,3 +152,6 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface rule "`remote_state` of an event with a work item is that snapshot's `branch_commit`, else `main_commit`; of an event with none, `main_commit`" is tested only for `merged`, `closed` (criterion 7), `run` (16, 19) and the empty `idle` (1). No criterion checks it for the `idle` events of tier 2 (waiting work item, nothing new) and tier 3 (held claim), which carry no work item although a work item caused them, nor for `duplicate`, `crash`, `expired` or `ask`. The dispatcher counts errors per event and `remote_state` (F0006-S0003), so a wrong value there is silent. Two coders could pick `main_commit` or the waiting work item's `branch_commit` for those idles, and both would pass. Options: (a) add a criterion before the two closing ones: "the `idle` events of tier 2 and tier 3 have `remote_state` equal to `main_commit`; `duplicate`, `crash`, `expired` and `ask` have the `branch_commit` of their snapshot, and `main_commit` when it has none". This is what I would choose. (b) Drop the sentence from the Interface for those kinds.
+
+   All other checks pass: the Interface names concrete modules and signatures, the tiers and validation order are covered by criteria 1 to 17 including each failing side, the Demo is runnable with a checkable `Expect:`, and the architecture and scope match `FEATURE.md`.
