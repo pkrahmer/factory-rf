@@ -39,7 +39,8 @@ class EvaluationInput(BaseModel):
 
 PullRequestLookup = Callable[[int], PullRequestObservation]
 ClaimStatusOf = Callable[[WorkItemState], ClaimStatus]
-_Pairs = Sequence[tuple[WorkItemSnapshot, WorkItemState]]
+_Pair = tuple[WorkItemSnapshot, WorkItemState]
+_Pairs = Sequence[_Pair]
 _LookupResult = PullRequestObservation | HostingServiceError | None
 
 _CLAIM_EVENTS: dict[ClaimStatus, EventKind] = {"own": "crash", "expired": "expired"}
@@ -116,9 +117,7 @@ def _validated_state(snapshot: WorkItemSnapshot, definition: PipelineDefinition)
     return state
 
 
-def _first_waiting(
-    definition: PipelineDefinition, pairs: _Pairs
-) -> tuple[WorkItemSnapshot, WorkItemState] | None:
+def _first_waiting(definition: PipelineDefinition, pairs: _Pairs) -> _Pair | None:
     # Only the first waiting work item is looked up, so an idle tick costs at most one lookup.
     waiting_pairs = (pair for pair in pairs if waiting(pair[1], definition))
     return next(waiting_pairs, None)
@@ -135,7 +134,7 @@ def _looked_up(state: WorkItemState, lookup: PullRequestLookup) -> _LookupResult
 
 def _reject(
     facts: EvaluationInput,
-    waiting_pair: tuple[WorkItemSnapshot, WorkItemState] | None,
+    waiting_pair: _Pair | None,
     looked_up: _LookupResult,
 ) -> Event | None:
     changes = {illegal.work_item: illegal.change for illegal in facts.illegal_changes}
@@ -157,7 +156,7 @@ def _reject(
 
 def _human_signal(
     facts: EvaluationInput,
-    waiting_pair: tuple[WorkItemSnapshot, WorkItemState] | None,
+    waiting_pair: _Pair | None,
     looked_up: _LookupResult,
 ) -> Event | None:
     if waiting_pair is None:
