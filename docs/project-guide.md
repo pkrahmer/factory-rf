@@ -1047,13 +1047,13 @@ The factory believes what it observes, not what the agent reports. `AfterAgent(b
 4. **The entry.** `factory.domain.decisions.agent_entry(role=, stage=, decision=, text=, undone=)` builds it, and code decides everything but the words. The speaker is the role. The kind is `question` for the decision `question`, otherwise `result`. The text is the agent's text, stripped, with one leading `<role>:` or `<stage>:` removed (the colon directly after the name; the role is tried first). A blank text gives `None`, which `AfterAgent` stalls as `no_result`. When paths were undone, the text ends with a blank line and `The factory undid changes outside the write paths: <paths sorted, joined by ", ">.`. The work item's own cost-record file, which the factory rewrites after the undo, is never named there.
 5. **The form again.** The story form is checked on the undone work item and compared with the findings from before the run (`StartedStage.findings`). Only a finding that was not there before stalls, as `form_invalid`, with the new messages joined by `; ` as detail. Findings are compared by message with every run of digits replaced by one mark, so a finding whose line number moved because the agent edited above it is the same finding. A kind that now occurs more often than before counts as new: of equal messages the earlier ones count as the old ones. Only in this stall is the entry appended (above the stall entry); otherwise it is built but not appended.
 
-What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document` (the work item after step 3, without the entry), `entry`, `undo` (the `UndoReport`) and `form_findings` (all findings after the run). The stage's result commit appends the entry (F0005-S0007).
+What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document` (the work item after step 3, without the entry), `entry`, `undo` (the `UndoReport`) and `form_findings` (all findings after the run). The stage's result commit ("The stage protocol", below) appends the entry.
 
 Tests: `tests/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
 
 ## The decision rules
 
-`factory.domain.decisions.decide(definition, state, decision, findings=())` turns the agent's decision into a `StageMove` (frozen, no unknown keys): `rule`, `stage`, `blocked`, `round` and `question`. It is pure; the stage's result commit (F0005-S0007) applies the move. It never touches `attempts` or `crashes`: a rework counts rounds, a stall counts attempts, and the two are kept apart.
+`factory.domain.decisions.decide(definition, state, decision, findings=())` turns the agent's decision into a `StageMove` (frozen, no unknown keys): `rule`, `stage`, `blocked`, `round` and `question`. It is pure; `StageFinisher` ("The stage protocol", below) applies the move. It never touches `attempts` or `crashes`: a rework counts rounds, a stall counts attempts, and the two are kept apart.
 
 "Forward" is a decision equal to `next[0]` of the state's stage; a "rework" is any other entry of `next`. This is the only rule for counting rounds, wherever in the pipeline definition the named stage sits. A stage missing from the definition, or a decision that is neither in `next` nor `question`, raises `ValueError` naming it.
 
@@ -1065,7 +1065,7 @@ The rules are tried in v1's order; rule 5 (a red check) is not decided here but 
 | 2 | decision `question` (findings do not matter) | unchanged | `question` | unchanged | `None`: the agent's own entry is the question |
 | 3 | rework, stage has `round_cap`, `round + 1 <= round_cap` | the decision | `None` | `round + 1` | `None` |
 | 4 | rework, stage has `round_cap`, `round + 1 > round_cap` | unchanged | `round_cap` | `round + 1` | `round_cap_question(round + 1, round_cap)` |
-| 5 | forward, but a check is red | (the checks, S0007) | | | |
+| 5 | forward, but a check is red | unchanged (a stall, see "The stage protocol") | | | |
 | 6 | forward, no findings | `next[0]` | `None` | unchanged | `None` |
 | 7 | rework, stage has no `round_cap` | the decision | `None` | unchanged | `None` |
 
@@ -1074,6 +1074,34 @@ Rules 3, 6 and 7 move, so they clear a `blocked` of `question`. `findings` matte
 The factory's own question texts are in `factory.domain.post_texts`: `round_cap_question(rounds, cap)` and `findings_question(findings)` (the messages numbered from 1, joined by one space). That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
 
 Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.py`.
+
+## The stage protocol
+
+`StageRunner(boundaries, instance, definition, environment).run(work_item, path)` (`factory.application.stage`) is the one entry point that runs a stage from the claim to the result commit. It returns a frozen `StageReport`: `work_item`, `stage` (the stage that ran, from the state `prepare` read), `next_stage`, `rule` (the decision rule applied, 1 to 7, or `None` when the stage stalled before a decision), `commit` (the pushed head), `pull_request` and `stall`. `stall` is set exactly when the stage stalled; `next_stage` equals `stage` for a stall and for the rules that keep the stage (1, 2 and 4). A red check is rule 5.
+
+`run` does these steps in this order; a `StallResult` from any step ends the run with a report whose `rule` is `None`:
+
+1. `WorkItemOpening.prepare`. With `merge_conflict` set in the result, `StallService.stall` with reason `merge_conflict` and no stage start: no claim is pushed and no agent runs.
+2. `StageLauncher.launch`: claim, pull request, agent run. `environment` is passed unchanged.
+3. `AfterAgent.process`: branch, result, undo, entry, form.
+4. `StageFinisher.finish`: decision, checks and reports, result commit.
+
+### `StageFinisher.finish(aftermath)`
+
+1. `decide` on the state of `aftermath.document`, with the form findings after the run. A first stage whose agent fixed the last finding therefore moves forward instead of asking.
+2. Rule 6 only: each check of the stage's `checks`, in order, through `ProjectCommands.run` with the `time_limit` of the pipeline definition's project command. The first one that is not green ends the stage as a stall `check_red` (rule 5): the later checks and all reports do not run. The stall detail is the command's name and the last `STALL_TAIL_LINES` (15) lines of its output (all, when fewer). The journal then holds the agent's entry, ending with the lines of the checks that were green, directly above the `factory` stall record. The stall costs one attempt and changes neither the stage nor `crashes`. The checks see the work tree after the undo.
+3. Rule 6 only, once every check is green: each report of the stage's `reports`, in order. A report that fails holds nothing; a report is recorded, never enforced.
+4. The agent's entry gains, after a blank line, one line `` `<command>`: <last line of its output> `` for each green check and each report, in the order they ran (for example `` `check`: 12 passed ``). A stage with neither gets no such lines.
+5. The entry is appended; when the move has a question (rules 1 and 4), a `factory` entry of kind `question` follows it.
+6. The new state takes `stage`, `blocked` and `round` from the move and `pull_request` from the started stage, and the claim is released. `crashes` is reset to 0 on rule 6, a forward move, and unchanged otherwise; `attempts`, `comments_read` and `handed_over` never change.
+7. The file is written, everything in the work tree is committed in one commit and pushed. Any push outcome but `pushed` raises `PushFailed`, and no label has been written.
+8. Last, `HostingService.set_labels(pull_request, labels_for(new_state))`. `labels_for` (`factory.domain.labels`) gives `[LABEL_PREFIX + state.stage]`, for example `["stage:review"]`. Labels are a projection of the stage: they are written after the push and never read back. A `HostingServiceError` from this step propagates; the result commit stays pushed.
+
+Rules 1, 2, 3, 4 and 7 run no check and no report.
+
+A run adds exactly one commit of the factory's own on `origin/<branch>`: the result commit or the stall commit, above the stage-start commit when the agent committed nothing and above the agent's last commit when it did. It holds the whole work tree, so a file a check creates is committed unless `.gitignore` covers it.
+
+Tests: `tests/domain/test_labels.py`, `tests/application/test_stage_finish.py`, `tests/application/test_stage_run.py`. The checks and reports are real `make` targets from a `Makefile` the tests push to `main`; the agent is `FakeAgentRuntime`, the hosting service its fake.
 
 ## Kill points: testing a crash
 

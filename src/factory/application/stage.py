@@ -1,10 +1,12 @@
-"""A stage's start and run, and what the factory makes of the run before it decides anything."""
+"""A stage from its start to its result: the run, the decision, the checks and the result commit."""
 
 import re
 from collections import Counter
 from collections.abc import Mapping
+from datetime import timedelta
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, PositiveInt
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
@@ -14,14 +16,20 @@ from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.application.undo import UndoReport, UndoService
 from factory.application.write_paths import WritePathService
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.decisions import StallReason, agent_entry, stall_reason_of
+from factory.domain.checks import CheckResult
+from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
+from factory.domain.errors import PushFailed
+from factory.domain.git import CommitId
 from factory.domain.hosting import PullRequestView
 from factory.domain.identifiers import Name, WorkItemId
-from factory.domain.journal import NewEntry, append_entry
+from factory.domain.journal import FACTORY, NewEntry, append_entry
+from factory.domain.labels import labels_for
 from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.story_form import FormFinding
-from factory.domain.work_item import WorkItemDocument
+from factory.domain.work_item import WorkItemDocument, WorkItemState
+
+STALL_TAIL_LINES = 15
 
 
 class StartedStage(BaseModel):
@@ -214,6 +222,201 @@ class AfterAgent:
             pull_request=started.pull_request,
         )
         return self._stalls.stall(context, reason, detail)
+
+
+class StageReport(BaseModel):
+    """How a stage ended: the rule applied, the stage it leaves the work item in, its commit."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    work_item: WorkItemId
+    stage: Name
+    next_stage: Name
+    rule: Literal[1, 2, 3, 4, 5, 6, 7] | None
+    commit: CommitId
+    pull_request: PositiveInt
+    stall: StallResult | None
+
+
+class StageFinisher:
+    """Decides, runs the checks and reports, then commits, pushes and labels the stage's result."""
+
+    def __init__(
+        self, boundaries: Boundaries, instance: str, definition: PipelineDefinition
+    ) -> None:
+        """Finish as `instance` under `definition`."""
+        self._boundaries = boundaries
+        self._definition = definition
+        self._claims = ClaimService(boundaries, instance, definition)
+        self._stalls = StallService(boundaries, instance, definition)
+
+    def finish(self, aftermath: AgentAftermath) -> StageReport:
+        """Decide on the aftermath, run the checks and reports of a forward move, push the result.
+
+        The first red check stalls the stage, rule 5. `PushFailed` from the push and a
+        `HostingServiceError` from the label write after it propagate.
+        """
+        started = aftermath.started
+        move = decide(
+            self._definition,
+            _state_of(aftermath.document),
+            aftermath.decision,
+            aftermath.form_findings,
+        )
+        ran: list[CheckResult] = []
+        if move.rule == 6:
+            ran, red = self._run_checks_and_reports(started.stage)
+            if red is not None:
+                return self._stall_red(aftermath, ran, red)
+        document = append_entry(aftermath.document, _with_command_lines(aftermath.entry, ran))
+        if move.question is not None:
+            question = NewEntry(speaker=FACTORY, kind="question", text=move.question)
+            document = append_entry(document, question)
+        moved = self._moved(document, move, started.pull_request.number)
+        commit = self._commit_and_push(started, moved, f"{started.stage} ends: {move.stage}")
+        self._boundaries.hosting.set_labels(
+            started.pull_request.number, labels_for(_state_of(moved))
+        )
+        return StageReport(
+            work_item=started.work_item,
+            stage=started.stage,
+            next_stage=move.stage,
+            rule=move.rule,
+            commit=commit,
+            pull_request=started.pull_request.number,
+            stall=None,
+        )
+
+    def _run_checks_and_reports(
+        self, stage_name: str
+    ) -> tuple[list[CheckResult], CheckResult | None]:
+        stage = self._definition.stages[stage_name]
+        green: list[CheckResult] = []
+        for check in stage.checks:
+            result = self._run_command(check)
+            if not result.passed:
+                return green, result
+            green.append(result)
+        reports = [self._run_command(report) for report in stage.reports]
+        return green + reports, None
+
+    def _run_command(self, name: str) -> CheckResult:
+        minutes = self._definition.project_commands[name].time_limit
+        return self._boundaries.project_commands.run(name, time_limit=timedelta(minutes=minutes))
+
+    def _stall_red(
+        self, aftermath: AgentAftermath, green: list[CheckResult], red: CheckResult
+    ) -> StageReport:
+        started = aftermath.started
+        document = append_entry(aftermath.document, _with_command_lines(aftermath.entry, green))
+        context = StallContext(
+            work_item=started.work_item,
+            stage=started.stage,
+            branch=started.branch,
+            path=started.path,
+            stage_start=started.stage_start,
+            document=document,
+            pull_request=started.pull_request,
+        )
+        tail = "\n".join(red.output_tail.splitlines()[-STALL_TAIL_LINES:])
+        stall = self._stalls.stall(context, "check_red", f"`{red.command}`\n{tail}")
+        return _stalled_report(started.work_item, started.stage, stall, rule=5)
+
+    def _moved(
+        self, document: WorkItemDocument, move: StageMove, pull_request: int
+    ) -> WorkItemDocument:
+        state = _state_of(document)
+        moved_state = state.model_copy(
+            update={
+                "stage": move.stage,
+                "blocked": move.blocked,
+                "round": move.round,
+                "pull_request": pull_request,
+                # Only a forward move shows the stage works again, so only it forgives crashes.
+                "crashes": 0 if move.rule == 6 else state.crashes,
+            }
+        )
+        return self._claims.release(document.model_copy(update={"state": moved_state}))
+
+    def _commit_and_push(
+        self, started: StartedStage, document: WorkItemDocument, message: str
+    ) -> CommitId:
+        self._boundaries.work_item_writer.write(self._boundaries.checkout / started.path, document)
+        git = self._boundaries.git
+        commit = git.commit(message)
+        outcome = git.push(started.branch)
+        if outcome != "pushed":
+            raise PushFailed(started.branch, outcome)
+        return commit
+
+
+class StageRunner:
+    """Runs one stage of a work item, every step in the same order, to a report."""
+
+    def __init__(
+        self,
+        boundaries: Boundaries,
+        instance: str,
+        definition: PipelineDefinition,
+        environment: Mapping[str, str],
+    ) -> None:
+        """Run as `instance` under `definition`; agent runs get `environment` unchanged."""
+        self._opening = WorkItemOpening(boundaries, definition)
+        self._stalls = StallService(boundaries, instance, definition)
+        self._launcher = StageLauncher(boundaries, instance, definition, environment)
+        self._after = AfterAgent(boundaries, instance, definition)
+        self._finisher = StageFinisher(boundaries, instance, definition)
+
+    def run(self, work_item: WorkItemId, path: str) -> StageReport:
+        """Prepare, claim and run the agent, process its run, decide, check and push the result.
+
+        A step that cannot be kept ends the run as a stall, reported with no rule.
+        """
+        prepared = self._opening.prepare(work_item, path)
+        stage = _state_of(prepared.document).stage
+        if prepared.merge_conflict:
+            context = StallContext(
+                work_item=work_item,
+                stage=stage,
+                branch=prepared.branch,
+                path=path,
+                stage_start=None,
+                document=prepared.document,
+                pull_request=None,
+            )
+            stall = self._stalls.stall(context, "merge_conflict")
+            return _stalled_report(work_item, stage, stall, rule=None)
+        processed = self._after.process(self._launcher.launch(prepared))
+        if isinstance(processed, StallResult):
+            return _stalled_report(work_item, stage, processed, rule=None)
+        return self._finisher.finish(processed)
+
+
+def _state_of(document: WorkItemDocument) -> WorkItemState:
+    if document.state is None:
+        raise ValueError("the work item has no state")
+    return document.state
+
+
+def _with_command_lines(entry: NewEntry, ran: list[CheckResult]) -> NewEntry:
+    if not ran:
+        return entry
+    lines = "\n".join(f"`{result.command}`: {result.last_line}" for result in ran)
+    return entry.model_copy(update={"text": f"{entry.text}\n\n{lines}"})
+
+
+def _stalled_report(
+    work_item: WorkItemId, stage: str, stall: StallResult, *, rule: Literal[5] | None
+) -> StageReport:
+    return StageReport(
+        work_item=work_item,
+        stage=stage,
+        next_stage=stage,
+        rule=rule,
+        commit=stall.commit,
+        pull_request=stall.pull_request,
+        stall=stall,
+    )
 
 
 def _first_denial(result: AgentRunResult) -> str:
