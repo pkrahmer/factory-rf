@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 79
 blocked: null
 comments_seen: 0
@@ -68,3 +68,11 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: confirmed that no code change is needed and built nothing. The assignment expected this.
+      - I ran `make check` on the tester's commit and it is green: all checks pass, total coverage is 99.35%. The three new tests in tests/application/test_dispatcher.py pass against the unchanged code.
+      - Why they pass: `Dispatcher._report` in src/factory/application/dispatcher.py has two handlers. `except HostingServiceError` writes the log line only when `branch_commit is None`. The separate `except Exception: return "error"` comes after it, so a `GitError` from `StopService.post` (via `GitCli.resolve`) never reaches `_report_to_log` or `_mark_reported`. The entry stays unreported, and the next dispatch goes back into `_report` without calling the handler.
+      - Refactor: I have no diff of my own, so there was nothing to refactor.
+      - I did not touch criterion 5 (the operator-guide sentence). It is the documenter's.
+      - Nothing else noticed.
+
+   `make check`: check: green
