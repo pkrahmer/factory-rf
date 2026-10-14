@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 68
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Work items read from the remote-tracking refs
 
 ## Assignment (as of log entry 1)
@@ -115,3 +123,77 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.work_item`: `WorkItemSnapshot`, `StoryFile`; `factory.application.work_items`: `RemoteWorkItems.__init__/list_stories/read`) and the errors raised (`WorkItemFormatError` with `path`, `GitError`). I found nothing left to decide.
+   - Criteria: each is testable by one test function. Every behaviour the Interface comments state has a criterion: order (3, 16), `folder` (6, 15), `branch_commit` None/hex (6, 9, 18), the document source with and without a branch (6, 8, 9, 10). Every rule has its failing side: a missing branch file (12), unreadable branch front matter (13), unreadable main text (14), a non-story file (4), a local-only branch or file (2, 8), ongoing/drafts (17), a bad `branch_commit`, `folder` or `id` (18).
+   - Demo: runnable, and uses the stated API. Its `Expect:` line gives the two exact output lines, which can be checked.
+   - Architecture: the reader is in `factory.application` and uses only the `Git` interface and `WorkItemReader`. The DTOs are frozen Pydantic models in `factory.domain`. No lower layer imports a higher one.
+   - Scope: within F0006 "Reading work items (R18)". The caller's fetch is left to S0004, and nothing in Out of scope is touched.
+3. tester: wrote red tests for every criterion, one test function (or one parametrized test) per criterion.
+   - criterion 1: tests/application/test_work_items.py::test_in_progress_stories_are_listed_with_their_parts
+   - criterion 2: tests/application/test_work_items.py::test_stories_only_in_the_checkout_are_not_listed (a file only in the work tree, then the same file in an unpushed local commit)
+   - criterion 3: tests/application/test_work_items.py::test_stories_are_listed_in_plain_id_order
+   - criterion 4: tests/application/test_work_items.py::test_files_that_are_not_story_files_are_not_listed (parametrized over the six non-story files, each next to one real story)
+   - criterion 5: tests/application/test_work_items.py::test_backlog_and_done_list_only_their_own_stories
+   - criterion 6: tests/application/test_work_items.py::test_a_story_with_a_remote_branch_is_read_from_its_head
+   - criterion 7: tests/application/test_work_items.py::test_a_pushed_branch_wins_over_a_stale_local_branch
+   - criterion 8: tests/application/test_work_items.py::test_a_branch_only_in_the_checkout_is_not_read
+   - criterion 9: tests/application/test_work_items.py::test_a_started_story_without_a_branch_is_at_the_first_stage
+   - criterion 10: tests/application/test_work_items.py::test_a_started_story_without_a_branch_keeps_its_body_and_ignores_its_keys
+   - criterion 11: tests/application/test_work_items.py::test_a_branch_merged_into_main_is_still_read_from_the_branch
+   - criterion 12: tests/application/test_work_items.py::test_a_story_missing_on_its_branch_is_a_format_error (the branch is pushed before the start, so the in-progress file is missing at its tip)
+   - criterion 13: tests/application/test_work_items.py::test_unreadable_front_matter_on_the_branch_is_a_format_error
+   - criterion 14: tests/application/test_work_items.py::test_unreadable_front_matter_on_main_without_a_branch_is_a_format_error
+   - criterion 15: tests/application/test_work_items.py::test_only_in_progress_stories_are_read
+   - criterion 16: tests/application/test_work_items.py::test_snapshots_come_in_plain_id_order_and_one_per_story_file (F0001-S0002 appears twice, in F0001-alpha and in F0001-beta, and the two are ordered by path)
+   - criterion 17: tests/application/test_work_items.py::test_ongoing_and_drafts_files_are_neither_listed_nor_read (parametrized over ongoing and drafts; checks every lifecycle folder's list and `read`)
+   - criterion 18: tests/domain/test_work_item_snapshot.py::test_an_unknown_key_is_refused, ::test_a_field_cannot_be_assigned, ::test_branch_commit_is_forty_lower_case_hex_characters_or_none, ::test_folder_is_a_lifecycle_folder, ::test_id_is_a_work_item_id. Each is parametrized over both models where the field exists. The models are built through `type[BaseModel]`, and fields are assigned with `setattr` and a field name held in a variable.
+   - criteria 19 and 20 are for `make check` and the documenter; no tests.
+   Files created: tests/domain/test_work_item_snapshot.py, tests/application/test_work_items.py. The pipeline definition comes from `boundaries.pipeline_reader.parse(PIPELINE_YAML)`, whose first stage is `intake`. Branch heads are compared with `remote_commit(remote, branch)`.
+   `make test` fails as expected at collection: `factory.domain.work_item` has no `StoryFile` or `WorkItemSnapshot` yet, and the module `factory.application.work_items` does not exist. `make lint` is green. I ran `ruff format` on the two new files only. Nothing needed interpreting, so nothing is open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the remote reader for work items; all tests pass and `make check` is green (total coverage 99.35 %). I ran the ticket's demo and it prints the two expected lines.
+      - `src/factory/domain/work_item.py`: added `WorkItemSnapshot` and `StoryFile`, both frozen with `extra="forbid"`. `branch_commit` uses `CommitId` from `factory.domain.git`, `folder` uses `LifecycleFolder` from `factory.domain.paths` and `id` uses `WorkItemId`.
+      - `src/factory/application/work_items.py`: added `RemoteWorkItems`. `list_stories` filters `Git.list_files("origin/main", "factory/features")` through `_story_file`, which keeps a path only if `folder_of` accepts it, its feature id matches its directory's and it is not an acceptance. The result is sorted by `(work_item_order(id), path)`. `read` turns each `in-progress` story into a snapshot. If `Git.resolve("origin/work-item/<id>")` finds a branch, the document is `reader.parse` of the file at that tip, with no ancestor check. Otherwise the state is `initial_state(definition.first_stage())`, and body and ignored keys come from `parse_specification` of main's text. A missing file or a `WorkItemFormatError` from the reader is raised again as `WorkItemFormatError(fault, story.path)`.
+      - Main design decision: the work item id and the feature directory are taken from `folder_of` and the identifier parsers in `factory.domain`. I rejected writing a second path regex in the application layer, because two copies of the path rules could drift apart.
+      - Commits: 08bf3d5 adds the feature. 2acdd21 is the refactor: the two identical try/except blocks that added the path became one helper, `_parsed`.
+      - Noticed, not touched: two defensive lines are not covered (`work_items.py:85` and `:106`). Line 85 handles a listed file missing on main; line 106 handles the case where the name parsers return None after `folder_of` accepted the path. No test can reach either one, but mypy needs them to narrow the types.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `src/factory/application/work_items.py`, `src/factory/domain/work_item.py`, `tests/application/test_work_items.py` and `tests/domain/test_work_item_snapshot.py`. The diff stat also lists changes in `planning/`, `docs/runs/` and `planning/.../F0009*`. Those come from the human's commit aa2b4fc on origin/main, which reached this branch through the merge 9900f73. The coder did not write them, so they are not reviewed.
+      - Criteria: each of 1–18 has a test that checks what the criterion says. The rules that can fail are tested on the failing side: a listed file missing at the branch tip (12), unreadable front matter on the branch (13) and on main (14), local-only files, commits and branches (2, 8), non-story files including a feature mismatch and an acceptance (4), ongoing/drafts (17), and a bad `branch_commit`/`folder`/`id` (18). The coder's entry reports the factory's `make check` as green.
+      - Architecture: `RemoteWorkItems` sits in `factory.application` and imports only the `Git` and `WorkItemReader` interfaces and `factory.domain`. It reads only through `list_files`/`resolve`/`show_file` on `origin/main` and `origin/<branch>`. The two DTOs are frozen, use `extra="forbid"`, and reuse `CommitId`, `WorkItemId` and `LifecycleFolder`.
+      - Security: no strings are built into a command, and no suppression markers were added.
+      - Quality: the error is wrapped with the path in one place (`_parsed`). Path rules come from `folder_of` and the identifier parsers rather than a second regex. The two uncovered defensive branches (`work_items.py:85`, `:106`) are explained in the coder's entry, and mypy needs them for narrowing. Docstrings and the why-comments on `_branch_document`/`_started_document` meet `CLAUDE.md`.
+      - Hygiene: the log gives the main decision and the rejected alternative, the Assignment matches what was built, and criterion 20 still describes what the documenter has to write.
+6. documenter: wrote the three things criterion 20 asks for; `make check` is green.
+   - docs/project-guide.md: new section "The remote's work items" (before "Reading and writing a work item file"). It covers the two DTOs and `RemoteWorkItems`. Work items are read from `in-progress/` on `origin/main` and from `origin/work-item/<id>`, never from a local branch or the work tree. A started story without a branch is at the first stage and its state keys are ignored. The section also states which files count as story files, the order, and the errors.
+   - docs/operator-guide.md: new section "Branch deletion on merge must be off". A merged story whose branch is gone is read as a new start.
+   - docs/decisions.md: new entry on why a branch that is an ancestor of `origin/main` is still read.
+   - Cross-read against the diff and found current: README.md; the git wrapper and the "Identity, order and places" sections of the project guide, which `RemoteWorkItems` only uses. "The document and its error" is also current.
+   - The code matches the Interface and the criteria, so there are no findings.
+   - Stale but unrelated, not touched: the diff stat shows planning/ and F0009 changes from the human's merge commit; they are not mine.
+   - I did not run the ticket's demo myself; I checked the new prose against the code instead.
+
+   `make check`: check: green
+7. demo: I ran the one `## Demo` command from the repository root exactly as written. It exited 0 and its output matched the `Expect:` line. No findings.
+
+   Command 1 (`uv run python -c "…"`: seeds a bare remote, pushes two in-progress stories and a `work-item/F0001-S0002` branch, clones, fetches, then runs `RemoteWorkItems(...).read(definition)`):
+   ```
+   F0001-S0001 work-item/F0001-S0001 False intake 0
+   F0001-S0002 work-item/F0001-S0002 True tests 1
+   ```
+   - It met its `Expect:` line. There are exactly the two expected lines, in plain id order.
+   - F0001-S0001 has no branch. It is at the first stage `intake` with attempts 0, even though its file on `origin/main` says `stage: review` and `attempts: 2` (ST6.1, criterion 9).
+   - F0001-S0002 is read from its remote branch: `branch_commit` is set, and the state (`tests`, 1) comes from the branch tip (criterion 6).
+
+   Criteria cross-check: the demo contradicts none of criteria 1–18.
+   - Only the `in-progress/` stories appear (criterion 15).
+   - They come in id order (criteria 3 and 16).
+   - `branch` is `work-item/<id>` for both, including the one without a branch (Interface: `branch_name(id)`).
+   - The demo did not exercise the other criteria (error paths, local-only branches, ancestor branches, model validation). Per the earlier entries, the tester's tests cover them and the reviewer checked them.
+
+   Open: nothing.

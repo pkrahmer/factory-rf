@@ -1,4 +1,4 @@
-"""The state of a work item, its claim and the document that pairs a state with its body."""
+"""The state of a work item, its claim, its document and how the remote shows it."""
 
 from datetime import UTC, datetime
 from typing import Literal, Self
@@ -13,8 +13,10 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.identifiers import Name
+from factory.domain.git import CommitId
+from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.journal import JournalRecord
+from factory.domain.paths import LifecycleFolder
 
 Blocked = Literal["question", "attempts_cap", "round_cap", "crash_cap", "send_back"]
 
@@ -83,6 +85,31 @@ class WorkItemDocument(BaseModel):
     state: WorkItemState | None
     body: str
     ignored_keys: list[str] = []
+
+
+class WorkItemSnapshot(BaseModel):
+    """One work item as the remote shows it: its file on main and the state from its branch."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: WorkItemId
+    path: str
+    folder: LifecycleFolder
+    branch: str
+    branch_commit: CommitId | None
+    document: WorkItemDocument
+
+
+class StoryFile(BaseModel):
+    """One story file listed on main, with the parts its path names."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: WorkItemId
+    path: str
+    feature_directory: str
+    file_name: str
+    folder: LifecycleFolder
 
 
 def initial_state(first_stage: str) -> WorkItemState:
