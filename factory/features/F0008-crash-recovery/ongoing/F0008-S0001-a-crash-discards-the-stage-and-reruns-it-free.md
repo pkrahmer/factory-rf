@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 95
 blocked: null
 comments_seen: 0
@@ -291,3 +291,17 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
    - Ticket hygiene: the log names the main decision, resolving the head after the discard. It also names the rejected alternative, which would have turned criterion 23's `GitError` into `CannotHandle`. The Assignment matches what was built, and criterion 25 still describes what the docs need.
 
    Open: none.
+6. documenter: wrote the documentation for crash recovery. `make check` is green. I did not run the three demo commands; the tests cover the same behaviour.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "A restart during a stage". It covers the same-name restart reruns the stage at its first look, the discard of the dead run's work and cost records, the `crash` entry, `crashes` +1 with `attempts` unchanged, nothing posted, a human-pushed commit kept, and a rejected push as a counted error. In "An event that keeps failing", `crash` is now registered and `NOT_YET_HANDLED` lists `expired` and `acceptance_due`. I removed the old `crash` bullet and the "until F0008" wording.
+   - `docs/project-guide.md`: new paragraph in "The handlers of the events" on `RecoveryHandler`, its five steps, its guards and the pure functions in `factory.domain.recovery`. `build_handlers` now returns eleven kinds, with `crash` built on the same `RunGate` that is registered for `run`. The `NOT_YET_HANDLED` text and the evaluation section's line about unregistered kinds are updated.
+   - `docs/decisions.md`: new entry. A crash is charged only to an own claim, and the rerun happens in the same call. It names the rejected alternatives: `git add -A` of the leftovers, charging an attempt, and rerunning on the next tick.
+
+   Cross-read against the diff and found current: README (it has no mention of `crash`), the stop tables in the operator guide, the "Claims, leases and the clock" section (it already says an own claim is rerun at once), the kill points section, the claim service section and the stall section of the project guide.
+
+   Stale but unrelated, not touched: the kill-points section says the recovery tests "come with F0008, F0011". That is still accurate for the later stories.
+
+   No findings against the code. `RecoveryHandler` stores `definition` without using it, as the Interface requires, and the guide says the crash cap (S0002) will use it.
+
+   `make check`: check: green
