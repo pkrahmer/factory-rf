@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 56
 blocked: null
 comments_seen: 2
@@ -292,3 +292,12 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     `make check`: green (total coverage 99.68 %).
 
     `make check`: check: green
+17. reviewer: reviewer (round 2): no findings.
+
+    - Acceptance criteria: I read `tests/application/test_undo.py` against criteria 1–18, and each criterion has a test that checks what it says. Criterion 17 is parametrized over a missing baseline and an unreadable one. In both cases the test asserts that `docs/guide.md` keeps the agent's text, so the baseline is read before any revert. `test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` now tests the allowed side of all three parts of the in-progress rule: another lifecycle folder (`backlog/`), a file nested deeper (`in-progress/sub/notes.txt`), and an `in-progress` segment outside `factory/features/` (`src/in-progress/notes.txt`). That closes the findings in entries 9 and 13. Entry 16 reports `make check` green.
+    - Architecture: `src/factory/application/undo.py` imports only `factory.application` and `factory.domain`. It reaches git through the `Git` interface and work items through the reader and writer interfaces on `Boundaries`. It reads the write paths only through `WritePathService.at`, so it never reads the pipeline definition from the work tree. It names no concrete tool and passes no `dict[str, Any]`.
+    - Security: no shell or SQL is built from strings, no secrets, no suppression markers. Paths go to `revert_paths`, which refuses absolute paths and `..` segments.
+    - Quality: the module, both public classes, `__init__` and `undo` have docstrings. The private helpers are small and each does one thing. The comments say why (the baseline is read first; `folder_of` is not used). There is no dead code. The `if refused:` guard skips a `revert_paths` call with nothing to revert.
+    - Ticket hygiene: the Assignment and Interface match what was built. Entry 8 explains the main decision (the in-progress test works on the path string, not `folder_of`) and what was rejected. Criterion 20 still says what the documenter must write.
+
+    Open, not a finding: as entries 9 and 13 said, no acceptance criterion states the allowed side of the in-progress rule. The tests cover it, but the story text does not; the human may want to add it to the criteria.
