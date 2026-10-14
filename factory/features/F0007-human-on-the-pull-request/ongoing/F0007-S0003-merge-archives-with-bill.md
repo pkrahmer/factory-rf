@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 84
 blocked: null
 comments_seen: 0
@@ -187,3 +187,19 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the merge archive; `make check` is green (coverage 99.27 %). Commit 30d18d5.
+      - `src/factory/domain/archive.py`: `destination_path` uses `folder_of` to check the path and raises `ValueError` outside a lifecycle folder. It then swaps the folder segment and keeps the feature directory and the file name.
+      - `src/factory/domain/post_texts.py`: added `done_entry_text(bill)`, which is `done (pull request merged); cost: ` + `cost_line(bill)`. It imports `Bill` and `cost_line` from `factory.domain.bills`, which does not import `post_texts`, so there is no cycle.
+      - `src/factory/application/handlers/merged.py`: `MergedHandler.handle` does these steps in order:
+        - takes `target_of(event)` and runs `WorkItemRecorder.check_out(MAIN_BRANCH)`;
+        - reads the story and appends the factory `done` entry with `bill(cost_reader.read(<sidecar>))`;
+        - sets `stage=DONE_STAGE`, `blocked=None` and `claim=None` in the state;
+        - runs `Git.move` on the story, and on its cost record file when `show_file("HEAD", sidecar)` finds one;
+        - writes the document at the new path and publishes on main with `commit_subject(id, "merged, archived")`;
+        - only then calls `delete_remote_branch`, raising `PushFailed(branch, outcome)` on any outcome other than `pushed`, and then `delete_branch`.
+        It posts nothing.
+      - Design decision: the cost record file's destination is `cost_records_path(destination_path(story, "done"))`. Calling `destination_path` on the sidecar does not work, because `folder_of` accepts only `.md` work item files, so it raises. I rejected widening `folder_of`/`destination_path` to accept sidecars: that would change a rule the Interface fixes and that S0004 will reuse.
+      - Refactor pass: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: the demo's second block builds the boundaries with `SimpleNamespace`. This works at runtime because the handler only uses git, checkout, the readers and the writer. I did not run the demos.
+
+   `make check`: check: green
