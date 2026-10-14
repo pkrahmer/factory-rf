@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 62
 blocked: null
 comments_seen: 2
@@ -295,3 +295,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
     Met. The last line reports `passed`, and the output contains neither `failed` nor `error`.
 
     I checked the output against all acceptance criteria and found no contradictions. It agrees with criteria 9 (speaker and kind), 11 (prefix removed once, whitespace dropped), 12 (undo paragraph, sorted paths) and 13 (an empty entry gives no entry, so the stage stalls). No findings. Nothing is open.
+16. done (pull request merged); cost: 13 runs, 14.5 min, 85 turns, 290k tokens in (1619k more from cache), 47k out, $3.40
