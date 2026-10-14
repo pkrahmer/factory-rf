@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 71
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0005-S0001, F0005-S0002, F0005-S0003, F0005-S0004, F0005-S0005, F0005-S0006, F0005-S0007, F0005-S0008, F0005-S0009, F0005-S0010, F0005-S0011]
+outcome: accepted
 ---
 # Acceptance of Stage protocol and cost
 
@@ -636,3 +637,4 @@ No story stands out beyond the three named in the first acceptance (S0004, S0005
          - new: repair the docs for a failing report's line (recommended) or mark that line in the code.
       7 Slow checks: none. No mutants target, no image scan, no SBOM.
       8 Cost: 81 runs, 104.0 min, $23.74. S0010 (6 runs, $1.56) and S0011 (6 runs, $0.69) both went straight through. About a third of S0011's cost was tester and coder runs on a documentation-only story; a hand edit would save that for S0012 as well.
+2. done (pull request merged); cost: 2 runs, 17.6 min, 97 turns, 291k tokens in (9434k more from cache), 72k out, $5.65
