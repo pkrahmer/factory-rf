@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 85
 blocked: null
 comments_seen: 0
@@ -144,3 +144,26 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built `ClosedHandler` in `src/factory/application/handlers/closed.py`. All 16 tests in `tests/application/handlers/test_closed.py` pass, and `make check` is green (total coverage 99.24 %).
+
+   What it does:
+   - `handle` takes `target_of(event)`.
+   - When `definition.stages[stage].approval` is false, it discards the story:
+     - `WorkItemRecorder.check_out(MAIN_BRANCH)`.
+     - `Git.move(path, destination_path(path, "backlog"))`. The file is moved, not rewritten, so the text in the backlog is the human's text from main.
+     - `recorder.publish(MAIN_BRANCH, commit_subject(id, "closed before the approval, back in the backlog"))`. `publish` raises `PushFailed` itself on a push that is not `pushed`.
+     - Then the branch is deleted, the remote branch first and then the local one.
+   - It makes no hosting-service call.
+
+   Commits:
+   - 1675721 feat: the handler.
+   - 2c6c0de refactor: the "delete the remote branch, raise `PushFailed` unless `pushed`, then delete the local branch" sequence was identical in `MergedHandler`. It is now `WorkItemRecorder.delete_branch(branch)` in `src/factory/application/handlers/recording.py`, and both handlers call it. Behaviour is unchanged.
+
+   Design decision: at an approval stage, `handle` returns without doing anything. That path belongs to S0005, and an early return leaves it a single place to fill in. I rejected raising `CannotHandle` there, because that would invent behaviour this story does not specify.
+
+   Open:
+   - Line 26 of `closed.py` (that approval-stage return) is the one uncovered line in the file (92 %). S0005's tests will cover it.
+   - The `unreachable` outcome of the branch deletion takes the same `PushFailed` path as `rejected`, as intake noted. It has no test of its own.
+   - Nothing else noticed.
+
+   `make check`: check: green
