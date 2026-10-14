@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 101
 blocked: null
 comments_seen: 0
@@ -152,3 +152,4 @@ Expect: two lines, `doing` and then `no state here`.
    Met: two lines, `doing` and then `no state here`. This agrees with criteria 1 and 2: the document's state is returned, and the exception passed is raised without a state.
 
    Criteria 4 to 7 are not exercised by the demo commands, and nothing in the output contradicts them.
+8. done (pull request merged); cost: 6 runs, 20.7 min, 52 turns, 119k tokens in (911k more from cache), 16k out, $1.30
