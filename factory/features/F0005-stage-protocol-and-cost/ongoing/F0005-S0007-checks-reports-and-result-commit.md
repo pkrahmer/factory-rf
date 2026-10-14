@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 64
 blocked: null
 comments_seen: 2
@@ -189,3 +189,19 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: With the tester's change from entry 7 in place, the tests from entry 3 pass against the implementation in 8b70068, and `make check` is green: lint, types, layers, sast, secrets, licenses and test all pass, with coverage at 99.44 %.
+
+   What I built:
+   - `src/factory/domain/labels.py`: `labels_for` returns `[LABEL_PREFIX + state.stage]`.
+   - `src/factory/application/stage.py`: `STALL_TAIL_LINES`, `StageReport` (frozen, forbids unknown keys), `StageFinisher` and `StageRunner`.
+     - `StageFinisher.finish` follows the eight steps: decide; for rule 6, run the checks and then the reports; append the entry with one `` `<command>`: <last_line> `` line per command that ran; append the factory's question when the move has one; write the moved state; commit and push (`PushFailed` on any outcome but `pushed`); set the labels last.
+     - A forward move (rule 6) resets `crashes`.
+     - `StageRunner.run` does prepare, then either the merge-conflict stall or launch, after-agent and finish. A stall from any step is reported with rule `None`.
+
+   Main design decision: a red check reuses `StallService.stall` with the stage-start commit, and the stall note is the command's name followed by the last 15 lines of its output. The document passed to it already holds the agent's entry and the green checks' lines, so the entry stays above the stall record. I rejected a separate stall path in the finisher because it would have duplicated the attempt counting and the note.
+
+   Refactor (6e0be8c): I moved the check-and-report loop out of `finish` into `_run_checks_and_reports`. It returns the commands that ran and the first red check, if there is one. Behaviour is unchanged, no test was touched, and `make check` is green.
+
+   Noticed but not touched: `claims.py`, `stalls.py` and now `stage.py` each have their own private `_state_of` helper. Merging them into one would reach beyond this story.
+
+   `make check`: check: green
