@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 59
 blocked: null
 comments_seen: 0
@@ -144,3 +144,11 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - Stale but unrelated: nothing seen.
 
    `make check`: check: green
+7. demo: ran the demo; no findings.
+      - `uv run pytest tests/application/test_opening.py`
+        ```
+        ......................                                                   [100%]
+        22 passed in 2.51s
+        ```
+        Met its `Expect:` line: the last line reports `passed` and the output contains neither `failed` nor `error`. I checked this with a case-insensitive grep, which found 0 matches.
+      - Acceptance criteria re-read: the 22 passing tests are the ones the tester mapped to criteria 1 to 20 (criterion 16 is parametrised and criterion 20 has two tests). The demo contradicts no criterion. Criterion 21 (`make check`) is the factory's gate after this stage. Criterion 22 (docs) is covered by the documenter's entry, and the demo does not touch it.
