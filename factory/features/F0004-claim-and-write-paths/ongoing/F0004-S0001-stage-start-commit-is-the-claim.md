@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 48
 blocked: null
 comments_seen: 2
@@ -212,3 +212,11 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
    Not refactored yet: the refactor pass comes after the tests are green.
 5. human (pull request comment, 2026-10-14): (a): the parametrization carries `None` for "keep the fixture's definition", and the test pushes to `main` only when it is set; the `role-sets-45` case keeps its push. Leave `HumanClone.push_file` as it is. End with `tests` and name exactly that change.
 6. coder: the human's answer (entry 5, option (a)) calls for one test change. The code in 3ac70cc is unchanged and I did not touch the test. Change for the tester: in `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role`, the `role-default` case's parameter becomes `None` instead of `PIPELINE_YAML`, meaning "keep the fixture's definition". The test calls `human.push_file("main", PIPELINE_FILE, pipeline)` and builds the definition from `pipeline` only when it is set; when it is `None`, the test claims with the fixture's definition, as the other tests do through `_claim(boundaries, document)`. The `role-sets-45` case keeps its push of `LEASE_45_YAML` and its expected 45, and `HumanClone.push_file` stays as it is. Still open after the tests come back: the refactor pass, then `review`. `## Assignment` is unchanged, because the answer does not change what the task means.
+7. tester: tester (test change the human approved, entry 5 option (a), named in the coder's entry 6): changed one test, `tests/application/test_claims.py::test_claim_copies_the_lease_duration_of_the_stages_role`. The `role-default` case's parameter is now `None` instead of `PIPELINE_YAML`, meaning "keep the fixture's definition", and `pipeline` is typed `str | None`. Only when `pipeline` is set does the test call `human.push_file("main", PIPELINE_FILE, pipeline)` and build the definition with `_definition(boundaries, pipeline)`. Otherwise it passes `None` to `_claim`, which falls back to the fixture's definition the way the other tests do. The `role-sets-45` case still pushes `LEASE_45_YAML` and expects 45. The `role-default` case still expects 60. I left `HumanClone.push_file` and every other test unchanged.
+
+   Why: the fixture's `main` already holds `PIPELINE_YAML`, so pushing it again raised `NothingToCommit` before `claim` was called. No implementation could make that case pass.
+
+   `make test`: green, total coverage 99.72%. `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green

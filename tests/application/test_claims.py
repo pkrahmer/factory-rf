@@ -110,16 +110,19 @@ def test_claim_records_instance_stage_and_start_time_in_utc(
 
 @pytest.mark.parametrize(
     ("pipeline", "lease"),
-    [(PIPELINE_YAML, 60), (LEASE_45_YAML, 45)],
+    [(None, 60), (LEASE_45_YAML, 45)],
     ids=["role-default", "role-sets-45"],
 )
 def test_claim_copies_the_lease_duration_of_the_stages_role(
-    boundaries: Boundaries, human: HumanClone, pipeline: str, lease: int
+    boundaries: Boundaries, human: HumanClone, pipeline: str | None, lease: int
 ) -> None:
-    human.push_file("main", PIPELINE_FILE, pipeline)
+    definition = None
+    if pipeline is not None:
+        human.push_file("main", PIPELINE_FILE, pipeline)
+        definition = _definition(boundaries, pipeline)
     document = _prepare(boundaries)
 
-    start = _claim(boundaries, document, _definition(boundaries, pipeline))
+    start = _claim(boundaries, document, definition)
 
     assert start.claim.lease_duration == lease
 
