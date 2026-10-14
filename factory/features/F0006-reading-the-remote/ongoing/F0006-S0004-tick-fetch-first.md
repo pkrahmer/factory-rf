@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 74
 blocked: null
 comments_seen: 4
@@ -256,3 +256,23 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
     No findings for the coder. `src/factory/application/tick.py` matches the Interface and has its docstrings.
 
     `make check`: check: green
+13. demo: Demo run from the repository root: the one command under `## Demo`, run exactly as written. There is no server.
+
+    Command 1 (`uv run python -c "…"`: a tick on a checkout whose `origin` points to a missing repository). Output:
+
+    ```
+    2026-10-14T07:30:03Z stop repository fetch_failed: git fetch --prune origin failed (exit 128): fatal: '/tmp/tmpg_nth93w/missing.git' does not appear to be a git repository
+    2026-10-14T07:30:03Z fatal: Could not read from remote repository.
+    2026-10-14T07:30:03Z 
+    2026-10-14T07:30:03Z Please make sure you have the correct access rights
+    2026-10-14T07:30:03Z and the repository exists.
+    fetch_failed None None
+    ['repository:fetch_failed']
+    True
+    ```
+
+    Exit 0. Met its `Expect:` line. The last three lines are `fetch_failed None None`, then `['repository:fetch_failed']`, then `True`. Before them are the stop's own lines, one per line of git's message about the missing remote, each starting with a UTC time stamp.
+
+    Criteria check: the output matches criterion 2 (one stop, scope `repository`, reason `fetch_failed`, a non-empty detail, nothing dispatched) and criterion 3 (the factory log's lines start with the clock's UTC time stamp). It goes against no other criterion. The demo only exercises the fetch-failure path; the other criteria are left to the tests and `make check`.
+
+    Findings: none.
