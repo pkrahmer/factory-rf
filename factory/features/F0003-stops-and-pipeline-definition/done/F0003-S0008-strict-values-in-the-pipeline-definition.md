@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 49
 blocked: null
 comments_seen: 0
@@ -154,3 +154,4 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
    Expect: met. The output has five lines, in the expected order: `30`, then `invalid roles.coder.time_limit` twice (for `true` and `'30'`), then `invalid stages.gate.approval` (for `'yes'`), then `invalid roles.coder.write_paths[0]` (for `''`). No line says `accepted`.
 
    Criteria cross-check: the output agrees with criterion 2 (an integer is accepted, and `true` and `'30'` are refused at the field's path), criterion 3 (`true` is accepted, `'yes'` is refused at `stages.<stage>.approval`) and criterion 4 (a blank write path is refused at its list position). The demo contradicts no other criterion. Criteria 5–7 were not exercised here; their tests are listed in the tester's and reviewer's entries.
+8. done (pull request merged); cost: 6 runs, 6.3 min, 33 turns, 92k tokens in (408k more from cache), 15k out, $0.96
