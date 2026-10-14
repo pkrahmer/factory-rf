@@ -64,3 +64,8 @@ The modules F0008 to F0011 add are placed by the same rule when the story is dra
 - Now: `CLAUDE.md` Architecture asks the coder to search for an existing helper before writing one, and the reviewer to count a second copy as a finding.
 - In this housekeeping story: run pylint's duplicate-code check (R0801) and vulture once over `src/factory`, and fold their findings (similar blocks, unused functions and classes, such as F0002's four copies of the UTC validator) into the story. Both are run ad hoc (`uvx`), not added as dependencies.
 - In v1.1 (this version, the human's word of 2026-10-14, not v2): a project command `make duplicates` that runs both over `src/factory` against a baseline of today's findings, wired as a non-blocking record (`records:` in v1's `factory/stages.yml` on the review stage, and as a report in v1.1's own pipeline definition), whose findings reach the reviewer and the acceptance reviewer. It needs a make target, a `factory/` change made between two stories, and two development dependencies (pylint, vulture), each for the human to grant when it is built.
+
+## Tests of the DTOs' own configuration (added 2026-10-14, the human's decision)
+
+- Kept: every limit tested on both sides (`CLAUDE.md`); from 2026-10-14 the sides of one rule are rows of one parametrized test.
+- In this housekeeping story: one test that walks every Pydantic model under `src/factory` and checks `frozen` and `extra="forbid"` where the model declares them, replacing the per-model tests of unknown, wrong-typed and assigned fields that only test Pydantic.
