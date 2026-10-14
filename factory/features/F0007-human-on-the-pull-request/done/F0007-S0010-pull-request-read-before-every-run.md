@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 91
 blocked: null
 comments_seen: 2
@@ -260,3 +260,4 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
     - The demo does not exercise criterion 3 (read order), 6 (failing read), 7 and 8 (real git), or 9 to 13 (wiring), and does not contradict them. Entries 3, 8 and 9 map those criteria to tests that pass.
 
     No findings. Open, as the Interface already says: the Demo of F0006-S0007 prints the old `NOT_YET_HANDLED` and is out of date. That is not part of this story's demo.
+12. done (pull request merged); cost: 9 runs, 25.8 min, 72 turns, 197k tokens in (1570k more from cache), 30k out, $2.18
