@@ -422,7 +422,7 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 
 ## The hand-over at the approval
 
-When a work item reaches an approval stage, the factory shows you on its pull request what to decide. `HandOverHandler` (in `factory.application.handlers.hand_over`) does this for the `hand_over` event. It is built but not yet registered (`hand_over` is still in `NOT_YET_HANDLED`), so until it is, the event is a counted error as described under "An event that keeps failing".
+When a work item reaches an approval stage, the factory shows you on its pull request what to decide. `HandOverHandler` (in `factory.application.handlers.hand_over`) does this for the `hand_over` event. It is registered.
 
 It does these things, in this order:
 
@@ -449,7 +449,7 @@ A merge of a story's pull request, by any method (merge commit, squash or rebase
 
 The handler posts nothing on the pull request. After the archive is pushed it deletes the work item's branch, on the remote and in the factory's checkout. A branch that is already gone (the hosting service deleted it) is no error. The handler trusts the merge: it asks nothing and checks nothing.
 
-Not yet running: `merged` is still in `NOT_YET_HANDLED` (see "An event that keeps failing"), because the handler is not registered until F0007 wires its handlers. Until then a merge leads to the error report described there.
+A merge found when the story's stage is due to run is handled first: the factory reads the pull request before every agent run, so a story you merged while its stage waited to run is archived as above, without that run.
 
 When it goes wrong:
 
@@ -468,7 +468,7 @@ After that push the handler deletes the work item's branch, on the remote and in
 
 A close at an approval stage is a send-back, not a discard; see the next section.
 
-Not yet running: `closed` is still in `NOT_YET_HANDLED` (see "An event that keeps failing"), because the handler is not registered until F0007 wires its handlers.
+A close found when the story's stage is due to run is handled first: the factory reads the pull request before every agent run, so a story you closed while its stage waited to run is discarded as above, without that run.
 
 When it goes wrong:
 
@@ -511,8 +511,6 @@ The question has three options, all of them things you can already do:
 - **The labels cannot be set.** The decision stays recorded; the label is stale until the next stage's result commit rewrites it.
 - **The factory is killed between the reopen and the recording of the decision.** The pull request is open again as a draft, but the story is still at the approval, so it is handed over again there and you have to repeat the close. Because the close is already recorded, the repeat adds no second `close` entry.
 
-Not yet running: like the other handlers, this one is registered only when F0007 wires them (`closed` is still in `NOT_YET_HANDLED`).
-
 ## Branch deletion on merge must be off
 
 The factory reads a work item's state from its branch `origin/work-item/<id>`. A story in `in-progress/` on `main` with no such branch is read as a new start: it is at the first stage with fresh counters, whatever its file says. So turn off the hosting setting that deletes head branches when a pull request is merged ("Automatically delete head branches" on GitHub). With it on, a merged story whose file is still in `in-progress/` loses its branch and starts again.
@@ -528,7 +526,7 @@ Neither is a fault. With neither, an idle tick means no work item has anything t
 
 ## A stage changed by hand
 
-The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. The handler of `reject` is built (`RejectHandler`) but not yet registered in `build_handlers`, so until it is, a `reject` is a counted error (see "An event that keeps failing"): after three ticks one report is posted on the pull request, then the event is capped and holds back all new work. Once it is registered, the factory puts the stage back as described below. Either way, a push to the work item's branch makes the factory try again, and the `reject` returns for as long as the newest commit beyond `origin/main` that touched the story's file is the illegal change.
+The factory changes a work item's stage only along the `next` lists of the pipeline definition (and archives to `done` from an approval stage). If someone edits `stage` in a work item's file on its branch to another one, the factory notices on its next tick and reports the change as a `reject` event: "stage changed from `<from>` to `<to>`, which the pipeline definition does not allow". What it looks at is the last commit on the branch, beyond `origin/main`, that touched the story's file. The factory puts the stage back as described below. A push to the work item's branch makes the factory try again, and the `reject` returns for as long as the newest commit beyond `origin/main` that touched the story's file is the illegal change.
 
 ### What the factory does when it moves a stage back
 
@@ -555,15 +553,11 @@ A hand-made change that a later commit on the branch buried is not seen: only th
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
 
-Only the run handler is registered today. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup` and `acceptance_due`. The common ones lead to this today:
+The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`) and of the stage run are registered. The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `crash`, `expired` and `acceptance_due`. The common one leads to this today:
 
-- `hand_over`: a work item reached an approval stage. `HandOverHandler` exists but is not registered yet (see "The hand-over at the approval").
-- `merged`: you merged a waiting work item's pull request.
-- `ask`: a question waits to be posted (an agent's `question`, or the attempts cap). `AskHandler` exists but is not registered yet.
-- `comment`: you commented on the pull request. `CommentHandler` exists but is not registered yet.
 - `crash`: the instance found its own claim on the remote, after a rejected result push or another boundary error after the stage-start commit, or after a restart when the process died during a stage.
 
-Each ends in the one report of its work item and remote state, and then holds back all new work, until F0007 and F0008 register their handlers. A push to the branch makes the factory try again.
+It ends in the one report of its work item and remote state, and then holds back all new work, until F0008 registers its handlers. A push to the branch makes the factory try again.
 
 After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "Stops of one work item".
 
@@ -580,7 +574,7 @@ If the work item's branch is not on the remote, no pull request can be opened fo
 
 ## Stops that cannot be done
 
-Three situations have no work the factory can do. Each is a counted error, never a silent success: the handler raises `CannotHandle`, the dispatcher counts it per event and remote state, tries the event three times, and then posts one report on the work item's pull request (a draft is opened for it first when there is none), as under "An event that keeps failing". A restart posts no second report. The handlers (`DuplicateHandler`, `PullRequestLookupHandler` in `factory.application.handlers.lookups`, and `AskHandler`) are built but not yet registered (`NOT_YET_HANDLED` still lists their kinds), so today the dispatcher reports these events with `no handler for event kind <kind>`; once they are registered the report's last error reads as below.
+Three situations have no work the factory can do. Each is a counted error, never a silent success: the handler raises `CannotHandle`, the dispatcher counts it per event and remote state, tries the event three times, and then posts one report on the work item's pull request (a draft is opened for it first when there is none), as under "An event that keeps failing". A restart posts no second report. The handlers (`DuplicateHandler`, `PullRequestLookupHandler` in `factory.application.handlers.lookups`, and `AskHandler`) are registered; the report's last error reads as below.
 
 | Stop | Last error in the report | What to do |
 |---|---|---|

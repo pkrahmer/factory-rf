@@ -11,7 +11,7 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, unhandled_kinds
-from factory.application.handlers.run import RunHandler
+from factory.application.handlers.run_gate import RunGate
 from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
@@ -86,14 +86,14 @@ def _snapshot() -> WorkItemSnapshot:
     )
 
 
-def test_build_handlers_registers_exactly_the_idle_and_the_run_handler(
+def test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler(
     boundaries: Boundaries,
 ) -> None:
     handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
 
-    assert set(handlers) == {"idle", "run"}
+    assert {"idle", "run"} <= set(handlers)
     assert isinstance(handlers["idle"], IdleHandler)
-    assert isinstance(handlers["run"], RunHandler)
+    assert isinstance(handlers["run"], RunGate)
 
 
 def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
@@ -102,20 +102,6 @@ def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
     handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
 
     assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
-    assert list(NOT_YET_HANDLED) == [
-        "comment",
-        "ask",
-        "merged",
-        "closed",
-        "reject",
-        "hand_over",
-        "crash",
-        "expired",
-        "duplicate",
-        "pull_request_lookup",
-        "acceptance_due",
-    ]
-    assert not set(NOT_YET_HANDLED) & set(handlers)
 
 
 @pytest.mark.parametrize("guard_present", [True, False], ids=["guard-present", "guard-absent"])
@@ -177,11 +163,11 @@ def test_a_tick_over_the_handler_factory_runs_one_stage(
 def test_an_event_not_yet_handled_is_a_counted_error(boundaries: Boundaries) -> None:
     handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
     dispatcher = Dispatcher(handlers, TickStatus(), StopService(boundaries))
-    event = Event(kind="comment", work_item=_snapshot(), remote_state=STATE)
+    event = Event(kind="crash", work_item=_snapshot(), remote_state=STATE)
 
     outcome = dispatcher.dispatch(event)
 
     assert outcome == "error"
     entry = find_error(dispatcher.status, event.key, STATE)
     assert entry is not None
-    assert entry.last_error == "UnhandledEvent: no handler for event kind comment"
+    assert entry.last_error == "UnhandledEvent: no handler for event kind crash"

@@ -12,7 +12,15 @@ from factory.application.boundaries import Boundaries
 from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
 from factory.application.files import WorkItemReader
+from factory.application.handlers.closed import ClosedHandler
+from factory.application.handlers.comments import CommentHandler
+from factory.application.handlers.hand_over import HandOverHandler
+from factory.application.handlers.lookups import DuplicateHandler, PullRequestLookupHandler
+from factory.application.handlers.merged import MergedHandler
+from factory.application.handlers.questions import AskHandler
+from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
+from factory.application.handlers.run_gate import RunGate
 from factory.application.tick import HandlerFactory, IdleHandler
 from factory.domain.events import EventKind
 from factory.domain.identifiers import Name
@@ -31,19 +39,7 @@ __all__ = [
 ]
 
 # The kinds with no handler yet, in the order of `EventKind`; registering one removes it here.
-NOT_YET_HANDLED: tuple[EventKind, ...] = (
-    "comment",
-    "ask",
-    "merged",
-    "closed",
-    "reject",
-    "hand_over",
-    "crash",
-    "expired",
-    "duplicate",
-    "pull_request_lookup",
-    "acceptance_due",
-)
+NOT_YET_HANDLED: tuple[EventKind, ...] = ("crash", "expired", "acceptance_due")
 
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
@@ -76,9 +72,23 @@ def build_handlers(
     environment: Mapping[str, str],
 ) -> dict[EventKind, Handler]:
     """Return the handler of every event kind that has one."""
+    closed = ClosedHandler(boundaries, definition)
+    merged = MergedHandler(boundaries)
+    # Every agent run passes the gate, so a close or merge found then is handled first.
+    run = RunGate(
+        boundaries, RunHandler(boundaries, instance, definition, environment), closed, merged
+    )
     return {
         "idle": IdleHandler(),
-        "run": RunHandler(boundaries, instance, definition, environment),
+        "run": run,
+        "comment": CommentHandler(boundaries),
+        "ask": AskHandler(boundaries, definition),
+        "merged": merged,
+        "closed": closed,
+        "reject": RejectHandler(boundaries),
+        "hand_over": HandOverHandler(boundaries, definition),
+        "duplicate": DuplicateHandler(),
+        "pull_request_lookup": PullRequestLookupHandler(),
     }
 
 
