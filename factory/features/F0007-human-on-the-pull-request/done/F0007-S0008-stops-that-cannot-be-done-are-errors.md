@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 89
 blocked: null
 comments_seen: 0
@@ -137,3 +137,4 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
      Met its `Expect:` line. Both lines match the expected text exactly.
 
    - Criteria check: the output agrees with criteria 1 and 2 (the kind is `duplicate` or `pull_request_lookup`, the reason names the id or the branch and ends with `: <detail>`). Both handlers were built with no arguments and nothing was written, which fits criterion 3. The demo does not exercise criteria 4 to 8 (the dispatcher sequence, the restart, the except search) or criterion 10 (docs), and nothing in its output contradicts them. Earlier entries record their tests and a green `make check`.
+8. done (pull request merged); cost: 6 runs, 6.7 min, 37 turns, 116k tokens in (594k more from cache), 16k out, $1.16
