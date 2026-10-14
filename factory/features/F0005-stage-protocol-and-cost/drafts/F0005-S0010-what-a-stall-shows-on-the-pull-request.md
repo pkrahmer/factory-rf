@@ -39,14 +39,14 @@ def stall_note(
 - A `HostingServiceError` from `set_labels` propagates. The stall commit stays pushed and the note stays posted. When step 6 raised, no label is written.
 - No other step changes, and `StallResult` is unchanged.
 
-Tests: the new files `tests/domain/test_stall_note_block.py` and `tests/application/test_stall_labels.py`. Stages run through `StageRunner` with `FakeAgentRuntime` and `FakeHostingService`, and the checks are real `make` targets pushed with `human.push_file`, as in `tests/application/test_stage_run.py`. The existing tests in `tests/domain/test_stall_texts.py`, `tests/application/test_stalls.py` and `tests/application/test_stage_finish.py` use one-line details only and still pass unchanged.
+Tests: the new files `tests/domain/test_stall_note_block.py` (criteria 1 to 6) and `tests/application/test_stall_labels.py` (criteria 7 to 12). Stages run through `StageRunner` with `FakeAgentRuntime` and `FakeHostingService`, and the checks are real `make` targets pushed with `human.push_file`, as in `tests/application/test_stage_run.py`. No existing test changes. `tests/domain/test_stall_texts.py`, `tests/application/test_stalls.py` and `tests/application/test_after_agent.py` use one-line details only. `tests/application/test_stage_finish.py::test_the_stall_note_of_a_red_check_carries_the_tail_of_its_output` posts a multi-line detail but checks only that `line 7` to `line 20` and `Error 1` are in the note and `line 6` is not, so it passes unchanged. No existing test reads the labels after a stall.
 
 ## Acceptance criteria
 
 1. `stall_note("check_red", 1, 2, detail="`check`\nline a\nline b")` returns exactly `` Stalled (attempt 1 of 2): a check is red after the stage: `check`. Retrying on the next tick. ``, an empty line, `` ```text ``, `line a`, `line b`, `` ``` ``, joined by `\n` with no trailing newline.
-2. At the cap, `stall_note("check_red", 2, 2, detail="`check`\nline a")` has the first line `` Stalled (attempt 2 of 2): a check is red after the stage: `check`. The attempts cap is reached; the factory asks you next. `` and ends with the closing fence. No line contains `retry`.
+2. At the cap, `stall_note("check_red", 2, 2, detail="`check`\nline a")` has the first line `` Stalled (attempt 2 of 2): a check is red after the stage: `check`. The attempts cap is reached; the factory asks you next. `` and ends with the closing fence. The note contains no `retry` in any case.
 3. A one-line detail gives the note as before: `stall_note("check_red", 1, 2, detail="3 failed")` is `Stalled (attempt 1 of 2): a check is red after the stage: 3 failed. Retrying on the next tick.`, and `stall_note("died", 1, 2)` is `Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the next tick.`.
-4. Trailing line breaks do not make a block: `detail="3 failed\n\n"` gives the note of criterion 3.
+4. Trailing line breaks do not make a block and do not reach one: `detail="3 failed\n\n"` gives the note of criterion 3, and `stall_note("check_red", 1, 2, detail="`check`\nline a\n\n")` equals `stall_note("check_red", 1, 2, detail="`check`\nline a")`, whose last two lines are `line a` and the closing fence.
 5. The remaining lines are kept as they are. For the detail `` `check` ``, `  File "x.py", line 1, in <module>`, `make: *** [Makefile:6: check] Error 1`, both lines appear in the block unchanged, leading spaces included.
 6. The fence outgrows the tail. A remaining line `` ``` `` gives the fences ` ````text ` and ` ```` ` (four backticks). A run of five backticks gives six. A remaining line with a run of two backticks (``` ``x`` ```) keeps three.
 7. Through `StageRunner`, a red `check` prints `line 1` to `line 20` and then make's error line. The posted note's first line ends with `Retrying on the next tick.`, and its block holds `line 7` to `line 20` and make's error line in that order (the last 15 lines), and not `line 6`. The journal's stall entry still holds `line 20` and make's error line.
@@ -74,3 +74,7 @@ Expect: the first line is `` Stalled (attempt 1 of 2): a check is red after the 
 uv run pytest tests/application/test_stall_labels.py
 ```
 Expect: the last line says `passed`, and the output holds no `failed` and no `error`.
+
+## Log (append only)
+
+1. 2026-10-14 human: created.
