@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 56
 blocked: null
 comments_seen: 2
@@ -279,3 +279,16 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
 
     `make lint`: lint: green
     `make test`: test: green
+16. coder: coder (round 2): this round fixes the reviewer's finding in entry 13. The tester added `src/in-progress/notes.txt` to `agent_files` in `tests/application/test_undo.py::test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths` (entry 15). The test now covers the allowed side of the rule's `factory/features/` prefix. It passes against the existing implementation in `src/factory/application/undo.py` (commit 4cfd5a1): `_is_in_an_in_progress_folder` returns `False` for any path outside `factory/features/`, and with write paths `["*"]`, `refusal` allows `src/`. So I made no code change this round.
+
+    All three sides that entry 9 named are now tested: another lifecycle folder, a file nested deeper, and an `in-progress` segment outside `factory/features/`.
+
+    Rejected: changing any code. The finding was only about a missing test.
+
+    Refactor: there is no new diff in this round, so there is no refactor commit.
+
+    Open: none. The docs criterion (20) is the documenter's. As entries 9 and 13 said, no acceptance criterion states the allowed side of the in-progress rule. The tests now cover it, but the story text does not.
+
+    `make check`: green (total coverage 99.68 %).
+
+    `make check`: check: green
