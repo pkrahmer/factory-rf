@@ -528,6 +528,12 @@ Otherwise it is a `StageChange`; `correction` is true only when `C`'s journal is
 
 `waiting(state, definition)` and `question_posted(snapshot, comments)` are public in `factory.domain.evaluation` for the handlers that come later.
 
+### The watcher's command line
+
+`factory.entry.watch` (`factory-watch`, see the operator guide) shows the event of one evaluation and the board. `run_watch(boundaries, instance, out, err)` resolves `origin/main` (`GitError` when it does not), loads the definition with `PipelineLoader(boundaries).load(<that commit>)` (a commit id, not the ref, so no stop is raised or cleared), evaluates once with `Watcher` and writes `render_event(event)`, a blank line and `render_board(...)`. It returns 0, or 1 with `factory-watch: <fault>` on `err` for `PipelineDefinitionInvalid`. It fetches and writes nothing. `main(argv, *, boundaries, instance, out, err)` parses `argv` first with an `ArgumentParser(prog="factory-watch")` without options, so `--follow` or any other option is `SystemExit(2)`; with no boundaries or instance it writes `factory-watch: no instance settings are wired yet` and returns 2 (F0010-S0001 replaces that with the production wiring).
+
+The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, `feature_rows`, `render_board`, all pure) and `BoardReader(boundaries).read(definition)` in `factory.application.board`, which returns a `BoardView`. The reader takes the story files of the three folders from `RemoteWorkItems.list_stories`, the feature titles from `Git.show_file("origin/main", ".../feature.md")` and the rows from `RemoteWorkItems.read`. It reads the remote-tracking refs a second time next to the `Watcher`; it does not share the watcher's snapshots, so `Watcher.evaluate` still returns one event. `FeatureRow.acceptance` is always `None` until F0009-S0001.
+
 ## The tick
 
 `Tick(boundaries, instance, handlers, status=None).run()` (`factory.application.tick`) is one pass, in this order. The order matters: the remote is the only truth, so nothing is read before the fetch.

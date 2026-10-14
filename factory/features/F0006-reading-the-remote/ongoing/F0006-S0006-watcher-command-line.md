@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 76
 blocked: null
 comments_seen: 0
@@ -197,3 +197,11 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
       - Quality: names and docstrings are in order and I found no dead code. `run_watch` repeats the three-line resolve-or-`GitError` of `Watcher._main_commit`, and `application/board.py` defines its own `_MAIN_REF` next to `PIPELINE_REF`. Both follow the codebase's existing private-constant habit and the Interface's explicit rule for `run_watch`, so I don't count them as findings. Sharing them would mean making a `Watcher` method public, which is outside this story.
       - Ticket hygiene: the log gives the main decision, a separate `BoardReader` over reusing the watcher's snapshots, with its cost. `Assignment` matches what was built. Criterion 26 still tells the documenter what to write.
       - Open, for the human: the Interface's default for `main`'s `err` (standard error when `None`) has no criterion and no test. Today it only matters on the not-wired path, which F0010-S0001 replaces.
+6. documenter: wrote the `factory-watch` documentation. `make check` is green.
+   - `README.md`: "Three commands" is now four. `factory-watch` shows the next event and the board, reads the last fetch, changes nothing and has no `--follow` mode. It ends with status 2 until F0010 wires the instance settings.
+   - `docs/operator-guide.md`: the intro lists `factory-watch`. A new section, "Looking at the remote: `factory-watch`", gives the output shape, what the board counts and shows, and the exit statuses 0, 1 and 2. It also says the command fetches and writes nothing, raises no stop, and that v1's `--follow` and `factory-last-line` are gone. The sample output uses the placeholder `event: <key>  <detail>` because I did not run the command: the installed script ends with 2 until F0010.
+   - `docs/project-guide.md`: a new section, "The watcher's command line", before "The tick". It covers `run_watch`, `main`, the board modules, and why `BoardReader` does not reuse the watcher's snapshots.
+   - Cross-read: the sections on the tick, the evaluation and the remote's work items match the diff. No code contradicts the Interface. I found no findings for the coder.
+   - Not touched: nothing stale. The "Open" note in the review (the default for `main`'s `err` has no test) is for the human, not a docs matter.
+
+   `make check`: check: green
