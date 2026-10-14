@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 70
 blocked: null
 comments_seen: 0
@@ -60,3 +60,11 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
    - Demo: both commands are runnable `grep`s. The first Expect line is checkable against its output. The second Expect line is checkable too, but its pattern `stop of one work item` does not match the heading "Stops of one work item" (the "s" breaks it). The other three patterns still print the lines the Expect line needs. I left the pattern as the human wrote it and did not improve the story.
    - Architecture: no code or layer is touched. The files are the ones `CLAUDE.md` assigns to the documenter stage.
    - Scope: it fits F0005. S0011 is listed in FEATURE.md as a story proposed by the feature acceptance. It documents only what F0005 built and says plainly what F0006 and F0007 will add. Nothing in "Out of scope" is brought in.
+3. tester: no tests written. This story only changes documentation. The Interface says "None: no code changes", and the Assignment says the tester writes no tests.
+   - criterion 1 (make check stays green): no test of its own. The factory's `make check` covers it.
+   - criterion 2 (docs): the documenter works from it. Its demo `grep`s check it, and no pytest test does.
+   - Files created: none. There are no new red tests and no modules the test runner could not import. I did not run `make test`, because no tests were added.
+   - `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
