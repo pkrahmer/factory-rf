@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 80
 blocked: null
 comments_seen: 0
@@ -67,3 +67,7 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
    - Demo: the three commands are runnable `grep`s on the two files. Each `Expect:` line is checkable against the output: absent phrases, `factory-run` named as not built, `NOT_YET_HANDLED`, `hand_over` and "created by hand" present.
    - Architecture: no layer or module is touched, so there is no conflict with `CLAUDE.md`. The docs follow the documenter's four-file rule, and the story leaves `docs/decisions.md` alone unless it contradicts the new text.
    - Scope: the story is within F0006's goal. It is the feature acceptance's proposed documentation story, listed in `FEATURE.md`. It documents today's behaviour and does not change the rules (F0007, F0008 and F0010 stay out of scope).
+3. tester: no tests written, on purpose. This is a documentation-only story. The Interface is "None: no code changes", and the Assignment says the tester writes no tests. Criterion 1 is the `make check` gate. Criterion 2 is the docs criterion, which the reader checks against `README.md` and `docs/operator-guide.md`. It states no code behaviour a test could check. I did not add tests that grep the docs: the Demo already does that, and such tests would guess at wording the documenter has not written. No files were created or changed. No modules failed to import. I did not run `make test` because no new tests exist. `make lint` is green. For the coder: there is nothing to build, so hand on to the documenter.
+
+   `make lint`: lint: green
+   `make test`: test: green
