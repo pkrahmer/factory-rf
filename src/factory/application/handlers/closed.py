@@ -4,7 +4,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.recording import WorkItemRecorder, commit_subject, target_of
 from factory.domain.archive import destination_path
-from factory.domain.errors import PushFailed
 from factory.domain.events import Event
 from factory.domain.paths import MAIN_BRANCH
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -34,11 +33,4 @@ class ClosedHandler(Handler):
         self._boundaries.git.move(snapshot.path, destination_path(snapshot.path, "backlog"))
         subject = commit_subject(snapshot.id, "closed before the approval, back in the backlog")
         recorder.publish(MAIN_BRANCH, subject)
-        self._delete_branch(snapshot)
-
-    def _delete_branch(self, snapshot: WorkItemSnapshot) -> None:
-        git = self._boundaries.git
-        outcome = git.delete_remote_branch(snapshot.branch)
-        if outcome != "pushed":
-            raise PushFailed(snapshot.branch, outcome)
-        git.delete_branch(snapshot.branch)
+        recorder.delete_branch(snapshot.branch)

@@ -5,13 +5,12 @@ from factory.application.dispatcher import Handler
 from factory.application.handlers.recording import WorkItemRecorder, commit_subject, target_of
 from factory.domain.archive import destination_path
 from factory.domain.bills import bill
-from factory.domain.errors import PushFailed
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import DONE_STAGE
 from factory.domain.post_texts import done_entry_text
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.domain.work_item import WorkItemDocument
 
 
 class MergedHandler(Handler):
@@ -30,7 +29,7 @@ class MergedHandler(Handler):
         self._move(snapshot.path)
         recorder.write(destination_path(snapshot.path, "done"), archived)
         recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "merged, archived"))
-        self._delete_branch(snapshot)
+        recorder.delete_branch(snapshot.branch)
 
     def _archived(self, document: WorkItemDocument, path: str) -> WorkItemDocument:
         sidecar = self._boundaries.checkout / cost_records_path(path)
@@ -51,10 +50,3 @@ class MergedHandler(Handler):
         sidecar = cost_records_path(path)
         if git.show_file("HEAD", sidecar) is not None:
             git.move(sidecar, cost_records_path(destination))
-
-    def _delete_branch(self, snapshot: WorkItemSnapshot) -> None:
-        git = self._boundaries.git
-        outcome = git.delete_remote_branch(snapshot.branch)
-        if outcome != "pushed":
-            raise PushFailed(snapshot.branch, outcome)
-        git.delete_branch(snapshot.branch)

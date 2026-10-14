@@ -66,6 +66,14 @@ class WorkItemRecorder:
         """Write the document as the work item at `path` in the checkout."""
         self._boundaries.work_item_writer.write(self._boundaries.checkout / path, document)
 
+    def delete_branch(self, branch: str) -> None:
+        """Delete `branch` on the remote, then locally; `PushFailed` if the remote refuses."""
+        git = self._boundaries.git
+        outcome = git.delete_remote_branch(branch)
+        if outcome != "pushed":
+            raise PushFailed(branch, outcome)
+        git.delete_branch(branch)
+
     def publish(self, branch: str, subject: str) -> CommitId:
         """Commit every change with `subject` and push `branch`; `PushFailed` unless pushed."""
         git = self._boundaries.git
