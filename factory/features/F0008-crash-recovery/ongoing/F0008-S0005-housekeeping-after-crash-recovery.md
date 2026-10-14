@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Housekeeping after crash recovery
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
