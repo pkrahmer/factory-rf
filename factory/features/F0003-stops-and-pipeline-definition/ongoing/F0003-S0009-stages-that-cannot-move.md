@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 50
 blocked: null
 comments_seen: 0
@@ -121,3 +121,17 @@ Expect: three lines: `doing`, then `stage doing: next is empty`, then `stage gat
    - Stale but untouched: nothing seen.
 
    `make check`: check: green
+7. demo: no findings. I ran the one command under `## Demo` from the repository root, exactly as written.
+
+   Command 1 (`uv run python -c "…"`: parse the three-stage definition, then parse two versions with one change each):
+   ```
+   doing
+   stage doing: next is empty
+   stage gate: has neither a role nor approval
+   ```
+   Met its `Expect:` line. It printed three lines in the expected order: the first stage `doing`, then rule 10's fault for `doing` with `next: []`, then rule 11's fault for `gate` once its `approval: true` was removed.
+
+   Against the acceptance criteria:
+   - The output matches the fault texts in criteria 2 and 3 (`stage <s>: has neither a role nor approval`, `stage <s>: next is empty`).
+   - It shows that a definition containing `done` with both rules met is accepted. The `done` stage itself (`done: {}`, with no role and no `next`) is not refused, which agrees with the rules exempting `done`.
+   - Nothing in the output contradicts any criterion. Criteria 1, 4 to 8 and 10 are not exercised by this demo; their tests and the docs are recorded in log entries 3 to 6.
