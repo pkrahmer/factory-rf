@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 78
 blocked: null
 comments_seen: 1
 round: 0
 attempts: 0
 stories: [F0006-S0001, F0006-S0002, F0006-S0003, F0006-S0004, F0006-S0005, F0006-S0006, F0006-S0007]
+outcome: accepted
 ---
 # Acceptance of Reading the remote
 
@@ -596,3 +597,4 @@ Four of the seven intakes asked one question each, and every question was the sa
          - S0002 stands out at 15 runs and $4.57: two review rounds, each a one-line test assertion costing 4 runs under R9.
          - S0004 took 10 runs: two impossible tests went back through the human.
          - Four intakes each asked about an Interface value that had no criterion.
+2. done (pull request merged); cost: 1 runs, 14.8 min, 60 turns, 224k tokens in (7729k more from cache), 64k out, $4.63
