@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 72
 blocked: null
 comments_seen: 2
@@ -249,3 +249,8 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: Round 1. Entry 7 had one finding, and it was about a test. Entry 9 made that change: `tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error` now uses `pytest.raises(GitError, match="origin/main")`. The finding needed no source change, and I made none: `src/factory/application/watcher.py` already raises a `GitError` that names `origin/main` (checked in entry 8). No commits this round, and nothing to refactor. Nothing else is open. Criterion 27 (docs) belongs to the documenter.
+
+    `make check`: check: green (coverage 99.38%).
+
+    `make check`: check: green
