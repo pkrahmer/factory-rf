@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 62
 blocked: null
 comments_seen: 0
@@ -142,3 +142,21 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented the code that runs after the agent. `make check` is green and coverage is 99.47 %. All tests in `tests/domain/test_agent_entry.py` and `tests/application/test_after_agent.py` pass, and no test was touched.
+
+   Built:
+   - `src/factory/domain/decisions.py`: `agent_entry`. It strips the text, removes one leading `<role>:` or else `<stage>:` (role first, so `tester: tests: x` gives `tests: x`), strips again and returns `None` when the text is blank. When `undone` is not empty it adds the sorted paragraph. The kind is `question` exactly when the decision is `QUESTION`.
+   - `src/factory/application/stage.py`: `AgentAftermath` (frozen, extra forbidden) and `AfterAgent.process`. The six steps run in the Interface's order: branch through `Git.status()`, then `stall_reason_of` with the first permission denial as detail, then the allowed decisions, then `UndoService.undo` and a read-back of the work item, then the entry with `cost_records_path(path)` left out of the undone paths, then `StoryFormChecker`.
+     - New findings come from a `Counter` of messages with every run of digits masked as `#`. The earlier equal findings use up the old count, so the later ones are new.
+     - Every stall goes through `StallService.stall` with the started stage's context, so attempts rise exactly once. Only the `form_invalid` stall passes a document, the undone work item with the agent's entry appended, so that entry sits directly above the stall entry. The other stalls pass `None` and let the stall service read the file after its own undo.
+   - Commits: 48b1e27 (feat) and beecd7f (refactor: a private helper's docstring became a comment, per the docstring rule).
+
+   Main design decision: the stall paths reuse `StallService` unchanged. Its own undo handles the left-branch case (reset and re-checkout), and running it again after this story's undo does nothing new. Rejected: a separate stall path for the late steps that skips the second undo. It would have duplicated the commit, push and note logic.
+
+   Noticed but not touched:
+   - `AfterAgent._entry` raises `ValueError` for a stage without a role. A stage without a role cannot have been launched, so that line is uncovered.
+   - The `decision is None` check exists only to satisfy the type checker, because `AgentRunResult`'s validator already guarantees a decision when the run completed.
+
+   Docs (criterion 23) are left for the documenter.
+
+   `make check`: check: green
