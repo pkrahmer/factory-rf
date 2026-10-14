@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 65
 blocked: null
 comments_seen: 0
@@ -182,3 +182,17 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
      - The `ValueError` for a document without state in `CostRecorder.begin` is needed to narrow the type, and it matches `_launchable_stage`.
      - Docstrings and why-comments are present and accurate.
    - Ticket hygiene: the coder's log explains the main decision, taking the role from the pipeline definition, and the rejected alternative, the agent file. `Assignment` matches what was built, and the docs criterion (17) still says what the reader needs to know.
+6. documenter: wrote the cost-record lifecycle (criterion 17). `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`, *Cost records*: removed "later" and "not wired yet". Added the subsection "When a record is created, completed and committed". It covers `begin` and `complete` around the runtime, and `None` staying `None` while a reported zero stays zero. It says the records travel with the next commit and are never pushed alone, and that `write` rewrites the sidecar after every undo. It also gives the `CostRun` fields.
+   - `docs/project-guide.md`, *StallService.stall*: added `cost` to `StallContext` and the sidecar rewrite right after the undo.
+   - `docs/decisions.md`: new entry. The sidecar is rewritten from memory after every undo, and a crashed stage's records are discarded with the stage (R24). It lists the alternatives rejected.
+
+   Cross-read and current: the *Cost records* format sections; the undo section, whose `in-progress` sidecar rule is unchanged; the AfterAgent entry rule, which already says the sidecar is never named; the operator guide; the README. I did not run the examples, as I added none.
+
+   Findings: none. The code matches the Interface.
+
+   Stale but untouched: none seen.
+
+   `make check`: check: green
