@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 70
 blocked: null
 comments_seen: 0
 round: 0
@@ -54,3 +54,9 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: "None: no code changes", with the files named (`README.md`, `docs/operator-guide.md`; `docs/project-guide.md` and `docs/decisions.md` only where they contradict). There is no behaviour in an Interface comment to test.
+   - Criteria: criterion 1 is `make check`. Criterion 2 is the docs criterion, which the documenter works from. Its bullets say exactly which statements each file must make and which texts must match the code. This is a documentation-only story, so the tester has no test functions to write, and the Assignment says so. There is no rule with a failing side.
+   - Demo: both commands are runnable `grep`s. The first Expect line is checkable against its output. The second Expect line is checkable too, but its pattern `stop of one work item` does not match the heading "Stops of one work item" (the "s" breaks it). The other three patterns still print the lines the Expect line needs. I left the pattern as the human wrote it and did not improve the story.
+   - Architecture: no code or layer is touched. The files are the ones `CLAUDE.md` assigns to the documenter stage.
+   - Scope: it fits F0005. S0011 is listed in FEATURE.md as a story proposed by the feature acceptance. It documents only what F0005 built and says plainly what F0006 and F0007 will add. Nothing in "Out of scope" is brought in.
