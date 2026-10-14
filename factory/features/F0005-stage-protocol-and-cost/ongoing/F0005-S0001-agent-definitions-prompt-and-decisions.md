@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 58
 blocked: null
 comments_seen: 0
@@ -129,3 +129,42 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
    - Demo: a runnable `uv run python -c` command. The Expect line (10 lines: the list, then 9 prompt lines) matches what the Interface produces.
    - Architecture: the pure prompt rules are in the domain layer; `TaskComposer` and `StoryFormChecker` are in the application layer. Git is reached through the `Git` interface and the agent home through `AgentDefinitionReader`, so no layer rule is broken.
    - Scope: inside F0005's scope (agent definitions, prompt, allowed decisions, environment passed unchanged, form check). The environment's content, the claim and stalls are left to other stories, as the feature says.
+3. tester: Wrote the red tests for every criterion from the Interface and the criteria. The tests do not interpret anything the criteria leave open.
+
+   Which test covers each criterion:
+   - criterion 1: tests/domain/test_prompts.py::test_allowed_decisions_are_the_next_stages_in_order_then_question
+   - criterion 2: tests/domain/test_prompts.py::test_question_is_allowed_at_a_stage_without_next
+   - criterion 3: tests/domain/test_prompts.py::test_the_prompt_holds_the_facts_line_by_line_and_ends_with_the_end_line. The wording of END_LINE is checked separately in test_the_end_line_says_what_the_factory_does_after_the_agent.
+   - criterion 4: tests/domain/test_prompts.py::test_no_findings_give_a_passed_format_check_after_the_round
+   - criterion 5: tests/domain/test_prompts.py::test_findings_are_numbered_on_one_format_check_line
+   - criterion 6: tests/domain/test_prompts.py::test_without_findings_the_prompt_has_no_format_check_line
+   - criterion 7: tests/domain/test_prompts.py::test_a_test_change_adds_the_mode_line_between_round_and_format_check and ::test_without_a_test_change_the_prompt_has_no_mode_line
+   - criterion 8: tests/application/test_task.py::test_the_first_stage_gets_the_findings_and_a_later_stage_does_not
+   - criterion 9: tests/application/test_task.py::test_the_tester_gets_the_mode_line_after_a_coder_result
+   - criterion 10: tests/application/test_task.py::test_the_mode_line_comes_only_from_a_coder_result_at_a_tester_stage. It is parametrized over three cases: the tester spoke last with text starting "coder:", there is no result record, and a coder stage.
+   - criterion 11: tests/application/test_task.py::test_a_later_stall_and_comment_do_not_hide_the_test_change
+   - criterion 12: tests/application/test_task.py::test_the_request_shares_the_allowed_decisions_and_the_facts_of_the_context
+   - criterion 13: tests/application/test_task.py::test_the_time_limit_is_the_roles_minutes. The tester's time_limit is set to 25 in a copy of PIPELINE_YAML; the coder sets none, so 40.
+   - criterion 14: tests/application/test_task.py::test_the_request_carries_the_agent_checkout_and_guard_without_os_user
+   - criterion 15: tests/application/test_task.py::test_the_request_holds_the_given_environment_unchanged
+   - criterion 16: tests/application/test_task.py::test_agent_reads_the_definition_of_the_stages_role
+   - criterion 17: tests/application/test_task.py::test_agent_for_a_stage_without_a_role_names_the_stage
+   - criterion 18: tests/application/test_task.py::test_agent_for_a_role_without_an_agent_file_is_missing. Stage review, role reviewer, which is not installed.
+   - criterion 19: tests/application/test_task.py::test_the_form_check_finds_nothing_only_in_a_complete_story
+   - criterion 20: tests/application/test_task.py::test_the_form_is_read_at_main_on_the_remote_not_in_the_work_tree
+   - criterion 21: tests/application/test_task.py::test_a_form_absent_at_main_is_a_format_error. The human's clone removes the form with real git, pushes main, and the checkout fetches.
+   - criterion 22: tests/domain/test_prompts.py::test_prompt_facts_hold_their_limits_on_both_sides, ::test_prompt_facts_are_frozen, ::test_prompt_facts_refuse_an_unknown_key; tests/application/test_task.py::test_task_context_holds_the_pull_request_limit_on_both_sides, ::test_task_context_is_frozen, ::test_task_context_refuses_an_unknown_key
+   - criteria 23 and 24: no test. They are make check and docs.
+
+   Files created: tests/domain/test_prompts.py and tests/application/test_task.py.
+
+   Run results:
+   - `make test` (one run) stops with collection errors in both new files, which is the expected red. The runner could not import the modules factory.domain.prompts and factory.application.task.
+   - `make lint` is green. ruff format reflowed test_task.py once.
+
+   Notes for the coder:
+   - The compose tests do not install agent files; only the `agent(...)` tests do.
+   - The environment test passes {"PATH": "/opt/guard", "HOME": "/home/factory"} to TaskComposer.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
