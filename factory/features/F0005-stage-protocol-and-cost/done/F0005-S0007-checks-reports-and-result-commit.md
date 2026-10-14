@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 64
 blocked: null
 comments_seen: 2
@@ -243,3 +243,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
     Criteria check: nothing in the demo contradicts any criterion. Command 1 agrees with criterion 15 (`labels_for` returns `["stage:<stage>"]`). Command 2 runs the tests for criteria 1 to 23 (mapped in entry 3), and all of them pass. The demo does not test criteria 24 (`make check`) and 25 (docs). The factory runs `make check` itself, and entries 8 to 10 report it green.
 
     Nothing open.
+12. done (pull request merged); cost: 9 runs, 16.6 min, 83 turns, 277k tokens in (2320k more from cache), 54k out, $3.53
