@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 56
 blocked: null
 comments_seen: 2
@@ -320,3 +320,25 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     Stale but unrelated, not touched: none seen.
 
     `make check`: check: green
+19. demo: demo (round 2): I ran the one `## Demo` command from the repository root exactly as written. It exited 0 and printed:
+
+    ```
+    ['factory/pipeline.yml'] ['docs/extra.md'] True
+    True
+    True False
+    0 True
+    reverted=[] deleted=[] restored_work_item=False
+    ```
+
+    Against its Expect line, all five lines match:
+    1. `['factory/pipeline.yml'] ['docs/extra.md'] True`: the widened pipeline definition was reverted, `docs/extra.md` was deleted and the work item was restored.
+    2. `True`: the pipeline definition is back to its text at the stage-start commit.
+    3. `True False`: `src/a.py` stays. `docs/extra.md` is gone, even though the widened definition would have allowed it.
+    4. `0 True`: `attempts` is back to 0 and the agent's section edit stays.
+    5. `reverted=[] deleted=[] restored_work_item=False`: a second undo finds nothing.
+
+    Criteria check: the output agrees with criteria 5 (a new file inside the write paths is untouched), 8 (state and journal restored, other section edit kept, `restored_work_item` true), 13 (WE2.1: a rewritten pipeline definition widens nothing), 15 (the guard and the undo read the same source) and 16 (sorted lists; a second undo is empty). Nothing in the output goes against any other criterion.
+
+    Findings: none.
+
+    Open, not a finding: as entries 9, 13 and 17 said, no acceptance criterion states the allowed side of the in-progress rule. The tests cover it; the story text does not.
