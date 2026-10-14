@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 70
 blocked: null
 comments_seen: 0
@@ -68,3 +68,12 @@ Expect: no printed line counts a stall among the stops that get the stop descrip
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: nothing to build. This story changes documentation only. The Interface says "None: no code changes", and the Assignment says "the coder has nothing to build; the documenter writes it from the docs criterion".
+      - Code changed: none, and no commits. There were no failing tests to make pass, because the tester added none.
+      - Refactor: none, because there is no diff to read.
+      - Writing `README.md` and `docs/operator-guide.md` is left to the documenter stage. That follows criterion 2 and `CLAUDE.md` ("the coder does not write them").
+      - The intake already noted that the second demo's pattern `stop of one work item` does not match the heading "Stops of one work item". It is still open and harmless.
+
+      `make check`: check: green (coverage 99.35 %)
+
+   `make check`: check: green
