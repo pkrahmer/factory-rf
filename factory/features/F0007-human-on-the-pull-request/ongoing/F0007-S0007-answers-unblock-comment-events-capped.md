@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 88
 blocked: null
 comments_seen: 2
@@ -175,3 +175,23 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
    - Stale but unrelated, not touched: the sentence in the operator guide that Only the run handler is registered today may be out of date, because earlier F0007 stories added handlers while `NOT_YET_HANDLED` still lists them. I did not check which handlers are wired.
 
    `make check`: check: green
+9. demo: ran both demo commands from the repository root, exactly as written. Both match their `Expect:` lines. No findings.
+
+   1. `unblock` over the six `blocked` values (round=2, attempts=2, crashes=2):
+   ```
+   question None 2 2 2
+   round_cap None 2 2 2
+   send_back None 2 2 2
+   attempts_cap None 2 0 2
+   crash_cap None 2 2 0
+   None None 2 2 2
+   ```
+   Met the expectation: six lines, identical to the `Expect:` line. `blocked` is cleared every time. `attempts` is reset only at `attempts_cap` and `crashes` only at `crash_cap`. `round` never changes (criteria 1-4).
+
+   2. `CommentHandler.handle` on a blocked work item with no pull request:
+   ```
+   CannotHandle cannot handle comment: work item F0001-S0001 has no pull request
+   ```
+   Met the expectation: one line, identical to the `Expect:` line. The handler leaves by raising and catches nothing (criterion 12, and the rule that every failure leaves `handle` by raising). The handler was built with an empty `SimpleNamespace` as its boundaries, so it raised before it touched any boundary: nothing was recorded.
+
+   Acceptance criteria read again against the output: the demo contradicts none of them. Criteria 5-11 and 13-19 (git, hosting, dispatcher) are not exercised by the demo; their tests are listed in log entries 5 and 7. I did not run `make check`; the factory runs it after this stage.
