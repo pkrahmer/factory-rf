@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 56
 blocked: null
 comments_seen: 2
@@ -301,3 +301,22 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     - Ticket hygiene: the Assignment and Interface match what was built. Entry 8 explains the main decision (the in-progress test works on the path string, not `folder_of`) and what was rejected. Criterion 20 still says what the documenter must write.
 
     Open, not a finding: as entries 9 and 13 said, no acceptance criterion states the allowed side of the in-progress rule. The tests cover it, but the story text does not; the human may want to add it to the criteria.
+18. documenter: docs (round 2): wrote the documentation for criterion 20; no earlier docs round had written any, so this covers all of it.
+
+    Changed:
+    - `docs/project-guide.md`: new section "The undo", placed before "The agent definition reader". It covers:
+      - what the undo reverts or deletes, and why it compares with the stage-start commit;
+      - the two refusal rules: the write paths and protected paths from `WritePathService.at`, and everything directly in an `in-progress` folder except the own work item;
+      - which paths follow the write paths instead: nested files, other lifecycle folders, an `in-progress` folder outside `factory/features/`;
+      - the work item restore (state and journal restored; a deleted or broken file restored whole and not listed in `reverted`; the case where the role may not write it);
+      - the baseline read first and the `WorkItemFormatError`;
+      - the limits: no commit or push, the agent's own commit stays in the history, ignored paths and writes outside the checkout are not seen.
+    - `docs/decisions.md`: new decision. The undo and the guard read the write paths from the stage-start commit (WE2), and a work item the agent breaks is restored whole. It names the rejected alternatives.
+
+    Cross-read and found current against the diff: the "The write paths" and "The guard command" sections of the project guide, the git wrapper table that names `changed_paths` and `revert_paths` as the undo's, and the earlier decisions on the protected paths and the guard. The README and the operator guide do not mention the undo; this story adds no operator-visible behaviour, so I left them alone.
+
+    Findings against the code: none. `UndoService`/`UndoReport` match the Interface. I wrote no runnable examples. `make check` is green (coverage 99.68 %).
+
+    Stale but unrelated, not touched: none seen.
+
+    `make check`: check: green
