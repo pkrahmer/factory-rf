@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 90
 blocked: null
 comments_seen: 0
@@ -122,3 +122,34 @@ Expect: four lines: `['## Description', '## Acceptance criteria', '## Tests', '#
    - Demo: runnable as written. Each `Expect:` line can be checked against the output.
    - Architecture: the pure text builders sit in the domain layer. The handler sits in application and uses the Boundaries and hosting interfaces. It calls no tool directly.
    - Scope: the story is within F0007's "hand-over at the approval" scope item. It touches nothing listed under Out of scope.
+3. tester: wrote the red tests for the hand-over at the approval.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_hand_over.py::test_the_description_has_its_headings_in_order_and_ends_with_the_closing_paragraph
+   - criterion 2: tests/domain/test_hand_over.py::test_the_description_and_criteria_sections_hold_the_story_sections_verbatim (verbatim, multi-line with an inner blank line and indentation) and ::test_a_missing_or_empty_story_section_gives_none (parametrized: missing, empty)
+   - criterion 3: tests/domain/test_hand_over.py::test_each_report_section_holds_the_latest_result_text_of_its_speaker
+   - criterion 4: tests/domain/test_hand_over.py::test_a_report_section_whose_speaker_has_no_result_record_holds_none (parametrized over REPORT_SECTIONS; the speaker has only a `question` record)
+   - criterion 5: tests/domain/test_hand_over.py::test_a_report_section_is_found_by_the_record_and_not_by_the_visible_speaker
+   - criterion 6: tests/domain/test_hand_over.py::test_the_commits_section_is_a_fenced_block_of_short_ids_and_subjects (parametrized: two commits, no commit)
+   - criterion 7: tests/domain/test_hand_over.py::test_the_cost_table_post_is_a_heading_line_a_blank_line_and_the_table
+   - criterion 8: tests/domain/test_hand_over.py::test_the_closing_paragraph_says_how_to_accept_send_back_and_what_a_bare_close_does
+   - criterion 9: tests/application/handlers/test_hand_over.py::test_the_hand_over_sets_the_description_and_marks_the_pull_request_ready
+   - criterion 10: tests/application/handlers/test_hand_over.py::test_the_hand_over_posts_the_cost_table_of_the_branch_records_keyed_by_the_latest_result (parametrized: latest result n=3, no result n=0; an untracked, differing sidecar is written into the checkout before handling)
+   - criterion 11: tests/application/handlers/test_hand_over.py::test_the_hand_over_then_records_handed_over_in_one_commit_and_changes_nothing_else (also checks the subject `commit_subject(id, "handed over at approval")` from the Interface rule)
+   - criterion 12: tests/application/handlers/test_hand_over.py::test_a_failing_post_raises_after_the_description_and_before_any_record
+   - criterion 13: tests/application/handlers/test_hand_over.py::test_after_a_failing_post_the_next_handling_completes_with_one_cost_table_post
+   - criterion 14: tests/application/handlers/test_hand_over.py::test_a_kill_after_the_post_leaves_one_post_and_the_next_handling_records_without_another
+   - criterion 15: tests/application/handlers/test_hand_over.py::test_a_work_item_already_handed_over_at_its_stage_is_handled_without_any_effect
+   - criterion 16: tests/application/handlers/test_hand_over.py::test_a_work_item_at_a_stage_that_is_not_an_approval_cannot_be_handed_over (stage `smoke-test` of PIPELINE_YAML)
+   - criterion 17: tests/application/handlers/test_hand_over.py::test_a_work_item_without_a_pull_request_cannot_be_handed_over
+   - criterion 18: tests/application/handlers/test_hand_over.py::test_a_hand_over_that_always_fails_is_tried_three_times_and_reported_once (the failure is `set_description` failing every time; the `Counting` wrapper subclasses `Handler`, as in S0008)
+   - criteria 19 and 20: not test criteria (make check, docs).
+
+   Files created: tests/domain/test_hand_over.py, tests/application/handlers/test_hand_over.py. The journal records in the test documents are built by hand, separately from the visible journal lines. The handler tests use the definition from `PIPELINE_YAML`, a real bare remote, and the fake hosting service with its `fail_next` and the `after-post` kill point.
+
+   The test runner could not import `factory.domain.hand_over` or `factory.application.handlers.hand_over`, so both files fail at collection. `make test` stops with 2 collection errors, which is the expected red state. The tests also import `DESCRIPTION` from `factory.domain.sections` and `cost_table_post` from `factory.domain.post_texts`, which don't exist yet either. `make lint` is green.
+
+   Open: tests/application/handlers/test_handlers_raise.py lists the handler modules in `REQUIRED`, and `hand_over` isn't in that list. Its module walk will still pick up the new module, so I left that test alone because it isn't mine.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
