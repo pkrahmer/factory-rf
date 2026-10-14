@@ -187,3 +187,9 @@ Date: 2026-10-14 (F0006-S0004). The tick fetches, loads the definition, and then
 ## A capped event holds back all new work
 
 Date: 2026-10-14 (F0006-S0004). The evaluation keeps no memory, so a work item whose `run` event the dispatcher has capped is still the first runnable one on every later tick, and the tick dispatches it as `capped` instead of starting the next work item. This is the same rule as for a waiting work item: while the first work item needs a human (here, a push to its branch), no new work starts. Rejected: skipping a capped event to run the next work item, which would let work pile up behind a failure nobody has seen.
+
+## The handlers are built from the loaded definition on every tick, and a constant lists the kinds still unhandled
+
+Date: 2026-10-14 (F0006-S0007). The handlers take the pipeline definition, and the definition can change on `main` between ticks. The tick therefore receives a handler factory (`handler_factory`) and builds its handlers after each load, so a stage never runs under a stale definition. Rejected: handlers built once at start (a changed definition would need a restart, and the old one would run until then), and handlers that load the definition themselves (a second reader of `main`, which could disagree with the tick's).
+
+`NOT_YET_HANDLED` is a constant in `factory.entry.wiring`, not a list a test derives. A test that computed the unhandled kinds from `build_handlers` would pass whatever the wiring did, and a new event kind would go unnoticed. With the constant, a test compares it with `unhandled_kinds(build_handlers(...))`, so a new kind without a handler, or a handler registered without shrinking the constant, fails a test. An unhandled kind stays a counted error (`UnhandledEvent`), never silence.
