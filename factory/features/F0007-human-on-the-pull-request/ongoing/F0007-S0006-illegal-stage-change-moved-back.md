@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 87
 blocked: null
 comments_seen: 2
@@ -90,3 +90,40 @@ Expect: three lines: `moved back`; `illegal stage change doing -> approval, move
    - Demo: runnable with `uv run python -c`. The Expect line gives the three exact lines to compare against.
    - Architecture: the domain texts live in `factory.domain.post_texts`. The handler is in `factory.application.handlers` and uses Boundaries, WorkItemRecorder and HostingService, so no layer is crossed.
    - Scope: it matches the `reject` item of FEATURE.md and is not in its Out of scope.
+5. tester: Wrote the red tests for every acceptance criterion except 20 (`make check`) and 21 (`docs:`).
+   - criterion 1: tests/domain/test_correction_texts.py::test_the_move_back_entry_names_the_illegal_change (the Interface constant is checked by ::test_the_moved_back_marker_is_the_words_moved_back)
+   - criterion 2: tests/domain/test_correction_texts.py::test_the_correction_note_says_the_stage_is_back_where_it_was
+   - criterion 3: tests/application/handlers/test_reject.py::test_an_illegal_stage_change_is_put_back_by_a_new_commit_on_the_branch
+   - criterion 4: tests/application/handlers/test_reject.py::test_the_correction_commit_subject_says_moved_back
+   - criterion 5: tests/application/handlers/test_reject.py::test_the_correction_appends_one_move_back_entry_by_the_factory
+   - criterion 6: tests/application/handlers/test_reject.py::test_with_a_pull_request_one_correction_note_is_posted_keyed_by_the_new_entry
+   - criterion 7: tests/application/handlers/test_reject.py::test_without_a_pull_request_nothing_is_posted_and_the_stage_is_still_moved_back
+   - criterion 8: tests/application/handlers/test_reject.py::test_a_claim_held_at_the_illegal_stage_is_cleared
+   - criterion 9: tests/application/handlers/test_reject.py::test_a_kill_before_the_push_leaves_the_branch_and_a_second_run_corrects_once
+   - criterion 10: tests/application/handlers/test_reject.py::test_a_kill_after_the_post_leaves_the_branch_and_a_second_run_posts_no_second_note
+   - criterion 11: tests/application/handlers/test_reject.py::test_the_main_branch_keeps_its_head
+   - criterion 12: tests/application/handlers/test_reject.py::test_a_merge_commit_is_refused_and_nothing_is_written_or_posted
+   - criterion 13: tests/application/handlers/test_reject.py::test_a_commit_that_kept_the_stage_is_refused_and_nothing_is_written_or_posted
+   - criterion 14: tests/application/handlers/test_reject.py::test_a_parent_without_the_work_item_file_is_refused_and_nothing_is_written_or_posted
+   - criterion 15: tests/application/handlers/test_reject.py::test_an_illegal_change_followed_by_a_commit_to_another_file_is_moved_back
+   - criterion 16: tests/application/handlers/test_reject.py::test_a_stage_change_that_is_itself_a_correction_is_refused
+   - criterion 17: tests/application/handlers/test_reject.py::test_the_stage_label_is_set_again_only_with_a_pull_request (parametrized with and without a pull request)
+   - criterion 18: tests/application/handlers/test_reject.py::test_a_failing_label_call_raises_and_the_correction_stays_on_the_branch
+   - criterion 19: tests/application/handlers/test_reject.py::test_an_unreadable_parent_is_refused_and_nothing_is_written_or_posted
+
+   Files created: tests/domain/test_correction_texts.py and tests/application/handlers/test_reject.py.
+
+   Setup in the handler tests: the branch gets an opening commit at `tests`, then a legal commit at `doing`, then the illegal commit at `approval`, all through `human.push_file`, each state with the one `created` record. That makes the new entry number 2 and the post key `PostKey(work_item="F0001-S0001", kind="correction", n="2")`.
+   - "Nothing is written or posted" (12, 13, 14, 16, 19) is checked as: remote branch head unchanged, `origin/main` unchanged, no factory posts and no labels on the pull request.
+   - "No label call" (the no-pull-request case of 17) is checked by arming `hosting.fail_next("set_labels")`: any call would make `handle` raise.
+   - "No uncommitted change" (9) is checked as `checkout.status().changes == []`.
+
+   Run results:
+   - `make test`: red on purpose, with two collection errors. `factory.domain.post_texts` has no `MOVED_BACK_MARKER` (nor the two text functions), and the module `factory.application.handlers.reject` does not exist.
+   - `make lint`: green.
+   - The type check was skipped, as the stage says.
+
+   No criterion needed interpretation; nothing is open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
