@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 54
 blocked: null
 comments_seen: 0
@@ -223,3 +223,20 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: made the tester's red tests pass without changing them; `make check` is green. Commit: 03442ea.
+      - `src/factory/domain/write_paths.py`:
+        - `PROTECTED_PATHS`: the last five patterns are built from the constants in `factory.domain.paths`.
+        - `matches_any` uses `fnmatchcase`.
+        - `is_writable` is the safety check plus `matches_any`. A path is unsafe when it is empty, starts with `/`, or has a segment equal to `..`.
+        - `expand_write_paths`: any `{lowercase_name}` other than the two known placeholders raises `ValueError`, and the message names the placeholder. Other braces stay as they are.
+        - `refusal` checks in this order: unsafe, protected, outside the write paths.
+      - `src/factory/application/write_paths.py`:
+        - `WritePathService.at` checks `folder_of` first and raises `ValueError` if it is `None`. It then reads `factory/pipeline.yml` at `stage_start.commit` with `git.show_file` and parses it with `pipeline_reader`.
+        - It raises `PipelineDefinitionInvalid` when the file is missing at the commit, when the stage is unknown, or when the stage has no role. A foreign placeholder's `ValueError` is re-raised as `PipelineDefinitionInvalid` with the same message.
+        - The feature path is the work item path without its last two segments, using `rsplit("/", 2)`.
+      - Main decision: `at` parses the definition directly. It does not reuse `PipelineLoader._read` or subclass the loader, so it checks no agent files and touches no stop (decision 16 of the feature). The missing-file message repeats the loader's wording, but I did not pull it into a shared helper: the two reads have different purposes.
+      - Refactor pass: I read the diff and found nothing to rename, simplify or deduplicate, so there is no refactor commit.
+      - Demo: I ran the four `refusal` lines of the first block by hand and got the expected texts. I did not run the second block.
+      - Noticed, not touched: the docs criterion (24) is the documenter's.
+
+   `make check`: check: green
