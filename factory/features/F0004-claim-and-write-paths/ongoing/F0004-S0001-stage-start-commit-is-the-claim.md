@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 48
 blocked: null
 comments_seen: 2
@@ -299,3 +299,23 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
     I did not run the ticket's demo script and wrote no new runnable examples.
 
     `make check`: check: green
+13. demo: Demo, round 1: ran the one command under `## Demo` from the repository root, exactly as written (the heredoc script through `uv run python -`). Exit code 0.
+
+    ```
+    factory-1 coder 60
+    True
+    True [(1, 'human', 'created'), (2, 'factory', 'started')]
+    ['2. factory: started coder as factory-1.']
+    PushFailed work-item/F0004-S0001 rejected
+    True
+    ```
+
+    The output meets its `Expect:` line. It has six lines, and each matches the expected text in order:
+    - The claim records the instance `factory-1`, the stage `coder` and lease 60, the default for a role that sets none.
+    - `origin/<branch>` resolves to the returned commit.
+    - The work item on the remote has the returned claim and exactly one new `started` record, numbered 2.
+    - The journal line reads `2. factory: started coder as factory-1.`
+    - The second instance's clone was stale, so its claim raised `PushFailed` with the branch and `rejected`.
+    - The remote branch head is still the first instance's stage-start commit.
+
+    Against the acceptance criteria: the demo is consistent with criteria 1, 2, 3, 5, 6 and 9 and contradicts none of them. It does not exercise criteria 4, 7, 8 and 10–17 (subject line, untouched fields, re-claim, unreachable remote, kill point, invalid inputs, new-branch opening, `StageStart` model rules); the tests cover those. No findings.
