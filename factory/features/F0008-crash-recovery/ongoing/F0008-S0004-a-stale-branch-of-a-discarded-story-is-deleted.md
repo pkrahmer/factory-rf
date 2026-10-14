@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 98
 blocked: null
 comments_seen: 2
@@ -162,3 +162,6 @@ Expect: the factory log line on standard output first, time-stamped and ending w
 
    Not touched: `docs/` (criterion 15 is the documenter's).
 5. human (pull request comment, 2026-10-14): (a): the tester adds `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the rename in `test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, and changes nothing else. End with `tests` and name exactly that change.
+6. coder: the human chose option (a) in entry 5, so this goes to the tester for one test change. In `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, add `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the line `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)` (line 103). Change nothing else.
+
+   The implementation is unchanged: commit 983df7a, `delete_stale_branches` in `src/factory/application/recovery.py` and the cleanup step in `Tick.run`. I have not run `make check` again in this round. With the fixed test, I expect it to go green. Once the ticket is back in doing, I will run `make check`, do the refactor step, and hand it to review.
