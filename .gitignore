@@ -10,3 +10,6 @@ htmlcov/
 mutants/
 .env
 .licenses-requirements.txt
+
+# The hosting token beside image/compose.yml (F0010, the human 2026-10-14)
+image/secrets/
