@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 93
 blocked: null
 comments_seen: 2
@@ -214,3 +214,4 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
    Criteria: nothing in the demo contradicts criterion 2. I checked the rest of it by reading in entry 7, and the branch has not changed since. I did not run criterion 1 (make check) here; the factory runs it after this stage.
 
    Findings: none.
+10. done (pull request merged); cost: 7 runs, 6.4 min, 41 turns, 95k tokens in (560k more from cache), 14k out, $0.86
