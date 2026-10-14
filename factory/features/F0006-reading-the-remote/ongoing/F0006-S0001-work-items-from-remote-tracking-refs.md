@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 68
 blocked: null
 comments_seen: 0
@@ -179,3 +179,21 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
    - I did not run the ticket's demo myself; I checked the new prose against the code instead.
 
    `make check`: check: green
+7. demo: I ran the one `## Demo` command from the repository root exactly as written. It exited 0 and its output matched the `Expect:` line. No findings.
+
+   Command 1 (`uv run python -c "…"`: seeds a bare remote, pushes two in-progress stories and a `work-item/F0001-S0002` branch, clones, fetches, then runs `RemoteWorkItems(...).read(definition)`):
+   ```
+   F0001-S0001 work-item/F0001-S0001 False intake 0
+   F0001-S0002 work-item/F0001-S0002 True tests 1
+   ```
+   - It met its `Expect:` line. There are exactly the two expected lines, in plain id order.
+   - F0001-S0001 has no branch. It is at the first stage `intake` with attempts 0, even though its file on `origin/main` says `stage: review` and `attempts: 2` (ST6.1, criterion 9).
+   - F0001-S0002 is read from its remote branch: `branch_commit` is set, and the state (`tests`, 1) comes from the branch tip (criterion 6).
+
+   Criteria cross-check: the demo contradicts none of criteria 1–18.
+   - Only the `in-progress/` stories appear (criterion 15).
+   - They come in id order (criteria 3 and 16).
+   - `branch` is `work-item/<id>` for both, including the one without a branch (Interface: `branch_name(id)`).
+   - The demo did not exercise the other criteria (error paths, local-only branches, ancestor branches, model validation). Per the earlier entries, the tester's tests cover them and the reviewer checked them.
+
+   Open: nothing.
