@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 68
 blocked: null
 comments_seen: 0
@@ -197,3 +197,4 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
    - The demo did not exercise the other criteria (error paths, local-only branches, ancestor branches, model validation). Per the earlier entries, the tester's tests cover them and the reviewer checked them.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 9.2 min, 49 turns, 159k tokens in (1115k more from cache), 29k out, $1.84
