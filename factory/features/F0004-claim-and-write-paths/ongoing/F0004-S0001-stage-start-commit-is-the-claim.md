@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 48
 blocked: null
 comments_seen: 2
@@ -220,3 +220,22 @@ Expect: six lines. `factory-1 coder 60`; `True`; `True [(1, 'human', 'created'),
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: the claim service from 3ac70cc now passes every test. The tester's change from entry 7 fixed the one failing case, and the code needed no change for it. `make check` is green and coverage is 99.72%.
+
+   Built:
+   - `src/factory/domain/errors.py`: `PushFailed(FactoryError)`, which carries `branch` and `outcome` and has the message "push of <branch> failed: <outcome>".
+   - `src/factory/application/claims.py`: `StageStart` (frozen, forbids extra fields, holds a `CommitId` and a `Claim`), `started_text`, and `ClaimService`.
+     - The constructor checks the instance name against the full pattern `[a-z][a-z0-9-]*` and raises `ValueError` otherwise.
+     - `claim` checks the preconditions in the Interface's order before it writes anything: there is a state, the stage matches, the stage is in the definition and has a role (this check also yields the lease), the branch is the work item's own branch, and the checkout is on that branch.
+     - It then builds the claim from `clock.now()`, sets `state.claim`, and adds the "started" entry with `append_entry`. It writes the work item at `checkout / path`, commits it as "<stage> starts as <instance>" and pushes.
+     - Any push outcome other than "pushed" raises `PushFailed`. `InjectedKill` from the push is not caught.
+
+   Main decision: the lease is read from the `PipelineDefinition` passed to the constructor, not loaded again from `origin/main`. This follows the Interface: the caller loads the definition once. I rejected having the service read the definition through `pipeline_reader` itself, because that would give it a second source of truth for the definition.
+
+   Refactor pass: I read the diff (`git diff main...HEAD -- src`) and found nothing to rename, simplify or remove, so there is no refactor commit.
+
+   Noticed, not touched:
+   - `_with_claim` gets the state through `_state_of` a second time. This is harmless because the preconditions have already guaranteed a state exists.
+   - The docs criterion (19) is left to the documenter stage.
+
+   `make check`: check: green
