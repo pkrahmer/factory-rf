@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 72
 blocked: null
 comments_seen: 2
@@ -163,3 +163,44 @@ Expect: two lines. The first is `merged:F0001-S0001 [7]`: the waiting work item 
    - Demo: it is runnable. Its `Expect:` line is checkable: `merged:F0001-S0001 [7]` and `run:F0001-S0002 []`.
    - Architecture: pure rules and DTOs are in `factory.domain`, and the `Watcher` is in `factory.application` using `Boundaries`. This fits the layer rules.
    - Scope: the story is within the feature's scope. The `reject` event, the handlers and the dispatcher stay with later stories and features.
+5. tester: I wrote red tests for criteria 1 to 25. Criterion 26 is the factory's `make check` gate, and criterion 27 belongs to the documenter.
+
+   Which test covers each criterion:
+   - criterion 1: tests/domain/test_evaluation.py::test_no_work_items_is_idle_at_main_without_a_lookup
+   - criterion 2: tests/domain/test_evaluation.py::test_two_work_items_with_one_id_are_a_duplicate_before_anything_else. Parametrized: the duplicates are runnable or waiting, with or without a waiting work item before them.
+   - criterion 3: tests/domain/test_evaluation.py::test_a_work_item_without_state_or_in_an_unknown_stage_is_a_value_error
+   - criterion 4: tests/domain/test_evaluation.py::test_only_the_first_waiting_work_item_is_looked_up_once. Parametrized: blocked first, or approval first.
+   - criterion 5: tests/domain/test_evaluation.py::test_a_waiting_work_item_without_a_pull_request_asks_without_a_lookup
+   - criterion 6: tests/domain/test_evaluation.py::test_a_failed_lookup_is_a_pull_request_lookup_event
+   - criterion 7: tests/domain/test_evaluation.py::test_a_merged_or_closed_pull_request_is_its_own_event and ::test_events_after_a_successful_lookup_carry_the_view (covers comment, hand_over and ask)
+   - criterion 8: tests/domain/test_evaluation.py::test_unread_human_comments_are_a_comment_event_with_their_count
+   - criterion 9: tests/domain/test_evaluation.py::test_factory_and_read_comments_are_no_comment_event
+   - criterion 10: tests/domain/test_evaluation.py::test_an_approval_not_handed_over_is_a_hand_over_before_comments
+   - criterion 11: tests/domain/test_evaluation.py::test_an_approval_handed_over_is_no_hand_over
+   - criterion 12: tests/domain/test_evaluation.py::test_a_blocked_work_item_whose_question_is_not_posted_asks
+   - criterion 13: tests/domain/test_evaluation.py::test_a_post_keyed_to_the_latest_question_is_the_posted_question, ::test_question_posted_is_false_without_a_post_for_the_latest_question (cases: another number, another kind, not blocked, no question record) and ::test_a_post_for_an_earlier_question_still_asks
+   - criterion 14: tests/domain/test_evaluation.py::test_a_waiting_work_item_with_nothing_new_is_idle_and_holds_back_new_work. Parametrized: the runnable work item has the lower id or the higher one.
+   - criterion 15: tests/domain/test_evaluation.py::test_a_claim_of_this_or_an_expired_instance_comes_before_new_work and ::test_a_claim_held_by_another_instance_is_idle_and_holds_back_new_work. Both also assert that claim status is asked only for the first claimed work item.
+   - criterion 16: tests/domain/test_evaluation.py::test_the_first_work_item_with_a_role_runs_and_done_is_skipped
+   - criterion 17: tests/domain/test_evaluation.py::test_a_work_item_at_the_attempts_cap_asks_instead_of_running (attempts 1 and 2)
+   - criterion 18: tests/domain/test_events.py::test_key_names_the_kind_and_the_work_item_or_feature
+   - criterion 19: tests/application/test_watcher.py::test_a_started_story_without_a_branch_runs_at_the_first_stage
+   - criterion 20: tests/application/test_watcher.py::test_no_waiting_work_item_makes_no_hosting_call and ::test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open
+   - criterion 21: tests/application/test_watcher.py::test_the_claim_tier_is_decided_by_the_claim_service. Cases: own claim; other instance at 59, 60 and 61 minutes against a lease of 60.
+   - criterion 22: tests/application/test_watcher.py::test_a_remote_without_main_is_a_git_error
+   - criterion 23: tests/domain/test_events.py::test_idle_and_acceptance_due_refuse_a_work_item, ::test_every_other_kind_refuses_a_missing_work_item, ::test_a_feature_is_refused_for_every_kind_but_acceptance_due, ::test_acceptance_due_refuses_a_missing_feature, ::test_every_accepted_pairing_builds and ::test_the_kinds_are_the_thirteen_named
+   - criterion 24: tests/domain/test_events.py::test_event_refuses_an_unknown_key, ::test_event_refuses_an_assignment, ::test_event_accepts_only_a_known_kind and ::test_event_accepts_only_a_full_lower_case_commit_id; tests/domain/test_evaluation.py::test_closed_models_refuse_an_unknown_key and ::test_closed_models_refuse_an_assignment
+   - criterion 25: tests/domain/test_evaluation.py::test_idle_events_of_a_work_item_are_at_main and ::test_work_item_events_are_at_their_branch_else_at_main. The second covers duplicate, crash, expired and both kinds of ask, each with and without a branch commit.
+
+   Files created: tests/domain/test_events.py, tests/domain/test_evaluation.py and tests/application/test_watcher.py.
+
+   `make test` stops with 3 collection errors because the modules under test don't exist yet. They are factory.domain.events, factory.domain.evaluation and factory.application.watcher. `make lint` passes.
+
+   Notes for the coder:
+   - In the Watcher tests, the test calls `boundaries.git.fetch()` before `Watcher.evaluate`. The Interface does not say whether the Watcher fetches, so the tests work either way.
+   - Hosting calls are counted by `_CountingHosting`, a subclass of FakeHostingService that overrides every operation except `post_comment`.
+   - Branch states are written with `FrontmatterWorkItemWriter().render` and pushed with `human.push_file`.
+   - I did not run the type check, as this stage says. `make check` covers it once the modules exist.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
