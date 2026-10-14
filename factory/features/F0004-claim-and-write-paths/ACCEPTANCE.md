@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 57
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0004-S0001, F0004-S0002, F0004-S0003, F0004-S0004, F0004-S0005]
+outcome: accepted
 ---
 # Acceptance of Claim and write paths
 
@@ -321,3 +322,4 @@ S0001 is second for the same two reasons on a smaller scale: the same `NothingTo
       6 Decisions: the 18 decisions in FEATURE.md stand as built. Two open items: decision 16 promises a sentence in F0003's FEATURE.md that is not there (the human's file), and the same `push_file` question was answered (a) twice.
       7 Slow checks: none (no mutants target, no image scan, no SBOM).
       8 Cost: 50 runs, 42.0 min, $11.65. S0005 stands out at $4.08 and 17 runs: one human round-trip and two test-only review rounds. S0001 is second ($2.72) for the same reasons on a smaller scale.
+2. done (pull request merged); cost: 1 runs, 5.2 min, 28 turns, 90k tokens in (1343k more from cache), 21k out, $1.40
