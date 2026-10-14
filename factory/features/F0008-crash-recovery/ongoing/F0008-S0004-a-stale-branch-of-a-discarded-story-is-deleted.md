@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 98
 blocked: null
 comments_seen: 2
@@ -165,3 +165,11 @@ Expect: the factory log line on standard output first, time-stamped and ending w
 6. coder: the human chose option (a) in entry 5, so this goes to the tester for one test change. In `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, add `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the line `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)` (line 103). Change nothing else.
 
    The implementation is unchanged: commit 983df7a, `delete_stale_branches` in `src/factory/application/recovery.py` and the cleanup step in `Tick.run`. I have not run `make check` again in this round. With the fixed test, I expect it to go green. Once the ticket is back in doing, I will run `make check`, do the refactor step, and hand it to review.
+7. tester: made the one test change the human approved in entry 5, as the coder named it in entry 6.
+
+   - Change: in `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, I added `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)`. Nothing else changed.
+   - Why: `human.start` empties `backlog/`. Git keeps no empty directory, so after `checkout.reset_to("origin/main")` the directory was gone and the rename raised `FileNotFoundError` in the test's own setup. That happened before the code under test ran.
+   - `make test`: green, with total coverage at 99.15%.
+
+   `make lint`: lint: green
+   `make test`: test: green

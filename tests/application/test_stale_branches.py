@@ -100,6 +100,7 @@ def test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch(
     _push_branch(human, checkout, BRANCH)
     checkout.reset_to("origin/main")
     directory = tmp_path / CHECKOUT
+    (directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)
     (directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)
     before = remote_commit(remote, BRANCH)
 
