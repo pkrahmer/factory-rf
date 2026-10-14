@@ -1,0 +1,27 @@
+# Lessons for the skills
+
+The rules `factory-rf`'s `CLAUDE.md` gained while v1 built v1.1, sorted by where each belongs so that later projects benefit too. Started on 2026-10-14 by the human's decision; the session adds a row whenever a new rule goes into `CLAUDE.md`.
+
+## How it is used
+
+1. At F0010's fresh pre-check (before F0010 starts): the general rows go into the source texts F0010-S0016 ships as v1.1's own agents (`planning/v1-texts/`, F0010 decision 32), each in the role that applies it; the Python rows go into a `template/CLAUDE.md` for Python projects beside `template/factory/pipeline.yml` (F0010-S0009), added to F0010 if no story ships one.
+2. The project-only rows stay in `factory-rf`'s `CLAUDE.md`.
+3. v1's own skills (`factory/claude/skills/`) are read-only by the folder rule; updating them is the human's call.
+
+## The lessons
+
+| Lesson | Kind | Where it belongs | Since |
+|---|---|---|---|
+| Run `make check` and every make target in the foreground and read its output; never start one in the background, never wait with `pgrep -f` (it matches its own command line) | general | every role skill | 2026-10-14, F0007-S0009, F0008-S0002 |
+| Before writing a helper, search for one that does the same and reuse or extend it; the reviewer counts a second copy as a finding | general | coder and reviewer skills | 2026-10-14 |
+| Every clause of an Interface rule has its own criterion, on both sides (an ordering, the second branch of an "or", a "when longer than", the value for every kind an enum names, an exact value beyond its first part) | general | intake skill; the planning briefs | 2026-10-14, four F0006 stories |
+| Every behaviour the Assignment, the Interface or a feature decision states has its own criterion | general | intake skill | 2026-10-13, F0001-S0016 |
+| Every stated limit is tested on both sides; the sides of one rule are rows of one parametrized test, shared setup a fixture | general (Python example) | tester and reviewer skills | 2026-10-13 and 2026-10-14 |
+| Test data a test builds (a work item text, a state, a definition, a push) is valid under the readers and validators already built, unless the test is about that rule | general | tester skill | 2026-10-14, F0007-S0005, S0009, S0010, F0008-S0004 |
+| A story that changes a test another story wrote names that test and has the human's word; the tester makes the change, never the coder | general | intake, tester and coder skills | 2026-10-13 |
+| The project guide is an index plus one file per domain, each well under the 2,000 lines the file tool reads by default | general | documenter skill; the project-guide form (R17) | 2026-10-14 |
+| Never use the value of a call to a function typed `-> None` | Python | template `CLAUDE.md` | 2026-10-12, F0001-S0001 |
+| Refused fields of a Pydantic model are tested through a variable typed `type[BaseModel]`; frozen fields through `setattr` with the name in a variable; an abstract class through a variable typed `type[object]` | Python | template `CLAUDE.md` | 2026-10-12 to 14 |
+| Fake commit ids and other hex test values are low-entropy (`"a" * 40`), so detect-secrets stays green without a baseline entry | Python (any stack with detect-secrets) | template `CLAUDE.md` | 2026-10-13, F0001-S0011 |
+| `human.push_file` pushes only changed text (an unchanged file makes an empty commit) | project | `factory-rf`'s `CLAUDE.md` | 2026-10-14 |
+| A pipeline definition written in a test passes every load-time rule unless the test is about that rule | project | `factory-rf`'s `CLAUDE.md` | 2026-10-14 |
