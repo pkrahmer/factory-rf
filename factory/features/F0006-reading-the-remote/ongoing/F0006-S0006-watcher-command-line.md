@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 76
 blocked: null
 comments_seen: 0
 round: 0
@@ -142,3 +142,9 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/board.py`, `application/board.py`, `entry/watch.py`). Every rule is stated with types and behaviour. `Blocked` is a plain string literal in `domain/work_item.py`, so a set value renders as itself, with no open choice.
+   - Criteria: each can be tested by one test function. Rules have both sides. The title comes from the body or falls back to the id (4). The feature title comes from the mapping or falls back to the directory name (3, 10). `running_since` is set or `None` (5). A valid definition gives 0 and an invalid one gives 1 (12, 16). A missing `origin/main` raises `GitError` (17). `--follow` is refused (18, 19, 23), and missing boundaries give 2 (20). Counts reject -1 and accept 0, `pull_request` rejects 0, and the unknown-key, frozen, folder, acceptance and naive-datetime cases are covered (24). The Interface comments on conversion, format and defaults (the `Z` UTC time, `-` for absent values, the event line with detail) each have a criterion (6, 7, 8, 12).
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable against the output (`exit 2` on standard output, the usage and `--follow` error on standard error, the exact four board lines).
+   - Architecture: `domain/board.py` is pure. `application/board.py` reads through `RemoteWorkItems` and `Git.show_file`. `entry/watch.py` is the command line and wires nothing beyond what it is given. This follows the four layers in `CLAUDE.md`.
+   - Scope: within F0006's scope ("The command line", SI3.1, SI3.2). The acceptance column stays empty (F0009) and the instance wiring is left to F0010-S0001, both listed under Out of scope in `FEATURE.md`.
