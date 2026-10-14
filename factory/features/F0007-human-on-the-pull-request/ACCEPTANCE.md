@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 92
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0007-S0001, F0007-S0002, F0007-S0003, F0007-S0004, F0007-S0005, F0007-S0006, F0007-S0007, F0007-S0008, F0007-S0009, F0007-S0010]
+outcome: accepted
 ---
 # Acceptance of The human on the pull request
 
@@ -339,3 +340,4 @@ No second draft. The hand mutation pass left no survivor that a criterion could 
          6 Decisions: decisions 1–20 and 22–24 were built as written. Open for the human: decision 21, the branch left behind by an interrupted discard, which breaks GH4.3 on that path. Its fix belongs to F0006 or F0005; I recommend the tick deleting the remote branch of a work item that is in backlog/. Also carried from F0006 for confirmation: a branch created by hand is never judged. The story answers of S0005, S0006, S0007, S0009 and S0010 were built as answered.
          7 Slow checks: none (no mutants target, no image scan, no SBOM).
          8 Cost: 71 runs, 150.7 min, $19.83, with no review rounds. S0005 stands out (10 runs, $3.04, two questions). S0005, S0009 and S0010 each paid about 3 runs for a test fixture that clashed with an earlier rule, settled through the human under R9. S0009 and S0010 are the longest in wall time; the logs do not say why.
+2. done (pull request merged); cost: 1 runs, 15.5 min, 73 turns, 192k tokens in (8064k more from cache), 57k out, $4.30
