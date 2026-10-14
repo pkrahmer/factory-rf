@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 63
 blocked: null
 comments_seen: 0
 round: 0
@@ -96,3 +96,9 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `decide`, `StageMove`, `round_cap_question` and `findings_question` are named with modules and signatures. The types come from existing modules. The TYPE_CHECKING import of `StallReason` is specified. The "forward = next[0], rework = other entry" rule is explicit.
+   - Criteria: each is testable by one test function. Every rule has its failing side: rule 4 covers the cap on both sides (criterion 6, rounds 0 to 3). Unknown decision (11) and unknown stage (12) raise ValueError. Rule 2 with findings (4) and findings with a rework (9) are covered. `blocked` clearing is covered (10). Both texts are exact (14, 15). The `StageMove` limits are tested on both sides (16).
+   - Demo: the command is runnable and matches the Interface. I traced the output. Rounds 0 and 1 give rule 3. Round 2 gives rule 4, stage review, round 3 and `round_cap`. The question text for 3 and 2 follows the template. The last two lines are 6 and `question`, six lines in all. Each `Expect:` line is checkable.
+   - Architecture: the code is pure domain, with no I/O. `post_texts` and `decisions` stay in `factory.domain`. The import direction is stated, so there is no layer problem.
+   - Scope: within F0005 (decision rules 1 to 4, 6 and 7). Rule 5 and `crashes` are left to S0007, and decisions 16, 17 and 26 are respected. Nothing is out of scope.
