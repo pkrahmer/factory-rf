@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 88
 blocked: null
 comments_seen: 2
@@ -195,3 +195,4 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
    Met the expectation: one line, identical to the `Expect:` line. The handler leaves by raising and catches nothing (criterion 12, and the rule that every failure leaves `handle` by raising). The handler was built with an empty `SimpleNamespace` as its boundaries, so it raised before it touched any boundary: nothing was recorded.
 
    Acceptance criteria read again against the output: the demo contradicts none of them. Criteria 5-11 and 13-19 (git, hosting, dispatcher) are not exercised by the demo; their tests are listed in log entries 5 and 7. I did not run `make check`; the factory runs it after this stage.
+10. done (pull request merged); cost: 7 runs, 10.7 min, 54 turns, 180k tokens in (1153k more from cache), 29k out, $1.99
