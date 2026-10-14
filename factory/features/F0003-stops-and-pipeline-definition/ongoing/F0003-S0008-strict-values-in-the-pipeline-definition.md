@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 49
 blocked: null
 comments_seen: 0
@@ -139,3 +139,18 @@ Expect: five lines: `30`, then `invalid roles.coder.time_limit` twice, then `inv
    - I did not run the demo; the coder and the reviewer did, and the code has not changed since. `make check` is green.
 
    `make check`: check: green
+7. demo: ran the one command under `## Demo` exactly as written, from the repository root. No findings.
+
+   Command 1 (the `uv run python -c …` script that parses the sample definition, then the four changed texts, through `RuamelPipelineDefinitionReader`). It exited with 0.
+
+   ```
+   30
+   invalid roles.coder.time_limit
+   invalid roles.coder.time_limit
+   invalid stages.gate.approval
+   invalid roles.coder.write_paths[0]
+   ```
+
+   Expect: met. The output has five lines, in the expected order: `30`, then `invalid roles.coder.time_limit` twice (for `true` and `'30'`), then `invalid stages.gate.approval` (for `'yes'`), then `invalid roles.coder.write_paths[0]` (for `''`). No line says `accepted`.
+
+   Criteria cross-check: the output agrees with criterion 2 (an integer is accepted, and `true` and `'30'` are refused at the field's path), criterion 3 (`true` is accepted, `'yes'` is refused at `stages.<stage>.approval`) and criterion 4 (a blank write path is refused at its list position). The demo contradicts no other criterion. Criteria 5–7 were not exercised here; their tests are listed in the tester's and reviewer's entries.
