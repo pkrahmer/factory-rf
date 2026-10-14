@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 66
 blocked: null
 comments_seen: 0
@@ -180,3 +180,14 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented bills, the bill service and `factory-bill`. `make check` is green (coverage 99.43 %) and the Demo's six lines match exactly. Commit 6b3790a.
+   - `src/factory/domain/bills.py`: the `Bill` and `StageBill` models, plus `bill`, `bills_by_stage`, `total`, `cost_line` and `cost_table`. Each record becomes a one-run bill in which an unknown measure adds nothing, and the bills are summed field by field. So `bill`, the stage grouping (a dict keyed on the first time a stage appears) and `total` share one adding path. Minutes and dollars are rounded with `Decimal.quantize(ROUND_HALF_UP)`. The minutes come from `Decimal(str(seconds))`, which avoids float half-way errors.
+   - `src/factory/application/costs.py`: added `WorkItemBill` and `BillService`. It picks the ref `origin/<branch>` when `resolve` finds that ref, else `origin/main`. Then it takes the first path under `FEATURES_DIRECTORY` whose file name parses to the id, reads the sidecar with `show_file` and parses it with `CostRecordReader.parse`; a missing sidecar gives no records. `in_flight` maps `remote_branches()` through `work_item_of_branch` and sorts with `work_item_order`. The service never fetches; the caller fetches, as the tests do.
+   - `src/factory/entry/bill.py`: `run` and `main`, ending with `raise SystemExit(main())` under `__main__`. It imports only `build_bill_service` from the adapter side, through wiring.
+   - `src/factory/entry/wiring.py`: added `build_bill_service` and listed it in `__all__`.
+   - Design choice: the bill is built only from per-record bills and their sum. I rejected keeping separate running totals for each field, because that would repeat the skip-if-unknown rule in several places.
+   - Id check in `run`: a regex built from the domain's `STORY_ID|ACCEPTANCE_ID`. I rejected calling the private `_checked` in identifiers, and building a pydantic TypeAdapter just to answer yes or no.
+   - Refactor pass: I read the diff and found nothing to change.
+   - Noticed, not touched: the search test already passed on the real tree. No module in F0005 had a local variable named `entry_text`, so nothing needed renaming.
+
+   `make check`: check: green
