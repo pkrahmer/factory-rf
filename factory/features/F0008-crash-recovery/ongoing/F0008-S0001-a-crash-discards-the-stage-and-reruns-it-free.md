@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 95
 blocked: null
 comments_seen: 0
 round: 0
@@ -198,3 +198,9 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.recovery.crashed` and `crash_entry_text`, `factory.application.recovery.RecoveryHandler`, `build_handlers` and `NOT_YET_HANDLED` in `factory.entry.wiring`). The five handler steps are ordered. The three earlier tests it changes are named, with the human's leave (Q20).
+   - Criteria: each is testable by one test function. Every behaviour in the Interface has a criterion. `crashed` is covered by 19 and the exact entry text by 7 and 22. Every guard and failure side has one: a wrong event kind (13), a claim that is held, expired or absent, a snapshot with no state, and a snapshot with no `branch_commit` (12 and 14), a rejected push (16), a kill (17), an exception from the rerun (18), and a `GitError` from the discard (23). The one guard without its own criterion is an event with no work item. `target_of` raises `CannotHandle` for it, and F0007-S0001 owns that rule.
+   - Demo: the three commands are runnable against a real local bare remote or the wiring. Each `Expect:` line gives checkable values (`0 1 0 doing`, `1 0 True`, `False`, `1 run 1`, `True`, and `True True False`).
+   - Architecture: the pure functions are in `domain`, the handler is in `application` and uses `Boundaries`, `WorkItemRecorder` and `ClaimService`, and only `entry.wiring` wires it. No new dependency or package.
+   - Scope: the story is inside F0008's scope (the recovery handler and registering `crash`). It leaves the crash cap (S0002), the expired lease (S0003) and the stale branch (S0004) to their own stories, as FEATURE.md's Scope and Out of scope say.
