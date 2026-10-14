@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 55
 blocked: null
 comments_seen: 0
 round: 0
@@ -112,3 +112,10 @@ Expect: one line on standard output, `status 2`, and the usage line `usage: fact
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`GuardSettingsInvalid`, `GuardVerdict`, `read_guard_settings`, `judge`, `main`, the wiring re-export and `__all__`). The payload model, exit statuses, messages and the fail-open rule are fully specified.
+   - Criteria: 20 criteria, each testable by one test function. Every Interface comment and rule has one. Each rule has both sides. Allowed and refused cover inside/outside the root, `..`, symlinks and a relative path. Readable and unreadable payloads are covered (8, 17). A valid settings file (9) and every kind of invalid one (10) are covered. Allowed `main` (11), refused `main` (12) and usage and settings errors (13) are covered. Frozen and `extra="forbid"` are covered (18). Criterion 20 is the docs item and `make check` stays last but one.
+   - Demo: both blocks are runnable. Every `Expect:` line gives checkable output: exit codes, stderr text, and the resolved traversal.
+   - Architecture: the guard sits in `factory.entry` and reaches the adapter only through `wiring`, which matches the existing import test. The verdict reuses the domain's `refusal` from S0003, as decisions 9, 11 and 12 describe.
+   - Scope: inside F0004's scope (the guard hook). Writing the settings file and registering the hook stay with F0001-S0009 and are not touched here.
+   - Minor gap, not blocking: a `file_path` that resolves to the root itself (for example `.`) has no criterion. It falls to S0003's `refusal` for an empty path.
