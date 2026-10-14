@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 91
 blocked: null
 comments_seen: 2
@@ -172,3 +172,7 @@ Expect: one line, `[('run', 'run'), ('closed', 'closed'), ('merged', 'merged'), 
    I recommend (A). With your answer I will end with `tests` naming exactly that change.
 5. human (pull request comment, 2026-10-14): (A): the tester changes `BODY` in `tests/application/handlers/test_run_gate.py` to include a journal section matching the state's single `created` record, as `test_merged.py` does; `MergedHandler` stays as it is. End with `tests` and name exactly that change.
 6. coder: Following the human's answer (A) in entry 5, I am sending the ticket back with exactly one test change for the tester. In tests/application/handlers/test_run_gate.py, change line 30 from `BODY = "# First story\n\nRewritten by the factory on the branch.\n"` to `BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"`, the same value tests/application/handlers/test_merged.py uses on line 34. The journal section then matches the state's single `created` record. After that change, `MergedHandler` can append its `done` entry, and test_a_story_merged_while_its_stage_was_due_is_archived_without_a_run (criterion 8) should pass. Criterion 7 does not depend on the body, because discarding a story appends no entry. `MergedHandler` stays as it is. I changed no code in this run: `RunGate` and the larger wiring are in 38684ce, and every other test already passed against them. The Assignment is unchanged. The refactor step is still open and I will do it when the ticket returns to doing.
+7. tester: I made the test change the human approved in entry 5 and the coder named in entry 6, and nothing else. In tests/application/handlers/test_run_gate.py, line 30 changed from `BODY = "# First story\n\nRewritten by the factory on the branch.\n"` to `BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"`. This is the same value tests/application/handlers/test_merged.py uses. The reason: the real `MergedHandler` appends a `done` entry to the journal, so the story body needs a `## Journal` section that matches the state's single `created` record. `MergedHandler` is unchanged. I ran `make test` once and it was green, with total coverage at 99.22 %. That includes test_a_story_merged_while_its_stage_was_due_is_archived_without_a_run (criterion 8). Still open: the coder's refactor step, which entry 6 notes.
+
+   `make lint`: lint: green
+   `make test`: test: green

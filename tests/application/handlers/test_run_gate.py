@@ -27,7 +27,7 @@ FEATURE = "factory/features/F0001-example"
 BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"
 PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
 DONE_PATH = f"{FEATURE}/done/F0001-S0001-first.md"
-BODY = "# First story\n\nRewritten by the factory on the branch.\n"
+BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 
 EventOf = Callable[[EventKind, WorkItemSnapshot | None], Event]
 SnapshotOf = Callable[[WorkItemState | None], WorkItemSnapshot]
