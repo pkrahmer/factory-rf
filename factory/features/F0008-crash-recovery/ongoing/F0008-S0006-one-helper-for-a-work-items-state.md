@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 101
 blocked: null
 comments_seen: 0
@@ -97,3 +97,16 @@ Expect: two lines, `doing` and then `no state here`.
    - Demo: both commands are runnable. Each `Expect:` line is checkable: the grep output and exit code, and the two printed lines.
    - Architecture: the helper sits in the domain layer, and application and adapters import downward. The journal exception is justified by the import cycle, and a comment will say so.
    - Scope: this is the refactoring that FEATURE.md lists as S0006, decision 20. It changes no behaviour. CLAUDE.md is not touched, and no test is changed.
+3. tester: wrote the red tests for `require_state` and the two `ast` search rules.
+   - criterion 1: tests/domain/test_work_item_require_state.py::test_require_state_returns_the_documents_state
+   - criterion 2: tests/domain/test_work_item_require_state.py::test_require_state_raises_the_very_error_passed_without_a_state. It runs once each for a `ValueError`, a `CannotHandle` and a `WorkItemFormatError`, and checks `excinfo.value is error`.
+   - criterion 3: tests/test_no_state_copies.py::test_no_module_but_the_journal_defines_its_own_state_copy searches `src/factory`. tests/test_no_state_copies.py::test_a_state_copy_is_found_outside_the_journal_only uses a source text written into the test: the copy is found in an outside module and not found in `factory.domain.journal`.
+   - criterion 4: tests/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself searches `src/factory`. tests/test_no_state_copies.py::test_an_inline_state_check_is_found has two cases, one checking `<name>.state` directly and one checking a name assigned from `<expr>.state`. tests/test_no_state_copies.py::test_the_allowed_state_checks_are_not_found confirms that `factory.domain.work_item.require_state` and `factory.domain.journal._state_of` are not reported.
+   - What the search counts as a check: an `if` whose body is a single `raise` and whose test is `X is None`. A name counts as `X` when the same function assigns it from an `.state` attribute through `Assign` or `AnnAssign`.
+   - criteria 5, 6 and 7: these are the usual closing criteria, so they have no new test. No existing test was changed.
+   - Files created: tests/domain/test_work_item_require_state.py and tests/test_no_state_copies.py.
+   - Import failure: the test runner could not import `require_state` from `factory.domain.work_item`. This collection error stops the run, so the search tests in tests/test_no_state_copies.py have not run yet. Against the current code they will report the nine `_state_of` copies and the inline checks.
+   - `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
