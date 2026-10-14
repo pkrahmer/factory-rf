@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 53
 blocked: null
 comments_seen: 0
@@ -155,3 +155,14 @@ Expect: one line, `['src/factory/application/claims.py']`.
    - Noticed, not touched: none.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–15 has a test that checks what the criterion says. `make check` was green after the coder, as the coder's entry 4 reports.
+        - Both sides of the `>=` boundary are tested: 59m59s, 60m and 60m1s, in `tests/domain/test_lease.py` and through `ClaimService.status`.
+        - A negative age is tested with lease durations 1 and 60.
+        - The claim's own `lease_duration` is tested with 30 against 90. `LEASE_5_YAML` replaces the same `intake` line that the passing `LEASE_45_YAML` case already replaces, so criterion 10's test really runs against a definition with 5.
+        - The refused side of `release` is tested: a document whose `state` is `None` raises `ValueError`.
+        - The search tests use `source_search.modules` and `source_search.imported_modules` without changing them. The first search test requires the importer set to equal `{factory.application.claims}`, so it fails when that module imports none of the three functions.
+      - Architecture: `factory.domain.lease` is pure. It imports only `datetime`, `typing` and `factory.domain.work_item`, and it reads no clock. `ClaimService` in `factory.application.claims` takes the clock from `boundaries`. No layer is crossed and no `dict[str, Any]` crosses a boundary.
+      - Security: there is no process, string-built command, secret or suppression marker. The `ValueError` message reveals no internals.
+      - Quality: names and docstrings are in place for the new module, the three functions and the two methods. `release` uses `model_copy` on the state and the document. The coder's reason for not reusing `_state_of` (its error message is about claiming) holds. There is no dead code.
+      - Ticket hygiene: entry 4 names the main decision and what was rejected. `Assignment` matches what was built. Criterion 17 still says what the documenter must write in the operator guide, the project guide and the decision log.
