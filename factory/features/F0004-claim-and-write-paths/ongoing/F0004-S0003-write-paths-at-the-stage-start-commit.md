@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 54
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Write paths and protected paths read at the stage-start commit
@@ -240,3 +240,12 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
       - Noticed, not touched: the docs criterion (24) is the documenter's.
 
    `make check`: check: green
+5. reviewer: one finding in group 1 (acceptance criteria). I stopped there, so I did not review groups 2–5.
+
+   1. `tests/domain/test_write_paths.py::test_an_unsafe_path_is_refused_before_anything_else`: criterion 11 says the unsafe-path refusal wins "also when the path would match a protected pattern", but no case tests that.
+      - None of the five paths (`src/../factory/pipeline.yml`, `src/../pyproject.toml`, `/pyproject.toml`, `../CLAUDE.md`, `""`) matches any pattern in `PROTECTED_PATHS` under `fnmatchcase`. The protected patterns are anchored, so `src/../pyproject.toml` does not match `pyproject.toml`.
+      - As a result, a `refusal` that checked protected paths before safety would still pass this test. The order the Interface fixes (unsafe first) is untested on that side.
+      - Fix: the tester adds unsafe paths that do match a protected pattern, for example `src/../feature.md` (matches `*/feature.md`) and `.claude/../a.py` (matches `.claude/*`), with write paths `["*"]`.
+      - This is a test change, so the coder should hand it to the tester (end with `tests` and name this change).
+
+   All other criteria have a test that checks what the criterion says. Criterion 11's write-path side is covered by `src/../factory/pipeline.yml` under `src/*` and `/pyproject.toml` under `*`. The coder's entry reports `make check` green.
