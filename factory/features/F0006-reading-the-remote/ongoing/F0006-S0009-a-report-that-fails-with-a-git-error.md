@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 79
 blocked: null
 comments_seen: 0
@@ -76,3 +76,13 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
       - Nothing else noticed.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` contains only tests/application/test_dispatcher.py, with 97 lines added. Nothing under src/ changes, which matches the assignment's expectation that no code change is needed. No existing test, helper or import in the module changed.
+      - Criterion 1 is `test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported`. The branch is on the remote, so the third dispatch would return `"reported"` if `.git` were present. The test asserts `"error"`, so it tells the git failure apart from a working report. It also asserts not `reported`, count 3, `last_error == "ValueError: boom"`, no pull request and an empty log. It kills the surviving mutant: any `except Exception` path that marked the entry reported would fail this test.
+      - Criterion 2 is `test_a_report_that_failed_with_a_git_error_is_made_again_once_git_is_back`. The handler is called 3 times, so the retry did not call it. The test checks for one draft pull request on `BRANCH`, exactly one post keyed `_report_key(STATE)`, `"reported"`, then `"capped"` with the post count still 1.
+      - Criterion 3 is `test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line`. With `branch_commit=None`, a `GitError` gives `"error"` with no log line, so it is not mistaken for the `HostingServiceError` exception. Once git is back, the `HostingServiceError` path writes exactly `error cap reached on <key>: ValueError: boom`, returns `"reported"` without calling the handler, and leaves no pull request. Both the failing side and the passing side of the log-line rule are covered.
+      - The `GitError` comes from the real `GitCli`: `_dispatch_without_git` renames `boundaries.checkout / ".git"` to `checkout.with_name("git-away")` and restores it in a `finally`, as the Interface specifies. No git double is used.
+      - Coder's `make check`: green (log entry 4).
+      - Architecture, security and quality: the change is tests only. It adds no dependencies and no suppression markers. The helper's return type is `str` rather than `DispatchOutcome` so that the module's imports stay unchanged, as the Interface requires. That is acceptable.
+      - Ticket hygiene: the coder's entry explains why the tests pass against the unchanged `Dispatcher._report`: `except Exception` comes after the `HostingServiceError` handler. The Assignment matches what was built. Criterion 5 still fits docs/operator-guide.md:433, where the "(the hosting service is down)" sentence is the place to name the git failure in the checkout.
+      - Open for the documenter: criterion 5.
