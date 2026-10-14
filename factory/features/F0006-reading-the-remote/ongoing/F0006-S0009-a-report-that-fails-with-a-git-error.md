@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A report that fails with a git error
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
