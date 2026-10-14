@@ -221,6 +221,7 @@ def test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths(
         f"{backlog}/F0001-S0001-first.md": AGENT_TEXT,
         f"{backlog}/extra.md": AGENT_TEXT,
         f"{IN_PROGRESS}/sub/notes.txt": AGENT_TEXT,
+        "src/in-progress/notes.txt": AGENT_TEXT,
     }
     assert _at_start(boundaries, start, f"{backlog}/F0001-S0001-first.md") != AGENT_TEXT
     write_files(boundaries.checkout, agent_files)

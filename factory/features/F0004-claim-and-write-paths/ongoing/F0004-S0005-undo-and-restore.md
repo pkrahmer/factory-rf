@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 56
 blocked: null
 comments_seen: 2
@@ -273,3 +273,9 @@ Expect: five lines. `['factory/pipeline.yml'] ['docs/extra.md'] True`; `True` (t
     Rejected: a separate test for this case. The reviewer named the existing test, and it already checks the "follows the write paths" side.
 
     Open: once the tester adds the path, the ticket comes back to me. I will run `make check` and send it to review with no code change.
+15. tester: tester (test change approved; the coder named it in entry 14 after the reviewer's finding in entry 13): I added `"src/in-progress/notes.txt": AGENT_TEXT` to `agent_files` in `tests/application/test_undo.py::test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths`, which runs with write paths `["*"]`. This path has three segments with `in-progress` in the middle but sits outside `factory/features/`. The test's existing assertions now cover the allowed side of the rule's `factory/features/` prefix: after the undo the file must still hold the agent's text and appear in neither `reverted` nor `deleted`. I changed nothing else: no other test, no helper, no code.
+
+    `make test` is green against the coder's implementation (commit 4cfd5a1), with total coverage at 99.68 %. `make lint` is green.
+
+    `make lint`: lint: green
+    `make test`: test: green
