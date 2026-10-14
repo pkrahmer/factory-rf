@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 54
 blocked: null
 comments_seen: 0
 round: 0
@@ -184,3 +184,9 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`factory/domain/write_paths.py`, `factory/application/write_paths.py`) with full signatures, the constants and DTOs it reuses, and the exact refusal texts and their order. Nothing is left to decide.
+   - Criteria: each one is testable by a single test function. Every behaviour stated in the Interface has a criterion: matching and case (1), unsafe paths (3), placeholders (4), unknown placeholder (5), non-placeholder braces (20), the protected list (6, 7), the three refusals (9, 10, 11), the allowed side (8), and `at` with its commit-versus-work-tree reads (12–15, 21). Every rule has its failing side: unsafe path, protected path, outside the write paths, an empty write-path list, an absent or invalid definition, an unknown stage or one without a role, a bad work item path, and a foreign placeholder in the definition (16–19, 22).
+   - Demo: both blocks are runnable against the named adapters and fixtures. Each `Expect:` line is checkable. The first block prints six lines, as the line says. The second prints three.
+   - Architecture: the pure rules are in the domain and the service is in the application layer. It reaches git and the reader only through `Boundaries`. It reuses `GuardSettings` and `StageStart`. This matches CLAUDE.md and decision 16 of the feature.
+   - Scope: the story is inside the feature's scope (matching rule, placeholders, protected list, `refusal`, `WritePathService`). The guard hook, the undo and the claim are left to S0004, S0005 and S0001/S0002.
