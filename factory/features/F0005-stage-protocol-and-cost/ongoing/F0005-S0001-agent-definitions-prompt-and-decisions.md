@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 58
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Agent definitions, the prompt and the allowed decisions
 
 ## Assignment (as of log entry 1)
@@ -115,3 +123,139 @@ Expect: 10 lines. Line 1 is `['review', 'doing', 'question']`. Lines 2 to 10 are
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`factory/domain/prompts.py`, `factory/application/task.py`), types and imports named. Each stated behaviour is pinned down: line order, the `Mode:` and `Format check` text, the `show_file("origin/main", STORY_FORM_FILE)` read, the `ValueError` for a stage without a role, the request fields, and the rule for which `result` record sets the test change.
+   - Criteria: each is testable by one test function. Every Interface comment has a criterion: allowed decisions 1-2, prompt lines 3-7, findings only at the first stage 8, `Mode:` 9-11, request fields 12-15, `agent` 16-18, form checker 19-21. Failing sides are covered: a tester with a `tester`-speaker or missing `result` record (10), a stage without a role (17), a missing agent file (18), a missing form (21), a form change in the work tree only (20), and both sides of every model limit with unknown keys and frozen models (22).
+   - Demo: a runnable `uv run python -c` command. The Expect line (10 lines: the list, then 9 prompt lines) matches what the Interface produces.
+   - Architecture: the pure prompt rules are in the domain layer; `TaskComposer` and `StoryFormChecker` are in the application layer. Git is reached through the `Git` interface and the agent home through `AgentDefinitionReader`, so no layer rule is broken.
+   - Scope: inside F0005's scope (agent definitions, prompt, allowed decisions, environment passed unchanged, form check). The environment's content, the claim and stalls are left to other stories, as the feature says.
+3. tester: Wrote the red tests for every criterion from the Interface and the criteria. The tests do not interpret anything the criteria leave open.
+
+   Which test covers each criterion:
+   - criterion 1: tests/domain/test_prompts.py::test_allowed_decisions_are_the_next_stages_in_order_then_question
+   - criterion 2: tests/domain/test_prompts.py::test_question_is_allowed_at_a_stage_without_next
+   - criterion 3: tests/domain/test_prompts.py::test_the_prompt_holds_the_facts_line_by_line_and_ends_with_the_end_line. The wording of END_LINE is checked separately in test_the_end_line_says_what_the_factory_does_after_the_agent.
+   - criterion 4: tests/domain/test_prompts.py::test_no_findings_give_a_passed_format_check_after_the_round
+   - criterion 5: tests/domain/test_prompts.py::test_findings_are_numbered_on_one_format_check_line
+   - criterion 6: tests/domain/test_prompts.py::test_without_findings_the_prompt_has_no_format_check_line
+   - criterion 7: tests/domain/test_prompts.py::test_a_test_change_adds_the_mode_line_between_round_and_format_check and ::test_without_a_test_change_the_prompt_has_no_mode_line
+   - criterion 8: tests/application/test_task.py::test_the_first_stage_gets_the_findings_and_a_later_stage_does_not
+   - criterion 9: tests/application/test_task.py::test_the_tester_gets_the_mode_line_after_a_coder_result
+   - criterion 10: tests/application/test_task.py::test_the_mode_line_comes_only_from_a_coder_result_at_a_tester_stage. It is parametrized over three cases: the tester spoke last with text starting "coder:", there is no result record, and a coder stage.
+   - criterion 11: tests/application/test_task.py::test_a_later_stall_and_comment_do_not_hide_the_test_change
+   - criterion 12: tests/application/test_task.py::test_the_request_shares_the_allowed_decisions_and_the_facts_of_the_context
+   - criterion 13: tests/application/test_task.py::test_the_time_limit_is_the_roles_minutes. The tester's time_limit is set to 25 in a copy of PIPELINE_YAML; the coder sets none, so 40.
+   - criterion 14: tests/application/test_task.py::test_the_request_carries_the_agent_checkout_and_guard_without_os_user
+   - criterion 15: tests/application/test_task.py::test_the_request_holds_the_given_environment_unchanged
+   - criterion 16: tests/application/test_task.py::test_agent_reads_the_definition_of_the_stages_role
+   - criterion 17: tests/application/test_task.py::test_agent_for_a_stage_without_a_role_names_the_stage
+   - criterion 18: tests/application/test_task.py::test_agent_for_a_role_without_an_agent_file_is_missing. Stage review, role reviewer, which is not installed.
+   - criterion 19: tests/application/test_task.py::test_the_form_check_finds_nothing_only_in_a_complete_story
+   - criterion 20: tests/application/test_task.py::test_the_form_is_read_at_main_on_the_remote_not_in_the_work_tree
+   - criterion 21: tests/application/test_task.py::test_a_form_absent_at_main_is_a_format_error. The human's clone removes the form with real git, pushes main, and the checkout fetches.
+   - criterion 22: tests/domain/test_prompts.py::test_prompt_facts_hold_their_limits_on_both_sides, ::test_prompt_facts_are_frozen, ::test_prompt_facts_refuse_an_unknown_key; tests/application/test_task.py::test_task_context_holds_the_pull_request_limit_on_both_sides, ::test_task_context_is_frozen, ::test_task_context_refuses_an_unknown_key
+   - criteria 23 and 24: no test. They are make check and docs.
+
+   Files created: tests/domain/test_prompts.py and tests/application/test_task.py.
+
+   Run results:
+   - `make test` (one run) stops with collection errors in both new files, which is the expected red. The runner could not import the modules factory.domain.prompts and factory.application.task.
+   - `make lint` is green. ruff format reflowed test_task.py once.
+
+   Notes for the coder:
+   - The compose tests do not install agent files; only the `agent(...)` tests do.
+   - The environment test passes {"PATH": "/opt/guard", "HOME": "/home/factory"} to TaskComposer.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the prompt, the allowed decisions and the request for a stage's agent run. The tester's tests pass without any change, and `make check` is green (total coverage 99.58 %).
+
+   What was built:
+   - `src/factory/domain/prompts.py` holds `TESTER_ROLE`, `CODER_ROLE`, `END_LINE`, `PromptFacts` (frozen, forbids unknown keys), `allowed_decisions` and `compose_prompt`.
+     - `allowed_decisions` returns the `next` stages followed by `QUESTION`.
+     - `compose_prompt` puts the lines in a fixed order. The `Mode:` line is added only when `test_change_entry` is not None, and the `Format check` line only when `findings` is not None.
+   - `src/factory/application/task.py` holds `TaskContext`, `StoryFormChecker` and `TaskComposer`.
+     - `StoryFormChecker` reads the form with `git.show_file(FORM_REF, STORY_FORM_FILE)`, where `FORM_REF = origin/main`. If the form is absent it raises `WorkItemFormatError(path=STORY_FORM_FILE)`.
+     - `TaskComposer.compose` computes the decisions once and gives the same list to both the prompt facts and `AgentRunRequest.allowed_decisions`. It passes `dict(environment)` on unchanged.
+     - Findings go only to `definition.first_stage()`.
+     - The test change entry comes from `last_record(document, kind="result")`: it is set when the stage's role is `tester` and that record's speaker is `coder`. The text of an entry is never read.
+
+   Commits:
+   - a3e3fcf: the feature.
+   - 6bb8ef5: refactor. The error for a stage without a role is now raised in one helper, `_role_name`, which both `agent` and the time-limit lookup use. Before, the same `ValueError` was raised in two places.
+
+   Design decision: the `Format check` and `Mode:` lines are built by small private helpers in the domain module. I did not put a conditional list comprehension inside `compose_prompt`, because the line order stays easier to read as plain appends.
+
+   Added beyond the interface: `compose` raises `WorkItemFormatError("the document has no state", context.path)` when the document has no state. `WorkItemDocument.state` is optional and `mypy --strict` refuses `.state.round` without a check. The error follows the existing `_state_of` in `factory.domain.journal`. No test exercises this branch (`task.py:118`).
+
+   Noticed but not touched:
+   - `TaskComposer.compose` for a stage without a role raises `ValueError`, the same as `agent`. No criterion covers this.
+   - An unknown stage name raises `KeyError` from the definition's `stages` dict.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`, which covers `src/factory/domain/prompts.py`, `src/factory/application/task.py`, `tests/domain/test_prompts.py` and `tests/application/test_task.py`. I read the code against the Interface and all 24 criteria.
+
+   - Criteria: each of criteria 1–22 has a test that checks what the criterion says.
+     - Failing sides are tested: a stage without a role (17), a missing agent file (18), a form absent at `origin/main` (21), and a form changed only in the work tree (20).
+     - Both sides of every model limit are tested (22): `round` 0/-1, `pull_request` 1/0, `test_change_entry` 1/0. The tests also cover frozen models and unknown keys.
+     - The coder's entry says the factory's `make check` was green.
+   - Architecture: `prompts.py` is in the domain layer and uses only pydantic and domain imports. `task.py` is in the application layer. It reaches git only through `Boundaries.git.show_file` and the agent home only through `AgentDefinitionReader`, and it uses no concrete tool.
+   - Shared decisions: `compose` computes `allowed_decisions` once and passes the same list to `PromptFacts` and to `AgentRunRequest`.
+   - Environment: copied with `dict(...)` and passed on unchanged.
+   - Mode line: decided from `last_record(kind="result")` and its speaker. The entry text is never read.
+   - Security and quality: no secrets, no shell, no suppression markers. Names, docstrings and why-comments (`FORM_REF`, the last-result rule) are as `CLAUDE.md` asks.
+
+   Considered and not raised:
+   - `_round` raises `WorkItemFormatError` when the document has no state (`task.py`). This is beyond the Interface and no test covers it. It is not a finding: `mypy --strict` needs the check, it copies `journal._state_of`, and the coder disclosed it. The Interface does not describe a stateless document at all; a later story that relies on this case should state it.
+   - `compose` raises `KeyError` for an unknown stage and `ValueError` for a stage without a role. The Interface does not state either rule, so neither is a gap against this story.
+6. documenter: wrote the documentation for criterion 24; `make check` is green.
+
+   Files changed:
+   - `docs/project-guide.md`: new section "The prompt and the request for a stage", placed after "The agent definition reader". It covers:
+     - the shared decisions list, with `question` always allowed and `stuck` not a decision;
+     - the prompt lines and their order in a table;
+     - the Format check line going to the first stage only;
+     - the Mode line decided from the speaker of the last `result` record;
+     - the request fields, with the environment copied and passed on unchanged;
+     - `agent()` errors;
+     - the story form read from `origin/main`.
+   - `docs/decisions.md`: new entry "The prompt, the request and the validation share one list of decisions". It gives the reasons and the alternatives rejected.
+
+   Cross-read against the diff and found current: the "AgentRunRequest" and "agent definition reader" parts of `docs/project-guide.md`, and the story form check section.
+
+   I did not run the examples, because I wrote none. The demo in the ticket is the coder's and the tester's to run.
+
+   Not touched: `README.md` and `docs/operator-guide.md`, which this story does not change. The mention in the project guide that F0010 scrubs the environment comes from the Assignment.
+
+   No findings for the coder.
+
+   `make check`: check: green
+7. demo: ran the one command under `## Demo` from the repository root, exactly as written. It exited with code 0. No findings.
+
+   Command 1 (`uv run python -c "…allowed_decisions…compose_prompt…"`), output:
+
+   ```
+   ['review', 'doing', 'question']
+   Work item: factory/features/F0001-demo/in-progress/F0001-S0003-demo.md
+   Id: F0001-S0003
+   Stage: intake
+   Allowed decisions: tests, question
+   Branch: work-item/F0001-S0003
+   Pull request: 7
+   Round: 0
+   Format check found: 1. the criteria are not numbered 2. the Journal section is missing
+   End with your decision and your journal entry; the factory commits, pushes and moves the work item.
+   ```
+
+   Met its `Expect:` line. The output has 10 lines and each one matches the expected text exactly:
+   - line 1 is the list with `question` last;
+   - lines 2–8 are the facts, in order;
+   - line 9 is the numbered `Format check found:` line, with a single space between the items and no final full stop;
+   - line 10 is `END_LINE`.
+
+   Checked against the criteria:
+   - The demo is consistent with criteria 1, 2 (`question` appended after the stage's `next`), 3 (line order), 5 (format of the findings line) and 7 (no `Mode:` line when `test_change_entry` is None).
+   - No criterion is contradicted.
+   - Criteria 8–22 are for `TaskComposer`, `StoryFormChecker` and the model limits. This demo does not exercise them; they are covered by the tests named in entry 3.
