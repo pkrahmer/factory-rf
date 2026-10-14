@@ -229,7 +229,7 @@ def _masked(message: str) -> str:
 
 
 def _new_findings(before: list[FormFinding], after: list[FormFinding]) -> list[FormFinding]:
-    """The findings after the run beyond as many of each masked message as there were before."""
+    # Of equal messages the first ones count as the old ones.
     old = Counter(_masked(finding.message) for finding in before)
     new = []
     for finding in after:
