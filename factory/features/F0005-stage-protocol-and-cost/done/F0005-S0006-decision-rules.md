@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 63
 blocked: null
 comments_seen: 0
@@ -174,3 +174,4 @@ Expect: 6 lines. Lines 1 to 3 are `0 3 doing 1 None`, `1 3 doing 2 None` and `2 
    The demo does not exercise criteria 2, 4, 8 to 13, 15, 16 and 18. The tester's and reviewer's entries cover those through tests and docs. According to the documenter, the last `make check` was green. I did not run it in this stage.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 5.3 min, 40 turns, 107k tokens in (579k more from cache), 19k out, $1.17
