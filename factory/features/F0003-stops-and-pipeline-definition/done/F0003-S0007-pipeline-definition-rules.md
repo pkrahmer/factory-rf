@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 46
 blocked: null
 comments_seen: 0
@@ -231,3 +231,4 @@ Expect: five lines of output: `next -> stage doing: next names unknown stage shi
    The other variants keep `done` with no role and no `next`, keep the contract at `1.0`, and use no reserved names, so they raised no extra faults. That fits the single-fault output shown.
 
    Open: none.
+8. done (pull request merged); cost: 6 runs, 6.4 min, 39 turns, 134k tokens in (645k more from cache), 26k out, $1.51
