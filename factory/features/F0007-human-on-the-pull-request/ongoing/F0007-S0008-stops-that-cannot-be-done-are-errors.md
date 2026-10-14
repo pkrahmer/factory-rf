@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 89
 blocked: null
 comments_seen: 0
 round: 0
@@ -70,3 +70,9 @@ Expect: two lines: `CannotHandle cannot handle duplicate: two work items share t
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `lookups.py` names two concrete classes (`DuplicateHandler`, `PullRequestLookupHandler`) with signatures. Reason texts are exact, with and without `event.detail`. The no-I/O rule and the no-broad-except rule are stated. The report key (`PostKey(kind="error", n=<first 12 digits>)`) is named and belongs to F0006/F0003.
+   - Criteria: every Interface behaviour has a criterion. The reason format with and without detail is covered by 1 and 2, no side effects by 3, and the dispatcher sequence `error, error, reported, capped` with call counts and post counts by 4 to 6. Restart is covered by 7 and the no-bare-except search by 8. Each is testable in one test function. The rules here are "always raises" and "never catches", so the passing and failing sides coincide. The empty-detail side is in 1 and 2, and the fourth dispatch after the cap in 4 to 6.
+   - Demo: runnable with a single `uv run python -c`. The Expect line gives the two exact output lines, which can be compared directly.
+   - Architecture: the handlers sit in `factory.application.handlers`, use only domain types and the dispatcher's `Handler`, and call no boundary. This is consistent with the layering in CLAUDE.md.
+   - Scope: matches the FEATURE.md scope line "Stops that cannot be done" (ST3.1, R28). Nothing in Out of scope is touched. The setup the tests need is spelled out: pushed branch, `checkout.fetch()` and `branch_commit`.
