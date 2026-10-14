@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 59
 blocked: null
 comments_seen: 0
@@ -152,3 +152,4 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
         ```
         Met its `Expect:` line: the last line reports `passed` and the output contains neither `failed` nor `error`. I checked this with a case-insensitive grep, which found 0 matches.
       - Acceptance criteria re-read: the 22 passing tests are the ones the tester mapped to criteria 1 to 20 (criterion 16 is parametrised and criterion 20 has two tests). The demo contradicts no criterion. Criterion 21 (`make check`) is the factory's gate after this stage. Criterion 22 (docs) is covered by the documenter's entry, and the demo does not touch it.
+8. done (pull request merged); cost: 6 runs, 7.0 min, 44 turns, 145k tokens in (874k more from cache), 25k out, $1.65
