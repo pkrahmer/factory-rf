@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 100
 blocked: null
 comments_seen: 0
 round: 0
@@ -78,3 +78,9 @@ Expect: the last line is `<n> passed in <time>` with n at least 21, four more th
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: no new names; it points at `delete_stale_branches(boundaries) -> list[str]` in `src/factory/application/recovery.py` and step 4 of `Tick.run`. It names the two test modules, the fixtures and helpers to reuse, and how to make the restore stop and the unreachable remote. Each behaviour it states has a criterion: both-folders is criterion 1, the "could not delete" line is criterion 2, and the ordering of the cleanup after the stops is criteria 3 to 5.
+   - Criteria: criteria 1 to 5 are each one test function with a concrete setup and checkable results, and 3 and 4 name both sides in one test. Each stated rule has its failing side: the cleanup is deleted or skipped depending on the stop. The "rejected" outcome and the `pipeline_definition_invalid` stop are already tested. Criteria 6 and 7 are the closing ones, and the docs criterion lists four checkable items.
+   - Demo: the three commands are runnable, and each `Expect:` line is checkable. The grep expects a line without `expired`, and the pytest count is given for root and non-root.
+   - Architecture: tests only, plus docs. `src/` is expected to stay unchanged, and the layers are untouched.
+   - Scope: this is the housekeeping from F0008's feature acceptance, and decision 20 of `FEATURE.md` covers growing S0004's test modules. Nothing in it is in "Out of scope".
