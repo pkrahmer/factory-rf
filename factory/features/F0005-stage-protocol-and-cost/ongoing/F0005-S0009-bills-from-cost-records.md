@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 66
 blocked: null
 comments_seen: 0
@@ -198,3 +198,17 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
       - Quality: `bill`, `bills_by_stage` and `total` share one per-record-bill-plus-sum path, so the skip-unknown rule lives in one place (`_record_bill`). `parse_work_item_file_name` already requires `.md`, so a sidecar can never be taken for the work item file. Docstrings are present on the public names and match what the code does.
       - Rejected as findings: `_is_work_item_id` in `src/factory/entry/bill.py` rebuilds the id regex from the domain's `STORY_ID|ACCEPTANCE_ID` constants instead of calling a public domain predicate. No such public predicate exists, and the coder's entry explains why it rejected the alternatives. It reuses domain constants rather than copying them. The Name and WorkItemId patterns on `StageBill` and `WorkItemBill` have no refused-side test. They are existing domain types, and the Interface lists only the counts and unknown keys as the limits to test.
       - Ticket hygiene: the Assignment matches what was built. The coder's log explains the main design choice and what it rejected. Criterion 24 still says what the documenter has to write.
+6. documenter: wrote the bill documentation. `make check` is green after the last edit. I found no findings against the code.
+
+   Files changed:
+   - `docs/operator-guide.md`: a new section "What a work item cost: `factory-bill`". It covers usage, the exit statuses, that the command reads remote-tracking refs only and does not fetch, the cost table's columns, the cost line, and the `+ <n> unknown` mark. The intro's command list now names `factory-bill`. The table and line are copied from the Demo's output, which the reviewer checked.
+   - `docs/project-guide.md`: a new "Bills" section. It says a bill is a sum of cost records, and describes `bills.py`, `BillService` and the entry command. A sub-section, "No code reads data from the journal's text", gives the search test's rule: the allowed modules for `entry_text` and `JOURNAL`, and the forbidden `Journal` and `## Journal` literals. In "Cost records", the "comes later (F0005)" sentence now points to "Bills".
+   - `README.md`: the sentence about the commands that exist now names `factory-bill`.
+
+   I did not run the new `factory-bill` examples against a live remote. The table and line come from the Demo, and the exit statuses and fetch behaviour come from the diff and its tests.
+
+   Cross-read and found current against the diff: the "Project commands", "Stops of one work item" and "A stall" sections, and the rest of the cost-records section.
+
+   Stale but unrelated, not touched: nothing seen.
+
+   `make check`: check: green

@@ -1,6 +1,6 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, and the claim of a stage with its lease, the write paths with the guard and the undo, and the stall with its note. The commands to run so far are `factory-check-story` (you run it) and `factory-guard` (the agent runtime runs it); there is nothing else to start; the sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
+The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, and the claim of a stage with its lease, the write paths with the guard and the undo, and the stall with its note. The commands to run so far are `factory-check-story` and `factory-bill` (you run them) and `factory-guard` (the agent runtime runs it); there is nothing else to start; the sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
 
 ## The project's make targets
 
@@ -274,6 +274,59 @@ Findings about the content follow the form check (`docs/project-guide.md`, "The 
 | `a backlog story carries no front matter: <keys>`; `a backlog story carries no journal entries` | remove the front matter or the entries; the factory writes them when the story starts |
 | `the story has no state`; `the journal data lists <n> entries but the text shows <m>` | for a file with front matter in `in-progress` or `done`: the state is damaged, so restore the file from its work item's branch |
 | a reader fault such as `unknown key: <key>` or `front matter is not valid YAML` | fix the front matter; no form findings are given until it reads |
+
+## What a work item cost: `factory-bill`
+
+Every agent run writes a cost record beside its work item. `factory-bill` adds the records up and prints the bill. Run it from a checkout of your project:
+
+```bash
+uv run factory-bill F0001-S0001
+uv run factory-bill
+```
+
+With an id it prints the cost table, an empty line and `Cost: <line>`. With no argument it does that for every work item in flight, each block headed by its id and separated from the next by an empty line. A work item in flight is one that has a branch `work-item/<id>` on the remote.
+
+The command reads the remote-tracking refs only (`origin/<the work item's branch>`, or `origin/main` for an archived work item), never your working tree and never the journal. It does not fetch: run `git fetch` first to see the latest records. Two checkouts that have fetched the same remote show the same bill.
+
+| Exit status | Meaning |
+|---|---|
+| 0 | the bill was printed (with no argument, also when nothing is in flight) |
+| 1 | `no work item <id>`: no file of that id on the remote |
+| 2 | `not a work item id: <argument>`, or more than one argument (`usage: factory-bill [<work item id>]`) |
+
+A work item with a file but no cost records has a bill of 0 runs and $0.00.
+
+### The cost table
+
+```
+| stage | runs | min | turns | in | cached | out | USD |
+| :-- | --: | --: | --: | --: | --: | --: | --: |
+| tests | 1 | 1.0 | 7 | 62 | 1000 | 300 | 0.35 |
+| doing | 2 | 2.5 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |
+| **total** | 3 | 3.5 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |
+```
+
+One row per stage, in the order the stage first ran; a stage that runs again (`doing`, `review`, `doing`) is one row. The last row is the total.
+
+| Column | Meaning |
+|---|---|
+| runs | agent runs, every one counted whatever its end: a run that died, ran past its time limit or spent its budget is in the bill |
+| min | the runs' duration in minutes, one decimal |
+| turns | the turns the runtime reported |
+| in | input tokens plus cache-creation tokens |
+| cached | tokens read from the cache |
+| out | output tokens |
+| USD | the cost in dollars, two decimals |
+
+Figures are rounded half up.
+
+### The cost line
+
+The line under the table sums the same figures: `3 runs, 3.5 min, 12 turns, 72 tokens in (1500 more from cache), 400 out, $1.55 + 1 unknown`.
+
+### An unknown cost
+
+A run whose cost the runtime did not report (a run that died, or one the time limit ended) has an unknown cost. It is not counted as $0.00: it is left out of the sum and shown as `+ <n> unknown` after the dollars, where `<n>` is the number of such runs. Unknown turns and tokens are left out of their sums in the same way, without a mark; so the figures are a lower bound when `unknown` is shown.
 
 ## Claims, leases and the clock
 
