@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 79
 blocked: null
 comments_seen: 0
@@ -86,3 +86,9 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
       - Architecture, security and quality: the change is tests only. It adds no dependencies and no suppression markers. The helper's return type is `str` rather than `DispatchOutcome` so that the module's imports stay unchanged, as the Interface requires. That is acceptable.
       - Ticket hygiene: the coder's entry explains why the tests pass against the unchanged `Dispatcher._report`: `except Exception` comes after the `HostingServiceError` handler. The Assignment matches what was built. Criterion 5 still fits docs/operator-guide.md:433, where the "(the hosting service is down)" sentence is the place to name the git failure in the checkout.
       - Open for the documenter: criterion 5.
+6. documenter: changed docs/operator-guide.md (line 433, "An event that keeps failing"). The sentence on a report that cannot be posted now names a git failure in the factory's checkout, next to the hosting service being down, as a reason the report is tried again on the next tick without counting as an error. This is criterion 5. `make check` is green (coverage 99.35%).
+   Cross-read: the rest of that section of the operator guide matches the diff. The diff is tests only, with no code change, so nothing else could have gone stale. I did not read README, project-guide or decisions.
+   Stale but untouched: nothing seen.
+   Findings: none.
+
+   `make check`: check: green

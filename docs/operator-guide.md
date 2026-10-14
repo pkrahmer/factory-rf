@@ -430,7 +430,7 @@ What to do about it:
 
 The counts are kept in memory only. After a restart they begin at zero, so the event is tried up to three more times; the report is not posted twice.
 
-If the work item's branch is not on the remote, no pull request can be opened for the report and no later tick would change that. The report is then one line in the factory log, `error cap reached on <event>: <last error>`, written once; so is the report of an event that belongs to no work item. If the report cannot be posted for another reason (the hosting service is down), the factory tries to post it again on the next tick, without counting that as an error.
+If the work item's branch is not on the remote, no pull request can be opened for the report and no later tick would change that. The report is then one line in the factory log, `error cap reached on <event>: <last error>`, written once; so is the report of an event that belongs to no work item. If the report cannot be posted for another reason (the hosting service is down, or git fails in the factory's checkout while the report resolves the branch), the factory tries to post it again on the next tick, without counting that as an error.
 
 ## Claims, leases and the clock
 
