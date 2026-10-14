@@ -41,6 +41,7 @@ The pull request is the work item's face, and the human's acts on it are all the
 - S0008 — Stops that cannot be done are counted errors
 - S0009 — The hand-over at the approval, retried from state
 - S0010 — The pull request read before every agent run
+- S0011 — Documentation after the human on the pull request (proposed by the feature acceptance)
 
 ## Decisions taken for the human
 
