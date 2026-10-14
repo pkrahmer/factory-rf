@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 77
 blocked: null
 comments_seen: 2
@@ -65,7 +65,7 @@ Tests: `tests/application/handlers/__init__.py` (a package, as `CLAUDE.md` requi
 3. A failure of the stage is not swallowed: with `hosting.fail_next("create_pull_request")`, `RunHandler.handle` raises `HostingServiceError`.
 4. `build_handlers` returns a mapping whose keys are exactly `idle` and `run`; the `idle` handler is an `IdleHandler` and the `run` handler a `RunHandler`.
 5. `unhandled_kinds(build_handlers(...))` equals `list(NOT_YET_HANDLED)`, the eleven kinds `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup` and `acceptance_due` in the order of `EventKind`; no kind of `NOT_YET_HANDLED` is a key of the mapping.
-6. `agent_environment(scripts, home)` has exactly the keys `PATH` and `HOME`; `HOME` equals `str(home)`; the first entry of `PATH` is `str(scripts)`, and with an executable file `factory-guard` in `scripts`, `shutil.which("factory-guard", path=<PATH>)` finds it, while with no such file in `scripts` it is not found.
+6. `agent_environment(scripts, home)` has exactly the keys `PATH` and `HOME`; `HOME` equals `str(home)`; `PATH` equals `f"{scripts}:/usr/local/bin:/usr/bin:/bin"` exactly, so its first entry is `str(scripts)`, and with an executable file `factory-guard` in `scripts`, `shutil.which("factory-guard", path=<PATH>)` finds it, while with no such file in `scripts` it is not found.
 7. `production_environment()` has `PATH` starting with the directory of `sys.executable` and `HOME` equal to `str(Path.home())` (the test sets `HOME` through `monkeypatch`).
 8. A `Tick` built with `handler_factory(boundaries, "factory-1", environment)` over a remote with one started story runs one stage in one tick: the tick returns dispatch outcome `handled` for the event `run`, and `agent_runtime.requests()` holds one request with `environment` equal to the given mapping.
 9. An event whose kind is in `NOT_YET_HANDLED` is a counted error, not a crash: a `Dispatcher` built over `build_handlers(...)` dispatches a `comment` event and returns `error`, and its status holds `UnhandledEvent: no handler for event kind comment` as the last error.
@@ -107,3 +107,9 @@ Expect: four lines: `['HOME', 'PATH']`, `True`, `/home/factory`, and `('comment'
    - Architecture: `RunHandler` sits in `application`, and the wiring sits in `entry`.
    - Scope: inside the feature's "Production wiring" scope, and it touches nothing under "Out of scope".
 3. human (pull request comment, 2026-10-14): A: extend criterion 6 so that `PATH` equals `f"{scripts}:/usr/local/bin:/usr/bin:/bin"` exactly. The Interface stays as it is.
+4. intake: accepted. Carried in the human's answer (log entry 3, option A): criterion 6 now says `PATH` equals `f"{scripts}:/usr/local/bin:/usr/bin:/bin"` exactly. The Interface is unchanged and the Assignment keeps its meaning, so I did not rewrite it.
+   - Interface: concrete modules and signatures (`RunHandler`, `NOT_YET_HANDLED`, `agent_environment`, `production_environment`, `build_handlers`, `handler_factory`). The fixed `PATH` tail now has a criterion, which was the one gap.
+   - Criteria: each is testable by one test function. Failing sides are covered by 2 (wrong kind), 3 (stage failure propagates), 6 (guard absent, exact `PATH`) and 9 (unhandled kind is a counted error). The partition rule is covered by 4 and 5.
+   - Demo: runnable, and its `Expect:` line is checkable. It prints the sorted keys, the `which` result, `HOME` and `NOT_YET_HANDLED`.
+   - Architecture: `RunHandler` is in `application.handlers`, and the wiring is in `entry.wiring`. The layering holds.
+   - Scope: inside the feature's "Production wiring" scope, and it touches nothing under "Out of scope".
