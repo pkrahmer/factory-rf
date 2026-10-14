@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 93
 blocked: null
 comments_seen: 0
@@ -89,3 +89,9 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
       `make check`: check: green (coverage 99.22 %)
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch holds only the factory's stage commits on the ticket, and no code, test or doc file has changed.
+      - Acceptance criteria: criterion 1 (make check) is green according to the coder's entry (coverage 99.22 %) and the factory's run after it. Criterion 2 (docs:) belongs to the documenter, who writes it next. The Interface is "None: no code changes", so there is no rule whose failing side needs a test and no limit to test at its boundary. The tester's choice to write no tests matches the Assignment and intake.
+      - Architecture, security, quality: nothing to judge, because the diff is empty.
+      - Ticket hygiene: the log explains the main decision (documentation only, so the documenter does the work) and what was rejected (the coder writing the doc edits outside its lane). The Assignment matches what was built, which is nothing. The bullets of the docs criterion are specific enough for the documenter to write from and are checkable through the Demo greps: the stale `ask`/`comment` passages, the `send_back` row, the README and operator-guide summaries, step 1 of the close, the three new handler subsections, and the `factory.domain.hand_over` module name.
+      - Open for the documenter: everything in the docs criterion.
