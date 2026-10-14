@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 88
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -97,3 +97,5 @@ Expect: one line, `CannotHandle cannot handle comment: work item F0001-S0001 has
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The last rule of `## Interface` says F0006-S0002's `question_posted` compares the post's `n` with the number of the latest `question` record, not of the last record, so that comments recorded after a question do not make the watcher raise `ask` again. No criterion tests this behaviour. Two coders could read it two ways and both would pass the tests. Options: (a) add a criterion before the two closing ones, e.g. "a work item whose question is posted and followed by a recorded comment entry is not raised as `ask` again by the watcher's evaluation", with the failing side too ("a work item whose latest question record has no post with its number is still raised"); (b) drop the rule from this story if F0006-S0002 already tests it, and say so in the Interface. I would choose (a).
+   2. The post lookup in `adjust` compares the key's `n` with the latest `question` record. The failing side is untested: a post keyed to an earlier question number, with a later question record that is not posted yet, must not end the wait. Criterion 14 covers only "no post at all". Options: add this as a case of criterion 14, or a new criterion. I would choose a new case in criterion 14.
