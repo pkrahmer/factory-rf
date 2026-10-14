@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 79
 blocked: null
 comments_seen: 0
 round: 0
@@ -50,3 +50,9 @@ Expect: the coverage line of `src/factory/application/dispatcher.py` shows `100%
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: no new names; it names the unchanged `Dispatcher.dispatch` in `src/factory/application/dispatcher.py`. It names the test module, the fixtures and helpers to reuse, and how the `GitError` is produced: the real `GitCli`, with `.git` renamed to `git-away` and back.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 cover the failing report and the retry. Criterion 3 covers the log-line exception, with both its failing side (a `GitError` gives `"error"` and no log line) and its passing side (a `HostingServiceError` gives the log line and `"reported"`). Every behaviour in the Interface comment has a criterion: `"error"`, the unchanged count and `last_error`, no log line, the retry that skips the handler, and `"capped"` afterwards.
+   - Demo: the pytest command is runnable. The `Expect:` line checks against the output: 100% coverage of the dispatcher with an empty `Missing` column, and `<n> passed` with no failed, error or skipped count.
+   - Architecture: tests only, no new layer or dependency. The real git wrapper is used and not faked, as CLAUDE.md requires.
+   - Scope: this is within F0006's dispatcher scope, and the feature's story list names it as proposed by the feature acceptance. It touches nothing under Out of scope.
