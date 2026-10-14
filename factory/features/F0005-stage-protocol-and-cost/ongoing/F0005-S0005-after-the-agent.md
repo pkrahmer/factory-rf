@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 62
-blocked: null
+blocked: question
 comments_seen: 0
 round: 1
 attempts: 0
@@ -177,3 +177,14 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    - **Architecture:** the layers hold, all four interfaces are used, there is no new dependency and no suppression marker.
    - **Docstrings:** they are present and say what things are.
    - **`make check`:** green, per the coder's entry.
+6. coder: Round 1. The reviewer's one finding is a gap in the story's criteria, so I have to ask before anything can change. No code or test was touched in this round.
+
+   The gap: the Interface says that among equal masked messages, the first ones are old and the later ones are new. `_new_findings` in `src/factory/application/stage.py` does this already: a `Counter` of the masked messages from before the run is used up by the earlier findings after the run. But no criterion says which of two equal findings the `form_invalid` note names. `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls` checks only `stalled.reason == "form_invalid"`, so code that called the original block the new one would still pass.
+
+   Question: should criterion 17 be extended to pin this down?
+   - (a) Yes, extend it. Proposed wording, added to criterion 17: "… and the note of the stall contains the message of the added second block (with its line number) and not the message of the original block." The tester then adds that assertion to `test_a_second_finding_of_the_same_kind_stalls`, and I rerun the stage. The current code should pass it without a change.
+   - (b) No, leave criterion 17 as it is. Then the order rule stays in the Interface with no test for it, and the reviewer's finding is dismissed.
+
+   I recommend (a). It is one sentence in the criteria and one assertion in an existing test, and it closes the one untested side of a rule the Interface states.
+
+   `make check`: green as of the round-0 commits (48b1e27, beecd7f); nothing has changed since.
