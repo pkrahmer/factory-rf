@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 95
 blocked: null
 comments_seen: 0
@@ -270,3 +270,24 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
    - I did not run the three demo commands myself; the tests cover the same behaviour.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked in `git diff main...HEAD -- . ':!factory'` (src/factory/domain/recovery.py, src/factory/application/recovery.py, src/factory/entry/wiring.py, and the tests):
+   - Acceptance criteria. Every criterion from 1 to 23 has a test under the name the tester's entry gives. Each test asserts what its criterion says:
+     - 11 checks the clock time of the rerun and the restart case.
+     - 12 first asserts the status `held` or `expired` in each case.
+     - 14 covers no claim, no state (with its reason) and no `branch_commit`.
+     - 17 checks a single crash record after the restart.
+     - 23 checks that the remote has no branch and that `main` is unchanged.
+
+     All four sides of the status guard are tested: `own` passes, and `held`, `expired` and `none` are refused. The coder's entry records `make check` green, with coverage at 99.20%.
+   - The handler's guards and steps run in the order the Interface gives. The discard goes through `WorkItemRecorder.check_out`, then `resolve`, and the record is built from `crashed`, `release`, then `append_entry`. The push goes through `recorder.record`, which raises `PushFailed`. The rerun event carries the new document and the crash commit. Nothing is posted and nothing is caught.
+   - Changed earlier tests. They stay within what the Interface allows, with the human's leave from Q20. The test renamed in tests/entry/test_wiring_human_handlers.py had a name that would now be false. In tests/entry/test_wiring_handlers.py the tester removed `_snapshot`, `WORK_ITEM`, `PATH` and their imports, which only the changed test used.
+   - Architecture: the pure functions are in `domain`, the handler is in `application` and imports only `application` and `domain`, and only `entry.wiring` wires it. The handler reuses the `RunGate` instance registered for `run`.
+   - Security: no strings passed to a shell, and no suppression markers.
+   - Quality: every module, public class and public function has a docstring, and the comments say why. Two things I looked at and accepted:
+     - `_remote_head`'s `None` branch is a typing guard after the discard. It is not dead logic.
+     - `self._definition` is stored but not used yet. The Interface's signature requires it, and S0002 will use it for the crash cap.
+   - Ticket hygiene: the log names the main decision, resolving the head after the discard. It also names the rejected alternative, which would have turned criterion 23's `GitError` into `CannotHandle`. The Assignment matches what was built, and criterion 25 still describes what the docs need.
+
+   Open: none.
