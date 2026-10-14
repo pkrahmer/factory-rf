@@ -15,3 +15,13 @@ def crash_entry_text(stage: str, crashes: int, head: CommitId) -> str:
         f"crash {crashes}: the run of stage {stage} ended without a result. "
         f"Its work is discarded back to commit {head}."
     )
+
+
+def at_crash_cap(state: WorkItemState, crash_cap: int) -> bool:
+    """Return whether the crashes counted in `state` have reached `crash_cap`."""
+    return state.crashes >= crash_cap
+
+
+def asking_crash_cap(state: WorkItemState) -> WorkItemState:
+    """Return a copy of `state` blocked on the crash-cap question."""
+    return state.model_copy(update={"blocked": "crash_cap"})

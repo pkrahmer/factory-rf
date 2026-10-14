@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 96
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The crash cap asks the human
 
 ## Assignment (as of log entry 1)
@@ -161,3 +169,100 @@ Expect: four lines, `2 0 crash_cap True` (the second crash reached the cap, no a
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.recovery.at_crash_cap` and `asking_crash_cap`, `factory.domain.post_texts.crash_cap_question`, `RecoveryHandler.handle` steps 3 and 5, `RecoveryHandler.ask_crash_cap`). The question text, the PostKey, the title fallback and the pull-request-number recording are all stated exactly. The test files are named.
+   - Criteria: each is testable by one test function without further decisions. Every rule has its failing side. `at_crash_cap` is tested below and at the cap (1), the ask-versus-rerun table covers both sides (2), and `ask_crash_cap` has `CannotHandle` for the wrong `blocked` (12) and for a missing question record (13). The repeated post is a no-op (9), a failed post is recoverable (8), a missing pull request is covered by opening one (10 and 11), and a title-less body is covered (10). The behaviours stated in the Interface comments (the question text, the keyed post, `unblock` through `CommentHandler`, the boundary-error path) are covered by 6, 7, 14, 15 and 16.
+   - Demo: both commands are runnable. Each `Expect:` line is concrete and checkable: the exact output lines, including the journal number 4 for the question.
+   - Architecture: the pure rules are in `factory.domain`. The handler is in `factory.application` and reaches git and the hosting service only through `Boundaries`, `StopService` and `WorkItemRecorder`. The `ALLOWED["entry_text"]` change is explicit and is the tester's one change in `tests/test_no_journal_reading.py`.
+   - Scope: it is within the feature's Scope (crash cap, the boundary-error path) and touches nothing in "Out of scope". The counter's resets are used, not changed.
+3. tester: Wrote the red tests for the crash cap. Each criterion maps to one test function:
+   - criterion 1: tests/domain/test_recovery_cap.py::test_the_crash_cap_is_reached_when_the_crashes_reach_it (parametrized over (crashes, cap): (1,2) false, (2,2) true, (3,2) true, (1,1) true, and (0,1) false for the lower side of cap 1)
+   - criterion 2: tests/application/test_recovery_cap.py::test_the_handler_asks_exactly_when_the_crash_reaches_the_cap (the five (crashes, cap) cases; the cap is set with `definition.model_copy(update={"crash_cap": cap})`)
+   - criterion 3: tests/application/test_recovery_cap.py::test_at_the_cap_the_stage_is_not_rerun_and_the_crash_commit_is_the_remote_head
+   - criterion 4: tests/application/test_recovery_cap.py::test_at_the_cap_the_work_item_is_blocked_with_the_crashes_counted_and_no_claim
+   - criterion 5: tests/application/test_recovery_cap.py::test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothing_else
+   - criterion 6: tests/application/test_recovery_cap.py::test_the_question_entry_is_the_crash_cap_question
+   - criterion 7: tests/application/test_recovery_cap.py::test_the_question_is_posted_once_on_the_pull_request_under_its_key
+   - criterion 8: tests/application/test_recovery_cap.py::test_the_question_is_recorded_and_pushed_before_it_is_posted
+   - criterion 9: tests/application/test_recovery_cap.py::test_asking_again_posts_nothing
+   - criterion 10: tests/application/test_recovery_cap.py::test_at_the_cap_without_a_pull_request_a_draft_is_opened_and_its_number_recorded (two cases: titled and untitled)
+   - criterion 11: tests/application/test_recovery_cap.py::test_asking_on_its_own_from_main_records_the_new_pull_request_on_the_branch (the blocked work item with its question and no pull request is pushed through `human.push_file`)
+   - criterion 12: tests/application/test_recovery_cap.py::test_asking_for_a_work_item_not_blocked_on_the_crash_cap_is_refused (blocked None, "question", "attempts_cap", each with a factory question recorded)
+   - criterion 13: tests/application/test_recovery_cap.py::test_asking_without_a_recorded_factory_question_is_refused (no question at all; a question by a role and not by factory)
+   - criterion 14: tests/domain/test_post_texts_crash_cap.py::test_the_crash_cap_question_names_the_stage_the_count_and_the_cap
+   - criterion 15: tests/application/handlers/test_comments_crash_cap.py::test_an_answer_to_the_crash_cap_question_unblocks_and_resets_the_crashes
+   - criterion 16: tests/application/test_recovery_cap.py::test_a_boundary_error_after_a_pushed_claim_repeats_into_the_crash_cap (the `run` stand-in `_ClaimsAndFails` claims through `ClaimService.claim` and then raises `HostingServiceError`)
+   - criterion 17: tests/domain/test_recovery_cap.py::test_asking_at_the_crash_cap_blocks_on_it_and_changes_nothing_else
+   - criteria 18 and 19 (`make check`, docs) are not tested here.
+
+   Files created: tests/crash_support.py (shared setup: a claimed work item with `crashes` 1 and `attempts` 1 by default, the snapshot, the event and handler builders, and a recording `Rerun`), tests/domain/test_recovery_cap.py, tests/domain/test_post_texts_crash_cap.py, tests/application/test_recovery_cap.py and tests/application/handlers/test_comments_crash_cap.py. Changed: tests/test_no_journal_reading.py, where `"factory.application.recovery"` is added to `ALLOWED["entry_text"]` and nothing else changes.
+
+   `make test` is red as intended. Three files fail at collection: tests/domain/test_recovery_cap.py cannot import `at_crash_cap` and `asking_crash_cap` from `factory.domain.recovery`; tests/domain/test_post_texts_crash_cap.py and tests/application/test_recovery_cap.py cannot import `crash_cap_question` from `factory.domain.post_texts`. The comment test does get collected; it fails until `handle` blocks at the cap. `make lint` is green. I skipped the type check as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the crash cap. All of the tester's tests pass unchanged, and `make check` is green (coverage 99.17 %). Commits: 0b77a43 (feature) and c58d119 (refactor).
+      - `src/factory/domain/recovery.py`: added `at_crash_cap` (`crashes >= crash_cap`) and `asking_crash_cap` (a copy with `blocked="crash_cap"`).
+      - `src/factory/domain/post_texts.py`: added `crash_cap_question`, which returns the exact text from the Interface.
+      - `src/factory/application/recovery.py`:
+        - `_crash_recorded` checks `at_crash_cap` on the crashed state. At the cap it applies `asking_crash_cap` before the claim release and appends the `question` entry by `factory` after the `crash` entry, so one commit holds both.
+        - `handle` records and pushes as before. When the pushed state is blocked on `crash_cap`, it calls `ask_crash_cap` with the snapshot of the new document and commit, and returns without calling `run`.
+        - `ask_crash_cap` raises `CannotHandle("crash", …)` when `blocked` is not `crash_cap` or when there is no `last_record(speaker=FACTORY, kind="question")`. Otherwise it posts a `WorkItemStop` through `StopService`: key `PostKey(kind="crash_cap", n=<question number>)`, title `<id>: <title>` or just `<id>`, body `factory: <entry_text>`, the same comment `AskHandler` posts.
+        - When `StopPosted.opened` is true, `_record_pull_request` checks the branch out (`WorkItemRecorder.check_out`), reads the work item, sets `state.pull_request` and records it with the subject "pull request opened". `record` raises `PushFailed` on a push that is not `pushed`.
+      - Design decision: the cap is decided once, in the recorded document. `handle` branches on the pushed state's `blocked` instead of calling `at_crash_cap` a second time, so what is pushed and what is done next cannot disagree. Rejected alternative: appending the question in a separate step after the release. That needed an `assert` on the optional state in `src`, which bandit flags, and it split one decision across two methods.
+      - Refactor: three "work item has no state" checks are now one helper, `_state_of(work_item_id, document)`. Nothing else needed changing.
+      - Noticed but not touched: `AskHandler._post` (`src/factory/application/handlers/questions.py`) looks up the question with `last_record(kind="question")` and no speaker filter, while `ask_crash_cap` filters on `speaker=FACTORY` as the Interface says. The two agree as long as the crash-cap question is the work item's last question.
+      - Open: the docs criterion is for the documenter (`operator-guide.md`, `project-guide.md`, `decisions.md`).
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` changes `src/factory/application/recovery.py`, `src/factory/domain/post_texts.py` and `src/factory/domain/recovery.py`, adds four test files plus `tests/crash_support.py`, and makes the one-line `ALLOWED["entry_text"]` change in `tests/test_no_journal_reading.py`. That change is exactly what the Interface names.
+      - Criteria: each of criteria 1–17 has one test that checks what the criterion says. I read every test against its criterion.
+        - The limit of `at_crash_cap` is tested on both sides: (1,2) and (0,1) are false, (2,2) and (1,1) are true.
+        - Both refusals of `ask_crash_cap` (the wrong `blocked`, no factory question) are tested and post nothing.
+        - The failing post is tested: `fail_next("post_comment")` leaves the question recorded and pushed.
+        - The repeat is a no-op (`already_posted`).
+        - Both no-pull-request paths are tested: from `handle`, titled and untitled, and on its own from `main`, where `origin/main` is unchanged.
+        - Criterion 16, the boundary error after a pushed claim, is tested through two `crash` events: the second records the cap and does not call `run` again.
+      - Not tested here: the `PushFailed` side of recording the pull request number. It is `WorkItemRecorder.record`'s rule (F0007-S0001), and this story attributes it there. I did not count it as a gap.
+      - `make check`: green after the coder (log entry 4).
+      - Architecture: the new rules are pure functions in `factory.domain`. `RecoveryHandler` reaches git and the hosting service only through `WorkItemRecorder`, `StopService` and `Boundaries`. No new imports cross layers, and the diff adds no tool calls.
+      - Security: no secrets, no suppression markers, no strings built into commands.
+      - Quality: the cap is decided once, in `_crash_recorded`, and `handle` branches on the pushed `blocked`. That is sound and explained in the log. The `_state_of` helper replaces three duplicated checks. The docstrings are present and accurate, and the comments say why.
+      - Ticket hygiene: the log names the main decision and the rejected alternative, and `Assignment` matches what was built.
+      - Left open for the documenter: docs criterion 19. The coder also noted that `AskHandler._post` looks up `last_record(kind="question")` with no speaker filter. That is outside this diff and only matters if the crash-cap question is not the work item's last question.
+6. documenter: Docs written; `make check` is green (coverage 99.17 %). I did not run the two demo commands. I did not run the new examples either, because the new text has none beyond the question text, which I copied from the Interface. A background wait loop I started was stopped at its time limit; it did not affect the check, which had already finished green.
+
+   Files changed:
+   - `docs/operator-guide.md`: the crash-cap row in the questions table now has the real comment text, what a comment does, and what closing does. A new subsection "The crash cap" gives the `crash_cap` key and its default of 2, how the count works, the question text, and the effect of a comment or a close. It also covers a repeated boundary error after a claim ending here and not in the error report, and a failed post staying recorded. "A restart during a stage" no longer says nothing is posted or that the cap is unhandled.
+   - `docs/project-guide.md`: the crash-recovery section now says that below the cap nothing is posted. A new paragraph covers `at_crash_cap`, `asking_crash_cap`, `crash_cap_question`, `ask_crash_cap`, the post key, `CannotHandle`, `PushFailed` and the recorded-before-posted order. It says the cap counts crashes since the last forward move. The "No code reads data from the journal's text" list now names `factory.application.recovery` for the display text of the question.
+   - `docs/decisions.md`: a new entry. A rework move and a stall keep the counter. The crash and the question go in one commit that is pushed before the post. A lost question for a story without a pull request is not posted again.
+
+   Cross-read and found current: the `crash_cap` rows in the `operator-guide.md` and `project-guide.md` pipeline-definition tables, the `unblock` and `CommentHandler` text, and the `AskHandler` text. `README.md` has nothing on crash recovery.
+
+   Seen but not touched: the project guide's `NOT_YET_HANDLED` text (`expired` as F0008's) is unrelated to this story.
+
+   No findings against the code. I did not check `tests/test_no_journal_reading.py` against the code, since it is outside the docs lane.
+
+   `make check`: check: green
+7. demo: Demo run from the repository root, both commands exactly as written under `## Demo`, in order.
+
+   Command 1 (pure rules and the question text):
+   ```
+   [False, True, True]
+   crash_cap
+   None 0 1
+   Stage doing crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+   ```
+   Exit 0. Met its Expect line: all four lines match exactly.
+
+   Command 2 (second crash against a real local bare remote and the fake hosting service):
+   ```
+   2 0 crash_cap True
+   0
+   1 crash_cap 4
+   True
+   ```
+   Exit 0. Met its Expect line: the crash count reached the cap of 2, no attempt was charged, the item was blocked with `crash_cap` and the claim was cleared. The run handler was not called. Exactly one post was made, of kind `crash_cap` and keyed by journal entry 4. Its body starts with the `factory: ` question text.
+
+   Checked against the acceptance criteria: the output agrees with criteria 1, 3, 4, 6, 7, 14, 15 (through `unblock`) and 17, and contradicts none. The demo does not exercise the other criteria (failed post, already_posted, opening the draft pull request, a checkout on main, CannotHandle, the boundary-error path, docs). It contradicts none of them either. No findings.
