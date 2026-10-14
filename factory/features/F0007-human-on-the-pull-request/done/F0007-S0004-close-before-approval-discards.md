@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 85
 blocked: null
 comments_seen: 0
@@ -224,3 +224,4 @@ Expect: the first line is exactly `factory/features/F0001-todo/backlog/F0001-S00
    - It contradicts no other criterion. Criteria 3, 4 and 6–10 and 12 are not exercised by the demo. The tests the reviewer checked in `tests/application/handlers/test_closed.py` cover them.
 
    Open: none.
+8. done (pull request merged); cost: 6 runs, 9.2 min, 49 turns, 130k tokens in (882k more from cache), 21k out, $1.43
