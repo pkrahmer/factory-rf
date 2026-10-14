@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 76
 blocked: null
 comments_seen: 0
@@ -190,3 +190,10 @@ Expect: exactly four lines: `features`, `F0001  Todo service  backlog=1  in-prog
       - Noticed, not touched: in `feature_rows`, the branch where `parse_feature_directory_name` returns `None` can never be taken for a `StoryFile` built by `RemoteWorkItems`. It shows as one partial branch in coverage. The `__main__` line and the wired `run_watch` call in `main` are uncovered until F0010-S0001 wires the boundaries.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read criteria 1–24 against their named tests in `tests/domain/test_board.py`, `tests/application/test_board_reader.py` and `tests/entry/test_watch.py`, and each test checks its criterion. The refused sides are tested: counts at -1 and 0, `pull_request` at 0, 1 and `None`, folder `ongoing`, acceptance `other`, a naive `running_since`, unknown keys and assignment on all three models. The UTC conversion is tested with a +02:00 input. Criterion 14 checks the health and log paths the `boundaries` fixture really uses (`tmp_path/state/health.json` and `factory.log`), so it is not vacuous. Criterion 16 checks the fault string through `PipelineLoader.load(<commit>)`. The coder's entry records `make check` green.
+      - Architecture: `domain/board.py` is pure and imports only domain modules. `application/board.py` reads only through `RemoteWorkItems` and `Git.show_file`. `entry/watch.py` wires nothing of its own; when boundaries are missing it ends with status 2, as the assignment says. The new models are frozen and refuse unknown keys.
+      - Security: no secrets, no shell or SQL built from strings, and no suppression markers. Errors print only the definition's fault.
+      - Quality: names and docstrings are in order and I found no dead code. `run_watch` repeats the three-line resolve-or-`GitError` of `Watcher._main_commit`, and `application/board.py` defines its own `_MAIN_REF` next to `PIPELINE_REF`. Both follow the codebase's existing private-constant habit and the Interface's explicit rule for `run_watch`, so I don't count them as findings. Sharing them would mean making a `Watcher` method public, which is outside this story.
+      - Ticket hygiene: the log gives the main decision, a separate `BoardReader` over reusing the watcher's snapshots, with its cost. `Assignment` matches what was built. Criterion 26 still tells the documenter what to write.
+      - Open, for the human: the Interface's default for `main`'s `err` (standard error when `None`) has no criterion and no test. Today it only matters on the not-wired path, which F0010-S0001 replaces.
