@@ -576,7 +576,7 @@ A handler that answers an act of the human on a pull request first records the a
 
 - `target_of(event)` returns `Target(snapshot, state, pull_request)` for the event's work item. It raises `CannotHandle` (kind: the event's) for an event with no work item (`the event names no work item`) and for a work item whose document has no state (`work item <id> has no state`). `require_pull_request(target, kind)` returns the pull request number, or raises `CannotHandle` of `kind` (`work item <id> has no pull request`).
 - `commit_subject(work_item, text)` gives `work item <id>: <text>`. Nothing parses commit subjects.
-- `WorkItemRecorder(boundaries)` does the git work. `check_out(branch)` resets to `HEAD`, switches to the branch at `origin/<branch>` and resets to it, so whatever a killed handler left (uncommitted changes, untracked files, an unpushed commit) is gone. It does not fetch: the caller must have fetched, as the tick does. `read` and `write` use the work item reader and writer on a path in the checkout. `publish(branch, subject)` commits and pushes, and raises `PushFailed` for any outcome but `pushed`. `record(branch, path, document, subject)` is `write` then `publish`.
+- `WorkItemRecorder(boundaries)` does the git work. `check_out(branch)` resets to `HEAD`, switches to the branch at `origin/<branch>` and resets to it, so whatever a killed handler left (uncommitted changes, untracked files, an unpushed commit) is gone. It does not fetch: the caller must have fetched, as the tick does. `read` and `write` use the work item reader and writer on a path in the checkout. `publish(branch, subject)` commits and pushes, and raises `PushFailed` for any outcome but `pushed`. `delete_branch(branch)` calls `Git.delete_remote_branch` (a branch already gone counts as `"pushed"`; any other outcome raises `PushFailed(branch, outcome)`) and then `Git.delete_branch`; the merged and closed handlers share it. `record(branch, path, document, subject)` is `write` then `publish`.
 
 ### The merge archives the story
 
@@ -589,7 +589,18 @@ A handler that answers an act of the human on a pull request first records the a
 5. It writes the document at the new path and publishes on main with `commit_subject(id, "merged, archived")`; a push that is not `pushed` raises `PushFailed`.
 6. Only then `Git.delete_remote_branch(branch)`, which counts a branch already gone as `"pushed"`; any other outcome raises `PushFailed(branch, outcome)` and the archive stays pushed. Then `Git.delete_branch(branch)`.
 
-It posts nothing and does not touch the pull request. `destination_path(path, folder)` (`factory.domain.archive`) returns the same file name in `folder` of the same feature directory, and raises `ValueError` for a path that `folder_of` places in no lifecycle folder; the discard (F0007-S0004) reuses it. Tests: `tests/application/handlers/test_merged.py`, `tests/domain/test_archive.py`, `tests/domain/test_archive_texts.py`.
+It posts nothing and does not touch the pull request. `destination_path(path, folder)` (`factory.domain.archive`) returns the same file name in `folder` of the same feature directory, and raises `ValueError` for a path that `folder_of` places in no lifecycle folder; the discard below reuses it. Tests: `tests/application/handlers/test_merged.py`, `tests/domain/test_archive.py`, `tests/domain/test_archive_texts.py`.
+
+### A close before the approval discards the story
+
+`ClosedHandler(boundaries, definition)` (`factory.application.handlers.closed`) handles `closed`; it is built but not yet registered (`NOT_YET_HANDLED` still lists `closed`). It does what the operator guide says under "A close before the approval discards the story":
+
+1. `target_of(event)`. When `definition.stages[stage].approval` is true it returns and does nothing: the send-back is F0007-S0005's to fill in there. It does not raise `CannotHandle`.
+2. `WorkItemRecorder.check_out(MAIN_BRANCH)`, then `Git.move` of the story to `destination_path(path, "backlog")`. The file is moved and not rewritten, so its text is main's, the human's.
+3. `publish(MAIN_BRANCH, commit_subject(id, "closed before the approval, back in the backlog"))`; a push that is not `pushed` raises `PushFailed` and the branch is kept.
+4. Only then `WorkItemRecorder.delete_branch(branch)`. The branch's cost records go with it, so a later start has an empty bill.
+
+It makes no hosting-service call. Tests: `tests/application/handlers/test_closed.py`.
 
 ### Comments are copied by id
 
