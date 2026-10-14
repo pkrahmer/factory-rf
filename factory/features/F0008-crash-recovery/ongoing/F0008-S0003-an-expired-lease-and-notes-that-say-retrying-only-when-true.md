@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 97
 blocked: null
 comments_seen: 0
@@ -289,3 +289,30 @@ Expect: one line, `True False`: `expired` and `crash` share one handler, and `ex
     Stale but not touched: none seen.
 
     `make check`: check: green
+11. demo: demo (round 2): ran the three commands under `## Demo` from the repository root, as written and in order. All three exited 0, and each output matches its `Expect:` line. Nothing in the output contradicts any acceptance criterion. No findings.
+
+    1. Note texts and entry text:
+    ```
+    The run that held this stage ended without finishing: its lease expired (crash 1 of 2). Retrying.
+    The run that held this stage ended without finishing: its lease expired (crash 2 of 2). The factory does not rerun it and asks you instead.
+    True False
+    expiry 1: the lease of stage doing ran out. Its work is discarded back to commit bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.
+    ```
+    Met. These are the four expected lines. The note below the cap ends with `Retrying.` (criterion 1). The note at the cap does not contain "retrying" (criterion 2). The stall note says "retrying" below its cap and not at it (criterion 3). The entry text is exact (criterion 5).
+
+    2. `factory-1` claims the stage, the clock advances by 60 minutes, and `factory-2` takes the stage over:
+    ```
+    1 0 True
+    1
+    1 expiry 3
+    True
+    ```
+    Met. The expiry is counted as a crash, no attempt is charged and the claim is cleared (criterion 8). The stage is rerun once (criterion 12). There is one post, of kind `expiry`, keyed by journal entry 3 (criteria 9 and 11). The body starts with `expiry_note(1, 2)` (criterion 11).
+
+    3. Registration:
+    ```
+    True False
+    ```
+    Met. `expired` shares the `crash` handler instance, and `expired` is no longer in `NOT_YET_HANDLED` (criterion 17).
+
+    Open: none. The demo does not run the cap side, the lease limit at 59:59, the refused statuses or the missing pull request (criteria 6, 7, 13 to 16). The reviewer reports tests for each of them, and nothing in the demo contradicts them.
