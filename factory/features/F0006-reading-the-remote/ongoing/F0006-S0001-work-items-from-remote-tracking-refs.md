@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 68
 blocked: null
 comments_seen: 0
@@ -162,3 +162,10 @@ Expect: two lines: `F0001-S0001 work-item/F0001-S0001 False intake 0` (no branch
       - Noticed, not touched: two defensive lines are not covered (`work_items.py:85` and `:106`). Line 85 handles a listed file missing on main; line 106 handles the case where the name parsers return None after `folder_of` accepted the path. No test can reach either one, but mypy needs them to narrow the types.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `src/factory/application/work_items.py`, `src/factory/domain/work_item.py`, `tests/application/test_work_items.py` and `tests/domain/test_work_item_snapshot.py`. The diff stat also lists changes in `planning/`, `docs/runs/` and `planning/.../F0009*`. Those come from the human's commit aa2b4fc on origin/main, which reached this branch through the merge 9900f73. The coder did not write them, so they are not reviewed.
+      - Criteria: each of 1–18 has a test that checks what the criterion says. The rules that can fail are tested on the failing side: a listed file missing at the branch tip (12), unreadable front matter on the branch (13) and on main (14), local-only files, commits and branches (2, 8), non-story files including a feature mismatch and an acceptance (4), ongoing/drafts (17), and a bad `branch_commit`/`folder`/`id` (18). The coder's entry reports the factory's `make check` as green.
+      - Architecture: `RemoteWorkItems` sits in `factory.application` and imports only the `Git` and `WorkItemReader` interfaces and `factory.domain`. It reads only through `list_files`/`resolve`/`show_file` on `origin/main` and `origin/<branch>`. The two DTOs are frozen, use `extra="forbid"`, and reuse `CommitId`, `WorkItemId` and `LifecycleFolder`.
+      - Security: no strings are built into a command, and no suppression markers were added.
+      - Quality: the error is wrapped with the path in one place (`_parsed`). Path rules come from `folder_of` and the identifier parsers rather than a second regex. The two uncovered defensive branches (`work_items.py:85`, `:106`) are explained in the coder's entry, and mypy needs them for narrowing. Docstrings and the why-comments on `_branch_document`/`_started_document` meet `CLAUDE.md`.
+      - Hygiene: the log gives the main decision and the rejected alternative, the Assignment matches what was built, and criterion 20 still describes what the documenter has to write.
