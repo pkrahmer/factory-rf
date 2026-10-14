@@ -101,16 +101,10 @@ class StageLauncher:
             guard=WritePathService(self._boundaries).at(started.stage_start, started.path),
         )
         request = self._composer.compose(context, agent)
-        begun = self._costs.begin(started, self._role(stage))
+        begun = self._costs.begin(started, _role_of(self._definition, stage))
         result = self._boundaries.agent_runtime.run(request)
         cost = self._costs.complete(begun, result)
         return LaunchedStage(started=started, request=request, result=result, cost=cost)
-
-    def _role(self, stage: str) -> str:
-        role = self._definition.stages[stage].role
-        if role is None:
-            raise ValueError(f"stage {stage} has no role, so no agent runs there")
-        return role
 
     def _launchable_stage(self, prepared: PreparedWorkItem) -> str:
         if prepared.merge_conflict:
@@ -213,9 +207,7 @@ class AfterAgent:
     def _entry(
         self, started: StartedStage, decision: str, text: str, undo: UndoReport
     ) -> NewEntry | None:
-        role = self._definition.stages[started.stage].role
-        if role is None:
-            raise ValueError(f"stage {started.stage} has no role, so no agent ran there")
+        role = _role_of(self._definition, started.stage)
         # The factory rewrites its own cost records after the undo; that is no news to the agent.
         sidecar = cost_records_path(started.path)
         undone = sorted(path for path in [*undo.reverted, *undo.deleted] if path != sidecar)
@@ -417,6 +409,13 @@ def _state_of(document: WorkItemDocument) -> WorkItemState:
     if document.state is None:
         raise ValueError("the work item has no state")
     return document.state
+
+
+def _role_of(definition: PipelineDefinition, stage: str) -> str:
+    role = definition.stages[stage].role
+    if role is None:
+        raise ValueError(f"stage {stage} has no role, so no agent runs there")
+    return role
 
 
 def _with_command_lines(entry: NewEntry, ran: list[CheckResult]) -> NewEntry:
