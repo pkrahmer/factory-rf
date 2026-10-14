@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 74
 blocked: null
 comments_seen: 4
@@ -276,3 +276,4 @@ Expect: the last three lines of the output are `fetch_failed None None` (the fet
     Criteria check: the output matches criterion 2 (one stop, scope `repository`, reason `fetch_failed`, a non-empty detail, nothing dispatched) and criterion 3 (the factory log's lines start with the clock's UTC time stamp). It goes against no other criterion. The demo only exercises the fetch-failure path; the other criteria are left to the tests and `make check`.
 
     Findings: none.
+14. done (pull request merged); cost: 10 runs, 16.9 min, 83 turns, 271k tokens in (2127k more from cache), 50k out, $3.29
