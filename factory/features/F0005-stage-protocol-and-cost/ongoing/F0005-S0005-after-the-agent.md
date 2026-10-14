@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 62
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # After the agent: the branch, the undo, the entry, the form again
@@ -160,3 +160,20 @@ Expect: the last line reports `passed` and the output contains neither `failed` 
    Docs (criterion 23) are left for the documenter.
 
    `make check`: check: green
+5. reviewer: Sent back to doing with one finding. It is a gap in the story's criteria, not a fault in the code.
+
+   1. `tests/application/test_after_agent.py::test_a_second_finding_of_the_same_kind_stalls` (criterion 17) has a gap.
+      - **Rule:** the Interface says that among equal masked messages, the first ones count as old and the later ones as new.
+      - **Gap:** no test checks this. The test asserts only `stalled.reason == "form_invalid"`, and no criterion says which of the two equal findings the stall note names. If the code took the first code block as the new one, every test would still pass.
+      - **Fix:** this needs a story criterion first, so the coder should ask the human (R8/R9) to add one. The proposed criterion: in criterion 17's case, the note of the `form_invalid` stall contains the message of the added second block (its line number) and not the message of the original block. With the human's answer, the tester then extends criterion 17's test to check it.
+
+   Checked and found sound:
+   - **`agent_entry`:** in `src/factory/domain/decisions.py`, it removes the role prefix before the stage prefix, strips, returns `None` when blank, and adds the sorted paragraph.
+   - **The six steps:** `AfterAgent.process` in `src/factory/application/stage.py` runs them in the Interface's order with its reasons and details, and passes every stall through `StallService.stall`. Only the `form_invalid` stall carries a document, the one with the agent's entry appended. Running the stall service's undo a second time does nothing new, so attempts rise once.
+   - **New findings:** the masked `Counter` takes the earlier equal findings as the old ones.
+   - **Cost records:** the cost-record file is left out of the undone paths.
+   - **The model:** `AgentAftermath` is frozen and forbids unknown keys.
+   - **Tests:** every other criterion from 1 to 21 has a test that checks what the criterion says, in the domain test module and in the application test module.
+   - **Architecture:** the layers hold, all four interfaces are used, there is no new dependency and no suppression marker.
+   - **Docstrings:** they are present and say what things are.
+   - **`make check`:** green, per the coder's entry.
