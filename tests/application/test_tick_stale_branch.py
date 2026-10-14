@@ -1,5 +1,6 @@
 """The tick deletes the branch a killed discard left behind, between the restore and evaluation."""
 
+import os
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -162,3 +163,67 @@ def test_a_tick_that_ends_at_a_repository_stop_deletes_nothing(
     assert outcome == TickOutcome(stopped="pipeline_definition_invalid")
     assert before is not None
     assert remote_commit(remote, BRANCH) == before
+
+
+def _log_lines(tmp_path: Path) -> list[str]:
+    log = tmp_path / "state" / "factory.log"
+    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root removes files in unwritable directories")
+def test_a_tick_that_ends_at_the_restore_stop_deletes_nothing(
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    checkout: GitCli,
+    human: HumanClone,
+    agent_home: Path,
+    tmp_path: Path,
+) -> None:
+    install_agents(agent_home, _definition(boundaries).roles)
+    human.push_file(BRANCH, "marker.txt", "x\n")
+    checkout.fetch()
+    before = remote_commit(remote, BRANCH)
+    locked = tmp_path / CHECKOUT / "locked"
+    locked.mkdir()
+    (locked / "file.txt").write_text("cannot be removed\n", encoding="utf-8")
+    locked.chmod(0o555)
+    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": Recording()}))
+    try:
+        outcome = tick.run()
+    finally:
+        locked.chmod(0o755)
+
+    assert outcome == TickOutcome(stopped="checkout_restore_failed")
+    assert before is not None
+    assert remote_commit(remote, BRANCH) == before
+
+    tick.run()
+
+    assert remote_commit(remote, BRANCH) is None
+
+
+def test_a_tick_that_ends_at_the_fetch_stop_tries_no_deletion(
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    checkout: GitCli,
+    human: HumanClone,
+    agent_home: Path,
+    tmp_path: Path,
+) -> None:
+    install_agents(agent_home, _definition(boundaries).roles)
+    human.push_file(BRANCH, "marker.txt", "x\n")
+    checkout.fetch()
+    away = remote.rename(tmp_path / "away.git")
+    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": Recording()}))
+
+    outcome = tick.run()
+
+    assert outcome == TickOutcome(stopped="fetch_failed")
+    assert not [line for line in _log_lines(tmp_path) if "stale branch" in line]
+
+    away.rename(remote)
+    tick.run()
+
+    assert remote_commit(remote, BRANCH) is None

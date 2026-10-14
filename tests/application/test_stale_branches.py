@@ -224,3 +224,54 @@ def test_the_branch_of_a_done_story_is_deleted(
     assert remote_commit(remote, SECOND_BRANCH) is None
     expected = f"deleted stale branch {SECOND_BRANCH}: its story is done"
     assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 1
+
+
+def test_an_id_in_the_backlog_and_done_is_logged_as_done(
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    checkout: GitCli,
+    human: HumanClone,
+    tmp_path: Path,
+) -> None:
+    human.push_file("main", SECOND_BACKLOG_PATH, "# T\n")
+    human.push_file("main", SECOND_DONE_PATH, "# T\n")
+    _push_branch(human, checkout, SECOND_BRANCH)
+
+    deleted = delete_stale_branches(boundaries)
+
+    assert deleted == [SECOND_BRANCH]
+    assert remote_commit(remote, SECOND_BRANCH) is None
+    named = [line for line in _log_lines(tmp_path) if SECOND_BRANCH in line]
+    assert len(named) == 1
+    assert named[0].endswith(f"deleted stale branch {SECOND_BRANCH}: its story is done")
+
+
+def test_an_unreachable_deletion_is_logged_and_tried_again_on_the_next_call(
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    checkout: GitCli,
+    human: HumanClone,
+    tmp_path: Path,
+) -> None:
+    _push_branch(human, checkout, BRANCH)
+    away = remote.rename(tmp_path / "away.git")
+    expected = f"could not delete stale branch {BRANCH}: unreachable"
+
+    first = delete_stale_branches(boundaries)
+
+    assert first == []
+    assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 1
+
+    second = delete_stale_branches(boundaries)
+
+    assert second == []
+    assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 2
+
+    away.rename(remote)
+
+    deleted = delete_stale_branches(boundaries)
+
+    assert deleted == [BRANCH]
+    assert remote_commit(remote, BRANCH) is None
