@@ -12,11 +12,13 @@ from factory.application.handlers.recording import (
     target_of,
 )
 from factory.application.stops import StopService
+from factory.application.work_items import RemoteWorkItems
 from factory.domain.errors import CannotHandle
 from factory.domain.evaluation import required_claim_status
 from factory.domain.events import Event, EventKind
 from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey
+from factory.domain.identifiers import WorkItemId, work_item_of_branch
 from factory.domain.journal import (
     FACTORY,
     JournalKind,
@@ -25,6 +27,7 @@ from factory.domain.journal import (
     entry_text,
     last_record,
 )
+from factory.domain.paths import LifecycleFolder
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import crash_cap_question, expiry_note
 from factory.domain.recovery import (
@@ -40,6 +43,10 @@ from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkIte
 
 _KIND: Final = "crash"
 _EXPIRED: Final = "expired"
+_STALE_REASONS: Final[dict[LifecycleFolder, str]] = {
+    "backlog": "its story is back in the backlog",
+    "done": "its story is done",
+}
 
 
 def _state_of(work_item: str, document: WorkItemDocument) -> WorkItemState:
@@ -217,3 +224,38 @@ class RecoveryHandler(Handler):
 def _stop_title(work_item: WorkItemSnapshot) -> str:
     heading = title(work_item.document.body)
     return work_item.id if heading is None else f"{work_item.id}: {heading}"
+
+
+def delete_stale_branches(boundaries: Boundaries) -> list[str]:
+    """Delete the remote branches of stories back in the backlog or done; return their names.
+
+    A refused deletion is logged and left for the next call. Only `origin/main` and the
+    remote-tracking branches are read; `GitError` is not caught.
+    """
+    git = boundaries.git
+    reasons = _stale_reasons(boundaries)
+    deleted = []
+    for branch in git.remote_branches():
+        work_item = work_item_of_branch(branch.name)
+        if work_item is None or work_item not in reasons:
+            continue
+        outcome = git.delete_remote_branch(branch.name)
+        if outcome == "pushed":
+            boundaries.log.line(f"deleted stale branch {branch.name}: {reasons[work_item]}")
+            deleted.append(branch.name)
+        else:
+            boundaries.log.line(f"could not delete stale branch {branch.name}: {outcome}")
+    return deleted
+
+
+def _stale_reasons(boundaries: Boundaries) -> dict[WorkItemId, str]:
+    stories = RemoteWorkItems(boundaries.git, boundaries.work_item_reader)
+    # A second file of the same id in progress is the duplicate the evaluation reports.
+    started = {story.id for story in stories.list_stories("in-progress")}
+    reasons: dict[WorkItemId, str] = {}
+    # Done comes last, so that an id also in the backlog is named as done.
+    for folder, reason in _STALE_REASONS.items():
+        for story in stories.list_stories(folder):
+            if story.id not in started:
+                reasons[story.id] = reason
+    return reasons
