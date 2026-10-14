@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 95
 blocked: null
 comments_seen: 0
@@ -305,3 +305,34 @@ Expect: one line, `True True False`: the `crash` handler is a `RecoveryHandler`,
    No findings against the code. `RecoveryHandler` stores `definition` without using it, as the Interface requires, and the guide says the crash cap (S0002) will use it.
 
    `make check`: check: green
+7. demo: Demo run from the repository root. I ran the three `## Demo` commands as written and in order, each in its own bash process. All three printed what their `Expect:` lines describe, and nothing in the demo contradicts any acceptance criterion.
+
+   Command 1 (the pure part: `crashed`, `crash_entry_text`):
+   ```
+   0 1 0 doing
+   crash 1: the run of stage doing ended without a result. Its work is discarded back to commit aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+   ```
+   Met. The first line is `0 1 0 doing` and the second is the crash text ending in forty `a` and a full stop, which matches criteria 19 and 22.
+
+   Command 2 (`RecoveryHandler` against a real local bare remote, with an untracked `src/dead.py` left by the dead run):
+   ```
+   1 0 True
+   False
+   1 run 1
+   True
+   ```
+   Met:
+   - `crashes` is 1, `attempts` is 0 and the claim is cleared.
+   - The dead run's file is gone from the work tree.
+   - The `run` handler was called once, inside the same `handle` call, with an event of kind `run` and `crashes` 1.
+   - The stage-start commit is still an ancestor of `origin/<branch>`.
+
+   This agrees with criteria 2, 3, 5 and 11.
+
+   Command 3 (the registration in `build_handlers`):
+   ```
+   True True False
+   ```
+   Met. `handlers['crash']` is a `RecoveryHandler`, its `run` is the very handler registered for `run`, and `crash` is not in `NOT_YET_HANDLED`. This agrees with criteria 20 and 21.
+
+   Findings: none. Nothing is open from the demo. The factory runs `make check` itself after this stage.
