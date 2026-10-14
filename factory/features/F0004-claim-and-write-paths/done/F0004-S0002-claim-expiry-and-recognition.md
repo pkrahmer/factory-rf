@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 53
 blocked: null
 comments_seen: 0
@@ -201,3 +201,4 @@ Expect: one line, `['src/factory/application/claims.py']`.
    Met. The output is one line, and `factory.application.claims` is the only importer (criterion 14).
 
    Cross-check against the criteria: nothing in the output contradicts criteria 1–15. Criterion 16 (`make check`) is the factory's gate after this stage; the coder and the documenter each reported it green. Criterion 17 (the docs) was not exercised by the demo; the documenter's entry 6 covers it.
+8. done (pull request merged); cost: 6 runs, 4.2 min, 34 turns, 109k tokens in (487k more from cache), 17k out, $1.13
