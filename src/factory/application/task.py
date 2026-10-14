@@ -20,7 +20,7 @@ from factory.domain.prompts import (
     compose_prompt,
 )
 from factory.domain.story_form import FormFinding, check_story_form
-from factory.domain.work_item import WorkItemDocument
+from factory.domain.work_item import WorkItemDocument, require_state
 
 # The form is read where only the human's merge changes it, never from the work tree an agent
 # writes in.
@@ -115,10 +115,8 @@ class TaskComposer:
         return self._definition.roles[self._role_name(stage)]
 
     def _round(self, context: TaskContext) -> int:
-        state = context.document.state
-        if state is None:
-            raise WorkItemFormatError("the document has no state", context.path)
-        return state.round
+        error = WorkItemFormatError("the document has no state", context.path)
+        return require_state(context.document, error).round
 
     def _findings(self, context: TaskContext) -> list[FormFinding] | None:
         if context.stage != self._definition.first_stage():

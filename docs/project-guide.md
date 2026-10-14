@@ -424,7 +424,7 @@ The journal is two halves that always match. The visible half is Markdown in the
 - **Speaker and kind are data.** Code that needs to know who spoke or what kind an entry is reads the state: `last_record(document, speaker=..., kind=...)` returns the last record that matches every filter given, or `None`. Nothing reads them from the text, so changing how a speaker is displayed (`intake:` to `Intake Agent:`) changes no record. `entry_text(document, number)` returns an entry's text as rendered, a closing fence line included (without its indent), for display only: it finds the line that starts with `"<number>. "` at column 0 and ends the entry at the next line that starts with a number at column 0, so an indented `2. ...` inside a text is not an entry.
 - **Restore.** `restore_state_and_journal(current, baseline)` is how the factory undoes an agent's tampering with state and journal. It returns the current document with the baseline's whole state and the baseline's `Journal` section (from its heading to its last non-blank line) put in place of the current one; edits elsewhere in the body, the blank lines before the next section and the current `ignored_keys` stay. If the current body has no `Journal` section, the baseline's is added at the end after one blank line.
 - **Faults** are `WorkItemFormatError`: `the document has no state` (for `append_entry`, `last_record` and a baseline without state), `missing section: ## Journal` and, for `entry_text`, `no journal entry <number>`.
-- **Imports.** `factory.domain.work_item` imports `JournalRecord` from `factory.domain.journal`, so the journal module imports `work_item` only under `TYPE_CHECKING` and builds documents with `model_copy`. Either module can be imported first.
+- **Imports.** `factory.domain.work_item` imports `JournalRecord` from `factory.domain.journal`, so the journal module imports `work_item` only under `TYPE_CHECKING` and builds documents with `model_copy`. For the same reason it cannot use `require_state` and keeps its own private `_state_of`, the one other function that checks a document's state itself. Either module can be imported first.
 
 ```bash
 uv run python -c "
@@ -445,6 +445,8 @@ prints the body (`# T`, an empty line, `## Journal`, an empty line, `1. 2026-10-
 ### The document and its error
 
 `WorkItemDocument(state, body, ignored_keys=[])` pairs a state with the body text. `state` is required but may be `None`, for a file read as a specification. `ignored_keys` lists front matter keys the reader did not use.
+
+`require_state(document, error)` (`factory.domain.work_item`) is the one way to get a document's state when it must be there: it returns `document.state`, or raises `error`, the very instance passed, when the state is `None`. The caller builds the exception it wants (a `ValueError`, a `CannotHandle`, a `WorkItemFormatError`), so a module keeps its own message. Do not write a private `_state_of` or an `if state is None: raise` of your own; `tests/test_no_state_copies.py` searches `src/factory` for both. The one exception is `factory.domain.journal`, which keeps a private `_state_of` (see "Imports" under the journal).
 
 `factory.domain.errors.WorkItemFormatError(fault, path=None)` is the `FactoryError` for a work item file that cannot be read. Both are attributes; the message is `fault`, or `<path>: <fault>` with a path.
 

@@ -12,7 +12,7 @@ from factory.domain.identifiers import branch_name, parse_work_item_file_name
 from factory.domain.journal import NewEntry, append_entry
 from factory.domain.lease import ClaimStatus, claim_status
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
+from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, require_state
 
 _INSTANCE_NAME = re.compile(r"[a-z][a-z0-9-]*")
 
@@ -50,7 +50,7 @@ class ClaimService:
         The push is the claim. Raises `ValueError` before writing anything when the work item
         cannot be claimed here, and `PushFailed` when the push does not reach the remote.
         """
-        state = _state_of(document)
+        state = require_state(document, _no_state())
         lease_duration = self._check_preconditions(branch, path, state, stage)
         claim = Claim(
             instance=self._instance,
@@ -73,9 +73,8 @@ class ClaimService:
 
     def release(self, document: WorkItemDocument) -> WorkItemDocument:
         """Return the document with its claim cleared; `ValueError` when it has no state."""
-        if document.state is None:
-            raise ValueError("the work item has no state to release")
-        released_state = document.state.model_copy(update={"claim": None})
+        state = require_state(document, ValueError("the work item has no state to release"))
+        released_state = state.model_copy(update={"claim": None})
         return document.model_copy(update={"state": released_state})
 
     def _check_preconditions(self, branch: str, path: str, state: WorkItemState, stage: str) -> int:
@@ -108,10 +107,8 @@ class ClaimService:
         return append_entry(document.model_copy(update={"state": claimed_state}), entry)
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise ValueError("the work item has no state to claim")
-    return document.state
+def _no_state() -> ValueError:
+    return ValueError("the work item has no state to claim")
 
 
 def _own_branch(path: str) -> str:

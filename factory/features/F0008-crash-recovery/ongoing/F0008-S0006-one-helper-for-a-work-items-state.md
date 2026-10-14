@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 101
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # One helper for a work item's state
 
 <!-- proposed by feature acceptance of 2026-10-14; refine before promoting -->
@@ -83,3 +91,64 @@ Expect: two lines, `doing` and then `no state here`.
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: `require_state(document: WorkItemDocument, error: Exception) -> WorkItemState` in `factory.domain.work_item` is concrete. The table names all 17 call sites with module, location and exact exception. I checked that `src/factory` has 10 `def _state_of` copies and that `factory.domain.journal` imports under `TYPE_CHECKING`, which matches the Assignment.
+   - Criteria: 1 and 2 are each one test function (2 is parametrized over three exception types). 3 and 4 are `ast` search tests with positive cases written into the test and a negative case over `src/factory`. 5, 6 and 7 are the usual closing criteria. The function has two rules, a returned state and the raised instance, and criterion 2 covers the failing side. Every Interface comment has a criterion.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: the grep output and exit code, and the two printed lines.
+   - Architecture: the helper sits in the domain layer, and application and adapters import downward. The journal exception is justified by the import cycle, and a comment will say so.
+   - Scope: this is the refactoring that FEATURE.md lists as S0006, decision 20. It changes no behaviour. CLAUDE.md is not touched, and no test is changed.
+3. tester: wrote the red tests for `require_state` and the two `ast` search rules.
+   - criterion 1: tests/domain/test_work_item_require_state.py::test_require_state_returns_the_documents_state
+   - criterion 2: tests/domain/test_work_item_require_state.py::test_require_state_raises_the_very_error_passed_without_a_state. It runs once each for a `ValueError`, a `CannotHandle` and a `WorkItemFormatError`, and checks `excinfo.value is error`.
+   - criterion 3: tests/test_no_state_copies.py::test_no_module_but_the_journal_defines_its_own_state_copy searches `src/factory`. tests/test_no_state_copies.py::test_a_state_copy_is_found_outside_the_journal_only uses a source text written into the test: the copy is found in an outside module and not found in `factory.domain.journal`.
+   - criterion 4: tests/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself searches `src/factory`. tests/test_no_state_copies.py::test_an_inline_state_check_is_found has two cases, one checking `<name>.state` directly and one checking a name assigned from `<expr>.state`. tests/test_no_state_copies.py::test_the_allowed_state_checks_are_not_found confirms that `factory.domain.work_item.require_state` and `factory.domain.journal._state_of` are not reported.
+   - What the search counts as a check: an `if` whose body is a single `raise` and whose test is `X is None`. A name counts as `X` when the same function assigns it from an `.state` attribute through `Assign` or `AnnAssign`.
+   - criteria 5, 6 and 7: these are the usual closing criteria, so they have no new test. No existing test was changed.
+   - Files created: tests/domain/test_work_item_require_state.py and tests/test_no_state_copies.py.
+   - Import failure: the test runner could not import `require_state` from `factory.domain.work_item`. This collection error stops the run, so the search tests in tests/test_no_state_copies.py have not run yet. Against the current code they will report the nine `_state_of` copies and the inline checks.
+   - `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: added `require_state(document, error)` and moved all 17 call sites onto it. `make check` is green and coverage is 99.54 %.
+   - Built: `require_state` is in `src/factory/domain/work_item.py`. It returns `document.state`, or raises the exact instance it was given.
+   - Copies removed: the nine `_state_of` copies are gone from `application/{recovery,claims,stage,stalls}.py` and from `application/handlers/{closed,questions,comments,reject,hand_over}.py`. Each module now has a private `_no_state()` that builds the same exception as before. In `recovery.py` it is `_no_state(work_item)`, because the message includes the id. Each call is now `require_state(doc, _no_state())`.
+   - Inline checks replaced: the eight inline checks in `claims.release`, `handlers/merged._archived`, `adapters/work_item_markdown.render`, `costs.begin`, `handlers/recording.target_of`, `stage._launchable_stage`, `task._round` and `domain/evaluation._validated_state` now pass their exception to `require_state`, either directly or through a local variable named `error`. Exception types and messages are unchanged.
+   - `src/factory/domain/journal.py` keeps its own `_state_of`. A one-line comment above it explains the reason: `work_item` imports `JournalRecord` from that module.
+   - Design decision: I used a small builder function per module for the copies. The alternative was a module-level exception constant, which I rejected because raising one shared instance again and again would pile up its `__traceback__` across raises. The exception is built at each call, before the state check. That is cheap, and the Interface asks for this signature.
+   - Commits: 036c280 is the change. e31c599 is the refactor, which collapses two import lists that ruff had left multi-line after `WorkItemState` was dropped. Apart from that, the refactor pass found nothing to change.
+   - Seen but not touched: `domain/story_form._check_started` also checks `document.state is None`. It returns a finding rather than raising, so it is outside the rule and was left alone. The docs criterion (project-guide) belongs to the documenter.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Criteria: criterion 1 is covered by `tests/domain/test_work_item_require_state.py::test_require_state_returns_the_documents_state`. Criterion 2 is the parametrized test over `ValueError`, `CannotHandle` and `WorkItemFormatError`, and it asserts `excinfo.value is error`. Criterion 3 is covered by `tests/test_no_state_copies.py`: one test searches `src/factory`, and one parametrized test runs a written-in source text as an outside module (found) and as the journal (not found). Criterion 4 is covered by the same file: one test searches `src/factory`, one finds the two forms of the check (`<name>.state` and a name assigned from `.state`), and one confirms that `require_state` and the journal's `_state_of` are not reported. Criterion 5: no existing test is in the diff. The coder's entry records `make check` green.
+      - Call sites: I checked all 17 rows of the Interface table against the diff. Every exception type and message is unchanged. `grep` over `src/factory` finds `def _state_of` only in `factory/domain/journal.py`. Every other remaining `state is None` is a conditional expression or a returned finding (`story_form._check_started`), not a raise, so the rule does not cover it. `journal._state_of` has the one-line comment the Interface asks for.
+      - Architecture: `require_state` is in `factory.domain.work_item`. Application, adapters and `domain.evaluation` import it downward, and the journal does not import it. Each module's private `_no_state()` builds an exception and does not check `document.state`, as the Interface allows. The coder rejected a module-level constant because of traceback build-up on a shared instance. I agree with that.
+      - Security: no subprocess, no string-built commands, no suppression markers, no new dependency.
+      - Quality: `require_state` has a docstring. The test helpers use the existing `tests/source_search.modules`, as `test_no_journal_reading.py` does. No dead imports: `WorkItemState` stays only where it is still used.
+      - Hygiene: the Assignment matches what was built. The docs criterion (`docs/project-guide.md` names `require_state`, and the journal's "Imports" bullet gives the reason) is still right for the documenter.
+6. documenter: no findings. Documented `require_state` and the journal's private check in `docs/project-guide.md`. `make check` is green (coverage 99.54 %).
+   - Changed `docs/project-guide.md`, "The document and its error": added a paragraph naming `require_state(document, error)` as the one way to get a document's state when it must be there. It says that it returns `document.state` or raises the very instance passed, that the caller builds the exception, and that `tests/test_no_state_copies.py` searches `src/factory` for private copies and inline checks.
+   - Changed `docs/project-guide.md`, the journal's "Imports" bullet: it now says the journal cannot use `require_state` for the same import-cycle reason, and keeps its own private `_state_of`, the one other function that checks a state itself.
+   - Cross-read: `README.md`, `docs/operator-guide.md` and the rest of `docs/project-guide.md`. A grep finds no mention of `_state_of` or the old copies in them, so nothing else was stale. The diff changes no behaviour, exception type or message.
+   - I did not run the two Demo commands. They were not part of what I changed.
+   - Seen but not touched: nothing unrelated to this story.
+
+   `make check`: check: green
+7. demo: ran both Demo commands from the repository root. Both met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+   Command 1, `grep -rn "def _state_of" src/factory; echo "copies: $?"`:
+   ```
+   src/factory/domain/journal.py:110:def _state_of(document: WorkItemDocument) -> WorkItemState:
+   copies: 0
+   ```
+   Met: two lines, the journal's one copy with the expected signature, then `copies: 0`. This agrees with criterion 3.
+
+   Command 2, `uv run python -c "…require_state…"`:
+   ```
+   doing
+   no state here
+   ```
+   Met: two lines, `doing` and then `no state here`. This agrees with criteria 1 and 2: the document's state is returned, and the exception passed is raised without a state.
+
+   Criteria 4 to 7 are not exercised by the demo commands, and nothing in the output contradicts them.

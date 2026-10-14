@@ -15,15 +15,13 @@ from factory.domain.hosting import PostKey
 from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text, last_record
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import attempts_cap_question
-from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemState
+from factory.domain.work_item import Blocked, WorkItemDocument, require_state
 
 _KIND = "ask"
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise ValueError("a work item without a state has no question to ask")
-    return document.state
+def _no_state() -> ValueError:
+    return ValueError("a work item without a state has no question to ask")
 
 
 class AskHandler(Handler):
@@ -55,11 +53,13 @@ class AskHandler(Handler):
         stall = last_record(document, kind="stall")
         if stall is None:
             raise CannotHandle(_KIND, f"work item {snapshot.id} has no stall to ask about")
-        state = _state_of(document)
+        state = require_state(document, _no_state())
         last_stall = entry_text(document, stall.number)
         text = attempts_cap_question(state.stage, state.attempts, last_stall)
         appended = append_entry(document, NewEntry(speaker=FACTORY, kind="question", text=text))
-        blocked = _state_of(appended).model_copy(update={"blocked": "attempts_cap"})
+        blocked = require_state(appended, _no_state()).model_copy(
+            update={"blocked": "attempts_cap"}
+        )
         recorded = appended.model_copy(update={"state": blocked})
         subject = commit_subject(snapshot.id, "attempts cap question recorded")
         recorder.record(snapshot.branch, snapshot.path, recorded, subject)

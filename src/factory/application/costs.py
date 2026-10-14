@@ -22,6 +22,7 @@ from factory.domain.identifiers import (
     work_item_order,
 )
 from factory.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, cost_records_path
+from factory.domain.work_item import require_state
 
 if TYPE_CHECKING:
     from factory.application.stage import StartedStage
@@ -48,9 +49,8 @@ class CostRecorder:
         """Add a started record for a run of `role` in `started` and write the sidecar."""
         path = cost_records_path(started.path)
         earlier = self._boundaries.cost_reader.read(self._boundaries.checkout / path)
-        state = started.document.state
-        if state is None:
-            raise ValueError(f"the work item {started.work_item} has no state")
+        error = ValueError(f"the work item {started.work_item} has no state")
+        state = require_state(started.document, error)
         record = CostRecord(
             run=uuid.uuid4().hex,
             work_item=started.work_item,

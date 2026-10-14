@@ -17,15 +17,13 @@ from factory.domain.journal import last_record
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
 
 _KIND = "hand_over"
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise CannotHandle(_KIND, "the work item on its branch has no state")
-    return document.state
+def _no_state() -> CannotHandle:
+    return CannotHandle(_KIND, "the work item on its branch has no state")
 
 
 def _cost_table_key(snapshot: WorkItemSnapshot, document: WorkItemDocument) -> PostKey:
@@ -53,7 +51,7 @@ class HandOverHandler(Handler):
         recorder = WorkItemRecorder(self._boundaries)
         recorder.check_out(snapshot.branch)
         document = recorder.read(snapshot.path)
-        state = _state_of(document)
+        state = require_state(document, _no_state())
         stage = self._definition.stages.get(state.stage)
         if stage is None or not stage.approval:
             raise CannotHandle(_KIND, f"stage {state.stage} of {snapshot.id} is not an approval")

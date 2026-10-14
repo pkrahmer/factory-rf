@@ -115,3 +115,10 @@ class StoryFile(BaseModel):
 def initial_state(first_stage: str) -> WorkItemState:
     """Return the state of a story just started at the pipeline's first stage."""
     return WorkItemState(stage=first_stage)
+
+
+def require_state(document: WorkItemDocument, error: Exception) -> WorkItemState:
+    """Return the document's state, or raise `error` when the document has none."""
+    if document.state is None:
+        raise error
+    return document.state

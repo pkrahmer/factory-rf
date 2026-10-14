@@ -26,19 +26,17 @@ from factory.domain.send_back import (
     send_back_cap,
     send_back_target,
 )
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
 
 _KIND = "closed"
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise ValueError("a work item without a state cannot be sent back")
-    return document.state
+def _no_state() -> ValueError:
+    return ValueError("a work item without a state cannot be sent back")
 
 
 def _with_state(document: WorkItemDocument, **changes: object) -> WorkItemDocument:
-    state = _state_of(document).model_copy(update=changes)
+    state = require_state(document, _no_state()).model_copy(update=changes)
     return document.model_copy(update={"state": state})
 
 
@@ -80,14 +78,16 @@ class ClosedHandler(Handler):
         hosting.reopen(pull_request)
         hosting.set_draft(pull_request, True)
         decided = self._record_decision(target.snapshot, closed, stage, cap)
-        hosting.set_labels(pull_request, labels_for(_state_of(decided)))
+        hosting.set_labels(pull_request, labels_for(require_state(decided, _no_state())))
 
     def _record_close(self, snapshot: WorkItemSnapshot, pull_request: int) -> WorkItemDocument:
         recorder = WorkItemRecorder(self._boundaries)
         recorder.check_out(snapshot.branch)
         document = recorder.read(snapshot.path)
         copier = CommentCopier(self._boundaries)
-        closed = copier.append(document, copier.unread(_state_of(document), pull_request))
+        closed = copier.append(
+            document, copier.unread(require_state(document, _no_state()), pull_request)
+        )
         # A retry after a failed reopen finds its close recorded and must not close again.
         if not recorded_since_latest_result(closed, "close"):
             on = self._boundaries.clock.now().astimezone(UTC).date()
@@ -102,7 +102,7 @@ class ClosedHandler(Handler):
     def _record_decision(
         self, snapshot: WorkItemSnapshot, closed: WorkItemDocument, stage: str, cap: int | None
     ) -> WorkItemDocument:
-        new_round = _state_of(closed).round + 1
+        new_round = require_state(closed, _no_state()).round + 1
         text = send_back_entry_text(stage, new_round)
         decided = append_entry(closed, NewEntry(speaker=FACTORY, kind="send_back", text=text))
         question = send_back_question(new_round, cap, reason_given(closed))

@@ -18,7 +18,7 @@ from ruamel.yaml.scalarstring import SingleQuotedScalarString
 from factory.adapters.validation_faults import first_fault
 from factory.application.files import WorkItemReader, WorkItemWriter
 from factory.domain.errors import WorkItemFormatError
-from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.domain.work_item import WorkItemDocument, WorkItemState, require_state
 
 # Words a YAML 1.1 or 1.2 reader takes for null or a boolean; written quoted, they stay text.
 _AMBIGUOUS_WORDS = frozenset({"null", "true", "false", "yes", "no", "on", "off", "y", "n"})
@@ -160,9 +160,8 @@ class FrontmatterWorkItemWriter(WorkItemWriter):
 
     @override
     def render(self, document: WorkItemDocument) -> str:
-        if document.state is None:
-            raise WorkItemFormatError("the document has no state")
-        values: dict[str, object] = document.state.model_dump()
+        state = require_state(document, WorkItemFormatError("the document has no state"))
+        values: dict[str, object] = state.model_dump()
         post = frontmatter.Post(document.body.strip(), None, **values)
         return frontmatter.dumps(post, handler=self._handler) + "\n"
 

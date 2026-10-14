@@ -28,7 +28,7 @@ from factory.domain.labels import labels_for
 from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.story_form import FormFinding
-from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.domain.work_item import WorkItemDocument, require_state
 
 STALL_TAIL_LINES = 15
 
@@ -109,10 +109,8 @@ class StageLauncher:
     def _launchable_stage(self, prepared: PreparedWorkItem) -> str:
         if prepared.merge_conflict:
             raise ValueError(f"{prepared.branch} has a merge conflict with the main branch")
-        state = prepared.document.state
-        if state is None:
-            raise ValueError(f"the work item {prepared.work_item} has no state")
-        return state.stage
+        error = ValueError(f"the work item {prepared.work_item} has no state")
+        return require_state(prepared.document, error).stage
 
     def _start(
         self, prepared: PreparedWorkItem, stage: str, findings: list[FormFinding]
@@ -271,7 +269,7 @@ class StageFinisher:
         started = aftermath.started
         move = decide(
             self._definition,
-            _state_of(aftermath.document),
+            require_state(aftermath.document, _no_state()),
             aftermath.decision,
             aftermath.form_findings,
         )
@@ -287,7 +285,7 @@ class StageFinisher:
         moved = self._moved(document, move, started.pull_request.number)
         commit = self._commit_and_push(started, moved, f"{started.stage} ends: {move.stage}")
         self._boundaries.hosting.set_labels(
-            started.pull_request.number, labels_for(_state_of(moved))
+            started.pull_request.number, labels_for(require_state(moved, _no_state()))
         )
         return StageReport(
             work_item=started.work_item,
@@ -338,7 +336,7 @@ class StageFinisher:
     def _moved(
         self, document: WorkItemDocument, move: StageMove, pull_request: int
     ) -> WorkItemDocument:
-        state = _state_of(document)
+        state = require_state(document, _no_state())
         moved_state = state.model_copy(
             update={
                 "stage": move.stage,
@@ -386,7 +384,7 @@ class StageRunner:
         A step that cannot be kept ends the run as a stall, reported with no rule.
         """
         prepared = self._opening.prepare(work_item, path)
-        stage = _state_of(prepared.document).stage
+        stage = require_state(prepared.document, _no_state()).stage
         if prepared.merge_conflict:
             context = StallContext(
                 work_item=work_item,
@@ -405,10 +403,8 @@ class StageRunner:
         return self._finisher.finish(processed)
 
 
-def _state_of(document: WorkItemDocument) -> WorkItemState:
-    if document.state is None:
-        raise ValueError("the work item has no state")
-    return document.state
+def _no_state() -> ValueError:
+    return ValueError("the work item has no state")
 
 
 def _role_of(definition: PipelineDefinition, stage: str) -> str:
