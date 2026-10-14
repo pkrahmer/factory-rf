@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 98
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -140,3 +140,24 @@ Expect: the factory log line on standard output first, time-stamped and ending w
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: question about a test that fails in its own setup. The implementation is committed in 983df7a.
+
+   Built:
+   - `delete_stale_branches(boundaries)` is in `src/factory/application/recovery.py`. It collects the ids of the `backlog` and `done` stories on `origin/main` that no `in-progress` file shares. If an id is in both `backlog` and `done`, the log line says "done". It deletes each matching remote-tracking branch, in name order, through `Git.delete_remote_branch`. A `"pushed"` outcome is logged as `deleted stale branch …` and added to the result. Any other outcome is logged as `could not delete stale branch …: <outcome>`.
+   - `Tick.run` in `src/factory/application/tick.py` calls it after the restore step and before the evaluation. A stop ends the tick before the cleanup is reached.
+   - Rejected: putting the cleanup inside `_restore`. A `GitError` there would raise `checkout_restore_failed`, but the Interface says a `GitError` from the cleanup is left uncaught.
+
+   The question: in `make check`, every other test passes and coverage is 99%. The one failure is `tests/application/test_stale_branches.py::test_a_story_moved_back_in_the_work_tree_only_keeps_its_branch`, and it fails in its own setup before the function under test runs:
+   - `human.start(BACKLOG_PATH)` moves the fixture's only backlog story, so the `backlog/` directory is empty.
+   - Git does not keep empty directories, so after `checkout.reset_to("origin/main")` the checkout has no `factory/features/F0001-example/backlog/` directory.
+   - `(directory / IN_PROGRESS_PATH).rename(directory / BACKLOG_PATH)` then raises `FileNotFoundError`.
+
+   No change to the code under test can make this pass.
+
+   Options:
+   - (a) Recommended: the tester adds `(directory / BACKLOG_PATH).parent.mkdir(parents=True, exist_ok=True)` just before the rename. The test then checks criterion 4's second half as intended. I expect it to pass against the current implementation, but I have not run it.
+   - (b) Drop that test and leave the work-tree half of criterion 4 untested. I advise against this.
+
+   Refactor step: not done yet, because `make check` is not green. The diff is small (one function, one helper, one call in the tick) and I see nothing to clean up so far. The refactor will follow once the test is fixed.
+
+   Not touched: `docs/` (criterion 15 is the documenter's).
