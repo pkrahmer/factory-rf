@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 75
 blocked: null
 comments_seen: 2
@@ -104,8 +104,10 @@ Tests: `tests/domain/test_move_rule.py`, `tests/domain/test_evaluation_reject.py
 21. A work item whose branch holds an illegal stage change and whose pull request is merged gives kind `merged`, not `reject`; the same change with an open pull request gives `reject`.
 22. ST2.4 end to end: for each move of `factory_moves` of the fixture's definition, a branch whose newest commit makes exactly that move (written with `FrontmatterWorkItemWriter`) gives no `reject` from `Watcher.evaluate`.
 23. `StageChange`, `FactoryMove`, `IllegalChange` and `EvaluationInput` refuse an unknown key and an assignment to a field; a `from_stage` of `Tests` (an upper-case letter) raises `ValidationError` and `tests` is accepted; an `IllegalChange` with `work_item` `F001-S0001` raises `ValidationError` and `F0001-S0001` is accepted.
-24. make check stays green.
-25. docs: `docs/project-guide.md` explains the rule for stage changes made outside the pipeline (the last commit beyond `origin/main` on the branch, the opening commit and merge commits exempt, the `move_back` entry) and that the pull request's state is read first; `docs/operator-guide.md` says what the factory does when someone changes a stage by hand and that a merge by any method is not such a change.
+24. `last_stage_change` returns `None` when the newest commit that touched the file deleted it.
+25. `last_stage_change` returns `correction=False` when the newest commit changed the stage and left the journal the same length, also when the journal's last record (an older one) has kind `move_back`.
+26. make check stays green.
+27. docs: `docs/project-guide.md` explains the rule for stage changes made outside the pipeline (the last commit beyond `origin/main` on the branch, the opening commit and merge commits exempt, the `move_back` entry) and that the pull request's state is read first; `docs/operator-guide.md` says what the factory does when someone changes a stage by hand and that a merge by any method is not such a change.
 
 ## Demo
 
@@ -139,3 +141,10 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
    - The architecture is respected: the rule is pure in `domain`, the reading is in `application`, and the watcher fills the input.
    - The scope matches `FEATURE.md`.
 3. human (pull request comment, 2026-10-14): 1 and 2: add both as new criteria, as you worded them, before the `make check` and `docs:` criteria: a newest commit that deleted the work item's file gives `None`; a commit that changes the stage and leaves the journal the same length gives `correction=False`, also when the journal's last record (an older one) has kind `move_back`. The Interface stays as it is.
+4. intake: accepted. Checked again with the human's answer (log entry 3); the format check passed.
+   - Answer carried in (log entry 3): I added the two criteria exactly as the human approved. Criterion 24: a newest commit that deleted the file gives `None`. Criterion 25: a stage change that leaves the journal the same length gives `correction=False`, also when an older last record has kind `move_back`. Both go before the closing criteria, which are now 26 (`make check`) and 27 (`docs:`). The Interface and Assignment are unchanged, since the human said the Interface stays as it is.
+   - Interface: it names concrete modules and signatures. Each rule of `is_legal_change`, `factory_moves`, `last_stage_change` and `evaluate` is stated precisely.
+   - Criteria: each is testable by one test function. Every rule has a criterion for the failing side as well as the passing side: illegal and legal changes (1–5), the `None` cases (9–11, 24), `correction` true and false (12, 25), and `reject` skipped only for a merged pull request (16, 17).
+   - Demo: it is runnable, and its `Expect:` line lists six checkable outputs.
+   - Architecture: the pure rule is in `domain`, the git reading is in `application` through `Git.log` and `Git.is_ancestor`, and the watcher fills the input. The layers are respected.
+   - Scope: the story is within the feature's "move rule" scope, and handling `reject` stays with F0007-S0006.
