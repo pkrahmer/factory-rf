@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 80
 blocked: null
 comments_seen: 0
 round: 0
@@ -61,3 +61,9 @@ Expect: at least one line names `NOT_YET_HANDLED` or lists the unhandled kinds, 
 ## Log (append only)
 
 1. 2026-10-14 human: created.
+2. intake: accepted
+   - Interface: "None", no code changes. The files are named (`README.md`, `docs/operator-guide.md`), and `project-guide.md` and `decisions.md` change only where they contradict the new text. There is nothing to specify further. The Interface states no rule or behaviour needing its own criterion.
+   - Criteria: criterion 1 is the `make check` gate. Criterion 2 is the docs criterion, split into seven bullets. Each bullet names the sections and the exact claims to add or remove, so the documenter and a reviewer can check it by reading. No code rule is stated, so there is no failing side to cover. The story says the tester writes no tests, and the tester stage should respect that.
+   - Demo: the three commands are runnable `grep`s on the two files. Each `Expect:` line is checkable against the output: absent phrases, `factory-run` named as not built, `NOT_YET_HANDLED`, `hand_over` and "created by hand" present.
+   - Architecture: no layer or module is touched, so there is no conflict with `CLAUDE.md`. The docs follow the documenter's four-file rule, and the story leaves `docs/decisions.md` alone unless it contradicts the new text.
+   - Scope: the story is within F0006's goal. It is the feature acceptance's proposed documentation story, listed in `FEATURE.md`. It documents today's behaviour and does not change the rules (F0007, F0008 and F0010 stay out of scope).
