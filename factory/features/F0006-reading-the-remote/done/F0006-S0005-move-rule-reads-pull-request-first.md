@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 75
 blocked: null
 comments_seen: 2
@@ -278,3 +278,4 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
    - It agrees with criteria 6 and 7: `factory_moves` lists the `next` pairs in the definition's order, then `(approval, done)` once with no duplicate pair, and every move it lists is legal.
 
    The demo does not exercise the git and watcher criteria (8–25). They rest on the tests the reviewer checked in log entry 7.
+10. done (pull request merged); cost: 7 runs, 13.2 min, 64 turns, 225k tokens in (1811k more from cache), 50k out, $2.87
