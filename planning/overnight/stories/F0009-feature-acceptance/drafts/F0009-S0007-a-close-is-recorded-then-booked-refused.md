@@ -39,12 +39,14 @@ Tests: `tests/application/test_acceptance_closed.py`; the `remote`, `checkout`, 
 5. After `handle` the branch `work-item/<id>` is gone on the remote and locally, and a second `handle` of the same event (the branch no longer resolves, the report is in `done/`) raises no error and makes no new commit.
 6. After `kill_points.arm(KillPoint.BEFORE_PUSH, after=1)` made the first `handle` raise `InjectedKill` at the push of the main branch, `origin/<branch>` already holds the `comment` and `close` records; a second `handle` leaves exactly one `close` record, one report in `done/`, one new commit on `origin/main`, and the branch gone.
 7. When the branch is gone and the report is in neither the branch nor `done/` on `origin/main`, `handle` raises `CannotHandle` with the reason `no report on the branch or the main branch` and changes nothing.
-8. An acceptance closed at the stage `acceptance` (before its approval, with the reviewer working) is booked in `done/` with the outcome `refused`, the first paragraph `Refused by the human on <date>: no reason given` when no comment follows, and its branch deleted.
+8. An acceptance closed at the stage `acceptance` (before its approval, with the reviewer working), and one closed at the stage `acceptance` with `blocked == "question"`, are each booked in `done/` with the outcome `refused`, `blocked` `None`, the first paragraph `Refused by the human on <date>: no reason given` when no comment follows, and the branch deleted (two cases, one test).
 9. `AcceptanceClosed.handle` raises `CannotHandle` with the four reasons the Interface gives (another kind of event, a story's event, no acceptance stage, a pull request that is not closed), in that order, and changes nothing.
 10. `AcceptanceClosed(boundaries, definition)` with `definition.acceptance_stage` `None` is built without an error.
 11. ST2.2: after an acceptance was refused, the feature's status is `refused` and it is not due; once another story is archived the feature is `due` again, `due_features()` lists it and `AcceptanceService.open` opens `F0002-A0002`.
-12. make check stays green.
-13. docs: `docs/operator-guide.md` explains what a close of an acceptance's pull request does at any stage (booked refused, the human's comments as the reason, the proposed stories dropped, the branch deleted, a rerun after a kill harmless) and that a refused feature is due again only after another story is archived.
+12. When the remote's main branch moved since the last fetch (the human pushed to it), `AcceptanceClosed.handle` raises `PushFailed` with the outcome `rejected` after the close is recorded on `origin/<branch>`, and the branch is still on the remote.
+13. When the remote refuses the deletion of the branch (`receive.denyDeletes` set in the bare remote), `handle` raises `PushFailed` with the outcome `rejected` after the refusal is pushed: `origin/main` holds the report in `done/` and the branch is still on the remote.
+14. make check stays green.
+15. docs: `docs/operator-guide.md` explains what a close of an acceptance's pull request does at any stage (booked refused, the human's comments as the reason, the proposed stories dropped, the branch deleted, a rerun after a kill harmless) and that a refused feature is due again only after another story is archived.
 
 ## Demo
 
