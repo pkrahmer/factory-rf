@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 54
 blocked: null
 comments_seen: 0
@@ -190,3 +190,36 @@ Expect: three lines. `True True 10`; `True` (rewriting the pipeline definition i
    - Demo: both blocks are runnable against the named adapters and fixtures. Each `Expect:` line is checkable. The first block prints six lines, as the line says. The second prints three.
    - Architecture: the pure rules are in the domain and the service is in the application layer. It reaches git and the reader only through `Boundaries`. It reuses `GuardSettings` and `StageStart`. This matches CLAUDE.md and decision 16 of the feature.
    - Scope: the story is inside the feature's scope (matching rule, placeholders, protected list, `refusal`, `WritePathService`). The guard hook, the undo and the claim are left to S0004, S0005 and S0001/S0002.
+3. tester: red tests written for every criterion; `make lint` is green.
+   - criterion 1: tests/domain/test_write_paths.py::test_a_path_matching_a_write_path_is_writable_and_star_crosses_slashes
+   - criterion 2: tests/domain/test_write_paths.py::test_a_path_matching_no_write_path_is_not_writable
+   - criterion 3: tests/domain/test_write_paths.py::test_an_unsafe_path_is_never_writable_and_a_dotted_segment_name_is_safe. Cases: empty, a leading `/` (also under `/src/*`), `src/../…`, `../a.py`, a trailing `src/..`, and on the safe side `src/..x/a.py`, `src/x../a.py`, `..x/a.py`.
+   - criterion 4: tests/domain/test_write_paths.py::test_both_placeholders_are_expanded_in_order
+   - criterion 5: tests/domain/test_write_paths.py::test_an_unknown_placeholder_is_refused_by_name. Cases: `{stage}`, plus `{other_name}`, which covers the underscore in the Interface's "lowercase letters and underscores".
+   - criterion 6: tests/domain/test_write_paths.py::test_the_protected_paths_are_the_engines_ten_patterns
+   - criterion 7: tests/domain/test_write_paths.py::test_each_protected_pattern_protects_its_path
+   - criterion 8: tests/domain/test_write_paths.py::test_a_writable_unprotected_path_is_not_refused
+   - criterion 9: tests/domain/test_write_paths.py::test_a_path_outside_the_write_paths_is_refused
+   - criterion 10: tests/domain/test_write_paths.py::test_a_protected_path_is_refused_even_under_a_matching_write_path
+   - criterion 11: tests/domain/test_write_paths.py::test_an_unsafe_path_is_refused_before_anything_else
+   - criterion 12: tests/application/test_write_paths.py::test_at_returns_the_role_write_paths_with_the_work_item_expanded. Cases: the `tests` stage, whose role is tester, and `intake`.
+   - criterion 13: tests/application/test_write_paths.py::test_at_expands_the_feature_to_the_feature_path. Uses the `acceptance` stage, whose role is acceptance-reviewer.
+   - criterion 14: tests/application/test_write_paths.py::test_at_reads_the_definition_as_it_was_at_the_stage_start_commit
+   - criterion 15: tests/application/test_write_paths.py::test_at_ignores_the_work_tree_copy_of_the_definition
+   - criterion 16: tests/application/test_write_paths.py::test_at_refuses_a_commit_without_the_definition. The commit without the definition is made locally with `checkout.commit` and not pushed, because `HumanClone` cannot delete a file.
+   - criterion 17: tests/application/test_write_paths.py::test_at_refuses_an_invalid_definition_at_the_commit
+   - criterion 18: tests/application/test_write_paths.py::test_at_refuses_a_stage_that_is_missing_or_has_no_role. Cases: `unknown` and `approval`.
+   - criterion 19: tests/application/test_write_paths.py::test_at_refuses_a_path_that_is_no_work_item_path
+   - criterion 20: tests/domain/test_write_paths.py::test_a_brace_that_is_no_placeholder_name_is_kept
+   - criterion 21: tests/application/test_write_paths.py::test_at_needs_no_installed_agent_file_and_raises_no_stop
+   - criterion 22: tests/application/test_write_paths.py::test_at_refuses_a_foreign_placeholder_in_the_role_write_paths
+   - criteria 23 and 24: no test. `make check` is the gate for 23, and the documenter's work is 24.
+
+   Files created: tests/domain/test_write_paths.py, tests/application/test_write_paths.py.
+
+   The test runner could not import `factory.domain.write_paths` or `factory.application.write_paths`, so both modules fail at collection. I ran `make test` twice: once for the summary, and once more to see the import errors.
+
+   Open for the coder: the application tests build a `StageStart` directly from `checkout.resolve("origin/main")` and a `Claim`, without going through `ClaimService`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
