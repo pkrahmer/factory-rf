@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 84
 blocked: null
 comments_seen: 0
@@ -203,3 +203,18 @@ Expect: the files on `origin/main` are exactly `factory/features/F0001-todo/done
       - Noticed, not touched: the demo's second block builds the boundaries with `SimpleNamespace`. This works at runtime because the handler only uses git, checkout, the readers and the writer. I did not run the demos.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1–17 each have a test that checks what the criterion says.
+        - 1 and 2: `tests/domain/test_archive.py`, both sides; the refused side is README.md, a feature file and `drafts/`.
+        - 3: `tests/domain/test_archive_texts.py`, an empty bill and a bill of three.
+        - 4–17: `tests/application/handlers/test_merged.py`.
+        - Criterion 5 compares the whole archived state with the expected copy, so `pull_request`, `round`, `attempts`, `crashes`, `comments_read`, `handed_over` and the old records are all covered.
+        - Criteria 13 and 14 use the real kill points and check `origin/main` and the remote branch.
+        - Criteria 15 and 17 check `PushFailed.outcome == "rejected"`. 15 also checks that the branch is kept; 17 that the archive is on main and the branch is still on the remote.
+        - The coder's entry says `make check` was green.
+      - Architecture: `domain/archive.py` and `done_entry_text` are pure. `post_texts` → `bills` adds no import cycle. `MergedHandler` is in `application` and reaches git, the readers and the writer only through `Boundaries` and `WorkItemRecorder`. The claim is dropped in the state, as the Interface states.
+      - Security: no shell or string-built commands, no secrets, no suppression markers.
+      - Quality: names and docstrings fit.
+        - The coder derives the sidecar destination as `cost_records_path(destination_path(story, "done"))`. That is the right call: `folder_of` accepts only `.md` work item files, and widening it would change the rule that S0004 reuses.
+        - The `appended.state is None` guard in `merged.py:39` cannot be reached, because `append_entry` already refuses a stateless document. It exists only to narrow the type for mypy, which is how the sibling handlers handle the same issue. I accept it and do not count it as dead logic.
+      - Ticket hygiene: the log names the main decision (the sidecar destination) and what was rejected. `Assignment` matches the code. Criterion 19 still says what the operator guide must cover.
