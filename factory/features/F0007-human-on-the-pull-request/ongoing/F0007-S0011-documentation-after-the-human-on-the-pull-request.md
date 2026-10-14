@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 93
 blocked: null
 comments_seen: 0
@@ -73,3 +73,11 @@ Expect: a line of `README.md` (its summary paragraph) is printed, naming the han
    - Demo: all five blocks are runnable and every `Expect:` line is checkable. I ran the sed range of block 4 and it works: the "Asking the human" and "Comments are copied by id" headings exist in docs/project-guide.md. I ran the grep of block 5: today it prints lines from docs/operator-guide.md and none from README.md, which matches the story's "before this story README.md prints none".
    - Architecture: documentation only, so no layer or interface is touched. docs/decisions.md changes only where it contradicts the new text.
    - Scope: the story fits F0007 (it is listed in FEATURE.md as proposed by the feature acceptance). It touches no test, no code and nothing out of scope.
+3. tester: no tests written, on purpose. This story only changes documentation. Its Interface says "None: no code changes", and it has just two criteria:
+   - criterion 1 (make check stays green) is the factory's gate, not a test.
+   - criterion 2 (docs:) is for the documenter. Its bullets are checked by reading and by the Demo greps. A test that pins documentation wording would not be an executable form of a behaviour and would sit outside the Interface.
+   The Assignment also says "the tester writes no tests", and intake agreed.
+   Files created: none. Modules the test runner could not import: none, since no new tests were added. I did not run make test because there are no new tests to watch fail. make lint: green. Nothing is open for the coder: the story goes on to the documenter by way of doing.
+
+   `make lint`: lint: green
+   `make test`: test: green
