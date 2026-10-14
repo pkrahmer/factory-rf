@@ -3,6 +3,7 @@
 # Postponed annotations let this module name StallReason while decisions imports these texts.
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -43,13 +44,29 @@ def stall_cause(reason: StallReason, detail: str = "") -> str:
 
 
 def stall_note(reason: StallReason, attempts: int, attempts_cap: int, *, detail: str = "") -> str:
-    """The note posted on the pull request after a stall; it promises a retry only below the cap."""
-    cause = stall_cause(reason, detail)
+    """The note posted on the pull request after a stall; it promises a retry only below the cap.
+
+    A multi-line `detail` gives its first line to the sentence and the rest to a fenced block.
+    """
+    first_line, *rest = detail.rstrip("\n").split("\n")
     if attempts < attempts_cap:
         follow_up = "Retrying on the next tick."
     else:
         follow_up = "The attempts cap is reached; the factory asks you next."
-    return f"Stalled (attempt {attempts} of {attempts_cap}): {cause}. {follow_up}"
+    sentence = (
+        f"Stalled (attempt {attempts} of {attempts_cap}): "
+        f"{stall_cause(reason, first_line)}. {follow_up}"
+    )
+    if not rest:
+        return sentence
+    return "\n".join([sentence, "", *_text_block(rest)])
+
+
+def _text_block(lines: list[str]) -> list[str]:
+    # GitHub renders a comment as Markdown; the fence keeps a check's output as it was printed.
+    longest_run = max((len(run) for run in re.findall("`+", "\n".join(lines))), default=0)
+    fence = "`" * max(3, longest_run + 1)
+    return [f"{fence}text", *lines, fence]
 
 
 def round_cap_question(rounds: int, cap: int) -> str:
