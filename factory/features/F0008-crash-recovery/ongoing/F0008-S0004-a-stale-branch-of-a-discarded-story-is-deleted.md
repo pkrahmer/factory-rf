@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 98
 blocked: null
 comments_seen: 2
@@ -173,3 +173,23 @@ Expect: the factory log line on standard output first, time-stamped and ending w
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: `make check` is green after the tester's one-line fix to the test (entry 7), with total coverage at 99.15%. The implementation has not changed since 983df7a.
+
+   Built:
+   - `delete_stale_branches(boundaries)` in `src/factory/application/recovery.py`, with the private helper `_stale_reasons`:
+     - It reads the `backlog`, `done` and `in-progress` stories on `origin/main` through `RemoteWorkItems`.
+     - The stale ids are the backlog and done ids that no in-progress file shares.
+     - It walks `Git.remote_branches()` in name order and deletes each branch whose `work_item_of_branch` is a stale id, using `Git.delete_remote_branch`.
+     - A `"pushed"` outcome is logged as `deleted stale branch <name>: <reason>` and added to the result. Any other outcome is logged as `could not delete stale branch <name>: <outcome>`.
+     - It makes no hosting call and does not catch `GitError`.
+   - `Tick.run` in `src/factory/application/tick.py` calls it after the restore and before the evaluation, so a repository stop returns before the cleanup. The module and `run` docstrings now name the cleanup step.
+
+   Main decision: the cleanup is its own step in `Tick.run`, not part of `_restore`. Inside `_restore`, a `GitError` would turn into `checkout_restore_failed`, but the Interface says it stays uncaught.
+
+   If an id is in both `backlog/` and `done/`, the log line says "its story is done", because done is filled into the reasons last. The Interface does not decide this case.
+
+   Refactor step: I read `git diff main...HEAD -- src` as a reviewer would. The change is one function, one helper and one call, and there is nothing to rename, simplify or deduplicate, so there is no refactor commit.
+
+   Noticed, not touched: no test covers the `"unreachable"` outcome, because no criterion names it; the code handles it the same way as `"rejected"`. `docs/` is left for the documenter (criterion 15).
+
+   `make check`: check: green
