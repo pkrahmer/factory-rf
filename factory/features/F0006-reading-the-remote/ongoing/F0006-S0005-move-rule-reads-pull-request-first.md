@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 75
 blocked: null
 comments_seen: 2
@@ -148,3 +148,45 @@ Expect: six lines: `work approval True`, `work done False`, `approval done True`
    - Demo: it is runnable, and its `Expect:` line lists six checkable outputs.
    - Architecture: the pure rule is in `domain`, the git reading is in `application` through `Git.log` and `Git.is_ancestor`, and the watcher fills the input. The layers are respected.
    - Scope: the story is within the feature's "move rule" scope, and handling `reject` stays with F0007-S0006.
+5. tester: Wrote the red tests for every acceptance criterion. Each one tests the Interface as specified.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_move_rule.py::test_every_move_a_next_list_names_is_legal (parametrized over every next pair of the definition, which mirrors `PIPELINE_YAML` and is built in Python so the domain test does not import an adapter)
+   - criterion 2: tests/domain/test_move_rule.py::test_a_skipped_stage_is_illegal_and_the_same_stage_is_legal
+   - criterion 3: tests/domain/test_move_rule.py::test_a_stage_the_definition_lacks_is_illegal
+   - criterion 4: tests/domain/test_move_rule.py::test_done_is_legal_from_an_approval_stage_even_unlisted_and_from_no_other
+   - criterion 5: tests/domain/test_move_rule.py::test_a_correction_is_legal_whatever_it_jumps (the `correction` default is checked in test_a_stage_change_is_no_correction_by_default)
+   - criterion 6: tests/domain/test_move_rule.py::test_factory_moves_list_every_next_in_order_and_approval_to_done_once; the appended `(approval, done)` rule is in test_factory_moves_add_approval_to_done_after_the_next_lists
+   - criterion 7: tests/domain/test_move_rule.py::test_every_factory_move_is_legal (the fixture definition, and one whose approval lists only `doing`)
+   - criterion 8: tests/application/test_stage_changes.py::test_a_commit_that_changed_the_stage_is_the_last_stage_change, plus test_only_the_newest_commit_that_touched_the_file_counts
+   - criterion 9: tests/application/test_stage_changes.py::test_a_commit_that_kept_the_stage_is_no_stage_change (journal, claim and body cases)
+   - criterion 10: tests/application/test_stage_changes.py::test_a_merge_commit_is_no_stage_change. A second plain clone changes `stage` on a side branch, and the branch, which changed `pull_request`, merges it with `--no-ff`.
+   - criterion 11: tests/application/test_stage_changes.py::test_a_snapshot_without_a_branch_has_no_stage_change, ::test_a_branch_whose_commits_beyond_main_left_the_file_alone_has_no_stage_change, ::test_a_file_the_newest_commit_added_has_no_stage_change, ::test_a_previous_version_that_cannot_be_parsed_has_no_stage_change
+   - criterion 12: tests/application/test_stage_changes.py::test_a_stage_change_that_appends_a_move_back_is_a_correction
+   - criterion 13: tests/application/test_stage_changes.py::test_the_opening_commit_of_a_started_story_is_no_stage_change and tests/application/test_watcher_move_rule.py::test_the_opening_commit_of_a_started_story_is_no_reject
+   - criterion 14: tests/domain/test_evaluation_reject.py::test_the_first_illegal_change_in_snapshot_order_is_rejected_at_its_branch. `illegal_changes` is listed in reverse order, so the test proves the snapshot order decides; the detail is checked as the exact string from the Interface. Also test_no_illegal_change_is_no_reject.
+   - criterion 15: tests/domain/test_evaluation_reject.py::test_reject_comes_before_every_later_event (comment, ask, hand_over, crash, expired, run, idle; each case also checks that without the change it gives that event) and ::test_a_duplicate_comes_before_reject
+   - criterion 16: tests/domain/test_evaluation_reject.py::test_the_waiting_work_items_change_is_skipped_only_when_its_pull_request_is_merged and ::test_another_work_items_change_is_rejected_beside_a_merged_pull_request
+   - criterion 17: tests/domain/test_evaluation_reject.py::test_a_failed_lookup_skips_no_illegal_change and ::test_no_lookup_when_no_work_item_waits. Every test in the file that looks up asserts `lookup.calls == [PULL_REQUEST]`.
+   - criterion 18: tests/application/test_watcher_move_rule.py::test_a_hand_made_stage_change_the_definition_forbids_is_rejected
+   - criterion 19: tests/application/test_watcher_move_rule.py::test_the_correction_commit_ends_the_reject
+   - criterion 20: tests/application/test_watcher_move_rule.py::test_a_merge_by_any_method_is_merged_and_never_a_reject (merge, squash, rebase)
+   - criterion 21: tests/application/test_watcher_move_rule.py::test_an_illegal_change_beside_a_merged_pull_request_is_merged. The merged case uses squash, so the illegal commit stays beyond `origin/main`.
+   - criterion 22: tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject (parametrized over `factory_moves` of the parsed `PIPELINE_YAML`)
+   - criterion 23: tests/domain/test_move_rule.py::test_move_rule_models_refuse_an_unknown_key, ::test_move_rule_models_refuse_an_assignment, ::test_a_from_stage_must_be_a_lower_case_name, ::test_an_illegal_change_needs_a_work_item_id. For `EvaluationInput`: tests/domain/test_evaluation_reject.py::test_evaluation_input_refuses_an_unknown_key_and_an_assignment, and the default is checked in ::test_evaluation_input_has_no_illegal_changes_by_default.
+   - criterion 24: tests/application/test_stage_changes.py::test_a_file_the_newest_commit_deleted_has_no_stage_change
+   - criterion 25: tests/application/test_stage_changes.py::test_a_stage_change_that_keeps_the_journals_length_is_no_correction
+   - criteria 26 and 27: not tests; they are the factory's `make check` and the documenter's.
+
+   Files created:
+   - tests/domain/test_move_rule.py
+   - tests/domain/test_evaluation_reject.py
+   - tests/application/test_stage_changes.py
+   - tests/application/test_watcher_move_rule.py
+
+   `make test`: all 4 new files fail at collection because `factory.domain.move_rule` does not exist yet. `RemoteWorkItems.last_stage_change` and `EvaluationInput.illegal_changes` are missing too, but the tests do not reach them until that module exists. `make lint` is green. I did not run the type check, as this stage's skill says.
+
+   No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
