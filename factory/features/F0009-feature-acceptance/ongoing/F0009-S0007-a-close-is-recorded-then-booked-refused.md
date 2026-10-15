@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 109
 blocked: null
 comments_seen: 2
@@ -139,3 +139,11 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
    - The refactor step is still to do; it waits until `make check` is green.
 5. human (pull request comment, 2026-10-15): (a): the tester compares against the full path, `[DONE_REPORT]`, in `test_after_a_kill_at_the_push_of_main_a_second_handling_books_once`, and changes nothing else. End with `tests` and name exactly that change.
 6. coder: the human's answer (entry 5, option (a)) calls for a test change. Tester: in `tests/application/test_acceptance_closed.py::test_after_a_kill_at_the_push_of_main_a_second_handling_books_once`, change line 371 from `assert _reports_in_done(checkout) == ["F0002-A0001-acceptance.md"]` to `assert _reports_in_done(checkout) == [DONE_REPORT]`, and change nothing else. I made no code change this run. The handler is still as committed in fc2504e. The refactor step is still to do and comes once `make check` is green after this test change.
+7. tester: made the test change the human approved in entry 5, option (a), which the coder named in entry 6.
+      - The change is in tests/application/test_acceptance_closed.py::test_after_a_kill_at_the_push_of_main_a_second_handling_books_once, line 371. The assertion `assert _reports_in_done(checkout) == ["F0002-A0001-acceptance.md"]` is now `assert _reports_in_done(checkout) == [DONE_REPORT]`.
+      - Why: `Git.list_files` returns repository-relative paths, so the old assertion compared a full path with a bare file name. `DONE_REPORT` is the full path the test already defines.
+      - Nothing else in the file changed.
+      - Ran `make test` once after the change: green, total coverage 99.52 %.
+
+   `make lint`: lint: green
+   `make test`: test: green

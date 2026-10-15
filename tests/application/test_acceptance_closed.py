@@ -368,7 +368,7 @@ def test_after_a_kill_at_the_push_of_main_a_second_handling_books_once(
     AcceptanceClosed(boundaries, definition).handle(event)
 
     assert len(_records(_booked(boundaries, checkout), "close")) == 1
-    assert _reports_in_done(checkout) == ["F0002-A0001-acceptance.md"]
+    assert _reports_in_done(checkout) == [DONE_REPORT]
     assert len(checkout.log("origin/main", since=before)) == 1
     assert remote_commit(remote, BRANCH) is None
 
