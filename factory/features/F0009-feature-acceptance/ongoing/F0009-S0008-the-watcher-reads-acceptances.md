@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 110
 blocked: null
 comments_seen: 0
@@ -125,3 +125,15 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
 
    `make lint`: lint: green
    `make test`: FAILED tests/entry/test_watch_acceptance.py::test_run_watch_shows_a_due_acceptance_as_its_event_and_in_the_board
+4. coder: the watcher now reads acceptances, and the evaluation ranks due features in tier 4. `make check` is green: lint, types, layers, sast, secrets, licenses, and tests at 99.5 % coverage.
+      - `src/factory/domain/evaluation.py`: added `EvaluationInput.due: list[FeatureId] = []`. `_new_work` now collects two kinds of candidate: the runnable pairs, keyed by `work_item_order(id)`, and the due features, keyed by `(feature, 1, "")` through `_due_order`. The smallest key decides, and ties go to the first in list order. A due feature gives `acceptance_due` with `feature` set, no work item, `remote_state=main_commit` and detail `acceptance of <F> is due`. A snapshot gives `run`, or `ask` at the attempts cap, as before. Tiers 1 to 3 are unchanged.
+      - `src/factory/application/acceptance_reading.py`: added `AcceptanceReader.snapshots()`. It returns `[]` without an acceptance stage. Report paths come first from the acceptance branches (in-progress file of the id under the feature's directory on main) and are then overwritten by main's in-progress reports, so main's path wins. The document is read from `origin/<branch>` when that ref exists and holds the file at the path, otherwise from main. Snapshots are sorted by `work_item_order`. The existing state check moved into a shared `_document(ref, path)`, which `_report` also uses, so a non-acceptance state raises `WorkItemFormatError` with the path in both readings.
+      - `src/factory/application/watcher.py`: `Watcher.evaluate` joins the stories and `snapshots()`, sorted by `(work_item_order(id), path)`. It runs the move rule over the joined list and passes `due=reader.due_features()`.
+      - `src/factory/application/board.py`: `BoardReader.__init__` keeps the boundaries, and `read` passes its feature rows through `AcceptanceReader(...).fill_board`.
+      - Commits: 66d1d99 (feat), b0efa13 (refactor: the duplicated loop that looked up a report's paths on its branch, used by `_branch_reports` and `snapshots()`, is now one helper `_branch_report_paths_at`).
+      - Design decision: one sort key over a mixed candidate list, instead of finding the first runnable snapshot and comparing it with the first due feature. This matches the Interface rule "ranked by one key". For a list already in id order and `due` empty, the result is the same as F0006's, and the F0006 tests stay green.
+      - Noticed, not touched:
+        - `snapshots()` only finds feature directories as they are on `origin/main`, so a report on a branch whose feature directory is missing on main is ignored. That uncovered `continue` is `acceptance_reading.py:121`.
+        - With the `(F, 1, "")` key, a due feature would rank before an acceptance snapshot of the same feature. In practice they cannot exist together, because a feature with an open acceptance is not due.
+
+   `make check`: check: green
