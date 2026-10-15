@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 111
 blocked: null
 comments_seen: 0
@@ -147,3 +147,26 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
    Open: nothing.
 
    `make check`: check: green
+9. reviewer: Review, round 1. No findings.
+
+   I read the ticket and `git diff main...HEAD -- . ':!factory'`. The diff covers `src/factory/application/task.py` and the two new modules, `tests/application/test_task_acceptance.py` and `tests/application/test_stage_run_acceptance.py`.
+
+   - Acceptance criteria: round 0's only finding is fixed. `test_the_protocol_opens_the_acceptance_pull_request_and_records_it` now asserts `pull_request.draft` (tester, entry 7). Each of criteria 1–9 has a test that checks what the criterion says:
+     - Both sides of the form-check rule are rows of one parametrized test: an acceptance gives `[]` and a plain state gives findings (1/3). With the form missing, an acceptance gives `[]` and a plain state raises `WorkItemFormatError` (2).
+     - The prompt tests check:
+       - exact equality with `acceptance_prompt(compose_prompt(...), facts("F0002"))` plus the four-line tail (4);
+       - no `Archived stories:` line for a story at `acceptance`, a story at `intake`, or an acceptance at `review` (5);
+       - the unchanged prompt when `acceptance_stage=None` (6).
+     - The run tests cover approval with rule 6, not blocked and no question record (7); the prompt ending with the fact lines (8); and the draft pull request's title, branch and number, with stage `approval` and the pull request number in the pushed state (9).
+     - The Interface states no numeric limits. The coder's entry 8 reports `make check` green.
+   - Architecture: `task` imports `factory.application.acceptance` and domain modules only. Both are in the application layer. `acceptance` does not import `task`, directly or through `stage.py`, and import-linter is green.
+   - Security: no strings built into shell or SQL commands, no suppression markers, no secrets. Test hex values are not used.
+   - Quality: `findings` returns early for an `AcceptanceState`, as the Interface says. Its docstring explains why. `compose` changes by one line. The choice of prompt sits in the private methods `_prompt` and `_is_acceptance_run`. It reuses `is_acceptance`, `feature_of`, `acceptance_prompt` and `AcceptanceService.facts` rather than copying them. There is no dead code.
+   - Ticket hygiene: the log names the main decisions and what was rejected:
+     - the checker tells an acceptance apart by the type of the document's state, not by the work item id;
+     - the coder chose private methods over a branch inside `compose`;
+     - the coder dropped the redundant `None` guard in 6141647.
+
+     The Assignment matches what was built. Criterion 11 still describes what `docs/project-guide.md` must say.
+
+   Open: nothing.
