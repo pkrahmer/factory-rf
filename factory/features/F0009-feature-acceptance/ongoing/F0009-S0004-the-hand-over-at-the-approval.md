@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 106
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -208,3 +208,4 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
    Refactor: I read the diff and found nothing to change.
 
    Not touched: `SplitByWorkItemKind` sends every id that is not an acceptance's to the story handler. `is_acceptance` is the only test of kind, and the event's id is already a valid work item id.
+7. human (pull request comment, 2026-10-15): (a): the tester annotates `REVIEWER_RESULT: tuple[str, JournalKind, str] = ...` in `tests/domain/test_acceptance_description.py` and changes nothing else. End with `tests` and name exactly that change.
