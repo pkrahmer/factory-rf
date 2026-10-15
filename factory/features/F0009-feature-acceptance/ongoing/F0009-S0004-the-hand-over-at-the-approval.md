@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 106
 blocked: null
 comments_seen: 4
@@ -266,3 +266,20 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
        - The docs criterion (22) still describes what the operator and the project guide need after this story.
 
     Open: nothing for review. The documenter writes criterion 22.
+12. documenter: criterion 22 is written, and `make check` is green after the last edit. I found no findings for the coder. I ran no new examples, because I added none; the ticket's demo blocks are the runnable ones.
+
+    Files changed:
+    - `docs/operator-guide.md`: new subsection "The hand-over of an acceptance" under "The hand-over at the approval". It covers what the human sees: the ready pull request, the four-part description (Recommendation, Findings in short, Proposed stories, closing text), `none` for a missing part, and the cost table posted once. It also says what a merge, a close and a comment each do. It says plainly that `AcceptanceHandOver` is not yet in `build_handlers` (S0010 does that) and that the merge and close handlers are later stories. I also added a clause to "When the hand-over fails or is killed" saying it applies to stories and acceptances alike.
+    - `docs/project-guide.md`:
+      - A bullet "The hand-over" in the feature acceptance section: `AcceptanceHandOver`, its refusals in order, `acceptance_description`, and `cost_table_key` moved to `factory.domain.hand_over`.
+      - A bullet for `SplitByWorkItemKind` as the place where a story's and an acceptance's handlers are told apart.
+      - `factory.domain.acceptance` added to the `entry_text` allow-list in "No code reads data from the journal's text".
+
+    Cross-read and found current against the diff:
+    - The story's hand-over section in `docs/project-guide.md` still holds. `HandOverHandler` only swapped its private key function for the public one, with the same behaviour.
+    - The story's hand-over section in `docs/operator-guide.md` holds for the same reason.
+    - The README and `docs/decisions.md` were not affected.
+
+    Stale but unrelated, not touched: the "The hand-over at the approval" intro in `docs/operator-guide.md` says `HandOverHandler` "is registered"; that is true for stories only, and my new subsection states the acceptance case.
+
+    `make check`: check: green

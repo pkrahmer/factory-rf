@@ -460,9 +460,30 @@ It does these things, in this order:
 
 A work item whose `handed_over` already equals its stage is left alone: no description change, no post, no commit. A stage that is not an approval, or a work item without a pull request, is a `CannotHandle` for `hand_over` and changes nothing.
 
+### The hand-over of an acceptance
+
+When a feature's acceptance reaches its approval stage, you see the same steps on its pull request: the draft turns ready for review, the description is replaced, the cost table is posted once and `handed_over = <stage>` is recorded in the report with the commit subject `work item <id>: handed over at <stage>`. `AcceptanceHandOver` (in `factory.application.acceptance`) does it for the acceptance's `hand_over` event; it is not yet registered in `build_handlers` (F0009-S0010 does that), so no tick hands an acceptance over yet. No agent writes the description. The cost table is the one of the acceptance's own cost records, keyed by the number of the latest `result` entry as for a story.
+
+The description has four parts, joined by an empty line:
+
+1. `## Recommendation`: the report's own `## Recommendation` section.
+2. `## Findings in short`: the text of the acceptance reviewer's latest `result` entry, without its `<speaker>: ` prefix. The reviewer is found by the journal's data (speaker and kind), not by the text.
+3. `## Proposed stories`: the report's `## Proposed stories` section.
+4. A closing text that says what you can do.
+
+A part whose section is missing or empty, and findings with no `result` entry of the reviewer, show `none`. The closing text names no merge method; any method the hosting service offers works.
+
+What your act does:
+
+- **Merge** accepts the report and takes the proposed stories into the feature's backlog, where you refine them before starting any.
+- **Close**, with a comment saying why, refuses: the report stays on the main branch as refused with your comment, the proposed stories are discarded, and the feature counts as not accepted until another story is archived and a new acceptance runs.
+- **A comment** is not answered while the acceptance waits; it goes into the report's journal.
+
+Failures and kills are handled as for a story, below. The merge and the close of an acceptance are built by later stories of F0009; until then the handlers for them are not there.
+
 ### When the hand-over fails or is killed
 
-Every step before the record can be repeated safely, and nothing is recorded until they have all happened. A failure or a kill anywhere (the hosting service is down, the factory dies after the post) leaves `handed_over` unset, so the factory raises the event again on the next tick and completes the hand-over. You do nothing; there is never a second cost table post.
+Every step before the record can be repeated safely (for a story and for an acceptance alike), and nothing is recorded until they have all happened. A failure or a kill anywhere (the hosting service is down, the factory dies after the post) leaves `handed_over` unset, so the factory raises the event again on the next tick and completes the hand-over. You do nothing; there is never a second cost table post.
 
 A hand-over that fails every time is a counted error like any other: it is tried on three ticks, and then one report is posted on the pull request and the event is capped (see "An event that keeps failing").
 
