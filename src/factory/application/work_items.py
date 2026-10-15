@@ -110,14 +110,14 @@ class RemoteWorkItems:
         text = self._git.show_file(f"{REMOTE}/{branch}", story.path)
         if text is None:
             raise WorkItemFormatError(f"missing on branch {branch}", story.path)
-        return _parsed(self._reader.parse, text, story.path)
+        return parse_at(self._reader.parse, text, story.path)
 
     def _started_document(self, story: StoryFile, first_stage: str) -> WorkItemDocument:
         # The human starts a story by moving it into in-progress; any state its file claims is void.
         text = self._git.show_file(_MAIN_REF, story.path)
         if text is None:
             raise WorkItemFormatError(f"missing on {_MAIN_REF}", story.path)
-        specification = _parsed(self._reader.parse_specification, text, story.path)
+        specification = parse_at(self._reader.parse_specification, text, story.path)
         return WorkItemDocument(
             state=initial_state(first_stage),
             body=specification.body,
@@ -130,7 +130,8 @@ def _is_correction(before: WorkItemState, after: WorkItemState) -> bool:
     return appended and after.journal[-1].kind == "move_back"
 
 
-def _parsed(parse: Callable[[str], WorkItemDocument], text: str, path: str) -> WorkItemDocument:
+def parse_at(parse: Callable[[str], WorkItemDocument], text: str, path: str) -> WorkItemDocument:
+    """Parse `text` with `parse`; a `WorkItemFormatError` it raises names `path`."""
     try:
         return parse(text)
     except WorkItemFormatError as error:

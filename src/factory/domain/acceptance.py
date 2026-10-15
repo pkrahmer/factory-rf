@@ -1,11 +1,19 @@
-"""The feature acceptance as data: its id, its report file name and its state."""
+"""The feature acceptance as data: its id, its report file name, its state and its status."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Literal, Self
 
-from pydantic import field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
-from factory.domain.identifiers import FeatureId, WorkItemId, feature_of, is_acceptance
+from factory.domain.board import AcceptanceStatus
+from factory.domain.identifiers import (
+    FeatureId,
+    WorkItemId,
+    feature_of,
+    is_acceptance,
+    parse_work_item_file_name,
+)
+from factory.domain.paths import LifecycleFolder
 from factory.domain.pipeline_definition import DONE_STAGE
 from factory.domain.work_item import WorkItemState
 
@@ -69,3 +77,74 @@ def acceptance_file_name(work_item: WorkItemId) -> str:
     if not is_acceptance(work_item):
         raise ValueError(f"not an acceptance id: {work_item!r}")
     return f"{work_item}-{ACCEPTANCE_SLUG}.md"
+
+
+class FeatureFiles(BaseModel):
+    """The file names directly in a feature's three lifecycle folders."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    feature: FeatureId
+    backlog: list[str] = []
+    in_progress: list[str] = []
+    done: list[str] = []
+
+
+class ReportFacts(BaseModel):
+    """One acceptance report as read: its id, folder, state and whether it is on its branch."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: WorkItemId
+    folder: LifecycleFolder
+    state: AcceptanceState
+    on_branch: bool
+
+
+class FeatureAcceptance(BaseModel):
+    """A feature's acceptance as the remote shows it: its status and what comes next."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    feature: FeatureId
+    directory: str
+    status: AcceptanceStatus
+    archived: list[WorkItemId]
+    next_acceptance: WorkItemId
+
+
+def story_file_ids(names: Iterable[str]) -> list[WorkItemId]:
+    """The ids of the story files among `names`, ascending without repeats; others are ignored."""
+    ids: set[WorkItemId] = set()
+    for name in names:
+        parsed = parse_work_item_file_name(name)
+        if parsed is not None and not is_acceptance(parsed.id):
+            ids.add(parsed.id)
+    return sorted(ids)
+
+
+def acceptance_status(files: FeatureFiles, reports: Sequence[ReportFacts]) -> AcceptanceStatus:
+    """The status of the feature's acceptance from its folders and every report of it."""
+    on_main = [report for report in reports if not report.on_branch]
+    merged_ids = {report.id for report in on_main}
+    if any(report.on_branch and report.id not in merged_ids for report in reports):
+        return "in_flight"
+    if any(report.state.stage != DONE_STAGE for report in on_main):
+        return "merged_unrecorded"
+    archived = story_file_ids(files.done)
+    if not archived or story_file_ids(files.backlog) or story_file_ids(files.in_progress):
+        return "incomplete"
+    return _recorded_outcome(on_main, archived) or "due"
+
+
+def _recorded_outcome(
+    on_main: Sequence[ReportFacts], archived: list[WorkItemId]
+) -> AcceptanceOutcome | None:
+    covering = [
+        report
+        for report in on_main
+        if set(report.state.stories) == set(archived) and report.state.outcome is not None
+    ]
+    if not covering:
+        return None
+    return max(covering, key=lambda report: report.id).state.outcome
