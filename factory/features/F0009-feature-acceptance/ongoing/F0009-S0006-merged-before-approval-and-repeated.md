@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 108
 blocked: null
 comments_seen: 0
@@ -132,3 +132,19 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
    - Findings: none. The code matches the Interface. Stale but unrelated: none seen. The coder disclosed that the new no-state `CannotHandle` in `AcceptanceMerged._book` has no test, and the reviewer did not count it.
 
    `make check`: check: green
+7. demo: I ran the one command under `## Demo` from the repository root. Its output matches the `Expect:` line, and I found no findings.
+
+   Command 1 (`uv run python -c "…"`, which calls is_before_approval, book_merge with before_approval=True, acceptance_status and next_acceptance_id):
+   ```
+   [True, False, False]
+   done accepted True
+   accepted
+   due F0001-A0002
+   ```
+   It met its `Expect:` line. That line asks for four output lines and all four are right:
+   - `[True, False, False]`: only the stage `acceptance` counts as before the approval.
+   - `done accepted True`: the report is booked `accepted` at `done`, and its journal entry starts with `done (pull request merged before approval); cost: `.
+   - `accepted`: the recorded report covers the one archived story.
+   - `due F0001-A0002`: a second story was archived, so the feature is due again and the next acceptance gets the next number.
+
+   Checked against the acceptance criteria: the output agrees with criteria 1, 3, 4, 9 and 11. It contradicts none of criteria 1 to 14. The demo does not exercise the handler, the merge methods or the files on the remote (criteria 4 to 12). Entries 3 to 5 name the tests for those, and the reviewer checked them. The factory runs `make check` itself after this stage. I did not run it.
