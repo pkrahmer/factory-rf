@@ -2,8 +2,12 @@
 
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
-from factory.application.handlers.recording import WorkItemRecorder, commit_subject, target_of
-from factory.domain.archive import destination_path
+from factory.application.handlers.recording import (
+    WorkItemRecorder,
+    commit_subject,
+    move_with_cost_records,
+    target_of,
+)
 from factory.domain.bills import bill
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, NewEntry, append_entry
@@ -26,8 +30,8 @@ class MergedHandler(Handler):
         recorder = WorkItemRecorder(self._boundaries)
         recorder.check_out(MAIN_BRANCH)
         archived = self._archived(recorder.read(snapshot.path), snapshot.path)
-        self._move(snapshot.path)
-        recorder.write(destination_path(snapshot.path, "done"), archived)
+        destination = move_with_cost_records(self._boundaries.git, snapshot.path, "done")
+        recorder.write(destination, archived)
         recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "merged, archived"))
         recorder.delete_branch(snapshot.branch)
 
@@ -41,11 +45,3 @@ class MergedHandler(Handler):
             update={"stage": DONE_STAGE, "blocked": None, "claim": None}
         )
         return appended.model_copy(update={"state": state})
-
-    def _move(self, path: str) -> None:
-        git = self._boundaries.git
-        destination = destination_path(path, "done")
-        git.move(path, destination)
-        sidecar = cost_records_path(path)
-        if git.show_file("HEAD", sidecar) is not None:
-            git.move(sidecar, cost_records_path(destination))

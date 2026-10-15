@@ -10,6 +10,7 @@ from factory.application.handlers.recording import (
     Target,
     WorkItemRecorder,
     commit_subject,
+    move_with_cost_records,
     require_pull_request,
     target_of,
 )
@@ -21,7 +22,9 @@ from factory.domain.acceptance import (
     acceptance_facts,
     acceptance_file_name,
     acceptance_head,
+    book_merge,
 )
+from factory.domain.archive import destination_path
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 from factory.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
@@ -50,6 +53,7 @@ from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 _KIND = "acceptance_due"
 _HAND_OVER = "hand_over"
+_MERGED = "merged"
 
 
 class OpenedAcceptance(BaseModel):
@@ -219,6 +223,52 @@ class AcceptanceHandOver(Handler):
         hosting.set_draft(number, False)
         table = cost_table_post(cost_table(bills_by_stage(records)))
         hosting.post_comment(number, table, cost_table_key(snapshot.id, document))
+
+
+class AcceptanceMerged(Handler):
+    """Books a merged acceptance `accepted` under `done/` on main, then deletes its branch."""
+
+    def __init__(self, boundaries: Boundaries, definition: PipelineDefinition) -> None:
+        """Keep `boundaries` and `definition`; the acceptance stage is checked per event."""
+        self._boundaries = boundaries
+        self._definition = definition
+
+    def handle(self, event: Event) -> None:
+        """Book the merged acceptance on main unless it is booked already, then delete its branch.
+
+        The merge decides the outcome, whatever the reviewer recommended.
+        """
+        self._require_bookable(event)
+        recorder = WorkItemRecorder(self._boundaries)
+        recorder.check_out(MAIN_BRANCH)
+        snapshot = target_of(event).snapshot
+        git = self._boundaries.git
+        if git.show_file("HEAD", snapshot.path) is not None:
+            self._book(recorder, snapshot)
+        elif git.show_file("HEAD", destination_path(snapshot.path, "done")) is None:
+            raise CannotHandle(kind=event.kind, reason="no report on the main branch")
+        recorder.delete_branch(snapshot.branch)
+
+    def _require_bookable(self, event: Event) -> None:
+        if event.kind != _MERGED:
+            raise CannotHandle(kind=event.kind, reason=f"not a {_MERGED} event")
+        if event.work_item is None or not is_acceptance(event.work_item.id):
+            raise CannotHandle(kind=event.kind, reason="not an acceptance")
+        if self._definition.acceptance_stage is None:
+            raise CannotHandle(kind=event.kind, reason="no acceptance stage")
+        if event.pull_request is None or event.pull_request.state != "merged":
+            raise CannotHandle(kind=event.kind, reason="pull request is not merged")
+
+    def _book(self, recorder: WorkItemRecorder, snapshot: WorkItemSnapshot) -> None:
+        boundaries = self._boundaries
+        document = recorder.read(snapshot.path)
+        # `HEAD` is the merged main, so the records are the acceptance's own and nothing else.
+        sidecar = cost_records_path(snapshot.path)
+        records = read_cost_records(boundaries.git, boundaries.cost_reader, "HEAD", sidecar)
+        # The move comes first: `git mv` refuses a destination that already exists.
+        destination = move_with_cost_records(boundaries.git, snapshot.path, "done")
+        recorder.write(destination, book_merge(document, bill(records)))
+        recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "merged, archived"))
 
 
 class SplitByWorkItemKind(Handler):

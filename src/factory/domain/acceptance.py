@@ -1,10 +1,12 @@
 """The feature acceptance as data: its id, report, state, status and the reviewer's facts."""
 
 from collections.abc import Iterable, Sequence
+from datetime import date
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
+from factory.domain.bills import Bill, cost_line
 from factory.domain.board import AcceptanceStatus
 from factory.domain.identifiers import (
     FeatureId,
@@ -13,10 +15,11 @@ from factory.domain.identifiers import (
     is_acceptance,
     parse_work_item_file_name,
 )
-from factory.domain.journal import entry_text, last_record
+from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry, entry_text, last_record
 from factory.domain.paths import LifecycleFolder
 from factory.domain.pipeline_definition import DONE_STAGE
-from factory.domain.sections import JOURNAL, section_text
+from factory.domain.post_texts import done_entry_text
+from factory.domain.sections import JOURNAL, insert_paragraph, section_text, sections, split_lines
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 
 ACCEPTANCE_SLUG = "acceptance"
@@ -26,6 +29,8 @@ RECOMMENDATION = "Recommendation"
 FINDINGS_IN_SHORT = "Findings in short"
 PROPOSED_STORIES = "Proposed stories"
 NONE_TEXT = "none"
+NO_REASON = "no reason given"
+_CLOSED_ENTRY_PREFIX = "done (pull request closed by the human); cost: "
 # Names no merge method: every method the hosting service offers is handled the same way.
 ACCEPTANCE_CLOSING = (
     "Merge to accept the report and take the proposed stories into the feature's backlog, "
@@ -242,3 +247,65 @@ def acceptance_description(document: WorkItemDocument, role: str) -> str:
         ACCEPTANCE_CLOSING,
     ]
     return "\n\n".join(parts)
+
+
+def _acceptance_state(document: WorkItemDocument) -> AcceptanceState:
+    if not isinstance(document.state, AcceptanceState):
+        raise ValueError("the document's state is not an acceptance's")
+    return document.state
+
+
+def _booked(
+    document: WorkItemDocument, outcome: AcceptanceOutcome, done_text: str
+) -> WorkItemDocument:
+    state = _acceptance_state(document)
+    # The human's act ends the acceptance, whoever held it and whatever it waited for.
+    done = state.model_copy(
+        update={"stage": DONE_STAGE, "outcome": outcome, "claim": None, "blocked": None}
+    )
+    entry = NewEntry(speaker=FACTORY, kind="done", text=done_text)
+    return append_entry(document.model_copy(update={"state": done}), entry)
+
+
+def book_merge(document: WorkItemDocument, bill: Bill) -> WorkItemDocument:
+    """The acceptance booked `accepted` at `done`, with a `done` entry carrying its bill."""
+    return _booked(document, "accepted", done_entry_text(bill))
+
+
+def refusal_reason(document: WorkItemDocument, role: str) -> str:
+    """The human's comments after the reviewer's last result, stripped and joined, never read."""
+    last_result = last_record(document, speaker=role, kind="result")
+    after = 0 if last_result is None else last_result.number
+    journal = [] if document.state is None else document.state.journal
+    texts = [
+        entry_text(document, record.number).strip()
+        for record in journal
+        if record.number > after and record.speaker == HUMAN and record.kind == "comment"
+    ]
+    return " ".join(text for text in texts if text) or NO_REASON
+
+
+def _with_recommendation(body: str, paragraph: str) -> str:
+    headings = [found.heading for found in sections(body)]
+    if RECOMMENDATION in headings:
+        return insert_paragraph(body, RECOMMENDATION, paragraph)
+    added = [f"## {RECOMMENDATION}", "", paragraph]
+    lines = split_lines(body)
+    journal = next((found for found in sections(body) if found.heading == JOURNAL), None)
+    if journal is None:
+        while lines and not lines[-1].strip():
+            lines.pop()
+        # The done entry needs a journal to land in; the report's own one is missing.
+        return "\n".join([*lines, "", *added, "", f"## {JOURNAL}"]) + "\n"
+    return "\n".join([*lines[: journal.start], *added, "", *lines[journal.start :]]) + "\n"
+
+
+def book_refusal(
+    document: WorkItemDocument, *, role: str, on: date, bill: Bill
+) -> WorkItemDocument:
+    """The acceptance booked `refused` at `done`, the human's reason heading its recommendation."""
+    _acceptance_state(document)
+    paragraph = f"Refused by the human on {on.isoformat()}: {refusal_reason(document, role)}"
+    body = _with_recommendation(document.body, paragraph)
+    refused = document.model_copy(update={"body": body})
+    return _booked(refused, "refused", _CLOSED_ENTRY_PREFIX + cost_line(bill))
