@@ -118,10 +118,8 @@ class TaskComposer:
         return acceptance_prompt(prompt, service.facts(feature_of(context.work_item)))
 
     def _is_acceptance_run(self, context: TaskContext) -> bool:
-        acceptance_stage = self._definition.acceptance_stage
-        return acceptance_stage is not None and (
-            context.stage == acceptance_stage and is_acceptance(context.work_item)
-        )
+        at_acceptance_stage = context.stage == self._definition.acceptance_stage
+        return at_acceptance_stage and is_acceptance(context.work_item)
 
     def _role_name(self, stage: str) -> str:
         if stage not in self._definition.stages:
