@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 106
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -182,3 +182,29 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: The implementation is done and committed in cdf6d23. `make check` is red only at `make types`, and the cause is in a test I may not edit. It needs your answer.
+
+   Built:
+   - `src/factory/domain/acceptance.py`: `RECOMMENDATION`, `FINDINGS_IN_SHORT`, `PROPOSED_STORIES`, `NONE_TEXT` and `ACCEPTANCE_CLOSING`, plus `acceptance_description`. The findings come from `last_record(speaker=role, kind="result")` and then `entry_text`.
+   - `src/factory/domain/hand_over.py`: the public `cost_table_key(work_item, document)`, moved here from `_cost_table_key`. `HandOverHandler` in `src/factory/application/handlers/hand_over.py` now calls it; nothing else in that module changed.
+   - `src/factory/application/acceptance.py`: `AcceptanceHandOver` and `SplitByWorkItemKind`.
+     - `AcceptanceHandOver` checks in the order the Interface gives. It reuses `target_of`, `require_pull_request`, `WorkItemRecorder` and `commit_subject`, and follows `HandOverHandler` step for step.
+     - Main decision: the reviewer's role comes from `definition.stages[acceptance_stage].role`. A missing stage or role raises the same `no acceptance stage` error, so I don't add a reason the Interface doesn't name.
+
+   Checks:
+   - `make lint`, `layers`, `sast`, `secrets`, `licenses` and `test` are green (coverage 99.51 %), and every test of this ticket passes.
+   - The first Demo prints the expected lines.
+
+   The problem: `make types` fails with four `list-item` errors in `tests/domain/test_acceptance_description.py` (lines 61, 78, 88 and 140). Mypy infers `REVIEWER_RESULT = (ROLE, "result", ...)` as `tuple[str, str, str]`, but `_document` expects `list[tuple[str, JournalKind, str]]`. The production code can't fix this.
+
+   I checked the fix on a copy outside the repo: annotating that one constant as `REVIEWER_RESULT: tuple[str, JournalKind, str] = ...` makes mypy pass on the file with the project's config.
+
+   Options:
+   - (a) The tester adds that annotation and changes nothing else. I'd choose this.
+   - (b) The tester types the entries some other way, for example a small helper that returns `tuple[str, JournalKind, str]`.
+
+   With (a), I end the next round with `tests` and name exactly that change.
+
+   Refactor: I read the diff and found nothing to change.
+
+   Not touched: `SplitByWorkItemKind` sends every id that is not an acceptance's to the story handler. `is_acceptance` is the only test of kind, and the event's id is already a valid work item id.
