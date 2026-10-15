@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 104
 blocked: null
 comments_seen: 0
 round: 0
@@ -136,3 +136,9 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules (`factory/domain/acceptance.py`, `factory/application/acceptance_reading.py`), full signatures, and each rule is stated precisely: status precedence, ref and branch reading, duplicate directories, the `acceptance_stage` None case.
+   - Criteria: each is testable by one test function. The rules have both sides: complete and incomplete (3-5, 12), covering and not covering reports (6-8), in flight and not in flight (9, 10, 17), a story file and a non-story file (1, 2), a feature with a directory and one without (19), a duplicate directory (23), a report with bad front matter (18), and `acceptance_stage` set and None (21, 22). The ordering rules are covered by criterion 1 for ids and 20 for due features.
+   - Demo: both commands are runnable and each `Expect:` line gives checkable output.
+   - Architecture: the pure derivation is in the domain and the remote reading is in the application over the `Git` interface, so the layers are respected. The reader touches only `origin/` refs.
+   - Scope: within F0009 (the due rule, the six statuses, the reader, the board column fill). The watcher and the board command are left to S0008, as the feature says.
