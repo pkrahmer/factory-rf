@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 111
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # An acceptance runs through the stage protocol
@@ -117,3 +117,10 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
    Process note: my first `make check` ran longer than the tool's 2-minute timeout and was moved to the background, which `CLAUDE.md` forbids. It finished green. The final `make check`, chained with the refactor commit, ran in the foreground and was green.
 
    `make check`: check: green
+5. reviewer: Review, round 0. I read the ticket and `git diff main...HEAD -- . ':!factory'`: `src/factory/application/task.py` plus the two new test modules. The code changes match the Interface: an early `[]` for an `AcceptanceState` in `StoryFormChecker.findings`, and `TaskComposer._prompt` / `_is_acceptance_run` gate `acceptance_prompt(...)` on `acceptance_stage` and `is_acceptance`. `acceptance` does not import `task`. The coder's entry reports `make check` green. Criteria 1–8 each have a test that checks what the criterion says. Criterion 9 does not, so I stopped at checklist group 1.
+
+   1. `tests/application/test_stage_run_acceptance.py::test_the_protocol_opens_the_acceptance_pull_request_and_records_it`: criterion 9 says the protocol opened the acceptance's *draft* pull request, but the test never checks the draft flag.
+      - The tester's log entry says the flag after the run is not fixed. The code says otherwise: `opening.py:114` creates the pull request with `draft=True`. The only code that sets it ready is the approval hand-over (`handlers/hand_over.py:69`, `acceptance.py:231`), and `StageRunner` does not reach either. So `FakeHostingService.pull_requests()[0].draft` is `True` after the run.
+      - Fix: add `assert pull_request.draft` to that test. The coder may not edit tests (R9), so the coder should end with `tests` and name this one-line addition for the tester.
+
+   Open: nothing beyond finding 1. I did not judge the later checklist groups (architecture, security, quality, hygiene), since the review stops at the first failing group.
