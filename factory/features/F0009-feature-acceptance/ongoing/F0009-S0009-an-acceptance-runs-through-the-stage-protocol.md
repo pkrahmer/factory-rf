@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 111
 blocked: null
 comments_seen: 0
@@ -74,3 +74,30 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
    - Demo: the command is runnable with the stub boundaries. Its `Expect:` line states two checkable output lines (`[]`, then `True`).
    - Architecture: both modules are in the application layer, and `acceptance` does not import `task`. The change is two additions and nothing else, and F0005's tests stay as they are.
    - Scope: within F0009's scope ("the story form check skipped for it and the facts appended to the reviewer's prompt"). Nothing is in "Out of scope". FEATURE.md decision 17 matches the story.
+3. tester: Wrote the red tests for the acceptance's path through the stage protocol. They are the coder's specification.
+
+   Criterion → test:
+   - criteria 1 and 3: tests/application/test_task_acceptance.py::test_only_an_acceptance_report_meets_the_story_form_without_its_sections (parametrized: `acceptance-state` gives `[]`, `plain-state` gives findings)
+   - criterion 2: tests/application/test_task_acceptance.py::test_a_missing_story_form_is_an_error_only_for_a_story (parametrized: with the form removed at `origin/main`, an acceptance gives `[]` and a plain state raises `WorkItemFormatError`)
+   - criterion 4: tests/application/test_task_acceptance.py::test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended (prompt == `acceptance_prompt(compose_prompt(PromptFacts of the context), AcceptanceService(...).facts("F0002"))`; the last four lines are an empty line plus the three fact lines)
+   - criterion 5: tests/application/test_task_acceptance.py::test_no_facts_are_appended_off_the_acceptance_stage_or_for_a_story (parametrized: a story at `acceptance`, a story at `intake`, an acceptance at `review`)
+   - criterion 6: tests/application/test_task_acceptance.py::test_without_an_acceptance_stage_the_prompt_is_unchanged (parametrized: acceptance and story, `acceptance_stage=None`)
+   - criterion 7: tests/application/test_stage_run_acceptance.py::test_an_acceptance_reaches_approval_although_its_report_has_no_story_sections
+   - criterion 8: tests/application/test_stage_run_acceptance.py::test_the_reviewer_prompt_ends_with_the_feature_facts_at_main
+   - criterion 9: tests/application/test_stage_run_acceptance.py::test_the_protocol_opens_the_acceptance_pull_request_and_records_it (title, branch, number equal to the report's, and the pushed state has stage `approval` and that pull request number). The test does not assert `draft`: the pull request's draft flag after the run is not something the criterion fixes.
+
+   Files created:
+   - tests/application/test_task_acceptance.py
+   - tests/application/test_stage_run_acceptance.py
+
+   Both push the feature `F0002-todo` themselves (`feature.md` "# Todo service", two stories under `done/`). The run tests open the acceptance with `AcceptanceService.open` and install agents for every role of `PIPELINE_YAML`.
+
+   Test results: every module imports, because nothing new is imported. `make test` gives 6 failures, all for the right reason:
+   - The run reaches no `approval`: decision rule 1 turns the decision into a question.
+   - The prompt lacks the fact lines.
+   - The checker gives findings or raises for an `AcceptanceState`.
+
+   The story-side and unchanged-prompt rows pass already, as they should. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_task_acceptance.py::test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended
