@@ -99,6 +99,7 @@ def test_the_protocol_opens_the_acceptance_pull_request_and_records_it(
     [pull_request] = hosting.pull_requests()
     assert pull_request.title == "F0002-A0001: Acceptance of Todo service"
     assert pull_request.branch == BRANCH
+    assert pull_request.draft
     assert pull_request.number == report.pull_request
     assert state.stage == "approval"
     assert state.pull_request == pull_request.number

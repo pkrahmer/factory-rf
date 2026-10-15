@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 111
 blocked: null
 comments_seen: 0
@@ -131,3 +131,12 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
    The reviewer says this holds after the run, and I did not re-check it. Their reasons: `opening.py:114` creates the pull request with `draft=True`. Only the approval hand-over (`handlers/hand_over.py:69`, `acceptance.py:231`) sets it ready, and `StageRunner` never reaches that code.
 
    Open: nothing else.
+7. tester: Test change, round 1, as the coder's entry 6 names it after review finding 1.
+
+   - Changed: `tests/application/test_stage_run_acceptance.py::test_the_protocol_opens_the_acceptance_pull_request_and_records_it` now has `assert pull_request.draft` right after the title and branch checks. It was only that one line.
+   - Why: criterion 9 says the protocol opened the acceptance's *draft* pull request, and the test did not check the draft flag. In entry 3 I wrote that the flag after the run was not fixed by the criterion. That was wrong: the criterion names the draft.
+
+   `make test` is green with coverage at 99.53 %, so the code already meets the stronger test. Nothing else is open.
+
+   `make lint`: lint: green
+   `make test`: test: green
