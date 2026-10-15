@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 112
 blocked: null
 comments_seen: 0
@@ -163,3 +163,4 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
    - It also agrees with the refusal half of criterion 8 (the handler builds without an error, and handling the event raises `CannotHandle` with the reason `no acceptance stage`).
    - No criterion is contradicted.
    - The demo does not exercise criteria 2 to 7: the registered values, the shared split instances in the `RunGate`, the merged and closed paths, and the `UnhandledEvent` rows. Their tests are named in the tester's entry.
+8. done (pull request merged); cost: 6 runs, 23.0 min, 56 turns, 149k tokens in (1401k more from cache), 22k out, $1.69
