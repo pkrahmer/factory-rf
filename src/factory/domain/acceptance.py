@@ -13,13 +13,28 @@ from factory.domain.identifiers import (
     is_acceptance,
     parse_work_item_file_name,
 )
+from factory.domain.journal import entry_text, last_record
 from factory.domain.paths import LifecycleFolder
 from factory.domain.pipeline_definition import DONE_STAGE
-from factory.domain.sections import JOURNAL
+from factory.domain.sections import JOURNAL, section_text
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 
 ACCEPTANCE_SLUG = "acceptance"
 AcceptanceOutcome = Literal["accepted", "refused"]
+
+RECOMMENDATION = "Recommendation"
+FINDINGS_IN_SHORT = "Findings in short"
+PROPOSED_STORIES = "Proposed stories"
+NONE_TEXT = "none"
+# Names no merge method: every method the hosting service offers is handled the same way.
+ACCEPTANCE_CLOSING = (
+    "Merge to accept the report and take the proposed stories into the feature's backlog, "
+    "where you refine them before starting any. "
+    "Close, with a comment saying why, to refuse: the report stays on the main branch as refused "
+    "with your comment, the proposed stories are discarded, and the feature counts as not "
+    "accepted until another story is archived and a new acceptance runs. "
+    "Nobody answers comments while the acceptance waits here; they go into the report's journal."
+)
 
 _FIRST_NUMBER = 1
 _LAST_NUMBER = 9999
@@ -205,3 +220,25 @@ def acceptance_head(
     state = AcceptanceState(**initial_state(stage).model_dump(), stories=list(stories))
     body = f"# Acceptance of {feature_title}\n\n## {JOURNAL}\n"
     return WorkItemDocument(state=state, body=body)
+
+
+def _description_part(heading: str, text: str | None) -> str:
+    stripped = (text or "").strip()
+    return f"## {heading}\n\n{stripped or NONE_TEXT}"
+
+
+def _findings(document: WorkItemDocument, role: str) -> str | None:
+    # The speaker comes from the record, never from the visible line, which anyone can write.
+    record = last_record(document, speaker=role, kind="result")
+    return None if record is None else entry_text(document, record.number)
+
+
+def acceptance_description(document: WorkItemDocument, role: str) -> str:
+    """The pull request description at the approval: the reviewer's report and the closing."""
+    parts = [
+        _description_part(RECOMMENDATION, section_text(document.body, RECOMMENDATION)),
+        _description_part(FINDINGS_IN_SHORT, _findings(document, role)),
+        _description_part(PROPOSED_STORIES, section_text(document.body, PROPOSED_STORIES)),
+        ACCEPTANCE_CLOSING,
+    ]
+    return "\n\n".join(parts)
