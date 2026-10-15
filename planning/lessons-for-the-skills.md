@@ -4,7 +4,7 @@ The rules `factory-rf`'s `CLAUDE.md` gained while v1 built v1.1, sorted by where
 
 ## How it is used
 
-1. At F0010's fresh pre-check (before F0010 starts): the general rows go into the source texts F0010-S0016 ships as v1.1's own agents (`planning/v1-texts/`, F0010 decision 32), each in the role that applies it; the Python rows go into a `template/CLAUDE.md` for Python projects beside `template/factory/pipeline.yml` (F0010-S0009), added to F0010 if no story ships one.
+1. At F0010's fresh pre-check (before F0010 starts): the general rows go into the agents F0010-S0016 ships as v1.1's own, each in the role that applies it, as a part of their own after v1's verbatim texts (`planning/v1-texts/` stays an unchanged copy, since Q29 compares v1.1's baseline run with v1's on the same instructions); the Python rows go into a `template/CLAUDE.md` for Python projects beside `template/factory/pipeline.yml` (F0010-S0009), added to F0010 if no story ships one.
 2. The project-only rows stay in `factory-rf`'s `CLAUDE.md`.
 3. v1's own skills (`factory/claude/skills/`) are read-only by the folder rule; updating them is the human's call.
 
