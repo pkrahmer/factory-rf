@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 104
 blocked: null
 comments_seen: 0
@@ -263,3 +263,4 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
    Met. The output is one line. It drops `.gitkeep`, `notes.md` and the acceptance report, and the ids are in ascending order.
 
    Criteria check: the demo contradicts none of the acceptance criteria. Its output agrees with criteria 1–3, 5, 6 and 8. The other criteria (the reader over the remote, the models, docs) are outside what the demo exercises, and nothing it printed conflicts with them.
+8. done (pull request merged); cost: 6 runs, 21.9 min, 56 turns, 182k tokens in (1542k more from cache), 37k out, $2.30
