@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 113
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -68,3 +68,6 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. Criterion 6 starts from "the merge of criterion 1 brought proposed stories into the feature's backlog". The Interface's setup does not say how the walk puts proposed stories on the acceptance's branch. Options: (a) the test pushes a backlog story file such as `backlog/F0002-S0003-c.md` to the branch with `human.push_file` before the merge; (b) the criterion drops the proposed stories and only checks idle/no new acceptance. I would choose (a). Please add the file name and location to the setup, so the tester and the coder do not each decide.
+   2. Criterion 9 says the evaluation before the next tick is "its `merged` or `run` event". One test function cannot check an either/or without a further decision. The event depends on the stage the test records for A0002 (`approval` gives `merged`, `acceptance` gives `run`). Please name the stage the walk records, or split it into two parametrized rows with the event each expects. I would choose two rows: `approval` gives `merged`, `acceptance` gives `run`.
+   3. Criterion 11 says the human closed the pull request "with a comment", but the Interface does not say how the comment is posted. I assume a comment on the fake hosting service, such as a human-authored comment added before `hosting.close_by_human`. Please name the call.
