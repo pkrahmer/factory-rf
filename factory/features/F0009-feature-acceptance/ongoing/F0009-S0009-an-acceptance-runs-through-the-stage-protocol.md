@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 111
 blocked: null
 comments_seen: 0
@@ -170,3 +170,15 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
      The Assignment matches what was built. Criterion 11 still describes what `docs/project-guide.md` must say.
 
    Open: nothing.
+10. documenter: wrote the documentation for criterion 11 in `docs/project-guide.md`. `make check` is green, with coverage at 99.53 %.
+
+    Files changed (only this one):
+    - "The request" now says how `TaskComposer.compose` builds the prompt. For an acceptance at the definition's `acceptance_stage` it appends the three fact lines. A story, an acceptance at another stage and a definition without an `acceptance_stage` get the unchanged prompt. The facts are computed by code from `origin/main`.
+    - "The story form check" now says an acceptance runs through the same stage protocol. `StoryFormChecker.findings` returns `[]` for a document whose state is an `AcceptanceState`, before it reads the form, so a missing form is no error either. It also says why: the checker receives only the document, and decision rule 1 would otherwise turn every approval into a question. The test list gained the two new test modules.
+    - In "The reviewer's facts", the sentence "appending them belongs to the stage protocol" is now "`TaskComposer.compose` appends them". The old sentence was out of date.
+
+    Cross-read against the diff: the F0009 acceptance sections of `docs/project-guide.md` (opening, hand-over, facts), the task and stage launch sections, and the story form rules. They match the code. The README and the operator guide do not mention this behaviour, and nothing in them is stale.
+
+    I found nothing in the code that contradicts the Interface or the criteria. I saw no stale text unrelated to this story.
+
+    `make check`: check: green
