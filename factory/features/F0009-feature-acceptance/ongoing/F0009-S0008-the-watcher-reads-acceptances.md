@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 110
 blocked: null
 comments_seen: 2
@@ -67,8 +67,9 @@ Tests: `tests/domain/test_evaluation_due.py`, `tests/application/test_acceptance
 17. `run_watch` on a remote with the due feature `F0002-todo` (two story files in `done/`) writes `event: acceptance_due:F0002  acceptance of F0002 is due` as its first line and, in the board, the row `F0002  Todo service  backlog=0  in-progress=0  done=2  acceptance=due` and for the fixture's feature `F0001` the cell `acceptance=incomplete`.
 18. `BoardReader.read(definition)` leaves every row's `acceptance` `None` when `definition.acceptance_stage` is `None`, and `run_watch` then prints `acceptance=-` for every feature.
 19. An in-flight acceptance whose branch's last commit, pushed by the human, changed its stage from `acceptance` to `intake` gives the `reject` event of that acceptance.
-20. make check stays green.
-21. docs: `docs/project-guide.md` states that `AcceptanceReader.snapshots()` reads the acceptances' reports in `in-progress/` from the main branch and from their branches (merged and not yet recorded included), that `Watcher.evaluate` joins them with the stories in `work_item_order` and passes the due features in `EvaluationInput.due`, and the fourth tier's ranking; `docs/operator-guide.md` explains the board's acceptance column and that a due acceptance runs after the feature's stories.
+20. `snapshots()` gives no snapshot for an acceptance report on `origin/main` in another feature's `in-progress/` (`factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`), nor for a branch `work-item/F0004-A0001` whose report sits under a feature directory that `origin/main` lacks.
+21. make check stays green.
+22. docs: `docs/project-guide.md` states that `AcceptanceReader.snapshots()` reads the acceptances' reports in `in-progress/` from the main branch and from their branches (merged and not yet recorded included), that `Watcher.evaluate` joins them with the stories in `work_item_order` and passes the due features in `EvaluationInput.due`, and the fourth tier's ranking; `docs/operator-guide.md` explains the board's acceptance column and that a due acceptance runs after the feature's stories.
 
 ## Demo
 
@@ -157,3 +158,10 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
 
    Nothing else changed this round. `make check` was green at b0efa13 (entry 4); I didn't re-run it because I changed no code.
 7. human (pull request comment, 2026-10-15): (a): add the criterion before the two closing ones, as you worded it, and the tester adds both cases as rows of criterion 6's parametrized test `test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. No code change. The Interface stays as it is.
+8. coder: coder (round 1): the human chose (a) in entry 7, so this round needs a test change. I made no code change.
+   - Ticket: added criterion 20 before the two closing ones, in the wording the human approved. It says `snapshots()` gives no snapshot for an acceptance report on `origin/main` in another feature's `in-progress/` (`factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`), nor for a branch `work-item/F0004-A0001` whose report sits under a feature directory that `origin/main` lacks. The closing criteria are renumbered: `make check` is now 21 and `docs:` is 22. `## Assignment` is unchanged.
+   - Test change for the tester: in `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`, add two parametrized rows for criterion 20, each expecting `snapshots() == []`:
+     1. the report `F0002-A0001` pushed to `origin/main` under `factory/features/F0001-example/in-progress/`;
+     2. a branch `work-item/F0004-A0001` holding a report under a feature directory that `origin/main` lacks.
+   - The code at b0efa13 should already pass both rows: `_main_report_paths` filters with `_is_report_of`, and `_branch_report_paths` skips a branch whose feature directory is missing (`acceptance_reading.py:120-121`). If either row fails, it comes back to doing.
+   Open: none.
