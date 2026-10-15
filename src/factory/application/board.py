@@ -3,15 +3,12 @@
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
-from factory.application.work_items import RemoteWorkItems
+from factory.application.work_items import RemoteWorkItems, read_feature_file
 from factory.domain.board import BoardRow, FeatureRow, feature_rows, work_item_row
 from factory.domain.identifiers import FeatureId, parse_feature_directory_name
-from factory.domain.paths import FEATURE_FILE_NAME, FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.sections import title
 from factory.domain.work_item import StoryFile
-
-_MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 
 
 class BoardView(BaseModel):
@@ -54,6 +51,5 @@ class BoardReader:
         return titles
 
     def _feature_title(self, directory: str) -> str | None:
-        path = f"{FEATURES_DIRECTORY}/{directory}/{FEATURE_FILE_NAME}"
-        text = self._git.show_file(_MAIN_REF, path)
+        text = read_feature_file(self._git, directory)
         return None if text is None else title(text)

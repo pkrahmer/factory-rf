@@ -4,7 +4,9 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
+from factory.application.costs import read_cost_records
 from factory.application.dispatcher import Handler
+from factory.application.work_items import read_feature_file
 from factory.domain.acceptance import (
     AcceptanceFacts,
     FeatureAcceptance,
@@ -25,11 +27,10 @@ from factory.domain.identifiers import (
     parse_work_item_file_name,
 )
 from factory.domain.paths import (
-    FEATURE_FILE_NAME,
-    FEATURES_DIRECTORY,
     MAIN_BRANCH,
     REMOTE,
     cost_records_path,
+    feature_file_path,
     work_item_path,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -111,8 +112,8 @@ class AcceptanceService:
         raise ValueError(f"feature {feature} has no directory on {_MAIN_REF}")
 
     def _feature_title(self, directory: str) -> str:
-        path = f"{FEATURES_DIRECTORY}/{directory}/{FEATURE_FILE_NAME}"
-        text = self._boundaries.git.show_file(_MAIN_REF, path)
+        path = feature_file_path(directory)
+        text = read_feature_file(self._boundaries.git, directory)
         if text is None:
             raise WorkItemFormatError(f"missing on {_MAIN_REF}", path)
         feature_title = title(text)
@@ -121,10 +122,9 @@ class AcceptanceService:
         return feature_title
 
     def _records(self, story_path: str) -> list[CostRecord]:
-        text = self._boundaries.git.show_file(_MAIN_REF, cost_records_path(story_path))
-        if text is None:
-            return []
-        return self._boundaries.cost_reader.parse(text)
+        sidecar = cost_records_path(story_path)
+        boundaries = self._boundaries
+        return read_cost_records(boundaries.git, boundaries.cost_reader, _MAIN_REF, sidecar)
 
 
 class AcceptanceDueHandler(Handler):

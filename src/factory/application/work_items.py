@@ -16,7 +16,14 @@ from factory.domain.identifiers import (
     work_item_order,
 )
 from factory.domain.move_rule import StageChange
-from factory.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, LifecycleFolder, folder_of
+from factory.domain.paths import (
+    FEATURES_DIRECTORY,
+    MAIN_BRANCH,
+    REMOTE,
+    LifecycleFolder,
+    feature_file_path,
+    folder_of,
+)
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import (
     StoryFile,
@@ -128,6 +135,11 @@ class RemoteWorkItems:
 def _is_correction(before: WorkItemState, after: WorkItemState) -> bool:
     appended = len(after.journal) > len(before.journal)
     return appended and after.journal[-1].kind == "move_back"
+
+
+def read_feature_file(git: Git, feature_directory: str) -> str | None:
+    """The text of the feature file of `feature_directory` on main, or `None` when it is missing."""
+    return git.show_file(_MAIN_REF, feature_file_path(feature_directory))
 
 
 def parse_at(parse: Callable[[str], WorkItemDocument], text: str, path: str) -> WorkItemDocument:
