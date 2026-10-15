@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 106
 blocked: null
 comments_seen: 2
@@ -146,3 +146,39 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
    - Demo: both blocks are runnable, and each Expect line is checkable against the output.
    - Architecture: the domain description function and the application handlers sit in the right layers. `cost_table_key` moves down to the domain, which respects the layering.
    - Scope: within F0009's scope ("At the approval") and not in its Out of scope. The allow-list change in `tests/test_no_journal_reading.py` is covered by decision 22.
+5. tester: Wrote red tests for criteria 1–20. Criteria 21 (`make check`) and 22 (docs) belong to the coder and the documenter.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_acceptance_description.py::test_the_description_holds_the_recommendation_findings_proposed_stories_and_closing
+   - criterion 2: tests/domain/test_acceptance_description.py::test_the_findings_are_the_later_of_two_results_of_the_reviewer
+   - criterion 3: tests/domain/test_acceptance_description.py::test_a_result_of_another_speaker_and_a_later_human_comment_are_not_the_findings
+   - criterion 4: tests/domain/test_acceptance_description.py::test_a_missing_part_reads_none_and_leaves_the_others (rows: no-recommendation, no-proposed-stories, empty-section, no-reviewer-result)
+   - criterion 5: tests/domain/test_acceptance_description.py::test_the_closing_names_no_merge_method_and_ends_the_description (one row per forbidden word)
+   - criterion 6: tests/application/test_acceptance_hand_over.py::test_the_hand_over_sets_the_acceptance_description_and_marks_the_pull_request_ready
+   - criterion 7: tests/application/test_acceptance_hand_over.py::test_the_hand_over_posts_the_cost_table_once_keyed_by_the_latest_result (rows: latest-result n=2, no-result n=0)
+   - criterion 8: tests/application/test_acceptance_hand_over.py::test_the_hand_over_records_handed_over_in_one_commit_of_the_report_only
+   - criterion 9: tests/application/test_acceptance_hand_over.py::test_a_failing_description_raises_and_posts_and_records_nothing
+   - criterion 10: tests/application/test_acceptance_hand_over.py::test_after_a_failing_ready_flag_the_next_handling_completes_with_one_cost_table_post
+   - criterion 11: tests/application/test_acceptance_hand_over.py::test_after_a_kill_before_the_push_the_next_handling_records_with_one_cost_table_post
+   - criterion 12: tests/application/test_acceptance_hand_over.py::test_a_report_handed_over_on_its_branch_is_handled_without_effect_despite_a_stale_snapshot
+   - criterion 13: tests/application/test_acceptance_hand_over.py::test_a_report_without_a_pull_request_cannot_be_handed_over
+   - criterion 14: tests/application/test_acceptance_hand_over.py::test_a_report_at_a_stage_that_is_not_an_approval_cannot_be_handed_over
+   - criterion 15: tests/application/test_acceptance_hand_over.py::test_an_event_that_is_not_an_acceptance_hand_over_cannot_be_handled (rows: another-kind `merged`, a-story)
+   - criterion 16: tests/application/test_acceptance_hand_over.py::test_without_an_acceptance_stage_the_handler_is_built_and_refuses_every_hand_over (rows: an-acceptance, a-story)
+   - criterion 17: tests/application/test_split_by_work_item_kind.py::test_an_event_goes_to_the_handler_of_its_work_items_kind_only (rows: story and acceptance × hand_over, merged, closed; also checks the `story` and `acceptance` properties)
+   - criterion 18: tests/application/test_split_by_work_item_kind.py::test_an_event_without_a_work_item_goes_to_neither_handler (an `idle` event)
+   - criterion 19: tests/test_no_journal_reading.py::test_no_module_reads_data_from_the_journal_text. The only change to that file: `"factory.domain.acceptance"` added to `ALLOWED["entry_text"]`, as the Interface says.
+   - criterion 20: tests/application/test_acceptance_hand_over.py::test_a_push_that_is_not_pushed_raises_and_leaves_handed_over_unset. `RacingHosting` subclasses `FakeHostingService`; its `set_description` has the human push a commit to the branch and then calls the fake's own method. The handler is given `dataclasses.replace(boundaries, hosting=racing)`.
+
+   Setup in the hand-over tests: `AcceptanceService.open("F0002")` opens the acceptance after the human pushes `F0002-todo` (a feature file and two done stories). `hosting.create_pull_request` creates the draft pull request. The `publish` fixture pushes the report (an `AcceptanceState` at `approval` with the pull request number) and its cost-record sidecar through `human.push_file`, then returns the snapshot.
+
+   Files created: tests/domain/test_acceptance_description.py, tests/application/test_acceptance_hand_over.py, tests/application/test_split_by_work_item_kind.py. Changed: tests/test_no_journal_reading.py (the allow-list only).
+
+   Modules that could not be imported (collection errors, as intended): `factory.domain.acceptance` has no `ACCEPTANCE_CLOSING`, `FINDINGS_IN_SHORT`, `NONE_TEXT`, `PROPOSED_STORIES`, `RECOMMENDATION` or `acceptance_description`; `factory.application.acceptance` has no `AcceptanceHandOver` or `SplitByWorkItemKind`.
+
+   `make lint` is green. The type check was skipped, as the stage says. I also ran pytest once more, on just the three new files, to see why collection failed.
+
+   Left out: no direct test of `cost_table_key` in `factory.domain.hand_over`. No criterion names it; criterion 7 covers the key through the handler, and F0007's tests cover `HandOverHandler`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
