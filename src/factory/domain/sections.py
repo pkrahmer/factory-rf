@@ -110,7 +110,8 @@ def sections(body: str) -> list[Section]:
     ]
 
 
-def _first_section(body: str, heading: str) -> Section | None:
+def first_section(body: str, heading: str) -> Section | None:
+    """The body's first section under `heading`, or `None` when it has none."""
     return next((found for found in sections(body) if found.heading == heading), None)
 
 
@@ -125,7 +126,7 @@ def _without_leading_blank_lines(lines: Sequence[str]) -> list[str]:
 
 def section_text(body: str, heading: str) -> str | None:
     """The text under the first section with this exact heading, blank edges trimmed."""
-    found = _first_section(body, heading)
+    found = first_section(body, heading)
     if found is None:
         return None
     content = split_lines(body)[found.start + 1 : found.end]
@@ -137,7 +138,7 @@ def insert_paragraph(body: str, heading: str, paragraph: str) -> str:
     """The body with the paragraph placed first under the first section with this heading."""
     if _is_blank(paragraph):
         raise ValueError("the paragraph to insert is blank")
-    found = _first_section(body, heading)
+    found = first_section(body, heading)
     if found is None:
         raise WorkItemFormatError(f"missing section: {_HEADING_PREFIX}{heading}")
     lines = split_lines(body)

@@ -19,7 +19,13 @@ from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry, entry
 from factory.domain.paths import LifecycleFolder
 from factory.domain.pipeline_definition import DONE_STAGE
 from factory.domain.post_texts import done_entry_text
-from factory.domain.sections import JOURNAL, insert_paragraph, section_text, sections, split_lines
+from factory.domain.sections import (
+    JOURNAL,
+    first_section,
+    insert_paragraph,
+    section_text,
+    split_lines,
+)
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 
 ACCEPTANCE_SLUG = "acceptance"
@@ -273,7 +279,7 @@ def book_merge(document: WorkItemDocument, bill: Bill) -> WorkItemDocument:
 
 
 def refusal_reason(document: WorkItemDocument, role: str) -> str:
-    """The human's comments after the reviewer's last result, stripped and joined, never read."""
+    """The human's comments after the last result, stripped, copied, never interpreted."""
     last_result = last_record(document, speaker=role, kind="result")
     after = 0 if last_result is None else last_result.number
     journal = [] if document.state is None else document.state.journal
@@ -286,12 +292,11 @@ def refusal_reason(document: WorkItemDocument, role: str) -> str:
 
 
 def _with_recommendation(body: str, paragraph: str) -> str:
-    found = {section.heading: section for section in reversed(sections(body))}
-    if RECOMMENDATION in found:
+    if first_section(body, RECOMMENDATION) is not None:
         return insert_paragraph(body, RECOMMENDATION, paragraph)
     added = [f"## {RECOMMENDATION}", "", paragraph]
     lines = split_lines(body)
-    journal = found.get(JOURNAL)
+    journal = first_section(body, JOURNAL)
     if journal is None:
         while lines and not lines[-1].strip():
             lines.pop()
