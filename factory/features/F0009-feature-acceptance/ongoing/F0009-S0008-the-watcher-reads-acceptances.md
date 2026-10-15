@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 110
 blocked: null
 comments_seen: 0
@@ -98,3 +98,30 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
    - Demo: a runnable python -c script. Its Expect line names the three output keys, which can be checked.
    - Architecture: the changes fall in domain (evaluation) and application (reader, watcher, board). Only Git.resolve, list_files, show_file and remote_branches are used, with no work tree, so the layers hold.
    - Scope: inside FEATURE.md ("the watcher's evaluation takes the due features and the reports in in-progress/ into account", and the board column). The one F0006 test change is covered by feature decision 22.
+3. tester: red tests written for every criterion; make lint green.
+   - criterion 1: tests/domain/test_evaluation_due.py::test_due_is_empty_by_default_and_holds_feature_ids, ::test_evaluation_input_refuses_a_malformed_due_and_an_unknown_key (F002, unknown key; through a variable typed type[BaseModel])
+   - criterion 2: tests/domain/test_evaluation_due.py::test_a_due_feature_ranks_after_earlier_and_before_later_features_stories (F0003-S0001 gives acceptance_due, F0001-S0001 gives run)
+   - criterion 3: tests/domain/test_evaluation_due.py::test_a_features_own_story_runs_before_its_due_acceptance
+   - criterion 4: tests/domain/test_evaluation_due.py::test_a_waiting_work_item_and_a_held_claim_win_over_a_due_feature (two cases)
+   - criterion 5: tests/application/test_acceptance_snapshots.py::test_a_report_on_its_branch_alone_gives_its_snapshot
+   - criterion 6: tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped
+   - criterion 7: tests/application/test_acceptance_snapshots.py::test_a_merged_report_not_yet_recorded_has_mains_path_and_the_branchs_document (after the merge the human pushes a changed state to the branch, so branch and main differ)
+   - criterion 8: tests/application/test_acceptance_snapshots.py::test_a_merged_report_whose_branch_is_deleted_is_read_from_main (the branch is deleted on the bare remote, then fetched with prune)
+   - criterion 9: tests/application/test_acceptance_snapshots.py::test_a_recorded_report_gives_a_snapshot_only_from_a_leftover_branch (recorded / leftover-branch)
+   - criterion 10: tests/application/test_acceptance_snapshots.py::test_snapshots_of_two_features_come_in_work_item_order (F0002 from its branch, F0003 from main, so a "main first" order fails)
+   - criterion 11: tests/application/test_acceptance_snapshots.py::test_a_report_with_a_plain_work_item_state_is_a_format_error_with_its_path, ::test_no_acceptance_stage_gives_no_snapshots
+   - criterion 12: tests/application/test_watcher_acceptance.py::test_an_in_flight_acceptance_without_a_claim_runs
+   - criterion 13: tests/application/test_watcher_acceptance.py::test_a_started_story_of_the_feature_runs_before_its_in_flight_acceptance (F0002-2fa, F0002)
+   - criterion 14: tests/application/test_watcher_acceptance.py::test_a_merged_acceptance_at_its_approval_is_a_merged_event (parametrised on merge, squash and rebase; the event's work_item must equal AcceptanceReader.snapshots()[0] and pull_request must equal the merged view)
+   - criterion 15: tests/application/test_watcher_acceptance.py::test_a_due_feature_is_an_acceptance_due_event_at_mains_head
+   - criterion 16: tests/application/test_watcher_acceptance.py::test_without_an_acceptance_stage_acceptances_and_due_features_are_not_seen
+   - criterion 17: tests/entry/test_watch_acceptance.py::test_run_watch_shows_a_due_acceptance_as_its_event_and_in_the_board
+   - criterion 18: tests/entry/test_watch_acceptance.py::test_without_an_acceptance_stage_the_board_has_no_acceptance_status (pushes factory/pipeline.yml without the acceptance_stage line, so run_watch loads that definition)
+   - criterion 19: tests/application/test_watcher_acceptance.py::test_a_stage_change_the_definition_forbids_on_an_acceptance_branch_is_rejected
+   - F0006 test changed, as the Rules allow: tests/application/test_board_reader.py::test_only_story_files_count_on_main now expects acceptance="incomplete" for F0001.
+   Files created: tests/domain/test_evaluation_due.py, tests/application/test_acceptance_snapshots.py, tests/application/test_watcher_acceptance.py, tests/entry/test_watch_acceptance.py. Changed: tests/application/test_board_reader.py.
+   Import errors: none. Every module under test already exists; the tests fail because EvaluationInput has no `due` field yet (it is refused as an unknown key), AcceptanceReader has no `snapshots()`, and the watcher and BoardReader do not read acceptances yet. make test ran once and was red. Its output was cut off to the last lines, so I saw only some of the failure reasons: the shown failures are the evaluation_due tests and the run_watch board test. The type check was not run in this stage.
+   Open: none.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/entry/test_watch_acceptance.py::test_run_watch_shows_a_due_acceptance_as_its_event_and_in_the_board
