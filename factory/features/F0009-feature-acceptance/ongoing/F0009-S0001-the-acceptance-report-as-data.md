@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 103
 blocked: null
 comments_seen: 0
@@ -189,3 +189,30 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
    - Stale but unrelated, so not touched: the project guide's board paragraph says `FeatureRow.acceptance` is always `None` until F0009-S0001. This story does not change the board, so the line is still true. A later F0009 story that builds the board support should update it.
 
    `make check`: check: green
+7. demo: I ran all three demo commands from the repository root, exactly as written. Each output matches its `Expect:` line, and nothing the demo showed goes against an acceptance criterion. No findings.
+
+   1. Ids and order. This met its Expect line: four lines, `F0002-A0001`, `F0002-A0004`, then the same sorted list twice. The second and third lines cover criteria 8 and 9 (a slug that starts with a digit, and a missing slug).
+   ```
+   F0002-A0001
+   F0002-A0004
+   ['F0002-S0001', 'F0002-S0009', 'F0002-A0001', 'F0003-S0001']
+   ['F0002-S0001', 'F0002-S0009', 'F0002-A0001', 'F0003-S0001']
+   ```
+
+   2. `AcceptanceState` validation. This met its Expect line: `rejected` on three lines, then `refused ['F0001-S0001']`.
+   ```
+   rejected
+   rejected
+   rejected
+   refused ['F0001-S0001']
+   ```
+
+   3. Writer key order and a round trip through the reader. This met its Expect line: `['stories', 'outcome']`, then `AcceptanceState True`.
+   ```
+   ['stories', 'outcome']
+   AcceptanceState True
+   ```
+
+   Extra check for criterion 18, beyond the demo commands: I rendered the same kind of document and printed the whole front matter. It shows the ten `WorkItemState` keys in order, ending with `journal: []`, then `stories: [F0001-S0001]` and `outcome: null`. This agrees with the criterion.
+
+   Not run here: `make check`. The factory runs it after this stage. The coder's and documenter's entries both report it green.
