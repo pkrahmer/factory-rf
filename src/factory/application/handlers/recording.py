@@ -3,9 +3,12 @@
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
+from factory.application.git import Git
+from factory.domain.archive import destination_path
 from factory.domain.errors import CannotHandle, PushFailed
 from factory.domain.events import Event
 from factory.domain.git import CommitId
+from factory.domain.paths import LifecycleFolder, cost_records_path
 from factory.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
@@ -44,6 +47,16 @@ def require_pull_request(target: Target, kind: str) -> int:
 def commit_subject(work_item: str, text: str) -> str:
     """Return the subject of a commit a handler makes for the work item."""
     return f"work item {work_item}: {text}"
+
+
+def move_with_cost_records(git: Git, path: str, folder: LifecycleFolder) -> str:
+    """Move the work item at `path` and its cost records, if any, to `folder`; return the path."""
+    destination = destination_path(path, folder)
+    git.move(path, destination)
+    sidecar = cost_records_path(path)
+    if git.show_file("HEAD", sidecar) is not None:
+        git.move(sidecar, cost_records_path(destination))
+    return destination
 
 
 class WorkItemRecorder:
