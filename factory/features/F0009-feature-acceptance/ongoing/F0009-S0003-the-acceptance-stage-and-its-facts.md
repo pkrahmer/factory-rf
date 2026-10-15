@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 105
 blocked: null
 comments_seen: 0
@@ -259,3 +259,25 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    Stale but not touched (unrelated): `factory/entry/check_story.py` builds the feature-file path itself instead of using `feature_file_path`. That is the coder's note, not documentation.
 
    `make check`: check: green
+9. demo: Demo, round 1. I ran both `## Demo` commands from the repository root, in order. Both exited 0.
+
+   Command 1 (`acceptance_facts` + `acceptance_prompt`):
+   ```
+   Judge the feature.
+
+   Archived stories: F0002-S0001, F0002-S0002, F0002-S0004
+   Next free story number: F0002-S0007
+   Cost of the stories: 19 runs, 7.1 min, 3.33 USD
+   ```
+   Met its Expect line: the five lines appear exactly as specified, in order, with the empty line second.
+
+   Command 2 (`acceptance_head`):
+   ```
+   AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] [] None
+   '# Acceptance of Todo service\n\n## Journal\n'
+   ```
+   Met its Expect line: both lines match exactly.
+
+   I read the acceptance criteria again against this output. It agrees with criteria 1, 4, 5 and 6: archived stories, next free story number 4-digit and above the backlog's S0006, the three fact lines, the prompt joined with an empty line, the state type, stage, stories, empty journal, no claim, and the body. The demo contradicts no criterion. The criteria it does not exercise (opening on the remote, write paths, bill per acceptance, the handler) are left to the tests and the `make check` gate.
+
+   No findings.
