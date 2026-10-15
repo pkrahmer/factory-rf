@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 104
 blocked: null
 comments_seen: 0
@@ -185,3 +185,28 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the derivation of a feature's acceptance status and the reader that fills it from the remote. All the tester's tests pass unchanged, and `make check` passes (coverage 99.49 %). Commits: 7e62c5f (feature) and a25df16 (refactor).
+
+   What I built:
+   - `src/factory/domain/acceptance.py` (grown): `FeatureFiles`, `ReportFacts` and `FeatureAcceptance` are frozen models that refuse unknown keys. `story_file_ids` keeps only the names `parse_work_item_file_name` reads as a story id, ascending without repeats. `acceptance_status` checks the five rules in the Interface's order: in flight, merged and not recorded, incomplete, the covering recorded outcome (highest id wins), then due. `AcceptanceStatus` is imported from `factory.domain.board`; this adds no import cycle.
+   - `src/factory/application/acceptance_reading.py` (new): `AcceptanceReader` reads only `origin/main` and `origin/<branch>`, through `Git.list_files`, `show_file` and `remote_branches`.
+     - Feature directories are worked out from `list_files(ref, FEATURES_DIRECTORY)`. When two directories share a feature id, the first by name counts.
+     - Folder contents are the names directly in each folder; anything deeper is skipped.
+     - A report on main is a file in `in-progress/` or `done/` whose name has an acceptance id. A report on a branch is the file in `in-progress/` at `origin/work-item/<id>` whose name carries that branch's id; the branch must be an acceptance of this feature. A branch without such a file is ignored.
+     - A report whose state is not an `AcceptanceState` raises `WorkItemFormatError` with the report's path.
+     - `due_features` and `fill_board` return `[]` and the rows unchanged when `acceptance_stage` is `None`.
+   - `src/factory/application/work_items.py`: the private `_parsed` helper is now the public `parse_at`, with a docstring. Both its existing callers and the new reader use it, so the helper is not copied.
+
+   Main design decision: `ReportFacts.on_branch` is `ref != origin/main`. Branch reports are only ever read from `in-progress/`, so this matches the Interface's rule (on a branch only in `in-progress`) without a second flag. Rejected: the reader passing `on_branch` explicitly per call site. That is one more parameter that can only take one value per site.
+
+   Choices the Interface leaves open:
+   - A branch report that cannot be read also raises `WorkItemFormatError` with its path. This matches `RemoteWorkItems`, which raises for an unreadable branch file. The Interface only names the error for reports on main.
+   - The reader does not call `Git.resolve`; nothing needed it.
+
+   Refactor: `_main_reports` now pairs each folder with its file names directly, which removed a lookup dict and the `_REPORT_FOLDERS` constant. Nothing else needed changing.
+
+   Noticed, not touched:
+   - Two defensive branches of the reader are uncovered (`acceptance_reading.py` lines 155 and 169): skipping another feature's acceptance branch, and a report listed but missing at the ref.
+   - `make check` takes over two minutes, so the tool's default timeout pushed my first run into the background.
+
+   `make check`: check: green
