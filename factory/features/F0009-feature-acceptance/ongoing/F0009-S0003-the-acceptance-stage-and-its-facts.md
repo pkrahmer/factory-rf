@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 105
 blocked: null
 comments_seen: 0
@@ -201,3 +201,21 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    2. `src/factory/application/acceptance.py` `AcceptanceService._feature_title` repeats the read in `BoardService._feature_title` in `src/factory/application/board.py:56`: the same path built from `FEATURES_DIRECTORY` and `FEATURE_FILE_NAME`, then `show_file` at `origin/main`, then `title`. Fix: extract one shared `feature_title(git, directory) -> str | None` that both use. `AcceptanceService` keeps only its own `WorkItemFormatError` handling for `None`. The missing file and the untitled file need to stay apart, so each gets its own message and both carry the path.
 
    No other groups were reviewed in this round.
+6. coder: coder (round 1): fixed both of the reviewer's findings, and nothing else. No test was changed. `make check` is green (coverage 99.5 %). Commit ef1d36d.
+
+   1. The copied sidecar read is now one function, `read_cost_records(git, cost_reader, ref, sidecar)`, at module level in `src/factory/application/costs.py`.
+      - `BillService.for_work_item` calls it; its private `_records` is gone.
+      - `AcceptanceService._records` now only builds the sidecar path and calls the same function at `origin/main`.
+   2. The copied feature-file read is shared in two parts:
+      - `feature_file_path(directory)` in `src/factory/domain/paths.py` builds the path.
+      - `read_feature_file(git, directory) -> str | None` in `src/factory/application/work_items.py` returns the file's text at `origin/main`, or `None` when the file is missing.
+      - `BoardReader._feature_title` (`src/factory/application/board.py`) uses both. Its now-unused `_MAIN_REF` and path imports are gone.
+      - `AcceptanceService._feature_title` uses both too. It keeps its two separate `WorkItemFormatError`s, one for a missing file and one for a file without a title, and both carry the path.
+
+   Main decision: I share the read of the text, not the title. I rejected the reviewer's example `feature_title(git, directory) -> str | None`: its `None` would mean both "missing" and "untitled", so `AcceptanceService` would have to read the file a second time to tell the two apart.
+
+   `read_feature_file` sits beside `RemoteWorkItems` because that module already reads from main's refs. Putting it in `board.py` would have made the acceptance service import from the board use case.
+
+   Noticed, not touched: `factory/entry/check_story.py` builds the same feature-file path on the local filesystem. It could use `feature_file_path`, but that is outside this ticket.
+
+   `make check`: check: green
