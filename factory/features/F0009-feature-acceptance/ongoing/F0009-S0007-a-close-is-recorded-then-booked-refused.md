@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 109
 blocked: null
 comments_seen: 2
@@ -162,3 +162,20 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
         - `handlers/closed.py:93` and `AcceptanceClosed._today` both compute "today in UTC" with the same one-line expression (`clock.now().astimezone(UTC).date()`). Sharing it would mean a change to F0007's handler, outside this ticket.
 
    `make check`: check: green
+9. reviewer: No findings.
+
+   Scope reviewed: `src/factory/application/acceptance.py` (the new `AcceptanceClosed`, and `_reviewer_role` moved out of `AcceptanceHandOver` so both handlers share it) and `tests/application/test_acceptance_closed.py`. The diff also touches `docs/runs/2026-10-12-overnight/night-log.md`, but that is the human's own commit f717116, not stage work.
+
+   - Acceptance criteria: criteria 1–15 each map to the tests named in log entry 3. Criteria 6 and 15 are rows of one parametrized test. Each test checks what its criterion says.
+     - Criterion 4 compares the whole rendered `book_refusal(...)` report. It checks the sidecar both with cost records and without, checks that only the report and sidecar changed on main, and checks that the proposed story is absent.
+     - Criterion 9's rows also show the order of the checks: kind before acceptance, acceptance before stage, stage before pull request.
+     - The "no work item" side of "not an acceptance" cannot be built: `Event`'s validator refuses a `closed` event without a work item.
+     - The coder's entry 8 reports `make check` green, with coverage at 99.52 %.
+   - Architecture: the handler stays in `factory.application` and reaches git only through `WorkItemRecorder`, `Git.resolve`/`show_file` and `read_cost_records`. `mkdir` on the checkout follows the existing pattern in `AcceptanceService.open`.
+   - Security: no markers, no strings built into commands, and the error reasons are fixed texts.
+   - Quality:
+     - The steps follow the Interface's order: locate, record (one `record` when changed), book (skipped when the report is already in `done/`), delete.
+     - No duplicate helper: no shared "today in UTC" helper exists to reuse. The same one-line expression in `handlers/closed.py:93` is inline code, not a helper.
+     - Docstrings are present and say why.
+   - Known gap, not a finding: the coder noted that a sidecar that exists but is empty is not copied to main (`if records:`). The Interface says "when it has one", but such a file is not produced in practice and no criterion covers it.
+   - Ticket hygiene: the log gives the main decision (one read of `origin/<branch>` gives both the bill and the copy) and what was rejected. `Assignment` matches what was built. Docs criterion 17 still says what the operator must know.
