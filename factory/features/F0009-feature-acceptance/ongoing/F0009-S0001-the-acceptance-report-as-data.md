@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 103
 blocked: null
 comments_seen: 0
@@ -137,3 +137,32 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
    - Demo: three runnable `uv run python -c` blocks. Each `Expect:` line gives exact output that can be checked.
    - Architecture: the new module is in the domain layer and does no I/O. The adapter change stays in the existing reader and writer. No git, hosting service or agent runtime is touched.
    - Scope: within F0009 "Scope" (first bullet), and nothing in "Out of scope" is touched.
+3. tester: red tests written for every criterion; `make lint` green; `make test` stops at collection because `factory.domain.acceptance` does not exist yet (ModuleNotFoundError in all three new files).
+   - criterion 1: tests/domain/test_acceptance.py::test_acceptance_id_is_the_feature_and_a_four_digit_number
+   - criterion 2: tests/domain/test_acceptance.py::test_acceptance_id_takes_numbers_from_1_to_9999 (0, 1, 9999, 10000)
+   - criterion 3: tests/domain/test_acceptance.py::test_first_acceptance_of_a_feature_is_number_one
+   - criterion 4: tests/domain/test_acceptance.py::test_next_acceptance_follows_the_highest_of_the_feature
+   - criterion 5: tests/domain/test_acceptance.py::test_next_acceptance_ends_at_9999 (A9998 → A9999, A9999 → ValueError)
+   - criterion 6: tests/domain/test_acceptance.py::test_acceptance_file_name_reads_back_to_its_id_and_slug
+   - criterion 7: tests/domain/test_acceptance.py::test_acceptance_file_name_refuses_a_story_id
+   - criteria 8, 9: tests/domain/test_acceptance.py::test_acceptance_sorts_after_the_stories_of_its_feature (rows `F0002-2fa` and `F0002`; the first acceptance id is `acceptance_id(feature, 1)`)
+   - criterion 10: tests/domain/test_acceptance.py::test_acceptance_state_defaults_to_no_stories_and_no_outcome
+   - criterion 11: tests/domain/test_acceptance.py::test_acceptance_stories_ascend_strictly
+   - criterion 12: tests/domain/test_acceptance.py::test_acceptance_stories_refuse_an_acceptance_id
+   - criterion 13: tests/domain/test_acceptance.py::test_acceptance_outcome_is_set_exactly_when_done
+   - criterion 14: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_returns_an_acceptance_state_for_either_extra_key
+   - criterion 15: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_returns_a_plain_state_without_the_extra_keys
+   - criterion 16: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_refuses_any_other_unknown_key (`verdict` beside a plain front matter, and beside `stories`, following the Interface rule "any other unknown key is still a WorkItemFormatError")
+   - criterion 17: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_names_the_extra_key_of_an_invalid_value
+   - criterion 18: tests/adapters/test_work_item_markdown_acceptance.py::test_writer_puts_stories_and_outcome_last (checks the full key order: WorkItemState's fields, then `stories`, then `outcome`, and `outcome: null`)
+   - criterion 19: tests/adapters/test_work_item_markdown_acceptance.py::test_writer_gives_a_plain_state_neither_extra_key
+   - criterion 20: tests/adapters/test_work_item_markdown_acceptance.py::test_acceptance_document_survives_a_round_trip
+   - criterion 21: tests/domain/test_journal_acceptance.py::test_append_entry_keeps_the_acceptance_state
+   - criterion 22: tests/domain/test_journal_acceptance.py::test_restore_puts_back_the_baseline_stories_and_outcome
+   - criterion 23: tests/domain/test_acceptance.py::test_acceptance_state_is_closed_and_typed (built through `type[BaseModel]`) and ::test_acceptance_state_refuses_an_assignment (uses `setattr` with the field name held in a variable)
+   - criteria 24, 25: not tests (make check; documenter).
+   Files created: tests/domain/test_acceptance.py, tests/adapters/test_work_item_markdown_acceptance.py, tests/domain/test_journal_acceptance.py.
+   Could not be imported: factory.domain.acceptance (all three files import it). I skipped the type check, as this stage's instructions say.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
