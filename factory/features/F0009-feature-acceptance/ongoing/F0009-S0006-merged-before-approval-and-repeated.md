@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 108
 blocked: null
 comments_seen: 0
@@ -125,3 +125,10 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
       - Quality: the before-approval prefix is a module constant next to `_CLOSED_ENTRY_PREFIX`, and both paths book through the existing `_booked`, so nothing is duplicated.
       - Considered and not counted: the new no-state `CannotHandle` in `AcceptanceMerged._book` has no test, which the coder disclosed. It replaces the `ValueError` that `book_merge` raised at the same point before this change, so it is not a regression, and `require_state` is the helper the codebase requires for that check.
       - Ticket hygiene: the Assignment matches what was built. The coder's entry gives the main decision (a flag on `book_merge`) and what was rejected. Criterion 14 still describes what the documenter must write.
+6. documenter: criterion 14 written; `make check` is green.
+   - `docs/operator-guide.md`: in the section on the human's act on an acceptance, after the sentence on each acceptance's own cost, two paragraphs. "Merged before its approval": booked `accepted`, the entry `done (pull request merged before approval); cost: ...`, a waiting question cleared, a merge at the approval stage gets the ordinary entry, the feature is `incomplete` and not due, and nothing loops. "Accepted again": a story archived afterwards makes the feature due, the next acceptance is `A0002` with its own report and cost records, the earlier report stays unchanged, the status is `merged_unrecorded` until the repeat is recorded and then `accepted`.
+   - `docs/decisions.md`: a new entry on why a merge before approval is booked like any merge and a repeated acceptance is a new work item. It gives the reason (v1's loop came from one report file whose stage had to change) and the alternatives rejected.
+   - Cross-read against the diff and found current: README, `docs/project-guide.md`, and the rest of the operator guide, including "When a feature acceptance is due" (the `merged_unrecorded` and covering-report rules match) and the merge paragraph above my addition.
+   - Findings: none. The code matches the Interface. Stale but unrelated: none seen. The coder disclosed that the new no-state `CannotHandle` in `AcceptanceMerged._book` has no test, and the reviewer did not count it.
+
+   `make check`: check: green
