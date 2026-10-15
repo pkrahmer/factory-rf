@@ -42,7 +42,14 @@ def test_only_story_files_count_on_main(boundaries: Boundaries, human: HumanClon
     view = _read(boundaries)
 
     assert view.features == [
-        FeatureRow(feature="F0001", title="Example feature", backlog=1, in_progress=0, done=0)
+        FeatureRow(
+            feature="F0001",
+            title="Example feature",
+            backlog=1,
+            in_progress=0,
+            done=0,
+            acceptance="incomplete",
+        )
     ]
 
 

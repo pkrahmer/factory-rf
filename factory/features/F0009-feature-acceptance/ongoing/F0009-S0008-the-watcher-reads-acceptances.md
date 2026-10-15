@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 110
+blocked: null
+comments_seen: 2
+round: 1
+attempts: 0
+---
 # The watcher reads acceptances
 
 ## Assignment (as of log entry 1)
@@ -59,8 +67,9 @@ Tests: `tests/domain/test_evaluation_due.py`, `tests/application/test_acceptance
 17. `run_watch` on a remote with the due feature `F0002-todo` (two story files in `done/`) writes `event: acceptance_due:F0002  acceptance of F0002 is due` as its first line and, in the board, the row `F0002  Todo service  backlog=0  in-progress=0  done=2  acceptance=due` and for the fixture's feature `F0001` the cell `acceptance=incomplete`.
 18. `BoardReader.read(definition)` leaves every row's `acceptance` `None` when `definition.acceptance_stage` is `None`, and `run_watch` then prints `acceptance=-` for every feature.
 19. An in-flight acceptance whose branch's last commit, pushed by the human, changed its stage from `acceptance` to `intake` gives the `reject` event of that acceptance.
-20. make check stays green.
-21. docs: `docs/project-guide.md` states that `AcceptanceReader.snapshots()` reads the acceptances' reports in `in-progress/` from the main branch and from their branches (merged and not yet recorded included), that `Watcher.evaluate` joins them with the stories in `work_item_order` and passes the due features in `EvaluationInput.due`, and the fourth tier's ranking; `docs/operator-guide.md` explains the board's acceptance column and that a due acceptance runs after the feature's stories.
+20. `snapshots()` gives no snapshot for an acceptance report on `origin/main` in another feature's `in-progress/` (`factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`), nor for a branch `work-item/F0004-A0001` whose report sits under a feature directory that `origin/main` lacks.
+21. make check stays green.
+22. docs: `docs/project-guide.md` states that `AcceptanceReader.snapshots()` reads the acceptances' reports in `in-progress/` from the main branch and from their branches (merged and not yet recorded included), that `Watcher.evaluate` joins them with the stories in `work_item_order` and passes the due features in `EvaluationInput.due`, and the fourth tier's ranking; `docs/operator-guide.md` explains the board's acceptance column and that a due acceptance runs after the feature's stories.
 
 ## Demo
 
@@ -84,3 +93,163 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (EvaluationInput.due, AcceptanceReader.snapshots(), the unchanged Watcher.evaluate and BoardReader.read) and the tier-4 ranking key, the snapshot fields and the join are all stated. due_features() and fill_board come from S0002, as the story says.
+   - Criteria: each is testable by one test function. Every Interface rule has both sides: due validation (1: accepts F0002, refuses F002, unknown key); acceptance_stage None (11, 16, 18); non-acceptance state raising WorkItemFormatError (11); skipped story and report-less branches (6); done/ with and without a leftover branch (9); merged with the branch present or deleted (7, 8); tiers 2 and 3 over a due feature (4); a due feature after its own stories, before the next feature's and after an earlier feature's (2, 3, 13); an illegal stage change rejected (19).
+   - Demo: a runnable python -c script. Its Expect line names the three output keys, which can be checked.
+   - Architecture: the changes fall in domain (evaluation) and application (reader, watcher, board). Only Git.resolve, list_files, show_file and remote_branches are used, with no work tree, so the layers hold.
+   - Scope: inside FEATURE.md ("the watcher's evaluation takes the due features and the reports in in-progress/ into account", and the board column). The one F0006 test change is covered by feature decision 22.
+3. tester: red tests written for every criterion; make lint green.
+   - criterion 1: tests/domain/test_evaluation_due.py::test_due_is_empty_by_default_and_holds_feature_ids, ::test_evaluation_input_refuses_a_malformed_due_and_an_unknown_key (F002, unknown key; through a variable typed type[BaseModel])
+   - criterion 2: tests/domain/test_evaluation_due.py::test_a_due_feature_ranks_after_earlier_and_before_later_features_stories (F0003-S0001 gives acceptance_due, F0001-S0001 gives run)
+   - criterion 3: tests/domain/test_evaluation_due.py::test_a_features_own_story_runs_before_its_due_acceptance
+   - criterion 4: tests/domain/test_evaluation_due.py::test_a_waiting_work_item_and_a_held_claim_win_over_a_due_feature (two cases)
+   - criterion 5: tests/application/test_acceptance_snapshots.py::test_a_report_on_its_branch_alone_gives_its_snapshot
+   - criterion 6: tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped
+   - criterion 7: tests/application/test_acceptance_snapshots.py::test_a_merged_report_not_yet_recorded_has_mains_path_and_the_branchs_document (after the merge the human pushes a changed state to the branch, so branch and main differ)
+   - criterion 8: tests/application/test_acceptance_snapshots.py::test_a_merged_report_whose_branch_is_deleted_is_read_from_main (the branch is deleted on the bare remote, then fetched with prune)
+   - criterion 9: tests/application/test_acceptance_snapshots.py::test_a_recorded_report_gives_a_snapshot_only_from_a_leftover_branch (recorded / leftover-branch)
+   - criterion 10: tests/application/test_acceptance_snapshots.py::test_snapshots_of_two_features_come_in_work_item_order (F0002 from its branch, F0003 from main, so a "main first" order fails)
+   - criterion 11: tests/application/test_acceptance_snapshots.py::test_a_report_with_a_plain_work_item_state_is_a_format_error_with_its_path, ::test_no_acceptance_stage_gives_no_snapshots
+   - criterion 12: tests/application/test_watcher_acceptance.py::test_an_in_flight_acceptance_without_a_claim_runs
+   - criterion 13: tests/application/test_watcher_acceptance.py::test_a_started_story_of_the_feature_runs_before_its_in_flight_acceptance (F0002-2fa, F0002)
+   - criterion 14: tests/application/test_watcher_acceptance.py::test_a_merged_acceptance_at_its_approval_is_a_merged_event (parametrised on merge, squash and rebase; the event's work_item must equal AcceptanceReader.snapshots()[0] and pull_request must equal the merged view)
+   - criterion 15: tests/application/test_watcher_acceptance.py::test_a_due_feature_is_an_acceptance_due_event_at_mains_head
+   - criterion 16: tests/application/test_watcher_acceptance.py::test_without_an_acceptance_stage_acceptances_and_due_features_are_not_seen
+   - criterion 17: tests/entry/test_watch_acceptance.py::test_run_watch_shows_a_due_acceptance_as_its_event_and_in_the_board
+   - criterion 18: tests/entry/test_watch_acceptance.py::test_without_an_acceptance_stage_the_board_has_no_acceptance_status (pushes factory/pipeline.yml without the acceptance_stage line, so run_watch loads that definition)
+   - criterion 19: tests/application/test_watcher_acceptance.py::test_a_stage_change_the_definition_forbids_on_an_acceptance_branch_is_rejected
+   - F0006 test changed, as the Rules allow: tests/application/test_board_reader.py::test_only_story_files_count_on_main now expects acceptance="incomplete" for F0001.
+   Files created: tests/domain/test_evaluation_due.py, tests/application/test_acceptance_snapshots.py, tests/application/test_watcher_acceptance.py, tests/entry/test_watch_acceptance.py. Changed: tests/application/test_board_reader.py.
+   Import errors: none. Every module under test already exists; the tests fail because EvaluationInput has no `due` field yet (it is refused as an unknown key), AcceptanceReader has no `snapshots()`, and the watcher and BoardReader do not read acceptances yet. make test ran once and was red. Its output was cut off to the last lines, so I saw only some of the failure reasons: the shown failures are the evaluation_due tests and the run_watch board test. The type check was not run in this stage.
+   Open: none.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/entry/test_watch_acceptance.py::test_run_watch_shows_a_due_acceptance_as_its_event_and_in_the_board
+4. coder: the watcher now reads acceptances, and the evaluation ranks due features in tier 4. `make check` is green: lint, types, layers, sast, secrets, licenses, and tests at 99.5 % coverage.
+      - `src/factory/domain/evaluation.py`: added `EvaluationInput.due: list[FeatureId] = []`. `_new_work` now collects two kinds of candidate: the runnable pairs, keyed by `work_item_order(id)`, and the due features, keyed by `(feature, 1, "")` through `_due_order`. The smallest key decides, and ties go to the first in list order. A due feature gives `acceptance_due` with `feature` set, no work item, `remote_state=main_commit` and detail `acceptance of <F> is due`. A snapshot gives `run`, or `ask` at the attempts cap, as before. Tiers 1 to 3 are unchanged.
+      - `src/factory/application/acceptance_reading.py`: added `AcceptanceReader.snapshots()`. It returns `[]` without an acceptance stage. Report paths come first from the acceptance branches (in-progress file of the id under the feature's directory on main) and are then overwritten by main's in-progress reports, so main's path wins. The document is read from `origin/<branch>` when that ref exists and holds the file at the path, otherwise from main. Snapshots are sorted by `work_item_order`. The existing state check moved into a shared `_document(ref, path)`, which `_report` also uses, so a non-acceptance state raises `WorkItemFormatError` with the path in both readings.
+      - `src/factory/application/watcher.py`: `Watcher.evaluate` joins the stories and `snapshots()`, sorted by `(work_item_order(id), path)`. It runs the move rule over the joined list and passes `due=reader.due_features()`.
+      - `src/factory/application/board.py`: `BoardReader.__init__` keeps the boundaries, and `read` passes its feature rows through `AcceptanceReader(...).fill_board`.
+      - Commits: 66d1d99 (feat), b0efa13 (refactor: the duplicated loop that looked up a report's paths on its branch, used by `_branch_reports` and `snapshots()`, is now one helper `_branch_report_paths_at`).
+      - Design decision: one sort key over a mixed candidate list, instead of finding the first runnable snapshot and comparing it with the first due feature. This matches the Interface rule "ranked by one key". For a list already in id order and `due` empty, the result is the same as F0006's, and the F0006 tests stay green.
+      - Noticed, not touched:
+        - `snapshots()` only finds feature directories as they are on `origin/main`, so a report on a branch whose feature directory is missing on main is ignored. That uncovered `continue` is `acceptance_reading.py:121`.
+        - With the `(F, 1, "")` key, a due feature would rank before an acceptance snapshot of the same feature. In practice they cannot exist together, because a feature with an open acceptance is not due.
+
+   `make check`: check: green
+5. reviewer: findings in group 1 (acceptance criteria). I stopped there, as the checklist says. Criteria 1 to 19 each have a test that checks what the criterion says. The coder's entry reports `make check` green. The code matches the Interface: the tier-4 key `(feature, 1, "")`, the joined sort in `Watcher.evaluate`, main's path winning in `snapshots()`, the document read from the branch when the branch holds it, and `BoardReader` keeping the boundaries. Both gaps below are gaps in the story, not the tester's: the Interface states the rule, but no criterion names its failing side.
+   1. `src/factory/application/acceptance_reading.py:112` (`_main_report_paths`, the `_is_report_of` filter). The Interface rule says the report is in `in-progress/` "of the feature (a directory … whose name `parse_feature_directory_name` reads as the id's feature)". Its failing side is untested: an acceptance report on `origin/main` in another feature's directory, for example `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`, must give no snapshot. Fix: the human adds a criterion for this case, and the tester adds it as a row of the parametrized skip test in `tests/application/test_acceptance_snapshots.py` (criterion 6's).
+   2. `src/factory/application/acceptance_reading.py:120-121` (`_branch_report_paths`, `if directory is None: continue`). The same rule's failing side on the branch side is untested: a branch `work-item/F0004-A0001` holds a report under a feature directory that `origin/main` lacks, and it must give no snapshot. The coder's entry names this as the uncovered line. Fix: the same criterion, or a second one, as another row of that parametrized test.
+   Not reviewed past group 1: groups 2 to 5 (architecture, security, quality, ticket hygiene). The coder cannot write tests, so the next step is a `question` to the human asking whether to add these criteria.
+6. coder: coder (round 1): question for the human about the reviewer's two findings in entry 5. Both findings are missing tests. Neither needs a code change. I can't add tests or criteria myself (R9, R13), so I'm asking before anything moves.
+
+   What the code does now (unchanged since 66d1d99/b0efa13):
+   - Main side: `src/factory/application/acceptance_reading.py`, `_main_report_paths`. It reads only the `in-progress/` folder of each feature directory on `origin/main`. It keeps a file only if `_is_report_of(id, feature)` holds. So `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md` gives no snapshot.
+   - Branch side: `_branch_report_paths`. It looks for the branch's report only under the directory of the id's own feature as `origin/main` has it. If main has no such directory, it skips the branch (`continue`). So `work-item/F0004-A0001` with a report under a feature directory that main lacks gives no snapshot.
+
+   Both behaviours follow the Interface rule ("in-progress/ of the feature (a directory … whose name parse_feature_directory_name reads as the id's feature)"). No criterion covers the refused side, and CLAUDE.md asks for both sides of every limit.
+
+   Options:
+   (a) Add one criterion before the two closing ones. Suggested wording: "`snapshots()` gives no snapshot for an acceptance report on `origin/main` in another feature's `in-progress/` (`factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`), nor for a branch `work-item/F0004-A0001` whose report sits under a feature directory that `origin/main` lacks." The tester adds both as rows of criterion 6's parametrized test, `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. The ticket then goes back through tests and to review with no code change.
+   (b) Leave the criteria as they are and accept the gap. The reviewer would then need to stop counting it as a finding.
+
+   I'd choose (a): the behaviour already exists, and the tests would only pin it down.
+
+   Nothing else changed this round. `make check` was green at b0efa13 (entry 4); I didn't re-run it because I changed no code.
+7. human (pull request comment, 2026-10-15): (a): add the criterion before the two closing ones, as you worded it, and the tester adds both cases as rows of criterion 6's parametrized test `test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. No code change. The Interface stays as it is.
+8. coder: coder (round 1): the human chose (a) in entry 7, so this round needs a test change. I made no code change.
+   - Ticket: added criterion 20 before the two closing ones, in the wording the human approved. It says `snapshots()` gives no snapshot for an acceptance report on `origin/main` in another feature's `in-progress/` (`factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`), nor for a branch `work-item/F0004-A0001` whose report sits under a feature directory that `origin/main` lacks. The closing criteria are renumbered: `make check` is now 21 and `docs:` is 22. `## Assignment` is unchanged.
+   - Test change for the tester: in `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`, add two parametrized rows for criterion 20, each expecting `snapshots() == []`:
+     1. the report `F0002-A0001` pushed to `origin/main` under `factory/features/F0001-example/in-progress/`;
+     2. a branch `work-item/F0004-A0001` holding a report under a feature directory that `origin/main` lacks.
+   - The code at b0efa13 should already pass both rows: `_main_report_paths` filters with `_is_report_of`, and `_branch_report_paths` skips a branch whose feature directory is missing (`acceptance_reading.py:120-121`). If either row fails, it comes back to doing.
+   Open: none.
+9. tester: tester (round 1, approved test change): I added the two rows that the human approved in entry 7 and the coder named in entry 8. They go into `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. Each new row expects `snapshots() == []`.
+      - Row `report-in-another-features-directory-on-main`: the report `F0002-A0001` is pushed to `main` under `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`.
+      - Row `branch-report-under-a-feature-directory-main-lacks`: the branch `work-item/F0004-A0001` holds `factory/features/F0004-missing/in-progress/F0004-A0001-acceptance.md`, and `origin/main` has no F0004 directory.
+      - The test gained a third parameter, `report: bool`. The new rows push a real acceptance document (`_render(boundaries, _approval())`) and not placeholder text, so each row is skipped because of where the file sits, not because its content is unreadable. The two existing rows are unchanged; they use `report=False` and still push "# Not a report".
+      - This is criterion 20, in the same parametrized test as criterion 6.
+      `make test` is green (coverage 99.53 %), so the code at b0efa13 already passes both rows, as the coder expected. `make lint` is green. No other file was changed.
+      Open: none.
+
+   `make lint`: lint: green
+   `make test`: test: green
+10. coder: coder (round 1): no code change this round. I'm sending the story back to review.
+       - Entry 5 had two findings: the refused sides of the "of the feature" rule in `src/factory/application/acceptance_reading.py`. One was the `_is_report_of` filter in `_main_report_paths`; the other was the `continue` in `_branch_report_paths` for a feature directory that `origin/main` lacks.
+       - Following the human's answer in entry 7, criterion 20 now covers both. The tester added them in entry 9 as two rows of `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`.
+       - The code at b0efa13 passes both rows without any change. That includes line 121, which my entry 4 listed as uncovered and which does not show up as missed in the coverage report any more.
+       - I didn't refactor anything because I changed no code this round.
+       - I ran `make check` on HEAD 1b90b8d and it is green. Total coverage is 99.53 %.
+       Open: none. Review stopped at group 1 in entry 5, so groups 2 to 5 (architecture, security, quality, ticket hygiene) have not been reviewed yet.
+
+    `make check`: check: green
+11. reviewer: reviewer (round 1): no findings. I re-reviewed all five groups from the start against `git diff main...HEAD -- . ':!factory'` (b0efa13, plus the tester's 1b90b8d).
+       1. Acceptance criteria: criteria 1 to 20 each have a test that checks what the criterion says. Coder entry 10 reports `make check` green at 1b90b8d (99.53 %). The Interface's limits are tested on both sides:
+          - `due`: `F0002` is accepted; `F002` and an unknown key are refused (parametrized).
+          - Tier-4 ranking: an earlier feature's story, the due feature's own story, and a later feature's story.
+          - Tiers 2 and 3 win over a due feature: waiting and held.
+          - `branch_commit`: set, and `None` after the branch is deleted.
+          - Document source: from the branch when it holds the file, from main otherwise.
+          - `done/` report: with and without a leftover branch.
+          - "Of the feature" rule: both refused sides are now rows of criterion 6's parametrized test (criterion 20).
+          - `acceptance_stage None`: reader, watcher and board.
+          - Format error: carries its path.
+          - Illegal stage change on an acceptance branch: gives `reject`.
+          - Merged event: tested for merge, squash and rebase.
+          The F0006 test change in `tests/application/test_board_reader.py` is exactly the one the Rules allow.
+       2. Architecture:
+          - `evaluation.py` (domain) imports only domain modules.
+          - `AcceptanceReader.snapshots()` uses only `Git.resolve`, `list_files`, `show_file` and `remote_branches`, with no work tree, no local branch and no hosting call.
+          - `Watcher` and `BoardReader` build the reader from `Boundaries`. No new tools or dependencies.
+       3. Security: nothing new crosses a boundary. No suppression markers, no secrets.
+       4. Quality:
+          - `_new_work` ranks one mixed candidate list by one key, as the Interface says.
+          - `_due_order`'s comment says why.
+          - The duplicated branch-path loop is shared as `_branch_report_paths_at` (b0efa13).
+          - The acceptance-state check is shared as `_document` by `_report` and `_snapshot`.
+          - Docstrings are present and accurate (`snapshots`, `BoardReader.read`, `EvaluationInput`).
+       5. Ticket hygiene:
+          - Entry 4 records the main decision (one sort key over mixed candidates) and the alternative it rejected (first runnable compared with first due).
+          - The Assignment matches what was built.
+          - Criterion 22 (docs) still describes what the reader needs.
+       Seen but not counted as a finding: the Interface's `(F, 1, "")` key ranks a due feature ahead of an acceptance snapshot of the same feature. Entry 4 notes this, and it cannot happen, because a feature with an open acceptance is not due.
+       Open: none.
+12. documenter: documenter (round 1): docs written for criterion 22. `make check` is green at the end (coverage 99.53 %). There were no earlier documenter edits on this branch, so I wrote them all this round.
+
+    Files changed:
+    - `docs/project-guide.md`:
+      - Watcher paragraph: `Watcher.evaluate` joins the stories with `AcceptanceReader.snapshots()` in `(work_item_order, path)` order. It computes the illegal changes over the joined list and passes `due` to `evaluate`.
+      - Event kinds: `evaluate` now makes `acceptance_due`, and its `detail` is display only.
+      - Tier 4: one ranking over runnable work items (keyed by `work_item_order`) and due features (keyed by `(feature, 1, "")`). A feature's acceptance runs after its own stories and before the next feature's, and tiers 1 to 3 still win over it.
+      - `AcceptanceReader` entry: added `snapshots()` with its rules (main branch and branch, merged and not yet recorded, `done/` and leftover branch, ignored branches, format error).
+      - Board paragraph: `BoardReader.read` ends with `fill_board`. This replaces the old "always `None` until F0009-S0001".
+    - `docs/operator-guide.md`:
+      - Board column: `acceptance` shows the status, or `-` without an `acceptance_stage`.
+      - "When a feature acceptance is due": the watcher and the board now use the reader. Added when `acceptance_due` runs relative to stories, and how `factory-watch` prints it.
+
+    Cross-read and found current: README.md. The tick, handlers and `NOT_YET_HANDLED` text in both guides is still right: `acceptance_due` still has no handler in `build_handlers` (S0011 or later).
+
+    I ran no example. The docs add no new commands. I did not run the ticket's Demo snippet either.
+
+    Stale but untouched: none. No findings against the code.
+
+    `make check`: check: green
+13. demo: Ran the one `## Demo` command as written, from the repository root.
+
+    Command 1 (`uv run python -c "…evaluate(EvaluationInput(…, due=['F0002']))…"` with three single-story snapshot sets):
+
+    ```
+    acceptance_due:F0002
+    run:F0002-S0003
+    run:F0001-S0001
+    ```
+    Exit status 0. This meets its `Expect:` line. The three lines match in content and order:
+    - With the next feature's story `F0003-S0001` runnable, the due acceptance comes first (`acceptance_due:F0002`).
+    - With the feature's own story `F0002-S0003` runnable, that story comes first (`run:F0002-S0003`).
+    - With an earlier feature's story `F0001-S0001` runnable, that story comes first (`run:F0001-S0001`).
+    `lookup` was never called, so no pull request was looked up.
+
+    Against the acceptance criteria: the output agrees with criteria 2 and 3 (the fourth tier ranks a due feature after its own stories and before the next feature's). It also shows that `EvaluationInput` accepts `due=['F0002']`, which is part of criterion 1. Nothing the demo shows contradicts any other criterion. The demo does not exercise these, and I did not check them myself: the reader, the watcher and the board (5–20), the refused `due` values in criterion 1, the event fields `work_item`, `feature` and `remote_state` in criterion 2, and the docs (22). The factory runs `make check` after this stage.
+
+    No findings.

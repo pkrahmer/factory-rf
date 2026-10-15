@@ -415,7 +415,7 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 ```
 
 - The first line is `event: <key>`, followed by two spaces and the detail when the event has one.
-- A feature row counts the story files in `backlog`, `in-progress` and `done`; `.gitkeep`, `feature.md` and files that are not work item names do not count, and a feature with no story file has no row. The title is the first `# ` title of the feature's `feature.md` on `origin/main`, else the directory's name. `acceptance` stays `-` until the board command shows the acceptance status (F0009-S0008); see "When a feature acceptance is due".
+- A feature row counts the story files in `backlog`, `in-progress` and `done`; `.gitkeep`, `feature.md` and files that are not work item names do not count, and a feature with no story file has no row. The title is the first `# ` title of the feature's `feature.md` on `origin/main`, else the directory's name. `acceptance` is the feature's acceptance status (`incomplete`, `due`, `in_flight`, `merged_unrecorded`, `accepted` or `refused`; see "When a feature acceptance is due"), or `-` when the pipeline definition has no `acceptance_stage`.
 - A work item row exists for each story in `in-progress/`, with its title (the first `# ` title of the body, else the id), its stage, what it waits for (`blocked`), the instance holding its claim, since when (`running_since`, the claim's start in UTC) and its pull request. An absent value is `-`.
 - Exit status: 0 after printing; 1 when the pipeline definition on `origin/main` is invalid (the fault goes to standard error as `factory-watch: <fault>`, standard output stays empty, no stop is raised); 2 for an unknown option, and while the instance settings are not wired (F0010-S0001): then `factory-watch: no instance settings are wired yet` goes to standard error. Until F0010 the installed command therefore ends with 2; the code is reached by `factory.entry.watch.run_watch`. A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
 - v1's `--follow` mode and its `factory-last-line` file are gone: `--follow` is an unknown option, and nothing writes that file. A file of that name left by v1 is not read and can be deleted.
@@ -445,7 +445,9 @@ The status of a feature is the first of these that applies:
 
 A remote branch `work-item/F0001-A0001` without a report file in `in-progress/`, and the branch of a story, are ignored. A report on `main` whose front matter cannot be read as an acceptance's is a format error naming the report's path. If two directories share a feature id (`F0002-a`, `F0002-b`), the first in name order counts.
 
-The next acceptance id of a feature is one above the highest acceptance id among its reports on `main` and on remote acceptance branches. The reader exists as `AcceptanceReader` in `factory.application.acceptance_reading`; the watcher's evaluation and the board command use it in F0009-S0008.
+The next acceptance id of a feature is one above the highest acceptance id among its reports on `main` and on remote acceptance branches. The reader exists as `AcceptanceReader` in `factory.application.acceptance_reading`; the watcher's evaluation and the board command use it.
+
+A running acceptance is a work item like a story and is picked by the same order, by id. A due acceptance is not started before the feature's own stories: the next event is `acceptance_due:<feature>` only when no story of that feature (or of an earlier feature) can run; it still comes before the stories of a later feature. A waiting work item and a held claim come first, as for stories. `factory-watch` shows the event as `event: acceptance_due:F0002  acceptance of F0002 is due`.
 
 ## The hand-over at the approval
 
