@@ -1,11 +1,14 @@
 """Opening a due feature acceptance and reading the facts its reviewer is given."""
 
+from datetime import UTC, date
+
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.dispatcher import Handler
+from factory.application.handlers.comments import CommentCopier
 from factory.application.handlers.recording import (
     Target,
     WorkItemRecorder,
@@ -23,6 +26,7 @@ from factory.domain.acceptance import (
     acceptance_file_name,
     acceptance_head,
     book_merge,
+    book_refusal,
     is_before_approval,
 )
 from factory.domain.archive import destination_path
@@ -39,6 +43,7 @@ from factory.domain.identifiers import (
     is_acceptance,
     parse_work_item_file_name,
 )
+from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
 from factory.domain.paths import (
     MAIN_BRANCH,
     REMOTE,
@@ -47,7 +52,7 @@ from factory.domain.paths import (
     work_item_path,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import cost_table_post
+from factory.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
 from factory.domain.sections import title
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
 
@@ -55,6 +60,15 @@ _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 _KIND = "acceptance_due"
 _HAND_OVER = "hand_over"
 _MERGED = "merged"
+_CLOSED = "closed"
+
+
+def _reviewer_role(definition: PipelineDefinition, kind: str) -> str:
+    name = definition.acceptance_stage
+    stage = None if name is None else definition.stages.get(name)
+    if stage is None or stage.role is None:
+        raise CannotHandle(kind=kind, reason="no acceptance stage")
+    return stage.role
 
 
 class OpenedAcceptance(BaseModel):
@@ -180,7 +194,7 @@ class AcceptanceHandOver(Handler):
             raise CannotHandle(kind=event.kind, reason=f"not a {_HAND_OVER} event")
         if event.work_item is None or not is_acceptance(event.work_item.id):
             raise CannotHandle(kind=_HAND_OVER, reason="not an acceptance")
-        role = self._reviewer_role()
+        role = _reviewer_role(self._definition, _HAND_OVER)
         target = target_of(event)
         self._require_approval(target)
         number = require_pull_request(target, _HAND_OVER)
@@ -200,13 +214,6 @@ class AcceptanceHandOver(Handler):
             document.model_copy(update={"state": handed_over}),
             commit_subject(snapshot.id, f"handed over at {state.stage}"),
         )
-
-    def _reviewer_role(self) -> str:
-        name = self._definition.acceptance_stage
-        stage = None if name is None else self._definition.stages.get(name)
-        if stage is None or stage.role is None:
-            raise CannotHandle(kind=_HAND_OVER, reason="no acceptance stage")
-        return stage.role
 
     def _require_approval(self, target: Target) -> None:
         name = target.state.stage
@@ -274,6 +281,93 @@ class AcceptanceMerged(Handler):
         booked = book_merge(document, bill(records), before_approval=before_approval)
         recorder.write(destination, booked)
         recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "merged, archived"))
+
+
+class AcceptanceClosed(Handler):
+    """Books a closed acceptance `refused` under `done/` on main, then deletes its branch."""
+
+    def __init__(self, boundaries: Boundaries, definition: PipelineDefinition) -> None:
+        """Keep `boundaries` and `definition`; the acceptance stage is checked per event."""
+        self._boundaries = boundaries
+        self._definition = definition
+
+    def handle(self, event: Event) -> None:
+        """Record the close on the branch, book the refusal on main, then delete the branch.
+
+        Each step finds its own effect when run again, so a rerun after a kill books nothing twice.
+        """
+        role, number = self._require_bookable(event)
+        snapshot = target_of(event).snapshot
+        git = self._boundaries.git
+        if git.resolve(f"{REMOTE}/{snapshot.branch}") is None:
+            if git.show_file(_MAIN_REF, destination_path(snapshot.path, "done")) is None:
+                raise CannotHandle(
+                    kind=event.kind, reason="no report on the branch or the main branch"
+                )
+        else:
+            recorder = WorkItemRecorder(self._boundaries)
+            recorder.check_out(snapshot.branch)
+            records = self._branch_records(snapshot)
+            document = self._record_close(recorder, snapshot, number)
+            refused = book_refusal(document, role=role, on=self._today(), bill=bill(records))
+            self._book(recorder, snapshot, refused, records)
+        WorkItemRecorder(self._boundaries).delete_branch(snapshot.branch)
+
+    def _require_bookable(self, event: Event) -> tuple[str, int]:
+        if event.kind != _CLOSED:
+            raise CannotHandle(kind=event.kind, reason=f"not a {_CLOSED} event")
+        if event.work_item is None or not is_acceptance(event.work_item.id):
+            raise CannotHandle(kind=event.kind, reason="not an acceptance")
+        role = _reviewer_role(self._definition, event.kind)
+        if event.pull_request is None or event.pull_request.state != "closed":
+            raise CannotHandle(kind=event.kind, reason="pull request is not closed")
+        return role, event.pull_request.number
+
+    def _today(self) -> date:
+        return self._boundaries.clock.now().astimezone(UTC).date()
+
+    def _branch_records(self, snapshot: WorkItemSnapshot) -> list[CostRecord]:
+        boundaries = self._boundaries
+        sidecar = cost_records_path(snapshot.path)
+        ref = f"{REMOTE}/{snapshot.branch}"
+        return read_cost_records(boundaries.git, boundaries.cost_reader, ref, sidecar)
+
+    def _record_close(
+        self, recorder: WorkItemRecorder, snapshot: WorkItemSnapshot, number: int
+    ) -> WorkItemDocument:
+        document = recorder.read(snapshot.path)
+        no_state = CannotHandle(kind=_CLOSED, reason="the report on its branch has no state")
+        state = require_state(document, no_state)
+        copier = CommentCopier(self._boundaries)
+        closed = copier.append(document, copier.unread(state, number))
+        # An acceptance ends at its first close; a later one is the same close seen again.
+        if last_record(closed, speaker=HUMAN, kind="close") is None:
+            entry = NewEntry(speaker=HUMAN, kind="close", text=CLOSE_ENTRY_TEXT, on=self._today())
+            closed = append_entry(closed, entry)
+        if closed != document:
+            subject = commit_subject(snapshot.id, "close recorded")
+            recorder.record(snapshot.branch, snapshot.path, closed, subject)
+        return closed
+
+    def _book(
+        self,
+        recorder: WorkItemRecorder,
+        snapshot: WorkItemSnapshot,
+        refused: WorkItemDocument,
+        records: list[CostRecord],
+    ) -> None:
+        recorder.check_out(MAIN_BRANCH)
+        destination = destination_path(snapshot.path, "done")
+        boundaries = self._boundaries
+        if boundaries.git.show_file("HEAD", destination) is not None:
+            return
+        report = boundaries.checkout / destination
+        report.parent.mkdir(parents=True, exist_ok=True)
+        recorder.write(destination, refused)
+        if records:
+            sidecar = boundaries.checkout / cost_records_path(destination)
+            boundaries.cost_writer.write(sidecar, records)
+        recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "closed, refused"))
 
 
 class SplitByWorkItemKind(Handler):
