@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 108
 blocked: null
 comments_seen: 0
@@ -81,3 +81,28 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
    - Demo: a single runnable `uv run python -c` command. The `Expect:` line gives four checkable output lines.
    - Architecture: the pure rules are in `factory.domain`, and the handler change is in `factory.application`, which uses the domain and no adapter. This fits the layering in `CLAUDE.md`.
    - Scope: within F0009's "A merge before the approval and repeated acceptances (ST2.1, ST2.2, R31)". Nothing falls under Out of scope. The close handler (S0007), the registration (S0010) and the ticks (S0011) are left to the stories that own them.
+3. tester: wrote red tests for criteria 1 to 12; criteria 13 and 14 belong to the checks and the documenter.
+   - criterion 1: tests/domain/test_acceptance_before_approval.py::test_only_a_stage_before_the_first_approval_is_before_approval (parametrized: acceptance → True, approval → False, done → False, run against the fixture's stage order)
+   - criterion 2: tests/domain/test_acceptance_before_approval.py::test_an_unknown_stage_or_a_definition_without_approval_is_refused (unknown stage → KeyError; a definition with no approval stage → ValueError)
+   - criterion 3: tests/domain/test_acceptance_before_approval.py::test_a_merge_before_approval_books_like_a_merge_with_an_entry_that_says_so (the state equals what plain `book_merge` produces, one factory `done` record is appended, and its text is the before-approval prefix plus `cost_line(bill)`)
+   - criterion 4: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_at_its_review_stage_is_booked_accepted_before_approval
+   - criterion 5: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_while_it_waits_with_a_question_is_booked_and_unblocked
+   - criterion 6: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_at_its_approval_before_the_hand_over_is_booked_as_usual
+   - criterion 7: tests/application/test_acceptance_merged_before_approval.py::test_every_merge_method_books_an_acceptance_merged_before_approval_alike (merge, squash, rebase)
+   - criterion 8: tests/application/test_acceptance_merged_before_approval.py::test_the_proposed_stories_of_a_merge_before_approval_leave_the_feature_incomplete
+   - criterion 9: tests/application/test_acceptance_repeated.py::test_a_story_archived_after_the_acceptance_makes_the_feature_due_and_opens_the_next
+   - criterion 10: tests/application/test_acceptance_repeated.py::test_opening_the_repeated_acceptance_leaves_the_earlier_report_and_its_costs_unchanged
+   - criterion 11: tests/application/test_acceptance_repeated.py::test_a_recorded_repeated_acceptance_leaves_the_feature_accepted_and_not_due
+   - criterion 12: tests/application/test_acceptance_repeated.py::test_each_acceptance_bills_only_its_own_cost_records
+
+   Files created: tests/domain/test_acceptance_before_approval.py, tests/application/test_acceptance_merged_before_approval.py, tests/application/test_acceptance_repeated.py.
+
+   Run results: `make test` stopped at collection because `is_before_approval` cannot be imported from `factory.domain.acceptance`. No other module is missing. The two application files import only names that already exist. Once collection gets past the domain file, criteria 4, 5 and 7 should fail on the entry text, because the handler does not pass `before_approval` yet. The other application tests walk what earlier stories built and may pass at once, which the Assignment allows. `make lint` is green.
+
+   Choices:
+   - The domain test builds the fixture's pipeline definition in-file with `PipelineDefinition.model_validate`, with the same stages and order as `PIPELINE_YAML`. A domain test should not import the YAML adapter, and importing the definition from tests/domain/test_move_rule.py would couple two test modules.
+   - The "no approval stage" case is a valid definition with stages `acceptance` → `done`. No load-time rule requires an approval stage.
+   - Each application file has its own local fixtures, as tests/application/test_acceptance_merged.py does. I did not move them into a shared module, because that would mean editing a test I did not write.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
