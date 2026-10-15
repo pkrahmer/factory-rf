@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 109
 blocked: null
 comments_seen: 2
@@ -209,3 +209,4 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
     - Criterion 9: the event has `pull_request=None`, yet the error given is `no acceptance stage`, not `pull request is not closed`. So the stage check runs before the pull-request check, the order the Interface gives.
     - The handler was given an empty `SimpleNamespace` as its boundaries and refused without touching them. This agrees with "changes nothing".
     - The demo does not reach criteria 1–8 and 11–15, and nothing in its output contradicts them. Earlier log entries report `make check` green with coverage at 99.52 %.
+12. done (pull request merged); cost: 7 runs, 17.8 min, 57 turns, 209k tokens in (1159k more from cache), 21k out, $2.13
