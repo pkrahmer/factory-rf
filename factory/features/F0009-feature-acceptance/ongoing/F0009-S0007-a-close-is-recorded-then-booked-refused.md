@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 109
 blocked: null
 comments_seen: 2
@@ -138,3 +138,4 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
    - Noticed but not changed: a branch whose cost records file exists but is empty gets no copy on main, because the copy is skipped when there are no records.
    - The refactor step is still to do; it waits until `make check` is green.
 5. human (pull request comment, 2026-10-15): (a): the tester compares against the full path, `[DONE_REPORT]`, in `test_after_a_kill_at_the_push_of_main_a_second_handling_books_once`, and changes nothing else. End with `tests` and name exactly that change.
+6. coder: the human's answer (entry 5, option (a)) calls for a test change. Tester: in `tests/application/test_acceptance_closed.py::test_after_a_kill_at_the_push_of_main_a_second_handling_books_once`, change line 371 from `assert _reports_in_done(checkout) == ["F0002-A0001-acceptance.md"]` to `assert _reports_in_done(checkout) == [DONE_REPORT]`, and change nothing else. I made no code change this run. The handler is still as committed in fc2504e. The refactor step is still to do and comes once `make check` is green after this test change.
