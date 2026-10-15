@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 111
 blocked: null
 comments_seen: 0
 round: 0
@@ -68,3 +68,9 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names `factory.application.task` with `StoryFormChecker.findings` and `TaskComposer.compose`. It states no signature change, the import of `factory.application.acceptance` with its direction, and exact prompt composition and early-return rules. Nothing is left open.
+   - Criteria: 1–9 are each testable by one test function. The rules have both sides: `findings` returns `[]` for an acceptance, and a plain state still gets findings (3) or `WorkItemFormatError` (2). `compose` appends the facts at the acceptance stage (4), but not for a story or another stage (5), and not when `acceptance_stage` is `None` (6). The run criteria 7–9 cover decision, rule, no question record, prompt tail, pull request title and state. 10 and 11 are the closing criteria.
+   - Demo: the command is runnable with the stub boundaries. Its `Expect:` line states two checkable output lines (`[]`, then `True`).
+   - Architecture: both modules are in the application layer, and `acceptance` does not import `task`. The change is two additions and nothing else, and F0005's tests stay as they are.
+   - Scope: within F0009's scope ("the story form check skipped for it and the facts appended to the reviewer's prompt"). Nothing is in "Out of scope". FEATURE.md decision 17 matches the story.
