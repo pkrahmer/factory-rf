@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 107
 blocked: null
 comments_seen: 3
@@ -237,3 +237,21 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
     Not under review: `docs/runs/2026-10-12-overnight/night-log.md` shows up in the diff, but that is the human's own commit 85c4e9d.
 
     Open for the documenter or the human (not a defect): when a body has neither `## Recommendation` nor `## Journal`, `book_refusal` also adds an empty `## Journal` after the new section, so the `done` entry has a place. The coder logged this choice in entry 6. The Interface still says only "at the end of the body".
+11. documenter: documenter (round 1): wrote the docs criterion (23). `make check` is green (coverage 99.49 %).
+
+    Files changed:
+    - `docs/operator-guide.md`, section "The hand-over of an acceptance". I rewrote "What your act does":
+      - The human's act decides the result, whatever the recommendation was.
+      - A merge: where the report and its cost records land, the `done` entry, the proposed stories kept in the backlog, the branch deleted, and the commit touching only those two files.
+      - A close: the first paragraph of the Recommendation, the reason as the human's comments stripped and unchanged, `no reason given` when there is none, and the proposed stories dropped.
+      - A rerun after a kill books nothing twice. A rejected push and a refused branch deletion are counted errors.
+      - I replaced "the handlers are not there" with the true state: `AcceptanceMerged` and the booking functions exist, but the merge handler is not registered until S0010 and the close handler comes in S0007.
+    - `docs/decisions.md`: a new entry, "Each acceptance has its own report and its own cost records". It gives the reason, what was rejected, and the empty-journal choice for `book_refusal`.
+
+    Cross-read and found current: the "When a feature acceptance is due" section, the `NOT_YET_HANDLED` sentence under "An event that keeps failing" (it lists only `acceptance_due`, and the merged kind is registered for stories), and the hand-over description.
+
+    Open point, as the reviewer noted: for a body with neither `## Recommendation` nor `## Journal`, `book_refusal` also adds an empty `## Journal` after the new section so the `done` entry has a place. The Interface says only "at the end of the body". I documented the behaviour in the operator guide and the decision log. I left the ticket's Interface text alone, so the human may want to reword it. The code is correct against the criteria, so this is not a finding.
+
+    Stale but unrelated, untouched: none seen. I did not touch `README.md` or `docs/project-guide.md`; this story changes no command or layout they describe.
+
+    `make check`: check: green

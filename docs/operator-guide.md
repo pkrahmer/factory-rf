@@ -473,13 +473,17 @@ The description has four parts, joined by an empty line:
 
 A part whose section is missing or empty, and findings with no `result` entry of the reviewer, show `none`. The closing text names no merge method; any method the hosting service offers works.
 
-What your act does:
+What your act does. The result is yours, whatever the acceptance reviewer recommended: a merge of an acceptance that recommended `not accepted` still books it accepted.
 
-- **Merge** accepts the report and takes the proposed stories into the feature's backlog, where you refine them before starting any.
-- **Close**, with a comment saying why, refuses: the report stays on the main branch as refused with your comment, the proposed stories are discarded, and the feature counts as not accepted until another story is archived and a new acceptance runs.
+- **Merge** accepts. The report moves from the feature's `in-progress/` folder to its `done/` folder with its cost records file, its state says `done` and `accepted`, and its journal gets one `done` entry, `done (pull request merged); cost: <the acceptance's own cost>`. The proposed stories your merge brought into the feature's backlog stay there untouched; you refine them before starting any. The acceptance's branch is then deleted, on the remote and locally. The commit changes only the report and its cost records file (subject `work item <id>: merged, archived`). `AcceptanceMerged` (in `factory.application.acceptance`) does it; like `AcceptanceHandOver` it is not yet registered in `build_handlers` (F0009-S0010), so no tick books a merge yet.
+- **Close**, with a comment saying why, refuses: the report stays on the main branch as refused, the proposed stories are discarded (they were only on the branch), and the feature counts as not accepted until another story is archived and a new acceptance runs. The report is written at `done` with `Refused by the human on <date>: <your comment>` as the first paragraph under its `## Recommendation`, and a `done` entry `done (pull request closed by the human); cost: <cost>`. Your reason is your comments written after the reviewer's last result, each stripped of surrounding whitespace, blank ones skipped, joined with one space and otherwise copied unchanged; the factory never interprets them. With no comment the reason is `no reason given`. The functions that book it (`book_refusal`, `refusal_reason` in `factory.domain.acceptance`) exist; the handler for the close is built by F0009-S0007.
 - **A comment** is not answered while the acceptance waits; it goes into the report's journal.
 
-Failures and kills are handled as for a story, below. The merge and the close of an acceptance are built by later stories of F0009; until then the handlers for them are not there.
+Each acceptance has its own report and its own cost records, so the cost on its `done` entry counts only that acceptance's runs, never an earlier one's.
+
+A merge can be handled again after a kill: a report already in `done/` is not booked a second time, and only the branch deletion is repeated. If the main branch moved since the factory last fetched, the push is rejected and the event is retried (see "An event that keeps failing"); the branch stays on the remote until the booking is pushed. If the remote refuses to delete the branch, the booking is already pushed and the error is counted and reported the same way.
+
+A hand-edited report with neither a `## Recommendation` nor a `## Journal` section gets a `## Recommendation` section at the end of the body, followed by an empty `## Journal` that holds the `done` entry. Reports the factory writes always have a journal.
 
 ### When the hand-over fails or is killed
 
