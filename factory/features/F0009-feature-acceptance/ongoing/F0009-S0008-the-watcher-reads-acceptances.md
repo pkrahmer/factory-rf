@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 110
-blocked: null
+blocked: question
 comments_seen: 0
 round: 1
 attempts: 0
@@ -141,3 +141,18 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
    1. `src/factory/application/acceptance_reading.py:112` (`_main_report_paths`, the `_is_report_of` filter). The Interface rule says the report is in `in-progress/` "of the feature (a directory … whose name `parse_feature_directory_name` reads as the id's feature)". Its failing side is untested: an acceptance report on `origin/main` in another feature's directory, for example `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`, must give no snapshot. Fix: the human adds a criterion for this case, and the tester adds it as a row of the parametrized skip test in `tests/application/test_acceptance_snapshots.py` (criterion 6's).
    2. `src/factory/application/acceptance_reading.py:120-121` (`_branch_report_paths`, `if directory is None: continue`). The same rule's failing side on the branch side is untested: a branch `work-item/F0004-A0001` holds a report under a feature directory that `origin/main` lacks, and it must give no snapshot. The coder's entry names this as the uncovered line. Fix: the same criterion, or a second one, as another row of that parametrized test.
    Not reviewed past group 1: groups 2 to 5 (architecture, security, quality, ticket hygiene). The coder cannot write tests, so the next step is a `question` to the human asking whether to add these criteria.
+6. coder: coder (round 1): question for the human about the reviewer's two findings in entry 5. Both findings are missing tests. Neither needs a code change. I can't add tests or criteria myself (R9, R13), so I'm asking before anything moves.
+
+   What the code does now (unchanged since 66d1d99/b0efa13):
+   - Main side: `src/factory/application/acceptance_reading.py`, `_main_report_paths`. It reads only the `in-progress/` folder of each feature directory on `origin/main`. It keeps a file only if `_is_report_of(id, feature)` holds. So `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md` gives no snapshot.
+   - Branch side: `_branch_report_paths`. It looks for the branch's report only under the directory of the id's own feature as `origin/main` has it. If main has no such directory, it skips the branch (`continue`). So `work-item/F0004-A0001` with a report under a feature directory that main lacks gives no snapshot.
+
+   Both behaviours follow the Interface rule ("in-progress/ of the feature (a directory … whose name parse_feature_directory_name reads as the id's feature)"). No criterion covers the refused side, and CLAUDE.md asks for both sides of every limit.
+
+   Options:
+   (a) Add one criterion before the two closing ones. Suggested wording: "`snapshots()` gives no snapshot for an acceptance report on `origin/main` in another feature's `in-progress/` (`factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`), nor for a branch `work-item/F0004-A0001` whose report sits under a feature directory that `origin/main` lacks." The tester adds both as rows of criterion 6's parametrized test, `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. The ticket then goes back through tests and to review with no code change.
+   (b) Leave the criteria as they are and accept the gap. The reviewer would then need to stop counting it as a finding.
+
+   I'd choose (a): the behaviour already exists, and the tests would only pin it down.
+
+   Nothing else changed this round. `make check` was green at b0efa13 (entry 4); I didn't re-run it because I changed no code.
