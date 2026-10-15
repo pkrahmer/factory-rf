@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 110
 blocked: null
 comments_seen: 2
@@ -175,3 +175,12 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: coder (round 1): no code change this round. I'm sending the story back to review.
+       - Entry 5 had two findings: the refused sides of the "of the feature" rule in `src/factory/application/acceptance_reading.py`. One was the `_is_report_of` filter in `_main_report_paths`; the other was the `continue` in `_branch_report_paths` for a feature directory that `origin/main` lacks.
+       - Following the human's answer in entry 7, criterion 20 now covers both. The tester added them in entry 9 as two rows of `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`.
+       - The code at b0efa13 passes both rows without any change. That includes line 121, which my entry 4 listed as uncovered and which does not show up as missed in the coverage report any more.
+       - I didn't refactor anything because I changed no code this round.
+       - I ran `make check` on HEAD 1b90b8d and it is green. Total coverage is 99.53 %.
+       Open: none. Review stopped at group 1 in entry 5, so groups 2 to 5 (architecture, security, quality, ticket hygiene) have not been reviewed yet.
+
+    `make check`: check: green
