@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 107
 blocked: null
 comments_seen: 2
@@ -150,3 +150,43 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+6. coder: wrote the code for criteria 1–21. All tests pass and `make check` is green (coverage 99.49 %). There are two commits: feat 4873587 and refactor bf889fa.
+
+   What I built:
+   - `src/factory/domain/acceptance.py`
+     - Added `NO_REASON`, `book_merge`, `refusal_reason` and `book_refusal`.
+     - They share a private `_booked`, which:
+       - raises `ValueError` unless the state is an `AcceptanceState`;
+       - sets `done` and the outcome, and clears `claim` and `blocked`;
+       - appends the factory's `done` entry with `append_entry`.
+     - `refusal_reason` reads the visible text with `entry_text` for the human's `comment` records after the reviewer's last `result`. It strips each text, skips blank ones and joins the rest with one space. With no text left it returns `NO_REASON`.
+     - `book_refusal` writes the refusal paragraph:
+       - it uses `insert_paragraph` when a `## Recommendation` section exists;
+       - otherwise it inserts a new section just before the `JOURNAL` section;
+       - with no journal either, the section goes at the end of the body.
+   - `src/factory/application/handlers/recording.py`
+     - `move_with_cost_records(git, path, folder) -> str` is the old `MergedHandler._move`, now public, and it returns the destination.
+     - `merged.py` calls it, and its private `_move` is gone. Nothing else in `merged.py` changed.
+   - `src/factory/application/acceptance.py`
+     - Added `AcceptanceMerged`. It checks the four `CannotHandle` reasons in the Interface's order, then checks out `main`.
+     - When the report is at `HEAD` under `in-progress/`, it:
+       1. reads the report, and its cost records with `read_cost_records` at `HEAD`;
+       2. moves both with `move_with_cost_records`;
+       3. writes `book_merge` at the destination;
+       4. publishes with `commit_subject(id, "merged, archived")`.
+     - When the report is already in `done/`, it books nothing. When it is in neither folder, it raises `"no report on the main branch"`.
+     - Last, it deletes the branch with `WorkItemRecorder.delete_branch`. `GitCli.delete_remote_branch` already treats a branch that is gone as deleted, so a rerun after a kill only deletes the branch.
+
+   Main design decision:
+   - The open point the tester flagged for criterion 11: when the body has no `## Journal` section, `book_refusal` adds an empty `## Journal` section after the new `## Recommendation`. The `done` entry has to go somewhere, and `append_entry` refuses a body without a journal.
+   - Rejected: changing `append_entry` to create the section, which would change a shared helper's contract for every caller; and recording the entry in the state without a visible line, which would break the rule that state and journal agree.
+   - In practice `acceptance_head` always writes a journal, so this case only comes up with a hand-edited report.
+
+   Refactor: `_with_recommendation` now reads the body's sections once instead of twice, and a comment says why `book_refusal` checks the state first.
+
+   Noticed but not touched:
+   - `MergedHandler` has no "already in `done/`" guard, so a second run for a story fails in `git mv`. `AcceptanceMerged` has the guard, as this story asks.
+   - `AcceptanceMerged` is not yet registered in `build_handlers`; S0010 does that.
+   - The docs criterion (23) is left to the documenter.
+
+   `make check`: check: green
