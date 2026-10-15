@@ -1,4 +1,4 @@
-"""The feature acceptance as data: its id, its report file name, its state and its status."""
+"""The feature acceptance as data: its id, report, state, status and the reviewer's facts."""
 
 from collections.abc import Iterable, Sequence
 from typing import Literal, Self
@@ -15,7 +15,8 @@ from factory.domain.identifiers import (
 )
 from factory.domain.paths import LifecycleFolder
 from factory.domain.pipeline_definition import DONE_STAGE
-from factory.domain.work_item import WorkItemState
+from factory.domain.sections import JOURNAL
+from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 
 ACCEPTANCE_SLUG = "acceptance"
 AcceptanceOutcome = Literal["accepted", "refused"]
@@ -60,6 +61,10 @@ def acceptance_id(feature: FeatureId, number: int) -> WorkItemId:
 
 def _acceptance_number(work_item: WorkItemId) -> int:
     return int(work_item.split("-A")[1])
+
+
+def _story_number(story: WorkItemId) -> int:
+    return int(story.split("-S")[1])
 
 
 def next_acceptance_id(feature: FeatureId, existing: Iterable[WorkItemId]) -> WorkItemId:
@@ -148,3 +153,55 @@ def _recorded_outcome(
     if not covering:
         return None
     return max(covering, key=lambda report: report.id).state.outcome
+
+
+class AcceptanceFacts(BaseModel):
+    """What the acceptance reviewer is told: the archived stories, the next number, the cost."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    archived: list[WorkItemId]
+    next_story: WorkItemId
+    cost_line: str
+
+    @field_validator("next_story")
+    @classmethod
+    def _next_story_is_a_story(cls, next_story: str) -> str:
+        if is_acceptance(next_story):
+            raise ValueError(f"the next story must be a story id, got {next_story!r}")
+        return next_story
+
+    def lines(self) -> list[str]:
+        """The three lines of the facts, as the reviewer's prompt holds them."""
+        return [
+            f"Archived stories: {', '.join(self.archived)}",
+            f"Next free story number: {self.next_story}",
+            f"Cost of the stories: {self.cost_line}",
+        ]
+
+
+def acceptance_facts(files: FeatureFiles, cost_line: str) -> AcceptanceFacts:
+    """The facts of the feature's files; `ValueError` when story number 9999 is taken."""
+    stories = story_file_ids([*files.backlog, *files.in_progress, *files.done])
+    number = max((_story_number(story) for story in stories), default=0) + 1
+    if number > _LAST_NUMBER:
+        raise ValueError(f"feature {files.feature} has no free story number after {_LAST_NUMBER}")
+    return AcceptanceFacts(
+        archived=story_file_ids(files.done),
+        next_story=f"{files.feature}-S{number:04d}",
+        cost_line=cost_line,
+    )
+
+
+def acceptance_prompt(base: str, facts: AcceptanceFacts) -> str:
+    """The reviewer's prompt: `base`, an empty line and the facts."""
+    return "\n".join([base, "", *facts.lines()])
+
+
+def acceptance_head(
+    feature_title: str, stage: str, stories: Sequence[WorkItemId]
+) -> WorkItemDocument:
+    """The report a new acceptance starts with: an initial state, a title and an empty journal."""
+    state = AcceptanceState(**initial_state(stage).model_dump(), stories=list(stories))
+    body = f"# Acceptance of {feature_title}\n\n## {JOURNAL}\n"
+    return WorkItemDocument(state=state, body=body)
