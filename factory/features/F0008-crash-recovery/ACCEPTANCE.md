@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 102
 blocked: null
 comments_seen: 1
 round: 0
 attempts: 1
 stories: [F0008-S0001, F0008-S0002, F0008-S0003, F0008-S0004, F0008-S0005, F0008-S0006]
+outcome: accepted
 ---
 # Acceptance of Crash recovery
 
@@ -335,3 +336,4 @@ The two housekeeping stories are the cheapest of the feature: together $2.56, un
          7 Slow checks: none (no mutants target, no image scan, no SBOM).
          8 Cost: 43 runs, 129.9 min, $13.02 ($2.17 per story), plus $4.25 for the first acceptance. S0005 and S0006 together cost $2.56. S0003 still stands out with 10 runs (two review rounds).
          Draft: F0008-S0007 the no-state refusals of require_state's callers. Tests only; it pins claim, release, ask_crash_cap, compose and stall on a document without a state (survivors 42, 43, 45, 46, 49, 50).
+3. done (pull request merged); cost: 2 runs, 41.5 min, 121 turns, 305k tokens in (11682k more from cache), 86k out, $6.50
