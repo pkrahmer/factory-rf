@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 104
 blocked: null
 comments_seen: 0
@@ -241,3 +241,25 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
    No findings for the coder.
 
    `make check`: check: green
+7. demo: I ran both demo commands from the repository root exactly as written. Both exited with 0 and both met their `Expect:` lines. No findings.
+
+   1. `acceptance_status` over the four cases:
+   ```
+   due
+   refused
+   incomplete
+   due
+   ```
+   Met. The output is four lines in the expected order:
+      - `due`: `.gitkeep` in the backlog does not keep the feature incomplete.
+      - `refused`: the report at `done` covers exactly the two archived stories.
+      - `incomplete`: a story file is in progress.
+      - `due`: the report covers two stories but only one is archived.
+
+   2. `story_file_ids` over a mixed list:
+   ```
+   ['F0001-S0001', 'F0001-S0002']
+   ```
+   Met. The output is one line. It drops `.gitkeep`, `notes.md` and the acceptance report, and the ids are in ascending order.
+
+   Criteria check: the demo contradicts none of the acceptance criteria. Its output agrees with criteria 1–3, 5, 6 and 8. The other criteria (the reader over the remote, the models, docs) are outside what the demo exercises, and nothing it printed conflicts with them.
