@@ -5,10 +5,12 @@ from datetime import timedelta
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
+from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
+from factory.domain.acceptance import AcceptanceState, acceptance_prompt
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, GuardSettings
 from factory.domain.errors import WorkItemFormatError
-from factory.domain.identifiers import Name, WorkItemId
+from factory.domain.identifiers import Name, WorkItemId, feature_of, is_acceptance
 from factory.domain.journal import last_record
 from factory.domain.paths import MAIN_BRANCH, REMOTE, STORY_FORM_FILE
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
@@ -50,7 +52,12 @@ class StoryFormChecker:
         self._boundaries = boundaries
 
     def findings(self, document: WorkItemDocument) -> list[FormFinding]:
-        """The findings against the form; `WorkItemFormatError` when the form is absent."""
+        """The findings against the form; `WorkItemFormatError` when the form is absent.
+
+        An acceptance's report is no story, so it has no form to meet and gets no findings.
+        """
+        if isinstance(document.state, AcceptanceState):
+            return []
         form = self._boundaries.git.show_file(FORM_REF, STORY_FORM_FILE)
         if form is None:
             raise WorkItemFormatError(f"the story form is missing at {FORM_REF}", STORY_FORM_FILE)
@@ -94,7 +101,7 @@ class TaskComposer:
         )
         return AgentRunRequest(
             agent=agent,
-            prompt=compose_prompt(facts),
+            prompt=self._prompt(context, facts),
             allowed_decisions=decisions,
             time_limit=timedelta(minutes=self._role(context.stage).time_limit),
             working_directory=self._boundaries.checkout,
@@ -102,6 +109,17 @@ class TaskComposer:
             guard=context.guard,
             os_user=None,
         )
+
+    def _prompt(self, context: TaskContext, facts: PromptFacts) -> str:
+        prompt = compose_prompt(facts)
+        if not self._is_acceptance_run(context):
+            return prompt
+        service = AcceptanceService(self._boundaries, self._definition)
+        return acceptance_prompt(prompt, service.facts(feature_of(context.work_item)))
+
+    def _is_acceptance_run(self, context: TaskContext) -> bool:
+        at_acceptance_stage = context.stage == self._definition.acceptance_stage
+        return at_acceptance_stage and is_acceptance(context.work_item)
 
     def _role_name(self, stage: str) -> str:
         if stage not in self._definition.stages:
