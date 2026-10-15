@@ -30,7 +30,7 @@ CLOSING = (
     "accepted until another story is archived and a new acceptance runs. "
     "Nobody answers comments while the acceptance waits here; they go into the report's journal."
 )
-REVIEWER_RESULT = (ROLE, "result", f"{ROLE}: {FINDINGS_TEXT}")
+REVIEWER_RESULT: tuple[str, JournalKind, str] = (ROLE, "result", f"{ROLE}: {FINDINGS_TEXT}")
 
 
 def _document(

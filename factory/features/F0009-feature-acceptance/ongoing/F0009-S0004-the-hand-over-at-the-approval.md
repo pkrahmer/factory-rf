@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 106
 blocked: null
 comments_seen: 4
@@ -214,3 +214,11 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
    The annotation fixes the four mypy `list-item` errors at lines 61, 78, 88 and 140, which are the only thing keeping `make check` red.
 
    The implementation is unchanged since commit cdf6d23. Every other check is green, including `make test` at 99.51 % coverage. Once the test change is in, I'll run `make check` again and hand the ticket to review.
+9. tester: tester (test change the human approved): I made the change from log entry 7 (option (a)), as entry 8 names it, and changed nothing else.
+
+   In `tests/domain/test_acceptance_description.py`, the constant is now annotated: `REVIEWER_RESULT: tuple[str, JournalKind, str] = (ROLE, "result", f"{ROLE}: {FINDINGS_TEXT}")`. The file already imported `JournalKind` from `factory.domain.journal`, so no import was added. With the annotation, the constant matches `_document`'s `list[tuple[str, JournalKind, str]]` parameter. That should clear the four mypy `list-item` errors at lines 61, 78, 88 and 140. I did not run `make types` myself; that check is the coder's `make check`.
+
+   `make test`: test: green (coverage 99.51 %). `make lint`: lint: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
