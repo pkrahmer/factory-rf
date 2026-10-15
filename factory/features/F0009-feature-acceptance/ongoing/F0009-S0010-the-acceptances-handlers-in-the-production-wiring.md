@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 112
 blocked: null
 comments_seen: 0
 round: 0
@@ -72,3 +72,9 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names `factory/src/factory/entry/wiring.py` with `NOT_YET_HANDLED` and the `build_handlers` signature, and states each registered value (the two split instances shared by the keys and the one `RunGate`, `hand_over`, `acceptance_due`). The two changed tests are named by file and function, with the exact new form of each.
+   - Criteria: each is testable by one test function. Criteria 1 to 4 cover the registration and the gate. Criteria 5 and 6 are the two rows of the one parametrized test. Criterion 7 covers the gate's refusal path for a closed acceptance. Criterion 8 covers the failing side of the no-`acceptance_stage` rule (`CannotHandle` with the reason `no acceptance stage`, and the tick still handles `run`). Every behaviour the Interface states has a criterion, and the changed tests are criteria 2, 3, 5 and 6.
+   - Demo: one runnable command. Its `Expect:` line gives two checkable output lines (`()` and the `CannotHandle` text).
+   - Architecture: the change is confined to `factory.entry` (wiring), as `CLAUDE.md` requires. It reuses application handlers and adds no new dependency.
+   - Scope: within F0009 scope item 16 and decisions 5, 21 and 22. The test changes to other stories' files are limited to the two named ones and carry the leave of Q20.
