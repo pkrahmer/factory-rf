@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 106
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -129,3 +129,12 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface says "a push whose outcome is not `pushed` raises `PushFailed`" (`AcceptanceHandOver.handle`, last step), but no criterion tests the failing side. Criteria 9 to 11 cover a failing hosting call and a kill before the push. Nothing covers a push that is rejected, for example because `origin/<branch>` moved after `check_out`, or whatever else makes `WorkItemRecorder.record` return an outcome other than `pushed`. Two coders could implement this differently and both pass. Options: (a) add a criterion before the two closing ones, e.g. "when the push is not `pushed` (the human pushed a commit to the branch after the checkout), `handle` raises `PushFailed` and `handed_over` is not set on `origin/<branch>`"; (b) drop the sentence and leave `PushFailed` to the recorder, which F0007's tests already cover. I would choose (a), if the fixtures can produce a rejected push deterministically. Say how if they can't, or choose (b).
+
+   Everything else checked out:
+   - The Interface is concrete.
+   - Every other rule has a criterion on both sides.
+   - The Demo is runnable and its Expect lines are checkable.
+   - The architecture and the feature's scope hold.
+
+   The format check passed.
