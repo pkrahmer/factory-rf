@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 107
 blocked: null
 comments_seen: 3
@@ -204,3 +204,18 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
 
    Open (no finding against the build): for a body with neither `## Recommendation` nor `## Journal`, `book_refusal` adds an empty `## Journal` after the new section so the `done` entry has a place. The coder logged this choice (log entry 6) and criterion 11's test allows it. The Interface still says the section goes "at the end of the body". The documenter or the human may want the Interface to mention the added journal.
 8. run expired: the run that held it ended without finishing (lease over or machine restarted)
+9. coder: coder (round 1): fixed both of the reviewer's findings from log entry 7, and nothing else. `make check` is green (coverage 99.49 %).
+
+   The previous run made the fixes but expired before it could commit them. The factory committed its work in e83eb4a ("work left uncommitted by an interrupted run"). I checked that diff against the findings and ran `make check` on it. The working tree is clean, so this round has no new commit of its own.
+
+   - Finding 1 (the second copy of the first-section lookup):
+     - `factory.domain.sections._first_section` is now the public `first_section`, with a docstring.
+     - `section_text` and `insert_paragraph` call it.
+     - `_with_recommendation` in `src/factory/domain/acceptance.py` uses it for both the `RECOMMENDATION` and the `JOURNAL` lookups. The `reversed(sections(body))` dict is gone.
+   - Finding 2 (the `refusal_reason` docstring): it now reads "The human's comments after the last result, stripped, copied, never interpreted." It no longer says "never read".
+
+   Rejected: an extra refactor commit. The diff for these two findings is small and has nothing left to clean up.
+
+   Still open, not changed: when a body has neither `## Recommendation` nor `## Journal`, `book_refusal` adds an empty `## Journal` section after the new recommendation, so the `done` entry has somewhere to go. The Interface still says only "at the end of the body", so the documenter or the human may want to reword it.
+
+   `make check`: check: green
