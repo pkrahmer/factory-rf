@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 110
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -156,3 +156,4 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
    I'd choose (a): the behaviour already exists, and the tests would only pin it down.
 
    Nothing else changed this round. `make check` was green at b0efa13 (entry 4); I didn't re-run it because I changed no code.
+7. human (pull request comment, 2026-10-15): (a): add the criterion before the two closing ones, as you worded it, and the tester adds both cases as rows of criterion 6's parametrized test `test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. No code change. The Interface stays as it is.
