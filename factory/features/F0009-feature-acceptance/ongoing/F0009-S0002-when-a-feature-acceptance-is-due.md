@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 104
 blocked: null
 comments_seen: 0
@@ -142,3 +142,46 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
    - Demo: both commands are runnable and each `Expect:` line gives checkable output.
    - Architecture: the pure derivation is in the domain and the remote reading is in the application over the `Git` interface, so the layers are respected. The reader touches only `origin/` refs.
    - Scope: within F0009 (the due rule, the six statuses, the reader, the board column fill). The watcher and the board command are left to S0008, as the feature says.
+3. tester: Wrote the red tests for every acceptance criterion. `make lint` is green. `make test` fails at collection because the code under test doesn't exist yet: `factory.domain.acceptance` has no `FeatureAcceptance` (nor `FeatureFiles`, `ReportFacts`, `story_file_ids`, `acceptance_status`), and there is no module `factory.application.acceptance_reading`.
+
+   Files created:
+   - tests/domain/test_acceptance_status.py
+   - tests/application/test_acceptance_reading.py
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_acceptance_status.py::test_story_file_ids_ascend_without_repeats
+   - criterion 2: tests/domain/test_acceptance_status.py::test_story_file_ids_ignore_names_that_are_no_story_files
+   - criterion 3: tests/domain/test_acceptance_status.py::test_a_gitkeep_in_the_backlog_does_not_keep_an_archived_feature_from_being_due
+   - criterion 4: tests/domain/test_acceptance_status.py::test_a_feature_without_an_archived_story_is_incomplete
+   - criterion 5: tests/domain/test_acceptance_status.py::test_a_waiting_story_file_keeps_a_feature_incomplete (backlog, in_progress)
+   - criterion 6: tests/domain/test_acceptance_status.py::test_a_recorded_report_covering_the_archived_stories_gives_its_outcome (accepted, refused)
+   - criterion 7: tests/domain/test_acceptance_status.py::test_the_highest_covering_report_decides (both orders of outcomes)
+   - criterion 8: tests/domain/test_acceptance_status.py::test_a_report_on_other_stories_does_not_cover_the_archived_ones (fewer, more)
+   - criterion 9: tests/domain/test_acceptance_status.py::test_a_report_on_its_branch_alone_is_in_flight (complete feature, backlog story file, empty folders)
+   - criterion 10: tests/domain/test_acceptance_status.py::test_a_branch_report_merged_to_main_is_merged_unrecorded
+   - criterion 11: tests/domain/test_acceptance_status.py::test_an_unrecorded_report_on_main_is_merged_unrecorded (backlog with and without a story file)
+   - criterion 12: tests/domain/test_acceptance_status.py::test_a_recorded_acceptance_does_not_stand_while_a_story_file_waits
+   - criterion 13: tests/application/test_acceptance_reading.py::test_the_work_tree_and_local_branches_are_not_read (story file only in the work tree; story file committed on the checkout's local `main` and not pushed)
+   - criterion 14: tests/application/test_acceptance_reading.py::test_a_complete_feature_on_main_is_due_and_a_stray_directory_has_no_entry
+   - criterion 15: tests/application/test_acceptance_reading.py::test_a_recorded_covering_report_is_accepted_and_the_next_id_follows_it
+   - criterion 16: tests/application/test_acceptance_reading.py::test_a_report_on_its_remote_branch_is_in_flight
+   - criterion 17: tests/application/test_acceptance_reading.py::test_a_branch_without_a_report_is_not_in_flight (acceptance branch with only `notes.md`; story branch `work-item/F0001-S0001`)
+   - criterion 18: tests/application/test_acceptance_reading.py::test_an_unreadable_report_on_main_is_a_format_error_with_its_path (front matter that is not valid YAML; a plain work item's front matter)
+   - criterion 19: tests/application/test_acceptance_reading.py::test_a_feature_without_a_directory_has_no_files
+   - criterion 20: tests/application/test_acceptance_reading.py::test_due_features_ascend_and_leave_out_incomplete_ones
+   - criterion 21: tests/application/test_acceptance_reading.py::test_nothing_is_due_without_a_complete_feature_or_an_acceptance_stage (nothing complete; complete feature with `acceptance_stage` None)
+   - criterion 22: tests/application/test_acceptance_reading.py::test_fill_board_sets_each_known_feature_status_in_order (acceptance stage set; `acceptance_stage` None leaves every row unchanged)
+   - criterion 23: tests/application/test_acceptance_reading.py::test_the_first_of_two_directories_of_one_feature_counts
+   - criterion 24: tests/domain/test_acceptance_status.py::test_the_models_refuse_an_unknown_key, ::test_the_models_refuse_an_assignment, ::test_the_model_fields_are_typed (one row per accepted and refused value the criterion lists)
+   - criteria 25 and 26: not tests (make check; the documenter's job).
+
+   Notes for the coder:
+   - The reader tests fetch through `boundaries.git.fetch()` before building `AcceptanceReader`, as the board-reader tests do. Nothing assumes the reader fetches by itself.
+   - Reports are written with `FrontmatterWorkItemWriter`.
+   - The no-acceptance-stage definition is `definition.model_copy(update={"acceptance_stage": None})`.
+   - The type check was not run in this stage, as the stage skill says.
+
+   Open: nothing. No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
