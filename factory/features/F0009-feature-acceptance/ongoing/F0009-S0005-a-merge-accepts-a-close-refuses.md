@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 107
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # A merge accepts, a close refuses
@@ -190,3 +190,16 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
    - The docs criterion (23) is left to the documenter.
 
    `make check`: check: green
+7. reviewer: sent back for two Quality findings (group 4). Groups 1–3 pass.
+   - Criteria: each of criteria 1–21 has a test that checks what the criterion says.
+     - The failing sides are covered: the plain-state `ValueError` rows, all six `CannotHandle` rows (each also fails every later check, so the order is tested), the rejected push and the refused branch deletion.
+     - The missing-sidecar case and the already-gone branch are also covered.
+     - The coder's entry says `make check` was green.
+   - Architecture: layers and wrappers hold. `move_with_cost_records` is public in `recording.py`, and the only change to `merged.py` is that it now calls it.
+   - Security: no markers, no secrets, no strings passed to a shell.
+
+   Findings:
+   1. `src/factory/domain/acceptance.py:289` (`_with_recommendation`): `{section.heading: section for section in reversed(sections(body))}` rebuilds the first-section-by-heading lookup that `factory.domain.sections._first_section` already does. CLAUDE.md counts a second copy of an existing helper as a finding. Fix: make it public in `factory.domain.sections` (`first_section`) and use it for both the `RECOMMENDATION` and the `JOURNAL` lookup.
+   2. `src/factory/domain/acceptance.py:276` (the `refusal_reason` docstring): "never read" says the opposite of what the function does, because it reads every comment. Fix: say the texts are copied unchanged and never interpreted.
+
+   Open (no finding against the build): for a body with neither `## Recommendation` nor `## Journal`, `book_refusal` adds an empty `## Journal` after the new section so the `done` entry has a place. The coder logged this choice (log entry 6) and criterion 11's test allows it. The Interface still says the section goes "at the end of the body". The documenter or the human may want the Interface to mention the added journal.
