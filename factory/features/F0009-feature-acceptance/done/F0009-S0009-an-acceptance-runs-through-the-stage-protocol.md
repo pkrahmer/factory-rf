@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 111
 blocked: null
 comments_seen: 0
@@ -195,3 +195,4 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
     Against the acceptance criteria: the output agrees with criterion 1 (an acceptance report with only a title and `## Journal` gives no findings) and criterion 3 (the same body with a plain `WorkItemState` still gives findings). It contradicts no other criterion. Criteria 2 and 4–9 are not exercised by the demo; tests cover them (entries 3, 7 and 9).
 
     Open: nothing.
+12. done (pull request merged); cost: 10 runs, 37.0 min, 65 turns, 166k tokens in (1219k more from cache), 22k out, $2.09
