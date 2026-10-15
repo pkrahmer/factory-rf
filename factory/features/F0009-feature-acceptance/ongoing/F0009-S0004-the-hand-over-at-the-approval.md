@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 106
 blocked: null
 comments_seen: 4
@@ -237,3 +237,32 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
     Noticed, not touched: `SplitByWorkItemKind` sends every id that is not an acceptance's to the story handler. `is_acceptance` is the only kind test, and the event's id is already a validated work item id.
 
     `make check`: check: green
+11. reviewer: no findings.
+
+    What I read: the ticket, and `git diff main...HEAD -- . ':!factory'` (8 files: `src/factory/application/acceptance.py`, `src/factory/application/handlers/hand_over.py`, `src/factory/domain/acceptance.py`, `src/factory/domain/hand_over.py`, the three new test files and `tests/test_no_journal_reading.py`).
+
+    1. Acceptance criteria:
+       - Each of criteria 1 to 20 has a test named in entry 5, and each test checks the criterion it is named after.
+         - Criterion 4 has rows for every missing or empty part.
+         - Criterion 5 checks the exact closing text and has one row per forbidden word.
+         - Criterion 7 has a row with a `result` record (n = 2) and one without (n = 0).
+         - Criterion 12 runs from a stale snapshot against a branch that is already handed over.
+         - Criterion 20 races a human push through a `FakeHostingService` subclass, as the human's answer in entry 3 asked.
+       - Every refusal the Interface names is tested on its failing side: wrong kind, not an acceptance, no acceptance stage (for an acceptance and for a story), not an approval, no pull request, and an event without a work item in the split.
+       - Entry 10 records `make check` green after the coder.
+       - The only change to `tests/test_no_journal_reading.py` is the one allow-list line the Interface names.
+    2. Architecture:
+       - `acceptance_description` and `cost_table_key` are pure domain code.
+       - `AcceptanceHandOver` and `SplitByWorkItemKind` are in the application layer and reuse F0007's helpers (`target_of`, `require_pull_request`, `WorkItemRecorder`, `commit_subject`, `cost_table_post`) rather than copying them.
+       - `_cost_table_key` was moved out of `factory.application.handlers.hand_over` into the domain, not duplicated. `HandOverHandler` now calls the public `cost_table_key`, and nothing else in that handler changed.
+    3. Security: no secrets, no strings built into shell commands, and no suppression markers.
+    4. Quality:
+       - The names are clear, and the comments say why: the speaker is taken from the record and not from the visible line, and the closing text names no merge method.
+       - Docstrings are present on the public names.
+       - `AcceptanceHandOver.handle` follows `HandOverHandler` step for step, with its checks in the order the Interface gives.
+    5. Ticket hygiene:
+       - The log explains the main decision and what was rejected: the reviewer's role comes from the acceptance stage's role, and a missing role reuses `no acceptance stage` instead of adding a new reason.
+       - The Assignment matches what was built.
+       - The docs criterion (22) still describes what the operator and the project guide need after this story.
+
+    Open: nothing for review. The documenter writes criterion 22.
