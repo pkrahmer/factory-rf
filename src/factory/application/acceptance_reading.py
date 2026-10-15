@@ -35,7 +35,6 @@ from factory.domain.paths import (
 from factory.domain.pipeline_definition import PipelineDefinition
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
-_REPORT_FOLDERS: tuple[LifecycleFolder, ...] = ("in-progress", "done")
 
 
 class AcceptanceReader:
@@ -136,10 +135,13 @@ class AcceptanceReader:
         )
 
     def _main_reports(self, directory: str, files: FeatureFiles) -> list[ReportFacts]:
-        names = {"in-progress": files.in_progress, "done": files.done}
+        folders: list[tuple[LifecycleFolder, list[str]]] = [
+            ("in-progress", files.in_progress),
+            ("done", files.done),
+        ]
         reports: list[ReportFacts] = []
-        for folder in _REPORT_FOLDERS:
-            for file_name in names[folder]:
+        for folder, file_names in folders:
+            for file_name in file_names:
                 parsed = parse_work_item_file_name(file_name)
                 if parsed is not None and is_acceptance(parsed.id):
                     path = work_item_path(directory, folder, file_name)
