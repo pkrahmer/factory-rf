@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 107
 blocked: null
 comments_seen: 3
@@ -219,3 +219,21 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
    Still open, not changed: when a body has neither `## Recommendation` nor `## Journal`, `book_refusal` adds an empty `## Journal` section after the new recommendation, so the `done` entry has somewhere to go. The Interface still says only "at the end of the body", so the documenter or the human may want to reword it.
 
    `make check`: check: green
+10. reviewer: reviewer (round 1): no findings.
+
+    I read the whole diff against the ticket: `src/factory/domain/acceptance.py`, `src/factory/domain/sections.py`, `src/factory/application/acceptance.py`, `src/factory/application/handlers/recording.py`, `src/factory/application/handlers/merged.py`, and both new test files.
+
+    - Round-1 findings (log entry 7) are both fixed:
+      - Finding 1: `factory.domain.sections.first_section` is now public and has a docstring. `section_text`, `insert_paragraph` and `_with_recommendation` all use it, and the second copy of the lookup (`reversed(sections(body))`) is gone.
+      - Finding 2: the `refusal_reason` docstring now says the comments are "stripped, copied, never interpreted".
+    - Criteria: criteria 1–21 each have a test that checks what the criterion says.
+      - The failing sides are covered: the plain-state `ValueError` (merge and refusal rows), the six `CannotHandle` rows in the Interface's order (each row also fails every later check), the rejected push, the refused branch deletion, and the blank and whitespace-only comments of criterion 7.
+      - The coder's entry 9 reports `make check` green.
+    - Architecture: the layers hold. The domain functions are pure. `move_with_cost_records(git, path, folder) -> str` is public in `recording.py`. The only change to `merged.py` is that it calls this function where it used to call `_move`.
+    - Security: no markers, no secrets, no command strings.
+    - Quality: names, docstrings and comments are fine. I found no duplicated helper.
+    - Ticket hygiene: the Assignment matches what was built, and the docs criterion (23) is still accurate.
+
+    Not under review: `docs/runs/2026-10-12-overnight/night-log.md` shows up in the diff, but that is the human's own commit 85c4e9d.
+
+    Open for the documenter or the human (not a defect): when a body has neither `## Recommendation` nor `## Journal`, `book_refusal` also adds an empty `## Journal` after the new section, so the `done` entry has a place. The coder logged this choice in entry 6. The Interface still says only "at the end of the body".
