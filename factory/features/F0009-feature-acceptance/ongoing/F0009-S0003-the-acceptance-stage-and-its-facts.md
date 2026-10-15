@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 105
 blocked: null
 comments_seen: 0
@@ -246,3 +246,16 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    Open, not for this story:
    - `factory/entry/check_story.py` could use `feature_file_path`, as the coder noted.
    - Wiring the handler is S0010's job, and appending the facts to the prompt is S0009's.
+8. documenter: documenter (round 1): wrote the docs criterion (26) and found no code finding. `make check` is green.
+
+   Changed, in `docs/project-guide.md`:
+   - Section "The feature acceptance", four new bullets before "The document and its error". "Opening" says what `open` writes: one report head on `work-item/<acceptance id>`, no pull request, no claim, no agent. It also gives the title source and the errors (`CannotHandle`, `WorkItemFormatError`, `PushFailed`) and what `AcceptanceDueHandler` does. "The reviewer's facts" gives the three facts and `acceptance_prompt`. "What the reviewer may write" says its report and new backlog stories only. "Its cost" says each report has its own sidecar and names the shared helpers `read_cost_records`, `feature_file_path` and `read_feature_file`.
+   - Section "No code reads data from the journal's text": `factory.domain.acceptance` is added to the `JOURNAL` allow-list, matching `tests/test_no_journal_reading.py`.
+
+   Cross-read and current: the `build_handlers` and `NOT_YET_HANDLED` text (the handler is not wired yet; the new bullet says so), the Reader bullet, and the board paragraph. README and the operator guide need nothing from this story.
+
+   I did not run the examples, because I wrote none.
+
+   Stale but not touched (unrelated): `factory/entry/check_story.py` builds the feature-file path itself instead of using `feature_file_path`. That is the coder's note, not documentation.
+
+   `make check`: check: green
