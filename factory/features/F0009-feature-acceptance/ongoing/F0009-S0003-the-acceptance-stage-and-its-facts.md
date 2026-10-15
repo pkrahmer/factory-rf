@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 105
 blocked: null
 comments_seen: 0
@@ -130,3 +130,43 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    - Demo: both commands are runnable with the Interface's names, and each `Expect:` line is checkable against the output.
    - Architecture: pure facts and head sit in the domain, the service and handler in the application layer reached through `Boundaries`, and git and the writers are used only through their wrappers. Wiring is left to S0010 and the stage protocol to S0009, as the Assignment says.
    - Scope: the story stays within the feature's scope item "The acceptance stage" and decisions 5 to 8 and 22, and touches nothing in "Out of scope".
+3. tester: red tests for the acceptance facts, the prompt, the head, AcceptanceService and AcceptanceDueHandler. `make lint` is green. `make test` stops at collection because the modules under test don't exist yet, which is the expected failure.
+
+   Mapping:
+   - criterion 1: tests/domain/test_acceptance_facts.py::test_the_facts_hold_the_archived_stories_and_the_number_after_the_highest
+   - criterion 2: tests/domain/test_acceptance_facts.py::test_the_next_story_number_has_four_digits_and_counts_only_story_files (rows: highest 9 gives S0010, a story in in_progress, an acceptance report and notes in in_progress, no story file gives S0001)
+   - criterion 3: tests/domain/test_acceptance_facts.py::test_the_next_story_number_ends_at_9999 (9998 and 9999)
+   - criterion 4: tests/domain/test_acceptance_facts.py::test_the_facts_are_three_lines
+   - criterion 5: tests/domain/test_acceptance_facts.py::test_the_prompt_is_the_base_an_empty_line_and_the_facts
+   - criterion 6: tests/domain/test_acceptance_facts.py::test_the_head_is_an_initial_acceptance_state_a_title_and_an_empty_journal
+   - criterion 7: tests/application/test_acceptance_service.py::test_the_service_needs_an_acceptance_stage
+   - criterion 8: tests/application/test_acceptance_service.py::test_opening_pushes_the_report_head_on_the_acceptance_branch
+   - criterion 9: tests/application/test_acceptance_service.py::test_opening_adds_one_commit_with_only_the_report_and_no_pull_request (with and without `in-progress/.gitkeep` on main)
+   - criterion 10: tests/application/test_acceptance_service.py::test_opening_without_a_feature_title_is_a_format_error_and_pushes_nothing (missing file, untitled file) and ::test_opening_takes_the_first_title_of_the_feature_file
+   - criterion 11: tests/application/test_acceptance_service.py::test_opening_a_feature_that_is_not_due_cannot_be_handled_and_pushes_nothing
+   - criterion 12: tests/application/test_acceptance_service.py::test_opening_again_after_a_kill_before_the_push_leaves_one_branch_with_one_commit
+   - criterion 13: tests/application/test_acceptance_service.py::test_the_facts_are_read_from_main_on_the_remote_only (story only in the work tree, or committed only locally)
+   - criterion 14: tests/application/test_acceptance_service.py::test_the_cost_line_counts_the_records_of_the_archived_stories_only
+   - criterion 15: tests/application/test_acceptance_service.py::test_the_facts_of_a_feature_without_a_directory_on_main_are_refused
+   - criterion 16: tests/application/test_acceptance_service.py::test_the_reviewer_may_write_its_report_and_new_backlog_stories
+   - criterion 17: tests/application/test_acceptance_service.py::test_the_reviewer_may_write_nothing_else
+   - criterion 18: tests/application/test_acceptance_service.py::test_each_acceptance_has_its_own_cost_line (A0001 merged to done/, A0002 on its branch, A0003 on its branch without a sidecar, plus an archived story with its own records)
+   - criterion 19: tests/application/test_acceptance_due_handler.py::test_an_acceptance_due_event_opens_its_feature
+   - criterion 20: tests/application/test_acceptance_due_handler.py::test_an_event_the_handler_cannot_open_is_refused_and_pushes_nothing
+   - criterion 21: tests/application/test_acceptance_due_handler.py::test_without_an_acceptance_stage_the_handler_is_built_and_refuses_every_event
+   - criterion 22: tests/domain/test_acceptance_facts.py::test_the_facts_are_closed_and_typed and ::test_the_facts_refuse_an_assignment; tests/application/test_acceptance_service.py::test_the_opened_acceptance_is_closed_and_typed and ::test_the_opened_acceptance_refuses_an_assignment
+   - criterion 23: tests/test_no_journal_reading.py::test_no_module_reads_data_from_the_journal_text, with `factory.domain.acceptance` added to `ALLOWED["JOURNAL"]` (the only change to that file, as the Interface allows). Also tests/domain/test_acceptance_facts.py::test_the_head_builds_its_journal_heading_from_the_section_name, which checks that `factory.domain.acceptance` imports `JOURNAL` from `factory.domain.sections`.
+   - criterion 24: tests/application/test_acceptance_service.py::test_opening_onto_a_branch_the_checkout_has_not_fetched_is_a_rejected_push
+   - criteria 25 and 26: no test (`make check` and docs).
+
+   Files created: tests/domain/test_acceptance_facts.py, tests/application/test_acceptance_service.py, tests/application/test_acceptance_due_handler.py. Edited: tests/test_no_journal_reading.py (one line in the allow-list).
+
+   Modules the test runner could not import: `factory.application.acceptance` (does not exist), and `AcceptanceFacts` from `factory.domain.acceptance` (the module exists but does not have it yet).
+
+   Notes for the coder:
+   - The tests call `boundaries.git.fetch()` before building the service. They assume `open` and `facts` read the last fetch and do not fetch themselves; criterion 24 depends on that.
+   - A "run" event with no work item is built with `Event.model_construct`, just like the `acceptance_due` event without a feature.
+   - The type check was skipped in this stage, as the stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
