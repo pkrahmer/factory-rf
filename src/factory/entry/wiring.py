@@ -8,6 +8,13 @@ from factory.adapters.claude_guard import judge, read_guard_settings
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
+from factory.application.acceptance import (
+    AcceptanceClosed,
+    AcceptanceDueHandler,
+    AcceptanceHandOver,
+    AcceptanceMerged,
+    SplitByWorkItemKind,
+)
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.costs import BillService
@@ -41,7 +48,7 @@ __all__ = [
 ]
 
 # The kinds with no handler yet, in the order of `EventKind`; registering one removes it here.
-NOT_YET_HANDLED: tuple[EventKind, ...] = ("acceptance_due",)
+NOT_YET_HANDLED: tuple[EventKind, ...] = ()
 
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
@@ -74,9 +81,14 @@ def build_handlers(
     environment: Mapping[str, str],
 ) -> dict[EventKind, Handler]:
     """Return the handler of every event kind that has one."""
-    closed = ClosedHandler(boundaries, definition)
-    merged = MergedHandler(boundaries)
-    # Every agent run passes the gate, so a close or merge found then is handled first.
+    closed = SplitByWorkItemKind(
+        ClosedHandler(boundaries, definition), AcceptanceClosed(boundaries, definition)
+    )
+    merged = SplitByWorkItemKind(
+        MergedHandler(boundaries), AcceptanceMerged(boundaries, definition)
+    )
+    # Every agent run passes the gate, so a close or merge found then is handled first;
+    # the gate holds the splits, so an acceptance never reaches the story's handlers.
     run = RunGate(
         boundaries, RunHandler(boundaries, instance, definition, environment), closed, merged
     )
@@ -93,7 +105,10 @@ def build_handlers(
         "merged": merged,
         "closed": closed,
         "reject": RejectHandler(boundaries),
-        "hand_over": HandOverHandler(boundaries, definition),
+        "hand_over": SplitByWorkItemKind(
+            HandOverHandler(boundaries, definition), AcceptanceHandOver(boundaries, definition)
+        ),
+        "acceptance_due": AcceptanceDueHandler(boundaries, definition),
         "duplicate": DuplicateHandler(),
         "pull_request_lookup": PullRequestLookupHandler(),
     }
