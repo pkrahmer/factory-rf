@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 108
 blocked: null
 comments_seen: 0
@@ -115,3 +115,13 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
       - Noticed, not touched: the new no-state branch in `_book` (`application/acceptance.py:272`) is not covered by a test. Coverage is still at 99 %.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1 to 12 has a test named in entry 3 that checks what the criterion says. The coder's entry reports `make check` green.
+      - Interface rules and their failing sides: the unknown stage gives `KeyError`. The test checks this before `position`, whose `ValueError` would otherwise fail the test. A definition without an approval stage gives `ValueError`. The boundary is tested on both sides: `acceptance` gives true, and `approval` and `done` give false.
+      - `is_before_approval` (`src/factory/domain/acceptance.py:277`) takes the first approval stage in `definition.stages` order. That is the same order `PipelineDefinition.position` uses (`list(self.stages).index`), so it matches the rule.
+      - The domain test's copy of the fixture definition has the same stage order as `PIPELINE_YAML`. The tester gave the reason for the copy in entry 3.
+      - Architecture: the domain function takes the definition as data and does no I/O. The handler (`src/factory/application/acceptance.py:271`) uses only domain functions and the existing `require_state` helper. No new imports cross layers.
+      - Security: no suppression markers, no strings built for a shell, no secrets.
+      - Quality: the before-approval prefix is a module constant next to `_CLOSED_ENTRY_PREFIX`, and both paths book through the existing `_booked`, so nothing is duplicated.
+      - Considered and not counted: the new no-state `CannotHandle` in `AcceptanceMerged._book` has no test, which the coder disclosed. It replaces the `ValueError` that `book_merge` raised at the same point before this change, so it is not a regression, and `require_state` is the helper the codebase requires for that check.
+      - Ticket hygiene: the Assignment matches what was built. The coder's entry gives the main decision (a flag on `book_merge`) and what was rejected. Criterion 14 still describes what the documenter must write.
