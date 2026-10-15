@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 110
 blocked: null
 comments_seen: 2
@@ -184,3 +184,34 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
        Open: none. Review stopped at group 1 in entry 5, so groups 2 to 5 (architecture, security, quality, ticket hygiene) have not been reviewed yet.
 
     `make check`: check: green
+11. reviewer: reviewer (round 1): no findings. I re-reviewed all five groups from the start against `git diff main...HEAD -- . ':!factory'` (b0efa13, plus the tester's 1b90b8d).
+       1. Acceptance criteria: criteria 1 to 20 each have a test that checks what the criterion says. Coder entry 10 reports `make check` green at 1b90b8d (99.53 %). The Interface's limits are tested on both sides:
+          - `due`: `F0002` is accepted; `F002` and an unknown key are refused (parametrized).
+          - Tier-4 ranking: an earlier feature's story, the due feature's own story, and a later feature's story.
+          - Tiers 2 and 3 win over a due feature: waiting and held.
+          - `branch_commit`: set, and `None` after the branch is deleted.
+          - Document source: from the branch when it holds the file, from main otherwise.
+          - `done/` report: with and without a leftover branch.
+          - "Of the feature" rule: both refused sides are now rows of criterion 6's parametrized test (criterion 20).
+          - `acceptance_stage None`: reader, watcher and board.
+          - Format error: carries its path.
+          - Illegal stage change on an acceptance branch: gives `reject`.
+          - Merged event: tested for merge, squash and rebase.
+          The F0006 test change in `tests/application/test_board_reader.py` is exactly the one the Rules allow.
+       2. Architecture:
+          - `evaluation.py` (domain) imports only domain modules.
+          - `AcceptanceReader.snapshots()` uses only `Git.resolve`, `list_files`, `show_file` and `remote_branches`, with no work tree, no local branch and no hosting call.
+          - `Watcher` and `BoardReader` build the reader from `Boundaries`. No new tools or dependencies.
+       3. Security: nothing new crosses a boundary. No suppression markers, no secrets.
+       4. Quality:
+          - `_new_work` ranks one mixed candidate list by one key, as the Interface says.
+          - `_due_order`'s comment says why.
+          - The duplicated branch-path loop is shared as `_branch_report_paths_at` (b0efa13).
+          - The acceptance-state check is shared as `_document` by `_report` and `_snapshot`.
+          - Docstrings are present and accurate (`snapshots`, `BoardReader.read`, `EvaluationInput`).
+       5. Ticket hygiene:
+          - Entry 4 records the main decision (one sort key over mixed candidates) and the alternative it rejected (first runnable compared with first due).
+          - The Assignment matches what was built.
+          - Criterion 22 (docs) still describes what the reader needs.
+       Seen but not counted as a finding: the Interface's `(F, 1, "")` key ranks a due feature ahead of an acceptance snapshot of the same feature. Entry 4 notes this, and it cannot happen, because a feature with an open acceptance is not due.
+       Open: none.
