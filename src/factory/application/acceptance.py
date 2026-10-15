@@ -299,7 +299,8 @@ class AcceptanceClosed(Handler):
         role, number = self._require_bookable(event)
         snapshot = target_of(event).snapshot
         git = self._boundaries.git
-        if git.resolve(f"{REMOTE}/{snapshot.branch}") is None:
+        branch_ref = f"{REMOTE}/{snapshot.branch}"
+        if git.resolve(branch_ref) is None:
             if git.show_file(_MAIN_REF, destination_path(snapshot.path, "done")) is None:
                 raise CannotHandle(
                     kind=event.kind, reason="no report on the branch or the main branch"
@@ -307,7 +308,7 @@ class AcceptanceClosed(Handler):
         else:
             recorder = WorkItemRecorder(self._boundaries)
             recorder.check_out(snapshot.branch)
-            records = self._branch_records(snapshot)
+            records = self._branch_records(snapshot, branch_ref)
             document = self._record_close(recorder, snapshot, number)
             refused = book_refusal(document, role=role, on=self._today(), bill=bill(records))
             self._book(recorder, snapshot, refused, records)
@@ -326,11 +327,10 @@ class AcceptanceClosed(Handler):
     def _today(self) -> date:
         return self._boundaries.clock.now().astimezone(UTC).date()
 
-    def _branch_records(self, snapshot: WorkItemSnapshot) -> list[CostRecord]:
+    def _branch_records(self, snapshot: WorkItemSnapshot, branch_ref: str) -> list[CostRecord]:
         boundaries = self._boundaries
         sidecar = cost_records_path(snapshot.path)
-        ref = f"{REMOTE}/{snapshot.branch}"
-        return read_cost_records(boundaries.git, boundaries.cost_reader, ref, sidecar)
+        return read_cost_records(boundaries.git, boundaries.cost_reader, branch_ref, sidecar)
 
     def _record_close(
         self, recorder: WorkItemRecorder, snapshot: WorkItemSnapshot, number: int
