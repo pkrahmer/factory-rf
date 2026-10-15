@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 109
 blocked: null
 comments_seen: 2
@@ -194,3 +194,18 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
     Findings: none. The code matches the Interface. I saw no stale text unrelated to this story. `make check` is green (coverage 99.52 %).
 
     `make check`: check: green
+11. demo: ran the one command under `## Demo` from the repository root, as written. No findings.
+
+    Command 1 (`uv run python -c "…AcceptanceClosed(SimpleNamespace(), definition)…handler.handle(Event(kind='closed', …))…"`):
+
+    ```
+    True
+    cannot handle closed: no acceptance stage
+    ```
+    Exit status 0. It met its `Expect:` line: two lines, `True` and then `cannot handle closed: no acceptance stage`.
+
+    Judged against the acceptance criteria:
+    - Criterion 10: the handler was built with a definition that has no `acceptance_stage`, and building it raised nothing.
+    - Criterion 9: the event has `pull_request=None`, yet the error given is `no acceptance stage`, not `pull request is not closed`. So the stage check runs before the pull-request check, the order the Interface gives.
+    - The handler was given an empty `SimpleNamespace` as its boundaries and refused without touching them. This agrees with "changes nothing".
+    - The demo does not reach criteria 1–8 and 11–15, and nothing in its output contradicts them. Earlier log entries report `make check` green with coverage at 99.52 %.
