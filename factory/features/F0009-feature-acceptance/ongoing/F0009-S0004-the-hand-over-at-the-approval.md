@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 106
 blocked: null
 comments_seen: 4
@@ -209,3 +209,8 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
 
    Not touched: `SplitByWorkItemKind` sends every id that is not an acceptance's to the story handler. `is_acceptance` is the only test of kind, and the event's id is already a valid work item id.
 7. human (pull request comment, 2026-10-15): (a): the tester annotates `REVIEWER_RESULT: tuple[str, JournalKind, str] = ...` in `tests/domain/test_acceptance_description.py` and changes nothing else. End with `tests` and name exactly that change.
+8. coder: This needs a one-line test change, as the human decided in log entry 7, option (a). In `tests/domain/test_acceptance_description.py`, line 33, the tester annotates the constant as `REVIEWER_RESULT: tuple[str, JournalKind, str] = (ROLE, "result", f"{ROLE}: {FINDINGS_TEXT}")`, adds the `JournalKind` import from `factory.domain.journal` if the file doesn't have it yet, and changes nothing else.
+
+   The annotation fixes the four mypy `list-item` errors at lines 61, 78, 88 and 140, which are the only thing keeping `make check` red.
+
+   The implementation is unchanged since commit cdf6d23. Every other check is green, including `make test` at 99.51 % coverage. Once the test change is in, I'll run `make check` again and hand the ticket to review.
