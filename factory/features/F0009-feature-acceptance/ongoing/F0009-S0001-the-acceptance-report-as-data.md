@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 103
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The acceptance report as data, and its place in the order
 
 ## Assignment (as of log entry 1)
@@ -123,3 +131,88 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory/domain/acceptance.py`; `parse` and `render` in `adapters/work_item_markdown.py`). Every rule stated there has a criterion: id form and range (1, 2), `next_acceptance_id` (3-5), file name (6, 7), `stories` order and ids (11, 12), `outcome` tied to `done` (13), reader and writer behaviour (14-20), journal functions (21, 22).
+   - Criteria: each can be tested by one test function. Each rule has its failing side: 0 and 10000 (2), 9999 (5), a story id for the file name (7), unsorted and repeated stories (11), an acceptance id in `stories` (12), `outcome` set while not done and `done` without an outcome (13), an unknown key and invalid values (16, 17, 23).
+   - Demo: three runnable `uv run python -c` blocks. Each `Expect:` line gives exact output that can be checked.
+   - Architecture: the new module is in the domain layer and does no I/O. The adapter change stays in the existing reader and writer. No git, hosting service or agent runtime is touched.
+   - Scope: within F0009 "Scope" (first bullet), and nothing in "Out of scope" is touched.
+3. tester: red tests written for every criterion; `make lint` green; `make test` stops at collection because `factory.domain.acceptance` does not exist yet (ModuleNotFoundError in all three new files).
+   - criterion 1: tests/domain/test_acceptance.py::test_acceptance_id_is_the_feature_and_a_four_digit_number
+   - criterion 2: tests/domain/test_acceptance.py::test_acceptance_id_takes_numbers_from_1_to_9999 (0, 1, 9999, 10000)
+   - criterion 3: tests/domain/test_acceptance.py::test_first_acceptance_of_a_feature_is_number_one
+   - criterion 4: tests/domain/test_acceptance.py::test_next_acceptance_follows_the_highest_of_the_feature
+   - criterion 5: tests/domain/test_acceptance.py::test_next_acceptance_ends_at_9999 (A9998 → A9999, A9999 → ValueError)
+   - criterion 6: tests/domain/test_acceptance.py::test_acceptance_file_name_reads_back_to_its_id_and_slug
+   - criterion 7: tests/domain/test_acceptance.py::test_acceptance_file_name_refuses_a_story_id
+   - criteria 8, 9: tests/domain/test_acceptance.py::test_acceptance_sorts_after_the_stories_of_its_feature (rows `F0002-2fa` and `F0002`; the first acceptance id is `acceptance_id(feature, 1)`)
+   - criterion 10: tests/domain/test_acceptance.py::test_acceptance_state_defaults_to_no_stories_and_no_outcome
+   - criterion 11: tests/domain/test_acceptance.py::test_acceptance_stories_ascend_strictly
+   - criterion 12: tests/domain/test_acceptance.py::test_acceptance_stories_refuse_an_acceptance_id
+   - criterion 13: tests/domain/test_acceptance.py::test_acceptance_outcome_is_set_exactly_when_done
+   - criterion 14: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_returns_an_acceptance_state_for_either_extra_key
+   - criterion 15: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_returns_a_plain_state_without_the_extra_keys
+   - criterion 16: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_refuses_any_other_unknown_key (`verdict` beside a plain front matter, and beside `stories`, following the Interface rule "any other unknown key is still a WorkItemFormatError")
+   - criterion 17: tests/adapters/test_work_item_markdown_acceptance.py::test_reader_names_the_extra_key_of_an_invalid_value
+   - criterion 18: tests/adapters/test_work_item_markdown_acceptance.py::test_writer_puts_stories_and_outcome_last (checks the full key order: WorkItemState's fields, then `stories`, then `outcome`, and `outcome: null`)
+   - criterion 19: tests/adapters/test_work_item_markdown_acceptance.py::test_writer_gives_a_plain_state_neither_extra_key
+   - criterion 20: tests/adapters/test_work_item_markdown_acceptance.py::test_acceptance_document_survives_a_round_trip
+   - criterion 21: tests/domain/test_journal_acceptance.py::test_append_entry_keeps_the_acceptance_state
+   - criterion 22: tests/domain/test_journal_acceptance.py::test_restore_puts_back_the_baseline_stories_and_outcome
+   - criterion 23: tests/domain/test_acceptance.py::test_acceptance_state_is_closed_and_typed (built through `type[BaseModel]`) and ::test_acceptance_state_refuses_an_assignment (uses `setattr` with the field name held in a variable)
+   - criteria 24, 25: not tests (make check; documenter).
+   Files created: tests/domain/test_acceptance.py, tests/adapters/test_work_item_markdown_acceptance.py, tests/domain/test_journal_acceptance.py.
+   Could not be imported: factory.domain.acceptance (all three files import it). I skipped the type check, as this stage's instructions say.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: all the tester's tests pass and `make check` is green.
+      - New module `src/factory/domain/acceptance.py` (`ACCEPTANCE_SLUG`, `AcceptanceOutcome`, `AcceptanceState`, `acceptance_id`, `next_acceptance_id`, `acceptance_file_name`). `AcceptanceState` subclasses `WorkItemState` and keeps its frozen, `extra="forbid"` config. A field validator refuses acceptance ids in `stories` and any list that is not strictly ascending (`sorted(set(...))`, the same rule `comments_read` uses). A model validator ties `outcome` to `stage == DONE_STAGE`. `next_acceptance_id` takes the highest number among the feature's acceptances and goes through `acceptance_id`, so the 1-9999 range is checked in one place.
+      - Changed `src/factory/adapters/work_item_markdown.py`: the reader validates with `AcceptanceState` when the front matter has `stories` or `outcome`, and with `WorkItemState` otherwise. The extra keys are worked out from the difference between the two models' fields, not listed by hand. Faults still come from `first_fault`, so an unknown key comes first and a bad value is named by its key. The writer needed no change: it already dumps `state.model_dump()`, so the subclass's fields come after `journal` in field order.
+      - Main design decision: picking the model in the reader by its keys. I rejected a single model with optional extra fields, because a story would then accept `stories` and `outcome`, which the Interface rules out.
+      - Refactor pass: I read the diff (two files, about 80 lines) and found nothing to rename, simplify or remove, so there is no refactor commit.
+      - Noticed and left alone: `append_entry` and `restore_state_and_journal` already keep the subclass through `model_copy`, so criteria 21 and 22 pass without a change to `factory.domain.journal`.
+      - Commit: `ticket F0009-S0001: feat(domain): the acceptance id, report file name and state`.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1-23 each have a test that checks what the criterion says (the tester's map in entry 3 is correct), and the coder's entry reports `make check` green. Every limit in the Interface is tested on both sides: numbers 0/1/9999/10000, A9998→A9999 and A9999 raising, a story id refused by `acceptance_file_name`, unsorted, repeated and ascending `stories`, an acceptance id in `stories`, `outcome` both without `done` and with it, an unknown key on a plain front matter and on an acceptance's, an invalid `stories` and an invalid `outcome` value named by their key. Criterion 23 builds the model through `type[BaseModel]` and assigns through `setattr` with the field name in a variable, as `CLAUDE.md` asks.
+      - Architecture: `src/factory/domain/acceptance.py` has no I/O and imports only the domain (`identifiers`, `pipeline_definition`, `work_item`). The adapter imports the domain, which the layer order allows. No `dict[str, Any]` crosses a function boundary.
+      - Security: no new markers, no secrets, no new commands or string-built queries. Input is still checked at the reader by Pydantic, and faults still go through `first_fault`.
+      - Quality: `src/factory/adapters/work_item_markdown.py` works out `_ACCEPTANCE_KEYS` from the two models' fields instead of listing them, which avoids a second list to keep in sync. The writer was left unchanged and already dumps `state.model_dump()`, as the Interface requires; criteria 18 and 20 prove it. `next_acceptance_id` goes through `acceptance_id`, so the 1-9999 range is checked in one place. The one-line `sorted(set(...))` check repeats the one on `comments_read` in `work_item.py`, but it is too small to count as a duplicated helper. Docstrings are present and accurate.
+      - Ticket hygiene: entry 4 states the main decision (picking the model by the front matter's keys) and the rejected alternative (one model with optional extra fields). The Assignment matches what was built. Criterion 25 still says what the project guide must state.
+6. documenter: criterion 25 is written, `make check` is green (run in the foreground after the last edit), and I found no findings.
+   - `docs/project-guide.md`: new section "The feature acceptance". It covers the id form `F0001-A0001` (numbered per feature, 1 to 9999, how `next_acceptance_id` picks the next number), the report file name `F0001-A0004-acceptance.md`, the sort order after the stories, `AcceptanceState` with its `stories` and `outcome` rules, and how the reader and writer treat the two keys. It states that `stories` and `outcome` belong to the factory and that `restore_state_and_journal` restores them after every agent run.
+   - `docs/project-guide.md`, "The layout": the sentence about the ten keys of `WorkItemState` now says an acceptance adds `stories` and `outcome` after `journal`.
+   - I checked the section against the diff by reading the code. I did not run the demo commands.
+   - Cross-read and found current: README, `docs/operator-guide.md`, and the project guide's sections on ids, order, the state, the journal and restore.
+   - Stale but unrelated, so not touched: the project guide's board paragraph says `FeatureRow.acceptance` is always `None` until F0009-S0001. This story does not change the board, so the line is still true. A later F0009 story that builds the board support should update it.
+
+   `make check`: check: green
+7. demo: I ran all three demo commands from the repository root, exactly as written. Each output matches its `Expect:` line, and nothing the demo showed goes against an acceptance criterion. No findings.
+
+   1. Ids and order. This met its Expect line: four lines, `F0002-A0001`, `F0002-A0004`, then the same sorted list twice. The second and third lines cover criteria 8 and 9 (a slug that starts with a digit, and a missing slug).
+   ```
+   F0002-A0001
+   F0002-A0004
+   ['F0002-S0001', 'F0002-S0009', 'F0002-A0001', 'F0003-S0001']
+   ['F0002-S0001', 'F0002-S0009', 'F0002-A0001', 'F0003-S0001']
+   ```
+
+   2. `AcceptanceState` validation. This met its Expect line: `rejected` on three lines, then `refused ['F0001-S0001']`.
+   ```
+   rejected
+   rejected
+   rejected
+   refused ['F0001-S0001']
+   ```
+
+   3. Writer key order and a round trip through the reader. This met its Expect line: `['stories', 'outcome']`, then `AcceptanceState True`.
+   ```
+   ['stories', 'outcome']
+   AcceptanceState True
+   ```
+
+   Extra check for criterion 18, beyond the demo commands: I rendered the same kind of document and printed the whole front matter. It shows the ten `WorkItemState` keys in order, ending with `journal: []`, then `stories: [F0001-S0001]` and `outcome: null`. This agrees with the criterion.
+
+   Not run here: `make check`. The factory runs it after this stage. The coder's and documenter's entries both report it green.

@@ -17,12 +17,15 @@ from ruamel.yaml.scalarstring import SingleQuotedScalarString
 
 from factory.adapters.validation_faults import first_fault
 from factory.application.files import WorkItemReader, WorkItemWriter
+from factory.domain.acceptance import AcceptanceState
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.work_item import WorkItemDocument, WorkItemState, require_state
 
 # Words a YAML 1.1 or 1.2 reader takes for null or a boolean; written quoted, they stay text.
 _AMBIGUOUS_WORDS = frozenset({"null", "true", "false", "yes", "no", "on", "off", "y", "n"})
 _NULL_TAG = "tag:yaml.org,2002:null"
+# Either key makes the front matter an acceptance's; a story's has neither.
+_ACCEPTANCE_KEYS = frozenset(AcceptanceState.model_fields) - frozenset(WorkItemState.model_fields)
 # Wide enough that no value is ever folded onto a second line.
 _LINE_WIDTH = 4096
 
@@ -110,6 +113,12 @@ def split_front_matter(handler: RuamelYamlHandler, text: str) -> tuple[str, str]
         return None
 
 
+def _state_model(values: dict[str, object]) -> type[WorkItemState]:
+    if _ACCEPTANCE_KEYS.intersection(values):
+        return AcceptanceState
+    return WorkItemState
+
+
 class FrontmatterWorkItemReader(WorkItemReader):
     """Reads a work item file with python-frontmatter and ruamel.yaml."""
 
@@ -125,7 +134,7 @@ class FrontmatterWorkItemReader(WorkItemReader):
         front_matter, body = split
         values = self._handler.load(front_matter)
         try:
-            state = WorkItemState.model_validate(values)
+            state = _state_model(values).model_validate(values)
         except ValidationError as error:
             raise WorkItemFormatError(first_fault(error, "state")) from error
         return WorkItemDocument(state=state, body=_normalised_body(body))
