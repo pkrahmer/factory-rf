@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 111
 blocked: null
 comments_seen: 0
@@ -140,3 +140,10 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: Round 1, after the tester's change. The only review finding asked for a test change. The tester has now made it in entry 7: `assert pull_request.draft` in `tests/application/test_stage_run_acceptance.py::test_the_protocol_opens_the_acceptance_pull_request_and_records_it`. That leaves nothing for the code to do, so this round has no code change and no commit. The implementation is the one from entry 4: `src/factory/application/task.py`, commits ba5413d (feat) and 6141647 (refactor).
+
+   I ran `make check` in the foreground on the committed state and it is green, with coverage at 99.53 %. The stronger test passes against the existing code. Refactor: nothing to change, since the diff is the same one the reviewer already read.
+
+   Open: nothing.
+
+   `make check`: check: green
