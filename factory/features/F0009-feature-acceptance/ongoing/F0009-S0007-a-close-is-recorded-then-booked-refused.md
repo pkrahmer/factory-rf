@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 109
 blocked: null
 comments_seen: 0
 round: 0
@@ -85,3 +85,9 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `AcceptanceClosed(boundaries, definition)` in `factory.application.acceptance` is concrete. It names its collaborators (`CommentCopier`, `WorkItemRecorder`, `commit_subject`, `CLOSE_ENTRY_TEXT`, `destination_path`, `target_of`, `book_refusal`, `cost_records_path`) with their modules, and the four steps (locate, record, book, delete) are ordered.
+   - Criteria: each is testable by one test function. The rules' failing sides are covered: the four `CannotHandle` reasons in order (9), no report anywhere (7), a blank comment body (3), a factory comment skipped (2), an existing `close` record (14), a rejected push of main (12), a refused branch deletion (13), kills before and after the push (6, 15), and a rerun with the branch gone (5). Criterion 10 covers the constructor that never raises. Criteria 16 and 17 are the two closing ones.
+   - Demo: the command is runnable. `Expect:` names two checkable lines, `True` and `cannot handle closed: no acceptance stage`.
+   - Architecture: the handler stays in `factory.application`, reuses F0007's helpers by name and reaches git only through `WorkItemRecorder` and `Git.show_file`. No layer is crossed.
+   - Scope: this is FEATURE.md scope ("a close, at any stage, books refused with the human's reason") and decisions 19, 20 and 21. Nothing in Out of scope is touched.
