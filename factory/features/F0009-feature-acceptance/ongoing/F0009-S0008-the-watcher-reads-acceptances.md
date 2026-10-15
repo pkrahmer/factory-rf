@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 110
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The watcher reads acceptances
@@ -137,3 +137,7 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
         - With the `(F, 1, "")` key, a due feature would rank before an acceptance snapshot of the same feature. In practice they cannot exist together, because a feature with an open acceptance is not due.
 
    `make check`: check: green
+5. reviewer: findings in group 1 (acceptance criteria). I stopped there, as the checklist says. Criteria 1 to 19 each have a test that checks what the criterion says. The coder's entry reports `make check` green. The code matches the Interface: the tier-4 key `(feature, 1, "")`, the joined sort in `Watcher.evaluate`, main's path winning in `snapshots()`, the document read from the branch when the branch holds it, and `BoardReader` keeping the boundaries. Both gaps below are gaps in the story, not the tester's: the Interface states the rule, but no criterion names its failing side.
+   1. `src/factory/application/acceptance_reading.py:112` (`_main_report_paths`, the `_is_report_of` filter). The Interface rule says the report is in `in-progress/` "of the feature (a directory … whose name `parse_feature_directory_name` reads as the id's feature)". Its failing side is untested: an acceptance report on `origin/main` in another feature's directory, for example `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`, must give no snapshot. Fix: the human adds a criterion for this case, and the tester adds it as a row of the parametrized skip test in `tests/application/test_acceptance_snapshots.py` (criterion 6's).
+   2. `src/factory/application/acceptance_reading.py:120-121` (`_branch_report_paths`, `if directory is None: continue`). The same rule's failing side on the branch side is untested: a branch `work-item/F0004-A0001` holds a report under a feature directory that `origin/main` lacks, and it must give no snapshot. The coder's entry names this as the uncovered line. Fix: the same criterion, or a second one, as another row of that parametrized test.
+   Not reviewed past group 1: groups 2 to 5 (architecture, security, quality, ticket hygiene). The coder cannot write tests, so the next step is a `question` to the human asking whether to add these criteria.
