@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 105
 blocked: null
 comments_seen: 0
@@ -170,3 +170,28 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the acceptance opening and the reviewer's facts. All the tester's tests pass unchanged, and `make check` is green (coverage 99.5 %).
+
+   Built:
+   - `src/factory/domain/acceptance.py` (grown): `AcceptanceFacts`, `acceptance_facts`, `acceptance_prompt` and `acceptance_head`.
+     - `AcceptanceFacts` has a validator that refuses an acceptance id as `next_story`, and its `lines()` gives the three fact lines.
+     - `acceptance_facts` takes the highest story number from `story_file_ids` over backlog, in-progress and done, then adds one. A result above 9999 raises `ValueError`.
+     - `acceptance_head` builds the `AcceptanceState` from `initial_state(stage).model_dump()` plus `stories`. It writes the heading as `f"## {JOURNAL}"`, with `JOURNAL` imported from `factory.domain.sections`.
+   - `src/factory/application/acceptance.py` (new): `OpenedAcceptance`, `AcceptanceService` and `AcceptanceDueHandler(Handler)`.
+     - `open` and `facts` both read through `AcceptanceReader` from S0002 (`read()` for the status, directory, archived stories and next acceptance; `feature_files` for the files), using the last fetch only. They never fetch.
+     - `open` checks the status, then the title of `feature.md` at origin/main. Only then does it write: `checkout(branch, start_point="origin/main")`, mkdir of the report's folder, `work_item_writer.write`, `commit("<id> opens")`, then push. Any outcome other than `pushed` raises `PushFailed`.
+     - Because of `--force-create`, a second `open` after a kill before the push resets the local branch, so the remote gets exactly one commit.
+     - `facts` sums the sidecars of the story files in `done/` only. Acceptance reports are skipped, and a story without a sidecar adds no records.
+     - A feature with no directory raises `ValueError` naming the feature. `open` uses the same lookup.
+
+   Main decision: the service reuses `AcceptanceReader` for status, directory and files rather than reading the tree again. I rejected a separate listing in the service because it would duplicate S0002's rules for what is due.
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   Noticed, not touched:
+   - `AcceptanceService._feature_title` looks like the private `BoardService._feature_title` in `factory/application/board.py`, but it differs: it raises `WorkItemFormatError` with the path instead of returning `None`.
+   - `AcceptanceService._records` does what `BillService._records` does (read a sidecar at a ref, or no records), but that one is private. A shared helper would mean changing `costs.py`, which is beyond this story.
+   - Wiring the handler into `build_handlers` is left to S0010, and appending the facts to the prompt to S0009, as the Assignment says.
+   - Criterion 26 (docs) is the documenter's.
+
+   `make check`: check: green
