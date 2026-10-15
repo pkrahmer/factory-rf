@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 103
 blocked: null
 comments_seen: 0
@@ -181,3 +181,11 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
       - Security: no new markers, no secrets, no new commands or string-built queries. Input is still checked at the reader by Pydantic, and faults still go through `first_fault`.
       - Quality: `src/factory/adapters/work_item_markdown.py` works out `_ACCEPTANCE_KEYS` from the two models' fields instead of listing them, which avoids a second list to keep in sync. The writer was left unchanged and already dumps `state.model_dump()`, as the Interface requires; criteria 18 and 20 prove it. `next_acceptance_id` goes through `acceptance_id`, so the 1-9999 range is checked in one place. The one-line `sorted(set(...))` check repeats the one on `comments_read` in `work_item.py`, but it is too small to count as a duplicated helper. Docstrings are present and accurate.
       - Ticket hygiene: entry 4 states the main decision (picking the model by the front matter's keys) and the rejected alternative (one model with optional extra fields). The Assignment matches what was built. Criterion 25 still says what the project guide must state.
+6. documenter: criterion 25 is written, `make check` is green (run in the foreground after the last edit), and I found no findings.
+   - `docs/project-guide.md`: new section "The feature acceptance". It covers the id form `F0001-A0001` (numbered per feature, 1 to 9999, how `next_acceptance_id` picks the next number), the report file name `F0001-A0004-acceptance.md`, the sort order after the stories, `AcceptanceState` with its `stories` and `outcome` rules, and how the reader and writer treat the two keys. It states that `stories` and `outcome` belong to the factory and that `restore_state_and_journal` restores them after every agent run.
+   - `docs/project-guide.md`, "The layout": the sentence about the ten keys of `WorkItemState` now says an acceptance adds `stories` and `outcome` after `journal`.
+   - I checked the section against the diff by reading the code. I did not run the demo commands.
+   - Cross-read and found current: README, `docs/operator-guide.md`, and the project guide's sections on ids, order, the state, the journal and restore.
+   - Stale but unrelated, so not touched: the project guide's board paragraph says `FeatureRow.acceptance` is always `None` until F0009-S0001. This story does not change the board, so the line is still true. A later F0009 story that builds the board support should update it.
+
+   `make check`: check: green

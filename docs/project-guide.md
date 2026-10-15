@@ -442,6 +442,17 @@ print(entry_text(doc, 2))
 
 prints the body (`# T`, an empty line, `## Journal`, an empty line, `1. 2026-10-12 human: created.`, `2. intake: accepted`, `   Every criterion is testable.`), then `number=2 speaker='intake' kind='result'`, then `accepted` and `Every criterion is testable.`.
 
+### The feature acceptance
+
+A feature acceptance is a work item beside the stories, with its own report file and its own cost records; a later acceptance never overwrites an earlier report. `factory.domain.acceptance` holds its data and does no I/O.
+
+- **Id.** `F0001-A0001`: the feature id, `-A` and a four-digit number, numbered per feature. `acceptance_id(feature, number)` takes 1 to 9999 and raises `ValueError` for any other number. `next_acceptance_id(feature, existing)` looks only at the feature's own acceptances in `existing` (story ids and other features' acceptances are ignored), adds one to the highest number, does not fill a gap, and raises `ValueError` at 9999.
+- **Report file.** `acceptance_file_name("F0001-A0004")` is `F0001-A0004-acceptance.md` (the slug is `ACCEPTANCE_SLUG`, `acceptance`); `parse_work_item_file_name` reads it back to the id and that slug. A story id raises `ValueError`.
+- **Order.** An acceptance sorts after every story of its feature (see "Order"), also when the feature directory's slug starts with a digit (`F0002-2fa`) or is missing (`F0002`).
+- **State.** `AcceptanceState` subclasses `WorkItemState` (frozen, no unknown keys) and adds `stories` (the archived stories the report covers: story ids only, strictly ascending, default `[]`) and `outcome` (`accepted`, `refused` or `None`). `outcome` is set exactly when the stage is `done`.
+- **Front matter.** The reader returns an `AcceptanceState` when the front matter has a `stories` or an `outcome` key, and a plain `WorkItemState` otherwise; a story that carries either key is therefore read as an acceptance, and any other unknown key is still a `WorkItemFormatError`. A bad `stories` or `outcome` is a `WorkItemFormatError` whose fault names that key. The writer writes both keys, `stories` then `outcome` (`outcome: null` while unset), after `journal`; a plain state gets neither.
+- **The factory's keys.** `stories` and `outcome` belong to the factory, like the rest of the state. `append_entry` keeps the state's type, and `restore_state_and_journal` puts the baseline's `stories` and `outcome` back after every agent run.
+
 ### The document and its error
 
 `WorkItemDocument(state, body, ignored_keys=[])` pairs a state with the body text. `state` is required but may be `None`, for a file read as a specification. `ignored_keys` lists front matter keys the reader did not use.
@@ -717,7 +728,7 @@ Every file format the factory owns has one reader class and one writer class in 
 
 A file is a boundary line, the front matter, a boundary line and the body, split as python-frontmatter splits it. The reader first turns `\r\n` into `\n` and strips the whitespace around the whole text. A boundary line is three or more `-` and nothing else but whitespace (`---`, `----`, `--- `); `--- x`, `- - -` and an indented ` ---` are not. Front matter exists only when the text starts with a boundary line and a later line is one. Two `---` lines further down a body are thematic breaks, not front matter.
 
-The writer always writes all ten keys of `WorkItemState`, in field order:
+The writer always writes all ten keys of `WorkItemState`, in field order (an `AcceptanceState` adds `stories` and `outcome` after `journal`, see "The feature acceptance"):
 
 ```yaml
 ---
