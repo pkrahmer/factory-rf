@@ -23,6 +23,7 @@ from factory.domain.acceptance import (
     acceptance_file_name,
     acceptance_head,
     book_merge,
+    is_before_approval,
 )
 from factory.domain.archive import destination_path
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
@@ -267,7 +268,11 @@ class AcceptanceMerged(Handler):
         records = read_cost_records(boundaries.git, boundaries.cost_reader, "HEAD", sidecar)
         # The move comes first: `git mv` refuses a destination that already exists.
         destination = move_with_cost_records(boundaries.git, snapshot.path, "done")
-        recorder.write(destination, book_merge(document, bill(records)))
+        no_state = CannotHandle(kind=_MERGED, reason="the report on the main branch has no state")
+        stage = require_state(document, no_state).stage
+        before_approval = is_before_approval(self._definition, stage)
+        booked = book_merge(document, bill(records), before_approval=before_approval)
+        recorder.write(destination, booked)
         recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "merged, archived"))
 
 

@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 108
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Merged before its approval, and repeated acceptances
 
 ## Assignment (as of log entry 1)
@@ -67,3 +75,76 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.acceptance.is_before_approval`, `book_merge(..., before_approval=False)`, `AcceptanceMerged.handle` in `factory.application.acceptance`). The rules state the entry texts, the error types and the order of the checks, so they are concrete.
+   - Criteria: each is testable by one test function. Each Interface rule has its failing side. Criterion 2 covers `KeyError` and `ValueError`. Criterion 1 covers true for `acceptance` and false for `approval` and `done`. Criterion 3 covers the entry text with `before_approval=True`, and criterion 6 covers the default text. Criterion 7 covers all three merge methods. Criterion 5 covers the cleared `blocked`. Criteria 8 to 12 cover the repeated acceptance (status, untouched earlier report, own cost lines).
+   - Demo: a single runnable `uv run python -c` command. The `Expect:` line gives four checkable output lines.
+   - Architecture: the pure rules are in `factory.domain`, and the handler change is in `factory.application`, which uses the domain and no adapter. This fits the layering in `CLAUDE.md`.
+   - Scope: within F0009's "A merge before the approval and repeated acceptances (ST2.1, ST2.2, R31)". Nothing falls under Out of scope. The close handler (S0007), the registration (S0010) and the ticks (S0011) are left to the stories that own them.
+3. tester: wrote red tests for criteria 1 to 12; criteria 13 and 14 belong to the checks and the documenter.
+   - criterion 1: tests/domain/test_acceptance_before_approval.py::test_only_a_stage_before_the_first_approval_is_before_approval (parametrized: acceptance → True, approval → False, done → False, run against the fixture's stage order)
+   - criterion 2: tests/domain/test_acceptance_before_approval.py::test_an_unknown_stage_or_a_definition_without_approval_is_refused (unknown stage → KeyError; a definition with no approval stage → ValueError)
+   - criterion 3: tests/domain/test_acceptance_before_approval.py::test_a_merge_before_approval_books_like_a_merge_with_an_entry_that_says_so (the state equals what plain `book_merge` produces, one factory `done` record is appended, and its text is the before-approval prefix plus `cost_line(bill)`)
+   - criterion 4: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_at_its_review_stage_is_booked_accepted_before_approval
+   - criterion 5: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_while_it_waits_with_a_question_is_booked_and_unblocked
+   - criterion 6: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_at_its_approval_before_the_hand_over_is_booked_as_usual
+   - criterion 7: tests/application/test_acceptance_merged_before_approval.py::test_every_merge_method_books_an_acceptance_merged_before_approval_alike (merge, squash, rebase)
+   - criterion 8: tests/application/test_acceptance_merged_before_approval.py::test_the_proposed_stories_of_a_merge_before_approval_leave_the_feature_incomplete
+   - criterion 9: tests/application/test_acceptance_repeated.py::test_a_story_archived_after_the_acceptance_makes_the_feature_due_and_opens_the_next
+   - criterion 10: tests/application/test_acceptance_repeated.py::test_opening_the_repeated_acceptance_leaves_the_earlier_report_and_its_costs_unchanged
+   - criterion 11: tests/application/test_acceptance_repeated.py::test_a_recorded_repeated_acceptance_leaves_the_feature_accepted_and_not_due
+   - criterion 12: tests/application/test_acceptance_repeated.py::test_each_acceptance_bills_only_its_own_cost_records
+
+   Files created: tests/domain/test_acceptance_before_approval.py, tests/application/test_acceptance_merged_before_approval.py, tests/application/test_acceptance_repeated.py.
+
+   Run results: `make test` stopped at collection because `is_before_approval` cannot be imported from `factory.domain.acceptance`. No other module is missing. The two application files import only names that already exist. Once collection gets past the domain file, criteria 4, 5 and 7 should fail on the entry text, because the handler does not pass `before_approval` yet. The other application tests walk what earlier stories built and may pass at once, which the Assignment allows. `make lint` is green.
+
+   Choices:
+   - The domain test builds the fixture's pipeline definition in-file with `PipelineDefinition.model_validate`, with the same stages and order as `PIPELINE_YAML`. A domain test should not import the YAML adapter, and importing the definition from tests/domain/test_move_rule.py would couple two test modules.
+   - The "no approval stage" case is a valid definition with stages `acceptance` → `done`. No load-time rule requires an approval stage.
+   - Each application file has its own local fixtures, as tests/application/test_acceptance_merged.py does. I did not move them into a shared module, because that would mean editing a test I did not write.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: made criteria 1 to 12 pass; `make check` is green.
+      - `src/factory/domain/acceptance.py`: added `is_before_approval(definition, stage)`. It raises `KeyError` for a stage the definition does not have, and checks this before it calls `position`. It raises `ValueError` when the definition has no approval stage. Otherwise it compares `position(stage)` with the position of the first stage that has `approval=True`. `book_merge` now takes a keyword-only `before_approval=False`. When it is true, the entry text is `done (pull request merged before approval); cost: ` followed by `cost_line(bill)`, and the prefix is a module constant next to `_CLOSED_ENTRY_PREFIX`. When it is false, the entry still uses `done_entry_text(bill)`. Both paths book through the existing `_booked`, so the outcome, the `done` stage and the cleared `claim` and `blocked` are the same.
+      - `src/factory/application/acceptance.py`: `AcceptanceMerged._book` takes the stage from the report it reads on main through `require_state`. A report without a state now raises `CannotHandle` ("the report on the main branch has no state"). Before this change, `book_merge` raised `ValueError` in that case. I used `require_state` rather than an inline `is None` check because `tests/test_no_state_copies.py` allows only that helper to make this check. The handler passes `is_before_approval(definition, stage)` to `book_merge`.
+      - Design: I added a flag on `book_merge`, as the Interface specifies. I rejected a second booking function (`book_early_merge`) because it would repeat the merge booking. I also rejected moving the stage judgement into `book_merge`, because the domain booking would then need the definition.
+      - Repeated acceptances needed no code. As the Assignment allows, the tests for criteria 8 to 12 passed on what earlier stories built.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: the new no-state branch in `_book` (`application/acceptance.py:272`) is not covered by a test. Coverage is still at 99 %.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1 to 12 has a test named in entry 3 that checks what the criterion says. The coder's entry reports `make check` green.
+      - Interface rules and their failing sides: the unknown stage gives `KeyError`. The test checks this before `position`, whose `ValueError` would otherwise fail the test. A definition without an approval stage gives `ValueError`. The boundary is tested on both sides: `acceptance` gives true, and `approval` and `done` give false.
+      - `is_before_approval` (`src/factory/domain/acceptance.py:277`) takes the first approval stage in `definition.stages` order. That is the same order `PipelineDefinition.position` uses (`list(self.stages).index`), so it matches the rule.
+      - The domain test's copy of the fixture definition has the same stage order as `PIPELINE_YAML`. The tester gave the reason for the copy in entry 3.
+      - Architecture: the domain function takes the definition as data and does no I/O. The handler (`src/factory/application/acceptance.py:271`) uses only domain functions and the existing `require_state` helper. No new imports cross layers.
+      - Security: no suppression markers, no strings built for a shell, no secrets.
+      - Quality: the before-approval prefix is a module constant next to `_CLOSED_ENTRY_PREFIX`, and both paths book through the existing `_booked`, so nothing is duplicated.
+      - Considered and not counted: the new no-state `CannotHandle` in `AcceptanceMerged._book` has no test, which the coder disclosed. It replaces the `ValueError` that `book_merge` raised at the same point before this change, so it is not a regression, and `require_state` is the helper the codebase requires for that check.
+      - Ticket hygiene: the Assignment matches what was built. The coder's entry gives the main decision (a flag on `book_merge`) and what was rejected. Criterion 14 still describes what the documenter must write.
+6. documenter: criterion 14 written; `make check` is green.
+   - `docs/operator-guide.md`: in the section on the human's act on an acceptance, after the sentence on each acceptance's own cost, two paragraphs. "Merged before its approval": booked `accepted`, the entry `done (pull request merged before approval); cost: ...`, a waiting question cleared, a merge at the approval stage gets the ordinary entry, the feature is `incomplete` and not due, and nothing loops. "Accepted again": a story archived afterwards makes the feature due, the next acceptance is `A0002` with its own report and cost records, the earlier report stays unchanged, the status is `merged_unrecorded` until the repeat is recorded and then `accepted`.
+   - `docs/decisions.md`: a new entry on why a merge before approval is booked like any merge and a repeated acceptance is a new work item. It gives the reason (v1's loop came from one report file whose stage had to change) and the alternatives rejected.
+   - Cross-read against the diff and found current: README, `docs/project-guide.md`, and the rest of the operator guide, including "When a feature acceptance is due" (the `merged_unrecorded` and covering-report rules match) and the merge paragraph above my addition.
+   - Findings: none. The code matches the Interface. Stale but unrelated: none seen. The coder disclosed that the new no-state `CannotHandle` in `AcceptanceMerged._book` has no test, and the reviewer did not count it.
+
+   `make check`: check: green
+7. demo: I ran the one command under `## Demo` from the repository root. Its output matches the `Expect:` line, and I found no findings.
+
+   Command 1 (`uv run python -c "…"`, which calls is_before_approval, book_merge with before_approval=True, acceptance_status and next_acceptance_id):
+   ```
+   [True, False, False]
+   done accepted True
+   accepted
+   due F0001-A0002
+   ```
+   It met its `Expect:` line. That line asks for four output lines and all four are right:
+   - `[True, False, False]`: only the stage `acceptance` counts as before the approval.
+   - `done accepted True`: the report is booked `accepted` at `done`, and its journal entry starts with `done (pull request merged before approval); cost: `.
+   - `accepted`: the recorded report covers the one archived story.
+   - `due F0001-A0002`: a second story was archived, so the feature is due again and the next acceptance gets the next number.
+
+   Checked against the acceptance criteria: the output agrees with criteria 1, 3, 4, 9 and 11. It contradicts none of criteria 1 to 14. The demo does not exercise the handler, the merge methods or the files on the remote (criteria 4 to 12). Entries 3 to 5 name the tests for those, and the reviewer checked them. The factory runs `make check` itself after this stage. I did not run it.
