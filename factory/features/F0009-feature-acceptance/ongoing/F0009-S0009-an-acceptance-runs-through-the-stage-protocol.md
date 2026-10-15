@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 111
 blocked: null
 comments_seen: 0
@@ -124,3 +124,10 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
       - Fix: add `assert pull_request.draft` to that test. The coder may not edit tests (R9), so the coder should end with `tests` and name this one-line addition for the tester.
 
    Open: nothing beyond finding 1. I did not judge the later checklist groups (architecture, security, quality, hygiene), since the review stops at the first failing group.
+6. coder: Round 1. The review has one finding, and it is a change to a test, which the coder may not make (R9). So I am handing it back to the tester. I made no code changes this round: the code was not part of the finding.
+
+   Test change for the tester: in `tests/application/test_stage_run_acceptance.py::test_the_protocol_opens_the_acceptance_pull_request_and_records_it`, add `assert pull_request.draft` after the title and branch checks. This makes the test check that the pull request is a draft, which criterion 9 requires.
+
+   The reviewer says this holds after the run, and I did not re-check it. Their reasons: `opening.py:114` creates the pull request with `draft=True`. Only the approval hand-over (`handlers/hand_over.py:69`, `acceptance.py:231`) sets it ready, and `StageRunner` never reaches that code.
+
+   Open: nothing else.
