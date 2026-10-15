@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 112
 blocked: null
 comments_seen: 0
@@ -147,3 +147,19 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
    `make check`: green, coverage 99.53 %. I did not run the demo command.
 
    `make check`: check: green
+7. demo: no findings.
+
+   I ran the one command under `## Demo` from the repository root, exactly as written. It exited with code 0.
+
+   ```
+   ()
+   cannot handle acceptance_due: no acceptance stage
+   ```
+
+   It met its `Expect:` line: there are two lines. The first, `()`, shows that `NOT_YET_HANDLED` is empty. The second shows that `AcceptanceDueHandler` builds from a definition without `acceptance_stage` and refuses the event with `CannotHandle` and the reason `no acceptance stage`.
+
+   Against the acceptance criteria:
+   - The output agrees with criterion 1 (`NOT_YET_HANDLED` is `()`).
+   - It also agrees with the refusal half of criterion 8 (the handler builds without an error, and handling the event raises `CannotHandle` with the reason `no acceptance stage`).
+   - No criterion is contradicted.
+   - The demo does not exercise criteria 2 to 7: the registered values, the shared split instances in the `RunGate`, the merged and closed paths, and the `UnhandledEvent` rows. Their tests are named in the tester's entry.
