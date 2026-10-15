@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 108
 blocked: null
 comments_seen: 0
 round: 0
@@ -75,3 +75,9 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.acceptance.is_before_approval`, `book_merge(..., before_approval=False)`, `AcceptanceMerged.handle` in `factory.application.acceptance`). The rules state the entry texts, the error types and the order of the checks, so they are concrete.
+   - Criteria: each is testable by one test function. Each Interface rule has its failing side. Criterion 2 covers `KeyError` and `ValueError`. Criterion 1 covers true for `acceptance` and false for `approval` and `done`. Criterion 3 covers the entry text with `before_approval=True`, and criterion 6 covers the default text. Criterion 7 covers all three merge methods. Criterion 5 covers the cleared `blocked`. Criteria 8 to 12 cover the repeated acceptance (status, untouched earlier report, own cost lines).
+   - Demo: a single runnable `uv run python -c` command. The `Expect:` line gives four checkable output lines.
+   - Architecture: the pure rules are in `factory.domain`, and the handler change is in `factory.application`, which uses the domain and no adapter. This fits the layering in `CLAUDE.md`.
+   - Scope: within F0009's "A merge before the approval and repeated acceptances (ST2.1, ST2.2, R31)". Nothing falls under Out of scope. The close handler (S0007), the registration (S0010) and the ticks (S0011) are left to the stories that own them.
