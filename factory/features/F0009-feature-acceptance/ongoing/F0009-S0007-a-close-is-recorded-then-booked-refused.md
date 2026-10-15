@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 109
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -137,3 +137,4 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
    - Main decision: the cost records are read once from `origin/<branch>` and used for both the bill and the copy. I rejected reading the sidecar file in the checkout for the bill and then running `show_file` again for the copy, because both read the same text.
    - Noticed but not changed: a branch whose cost records file exists but is empty gets no copy on main, because the copy is skipped when there are no records.
    - The refactor step is still to do; it waits until `make check` is green.
+5. human (pull request comment, 2026-10-15): (a): the tester compares against the full path, `[DONE_REPORT]`, in `test_after_a_kill_at_the_push_of_main_a_second_handling_books_once`, and changes nothing else. End with `tests` and name exactly that change.
