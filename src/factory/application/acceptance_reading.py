@@ -19,11 +19,13 @@ from factory.domain.errors import WorkItemFormatError
 from factory.domain.identifiers import (
     FeatureId,
     WorkItemId,
+    branch_name,
     feature_of,
     is_acceptance,
     parse_feature_directory_name,
     parse_work_item_file_name,
     work_item_of_branch,
+    work_item_order,
 )
 from factory.domain.paths import (
     FEATURES_DIRECTORY,
@@ -33,6 +35,7 @@ from factory.domain.paths import (
     work_item_path,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 
@@ -81,6 +84,66 @@ class AcceptanceReader:
             else row
             for row in rows
         ]
+
+    def snapshots(self) -> list[WorkItemSnapshot]:
+        """One snapshot per acceptance whose report is in `in-progress/` on main or its branch.
+
+        The path is main's when the report is there; the document is the branch's when the
+        branch holds the file at that path. Ordered by work item order; none without an
+        acceptance stage. Raises `WorkItemFormatError`, its path the report's, for a report
+        that cannot be read or holds no acceptance's state.
+        """
+        if self._definition.acceptance_stage is None:
+            return []
+        directories = self._directories(_MAIN_REF)
+        paths = self._branch_report_paths(directories)
+        # Main's path wins: a merged report not yet recorded is where main holds it.
+        paths.update(self._main_report_paths(directories))
+        return [
+            self._snapshot(work_item, path)
+            for work_item, path in sorted(paths.items(), key=lambda item: work_item_order(item[0]))
+        ]
+
+    def _main_report_paths(self, directories: dict[FeatureId, str]) -> dict[WorkItemId, str]:
+        paths: dict[WorkItemId, str] = {}
+        for feature, directory in directories.items():
+            for file_name in self._names(_MAIN_REF, directory, "in-progress"):
+                parsed = parse_work_item_file_name(file_name)
+                if parsed is not None and _is_report_of(parsed.id, feature):
+                    paths[parsed.id] = work_item_path(directory, "in-progress", file_name)
+        return paths
+
+    def _branch_report_paths(self, directories: dict[FeatureId, str]) -> dict[WorkItemId, str]:
+        paths: dict[WorkItemId, str] = {}
+        for work_item, branch in self._acceptance_branches().items():
+            directory = directories.get(feature_of(work_item))
+            if directory is None:
+                continue
+            path = self._branch_report_path(work_item, directory, f"{REMOTE}/{branch}")
+            if path is not None:
+                paths[work_item] = path
+        return paths
+
+    def _branch_report_path(self, work_item: WorkItemId, directory: str, ref: str) -> str | None:
+        for file_name in self._names(ref, directory, "in-progress"):
+            parsed = parse_work_item_file_name(file_name)
+            if parsed is not None and parsed.id == work_item:
+                return work_item_path(directory, "in-progress", file_name)
+        return None
+
+    def _snapshot(self, work_item: WorkItemId, path: str) -> WorkItemSnapshot:
+        branch = branch_name(work_item)
+        branch_ref = f"{REMOTE}/{branch}"
+        branch_commit = self._git.resolve(branch_ref)
+        on_branch = branch_commit is not None and self._git.show_file(branch_ref, path) is not None
+        return WorkItemSnapshot(
+            id=work_item,
+            path=path,
+            folder="in-progress",
+            branch=branch,
+            branch_commit=branch_commit,
+            document=self._document(branch_ref if on_branch else _MAIN_REF, path)[0],
+        )
 
     def _directories(self, ref: str) -> dict[FeatureId, str]:
         names = {
@@ -166,10 +229,18 @@ class AcceptanceReader:
     def _report(
         self, work_item: WorkItemId, folder: LifecycleFolder, ref: str, path: str
     ) -> ReportFacts:
+        _, state = self._document(ref, path)
+        return ReportFacts(id=work_item, folder=folder, state=state, on_branch=ref != _MAIN_REF)
+
+    def _document(self, ref: str, path: str) -> tuple[WorkItemDocument, AcceptanceState]:
         text = self._git.show_file(ref, path)
         if text is None:
             raise WorkItemFormatError(f"missing on {ref}", path)
-        state = parse_at(self._reader.parse, text, path).state
-        if not isinstance(state, AcceptanceState):
+        document = parse_at(self._reader.parse, text, path)
+        if not isinstance(document.state, AcceptanceState):
             raise WorkItemFormatError("not an acceptance's state", path)
-        return ReportFacts(id=work_item, folder=folder, state=state, on_branch=ref != _MAIN_REF)
+        return document, document.state
+
+
+def _is_report_of(work_item: WorkItemId, feature: FeatureId) -> bool:
+    return is_acceptance(work_item) and feature_of(work_item) == feature

@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems, read_feature_file
 from factory.domain.board import BoardRow, FeatureRow, feature_rows, work_item_row
@@ -25,11 +26,15 @@ class BoardReader:
 
     def __init__(self, boundaries: Boundaries) -> None:
         """Read through the git and the work item reader of `boundaries`."""
+        self._boundaries = boundaries
         self._git = boundaries.git
         self._work_items = RemoteWorkItems(boundaries.git, boundaries.work_item_reader)
 
     def read(self, definition: PipelineDefinition) -> BoardView:
-        """The board under `definition`; raises `GitError` and `WorkItemFormatError`."""
+        """The board under `definition`, the acceptance column filled.
+
+        Raises `GitError` and `WorkItemFormatError`.
+        """
         stories = [
             *self._work_items.list_stories("backlog"),
             *self._work_items.list_stories("in-progress"),
@@ -37,7 +42,9 @@ class BoardReader:
         ]
         snapshots = self._work_items.read(definition)
         return BoardView(
-            features=feature_rows(stories, self._titles(stories)),
+            features=AcceptanceReader(self._boundaries, definition).fill_board(
+                feature_rows(stories, self._titles(stories))
+            ),
             rows=[work_item_row(snapshot) for snapshot in snapshots],
         )
 

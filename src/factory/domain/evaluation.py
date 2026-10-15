@@ -8,6 +8,7 @@ from factory.domain.errors import HostingServiceError
 from factory.domain.events import Event, EventKind
 from factory.domain.git import CommitId
 from factory.domain.hosting import PullRequestComment, PullRequestView
+from factory.domain.identifiers import FeatureId, work_item_order
 from factory.domain.lease import ClaimStatus
 from factory.domain.move_rule import IllegalChange
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -26,7 +27,8 @@ class PullRequestObservation(BaseModel):
 class EvaluationInput(BaseModel):
     """The facts one evaluation judges: the definition, the work items in id order, main's head.
 
-    `illegal_changes` holds the stage changes made outside the pipeline, as the watcher found them.
+    `illegal_changes` holds the stage changes made outside the pipeline, as the watcher found them;
+    `due` the features whose acceptance is due.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -35,6 +37,7 @@ class EvaluationInput(BaseModel):
     snapshots: list[WorkItemSnapshot]
     main_commit: CommitId
     illegal_changes: list[IllegalChange] = []
+    due: list[FeatureId] = []
 
 
 PullRequestLookup = Callable[[int], PullRequestObservation]
@@ -227,13 +230,35 @@ def _agent_at_work(
 
 def _new_work(facts: EvaluationInput, pairs: _Pairs) -> Event | None:
     definition = facts.definition
-    for snapshot, state in pairs:
-        if definition.stages[state.stage].role is None or waiting(state, definition):
-            continue
-        if state.attempts >= definition.attempts_cap:
-            return _event("ask", snapshot, facts.main_commit, detail="attempts cap")
-        return _event("run", snapshot, facts.main_commit)
-    return None
+    runnable = [
+        pair
+        for pair in pairs
+        if definition.stages[pair[1].stage].role is not None and not waiting(pair[1], definition)
+    ]
+    candidates: list[tuple[tuple[str, int, str], _Pair | FeatureId]] = [
+        *((work_item_order(pair[0].id), pair) for pair in runnable),
+        *((_due_order(feature), feature) for feature in facts.due),
+    ]
+    if not candidates:
+        return None
+    first = min(candidates, key=lambda candidate: candidate[0])[1]
+    if isinstance(first, str):
+        return Event(
+            kind="acceptance_due",
+            work_item=None,
+            feature=first,
+            remote_state=facts.main_commit,
+            detail=f"acceptance of {first} is due",
+        )
+    snapshot, state = first
+    if state.attempts >= definition.attempts_cap:
+        return _event("ask", snapshot, facts.main_commit, detail="attempts cap")
+    return _event("run", snapshot, facts.main_commit)
+
+
+def _due_order(feature: FeatureId) -> tuple[str, int, str]:
+    # A due acceptance ranks after its feature's stories and before the next feature's.
+    return (feature, 1, "")
 
 
 def _event(
