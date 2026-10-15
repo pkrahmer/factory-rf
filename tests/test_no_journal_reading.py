@@ -19,6 +19,7 @@ ALLOWED = {
         "factory.domain.story_form",
         "factory.adapters.work_item_markdown",
         "factory.application.opening",
+        "factory.domain.acceptance",
     },
 }
 LITERALS = {"Journal", "## Journal"}

@@ -27,6 +27,11 @@ def work_item_path(feature_directory: str, folder: LifecycleFolder, file_name: s
     return f"{FEATURES_DIRECTORY}/{feature_directory}/{folder}/{file_name}"
 
 
+def feature_file_path(feature_directory: str) -> str:
+    """Return the repository path of a feature's own feature file."""
+    return f"{FEATURES_DIRECTORY}/{feature_directory}/{FEATURE_FILE_NAME}"
+
+
 def cost_records_path(work_item_path: str) -> str:
     """Return the path of the cost-record sidecar that sits beside a work item file."""
     if not work_item_path.endswith(_WORK_ITEM_SUFFIX):

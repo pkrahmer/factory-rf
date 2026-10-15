@@ -120,7 +120,7 @@ class BillService:
         path = self._work_item_path(ref, work_item)
         if path is None:
             return None
-        records = self._records(ref, cost_records_path(path))
+        records = read_cost_records(self._git, self._cost_reader, ref, cost_records_path(path))
         stages = bills_by_stage(records)
         whole = bill(records)
         return WorkItemBill(
@@ -149,8 +149,12 @@ class BillService:
                 return path
         return None
 
-    def _records(self, ref: str, sidecar: str) -> list[CostRecord]:
-        text = self._git.show_file(ref, sidecar)
-        if text is None:
-            return []
-        return self._cost_reader.parse(text)
+
+def read_cost_records(
+    git: Git, cost_reader: CostRecordReader, ref: str, sidecar: str
+) -> list[CostRecord]:
+    """The cost records of `sidecar` at `ref`; none when the file is missing there."""
+    text = git.show_file(ref, sidecar)
+    if text is None:
+        return []
+    return cost_reader.parse(text)

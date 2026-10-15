@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 105
+blocked: null
+comments_seen: 0
+round: 1
+attempts: 0
+---
 # The acceptance stage and the acceptance reviewer's facts
 
 ## Assignment (as of log entry 1)
@@ -116,3 +124,160 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`factory.domain.acceptance`, `factory.application.acceptance`), signatures, the imports they need and the rules for each unit. The `tests/test_no_journal_reading.py` allow-list change is stated, with the feature's decision 22 as the leave.
+   - Criteria: each is testable by one test function. Every rule has its failing side: `next_story` at 9999 (3), an acceptance id as `next_story` and malformed ids (22), `acceptance_stage` of `None` (7, 21), a feature that is not due (11), a missing or untitled `feature.md` (10), a push that is rejected (24), a feature with no directory (15), and a wrong event kind or no feature (20). Behaviours the Interface states, such as the four-digit number, the three lines, the exact head and body, and the cost line over archived stories only, are covered by 1 to 6, 13 and 14. Recovery is covered by 12.
+   - Demo: both commands are runnable with the Interface's names, and each `Expect:` line is checkable against the output.
+   - Architecture: pure facts and head sit in the domain, the service and handler in the application layer reached through `Boundaries`, and git and the writers are used only through their wrappers. Wiring is left to S0010 and the stage protocol to S0009, as the Assignment says.
+   - Scope: the story stays within the feature's scope item "The acceptance stage" and decisions 5 to 8 and 22, and touches nothing in "Out of scope".
+3. tester: red tests for the acceptance facts, the prompt, the head, AcceptanceService and AcceptanceDueHandler. `make lint` is green. `make test` stops at collection because the modules under test don't exist yet, which is the expected failure.
+
+   Mapping:
+   - criterion 1: tests/domain/test_acceptance_facts.py::test_the_facts_hold_the_archived_stories_and_the_number_after_the_highest
+   - criterion 2: tests/domain/test_acceptance_facts.py::test_the_next_story_number_has_four_digits_and_counts_only_story_files (rows: highest 9 gives S0010, a story in in_progress, an acceptance report and notes in in_progress, no story file gives S0001)
+   - criterion 3: tests/domain/test_acceptance_facts.py::test_the_next_story_number_ends_at_9999 (9998 and 9999)
+   - criterion 4: tests/domain/test_acceptance_facts.py::test_the_facts_are_three_lines
+   - criterion 5: tests/domain/test_acceptance_facts.py::test_the_prompt_is_the_base_an_empty_line_and_the_facts
+   - criterion 6: tests/domain/test_acceptance_facts.py::test_the_head_is_an_initial_acceptance_state_a_title_and_an_empty_journal
+   - criterion 7: tests/application/test_acceptance_service.py::test_the_service_needs_an_acceptance_stage
+   - criterion 8: tests/application/test_acceptance_service.py::test_opening_pushes_the_report_head_on_the_acceptance_branch
+   - criterion 9: tests/application/test_acceptance_service.py::test_opening_adds_one_commit_with_only_the_report_and_no_pull_request (with and without `in-progress/.gitkeep` on main)
+   - criterion 10: tests/application/test_acceptance_service.py::test_opening_without_a_feature_title_is_a_format_error_and_pushes_nothing (missing file, untitled file) and ::test_opening_takes_the_first_title_of_the_feature_file
+   - criterion 11: tests/application/test_acceptance_service.py::test_opening_a_feature_that_is_not_due_cannot_be_handled_and_pushes_nothing
+   - criterion 12: tests/application/test_acceptance_service.py::test_opening_again_after_a_kill_before_the_push_leaves_one_branch_with_one_commit
+   - criterion 13: tests/application/test_acceptance_service.py::test_the_facts_are_read_from_main_on_the_remote_only (story only in the work tree, or committed only locally)
+   - criterion 14: tests/application/test_acceptance_service.py::test_the_cost_line_counts_the_records_of_the_archived_stories_only
+   - criterion 15: tests/application/test_acceptance_service.py::test_the_facts_of_a_feature_without_a_directory_on_main_are_refused
+   - criterion 16: tests/application/test_acceptance_service.py::test_the_reviewer_may_write_its_report_and_new_backlog_stories
+   - criterion 17: tests/application/test_acceptance_service.py::test_the_reviewer_may_write_nothing_else
+   - criterion 18: tests/application/test_acceptance_service.py::test_each_acceptance_has_its_own_cost_line (A0001 merged to done/, A0002 on its branch, A0003 on its branch without a sidecar, plus an archived story with its own records)
+   - criterion 19: tests/application/test_acceptance_due_handler.py::test_an_acceptance_due_event_opens_its_feature
+   - criterion 20: tests/application/test_acceptance_due_handler.py::test_an_event_the_handler_cannot_open_is_refused_and_pushes_nothing
+   - criterion 21: tests/application/test_acceptance_due_handler.py::test_without_an_acceptance_stage_the_handler_is_built_and_refuses_every_event
+   - criterion 22: tests/domain/test_acceptance_facts.py::test_the_facts_are_closed_and_typed and ::test_the_facts_refuse_an_assignment; tests/application/test_acceptance_service.py::test_the_opened_acceptance_is_closed_and_typed and ::test_the_opened_acceptance_refuses_an_assignment
+   - criterion 23: tests/test_no_journal_reading.py::test_no_module_reads_data_from_the_journal_text, with `factory.domain.acceptance` added to `ALLOWED["JOURNAL"]` (the only change to that file, as the Interface allows). Also tests/domain/test_acceptance_facts.py::test_the_head_builds_its_journal_heading_from_the_section_name, which checks that `factory.domain.acceptance` imports `JOURNAL` from `factory.domain.sections`.
+   - criterion 24: tests/application/test_acceptance_service.py::test_opening_onto_a_branch_the_checkout_has_not_fetched_is_a_rejected_push
+   - criteria 25 and 26: no test (`make check` and docs).
+
+   Files created: tests/domain/test_acceptance_facts.py, tests/application/test_acceptance_service.py, tests/application/test_acceptance_due_handler.py. Edited: tests/test_no_journal_reading.py (one line in the allow-list).
+
+   Modules the test runner could not import: `factory.application.acceptance` (does not exist), and `AcceptanceFacts` from `factory.domain.acceptance` (the module exists but does not have it yet).
+
+   Notes for the coder:
+   - The tests call `boundaries.git.fetch()` before building the service. They assume `open` and `facts` read the last fetch and do not fetch themselves; criterion 24 depends on that.
+   - A "run" event with no work item is built with `Event.model_construct`, just like the `acceptance_due` event without a feature.
+   - The type check was skipped in this stage, as the stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented the acceptance opening and the reviewer's facts. All the tester's tests pass unchanged, and `make check` is green (coverage 99.5 %).
+
+   Built:
+   - `src/factory/domain/acceptance.py` (grown): `AcceptanceFacts`, `acceptance_facts`, `acceptance_prompt` and `acceptance_head`.
+     - `AcceptanceFacts` has a validator that refuses an acceptance id as `next_story`, and its `lines()` gives the three fact lines.
+     - `acceptance_facts` takes the highest story number from `story_file_ids` over backlog, in-progress and done, then adds one. A result above 9999 raises `ValueError`.
+     - `acceptance_head` builds the `AcceptanceState` from `initial_state(stage).model_dump()` plus `stories`. It writes the heading as `f"## {JOURNAL}"`, with `JOURNAL` imported from `factory.domain.sections`.
+   - `src/factory/application/acceptance.py` (new): `OpenedAcceptance`, `AcceptanceService` and `AcceptanceDueHandler(Handler)`.
+     - `open` and `facts` both read through `AcceptanceReader` from S0002 (`read()` for the status, directory, archived stories and next acceptance; `feature_files` for the files), using the last fetch only. They never fetch.
+     - `open` checks the status, then the title of `feature.md` at origin/main. Only then does it write: `checkout(branch, start_point="origin/main")`, mkdir of the report's folder, `work_item_writer.write`, `commit("<id> opens")`, then push. Any outcome other than `pushed` raises `PushFailed`.
+     - Because of `--force-create`, a second `open` after a kill before the push resets the local branch, so the remote gets exactly one commit.
+     - `facts` sums the sidecars of the story files in `done/` only. Acceptance reports are skipped, and a story without a sidecar adds no records.
+     - A feature with no directory raises `ValueError` naming the feature. `open` uses the same lookup.
+
+   Main decision: the service reuses `AcceptanceReader` for status, directory and files rather than reading the tree again. I rejected a separate listing in the service because it would duplicate S0002's rules for what is due.
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   Noticed, not touched:
+   - `AcceptanceService._feature_title` looks like the private `BoardService._feature_title` in `factory/application/board.py`, but it differs: it raises `WorkItemFormatError` with the path instead of returning `None`.
+   - `AcceptanceService._records` does what `BillService._records` does (read a sidecar at a ref, or no records), but that one is private. A shared helper would mean changing `costs.py`, which is beyond this story.
+   - Wiring the handler into `build_handlers` is left to S0010, and appending the facts to the prompt to S0009, as the Assignment says.
+   - Criterion 26 (docs) is the documenter's.
+
+   `make check`: check: green
+5. reviewer: group 1 (acceptance criteria) passes. Criteria 1 to 24 each have a test that checks what the criterion says. The failing sides are tested: 9998 and 9999, a story id and an acceptance id as `next_story`, malformed ids, a 39-character commit, no acceptance stage, not due, a missing or untitled `feature.md`, a rejected push, no directory, the wrong kind and no feature. The coder's entry reports `make check` green. Group 2 (architecture) fails on the CLAUDE.md rule "Before writing a helper, search `src/factory` for one that does the same, and reuse or extend it; the reviewer counts a second copy of an existing helper as a finding". I stopped there, as the role says.
+
+   1. `src/factory/application/acceptance.py` `AcceptanceService._records` copies `BillService._records` in `src/factory/application/costs.py:152` line for line: `show_file` at a ref, then `[]` on `None`, otherwise `cost_reader.parse`. The coder noted it and left it, saying that changing `costs.py` was out of scope. CLAUDE.md says to extend the existing helper instead. Fix: move the sidecar read into one shared function in the application layer, for example a module-level `read_cost_records(git, cost_reader, ref, sidecar)` in `factory.application.costs`. Have `BillService` and `AcceptanceService.facts` both call it, and delete the copy.
+   2. `src/factory/application/acceptance.py` `AcceptanceService._feature_title` repeats the read in `BoardService._feature_title` in `src/factory/application/board.py:56`: the same path built from `FEATURES_DIRECTORY` and `FEATURE_FILE_NAME`, then `show_file` at `origin/main`, then `title`. Fix: extract one shared `feature_title(git, directory) -> str | None` that both use. `AcceptanceService` keeps only its own `WorkItemFormatError` handling for `None`. The missing file and the untitled file need to stay apart, so each gets its own message and both carry the path.
+
+   No other groups were reviewed in this round.
+6. coder: coder (round 1): fixed both of the reviewer's findings, and nothing else. No test was changed. `make check` is green (coverage 99.5 %). Commit ef1d36d.
+
+   1. The copied sidecar read is now one function, `read_cost_records(git, cost_reader, ref, sidecar)`, at module level in `src/factory/application/costs.py`.
+      - `BillService.for_work_item` calls it; its private `_records` is gone.
+      - `AcceptanceService._records` now only builds the sidecar path and calls the same function at `origin/main`.
+   2. The copied feature-file read is shared in two parts:
+      - `feature_file_path(directory)` in `src/factory/domain/paths.py` builds the path.
+      - `read_feature_file(git, directory) -> str | None` in `src/factory/application/work_items.py` returns the file's text at `origin/main`, or `None` when the file is missing.
+      - `BoardReader._feature_title` (`src/factory/application/board.py`) uses both. Its now-unused `_MAIN_REF` and path imports are gone.
+      - `AcceptanceService._feature_title` uses both too. It keeps its two separate `WorkItemFormatError`s, one for a missing file and one for a file without a title, and both carry the path.
+
+   Main decision: I share the read of the text, not the title. I rejected the reviewer's example `feature_title(git, directory) -> str | None`: its `None` would mean both "missing" and "untitled", so `AcceptanceService` would have to read the file a second time to tell the two apart.
+
+   `read_feature_file` sits beside `RemoteWorkItems` because that module already reads from main's refs. Putting it in `board.py` would have made the acceptance service import from the board use case.
+
+   Noticed, not touched: `factory/entry/check_story.py` builds the same feature-file path on the local filesystem. It could use `feature_file_path`, but that is outside this ticket.
+
+   `make check`: check: green
+7. reviewer: reviewer (round 1): no findings.
+
+   - Group 1 (acceptance criteria) passes. No test changed since the last review. Criteria 1 to 24 each have a test that checks what the criterion says. The failing sides are covered:
+     - next story numbers 9998 and 9999, and an acceptance id as `next_story`
+     - malformed `archived` and `id`, and a 39-character commit
+     - no acceptance stage, at both the service and the handler
+     - a feature that is not due, and a missing or untitled `feature.md` (both carry the path)
+     - a rejected push, and a feature with no directory
+     - an event of another kind, and one without a feature
+
+     The coder's round-1 entry reports `make check` green.
+   - Group 2 (architecture) passes. Both of last round's findings are fixed:
+     1. `read_cost_records` is now a module-level function in `src/factory/application/costs.py`. `BillService.for_work_item` and `AcceptanceService._records` both use it, and the copy is gone.
+     2. `feature_file_path` is in `src/factory/domain/paths.py` and `read_feature_file` in `src/factory/application/work_items.py`. `BoardReader._feature_title` and `AcceptanceService._feature_title` both use them.
+
+     I accept the coder's choice to share the text read rather than the title: a single `str | None` could not tell a missing file from an untitled one. The layers hold: domain imports only domain, and the application reaches git only through `Boundaries`/`Git`. No new `dict[str, Any]` crosses a function boundary: the `model_dump()` spread in `acceptance_head` stays inside one constructor call.
+   - Group 3 (security) passes. There are no secrets, no strings built into shell or SQL, and no markers that silence a check.
+   - Group 4 (quality) passes.
+     - Names and docstrings fit what they describe, and there is no dead code.
+     - `_story_number` sits beside the existing `_acceptance_number`; I checked `factory.domain.identifiers` and it has no story-number helper.
+     - In `facts`, the loop filters with parse plus `is_acceptance` instead of calling `story_file_ids`. That is not a copy: it needs file names to build sidecar paths, and `story_file_ids` returns ids.
+     - The `JOURNAL` heading is built from `factory.domain.sections`.
+   - Group 5 (ticket hygiene) passes. The log gives the main decisions (reuse `AcceptanceReader`; share the text, not the title) and what was rejected. `Assignment` matches what was built, and criterion 26 still says what the documenter must write.
+
+   Open, not for this story:
+   - `factory/entry/check_story.py` could use `feature_file_path`, as the coder noted.
+   - Wiring the handler is S0010's job, and appending the facts to the prompt is S0009's.
+8. documenter: documenter (round 1): wrote the docs criterion (26) and found no code finding. `make check` is green.
+
+   Changed, in `docs/project-guide.md`:
+   - Section "The feature acceptance", four new bullets before "The document and its error". "Opening" says what `open` writes: one report head on `work-item/<acceptance id>`, no pull request, no claim, no agent. It also gives the title source and the errors (`CannotHandle`, `WorkItemFormatError`, `PushFailed`) and what `AcceptanceDueHandler` does. "The reviewer's facts" gives the three facts and `acceptance_prompt`. "What the reviewer may write" says its report and new backlog stories only. "Its cost" says each report has its own sidecar and names the shared helpers `read_cost_records`, `feature_file_path` and `read_feature_file`.
+   - Section "No code reads data from the journal's text": `factory.domain.acceptance` is added to the `JOURNAL` allow-list, matching `tests/test_no_journal_reading.py`.
+
+   Cross-read and current: the `build_handlers` and `NOT_YET_HANDLED` text (the handler is not wired yet; the new bullet says so), the Reader bullet, and the board paragraph. README and the operator guide need nothing from this story.
+
+   I did not run the examples, because I wrote none.
+
+   Stale but not touched (unrelated): `factory/entry/check_story.py` builds the feature-file path itself instead of using `feature_file_path`. That is the coder's note, not documentation.
+
+   `make check`: check: green
+9. demo: Demo, round 1. I ran both `## Demo` commands from the repository root, in order. Both exited 0.
+
+   Command 1 (`acceptance_facts` + `acceptance_prompt`):
+   ```
+   Judge the feature.
+
+   Archived stories: F0002-S0001, F0002-S0002, F0002-S0004
+   Next free story number: F0002-S0007
+   Cost of the stories: 19 runs, 7.1 min, 3.33 USD
+   ```
+   Met its Expect line: the five lines appear exactly as specified, in order, with the empty line second.
+
+   Command 2 (`acceptance_head`):
+   ```
+   AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] [] None
+   '# Acceptance of Todo service\n\n## Journal\n'
+   ```
+   Met its Expect line: both lines match exactly.
+
+   I read the acceptance criteria again against this output. It agrees with criteria 1, 4, 5 and 6: archived stories, next free story number 4-digit and above the backlog's S0006, the three fact lines, the prompt joined with an empty line, the state type, stage, stories, empty journal, no claim, and the body. The demo contradicts no criterion. The criteria it does not exercise (opening on the remote, write paths, bill per acceptance, the handler) are left to the tests and the `make check` gate.
+
+   No findings.
