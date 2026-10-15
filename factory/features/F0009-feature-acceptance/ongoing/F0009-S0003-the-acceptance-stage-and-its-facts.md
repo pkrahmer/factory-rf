@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 105
 blocked: null
 comments_seen: 0
@@ -219,3 +219,30 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    Noticed, not touched: `factory/entry/check_story.py` builds the same feature-file path on the local filesystem. It could use `feature_file_path`, but that is outside this ticket.
 
    `make check`: check: green
+7. reviewer: reviewer (round 1): no findings.
+
+   - Group 1 (acceptance criteria) passes. No test changed since the last review. Criteria 1 to 24 each have a test that checks what the criterion says. The failing sides are covered:
+     - next story numbers 9998 and 9999, and an acceptance id as `next_story`
+     - malformed `archived` and `id`, and a 39-character commit
+     - no acceptance stage, at both the service and the handler
+     - a feature that is not due, and a missing or untitled `feature.md` (both carry the path)
+     - a rejected push, and a feature with no directory
+     - an event of another kind, and one without a feature
+
+     The coder's round-1 entry reports `make check` green.
+   - Group 2 (architecture) passes. Both of last round's findings are fixed:
+     1. `read_cost_records` is now a module-level function in `src/factory/application/costs.py`. `BillService.for_work_item` and `AcceptanceService._records` both use it, and the copy is gone.
+     2. `feature_file_path` is in `src/factory/domain/paths.py` and `read_feature_file` in `src/factory/application/work_items.py`. `BoardReader._feature_title` and `AcceptanceService._feature_title` both use them.
+
+     I accept the coder's choice to share the text read rather than the title: a single `str | None` could not tell a missing file from an untitled one. The layers hold: domain imports only domain, and the application reaches git only through `Boundaries`/`Git`. No new `dict[str, Any]` crosses a function boundary: the `model_dump()` spread in `acceptance_head` stays inside one constructor call.
+   - Group 3 (security) passes. There are no secrets, no strings built into shell or SQL, and no markers that silence a check.
+   - Group 4 (quality) passes.
+     - Names and docstrings fit what they describe, and there is no dead code.
+     - `_story_number` sits beside the existing `_acceptance_number`; I checked `factory.domain.identifiers` and it has no story-number helper.
+     - In `facts`, the loop filters with parse plus `is_acceptance` instead of calling `story_file_ids`. That is not a copy: it needs file names to build sidecar paths, and `story_file_ids` returns ids.
+     - The `JOURNAL` heading is built from `factory.domain.sections`.
+   - Group 5 (ticket hygiene) passes. The log gives the main decisions (reuse `AcceptanceReader`; share the text, not the title) and what was rejected. `Assignment` matches what was built, and criterion 26 still says what the documenter must write.
+
+   Open, not for this story:
+   - `factory/entry/check_story.py` could use `feature_file_path`, as the coder noted.
+   - Wiring the handler is S0010's job, and appending the facts to the prompt is S0009's.
