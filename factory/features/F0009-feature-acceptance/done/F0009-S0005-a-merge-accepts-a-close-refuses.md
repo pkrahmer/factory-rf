@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 107
 blocked: null
 comments_seen: 3
@@ -275,3 +275,4 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
     The demo only exercises the domain functions. Criteria 13–21 (the `AcceptanceMerged` handler on a real remote) were not exercised by the demo. This is not a finding, because the demo does not contradict them.
 
     No findings.
+13. done (pull request merged); cost: 9 runs, 22.6 min, 83 turns, 332k tokens in (2259k more from cache), 51k out, $3.75
