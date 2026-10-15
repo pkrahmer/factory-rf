@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 109
 blocked: null
 comments_seen: 2
@@ -179,3 +179,18 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
      - Docstrings are present and say why.
    - Known gap, not a finding: the coder noted that a sidecar that exists but is empty is not copied to main (`if records:`). The Interface says "when it has one", but such a file is not produced in practice and no criterion covers it.
    - Ticket hygiene: the log gives the main decision (one read of `origin/<branch>` gives both the bill and the copy) and what was rejected. `Assignment` matches what was built. Docs criterion 17 still says what the operator must know.
+10. documenter: wrote the close of an acceptance's pull request into the operator guide, as docs criterion 17 asks.
+
+    Changed (one file):
+    - `docs/operator-guide.md`, section "The hand-over at the approval", under "A merge or a close of the acceptance":
+      - The **Close** bullet now says what `AcceptanceClosed` does at any stage (reviewer working, asking, at the approval, after a failed hand-over). The acceptance is booked refused in `done/`, `blocked` is cleared, the proposed stories are dropped, and the cost records file is copied beside the report. The commit subject is `closed, refused`, and the guide says the handler is not yet registered in `build_handlers` (S0010). The old line "the handler for the close is built by F0009-S0007" is gone.
+      - New paragraph "What a close records first": the comments and one `close` entry go on the branch (subject `close recorded`), an acceptance ends at its first close, and the branch is deleted last.
+      - New paragraph "A close handled again": a rerun after a kill books nothing twice. It also covers the `CannotHandle` case when the branch and the report are both gone, the rejected push of main, and the refused branch deletion.
+      - The "Accepted again" paragraph already says a refused feature is due again after another story is archived, so I left it.
+    - The overview sentence at the top of the guide now mentions that a close books an acceptance refused.
+
+    Cross-read and found current: the cost-table and hand-over text, "When a feature acceptance is due", and the `ClosedHandler` sections for stories. The `closed_by_human` text was checked against `book_refusal`'s behaviour, as the earlier story described it. I did not read `src/factory/domain/acceptance.py` itself, and I did not run the demo command.
+
+    Findings: none. The code matches the Interface. I saw no stale text unrelated to this story. `make check` is green (coverage 99.52 %).
+
+    `make check`: check: green
