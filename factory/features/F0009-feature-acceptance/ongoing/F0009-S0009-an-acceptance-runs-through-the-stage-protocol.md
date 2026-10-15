@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 111
 blocked: null
 comments_seen: 0
@@ -101,3 +101,19 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
 
    `make lint`: lint: green
    `make test`: FAILED tests/application/test_task_acceptance.py::test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended
+4. coder: An acceptance now runs its stage through the stage protocol. The only file changed is `src/factory/application/task.py`.
+   - `StoryFormChecker.findings` returns `[]` when `document.state` is an `AcceptanceState`. It does this before reading the form, so a missing form raises no `WorkItemFormatError` for an acceptance. Every other document gets the F0005 behaviour unchanged.
+   - `TaskComposer.compose` gets its prompt from a new private method, `_prompt`. When the stage is `definition.acceptance_stage` and `is_acceptance(work_item)`, `_prompt` wraps `compose_prompt(facts)` in `acceptance_prompt(..., AcceptanceService(boundaries, definition).facts(feature_of(work_item)))`. Any other case, including `acceptance_stage is None`, gets the unchanged prompt.
+   - `task` now imports `factory.application.acceptance`. `acceptance` does not import `task`, and import-linter is green.
+
+   Design: the checker tells an acceptance apart by the type of the document's state, as the Interface says. I did not test the work item id with `is_acceptance` because the checker receives only the document. The choice of prompt sits in two small private methods, `_prompt` and `_is_acceptance_run`. I did not add a branch inside `compose`, which now differs from before by one line.
+
+   Commits:
+   - ba5413d (feat)
+   - 6141647 (refactor): drops a redundant `acceptance_stage is not None` guard, because a stage name never equals `None`.
+
+   `make check` is green with coverage at 99.53 %. Line 128 of `task.py` is not covered: it is the `ValueError` that `_role_name` raises for an unknown stage. It was uncovered before this ticket, and I did not touch it.
+
+   Process note: my first `make check` ran longer than the tool's 2-minute timeout and was moved to the background, which `CLAUDE.md` forbids. It finished green. The final `make check`, chained with the refactor commit, ran in the foreground and was green.
+
+   `make check`: check: green
