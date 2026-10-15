@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 108
 blocked: null
 comments_seen: 0
@@ -148,3 +148,4 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
    - `due F0001-A0002`: a second story was archived, so the feature is due again and the next acceptance gets the next number.
 
    Checked against the acceptance criteria: the output agrees with criteria 1, 3, 4, 9 and 11. It contradicts none of criteria 1 to 14. The demo does not exercise the handler, the merge methods or the files on the remote (criteria 4 to 12). Entries 3 to 5 name the tests for those, and the reviewer checked them. The factory runs `make check` itself after this stage. I did not run it.
+8. done (pull request merged); cost: 6 runs, 13.9 min, 55 turns, 171k tokens in (1227k more from cache), 28k out, $1.95
