@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 110
 blocked: null
 comments_seen: 2
@@ -235,3 +235,21 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
     Stale but untouched: none. No findings against the code.
 
     `make check`: check: green
+13. demo: Ran the one `## Demo` command as written, from the repository root.
+
+    Command 1 (`uv run python -c "…evaluate(EvaluationInput(…, due=['F0002']))…"` with three single-story snapshot sets):
+
+    ```
+    acceptance_due:F0002
+    run:F0002-S0003
+    run:F0001-S0001
+    ```
+    Exit status 0. This meets its `Expect:` line. The three lines match in content and order:
+    - With the next feature's story `F0003-S0001` runnable, the due acceptance comes first (`acceptance_due:F0002`).
+    - With the feature's own story `F0002-S0003` runnable, that story comes first (`run:F0002-S0003`).
+    - With an earlier feature's story `F0001-S0001` runnable, that story comes first (`run:F0001-S0001`).
+    `lookup` was never called, so no pull request was looked up.
+
+    Against the acceptance criteria: the output agrees with criteria 2 and 3 (the fourth tier ranks a due feature after its own stories and before the next feature's). It also shows that `EvaluationInput` accepts `due=['F0002']`, which is part of criterion 1. Nothing the demo shows contradicts any other criterion. The demo does not exercise these, and I did not check them myself: the reader, the watcher and the board (5–20), the refused `due` values in criterion 1, the event fields `work_item`, `feature` and `remote_state` in criterion 2, and the docs (22). The factory runs `make check` after this stage.
+
+    No findings.
