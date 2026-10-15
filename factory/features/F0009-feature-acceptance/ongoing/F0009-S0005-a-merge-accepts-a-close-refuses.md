@@ -2,9 +2,9 @@
 stage: doing
 pr: 107
 blocked: null
-comments_seen: 2
+comments_seen: 3
 round: 1
-attempts: 0
+attempts: 1
 ---
 # A merge accepts, a close refuses
 
@@ -203,3 +203,4 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
    2. `src/factory/domain/acceptance.py:276` (the `refusal_reason` docstring): "never read" says the opposite of what the function does, because it reads every comment. Fix: say the texts are copied unchanged and never interpreted.
 
    Open (no finding against the build): for a body with neither `## Recommendation` nor `## Journal`, `book_refusal` adds an empty `## Journal` after the new section so the `done` entry has a place. The coder logged this choice (log entry 6) and criterion 11's test allows it. The Interface still says the section goes "at the end of the body". The documenter or the human may want the Interface to mention the added journal.
+8. run expired: the run that held it ended without finishing (lease over or machine restarted)
