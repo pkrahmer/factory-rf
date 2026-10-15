@@ -286,12 +286,12 @@ def refusal_reason(document: WorkItemDocument, role: str) -> str:
 
 
 def _with_recommendation(body: str, paragraph: str) -> str:
-    headings = [found.heading for found in sections(body)]
-    if RECOMMENDATION in headings:
+    found = {section.heading: section for section in reversed(sections(body))}
+    if RECOMMENDATION in found:
         return insert_paragraph(body, RECOMMENDATION, paragraph)
     added = [f"## {RECOMMENDATION}", "", paragraph]
     lines = split_lines(body)
-    journal = next((found for found in sections(body) if found.heading == JOURNAL), None)
+    journal = found.get(JOURNAL)
     if journal is None:
         while lines and not lines[-1].strip():
             lines.pop()
@@ -304,6 +304,7 @@ def book_refusal(
     document: WorkItemDocument, *, role: str, on: date, bill: Bill
 ) -> WorkItemDocument:
     """The acceptance booked `refused` at `done`, the human's reason heading its recommendation."""
+    # Checked first, so a plain state is refused before its body is read.
     _acceptance_state(document)
     paragraph = f"Refused by the human on {on.isoformat()}: {refusal_reason(document, role)}"
     body = _with_recommendation(document.body, paragraph)
