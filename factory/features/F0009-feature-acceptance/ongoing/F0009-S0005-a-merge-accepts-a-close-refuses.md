@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 107
 blocked: null
 comments_seen: 3
@@ -255,3 +255,23 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
     Stale but unrelated, untouched: none seen. I did not touch `README.md` or `docs/project-guide.md`; this story changes no command or layout they describe.
 
     `make check`: check: green
+12. demo: Demo run from the repository root, exactly as written under `## Demo` (one `uv run python -c` command).
+
+    Output (exit 0):
+    ```
+    Too wide. Cut the second story.
+    done refused
+    True True
+    True
+    done accepted True
+    ```
+    Met its `Expect:` line: all five lines match. The order is `Too wide. Cut the second story.`, `done refused`, `True True`, `True`, `done accepted True`.
+
+    Checked against the acceptance criteria: nothing in the output contradicts them.
+    - `refusal_reason` joined the two human comments after the reviewer's `result` with one space (criterion 4).
+    - `book_refusal` booked `done`/`refused`. It put the refusal paragraph in the body above the reviewer's `not accepted` (criteria 8 and 9). Its `done` entry text is `done (pull request closed by the human); cost: ` plus `cost_line(bill([]))` (criterion 12).
+    - `book_merge` booked `done`/`accepted` even though the recommendation was `not accepted`. Its entry text equals `done_entry_text(bill([]))` (criteria 1, 2 and 16 on the domain side).
+
+    The demo only exercises the domain functions. Criteria 13–21 (the `AcceptanceMerged` handler on a real remote) were not exercised by the demo. This is not a finding, because the demo does not contradict them.
+
+    No findings.
