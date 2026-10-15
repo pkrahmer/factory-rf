@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 112
 blocked: null
 comments_seen: 0
@@ -78,3 +78,29 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
    - Demo: one runnable command. Its `Expect:` line gives two checkable output lines (`()` and the `CannotHandle` text).
    - Architecture: the change is confined to `factory.entry` (wiring), as `CLAUDE.md` requires. It reuses application handlers and adds no new dependency.
    - Scope: within F0009 scope item 16 and decisions 5, 21 and 22. The test changes to other stories' files are limited to the two named ones and carry the leave of Q20.
+3. tester: Wrote the tests for every behaviour criterion. As the Interface allows, two earlier tests are changed and nothing else in their files.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_wiring_acceptance.py::test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance
+   - criterion 2: tests/entry/test_wiring_human_handlers.py::test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_handlers (changed: `merged`, `closed` and `hand_over` are now checked as `SplitByWorkItemKind`, with `story` a MergedHandler/ClosedHandler/HandOverHandler and `acceptance` an AcceptanceMerged/AcceptanceClosed/AcceptanceHandOver; the other keys are unchanged)
+   - criterion 3: the same test (its existing checks: `gate.run` is a RunHandler, and `gate.closed` / `gate.merged` are the very instances registered for `closed` / `merged`)
+   - criterion 4: tests/entry/test_wiring_acceptance.py::test_a_merged_story_reaches_the_story_handler_and_is_archived
+   - criterion 5: tests/entry/test_wiring_handlers.py::test_an_event_without_a_handler_is_a_counted_error[comment] (replaces test_an_event_not_yet_handled_is_a_counted_error; it is parametrized over `comment` and `crash`, removes that key from build_handlers' result and dispatches an event about a story)
+   - criterion 6: tests/entry/test_wiring_handlers.py::test_an_event_without_a_handler_is_a_counted_error[crash]
+   - criterion 7: tests/entry/test_wiring_acceptance.py::test_a_run_of_an_acceptance_closed_while_due_is_booked_refused_by_the_gate
+   - criterion 8: tests/entry/test_wiring_acceptance.py::test_without_an_acceptance_stage_the_handlers_build_refuse_and_a_story_still_ticks
+
+   How criterion 7 is tested: the acceptance is opened through AcceptanceService, its report is pushed at stage `acceptance` with a draft pull request, and the human then closes the pull request. The test asserts that the report is booked in done/ with stage `done` and outcome `refused`, and that no agent request was made. That the story's ClosedHandler is not called is shown by that booked outcome; no spy is used.
+
+   Files: created tests/entry/test_wiring_acceptance.py; changed tests/entry/test_wiring_handlers.py (the one test, plus a `_snapshot` helper and imports) and tests/entry/test_wiring_human_handlers.py (the one test, plus imports).
+
+   `make test`, run once: the 4 expected tests fail; all modules import, so there are no collection errors. I piped the run through `tail -15`, so I saw only which tests failed, not their messages. The reasons below are inferred from the current wiring, not read from the output:
+   - criterion 1: `NOT_YET_HANDLED` is still ("acceptance_due",).
+   - criteria 2–3: `merged` is still a plain MergedHandler.
+   - criterion 7: the gate still sends the event to the story's ClosedHandler.
+   - criterion 8: there is no `acceptance_due` key yet.
+
+   The tests for criteria 4–6 already pass, as they should: they cover behaviour the current wiring has and that must survive the change. `make lint` is green. I skipped `make types`, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/entry/test_wiring_human_handlers.py::test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_handlers

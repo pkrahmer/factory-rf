@@ -5,6 +5,12 @@ from pathlib import Path
 from typing import get_args
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.application.acceptance import (
+    AcceptanceClosed,
+    AcceptanceHandOver,
+    AcceptanceMerged,
+    SplitByWorkItemKind,
+)
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler, unhandled_kinds
 from factory.application.handlers.closed import ClosedHandler
@@ -95,16 +101,23 @@ def test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_han
         "run": RunGate,
         "comment": CommentHandler,
         "ask": AskHandler,
-        "merged": MergedHandler,
-        "closed": ClosedHandler,
         "reject": RejectHandler,
-        "hand_over": HandOverHandler,
         "duplicate": DuplicateHandler,
         "pull_request_lookup": PullRequestLookupHandler,
+    }
+    splits: dict[EventKind, tuple[type[Handler], type[Handler]]] = {
+        "merged": (MergedHandler, AcceptanceMerged),
+        "closed": (ClosedHandler, AcceptanceClosed),
+        "hand_over": (HandOverHandler, AcceptanceHandOver),
     }
 
     for kind, handler_class in expected.items():
         assert isinstance(handlers[kind], handler_class), kind
+    for kind, (story_class, acceptance_class) in splits.items():
+        split = handlers[kind]
+        assert isinstance(split, SplitByWorkItemKind), kind
+        assert isinstance(split.story, story_class), kind
+        assert isinstance(split.acceptance, acceptance_class), kind
     gate = handlers["run"]
     assert isinstance(gate, RunGate)
     assert isinstance(gate.run, RunHandler)
