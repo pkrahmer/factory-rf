@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 109
 blocked: null
 comments_seen: 0
@@ -91,3 +91,27 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
    - Demo: the command is runnable. `Expect:` names two checkable lines, `True` and `cannot handle closed: no acceptance stage`.
    - Architecture: the handler stays in `factory.application`, reuses F0007's helpers by name and reaches git only through `WorkItemRecorder` and `Git.show_file`. No layer is crossed.
    - Scope: this is FEATURE.md scope ("a close, at any stage, books refused with the human's reason") and decisions 19, 20 and 21. Nothing in Out of scope is touched.
+3. tester: wrote red tests for `AcceptanceClosed` in tests/application/test_acceptance_closed.py, one test per criterion.
+      - criterion 1: tests/application/test_acceptance_closed.py::test_the_humans_comments_and_the_close_are_recorded_on_the_branch
+      - criterion 2: ::test_a_comment_the_factory_posted_is_neither_recorded_nor_marked_read
+      - criterion 3: ::test_a_blank_comment_gets_no_entry_and_is_marked_read
+      - criterion 4: ::test_a_closed_acceptance_is_booked_refused_in_done_and_nothing_else_reaches_main. Parametrized: with cost records and without.
+      - criterion 5: ::test_after_the_booking_the_branch_is_gone_and_a_second_handling_changes_nothing
+      - criteria 6 and 15: ::test_after_a_kill_at_the_push_of_main_a_second_handling_books_once. One test with two rows, `BEFORE_PUSH` and `AFTER_PUSH`, both armed `after=1`. The `BEFORE_PUSH` row also checks that the comment and close records are already on `origin/<branch>`.
+      - criterion 7: ::test_a_gone_branch_without_a_report_in_done_raises_and_changes_nothing
+      - criterion 8: ::test_an_acceptance_closed_at_any_stage_is_booked_refused_without_a_reason. Three rows: reviewer working, reviewer asking (`blocked="question"`), and after the hand-over at `approval`.
+      - criterion 9: ::test_an_event_the_handler_cannot_book_raises_its_reason_and_changes_nothing. Rows for another kind, a story, no acceptance stage, no pull request, and an open pull request.
+      - criterion 10: ::test_the_handler_is_built_without_an_acceptance_stage
+      - criterion 11: ::test_a_refused_feature_is_due_again_only_after_another_story_is_archived
+      - criterion 12: ::test_a_main_moved_since_the_fetch_rejects_the_booking_after_the_close_is_recorded
+      - criterion 13: ::test_a_refused_branch_deletion_fails_after_the_refusal_is_pushed
+      - criterion 14: ::test_an_earlier_close_of_the_human_gets_no_second_close_record
+      - Two test choices the coder should know:
+        - A successful `handle` deletes the branch, so the tests for criteria 1–3 read `origin/<branch>` another way. A helper (`_record_only`) arms `KillPoint.BEFORE_PUSH` with `after=1`, which stops the handler at the push of main, after the branch push. This needs the comments and the close to be recorded in one push, as Interface step 2 says (one `WorkItemRecorder.record`).
+        - For criterion 4, the test builds the expected recorded report itself with `append_entry` from the snapshot: the comment entry (dated with `created_at`), `comments_read`, then the close entry dated `CLOSED_ON`. It then compares `book_refusal(...)` of that report, as the writer renders it, with the file in `done/`.
+      - The `publish` fixture moves the clock 2 days forward, to 2026-10-14, so the close's date differs from the comments' dates (2026-10-12).
+      - Files created: tests/application/test_acceptance_closed.py.
+      - Could not import: `AcceptanceClosed` from `factory.application.acceptance`, so collection fails with an ImportError, the expected reason. `make lint` is green. The type check was not run, as this stage skips it.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
