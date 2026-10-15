@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 106
 blocked: null
 comments_seen: 4
@@ -222,3 +222,18 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: `make check` is fully green now (lint, types, layers, sast, secrets, licenses, and test at 99.51 % coverage). The tester's annotation from entry 9 cleared the four mypy `list-item` errors. Nothing changed in `src/` this round, so there is no new commit; the implementation is still cdf6d23.
+
+    Built (cdf6d23):
+    - `src/factory/domain/acceptance.py`: `RECOMMENDATION`, `FINDINGS_IN_SHORT`, `PROPOSED_STORIES`, `NONE_TEXT`, `ACCEPTANCE_CLOSING` and `acceptance_description`. The findings come from `last_record(speaker=role, kind="result")` and then `entry_text`.
+    - `src/factory/domain/hand_over.py`: the public `cost_table_key`, moved from `_cost_table_key` of `factory.application.handlers.hand_over`. `HandOverHandler` now calls it; nothing else in that module changed.
+    - `src/factory/application/acceptance.py`: `AcceptanceHandOver` and `SplitByWorkItemKind`.
+      - `AcceptanceHandOver` follows `HandOverHandler` step for step with F0007's helpers (`target_of`, `require_pull_request`, `WorkItemRecorder`, `commit_subject`, `cost_table_post`).
+
+    Main decision: the reviewer's role is `definition.stages[acceptance_stage].role`, looked up in `handle`. If the stage or its role is missing, `handle` raises the same `no acceptance stage` error. I rejected adding a reason the Interface doesn't name.
+
+    Refactor: I read the diff in round 0 (entry 6) and found nothing to change, so there is no refactor commit.
+
+    Noticed, not touched: `SplitByWorkItemKind` sends every id that is not an acceptance's to the story handler. `is_acceptance` is the only kind test, and the event's id is already a validated work item id.
+
+    `make check`: check: green
