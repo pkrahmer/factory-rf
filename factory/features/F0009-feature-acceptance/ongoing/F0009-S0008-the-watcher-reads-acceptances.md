@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 110
 blocked: null
 comments_seen: 0
 round: 0
@@ -92,3 +92,9 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (EvaluationInput.due, AcceptanceReader.snapshots(), the unchanged Watcher.evaluate and BoardReader.read) and the tier-4 ranking key, the snapshot fields and the join are all stated. due_features() and fill_board come from S0002, as the story says.
+   - Criteria: each is testable by one test function. Every Interface rule has both sides: due validation (1: accepts F0002, refuses F002, unknown key); acceptance_stage None (11, 16, 18); non-acceptance state raising WorkItemFormatError (11); skipped story and report-less branches (6); done/ with and without a leftover branch (9); merged with the branch present or deleted (7, 8); tiers 2 and 3 over a due feature (4); a due feature after its own stories, before the next feature's and after an earlier feature's (2, 3, 13); an illegal stage change rejected (19).
+   - Demo: a runnable python -c script. Its Expect line names the three output keys, which can be checked.
+   - Architecture: the changes fall in domain (evaluation) and application (reader, watcher, board). Only Git.resolve, list_files, show_file and remote_branches are used, with no work tree, so the layers hold.
+   - Scope: inside FEATURE.md ("the watcher's evaluation takes the due features and the reports in in-progress/ into account", and the board column). The one F0006 test change is covered by feature decision 22.
