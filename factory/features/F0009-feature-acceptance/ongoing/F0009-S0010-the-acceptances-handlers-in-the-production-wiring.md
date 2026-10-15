@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 112
 blocked: null
 comments_seen: 0
@@ -104,3 +104,18 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
 
    `make lint`: lint: green
    `make test`: FAILED tests/entry/test_wiring_human_handlers.py::test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_handlers
+4. coder: Registered the acceptance's handlers in `src/factory/entry/wiring.py` (commit 861b72b). The tests were not changed.
+   - `NOT_YET_HANDLED` is now `()`.
+   - `build_handlers` builds `closed = SplitByWorkItemKind(ClosedHandler, AcceptanceClosed)` and `merged = SplitByWorkItemKind(MergedHandler, AcceptanceMerged)` once. Those two instances are the values of `closed` and `merged` and also the `closed` and `merged` arguments of the one `RunGate`, which `RecoveryHandler` reruns through.
+   - `hand_over` is `SplitByWorkItemKind(HandOverHandler, AcceptanceHandOver)`, and `acceptance_due` is `AcceptanceDueHandler`.
+   - With no `acceptance_stage`, every constructor still builds. The handlers refuse their events themselves (S0003 to S0007), so the wiring has no branch on the definition.
+
+   Main decision: give the gate the same split instances instead of keeping the story's handlers inside the gate and splitting only the mapping's values. The alternative would send an acceptance closed or merged while due to the story's handlers through the `run` event, and they would archive it in a state the acceptance reader refuses. A one-line comment at the gate gives this reason. The `docs/decisions.md` entry belongs to the documenter (criterion 10).
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   `make check`: green, coverage 99.53 %.
+
+   Not touched: the comment above `NOT_YET_HANDLED` ("registering one removes it here") still describes the constant correctly now that it is empty.
+
+   `make check`: check: green
