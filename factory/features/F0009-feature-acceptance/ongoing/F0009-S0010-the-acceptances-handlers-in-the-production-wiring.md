@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 112
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The acceptance's handlers in the production wiring
 
 ## Assignment (as of log entry 1)
@@ -64,3 +72,94 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names `factory/src/factory/entry/wiring.py` with `NOT_YET_HANDLED` and the `build_handlers` signature, and states each registered value (the two split instances shared by the keys and the one `RunGate`, `hand_over`, `acceptance_due`). The two changed tests are named by file and function, with the exact new form of each.
+   - Criteria: each is testable by one test function. Criteria 1 to 4 cover the registration and the gate. Criteria 5 and 6 are the two rows of the one parametrized test. Criterion 7 covers the gate's refusal path for a closed acceptance. Criterion 8 covers the failing side of the no-`acceptance_stage` rule (`CannotHandle` with the reason `no acceptance stage`, and the tick still handles `run`). Every behaviour the Interface states has a criterion, and the changed tests are criteria 2, 3, 5 and 6.
+   - Demo: one runnable command. Its `Expect:` line gives two checkable output lines (`()` and the `CannotHandle` text).
+   - Architecture: the change is confined to `factory.entry` (wiring), as `CLAUDE.md` requires. It reuses application handlers and adds no new dependency.
+   - Scope: within F0009 scope item 16 and decisions 5, 21 and 22. The test changes to other stories' files are limited to the two named ones and carry the leave of Q20.
+3. tester: Wrote the tests for every behaviour criterion. As the Interface allows, two earlier tests are changed and nothing else in their files.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_wiring_acceptance.py::test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance
+   - criterion 2: tests/entry/test_wiring_human_handlers.py::test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_handlers (changed: `merged`, `closed` and `hand_over` are now checked as `SplitByWorkItemKind`, with `story` a MergedHandler/ClosedHandler/HandOverHandler and `acceptance` an AcceptanceMerged/AcceptanceClosed/AcceptanceHandOver; the other keys are unchanged)
+   - criterion 3: the same test (its existing checks: `gate.run` is a RunHandler, and `gate.closed` / `gate.merged` are the very instances registered for `closed` / `merged`)
+   - criterion 4: tests/entry/test_wiring_acceptance.py::test_a_merged_story_reaches_the_story_handler_and_is_archived
+   - criterion 5: tests/entry/test_wiring_handlers.py::test_an_event_without_a_handler_is_a_counted_error[comment] (replaces test_an_event_not_yet_handled_is_a_counted_error; it is parametrized over `comment` and `crash`, removes that key from build_handlers' result and dispatches an event about a story)
+   - criterion 6: tests/entry/test_wiring_handlers.py::test_an_event_without_a_handler_is_a_counted_error[crash]
+   - criterion 7: tests/entry/test_wiring_acceptance.py::test_a_run_of_an_acceptance_closed_while_due_is_booked_refused_by_the_gate
+   - criterion 8: tests/entry/test_wiring_acceptance.py::test_without_an_acceptance_stage_the_handlers_build_refuse_and_a_story_still_ticks
+
+   How criterion 7 is tested: the acceptance is opened through AcceptanceService, its report is pushed at stage `acceptance` with a draft pull request, and the human then closes the pull request. The test asserts that the report is booked in done/ with stage `done` and outcome `refused`, and that no agent request was made. That the story's ClosedHandler is not called is shown by that booked outcome; no spy is used.
+
+   Files: created tests/entry/test_wiring_acceptance.py; changed tests/entry/test_wiring_handlers.py (the one test, plus a `_snapshot` helper and imports) and tests/entry/test_wiring_human_handlers.py (the one test, plus imports).
+
+   `make test`, run once: the 4 expected tests fail; all modules import, so there are no collection errors. I piped the run through `tail -15`, so I saw only which tests failed, not their messages. The reasons below are inferred from the current wiring, not read from the output:
+   - criterion 1: `NOT_YET_HANDLED` is still ("acceptance_due",).
+   - criteria 2–3: `merged` is still a plain MergedHandler.
+   - criterion 7: the gate still sends the event to the story's ClosedHandler.
+   - criterion 8: there is no `acceptance_due` key yet.
+
+   The tests for criteria 4–6 already pass, as they should: they cover behaviour the current wiring has and that must survive the change. `make lint` is green. I skipped `make types`, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/entry/test_wiring_human_handlers.py::test_each_kind_has_its_handler_and_the_gate_shares_the_closed_and_merged_handlers
+4. coder: Registered the acceptance's handlers in `src/factory/entry/wiring.py` (commit 861b72b). The tests were not changed.
+   - `NOT_YET_HANDLED` is now `()`.
+   - `build_handlers` builds `closed = SplitByWorkItemKind(ClosedHandler, AcceptanceClosed)` and `merged = SplitByWorkItemKind(MergedHandler, AcceptanceMerged)` once. Those two instances are the values of `closed` and `merged` and also the `closed` and `merged` arguments of the one `RunGate`, which `RecoveryHandler` reruns through.
+   - `hand_over` is `SplitByWorkItemKind(HandOverHandler, AcceptanceHandOver)`, and `acceptance_due` is `AcceptanceDueHandler`.
+   - With no `acceptance_stage`, every constructor still builds. The handlers refuse their events themselves (S0003 to S0007), so the wiring has no branch on the definition.
+
+   Main decision: give the gate the same split instances instead of keeping the story's handlers inside the gate and splitting only the mapping's values. The alternative would send an acceptance closed or merged while due to the story's handlers through the `run` event, and they would archive it in a state the acceptance reader refuses. A one-line comment at the gate gives this reason. The `docs/decisions.md` entry belongs to the documenter (criterion 10).
+
+   Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+
+   `make check`: green, coverage 99.53 %.
+
+   Not touched: the comment above `NOT_YET_HANDLED` ("registering one removes it here") still describes the constant correctly now that it is empty.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: every criterion from 1 to 8 has a test that checks what the criterion names.
+     - Criterion 1: `NOT_YET_HANDLED == ()`, the key set equals `EventKind`, `unhandled_kinds` is `[]`, and `acceptance_due` is an `AcceptanceDueHandler`.
+     - Criteria 2 and 3: the changed test in `tests/entry/test_wiring_human_handlers.py` checks the three splits' `story`/`acceptance` classes, `gate.run` as a `RunHandler`, and `gate.closed`/`gate.merged` by identity. Its other checks are unchanged.
+     - Criterion 4: a story merged through `build_handlers(...)["merged"]` is archived under `done/` on `origin/main`.
+     - Criteria 5 and 6: one test parametrized over `comment` and `crash` removes that key and expects `error` and the `UnhandledEvent` text.
+     - Criterion 7: the `run` event of an acceptance whose pull request was closed while due is booked `done`/`refused` in `done/`, and no agent request is made. The story's `ClosedHandler` would have moved it to `backlog/`, so the booked outcome shows it was not called.
+     - Criterion 8: with `acceptance_stage` removed, `CannotHandle` is raised with the reason `no acceptance stage`, and one `Tick` over `handler_factory` returns `handled` for `run`.
+     - The failing side of the no-`acceptance_stage` rule is covered here for `acceptance_due` and, for the other acceptance handlers, by the earlier stories' criteria the Interface cites.
+     - The coder's entry reports the factory's `make check` as green.
+   - Architecture: the change stays in `factory.entry.wiring`, which imports only application handlers. `src/factory/entry/wiring.py` builds the two splits once and passes the same instances to `RunGate` and to the mapping's `closed` and `merged`.
+   - Security: the diff adds no suppression markers, secrets or string-built commands.
+   - Quality: the comment at the gate explains why it holds the splits, and the code has no dead or duplicated logic. The `_snapshot` helper and the imports added to `tests/entry/test_wiring_handlers.py` exist only for the changed test, which the Interface allows.
+   - Ticket hygiene: the coder's log gives the main decision (the gate holds the splits) and the alternative it rejected. `Assignment` matches the code, and criterion 10 still says what the documenter must write.
+6. documenter: wrote the documentation criterion 10 asks for; no findings. The code matches the Interface (`NOT_YET_HANDLED == ()`, the splits and the gate share the same instances).
+
+   Files changed:
+   - `docs/project-guide.md` ("The handlers of the events"): `build_handlers` now returns all thirteen kinds. `merged`, `closed` and `hand_over` are named as `SplitByWorkItemKind`s and `acceptance_due` as `AcceptanceDueHandler`. The `RunGate` holds the `closed` and `merged` splits, the very instances registered for those keys. With no `acceptance_stage` everything still constructs and the acceptance handlers refuse with `CannotHandle(kind, "no acceptance stage")`. `NOT_YET_HANDLED` is empty, and the paragraph on it was reworded accordingly.
+   - `docs/operator-guide.md` (the dispatcher's stops): it said `acceptance_due` had no handler. Now every kind has one and the unhandled-kind stop is described as applying only to a future kind.
+   - `docs/decisions.md`: new entry "The run gate holds the acceptance splits, not the story's handlers". It gives the reason (an acceptance closed or merged while due would otherwise reach the story's handlers) and the rejected alternative (a work-item-kind branch inside the gate).
+
+   Cross-read and found current: `README.md`, and the project-guide sections on acceptance (opening, hand-over, `SplitByWorkItemKind`) and on events. I left alone the earlier `NOT_YET_HANDLED` decision in `docs/decisions.md`: it records why the constant exists, which still holds.
+
+   Nothing stale left that is unrelated to this story.
+
+   `make check`: green, coverage 99.53 %. I did not run the demo command.
+
+   `make check`: check: green
+7. demo: no findings.
+
+   I ran the one command under `## Demo` from the repository root, exactly as written. It exited with code 0.
+
+   ```
+   ()
+   cannot handle acceptance_due: no acceptance stage
+   ```
+
+   It met its `Expect:` line: there are two lines. The first, `()`, shows that `NOT_YET_HANDLED` is empty. The second shows that `AcceptanceDueHandler` builds from a definition without `acceptance_stage` and refuses the event with `CannotHandle` and the reason `no acceptance stage`.
+
+   Against the acceptance criteria:
+   - The output agrees with criterion 1 (`NOT_YET_HANDLED` is `()`).
+   - It also agrees with the refusal half of criterion 8 (the handler builds without an error, and handling the event raises `CannotHandle` with the reason `no acceptance stage`).
+   - No criterion is contradicted.
+   - The demo does not exercise criteria 2 to 7: the registered values, the shared split instances in the `RunGate`, the merged and closed paths, and the `UnhandledEvent` rows. Their tests are named in the tester's entry.

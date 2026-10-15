@@ -624,9 +624,9 @@ A hand-made change that a later commit on the branch buried is not seen: only th
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
 
-The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`) and of the stage run are registered, and so are `crash` and `expired` (see "A restart during a stage" and "An expired lease"). The kinds without a handler are those of `NOT_YET_HANDLED` in `factory.entry.wiring`: `acceptance_due`. An event of such a kind leads to this today:
+The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`), of the stage run, of `crash` and `expired` (see "A restart during a stage" and "An expired lease") and of `acceptance_due` are registered: every kind of event has a handler, and `NOT_YET_HANDLED` in `factory.entry.wiring` is empty. Should a future kind have none, the event leads to this:
 
-It ends in the one report of its work item and remote state, and then holds back all new work, until a later story registers its handler. A push to the branch makes the factory try again.
+It ends in the one report of its work item and remote state, and then holds back all new work, until its handler is registered. A push to the branch makes the factory try again.
 
 After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "Stops of one work item".
 

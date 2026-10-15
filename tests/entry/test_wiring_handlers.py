@@ -15,9 +15,10 @@ from factory.application.handlers.run_gate import RunGate
 from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.events import Event
+from factory.domain.events import Event, EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.tick_status import TickStatus, find_error
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import (
     NOT_YET_HANDLED,
     agent_environment,
@@ -65,6 +66,17 @@ COMPLETED = AgentRunResult(
 
 def _definition(boundaries: Boundaries) -> PipelineDefinition:
     return boundaries.pipeline_reader.parse(PIPELINE_YAML)
+
+
+def _snapshot() -> WorkItemSnapshot:
+    return WorkItemSnapshot(
+        id="F0001-S0001",
+        path="factory/features/F0001-example/in-progress/F0001-S0001-first.md",
+        folder="in-progress",
+        branch="work-item/F0001-S0001",
+        branch_commit=None,
+        document=WorkItemDocument(state=WorkItemState(stage="doing"), body="# First story\n"),
+    )
 
 
 def test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler(
@@ -141,14 +153,18 @@ def test_a_tick_over_the_handler_factory_runs_one_stage(
     assert request.environment == ENVIRONMENT
 
 
-def test_an_event_not_yet_handled_is_a_counted_error(boundaries: Boundaries) -> None:
+@pytest.mark.parametrize("kind", ["comment", "crash"])
+def test_an_event_without_a_handler_is_a_counted_error(
+    boundaries: Boundaries, kind: EventKind
+) -> None:
     handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
+    del handlers[kind]
     dispatcher = Dispatcher(handlers, TickStatus(), StopService(boundaries))
-    event = Event(kind="acceptance_due", work_item=None, feature="F0001", remote_state=STATE)
+    event = Event(kind=kind, work_item=_snapshot(), remote_state=STATE)
 
     outcome = dispatcher.dispatch(event)
 
     assert outcome == "error"
     entry = find_error(dispatcher.status, event.key, STATE)
     assert entry is not None
-    assert entry.last_error == "UnhandledEvent: no handler for event kind acceptance_due"
+    assert entry.last_error == f"UnhandledEvent: no handler for event kind {kind}"
