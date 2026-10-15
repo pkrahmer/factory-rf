@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 103
 blocked: null
 comments_seen: 0
@@ -216,3 +216,4 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
    Extra check for criterion 18, beyond the demo commands: I rendered the same kind of document and printed the whole front matter. It shows the ten `WorkItemState` keys in order, ending with `journal: []`, then `stories: [F0001-S0001]` and `outcome: null`. This agrees with the criterion.
 
    Not run here: `make check`. The factory runs it after this stage. The coder's and documenter's entries both report it green.
+8. done (pull request merged); cost: 6 runs, 20.1 min, 42 turns, 197k tokens in (640k more from cache), 22k out, $1.85
