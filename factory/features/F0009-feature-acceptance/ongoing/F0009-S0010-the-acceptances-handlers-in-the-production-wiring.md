@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 112
 blocked: null
 comments_seen: 0
@@ -119,3 +119,17 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
    Not touched: the comment above `NOT_YET_HANDLED` ("registering one removes it here") still describes the constant correctly now that it is empty.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: every criterion from 1 to 8 has a test that checks what the criterion names.
+     - Criterion 1: `NOT_YET_HANDLED == ()`, the key set equals `EventKind`, `unhandled_kinds` is `[]`, and `acceptance_due` is an `AcceptanceDueHandler`.
+     - Criteria 2 and 3: the changed test in `tests/entry/test_wiring_human_handlers.py` checks the three splits' `story`/`acceptance` classes, `gate.run` as a `RunHandler`, and `gate.closed`/`gate.merged` by identity. Its other checks are unchanged.
+     - Criterion 4: a story merged through `build_handlers(...)["merged"]` is archived under `done/` on `origin/main`.
+     - Criteria 5 and 6: one test parametrized over `comment` and `crash` removes that key and expects `error` and the `UnhandledEvent` text.
+     - Criterion 7: the `run` event of an acceptance whose pull request was closed while due is booked `done`/`refused` in `done/`, and no agent request is made. The story's `ClosedHandler` would have moved it to `backlog/`, so the booked outcome shows it was not called.
+     - Criterion 8: with `acceptance_stage` removed, `CannotHandle` is raised with the reason `no acceptance stage`, and one `Tick` over `handler_factory` returns `handled` for `run`.
+     - The failing side of the no-`acceptance_stage` rule is covered here for `acceptance_due` and, for the other acceptance handlers, by the earlier stories' criteria the Interface cites.
+     - The coder's entry reports the factory's `make check` as green.
+   - Architecture: the change stays in `factory.entry.wiring`, which imports only application handlers. `src/factory/entry/wiring.py` builds the two splits once and passes the same instances to `RunGate` and to the mapping's `closed` and `merged`.
+   - Security: the diff adds no suppression markers, secrets or string-built commands.
+   - Quality: the comment at the gate explains why it holds the splits, and the code has no dead or duplicated logic. The `_snapshot` helper and the imports added to `tests/entry/test_wiring_handlers.py` exist only for the changed test, which the Interface allows.
+   - Ticket hygiene: the coder's log gives the main decision (the gate holds the splits) and the alternative it rejected. `Assignment` matches the code, and criterion 10 still says what the documenter must write.
