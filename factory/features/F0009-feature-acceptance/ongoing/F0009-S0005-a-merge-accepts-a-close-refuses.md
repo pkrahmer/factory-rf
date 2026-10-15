@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 107
 blocked: null
 comments_seen: 2
@@ -111,3 +111,42 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
    - Demo: runnable, and the `Expect:` line is checkable line by line.
    - Architecture: domain holds the pure booking functions and application holds the handler. It reuses F0007's helpers and makes `move_with_cost_records` public. Layers are respected.
    - Scope: within the feature's scope (the merge result and the booking functions). S0007's close handler is left out.
+5. tester: wrote red tests for criteria 1–21, one test per criterion. `make lint` is green. `make test` stops at collection on both new files because `book_merge`, `book_refusal`, `refusal_reason` and `NO_REASON` do not exist yet in `factory.domain.acceptance`, and `AcceptanceMerged` does not exist yet in `factory.application.acceptance`. Ruff passes both files, so the errors are missing names, not syntax.
+
+   Files created: `tests/domain/test_acceptance_booking.py`, `tests/application/test_acceptance_merged.py`.
+
+   - criterion 1: tests/domain/test_acceptance_booking.py::test_a_merge_books_the_acceptance_done_and_accepted_and_keeps_the_other_fields
+   - criterion 2: tests/domain/test_acceptance_booking.py::test_a_merge_appends_one_done_entry_of_the_factory_with_the_bill
+   - criterion 3: tests/domain/test_acceptance_booking.py::test_booking_a_document_whose_state_is_not_an_acceptance_state_is_refused (rows: merge, refusal)
+   - criterion 4: tests/domain/test_acceptance_booking.py::test_the_refusal_reason_joins_the_human_comments_after_the_last_result_with_a_space
+   - criterion 5: tests/domain/test_acceptance_booking.py::test_the_refusal_reason_ignores_earlier_comments_human_closes_and_factory_records
+   - criterion 6: tests/domain/test_acceptance_booking.py::test_the_refusal_reason_without_a_later_comment_or_without_a_result (rows: no comment after the result, no result)
+   - criterion 7: tests/domain/test_acceptance_booking.py::test_the_refusal_reason_strips_each_comment_and_skips_blank_ones (rows: stripped ends, a two-line comment kept, blank skipped, only blank)
+   - criterion 8: tests/domain/test_acceptance_booking.py::test_a_refusal_books_the_acceptance_done_and_refused_and_keeps_the_other_fields
+   - criterion 9: tests/domain/test_acceptance_booking.py::test_a_refusal_puts_its_paragraph_first_under_the_recommendation_and_keeps_the_rest (compares the whole body)
+   - criterion 10: tests/domain/test_acceptance_booking.py::test_a_refusal_adds_the_recommendation_section_just_before_the_journal
+   - criterion 11: tests/domain/test_acceptance_booking.py::test_a_refusal_adds_the_recommendation_section_at_the_end_of_a_body_without_a_journal
+   - criterion 12: tests/domain/test_acceptance_booking.py::test_a_refusal_appends_one_done_entry_of_the_factory_with_the_bill
+   - criterion 13: tests/application/test_acceptance_merged.py::test_a_merged_acceptance_is_booked_accepted_in_done_with_its_cost_records (rows: costs, none)
+   - criterion 14: tests/application/test_acceptance_merged.py::test_after_the_booking_the_branch_is_gone_and_a_second_handling_changes_nothing
+   - criterion 15: tests/application/test_acceptance_merged.py::test_the_booking_commit_changes_only_the_report_and_keeps_the_proposed_stories
+   - criterion 16: tests/application/test_acceptance_merged.py::test_a_merge_books_accepted_whatever_the_recommendation_says
+   - criterion 17: tests/application/test_acceptance_merged.py::test_an_event_the_handler_cannot_book_raises_its_reason_and_changes_nothing (six rows: another kind, a story, no acceptance stage, no pull request, an open pull request, no report on main)
+     - Each row also fails every check that comes after its own, so the order is tested.
+   - criterion 18: tests/application/test_acceptance_merged.py::test_after_a_kill_after_the_push_a_second_handling_books_once_and_deletes_the_branch
+   - criterion 19: tests/application/test_acceptance_merged.py::test_the_handler_is_built_without_an_acceptance_stage
+   - criterion 20: tests/application/test_acceptance_merged.py::test_a_main_moved_since_the_fetch_rejects_the_booking_and_keeps_the_branch
+   - criterion 21: tests/application/test_acceptance_merged.py::test_a_refused_branch_deletion_fails_after_the_booking_is_pushed
+
+   Open point for the coder (criterion 11):
+   - **The gap:** `book_refusal` must append a `done` entry. `append_entry` raises `WorkItemFormatError` on a body without a `## Journal` section. The story does not say how the entry is appended when that section is missing.
+   - **What the test checks:** only what the criterion states.
+     - The original body is kept.
+     - `## Recommendation` follows it as the first section and holds only the refusal paragraph.
+     - The function must not raise.
+   - **What the test leaves open:** whether a journal section is created after the recommendation for the entry. If that needs a decision, ask the human.
+
+   Not run: the type check, which this stage skips.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
