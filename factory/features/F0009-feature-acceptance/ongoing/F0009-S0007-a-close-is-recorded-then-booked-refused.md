@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 109
 blocked: null
 comments_seen: 2
@@ -147,3 +147,18 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: the tester's change (entry 7) made the suite green. `make check` is green, with total coverage at 99.52 %. I did the refactor step that entry 4 had put off.
+      - What I built: `AcceptanceClosed` in `src/factory/application/acceptance.py`, commit fc2504e, as entry 4 describes. In short:
+        - It checks the event in the Interface's order.
+        - It records the comments and one `close` entry on the branch in a single `WorkItemRecorder.record`, skipping the `close` entry when any human `close` record already exists.
+        - It books `book_refusal(...)` and the branch's cost records at `destination_path(path, "done")` on main, unless they are already there.
+        - It deletes the branch with `WorkItemRecorder.delete_branch`.
+        - When the branch is gone, it only deletes when the report is already in `done/`, and otherwise raises "no report on the branch or the main branch".
+        - `_reviewer_role(definition, kind)` is now a module function that both `AcceptanceHandOver` and `AcceptanceClosed` use.
+      - Refactor (e5d791c): `handle` now builds `origin/<branch>` once and passes it to `_branch_records`. Before, two copies of the same f-string built it. Nothing else needed changing.
+      - Main decision: the cost records are read once from `origin/<branch>` with `read_cost_records`, and that one read gives both the bill and the copy to main. I rejected reading the sidecar in the checkout for the bill and then calling `show_file` again for the copy, because both read the same text.
+      - Noticed, not touched:
+        - When the branch has a cost records file but it is empty, nothing is copied to main, because the copy is skipped when there are no records.
+        - `handlers/closed.py:93` and `AcceptanceClosed._today` both compute "today in UTC" with the same one-line expression (`clock.now().astimezone(UTC).date()`). Sharing it would mean a change to F0007's handler, outside this ticket.
+
+   `make check`: check: green
