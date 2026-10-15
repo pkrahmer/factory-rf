@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 110
 blocked: null
 comments_seen: 2
@@ -215,3 +215,23 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
           - Criterion 22 (docs) still describes what the reader needs.
        Seen but not counted as a finding: the Interface's `(F, 1, "")` key ranks a due feature ahead of an acceptance snapshot of the same feature. Entry 4 notes this, and it cannot happen, because a feature with an open acceptance is not due.
        Open: none.
+12. documenter: documenter (round 1): docs written for criterion 22. `make check` is green at the end (coverage 99.53 %). There were no earlier documenter edits on this branch, so I wrote them all this round.
+
+    Files changed:
+    - `docs/project-guide.md`:
+      - Watcher paragraph: `Watcher.evaluate` joins the stories with `AcceptanceReader.snapshots()` in `(work_item_order, path)` order. It computes the illegal changes over the joined list and passes `due` to `evaluate`.
+      - Event kinds: `evaluate` now makes `acceptance_due`, and its `detail` is display only.
+      - Tier 4: one ranking over runnable work items (keyed by `work_item_order`) and due features (keyed by `(feature, 1, "")`). A feature's acceptance runs after its own stories and before the next feature's, and tiers 1 to 3 still win over it.
+      - `AcceptanceReader` entry: added `snapshots()` with its rules (main branch and branch, merged and not yet recorded, `done/` and leftover branch, ignored branches, format error).
+      - Board paragraph: `BoardReader.read` ends with `fill_board`. This replaces the old "always `None` until F0009-S0001".
+    - `docs/operator-guide.md`:
+      - Board column: `acceptance` shows the status, or `-` without an `acceptance_stage`.
+      - "When a feature acceptance is due": the watcher and the board now use the reader. Added when `acceptance_due` runs relative to stories, and how `factory-watch` prints it.
+
+    Cross-read and found current: README.md. The tick, handlers and `NOT_YET_HANDLED` text in both guides is still right: `acceptance_due` still has no handler in `build_handlers` (S0011 or later).
+
+    I ran no example. The docs add no new commands. I did not run the ticket's Demo snippet either.
+
+    Stale but untouched: none. No findings against the code.
+
+    `make check`: check: green
