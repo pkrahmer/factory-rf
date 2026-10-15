@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 112
 blocked: null
 comments_seen: 0
@@ -133,3 +133,17 @@ Expect: two lines: `()` (every kind has a handler), then `cannot handle acceptan
    - Security: the diff adds no suppression markers, secrets or string-built commands.
    - Quality: the comment at the gate explains why it holds the splits, and the code has no dead or duplicated logic. The `_snapshot` helper and the imports added to `tests/entry/test_wiring_handlers.py` exist only for the changed test, which the Interface allows.
    - Ticket hygiene: the coder's log gives the main decision (the gate holds the splits) and the alternative it rejected. `Assignment` matches the code, and criterion 10 still says what the documenter must write.
+6. documenter: wrote the documentation criterion 10 asks for; no findings. The code matches the Interface (`NOT_YET_HANDLED == ()`, the splits and the gate share the same instances).
+
+   Files changed:
+   - `docs/project-guide.md` ("The handlers of the events"): `build_handlers` now returns all thirteen kinds. `merged`, `closed` and `hand_over` are named as `SplitByWorkItemKind`s and `acceptance_due` as `AcceptanceDueHandler`. The `RunGate` holds the `closed` and `merged` splits, the very instances registered for those keys. With no `acceptance_stage` everything still constructs and the acceptance handlers refuse with `CannotHandle(kind, "no acceptance stage")`. `NOT_YET_HANDLED` is empty, and the paragraph on it was reworded accordingly.
+   - `docs/operator-guide.md` (the dispatcher's stops): it said `acceptance_due` had no handler. Now every kind has one and the unhandled-kind stop is described as applying only to a future kind.
+   - `docs/decisions.md`: new entry "The run gate holds the acceptance splits, not the story's handlers". It gives the reason (an acceptance closed or merged while due would otherwise reach the story's handlers) and the rejected alternative (a work-item-kind branch inside the gate).
+
+   Cross-read and found current: `README.md`, and the project-guide sections on acceptance (opening, hand-over, `SplitByWorkItemKind`) and on events. I left alone the earlier `NOT_YET_HANDLED` decision in `docs/decisions.md`: it records why the constant exists, which still holds.
+
+   Nothing stale left that is unrelated to this story.
+
+   `make check`: green, coverage 99.53 %. I did not run the demo command.
+
+   `make check`: check: green
