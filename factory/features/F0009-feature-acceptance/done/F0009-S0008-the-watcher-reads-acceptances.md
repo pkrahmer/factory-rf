@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 110
 blocked: null
 comments_seen: 2
@@ -253,3 +253,4 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
     Against the acceptance criteria: the output agrees with criteria 2 and 3 (the fourth tier ranks a due feature after its own stories and before the next feature's). It also shows that `EvaluationInput` accepts `due=['F0002']`, which is part of criterion 1. Nothing the demo shows contradicts any other criterion. The demo does not exercise these, and I did not check them myself: the reader, the watcher and the board (5–20), the refused `due` values in criterion 1, the event fields `work_item`, `feature` and `remote_state` in criterion 2, and the docs (22). The factory runs `make check` after this stage.
 
     No findings.
+14. done (pull request merged); cost: 11 runs, 27.2 min, 100 turns, 349k tokens in (2750k more from cache), 54k out, $4.12
