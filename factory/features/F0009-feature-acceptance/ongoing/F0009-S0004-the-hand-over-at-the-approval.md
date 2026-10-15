@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 106
 blocked: null
 comments_seen: 2
@@ -86,8 +86,9 @@ Tests: `tests/domain/test_acceptance_description.py`, `tests/application/test_ac
 17. `SplitByWorkItemKind` passes an event whose work item is an acceptance to the acceptance handler only, and one whose work item is a story to the story handler only; its `story` and `acceptance` properties return the two handlers it was built with.
 18. `SplitByWorkItemKind` raises `CannotHandle` with the reason `no work item` for an event without a work item, and calls neither handler.
 19. F0005-S0009's search test passes on the real tree with `factory.domain.acceptance` in its allow-list of `entry_text`: no module of F0009 other than `factory.domain.acceptance` references `entry_text`.
-20. make check stays green.
-21. docs: `docs/operator-guide.md` describes what the human sees when an acceptance is handed over (the ready pull request, the description's four parts, the cost table) and what a merge and a close each do; `docs/project-guide.md` mentions `SplitByWorkItemKind` as the place where a story's and an acceptance's handlers are told apart, and that `factory.domain.acceptance` is on the allow-list of `entry_text` in the journal search test.
+20. When the push is not `pushed` (a subclass of `FakeHostingService` whose `set_description` first pushes a commit with changed text to `origin/<branch>` through `human.push_file`, then calls the fake's own method), `handle` raises `PushFailed` and `handed_over` is not set on `origin/<branch>`.
+21. make check stays green.
+22. docs: `docs/operator-guide.md` describes what the human sees when an acceptance is handed over (the ready pull request, the description's four parts, the cost table) and what a merge and a close each do; `docs/project-guide.md` mentions `SplitByWorkItemKind` as the place where a story's and an acceptance's handlers are told apart, and that `factory.domain.acceptance` is on the allow-list of `entry_text` in the journal search test.
 
 ## Demo
 
@@ -139,3 +140,9 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
 
    The format check passed.
 3. human (pull request comment, 2026-10-15): (a): add the criterion before the two closing ones, as you worded it. The fixtures can produce the rejected push deterministically: the hosting calls come between `check_out` and the record, so the test uses a subclass of `FakeHostingService` whose `set_description` first pushes a commit with changed text to `origin/<branch>` through `human.push_file` (as F0006-S0004's criterion 9 test races a human push), then calls the fake's own method. `handle` then raises `PushFailed`, and `handed_over` is not set on `origin/<branch>`. The Interface stays as it is.
+4. intake: accepted. Carried in from log entry 3 (the human's answer (a)): added a new criterion 20 before the two closing ones: when the push is not `pushed` (a `FakeHostingService` subclass whose `set_description` first pushes a changed commit to `origin/<branch>` via `human.push_file`, then calls the fake's own method), `handle` raises `PushFailed` and `handed_over` is not set on `origin/<branch>`. `make check` is now 21 and `docs:` 22. The Interface and Assignment are unchanged, since the meaning of the task did not change.
+   - Interface: names concrete modules, signatures, constants and rules, including the `PushFailed` rule that the new criterion now covers.
+   - Criteria: each is testable by one test function. Every rule has its failing side: wrong event kind, not an acceptance, no acceptance stage, not an approval, no pull request, failing hosting calls, kill before push, rejected push, already handed over, and no work item in the split.
+   - Demo: both blocks are runnable, and each Expect line is checkable against the output.
+   - Architecture: the domain description function and the application handlers sit in the right layers. `cost_table_key` moves down to the domain, which respects the layering.
+   - Scope: within F0009's scope ("At the approval") and not in its Out of scope. The allow-list change in `tests/test_no_journal_reading.py` is covered by decision 22.
