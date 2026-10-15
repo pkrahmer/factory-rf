@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 104
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # When a feature acceptance is due
 
 ## Assignment (as of log entry 1)
@@ -128,3 +136,130 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules (`factory/domain/acceptance.py`, `factory/application/acceptance_reading.py`), full signatures, and each rule is stated precisely: status precedence, ref and branch reading, duplicate directories, the `acceptance_stage` None case.
+   - Criteria: each is testable by one test function. The rules have both sides: complete and incomplete (3-5, 12), covering and not covering reports (6-8), in flight and not in flight (9, 10, 17), a story file and a non-story file (1, 2), a feature with a directory and one without (19), a duplicate directory (23), a report with bad front matter (18), and `acceptance_stage` set and None (21, 22). The ordering rules are covered by criterion 1 for ids and 20 for due features.
+   - Demo: both commands are runnable and each `Expect:` line gives checkable output.
+   - Architecture: the pure derivation is in the domain and the remote reading is in the application over the `Git` interface, so the layers are respected. The reader touches only `origin/` refs.
+   - Scope: within F0009 (the due rule, the six statuses, the reader, the board column fill). The watcher and the board command are left to S0008, as the feature says.
+3. tester: Wrote the red tests for every acceptance criterion. `make lint` is green. `make test` fails at collection because the code under test doesn't exist yet: `factory.domain.acceptance` has no `FeatureAcceptance` (nor `FeatureFiles`, `ReportFacts`, `story_file_ids`, `acceptance_status`), and there is no module `factory.application.acceptance_reading`.
+
+   Files created:
+   - tests/domain/test_acceptance_status.py
+   - tests/application/test_acceptance_reading.py
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_acceptance_status.py::test_story_file_ids_ascend_without_repeats
+   - criterion 2: tests/domain/test_acceptance_status.py::test_story_file_ids_ignore_names_that_are_no_story_files
+   - criterion 3: tests/domain/test_acceptance_status.py::test_a_gitkeep_in_the_backlog_does_not_keep_an_archived_feature_from_being_due
+   - criterion 4: tests/domain/test_acceptance_status.py::test_a_feature_without_an_archived_story_is_incomplete
+   - criterion 5: tests/domain/test_acceptance_status.py::test_a_waiting_story_file_keeps_a_feature_incomplete (backlog, in_progress)
+   - criterion 6: tests/domain/test_acceptance_status.py::test_a_recorded_report_covering_the_archived_stories_gives_its_outcome (accepted, refused)
+   - criterion 7: tests/domain/test_acceptance_status.py::test_the_highest_covering_report_decides (both orders of outcomes)
+   - criterion 8: tests/domain/test_acceptance_status.py::test_a_report_on_other_stories_does_not_cover_the_archived_ones (fewer, more)
+   - criterion 9: tests/domain/test_acceptance_status.py::test_a_report_on_its_branch_alone_is_in_flight (complete feature, backlog story file, empty folders)
+   - criterion 10: tests/domain/test_acceptance_status.py::test_a_branch_report_merged_to_main_is_merged_unrecorded
+   - criterion 11: tests/domain/test_acceptance_status.py::test_an_unrecorded_report_on_main_is_merged_unrecorded (backlog with and without a story file)
+   - criterion 12: tests/domain/test_acceptance_status.py::test_a_recorded_acceptance_does_not_stand_while_a_story_file_waits
+   - criterion 13: tests/application/test_acceptance_reading.py::test_the_work_tree_and_local_branches_are_not_read (story file only in the work tree; story file committed on the checkout's local `main` and not pushed)
+   - criterion 14: tests/application/test_acceptance_reading.py::test_a_complete_feature_on_main_is_due_and_a_stray_directory_has_no_entry
+   - criterion 15: tests/application/test_acceptance_reading.py::test_a_recorded_covering_report_is_accepted_and_the_next_id_follows_it
+   - criterion 16: tests/application/test_acceptance_reading.py::test_a_report_on_its_remote_branch_is_in_flight
+   - criterion 17: tests/application/test_acceptance_reading.py::test_a_branch_without_a_report_is_not_in_flight (acceptance branch with only `notes.md`; story branch `work-item/F0001-S0001`)
+   - criterion 18: tests/application/test_acceptance_reading.py::test_an_unreadable_report_on_main_is_a_format_error_with_its_path (front matter that is not valid YAML; a plain work item's front matter)
+   - criterion 19: tests/application/test_acceptance_reading.py::test_a_feature_without_a_directory_has_no_files
+   - criterion 20: tests/application/test_acceptance_reading.py::test_due_features_ascend_and_leave_out_incomplete_ones
+   - criterion 21: tests/application/test_acceptance_reading.py::test_nothing_is_due_without_a_complete_feature_or_an_acceptance_stage (nothing complete; complete feature with `acceptance_stage` None)
+   - criterion 22: tests/application/test_acceptance_reading.py::test_fill_board_sets_each_known_feature_status_in_order (acceptance stage set; `acceptance_stage` None leaves every row unchanged)
+   - criterion 23: tests/application/test_acceptance_reading.py::test_the_first_of_two_directories_of_one_feature_counts
+   - criterion 24: tests/domain/test_acceptance_status.py::test_the_models_refuse_an_unknown_key, ::test_the_models_refuse_an_assignment, ::test_the_model_fields_are_typed (one row per accepted and refused value the criterion lists)
+   - criteria 25 and 26: not tests (make check; the documenter's job).
+
+   Notes for the coder:
+   - The reader tests fetch through `boundaries.git.fetch()` before building `AcceptanceReader`, as the board-reader tests do. Nothing assumes the reader fetches by itself.
+   - Reports are written with `FrontmatterWorkItemWriter`.
+   - The no-acceptance-stage definition is `definition.model_copy(update={"acceptance_stage": None})`.
+   - The type check was not run in this stage, as the stage skill says.
+
+   Open: nothing. No criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the derivation of a feature's acceptance status and the reader that fills it from the remote. All the tester's tests pass unchanged, and `make check` passes (coverage 99.49 %). Commits: 7e62c5f (feature) and a25df16 (refactor).
+
+   What I built:
+   - `src/factory/domain/acceptance.py` (grown): `FeatureFiles`, `ReportFacts` and `FeatureAcceptance` are frozen models that refuse unknown keys. `story_file_ids` keeps only the names `parse_work_item_file_name` reads as a story id, ascending without repeats. `acceptance_status` checks the five rules in the Interface's order: in flight, merged and not recorded, incomplete, the covering recorded outcome (highest id wins), then due. `AcceptanceStatus` is imported from `factory.domain.board`; this adds no import cycle.
+   - `src/factory/application/acceptance_reading.py` (new): `AcceptanceReader` reads only `origin/main` and `origin/<branch>`, through `Git.list_files`, `show_file` and `remote_branches`.
+     - Feature directories are worked out from `list_files(ref, FEATURES_DIRECTORY)`. When two directories share a feature id, the first by name counts.
+     - Folder contents are the names directly in each folder; anything deeper is skipped.
+     - A report on main is a file in `in-progress/` or `done/` whose name has an acceptance id. A report on a branch is the file in `in-progress/` at `origin/work-item/<id>` whose name carries that branch's id; the branch must be an acceptance of this feature. A branch without such a file is ignored.
+     - A report whose state is not an `AcceptanceState` raises `WorkItemFormatError` with the report's path.
+     - `due_features` and `fill_board` return `[]` and the rows unchanged when `acceptance_stage` is `None`.
+   - `src/factory/application/work_items.py`: the private `_parsed` helper is now the public `parse_at`, with a docstring. Both its existing callers and the new reader use it, so the helper is not copied.
+
+   Main design decision: `ReportFacts.on_branch` is `ref != origin/main`. Branch reports are only ever read from `in-progress/`, so this matches the Interface's rule (on a branch only in `in-progress`) without a second flag. Rejected: the reader passing `on_branch` explicitly per call site. That is one more parameter that can only take one value per site.
+
+   Choices the Interface leaves open:
+   - A branch report that cannot be read also raises `WorkItemFormatError` with its path. This matches `RemoteWorkItems`, which raises for an unreadable branch file. The Interface only names the error for reports on main.
+   - The reader does not call `Git.resolve`; nothing needed it.
+
+   Refactor: `_main_reports` now pairs each folder with its file names directly, which removed a lookup dict and the `_REPORT_FOLDERS` constant. Nothing else needed changing.
+
+   Noticed, not touched:
+   - Two defensive branches of the reader are uncovered (`acceptance_reading.py` lines 155 and 169): skipping another feature's acceptance branch, and a report listed but missing at the ref.
+   - `make check` takes over two minutes, so the tool's default timeout pushed my first run into the background.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: I read each of criteria 1–24 against its test in `tests/domain/test_acceptance_status.py` and `tests/application/test_acceptance_reading.py`. Every test exercises the criterion it is named after, and the rules have their failing sides as rows of one parametrized test: non-story names (2), a waiting story file in the backlog and in progress (5, 12), a report covering fewer and more stories (8), a branch report also on main (10), a branch with no report and a story branch (17), bad YAML and a plain work item's front matter (18), and `acceptance_stage` None (21, 22). Criterion 24 has the accepted and refused value for each typed field. The coder's entry records `make check` green.
+   - Architecture: the pure derivation is in `src/factory/domain/acceptance.py`. It imports only domain modules: `board`, `identifiers`, `paths`, `pipeline_definition` and `work_item`. The reader in `src/factory/application/acceptance_reading.py` uses only the `Git` interface (`list_files`, `show_file`, `remote_branches`) and only `origin/` refs. The rename of `_parsed` to the public `parse_at` (`src/factory/application/work_items.py:133`) reuses the helper instead of copying it.
+   - Security: no shell or string-built commands, no suppression markers, no secrets.
+   - Quality: `acceptance_status` follows the Interface's precedence exactly (`src/factory/domain/acceptance.py:510`). The highest covering id wins through `max` by id. Docstrings are present on the public names. The `_MAIN_REF` constant follows the per-module idiom already used in `board.py`, `tick.py`, `watcher.py` and `work_items.py`.
+   - Two defensive branches are left uncovered, and I'm not raising either as a finding:
+     - `acceptance_reading.py:155` skips another feature's acceptance branch. Without it, the branch's file would still be dropped, because the report's file name must carry that branch's id.
+     - `acceptance_reading.py:169` handles a listed file that is missing at the same ref. `show_file` returning `str | None` forces it, and it mirrors `RemoteWorkItems`.
+   - Rejected as a finding: the coder raises `WorkItemFormatError` for an unreadable report on a branch too, which the Interface leaves open. This matches `RemoteWorkItems`, and the log says so.
+   - Ticket hygiene: the log names the main decision (`on_branch` derived from the ref) and what it rejected. `Assignment` matches what was built. Criterion 26 still says what `docs/operator-guide.md` must explain: when an acceptance becomes due and the six statuses.
+6. documenter: wrote the due rule and the six statuses into the operator guide, and added the derivation and the reader to the project guide. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "When a feature acceptance is due". It covers:
+     - what makes a feature complete (an archived story, no story file in backlog or in-progress; `.gitkeep` and notes do not count);
+     - when a report covers the archived stories;
+     - the statuses in precedence order (`in_flight`, `merged_unrecorded`, `incomplete`, `accepted`/`refused`, `due`), so the table lists five rows for the six statuses;
+     - the ignored branches, the format error, the duplicate-directory rule and the next acceptance id.
+     In "Looking at the remote", the line saying `acceptance` stays `-` until F0009 now says it stays `-` until the board command shows the status (F0009-S0008).
+   - `docs/project-guide.md`: two bullets in "The feature acceptance" for `acceptance_status`, `story_file_ids`, `AcceptanceReader` and `parse_at`.
+
+   Cross-read and found current against the diff: README (no acceptance text), the rest of the operator guide, and `docs/decisions.md`.
+
+   Stale but not touched:
+   - `docs/project-guide.md` (board section) says `FeatureRow.acceptance` is always `None` until F0009-S0001. It is still true until S0008 wires `fill_board`, but the story reference is outdated.
+   - `docs/operator-guide.md` and `docs/project-guide.md` still say `acceptance_due` is not yet handled and `evaluate` does not make it. That stays true until S0008.
+
+   No findings for the coder.
+
+   `make check`: check: green
+7. demo: I ran both demo commands from the repository root exactly as written. Both exited with 0 and both met their `Expect:` lines. No findings.
+
+   1. `acceptance_status` over the four cases:
+   ```
+   due
+   refused
+   incomplete
+   due
+   ```
+   Met. The output is four lines in the expected order:
+      - `due`: `.gitkeep` in the backlog does not keep the feature incomplete.
+      - `refused`: the report at `done` covers exactly the two archived stories.
+      - `incomplete`: a story file is in progress.
+      - `due`: the report covers two stories but only one is archived.
+
+   2. `story_file_ids` over a mixed list:
+   ```
+   ['F0001-S0001', 'F0001-S0002']
+   ```
+   Met. The output is one line. It drops `.gitkeep`, `notes.md` and the acceptance report, and the ids are in ascending order.
+
+   Criteria check: the demo contradicts none of the acceptance criteria. Its output agrees with criteria 1–3, 5, 6 and 8. The other criteria (the reader over the remote, the models, docs) are outside what the demo exercises, and nothing it printed conflicts with them.
