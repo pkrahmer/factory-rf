@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 103
 blocked: null
 comments_seen: 0
 round: 0
@@ -131,3 +131,9 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory/domain/acceptance.py`; `parse` and `render` in `adapters/work_item_markdown.py`). Every rule stated there has a criterion: id form and range (1, 2), `next_acceptance_id` (3-5), file name (6, 7), `stories` order and ids (11, 12), `outcome` tied to `done` (13), reader and writer behaviour (14-20), journal functions (21, 22).
+   - Criteria: each can be tested by one test function. Each rule has its failing side: 0 and 10000 (2), 9999 (5), a story id for the file name (7), unsorted and repeated stories (11), an acceptance id in `stories` (12), `outcome` set while not done and `done` without an outcome (13), an unknown key and invalid values (16, 17, 23).
+   - Demo: three runnable `uv run python -c` blocks. Each `Expect:` line gives exact output that can be checked.
+   - Architecture: the new module is in the domain layer and does no I/O. The adapter change stays in the existing reader and writer. No git, hosting service or agent runtime is touched.
+   - Scope: within F0009 "Scope" (first bullet), and nothing in "Out of scope" is touched.
