@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 106
 blocked: null
 comments_seen: 4
@@ -302,3 +302,4 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
     Against the acceptance criteria: the demo contradicts none of them. It agrees with criterion 4 (a missing section gives `none` and leaves the other parts as they are), criterion 5 (the description ends with the closing text after an empty line) and criterion 17 (each event goes to its kind's handler only). The demo does not exercise the rest of the handler's behaviour (criteria 6–16 and 20) or the docs criterion (22); those are left to the tests and the earlier stages.
 
     No findings.
+14. done (pull request merged); cost: 10 runs, 19.4 min, 83 turns, 252k tokens in (2232k more from cache), 41k out, $2.92
