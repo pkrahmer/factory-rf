@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 107
 blocked: null
 comments_seen: 2
@@ -51,25 +51,26 @@ Tests: `tests/domain/test_acceptance_booking.py`, `tests/application/test_accept
 1. `book_merge` sets the stage to `done`, the outcome to `accepted`, `claim` and `blocked` to `None`, and leaves `stories`, `round`, `attempts`, `crashes`, `pull_request`, `comments_read` and `handed_over` as they were.
 2. `book_merge` appends one record (speaker `factory`, kind `done`) whose number follows the journal's last, and whose visible text equals `done_entry_text(bill)`.
 3. `book_merge` and `book_refusal` raise `ValueError` for a document whose state is a plain `WorkItemState`.
-4. `refusal_reason` joins the texts of the human's `comment` records after the reviewer's last `result` record with one space, unchanged: the texts `Too wide.` and `Cut the second story.` give `Too wide. Cut the second story.`
+4. `refusal_reason` joins the texts of the human's `comment` records after the reviewer's last `result` record with one space, unchanged between the stripped ends: the texts `Too wide.` and `Cut the second story.` give `Too wide. Cut the second story.`
 5. `refusal_reason` ignores a `comment` record before the reviewer's last `result` record, a human `close` record and the factory's records.
 6. `refusal_reason` is `no reason given` when no human comment follows the reviewer's last result, and uses every human comment when the journal has no result of the reviewer.
-7. `book_refusal` sets the stage to `done`, the outcome to `refused`, `claim` and `blocked` to `None`, and leaves the other state fields as they were.
-8. `book_refusal` makes `Refused by the human on 2026-10-12: <the reason>` the first paragraph of the `## Recommendation` section, above the reviewer's recommendation text, and leaves the rest of the body as it was.
-9. `book_refusal` on a body without a `## Recommendation` section adds that section, holding only the refusal paragraph, just before the `## Journal` section.
-10. `book_refusal` on a body with neither a `## Recommendation` nor a `## Journal` section adds the section with the refusal paragraph at the end of the body.
-11. `book_refusal` appends one record (speaker `factory`, kind `done`) whose visible text is `done (pull request closed by the human); cost: ` followed by `cost_line(bill)`.
-12. After the human merged the acceptance's pull request, `AcceptanceMerged.handle` leaves on `origin/main` the report in the feature's `done/` folder, equal to `book_merge(<the merged report>, <bill of its records>)` as the writer renders it, and its cost records file beside it with the same records, neither file left in `in-progress/`; a report merged without a cost records file is booked alone in `done/`, its entry's cost `cost_line(bill([]))` (two cases, one test).
-13. After `handle` the branch `work-item/<id>` is gone on the remote and locally, and a second `handle` of the same event makes no new commit and raises no error.
-14. The commit `handle` makes on the main branch changes only the report's and the cost records file's paths: the proposed stories that the merge brought into the feature's backlog are still there, byte for byte.
-15. A merge of an acceptance whose recommendation is `not accepted` is booked `accepted`: the recommendation text does not change the outcome.
-16. `AcceptanceMerged.handle` raises `CannotHandle` with the five reasons the Interface gives (another kind of event, a story's event, no acceptance stage, a pull request that is not merged, no report on the main branch), each in its place in the order, and changes nothing.
-17. After `kill_points.arm(KillPoint.AFTER_PUSH)` made the first `handle` raise `InjectedKill` right after the push of the main branch, a second `handle` leaves exactly one `done` record in the report, one new commit on `origin/main`, and the branch gone.
-18. `AcceptanceMerged(boundaries, definition)` with `definition.acceptance_stage` `None` is built without an error.
-19. When the remote's main branch moved since the last fetch (the human pushed to it), `AcceptanceMerged.handle` raises `PushFailed` with the outcome `rejected`, and the branch `work-item/<id>` is still on the remote.
-20. When the remote refuses the deletion of the branch (`receive.denyDeletes` set in the bare remote), `handle` raises `PushFailed` with the outcome `rejected` after the booking is pushed: `origin/main` holds the report in `done/` and the branch is still on the remote.
-21. make check stays green.
-22. docs: `docs/operator-guide.md` explains what the human's merge and close of an acceptance do (accepted or refused whatever the recommendation; where the report lands; that the reason is the human's comments unchanged; that a refusal drops the proposed stories and a merge keeps them in the backlog); `docs/decisions.md` records why each acceptance has its own report and cost records.
+7. `refusal_reason` strips leading and trailing whitespace from each comment's text and keeps the text between unchanged; a comment that is blank after stripping is skipped, and `no reason given` results when no other comment remains.
+8. `book_refusal` sets the stage to `done`, the outcome to `refused`, `claim` and `blocked` to `None`, and leaves the other state fields as they were.
+9. `book_refusal` makes `Refused by the human on 2026-10-12: <the reason>` the first paragraph of the `## Recommendation` section, above the reviewer's recommendation text, and leaves the rest of the body as it was.
+10. `book_refusal` on a body without a `## Recommendation` section adds that section, holding only the refusal paragraph, just before the `## Journal` section.
+11. `book_refusal` on a body with neither a `## Recommendation` nor a `## Journal` section adds the section with the refusal paragraph at the end of the body.
+12. `book_refusal` appends one record (speaker `factory`, kind `done`) whose visible text is `done (pull request closed by the human); cost: ` followed by `cost_line(bill)`.
+13. After the human merged the acceptance's pull request, `AcceptanceMerged.handle` leaves on `origin/main` the report in the feature's `done/` folder, equal to `book_merge(<the merged report>, <bill of its records>)` as the writer renders it, and its cost records file beside it with the same records, neither file left in `in-progress/`; a report merged without a cost records file is booked alone in `done/`, its entry's cost `cost_line(bill([]))` (two cases, one test).
+14. After `handle` the branch `work-item/<id>` is gone on the remote and locally, and a second `handle` of the same event makes no new commit and raises no error.
+15. The commit `handle` makes on the main branch changes only the report's and the cost records file's paths: the proposed stories that the merge brought into the feature's backlog are still there, byte for byte.
+16. A merge of an acceptance whose recommendation is `not accepted` is booked `accepted`: the recommendation text does not change the outcome.
+17. `AcceptanceMerged.handle` raises `CannotHandle` with the five reasons the Interface gives (another kind of event, a story's event, no acceptance stage, a pull request that is not merged, no report on the main branch), each in its place in the order, and changes nothing.
+18. After `kill_points.arm(KillPoint.AFTER_PUSH)` made the first `handle` raise `InjectedKill` right after the push of the main branch, a second `handle` leaves exactly one `done` record in the report, one new commit on `origin/main`, and the branch gone.
+19. `AcceptanceMerged(boundaries, definition)` with `definition.acceptance_stage` `None` is built without an error.
+20. When the remote's main branch moved since the last fetch (the human pushed to it), `AcceptanceMerged.handle` raises `PushFailed` with the outcome `rejected`, and the branch `work-item/<id>` is still on the remote.
+21. When the remote refuses the deletion of the branch (`receive.denyDeletes` set in the bare remote), `handle` raises `PushFailed` with the outcome `rejected` after the booking is pushed: `origin/main` holds the report in `done/` and the branch is still on the remote.
+22. make check stays green.
+23. docs: `docs/operator-guide.md` explains what the human's merge and close of an acceptance do (accepted or refused whatever the recommendation; where the report lands; that the reason is the human's comments unchanged; that a refusal drops the proposed stories and a merge keeps them in the backlog); `docs/decisions.md` records why each acceptance has its own report and cost records.
 
 ## Demo
 
@@ -104,3 +105,9 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
 
    Everything else I checked is in order. The Interface names concrete modules and signatures. The rules' failing sides have criteria: the plain-state `ValueError` is criterion 3, the five `CannotHandle` reasons 16, the rejected push 19, and the refused branch deletion 20. The Demo is runnable and its `Expect:` line is checkable. The story fits the architecture and the feature's scope.
 3. human (pull request comment, 2026-10-15): Add the criterion after 6, as you worded it: "`refusal_reason` strips leading and trailing whitespace from each comment's text and keeps the text between unchanged; a comment that is blank after stripping is skipped, and `no reason given` results when no other comment remains." This matches F0007's answer rule, where only a non-blank comment counts (`factory.domain.answers.unblock`). Reword criterion 4's "unchanged" to "unchanged between the stripped ends" so the two agree. The Interface stays as it is.
+4. intake: accepted. The human's answer (log entry 3) is written into the story: the new criterion 7 (`refusal_reason` strips each comment, skips blank ones, gives `no reason given` when none remain), as the human worded it. Criterion 4 now says "unchanged between the stripped ends". The old criteria 7 to 22 are now 8 to 23, and `make check` and `docs:` are still last. The Interface and the Assignment are unchanged.
+   - Interface: names concrete modules and signatures (`factory.domain.acceptance`, `factory.application.acceptance`). Every stated behaviour has a criterion, including the stripping.
+   - Criteria: each is testable by one test function. Failing sides are covered: plain-state `ValueError` (3), the five `CannotHandle` reasons (16), a rejected push (19), a refused branch deletion (20), and blank comments (7).
+   - Demo: runnable, and the `Expect:` line is checkable line by line.
+   - Architecture: domain holds the pure booking functions and application holds the handler. It reuses F0007's helpers and makes `move_with_cost_records` public. Layers are respected.
+   - Scope: within the feature's scope (the merge result and the booking functions). S0007's close handler is left out.
