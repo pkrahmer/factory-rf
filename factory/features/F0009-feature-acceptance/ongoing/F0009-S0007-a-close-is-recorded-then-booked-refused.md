@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 109
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -115,3 +115,25 @@ Expect: two lines: `True`, then `cannot handle closed: no acceptance stage` (the
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implemented `AcceptanceClosed` in `src/factory/application/acceptance.py` (commit fc2504e). Every test in `tests/application/test_acceptance_closed.py` passes except both rows of `test_after_a_kill_at_the_push_of_main_a_second_handling_books_once`. lint, types, layers, sast, secrets and licences are green, so `make check` is red only on those two rows, and the cause is a mistake in the test, not in the handler.
+
+   The test fails at `assert _reports_in_done(checkout) == ["F0002-A0001-acceptance.md"]`. The helper `_reports_in_done` returns `checkout.list_files("origin/main", DONE)`, filtered on `"-A"`. `Git.list_files` returns repository-relative paths, as its docstring says and as `src/factory/adapters/git_cli.py:187` implements. So the actual value is `["factory/features/F0002-todo/done/F0002-A0001-acceptance.md"]`: the right single report, compared against a bare file name. No change to the handler can make this assertion pass.
+
+   Options:
+   (a) Compare against the full path, `[DONE_REPORT]`, a constant the test already defines.
+   (b) Strip the paths in `_reports_in_done` to file names, e.g. `PurePosixPath(name).name`.
+   I would choose (a): it is the smallest change and reuses the existing constant. After your answer the coder ends with `tests` and names that change.
+
+   What I built:
+   - `AcceptanceClosed(boundaries, definition)` checks the event in the order the Interface gives (kind, acceptance, acceptance stage, closed pull request).
+   - When `origin/<branch>` resolves, it checks the branch out and reads the cost records at `origin/<branch>` with `read_cost_records`.
+   - Record step: `CommentCopier.unread` and `append` add the comments, then a `close` entry is appended unless a human `close` record already exists (found with `last_record`). It records once with the subject "close recorded".
+   - Book step: it checks out main and, unless the file is already in `done/`, writes `book_refusal(...)` at `destination_path(path, "done")` plus the cost records beside it, then publishes "closed, refused".
+   - Delete step: `WorkItemRecorder.delete_branch`.
+   - When the branch is gone: it only deletes if the report is already in `done/` on `origin/main`, and otherwise raises "no report on the branch or the main branch".
+   - I moved `AcceptanceHandOver._reviewer_role` to a module function `_reviewer_role(definition, kind)` so both handlers share it instead of having a second copy.
+
+   Design choices:
+   - Main decision: the cost records are read once from `origin/<branch>` and used for both the bill and the copy. I rejected reading the sidecar file in the checkout for the bill and then running `show_file` again for the copy, because both read the same text.
+   - Noticed but not changed: a branch whose cost records file exists but is empty gets no copy on main, because the copy is skipped when there are no records.
+   - The refactor step is still to do; it waits until `make check` is green.
