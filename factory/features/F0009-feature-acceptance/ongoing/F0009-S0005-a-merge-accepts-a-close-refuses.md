@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 107
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -100,3 +100,6 @@ Expect: five lines: `Too wide. Cut the second story.`, `done refused`, `True Tru
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: 1. The Interface says `refusal_reason` takes the visible text of each human comment *stripped*, but no criterion tests it. Criterion 4 says "unchanged", which sits oddly beside "stripped", and the story never says what a comment that is only whitespace does. Does it count as a comment and add an empty string to the join, or is it skipped (and give `no reason given` if it was the only one)? Without a criterion two coders will read this two ways and both will pass the tests. My suggestion is to add a criterion after 6: "`refusal_reason` strips leading and trailing whitespace from each comment's text and keeps the text between unchanged; a comment that is blank after stripping is skipped, and `no reason given` results when no other comment remains." Alternatively, drop "stripped" from the Interface and say the text is copied exactly.
+
+   Everything else I checked is in order. The Interface names concrete modules and signatures. The rules' failing sides have criteria: the plain-state `ValueError` is criterion 3, the five `CannotHandle` reasons 16, the rejected push 19, and the refused branch deletion 20. The Demo is runnable and its `Expect:` line is checkable. The story fits the architecture and the feature's scope.
