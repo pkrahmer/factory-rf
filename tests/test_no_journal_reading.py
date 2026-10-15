@@ -10,6 +10,7 @@ ALLOWED = {
     "entry_text": {
         "factory.domain.journal",
         "factory.domain.hand_over",
+        "factory.domain.acceptance",
         "factory.application.handlers.questions",
         "factory.application.recovery",
     },

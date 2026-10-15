@@ -11,9 +11,7 @@ from factory.application.handlers.recording import (
 from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
-from factory.domain.hand_over import hand_over_description
-from factory.domain.hosting import PostKey
-from factory.domain.journal import last_record
+from factory.domain.hand_over import cost_table_key, hand_over_description
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
@@ -24,12 +22,6 @@ _KIND = "hand_over"
 
 def _no_state() -> CannotHandle:
     return CannotHandle(_KIND, "the work item on its branch has no state")
-
-
-def _cost_table_key(snapshot: WorkItemSnapshot, document: WorkItemDocument) -> PostKey:
-    latest = last_record(document, kind="result")
-    n = 0 if latest is None else latest.number
-    return PostKey(work_item=snapshot.id, kind="cost_table", n=str(n))
 
 
 class HandOverHandler(Handler):
@@ -76,4 +68,4 @@ class HandOverHandler(Handler):
         hosting.set_description(number, hand_over_description(document, commits))
         hosting.set_draft(number, False)
         table = cost_table_post(cost_table(bills_by_stage(records)))
-        hosting.post_comment(number, table, _cost_table_key(snapshot, document))
+        hosting.post_comment(number, table, cost_table_key(snapshot.id, document))

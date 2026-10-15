@@ -3,6 +3,8 @@
 from collections.abc import Sequence
 
 from factory.domain.git import CommitInfo
+from factory.domain.hosting import PostKey
+from factory.domain.identifiers import WorkItemId
 from factory.domain.journal import entry_text, last_record
 from factory.domain.sections import ACCEPTANCE_CRITERIA, DESCRIPTION, section_text
 from factory.domain.work_item import WorkItemDocument
@@ -37,6 +39,13 @@ def _report_text(document: WorkItemDocument, speaker: str) -> str | None:
 def _commits_block(commits: Sequence[CommitInfo]) -> str:
     lines = [f"{commit.commit[:_SHORT_ID_LENGTH]} {commit.subject}" for commit in commits]
     return "\n".join([_FENCE, *lines, _FENCE])
+
+
+def cost_table_key(work_item: WorkItemId, document: WorkItemDocument) -> PostKey:
+    """The key of the cost table post, so that one post is made per result at the approval."""
+    latest = last_record(document, kind="result")
+    n = 0 if latest is None else latest.number
+    return PostKey(work_item=work_item, kind="cost_table", n=str(n))
 
 
 def hand_over_description(document: WorkItemDocument, commits: Sequence[CommitInfo]) -> str:

@@ -6,19 +6,28 @@ from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.dispatcher import Handler
+from factory.application.handlers.recording import (
+    Target,
+    WorkItemRecorder,
+    commit_subject,
+    require_pull_request,
+    target_of,
+)
 from factory.application.work_items import read_feature_file
 from factory.domain.acceptance import (
     AcceptanceFacts,
     FeatureAcceptance,
+    acceptance_description,
     acceptance_facts,
     acceptance_file_name,
     acceptance_head,
 )
-from factory.domain.bills import bill, cost_line
+from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 from factory.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
 from factory.domain.events import Event
 from factory.domain.git import CommitId
+from factory.domain.hand_over import cost_table_key
 from factory.domain.identifiers import (
     FeatureId,
     WorkItemId,
@@ -34,10 +43,13 @@ from factory.domain.paths import (
     work_item_path,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.post_texts import cost_table_post
 from factory.domain.sections import title
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 _KIND = "acceptance_due"
+_HAND_OVER = "hand_over"
 
 
 class OpenedAcceptance(BaseModel):
@@ -144,3 +156,94 @@ class AcceptanceDueHandler(Handler):
         if self._definition.acceptance_stage is None:
             raise CannotHandle(kind=_KIND, reason="no acceptance stage")
         AcceptanceService(self._boundaries, self._definition).open(event.feature)
+
+
+class AcceptanceHandOver(Handler):
+    """Hands an acceptance over at its approval: description, ready flag, cost table, record."""
+
+    def __init__(self, boundaries: Boundaries, definition: PipelineDefinition) -> None:
+        """Keep `boundaries` and `definition`; the reviewer's role is looked up per event."""
+        self._boundaries = boundaries
+        self._definition = definition
+
+    def handle(self, event: Event) -> None:
+        """Hand the acceptance over at its approval stage, unless it is handed over there already.
+
+        Every effect before the record is safe to repeat, so a failure anywhere is retried whole.
+        """
+        if event.kind != _HAND_OVER:
+            raise CannotHandle(kind=event.kind, reason=f"not a {_HAND_OVER} event")
+        if event.work_item is None or not is_acceptance(event.work_item.id):
+            raise CannotHandle(kind=_HAND_OVER, reason="not an acceptance")
+        role = self._reviewer_role()
+        target = target_of(event)
+        self._require_approval(target)
+        number = require_pull_request(target, _HAND_OVER)
+        snapshot = target.snapshot
+        recorder = WorkItemRecorder(self._boundaries)
+        recorder.check_out(snapshot.branch)
+        document = recorder.read(snapshot.path)
+        no_state = CannotHandle(_HAND_OVER, "the work item on its branch has no state")
+        state = require_state(document, no_state)
+        if state.handed_over == state.stage:
+            return
+        self._show(number, snapshot, document, role)
+        handed_over = state.model_copy(update={"handed_over": state.stage})
+        recorder.record(
+            snapshot.branch,
+            snapshot.path,
+            document.model_copy(update={"state": handed_over}),
+            commit_subject(snapshot.id, f"handed over at {state.stage}"),
+        )
+
+    def _reviewer_role(self) -> str:
+        name = self._definition.acceptance_stage
+        stage = None if name is None else self._definition.stages.get(name)
+        if stage is None or stage.role is None:
+            raise CannotHandle(kind=_HAND_OVER, reason="no acceptance stage")
+        return stage.role
+
+    def _require_approval(self, target: Target) -> None:
+        name = target.state.stage
+        stage = self._definition.stages.get(name)
+        if stage is None or not stage.approval:
+            raise CannotHandle(kind=_HAND_OVER, reason=f"stage {name} is not an approval")
+
+    def _show(
+        self, number: int, snapshot: WorkItemSnapshot, document: WorkItemDocument, role: str
+    ) -> None:
+        sidecar = self._boundaries.checkout / cost_records_path(snapshot.path)
+        records = self._boundaries.cost_reader.read(sidecar)
+        hosting = self._boundaries.hosting
+        hosting.set_description(number, acceptance_description(document, role))
+        hosting.set_draft(number, False)
+        table = cost_table_post(cost_table(bills_by_stage(records)))
+        hosting.post_comment(number, table, cost_table_key(snapshot.id, document))
+
+
+class SplitByWorkItemKind(Handler):
+    """Sends a work item's event to the story's handler or to the acceptance's, by its id."""
+
+    def __init__(self, story: Handler, acceptance: Handler) -> None:
+        """Send stories' events to `story` and acceptances' events to `acceptance`."""
+        self._story = story
+        self._acceptance = acceptance
+
+    def handle(self, event: Event) -> None:
+        """Pass the event on by its work item's kind; `CannotHandle` when it names none."""
+        if event.work_item is None:
+            raise CannotHandle(kind=event.kind, reason="no work item")
+        if is_acceptance(event.work_item.id):
+            self._acceptance.handle(event)
+        else:
+            self._story.handle(event)
+
+    @property
+    def story(self) -> Handler:
+        """The handler of a story's events."""
+        return self._story
+
+    @property
+    def acceptance(self) -> Handler:
+        """The handler of an acceptance's events."""
+        return self._acceptance
