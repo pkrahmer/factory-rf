@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 111
 blocked: null
 comments_seen: 0
@@ -182,3 +182,16 @@ Expect: two lines: `[]` (an acceptance has no story form to meet), then `True` (
     I found nothing in the code that contradicts the Interface or the criteria. I saw no stale text unrelated to this story.
 
     `make check`: check: green
+11. demo: I ran the one command under `## Demo` from the repository root, exactly as written. No findings.
+
+    Command 1, `uv run python -c "..."`: the `StoryFormChecker` with stub boundaries, called with an `AcceptanceState` document and then with a `WorkItemState` document that has the same body:
+
+    ```
+    []
+    True
+    ```
+    Exit status 0. It meets its `Expect:` line: there are two lines, first `[]` (an acceptance has no story form to meet), then `True` (the same text checked as a story gives findings).
+
+    Against the acceptance criteria: the output agrees with criterion 1 (an acceptance report with only a title and `## Journal` gives no findings) and criterion 3 (the same body with a plain `WorkItemState` still gives findings). It contradicts no other criterion. Criteria 2 and 4–9 are not exercised by the demo; tests cover them (entries 3, 7 and 9).
+
+    Open: nothing.
