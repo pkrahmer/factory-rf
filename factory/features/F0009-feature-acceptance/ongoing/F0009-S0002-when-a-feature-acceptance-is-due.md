@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 104
 blocked: null
 comments_seen: 0
@@ -221,3 +221,23 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
      - `acceptance_reading.py:169` handles a listed file that is missing at the same ref. `show_file` returning `str | None` forces it, and it mirrors `RemoteWorkItems`.
    - Rejected as a finding: the coder raises `WorkItemFormatError` for an unreadable report on a branch too, which the Interface leaves open. This matches `RemoteWorkItems`, and the log says so.
    - Ticket hygiene: the log names the main decision (`on_branch` derived from the ref) and what it rejected. `Assignment` matches what was built. Criterion 26 still says what `docs/operator-guide.md` must explain: when an acceptance becomes due and the six statuses.
+6. documenter: wrote the due rule and the six statuses into the operator guide, and added the derivation and the reader to the project guide. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "When a feature acceptance is due". It covers:
+     - what makes a feature complete (an archived story, no story file in backlog or in-progress; `.gitkeep` and notes do not count);
+     - when a report covers the archived stories;
+     - the statuses in precedence order (`in_flight`, `merged_unrecorded`, `incomplete`, `accepted`/`refused`, `due`), so the table lists five rows for the six statuses;
+     - the ignored branches, the format error, the duplicate-directory rule and the next acceptance id.
+     In "Looking at the remote", the line saying `acceptance` stays `-` until F0009 now says it stays `-` until the board command shows the status (F0009-S0008).
+   - `docs/project-guide.md`: two bullets in "The feature acceptance" for `acceptance_status`, `story_file_ids`, `AcceptanceReader` and `parse_at`.
+
+   Cross-read and found current against the diff: README (no acceptance text), the rest of the operator guide, and `docs/decisions.md`.
+
+   Stale but not touched:
+   - `docs/project-guide.md` (board section) says `FeatureRow.acceptance` is always `None` until F0009-S0001. It is still true until S0008 wires `fill_board`, but the story reference is outdated.
+   - `docs/operator-guide.md` and `docs/project-guide.md` still say `acceptance_due` is not yet handled and `evaluate` does not make it. That stays true until S0008.
+
+   No findings for the coder.
+
+   `make check`: check: green
