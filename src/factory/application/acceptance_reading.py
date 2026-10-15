@@ -119,17 +119,18 @@ class AcceptanceReader:
             directory = directories.get(feature_of(work_item))
             if directory is None:
                 continue
-            path = self._branch_report_path(work_item, directory, f"{REMOTE}/{branch}")
-            if path is not None:
-                paths[work_item] = path
+            found = self._branch_report_paths_at(work_item, directory, f"{REMOTE}/{branch}")
+            if found:
+                paths[work_item] = found[0]
         return paths
 
-    def _branch_report_path(self, work_item: WorkItemId, directory: str, ref: str) -> str | None:
+    def _branch_report_paths_at(self, work_item: WorkItemId, directory: str, ref: str) -> list[str]:
+        paths: list[str] = []
         for file_name in self._names(ref, directory, "in-progress"):
             parsed = parse_work_item_file_name(file_name)
             if parsed is not None and parsed.id == work_item:
-                return work_item_path(directory, "in-progress", file_name)
-        return None
+                paths.append(work_item_path(directory, "in-progress", file_name))
+        return paths
 
     def _snapshot(self, work_item: WorkItemId, path: str) -> WorkItemSnapshot:
         branch = branch_name(work_item)
@@ -219,11 +220,10 @@ class AcceptanceReader:
             if feature_of(work_item) != feature:
                 continue
             ref = f"{REMOTE}/{branch}"
-            for file_name in self._names(ref, directory, "in-progress"):
-                parsed = parse_work_item_file_name(file_name)
-                if parsed is not None and parsed.id == work_item:
-                    path = work_item_path(directory, "in-progress", file_name)
-                    reports.append(self._report(work_item, "in-progress", ref, path))
+            reports.extend(
+                self._report(work_item, "in-progress", ref, path)
+                for path in self._branch_report_paths_at(work_item, directory, ref)
+            )
         return reports
 
     def _report(
