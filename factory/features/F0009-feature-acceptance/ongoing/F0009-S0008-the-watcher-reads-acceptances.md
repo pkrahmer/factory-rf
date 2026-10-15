@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 110
 blocked: null
 comments_seen: 2
@@ -165,3 +165,13 @@ Expect: three lines: `acceptance_due:F0002` (the next feature's story comes afte
      2. a branch `work-item/F0004-A0001` holding a report under a feature directory that `origin/main` lacks.
    - The code at b0efa13 should already pass both rows: `_main_report_paths` filters with `_is_report_of`, and `_branch_report_paths` skips a branch whose feature directory is missing (`acceptance_reading.py:120-121`). If either row fails, it comes back to doing.
    Open: none.
+9. tester: tester (round 1, approved test change): I added the two rows that the human approved in entry 7 and the coder named in entry 8. They go into `tests/application/test_acceptance_snapshots.py::test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped`. Each new row expects `snapshots() == []`.
+      - Row `report-in-another-features-directory-on-main`: the report `F0002-A0001` is pushed to `main` under `factory/features/F0001-example/in-progress/F0002-A0001-acceptance.md`.
+      - Row `branch-report-under-a-feature-directory-main-lacks`: the branch `work-item/F0004-A0001` holds `factory/features/F0004-missing/in-progress/F0004-A0001-acceptance.md`, and `origin/main` has no F0004 directory.
+      - The test gained a third parameter, `report: bool`. The new rows push a real acceptance document (`_render(boundaries, _approval())`) and not placeholder text, so each row is skipped because of where the file sits, not because its content is unreadable. The two existing rows are unchanged; they use `report=False` and still push "# Not a report".
+      - This is criterion 20, in the same parametrized test as criterion 6.
+      `make test` is green (coverage 99.53 %), so the code at b0efa13 already passes both rows, as the coder expected. `make lint` is green. No other file was changed.
+      Open: none.
+
+   `make lint`: lint: green
+   `make test`: test: green

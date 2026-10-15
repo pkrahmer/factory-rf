@@ -93,12 +93,23 @@ def test_a_report_on_its_branch_alone_gives_its_snapshot(
 
 
 @pytest.mark.parametrize(
-    ("branch", "path"),
+    ("branch", "path", "report"),
     [
-        ("work-item/F0001-S0001", f"{EXAMPLE}/in-progress/F0001-S0001-first.md"),
-        ("work-item/F0001-A0001", f"{EXAMPLE}/in-progress/notes.md"),
+        ("work-item/F0001-S0001", f"{EXAMPLE}/in-progress/F0001-S0001-first.md", False),
+        ("work-item/F0001-A0001", f"{EXAMPLE}/in-progress/notes.md", False),
+        ("main", f"{EXAMPLE}/in-progress/F0002-A0001-acceptance.md", True),
+        (
+            "work-item/F0004-A0001",
+            f"{FEATURES}/F0004-missing/in-progress/F0004-A0001-acceptance.md",
+            True,
+        ),
     ],
-    ids=["story-branch", "acceptance-branch-without-report"],
+    ids=[
+        "story-branch",
+        "acceptance-branch-without-report",
+        "report-in-another-features-directory-on-main",
+        "branch-report-under-a-feature-directory-main-lacks",
+    ],
 )
 def test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped(
     boundaries: Boundaries,
@@ -107,8 +118,10 @@ def test_a_story_branch_and_an_acceptance_branch_without_a_report_are_skipped(
     human: HumanClone,
     branch: str,
     path: str,
+    report: bool,
 ) -> None:
-    human.push_file(branch, path, "# Not a report\n")
+    text = _render(boundaries, _approval()) if report else "# Not a report\n"
+    human.push_file(branch, path, text)
 
     assert _snapshots(boundaries, definition) == []
 
