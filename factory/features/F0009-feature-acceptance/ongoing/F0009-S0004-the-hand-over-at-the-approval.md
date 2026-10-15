@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 106
 blocked: null
 comments_seen: 4
@@ -283,3 +283,22 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
     Stale but unrelated, not touched: the "The hand-over at the approval" intro in `docs/operator-guide.md` says `HandOverHandler` "is registered"; that is true for stories only, and my new subsection states the acceptance case.
 
     `make check`: check: green
+13. demo: Ran both `## Demo` commands from the repository root, exactly as written and in order. Both exited 0.
+
+    Command 1 (`acceptance_description` on a report that has no `## Proposed stories` section):
+    ```
+    ['## Recommendation', 'accepted with stories', '## Findings in short', 'accepted with stories; 1 story proposed', '## Proposed stories', 'none']
+    7 True
+    ```
+    This meets its Expect line: the first six parts are as expected, the proposed-stories part reads `none`, there are 7 parts in all, and the last part, the closing text, starts with `Merge to accept`.
+
+    Command 2 (`SplitByWorkItemKind` with one handler for stories and one for acceptances):
+    ```
+    story F0001-S0001
+    acceptance F0001-A0001
+    ```
+    This meets its Expect line: the story's event went only to the story handler and the acceptance's event only to the acceptance handler.
+
+    Against the acceptance criteria: the demo contradicts none of them. It agrees with criterion 4 (a missing section gives `none` and leaves the other parts as they are), criterion 5 (the description ends with the closing text after an empty line) and criterion 17 (each event goes to its kind's handler only). The demo does not exercise the rest of the handler's behaviour (criteria 6–16 and 20) or the docs criterion (22); those are left to the tests and the earlier stages.
+
+    No findings.
