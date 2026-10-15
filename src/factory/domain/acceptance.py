@@ -17,7 +17,7 @@ from factory.domain.identifiers import (
 )
 from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry, entry_text, last_record
 from factory.domain.paths import LifecycleFolder
-from factory.domain.pipeline_definition import DONE_STAGE
+from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
 from factory.domain.post_texts import done_entry_text
 from factory.domain.sections import (
     JOURNAL,
@@ -37,6 +37,7 @@ PROPOSED_STORIES = "Proposed stories"
 NONE_TEXT = "none"
 NO_REASON = "no reason given"
 _CLOSED_ENTRY_PREFIX = "done (pull request closed by the human); cost: "
+_MERGED_BEFORE_APPROVAL_PREFIX = "done (pull request merged before approval); cost: "
 # Names no merge method: every method the hosting service offers is handled the same way.
 ACCEPTANCE_CLOSING = (
     "Merge to accept the report and take the proposed stories into the feature's backlog, "
@@ -273,8 +274,25 @@ def _booked(
     return append_entry(document.model_copy(update={"state": done}), entry)
 
 
-def book_merge(document: WorkItemDocument, bill: Bill) -> WorkItemDocument:
-    """The acceptance booked `accepted` at `done`, with a `done` entry carrying its bill."""
+def is_before_approval(definition: PipelineDefinition, stage: str) -> bool:
+    """Whether `stage` lies before the definition's first approval stage."""
+    if stage not in definition.stages:
+        raise KeyError(stage)
+    approvals = [name for name, entry in definition.stages.items() if entry.approval]
+    if not approvals:
+        raise ValueError("the pipeline definition has no approval stage")
+    return definition.position(stage) < definition.position(approvals[0])
+
+
+def book_merge(
+    document: WorkItemDocument, bill: Bill, *, before_approval: bool = False
+) -> WorkItemDocument:
+    """The acceptance booked `accepted` at `done`, with a `done` entry carrying its bill.
+
+    A merge `before_approval` says so in its entry: the human's merge decides all the same.
+    """
+    if before_approval:
+        return _booked(document, "accepted", _MERGED_BEFORE_APPROVAL_PREFIX + cost_line(bill))
     return _booked(document, "accepted", done_entry_text(bill))
 
 
