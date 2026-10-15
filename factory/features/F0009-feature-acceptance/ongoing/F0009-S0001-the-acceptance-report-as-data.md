@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 103
 blocked: null
 comments_seen: 0
@@ -166,3 +166,12 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: all the tester's tests pass and `make check` is green.
+      - New module `src/factory/domain/acceptance.py` (`ACCEPTANCE_SLUG`, `AcceptanceOutcome`, `AcceptanceState`, `acceptance_id`, `next_acceptance_id`, `acceptance_file_name`). `AcceptanceState` subclasses `WorkItemState` and keeps its frozen, `extra="forbid"` config. A field validator refuses acceptance ids in `stories` and any list that is not strictly ascending (`sorted(set(...))`, the same rule `comments_read` uses). A model validator ties `outcome` to `stage == DONE_STAGE`. `next_acceptance_id` takes the highest number among the feature's acceptances and goes through `acceptance_id`, so the 1-9999 range is checked in one place.
+      - Changed `src/factory/adapters/work_item_markdown.py`: the reader validates with `AcceptanceState` when the front matter has `stories` or `outcome`, and with `WorkItemState` otherwise. The extra keys are worked out from the difference between the two models' fields, not listed by hand. Faults still come from `first_fault`, so an unknown key comes first and a bad value is named by its key. The writer needed no change: it already dumps `state.model_dump()`, so the subclass's fields come after `journal` in field order.
+      - Main design decision: picking the model in the reader by its keys. I rejected a single model with optional extra fields, because a story would then accept `stories` and `outcome`, which the Interface rules out.
+      - Refactor pass: I read the diff (two files, about 80 lines) and found nothing to rename, simplify or remove, so there is no refactor commit.
+      - Noticed and left alone: `append_entry` and `restore_state_and_journal` already keep the subclass through `model_copy`, so criteria 21 and 22 pass without a change to `factory.domain.journal`.
+      - Commit: `ticket F0009-S0001: feat(domain): the acceptance id, report file name and state`.
+
+   `make check`: check: green
