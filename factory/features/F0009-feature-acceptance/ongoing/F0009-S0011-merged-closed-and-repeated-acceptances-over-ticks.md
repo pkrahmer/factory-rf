@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 113
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -71,3 +71,7 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
 2. intake: 1. Criterion 6 starts from "the merge of criterion 1 brought proposed stories into the feature's backlog". The Interface's setup does not say how the walk puts proposed stories on the acceptance's branch. Options: (a) the test pushes a backlog story file such as `backlog/F0002-S0003-c.md` to the branch with `human.push_file` before the merge; (b) the criterion drops the proposed stories and only checks idle/no new acceptance. I would choose (a). Please add the file name and location to the setup, so the tester and the coder do not each decide.
    2. Criterion 9 says the evaluation before the next tick is "its `merged` or `run` event". One test function cannot check an either/or without a further decision. The event depends on the stage the test records for A0002 (`approval` gives `merged`, `acceptance` gives `run`). Please name the stage the walk records, or split it into two parametrized rows with the event each expects. I would choose two rows: `approval` gives `merged`, `acceptance` gives `run`.
    3. Criterion 11 says the human closed the pull request "with a comment", but the Interface does not say how the comment is posted. I assume a comment on the fake hosting service, such as a human-authored comment added before `hosting.close_by_human`. Please name the call.
+3. human (pull request comment, 2026-10-15): 1 (a): before the merge, the test pushes the backlog story `factory/features/F0002-<the fixture's slug>/backlog/F0002-S0003-c.md` (a valid story file, title `# C`) to the acceptance's branch with `human.push_file`; add that file name and location to the setup.
+   2: two parametrized rows, as you propose: the walk records A0002 at `approval` and expects `merged`; at `acceptance` and expects `run`.
+   3: the comment is posted with `hosting.add_human_comment(<pull request>, <text>)` on the fake hosting service before `hosting.close_by_human(<pull request>)`, as `tests/application/test_acceptance_closed.py` does; name both calls in the setup.
+   The Interface stays as it is otherwise.
