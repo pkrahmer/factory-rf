@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 108
 blocked: null
 comments_seen: 0
@@ -106,3 +106,12 @@ Expect: four lines: `[True, False, False]`, then `done accepted True`, then `acc
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: made criteria 1 to 12 pass; `make check` is green.
+      - `src/factory/domain/acceptance.py`: added `is_before_approval(definition, stage)`. It raises `KeyError` for a stage the definition does not have, and checks this before it calls `position`. It raises `ValueError` when the definition has no approval stage. Otherwise it compares `position(stage)` with the position of the first stage that has `approval=True`. `book_merge` now takes a keyword-only `before_approval=False`. When it is true, the entry text is `done (pull request merged before approval); cost: ` followed by `cost_line(bill)`, and the prefix is a module constant next to `_CLOSED_ENTRY_PREFIX`. When it is false, the entry still uses `done_entry_text(bill)`. Both paths book through the existing `_booked`, so the outcome, the `done` stage and the cleared `claim` and `blocked` are the same.
+      - `src/factory/application/acceptance.py`: `AcceptanceMerged._book` takes the stage from the report it reads on main through `require_state`. A report without a state now raises `CannotHandle` ("the report on the main branch has no state"). Before this change, `book_merge` raised `ValueError` in that case. I used `require_state` rather than an inline `is None` check because `tests/test_no_state_copies.py` allows only that helper to make this check. The handler passes `is_before_approval(definition, stage)` to `book_merge`.
+      - Design: I added a flag on `book_merge`, as the Interface specifies. I rejected a second booking function (`book_early_merge`) because it would repeat the merge booking. I also rejected moving the stage judgement into `book_merge`, because the domain booking would then need the definition.
+      - Repeated acceptances needed no code. As the Assignment allows, the tests for criteria 8 to 12 passed on what earlier stories built.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: the new no-state branch in `_book` (`application/acceptance.py:272`) is not covered by a test. Coverage is still at 99 %.
+
+   `make check`: check: green
