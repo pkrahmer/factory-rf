@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 105
 blocked: null
 comments_seen: 0
 round: 0
@@ -124,3 +124,9 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules (`factory.domain.acceptance`, `factory.application.acceptance`), signatures, the imports they need and the rules for each unit. The `tests/test_no_journal_reading.py` allow-list change is stated, with the feature's decision 22 as the leave.
+   - Criteria: each is testable by one test function. Every rule has its failing side: `next_story` at 9999 (3), an acceptance id as `next_story` and malformed ids (22), `acceptance_stage` of `None` (7, 21), a feature that is not due (11), a missing or untitled `feature.md` (10), a push that is rejected (24), a feature with no directory (15), and a wrong event kind or no feature (20). Behaviours the Interface states, such as the four-digit number, the three lines, the exact head and body, and the cost line over archived stories only, are covered by 1 to 6, 13 and 14. Recovery is covered by 12.
+   - Demo: both commands are runnable with the Interface's names, and each `Expect:` line is checkable against the output.
+   - Architecture: pure facts and head sit in the domain, the service and handler in the application layer reached through `Boundaries`, and git and the writers are used only through their wrappers. Wiring is left to S0010 and the stage protocol to S0009, as the Assignment says.
+   - Scope: the story stays within the feature's scope item "The acceptance stage" and decisions 5 to 8 and 22, and touches nothing in "Out of scope".
