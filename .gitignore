@@ -13,3 +13,6 @@ mutants/
 
 # The hosting token beside image/compose.yml (F0010, the human 2026-10-14)
 image/secrets/
+
+# Local copies of the session transcripts (the human, 2026-10-15)
+/session-logs/
