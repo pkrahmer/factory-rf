@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 105
 blocked: null
 comments_seen: 0
@@ -281,3 +281,4 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    I read the acceptance criteria again against this output. It agrees with criteria 1, 4, 5 and 6: archived stories, next free story number 4-digit and above the backlog's S0006, the three fact lines, the prompt joined with an empty line, the state type, stage, stories, empty journal, no claim, and the body. The demo contradicts no criterion. The criteria it does not exercise (opening on the remote, write paths, bill per acceptance, the handler) are left to the tests and the `make check` gate.
 
    No findings.
+10. done (pull request merged); cost: 8 runs, 19.0 min, 88 turns, 277k tokens in (2502k more from cache), 44k out, $3.37
