@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 106
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -138,3 +138,4 @@ Expect: two lines: `story F0001-S0001`, then `acceptance F0001-A0001`.
    - The architecture and the feature's scope hold.
 
    The format check passed.
+3. human (pull request comment, 2026-10-15): (a): add the criterion before the two closing ones, as you worded it. The fixtures can produce the rejected push deterministically: the hosting calls come between `check_out` and the record, so the test uses a subclass of `FakeHostingService` whose `set_description` first pushes a commit with changed text to `origin/<branch>` through `human.push_file` (as F0006-S0004's criterion 9 test races a human push), then calls the fake's own method. `handle` then raises `PushFailed`, and `handed_over` is not set on `origin/<branch>`. The Interface stays as it is.
