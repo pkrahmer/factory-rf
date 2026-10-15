@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 103
 blocked: null
 comments_seen: 0
@@ -175,3 +175,9 @@ Expect: two lines: `['stories', 'outcome']`, then `AcceptanceState True`.
       - Commit: `ticket F0009-S0001: feat(domain): the acceptance id, report file name and state`.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1-23 each have a test that checks what the criterion says (the tester's map in entry 3 is correct), and the coder's entry reports `make check` green. Every limit in the Interface is tested on both sides: numbers 0/1/9999/10000, A9998→A9999 and A9999 raising, a story id refused by `acceptance_file_name`, unsorted, repeated and ascending `stories`, an acceptance id in `stories`, `outcome` both without `done` and with it, an unknown key on a plain front matter and on an acceptance's, an invalid `stories` and an invalid `outcome` value named by their key. Criterion 23 builds the model through `type[BaseModel]` and assigns through `setattr` with the field name in a variable, as `CLAUDE.md` asks.
+      - Architecture: `src/factory/domain/acceptance.py` has no I/O and imports only the domain (`identifiers`, `pipeline_definition`, `work_item`). The adapter imports the domain, which the layer order allows. No `dict[str, Any]` crosses a function boundary.
+      - Security: no new markers, no secrets, no new commands or string-built queries. Input is still checked at the reader by Pydantic, and faults still go through `first_fault`.
+      - Quality: `src/factory/adapters/work_item_markdown.py` works out `_ACCEPTANCE_KEYS` from the two models' fields instead of listing them, which avoids a second list to keep in sync. The writer was left unchanged and already dumps `state.model_dump()`, as the Interface requires; criteria 18 and 20 prove it. `next_acceptance_id` goes through `acceptance_id`, so the 1-9999 range is checked in one place. The one-line `sorted(set(...))` check repeats the one on `comments_read` in `work_item.py`, but it is too small to count as a duplicated helper. Docstrings are present and accurate.
+      - Ticket hygiene: entry 4 states the main decision (picking the model by the front matter's keys) and the rejected alternative (one model with optional extra fields). The Assignment matches what was built. Criterion 25 still says what the project guide must state.
