@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 105
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The acceptance stage and the acceptance reviewer's facts
@@ -195,3 +195,9 @@ Expect: two lines: `AcceptanceState acceptance ['F0001-S0001', 'F0001-S0002'] []
    - Criterion 26 (docs) is the documenter's.
 
    `make check`: check: green
+5. reviewer: group 1 (acceptance criteria) passes. Criteria 1 to 24 each have a test that checks what the criterion says. The failing sides are tested: 9998 and 9999, a story id and an acceptance id as `next_story`, malformed ids, a 39-character commit, no acceptance stage, not due, a missing or untitled `feature.md`, a rejected push, no directory, the wrong kind and no feature. The coder's entry reports `make check` green. Group 2 (architecture) fails on the CLAUDE.md rule "Before writing a helper, search `src/factory` for one that does the same, and reuse or extend it; the reviewer counts a second copy of an existing helper as a finding". I stopped there, as the role says.
+
+   1. `src/factory/application/acceptance.py` `AcceptanceService._records` copies `BillService._records` in `src/factory/application/costs.py:152` line for line: `show_file` at a ref, then `[]` on `None`, otherwise `cost_reader.parse`. The coder noted it and left it, saying that changing `costs.py` was out of scope. CLAUDE.md says to extend the existing helper instead. Fix: move the sidecar read into one shared function in the application layer, for example a module-level `read_cost_records(git, cost_reader, ref, sidecar)` in `factory.application.costs`. Have `BillService` and `AcceptanceService.facts` both call it, and delete the copy.
+   2. `src/factory/application/acceptance.py` `AcceptanceService._feature_title` repeats the read in `BoardService._feature_title` in `src/factory/application/board.py:56`: the same path built from `FEATURES_DIRECTORY` and `FEATURE_FILE_NAME`, then `show_file` at `origin/main`, then `title`. Fix: extract one shared `feature_title(git, directory) -> str | None` that both use. `AcceptanceService` keeps only its own `WorkItemFormatError` handling for `None`. The missing file and the untitled file need to stay apart, so each gets its own message and both carry the path.
+
+   No other groups were reviewed in this round.
