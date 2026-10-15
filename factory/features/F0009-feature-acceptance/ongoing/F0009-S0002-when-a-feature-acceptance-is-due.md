@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 104
 blocked: null
 comments_seen: 0
@@ -210,3 +210,14 @@ Expect: one line: `['F0001-S0001', 'F0001-S0002']`.
    - `make check` takes over two minutes, so the tool's default timeout pushed my first run into the background.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: I read each of criteria 1–24 against its test in `tests/domain/test_acceptance_status.py` and `tests/application/test_acceptance_reading.py`. Every test exercises the criterion it is named after, and the rules have their failing sides as rows of one parametrized test: non-story names (2), a waiting story file in the backlog and in progress (5, 12), a report covering fewer and more stories (8), a branch report also on main (10), a branch with no report and a story branch (17), bad YAML and a plain work item's front matter (18), and `acceptance_stage` None (21, 22). Criterion 24 has the accepted and refused value for each typed field. The coder's entry records `make check` green.
+   - Architecture: the pure derivation is in `src/factory/domain/acceptance.py`. It imports only domain modules: `board`, `identifiers`, `paths`, `pipeline_definition` and `work_item`. The reader in `src/factory/application/acceptance_reading.py` uses only the `Git` interface (`list_files`, `show_file`, `remote_branches`) and only `origin/` refs. The rename of `_parsed` to the public `parse_at` (`src/factory/application/work_items.py:133`) reuses the helper instead of copying it.
+   - Security: no shell or string-built commands, no suppression markers, no secrets.
+   - Quality: `acceptance_status` follows the Interface's precedence exactly (`src/factory/domain/acceptance.py:510`). The highest covering id wins through `max` by id. Docstrings are present on the public names. The `_MAIN_REF` constant follows the per-module idiom already used in `board.py`, `tick.py`, `watcher.py` and `work_items.py`.
+   - Two defensive branches are left uncovered, and I'm not raising either as a finding:
+     - `acceptance_reading.py:155` skips another feature's acceptance branch. Without it, the branch's file would still be dropped, because the report's file name must carry that branch's id.
+     - `acceptance_reading.py:169` handles a listed file that is missing at the same ref. `show_file` returning `str | None` forces it, and it mirrors `RemoteWorkItems`.
+   - Rejected as a finding: the coder raises `WorkItemFormatError` for an unreadable report on a branch too, which the Interface leaves open. This matches `RemoteWorkItems`, and the log says so.
+   - Ticket hygiene: the log names the main decision (`on_branch` derived from the ref) and what it rejected. `Assignment` matches what was built. Criterion 26 still says what `docs/operator-guide.md` must explain: when an acceptance becomes due and the six statuses.
