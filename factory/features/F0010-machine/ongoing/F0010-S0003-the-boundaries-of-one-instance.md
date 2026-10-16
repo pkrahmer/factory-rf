@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 121
 blocked: null
 comments_seen: 2
@@ -203,3 +203,7 @@ Expect: one line, `/srv/agents claude None`.
 
    Refactor step: not done yet. It follows once `make check` is green.
 5. human (pull request comment, 2026-10-16): (a): the tester changes the request in `test_the_built_agent_runtime_keeps_its_run_files_under_runs` to `allowed_decisions=["doing", "question"]` and changes nothing else; the domain rule stays. End with `tests` and name exactly that change.
+6. coder: The human answered in entry 5, so this round makes no code change and sends the ticket back to the tester.
+   - Test change, exactly as the human worded it: in `tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_keeps_its_run_files_under_runs`, change the `AgentRunRequest` to use `allowed_decisions=["doing", "question"]` instead of `["doing"]`. Change nothing else. The domain rule in `factory/domain/agent_runs.py` stays as it is.
+   - The implementation is already committed in da206a3. When the tester returns the ticket, I will run `make check`, do the refactor step and hand the ticket to review.
+   - `## Assignment` is unchanged, because the answer does not change what the task means.
