@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 122
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -183,3 +183,6 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
       (c) Drop the instance check from this test.
 
    Refactor step: not done yet. It comes after the tests are fixed and `make check` is green.
+5. human (pull request comment, 2026-10-16): 1 (a): the test installs the agents with `install_agents` and queues an agent runtime run that raises inside the handler, so each tick dispatches and the error count grows across the calls; the loader stays as it is.
+   2 (a): the test reads the instance from the claim commit (the first factory commit on the branch after the start), not from the tip, where a completed stage has released its claim; the instance check stays.
+   The tester makes both changes and nothing else. End with `tests` and name exactly these two changes.
