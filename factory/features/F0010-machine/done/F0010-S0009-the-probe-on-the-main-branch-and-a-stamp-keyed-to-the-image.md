@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 127
 blocked: null
 comments_seen: 0
@@ -253,3 +253,4 @@ Expect: one line, `lint 600.0`.
    Exit 0. This matches the expected line, `lint 600.0`. It agrees with the Interface (`PROBE_COMMAND = "lint"`, `PROBE_TIME_LIMIT` = 10 minutes) and with criterion 19.
 
    I read the acceptance criteria again, and nothing in either output contradicts any of them. The demo only touches the stamp store and the constants. The behaviour of `Preflight.run` (criteria 1–20) is not part of the demo; the tests listed in entry 3 cover it.
+8. done (pull request merged); cost: 6 runs, 17.9 min, 56 turns, 200k tokens in (1573k more from cache), 39k out, $2.41
