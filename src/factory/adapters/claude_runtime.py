@@ -288,9 +288,9 @@ def _sudo_line(stderr: str) -> str | None:
 
 
 def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
-    if request.os_user is None or process.timed_out:
+    if request.os_user is None:
         return None
-    if _parse_reply(process.stdout) is not None:
+    if _parse_reply(process.stdout) is not None and not process.timed_out:
         return None
     return _sudo_line(process.stderr)
 
