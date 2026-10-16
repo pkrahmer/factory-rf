@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 128
 blocked: null
 comments_seen: 0
@@ -120,3 +120,28 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
    Noticed, not touched: `Tick` and `build_preflight` each create their own `StopService(boundaries)`. That is harmless because the service only holds the boundaries.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   What I checked in `git diff main...HEAD -- . ':!factory'`:
+   - Criteria: the tester's mapping holds, and each test checks what its criterion says.
+     - Criterion 1: `BROKEN` is fetched, then removed on the remote, before the tick runs.
+     - Criterion 2: a break pushed after the clone gives `main_branch_failing`, and the stop is in the health status.
+     - Criterion 3: no agent request, no pull request and `event is None`, with a started story waiting.
+     - Criterion 4: F0001-S0001 is in the remote's backlog (`tests/git_support.py`), so `delete_stale_branches` would really delete `work-item/F0001-S0001` if the tick reached the cleanup. The test is not vacuous.
+     - Criterion 5: `preflight-stamp.json` holds `settings.image`.
+     - Criterion 6: the machine stop `preflight_failed` is in the health status.
+     - Criterion 7: both sides are tested: the invalid definition with no `preflight_failed` stop, and the log line for `notes.txt`.
+     - `preflight=None` is unchanged, and the existing tick tests cover it.
+     - The coder's entry says the factory's `make check` was green.
+     - The change to `tests/entry/test_wiring_run.py` is limited to the one test that decision 28 names, with the `which`, the `pinned_agent_version`, the state directory and the `Makefile` it asks for.
+   - Architecture:
+     - `Tick` imports only from `factory.application`.
+     - `JsonPreflightStampFile` and `StopService` are wired only in `factory.entry.wiring`.
+     - `build_preflight` and `build_tick` match the Interface, including the `shutil.which` default, so `entry/run.py` did not need to change.
+   - Security: no new markers, secrets or command strings.
+   - Quality:
+     - `Tick._run_preflight` turns the returned reason into the tick's existing `_Stopped`.
+     - `Preflight.run` raises and clears its own stops (`src/factory/application/preflight.py:151`), so the tick does not duplicate them.
+     - The docstrings are current.
+     - Small `which` stand-ins are copied across test modules. Existing tests already do the same (`DictionaryWhich`, `RecordingWhich`), so I did not count it as a finding.
+   - Ticket hygiene: the log states the main decision and what was rejected, the Assignment matches what was built, and criterion 9 names what the documenter must write.
