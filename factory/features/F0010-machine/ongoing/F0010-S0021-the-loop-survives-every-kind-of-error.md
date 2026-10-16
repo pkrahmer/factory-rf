@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 139
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The loop survives every kind of error
 
 <!-- proposed by feature acceptance of 2026-10-16; refine before promoting -->
@@ -45,3 +53,64 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: no new names; it pins the behaviour of `Scheduler(...).run()` (`src/factory/application/scheduler.py`, handler at line 69 is `except Exception` logging `iteration failed: <type>: <error>`). The four log lines are concrete, and I checked that `AgentRuntimeError`'s message ("agent runtime failed: ...") matches the Interface. The `Loop` recorder in `tests/application/test_scheduler.py` exists and scripts outcomes.
+   - Criteria: 1 and 2 are each testable by one parametrized test (four exceptions × raising side), with exact log line, call order and sleeps (30 then 15). The failing side (BaseException not caught) is already pinned by an existing test, which the Interface names. Criteria 3 and 4 are the closing ones.
+   - Demo: the pytest command is runnable. Its Expect line (`26 passed`) is checkable; I did not recount the 18 existing parametrized tests, and the module has 12 test functions.
+   - Architecture: tests only, in the application layer's test folder; no layering concern.
+   - Scope: inside F0010 (the loop and its pauses, decision 4); the story is listed in FEATURE.md as S0021.
+3. tester: wrote the eight rows of criteria 1 and 2 as one parametrized test in `tests/application/test_scheduler.py`. It uses the module's existing `Loop` recorder.
+   - criterion 1: tests/application/test_scheduler.py::test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle, rows with `raising_side="tick"` (prepares `[]`, ticks `[error, True]`). Each row checks that `run` raises nothing, the log holds exactly the Interface's line, calls are `prepare, tick, sleep, prepare, tick, sleep`, and sleeps are `[30.0, 15.0]`.
+   - criterion 2: the same test, rows with `raising_side="prepare"` (prepares `[error, True]`, ticks `[True]`). Calls are `prepare, sleep, prepare, tick, sleep`, so the first iteration has no tick. Sleeps are `[30.0, 15.0]`.
+   - The errors are a second parameter, `_LOOP_ERRORS`: `GitError("git fetch", 128, "boom")`, `OSError("boom")`, `AgentRuntimeError("boom")` and `RuntimeError("boom")`, each paired with its exact log line. Each loop stops after its second sleep (`count("sleep") >= 2`), as the Interface says.
+   - criteria 3 and 4: no test. Criterion 3 is the factory's `make check`; criterion 4 is docs: none.
+   Files: only `tests/application/test_scheduler.py` changed, with the new test and `AgentRuntimeError` added to the existing `factory.domain.errors` import. No file was created, and every module imported fine.
+   Red/green: these tests are not red. The story says the code already behaves this way (`except Exception` in `Scheduler._iterate`), and `make test` was green with 99.54 % coverage. The demo command showed 26 tests in the module passing, which matches the Demo's Expect. `make lint` is green.
+   Open: nothing. The coder is expected to change nothing in `src/`; a mutation that narrows the handler to `except ValueError` would now fail the GitError, OSError, AgentRuntimeError and RuntimeError rows.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: no change to `src/`, as the Assignment expected. `Scheduler._iterate` (`src/factory/application/scheduler.py`) already wraps `prepare` and `tick` in `except Exception` and logs `iteration failed: <type>: <error>`. All eight rows of the tester's `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle` pass against it.
+      - Verified: `uv run pytest tests/application/test_scheduler.py` passes all 26 tests in the module, which matches the Demo's Expect. `make check` is green, with total coverage 99.54 %.
+      - Refactor: none, because there is no diff outside `tests/` and `factory/`.
+      - Rejected: narrowing or restructuring the handler. The rule is "any `Exception`", and the existing `BaseException` test pins the other side.
+      - Commits: none. The working tree was already clean on the tester's commit.
+      - Open: nothing.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: the diff touches only `tests/application/test_scheduler.py`: one new parametrized test, `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle`, and `AgentRuntimeError` added to the existing import. `src/` is unchanged, as the Assignment expected.
+      - Criteria 1 and 2: these are the eight rows (four errors × `raising_side`) of one test, as criterion 2 requires, built on the module's existing `Loop` recorder. Each row:
+        - checks the exact log line from the Interface for its error;
+        - checks the full call order, so a failed `prepare` is followed by no `tick` in that iteration;
+        - checks the sleeps `[30.0, 15.0]`;
+        - stops after the second sleep.
+        `run` raising nothing is covered because the test reaches its asserts. I read the scripted outcomes against `Scheduler._iterate` and `run` in `src/factory/application/scheduler.py`, and the expected calls and sleeps follow from them.
+      - The refused side: the existing `test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged` still pins it (a `BaseException` that is not an `Exception` leaves the loop). Narrowing the handler to `except ValueError` would now fail every row of the new test, which closes the gap the feature acceptance found.
+      - Checks: the coder's entry records `make check` green, with 99.54 % coverage.
+      - Architecture, security, quality: tests only, no new helper, names say what they are.
+      - Hygiene: the Assignment matches what was built. "docs: none" is right, because the operator guide already states the rule.
+6. documenter: none, as the docs criterion says. I changed no file.
+   - Diff: only `tests/application/test_scheduler.py` (one parametrized test); `src/` is unchanged.
+   - Cross-read: `docs/operator-guide.md`, "The loop and its pauses" (lines 44 and 46). It says that a failing preparation or tick counts as idle, that the failure is one log line `iteration failed: <exception type>: <message>`, and that the loop goes on. This matches `Scheduler._iterate` and the pinned tests, so it is current.
+   - `make check` is green (total coverage 99.54 %). I ran it once and it exceeded the tool's 120 s timeout, so the tool moved it to the background by itself. I read its finished output, which ended `check: green`.
+   - Stale text seen but not touched: none.
+   - Findings: none.
+
+   `make check`: check: green
+7. demo: accepted, no findings.
+
+   Command 1: `uv run pytest --no-header -p no:cacheprovider tests/application/test_scheduler.py`
+   ```
+   ..........................                                               [100%]
+   26 passed in 6.40s
+   ```
+   It met its `Expect:` line. The last line is `26 passed in <time>`.
+
+   Cross-check against the acceptance criteria:
+   - `-k every_kind` selects 8 tests and all 8 pass. These are the four errors × `raising_side` rows of `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle` in `tests/application/test_scheduler.py`. That is one parametrized test, as criterion 2 requires.
+   - Criteria 1 and 2: each row checks the exact log line from the Interface, the call order (no tick after a failed prepare) and the sleeps `[30.0, 15.0]`. The loop stops after its second sleep.
+   - The refused side is still pinned by `test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged`.
+   - Criterion 3 (`make check`) is the factory's to run after this stage. Criterion 4 is docs: none.
+
+   The demo contradicts no criterion. Open: nothing.

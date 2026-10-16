@@ -10,7 +10,7 @@ import pytest
 from factory.adapters.git_cli import GitCli
 from factory.application.machine import FactoryLog
 from factory.application.scheduler import CheckoutPreparer, Scheduler, pause_after
-from factory.domain.errors import GitError
+from factory.domain.errors import AgentRuntimeError, GitError
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import InjectedKill, KillPoint
 from factory.domain.settings import InstanceSettings
@@ -151,6 +151,42 @@ def test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged() -> None:
     with pytest.raises(InjectedKill):
         loop.run(lambda _: False)
     assert loop.log.lines == []
+
+
+_LOOP_ERRORS = [
+    (
+        GitError("git fetch", 128, "boom"),
+        "iteration failed: GitError: git fetch failed (exit 128): boom",
+    ),
+    (OSError("boom"), "iteration failed: OSError: boom"),
+    (
+        AgentRuntimeError("boom"),
+        "iteration failed: AgentRuntimeError: agent runtime failed: boom",
+    ),
+    (RuntimeError("boom"), "iteration failed: RuntimeError: boom"),
+]
+
+
+@pytest.mark.parametrize(
+    ("raising_side", "calls"),
+    [
+        ("tick", ["prepare", "tick", "sleep", "prepare", "tick", "sleep"]),
+        ("prepare", ["prepare", "sleep", "prepare", "tick", "sleep"]),
+    ],
+)
+@pytest.mark.parametrize(("error", "line"), _LOOP_ERRORS)
+def test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle(
+    raising_side: str, calls: list[str], error: Exception, line: str
+) -> None:
+    first_fails: list[Outcome] = [error, True]
+    if raising_side == "tick":
+        loop = Loop(prepares=[], ticks=first_fails)
+    else:
+        loop = Loop(prepares=first_fails, ticks=[True])
+    loop.run(lambda loop: loop.count("sleep") >= 2)
+    assert loop.log.lines == [line]
+    assert loop.calls == calls
+    assert loop.sleeps == [30.0, 15.0]
 
 
 def _settings(remote: Path, checkout: Path) -> InstanceSettings:
