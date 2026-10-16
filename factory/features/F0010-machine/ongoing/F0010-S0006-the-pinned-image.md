@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 124
 blocked: null
 comments_seen: 2
@@ -342,3 +342,36 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
     Findings: none. Nothing stale seen that is unrelated to this story.
 
     `make check`: check: green
+13. demo: I ran the three `## Demo` commands from the repository root in order. All three met their `Expect:` lines.
+
+    1. Base image digest and the only `FROM`:
+    ```
+    True
+    True
+    ```
+    Met: `ARG BASE_IMAGE` is a name with `@sha256:` and 64 hex digits, and the only `FROM` is `${BASE_IMAGE}`.
+
+    2. Installed versions against `uv.lock`:
+    ```
+    True
+    ```
+    Met: the installed versions of pydantic, pygithub, ruamel-yaml and python-frontmatter equal the locked ones.
+
+    3. Length of the uuid the image identity uses:
+    ```
+    37
+    ```
+    Met: 36 characters and a newline.
+
+    I also read `image/Dockerfile` and `pyproject.toml` against the acceptance criteria, and the demo contradicts none of them:
+    - The image id is written after the last `COPY` and before the only `USER factory`, which comes after the last `RUN` and `COPY` (criteria 12 and 14).
+    - `FACTORY_IMAGE` is used by the `LABEL` only, with no `ENV` copy (11).
+    - `DISABLE_AUTOUPDATER=1` and `FACTORY_CLAUDE_VERSION=${CLAUDE_CODE_VERSION}` are set (6, 13).
+    - Claude Code is installed with `npm install` of `@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}`, default 2.1.289 (5).
+    - All eight apt packages are written `name=version` (placeholder `0~unpinned`), and `pip install uv==${UV_VERSION}` is pinned (7, 8).
+    - `uv sync --frozen --no-dev` comes after `pyproject.toml` and `uv.lock` are copied in (9).
+    - Users, groups and modes match criteria 14 to 17: `/state` is 0755 `factory:factory`, `/state/runs` is 2750 `factory:factory-work`, `/work` and `/home/agent/.claude` are 2775.
+    - `[build-system] requires` is `hatchling==1.32.4` (21).
+    - `template/` does not exist yet, so criterion 20 holds trivially.
+
+    Not checked here: a real image build (ST5.1) stays a morning observation, as the ticket says. The digest and the package versions are placeholders the human replaces before the first build. No findings.
