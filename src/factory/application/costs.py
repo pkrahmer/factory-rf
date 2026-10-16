@@ -59,6 +59,7 @@ class CostRecorder:
             attempt=state.attempts,
             status="started",
             started_at=self._boundaries.clock.now(),
+            image=self._image(),
         )
         run = CostRun(path=path, run=record.run, records=[*earlier, record])
         self.write(run)
@@ -73,6 +74,10 @@ class CostRecorder:
         completed = run.model_copy(update={"records": records})
         self.write(completed)
         return completed
+
+    def _image(self) -> str | None:
+        settings = self._boundaries.settings
+        return None if settings is None else settings.image
 
     def write(self, run: CostRun) -> None:
         """Write the records of `run` to its sidecar, replacing whatever the file held."""
