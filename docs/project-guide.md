@@ -200,7 +200,7 @@ Who uses them: a stall or a crash reverts or resets (F0004, F0005, F0008); the t
 | `status`, `reset_to` | F0006: the tick looks at the checkout and resets it to the remote |
 | `reset_to` | also F0004, F0005 and F0008: a stall or a crash |
 | `delete_remote_branch`, `delete_branch`, `move` | F0007: a merge or a discard |
-| `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and first writes; no story names a single user yet, they are the building blocks of the tick, the stages and the claim |
+| `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and writes, used by the tick, the stages and the claim, and `clone` by the checkout preparer |
 
 Identity: every call also sets `GIT_AUTHOR_NAME`, `GIT_COMMITTER_NAME`, `GIT_AUTHOR_EMAIL` and `GIT_COMMITTER_EMAIL` from `options.identity`, over the process environment and `options.environment`. No user or system configuration can change it, and `commit.gpgsign` is ignored. The wiring fills `identity` from `GIT_USER_NAME` and `GIT_USER_EMAIL`; a `GitCli` built without options commits as `factory <factory@noreply.invalid>`.
 

@@ -49,6 +49,7 @@ One pinned container runs one project and keeps its own faults visible. The proj
 - S0020 — No git commit in the shipped settings (proposed by the feature acceptance)
 - S0021 — The loop survives every kind of error (proposed by the feature acceptance)
 - S0022 — A timed-out run as the agent user (proposed by the feature acceptance)
+- S0024 — A sudo line starts at column 0 (proposed by the second feature acceptance; its S0023, documentation only, was applied by hand)
 
 ## Decisions taken for the human
 
@@ -89,3 +90,4 @@ One pinned container runs one project and keeps its own faults visible. The proj
 35. A repository URL with a password is refused (`SettingsInvalid` naming `FACTORY_REPOSITORY_URL`): git would keep it in the shared checkout's `.git/config`, which the agent can read (finding 52, the human, 2026-10-14). (S0001, story text)
 36. The general rows of `planning/lessons-for-the-skills.md` go into the shipped agents as a last section `## Lessons` of their own, after v1's renamed texts, each in the roles that apply it; `planning/v1-texts/` stays an unchanged copy for Q29's comparison (the human, 2026-10-14). (S0017, story text)
 37. The human's leave, given by promoting the drafts S0020 and S0022 (recorded by the session for the human, 2026-10-16, for the human to confirm): two more test changes beyond the five of decision 28, each made by the story's tester in the tests stage. (6) S0020 changes the two lists of F0010-S0012's `tests/test_claude_files.py::SETTINGS`: `allow` drops `Bash(git add *)` and `Bash(git commit *)`, `deny` gains `Bash(git add*)` and `Bash(git commit*)` after `Bash(git branch -D*)`; nothing else in that file changes. (7) S0022 adds the field `stdout_before_wait: str = ""` to `Step` in F0001's `tests/adapters/claude_stand_in.py`, written to standard output and flushed before the wait; nothing else in that file changes. (S0020, S0022, story text)
+38. The human's leave, given by promoting the draft S0024 (recorded by the session for the human, 2026-10-16, for the human to confirm): S0024's tester replaces F0010-S0014's `test_a_sudo_refusal_is_a_runtime_error_naming_its_line` in `tests/adapters/test_claude_runtime_os_user.py` with one parametrized test whose first row is that test's case, so that the sides of the column-0 rule are rows of one test. (S0024, story text)

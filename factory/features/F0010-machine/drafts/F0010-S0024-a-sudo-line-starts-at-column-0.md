@@ -17,13 +17,13 @@ No new or changed names in `src/`. The behaviour pinned is that of `ClaudeCodeRu
 - When standard error holds a line that starts with `sudo:` at column 0, `run` raises `AgentRuntimeError`, and its `detail` holds that line.
 - When the only `sudo:` on standard error is inside a line (`bash: sudo: command not found`) or after leading whitespace (`  sudo: a password is required`), `run` returns a result with `end_reason == "died"` and raises nothing.
 
-The test goes in `tests/adapters/test_claude_runtime_os_user.py`, built from its `_write_sudo`, `_runtime` and `_request`. The existing tests stay as they are.
+The test goes in `tests/adapters/test_claude_runtime_os_user.py`, built from its `_write_sudo`, `_runtime` and `_request`. It replaces F0010-S0014's `test_a_sudo_refusal_is_a_runtime_error_naming_its_line`, whose case is criterion 1's row (FEATURE decision 38); the other tests stay as they are.
 
 ## Acceptance criteria
 
 1. A call as `agent` whose `sudo` stand-in writes `sudo: a password is required` at column 0 and exits 1 raises `AgentRuntimeError`, and its `detail` contains `sudo: a password is required`.
 2. The same call with `bash: sudo: command not found` instead ends with `end_reason == "died"` and raises nothing.
-3. The same call with `  sudo: a password is required` (two leading spaces) instead ends with `end_reason == "died"` and raises nothing. Criteria 1 to 3 are the three rows of one parametrized test.
+3. The same call with `  sudo: a password is required` (two leading spaces) instead ends with `end_reason == "died"` and raises nothing. Criteria 1 to 3 are the three rows of one parametrized test, which replaces `test_a_sudo_refusal_is_a_runtime_error_naming_its_line`.
 4. `make check` stays green.
 5. docs: none. `docs/operator-guide.md` ("a line that starts `sudo:`") and `docs/project-guide.md` already state the rule.
 
@@ -32,7 +32,7 @@ The test goes in `tests/adapters/test_claude_runtime_os_user.py`, built from its
 ```bash
 uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_os_user.py
 ```
-Expect: the last line is `13 passed in <time>`: the 10 tests before this story and the three rows of criteria 1 to 3.
+Expect: the last line is `12 passed in <time>`: the 9 tests before this story that stay, and the three rows of criteria 1 to 3.
 
 ## Log (append only)
 

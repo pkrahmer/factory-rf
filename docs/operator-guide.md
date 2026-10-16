@@ -41,7 +41,7 @@ Install v1.1 only on a repository v1 has not worked in, or whose v1 work items a
 
 ## The loop and its pauses
 
-An instance repeats one iteration: it prepares the checkout, then makes one tick. The first iteration of a run happens at once, so a restart with the same instance name does not wait out a pause. Only a tick that handled an event other than `idle` counts as activity: a standing stop, a capped event and an error are idle, so the pause keeps growing while nothing changes. The first iteration is idle whatever the tick found, so the first pause is 30 seconds. One tick object serves the whole run, which keeps its error counts in memory from one iteration to the next; a restart starts them again.
+An instance repeats one iteration: it prepares the checkout, then makes one tick. The first iteration of a run happens at once, so a restart with the same instance name does not wait out a pause. Only a tick that handled an event other than `idle` counts as activity: a standing stop, a capped event and an error are idle, so the pause keeps growing while nothing changes. The first iteration follows the same rule: the pause after it is 15 seconds when its tick handled an event other than `idle`, and 30 seconds when it was idle. One tick object serves the whole run, which keeps its error counts in memory from one iteration to the next; a restart starts them again.
 
 After an iteration the instance pauses 15 seconds when the tick found activity. Each idle tick in a row doubles the pause (15, 30, 60 seconds) up to 120 seconds, and the next activity brings it back to 15 seconds. An iteration whose preparation or tick fails counts as idle. The failure is one line in the factory log, `iteration failed: <exception type>: <message>`, and the loop goes on.
 
