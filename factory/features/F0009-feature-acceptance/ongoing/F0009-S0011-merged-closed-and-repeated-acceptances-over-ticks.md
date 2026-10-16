@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 113
 blocked: null
 comments_seen: 4
@@ -127,3 +127,9 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: I made no code changes. The tester changed the annotation of `AcceptanceWalk.kinds` as the human decided in entry 7 (entry 9). `make check` now passes from start to finish, including `make types`, which failed before; coverage is 99.53 %. All thirteen walks in `tests/application/test_acceptance_ticks_{merged,repeated,closed}.py` passed without any change to `src`. The work is done by the handlers of S0003 to S0007, the reading of S0008 and the registration of S0010, which the Interface allows ("a walk that is green at once is a pass").
+       - Design decision: leave `src` untouched. I rejected adjusting `EventKind` or any handler to fit the test helper, because no walk shows wrong behaviour.
+       - Refactor: there is no diff outside `factory/` and `tests/`, so there is nothing to refactor.
+       - Open: criterion 15 (the docs in `docs/operator-guide.md` and `docs/decisions.md`) is the documenter's.
+
+    `make check`: check: green
