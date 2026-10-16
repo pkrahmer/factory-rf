@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 124
 blocked: null
 comments_seen: 0
@@ -194,3 +194,20 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
 
    `make lint`: lint: green
    `make test`: ERROR tests/test_image.py::test_the_shared_directories_are_writable_by_the_work_group[/home/agent/.claude]
+4. coder: Wrote the pinned image and put the image on every cost record. `make check` is green.
+
+   What I built:
+   - `image/Dockerfile`: the Interface's instructions, in its order, plus a few why-comments. They say that the digest and the Debian versions are placeholders and that `FACTORY_IMAGE` is only a label. They also explain the fresh id per build and why `/state` and `/state/runs` differ.
+   - `src/factory/application/costs.py`: `CostRecorder.begin` now sets `image` from a private `_image()`. It returns `boundaries.settings.image`, or `None` when there are no settings. `_completed` already copies the record's fields, so a completed record keeps the image.
+
+   Design decision: I put the settings lookup in a small private method on `CostRecorder`. The rejected alternative was an inline conditional expression in the `CostRecord(...)` call, which is harder to read.
+
+   Refactor: I read my diff (51 lines over 2 files) and found nothing to change, so there is no refactor commit.
+
+   Not touched:
+   - The Dockerfile copies `claude/`, `template/` and `image/entrypoint.sh`, which later stories create. A real build needs them, and it needs the placeholder digest and the eight `0~unpinned` versions replaced. The build itself is the morning observation.
+   - The docs criterion (23) is the documenter's.
+
+   Commit: `ticket F0010-S0006: feat(image): pin the machine's image and record it on cost records`.
+
+   `make check`: check: green
