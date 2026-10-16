@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 117
 blocked: null
 comments_seen: 0
@@ -77,3 +77,11 @@ Expect: the last line is `<n> passed in <time>`, with n at least 9 (five rows of
       I made no commit, because there was no code to change. Refactor: nothing to do, since the diff against main (`git diff main...HEAD -- . ':!factory'`) holds only the tester's two test files. I rejected touching `src/` "for symmetry": the assignment says to change code only if a test fails, and none does. Open: criterion 6 (a line in the operator guide saying a story file counts only directly in `backlog/`, `in-progress/` or `done/`) is the documenter's job. `make check`: every gate is green (lint, types, layers, sast, secrets, licenses, test), with 99.53 % coverage.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` holds only the tester's two new test modules, `tests/application/test_acceptance_refusals.py` and `tests/domain/test_acceptance_facts_limit.py`. Nothing in `src/` changed, which is what the assignment expected. No existing test changed.
+      - Criterion 1: `test_only_a_due_feature_is_opened` has five rows. The four refusing rows check `CannotHandle` with kind `acceptance_due` and the exact reason. The `due` row checks that `open` returns `F0002-A0001` and that its branch exists on the remote. The indirect fixture `brought` brings F0002 into each status the way the Interface describes and checks the status with `walk.status()` before `open` runs, so every row tests the status it is named after.
+      - Criterion 2: `test_a_refused_opening_leaves_every_remote_branch_as_it_was` compares `for-each-ref refs/heads` on the bare remote before and after the call, which covers both "no new branch" and "every branch at its commit". It also checks that `work-item/F0002-A0002` does not exist.
+      - Criterion 3: two rows. The `done/old/` row would turn `due` if the "directly" rule were dropped, and the `backlog/old/` row would turn `incomplete`. Both sides of the rule are held, and the test checks `feature_files(...).done` as well.
+      - Criterion 4: the 9998 row and the 9999 row are rows of one test. The 9999 row checks `type(...) is ValueError` and the exact message, so a pydantic `ValidationError` from a limit moved by one now fails the test.
+      - Checks: according to the coder's entry, the factory's `make check` after the coder was green, with 99.53 % coverage. The tests follow the conventions in `CLAUDE.md`: shared setup is a fixture, the sides of one rule are parametrized rows, git is real, and there is no `type: ignore` and no silencing marker.
+      - Ticket hygiene: `Assignment` matches what was built. The coder's entry says why `src/` was not touched. Criterion 6 is still correct and is open for the documenter: the operator guide's "When a feature acceptance is due" should say that a story file counts only directly in `backlog/`, `in-progress/` or `done/`.
