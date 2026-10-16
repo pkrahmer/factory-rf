@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 141
 blocked: null
 comments_seen: 0
@@ -86,3 +86,10 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: nothing built, on purpose.
+      - The story is documentation only. The Interface says "No code", and the files that change (`README.md`, `docs/operator-guide.md`, `docs/project-guide.md`) belong to the documenter. Under `CLAUDE.md` ("the coder does not write them"), I left them alone.
+      - No commits on this branch from me. There was no diff to refactor, so I skipped the refactor step.
+      - Noticed but did not touch: the documenter will need to make every edit listed in the docs criterion and the Demo greps, including the new `os_user` paragraph in "The `claude -p` runtime".
+      - `make check`: green (coverage 99.54 %).
+
+   `make check`: check: green
