@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 129
 blocked: null
 comments_seen: 0
 round: 0
@@ -92,3 +92,9 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/agent_runs.py` constants, `adapters/agent_files.py` reader, `application/pipeline_loading.py` loader, `application/tick.py` `Tick._load`, `entry/watch.py` `run_watch`) and states the error's name, key, fault and message, the check order, case-sensitivity and the stop's detail format.
+   - Criteria: 20 criteria, each testable by one test function. Every Interface rule has its failing side. Unapplied keys are refused (3, 4). The unapplied key takes precedence over a missing model or a bad budget (6, 7). The first key in file order is named (5, 9). The other checks come first (10). Other refs touch no stop (14). Files with only applied keys are read (2). Success clears the stop (12, 17). The earlier `pipeline_definition_invalid` is cleared (13). Criterion 3 says "first six" but lists seven keys; the list is explicit, so I did not treat it as a finding.
+   - Demo: both blocks are runnable with `uv run python -c`, and each `Expect:` line is an exact output line that can be checked.
+   - Architecture: the constants are in domain, the file reader is in adapters, the loader and tick are in application, and `run_watch` is in entry. Layer direction holds, and the reader replaces its private tuple with the domain constant.
+   - Scope: within the feature's scope ("Agent files without dead keys, refused at load as a reported stop raised by the pipeline loader"). The shipped agents and SI4.2 are left to S0012, which matches Out of scope. The deletion of F0003's `colour` test is covered by FEATURE.md decision 28(1).
