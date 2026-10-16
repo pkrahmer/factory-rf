@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 119
 blocked: null
 comments_seen: 0
@@ -153,3 +153,24 @@ Expect: one line, `factory Ann`.
    - No findings. The code matches the Interface and the criteria. Noted in the decision log as open items, not edited: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path. The default identity is also spelled in `GitOptions` (`domain/git.py`).
 
    `make check`: check: green
+7. demo: ran both commands under `## Demo` from the repository root, in order. Both matched their `Expect:` lines and there are no findings.
+
+   1. The settings from the two required variables:
+      ```
+      factory-1 /srv/project.git /work/checkout /state
+      ```
+      (exit 0) Met: one line, `factory-1 /srv/project.git /work/checkout /state`.
+
+   2. The default commit name and the name from `GIT_USER_NAME`:
+      ```
+      factory Ann
+      ```
+      (exit 0) Met: one line, `factory Ann`.
+
+   Against the acceptance criteria:
+   - The first command shows the instance name, the repository URL, `/work/checkout` and `/state` read from the two required variables (criteria 1 and 5).
+   - The second shows the default name `factory`, and `Ann` when `GIT_USER_NAME` is set (criteria 1, 7 and 8).
+   - No output contradicts any other criterion.
+   - The demo does not exercise the refused cases (criteria 2–4, 10, 12, 13, 15). Those are covered by the tests the reviewer read against their criteria.
+
+   Still open, as earlier entries noted: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path, and the story does not decide that case.
