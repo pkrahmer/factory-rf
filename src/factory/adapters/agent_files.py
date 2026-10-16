@@ -8,7 +8,7 @@ from pydantic import TypeAdapter, ValidationError
 from factory.adapters.validation_faults import first_error, first_fault
 from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 from factory.application.agent_runtime import AgentDefinitionReader
-from factory.domain.agent_runs import AgentDefinition
+from factory.domain.agent_runs import APPLIED_AGENT_KEYS, KEY_NOT_APPLIED, AgentDefinition
 from factory.domain.errors import (
     AgentDefinitionError,
     AgentDefinitionInvalid,
@@ -17,8 +17,6 @@ from factory.domain.errors import (
 )
 from factory.domain.identifiers import Name
 
-# Which other keys the agent runtime applies is not decided yet; until then they are left aside.
-_INTERPRETED_KEYS = ("model", "tools", "effort", "budget_usd")
 _BUDGET_KEY = "budget_usd"
 _AGENT_SUFFIX = ".md"
 _NAME = TypeAdapter(Name)
@@ -38,6 +36,13 @@ def _invalid(name: str, error: ValidationError) -> AgentDefinitionInvalid:
     if key == _BUDGET_KEY and details["type"] != "missing":
         return AgentDefinitionInvalid(name, f"{_BUDGET_KEY} must be greater than 0", key)
     return AgentDefinitionInvalid(name, first_fault(error, "agent"), key)
+
+
+def _refuse_unapplied_keys(name: str, values: dict[str, object]) -> None:
+    # Before validation: a dead key is the fault to fix even when an applied key is wrong too.
+    for key in values:
+        if key not in APPLIED_AGENT_KEYS:
+            raise AgentDefinitionInvalid(name, f"{KEY_NOT_APPLIED}: {key}", key)
 
 
 class FrontmatterAgentDefinitionReader(AgentDefinitionReader):
@@ -71,10 +76,10 @@ class FrontmatterAgentDefinitionReader(AgentDefinitionReader):
         except (OSError, UnicodeDecodeError) as error:
             raise AgentDefinitionInvalid(name, f"cannot read: {error}", "") from error
         values, instructions = self._front_matter_and_body(name, text)
-        interpreted = {key: values[key] for key in _INTERPRETED_KEYS if key in values}
+        _refuse_unapplied_keys(name, values)
         try:
             return AgentDefinition.model_validate(
-                {**interpreted, "name": name, "instructions": instructions}
+                {**values, "name": name, "instructions": instructions}
             )
         except ValidationError as error:
             raise _invalid(name, error) from error

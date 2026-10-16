@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 129
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Agent files with no dead keys
 
 ## Assignment (as of log entry 1)
@@ -84,3 +92,120 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/agent_runs.py` constants, `adapters/agent_files.py` reader, `application/pipeline_loading.py` loader, `application/tick.py` `Tick._load`, `entry/watch.py` `run_watch`) and states the error's name, key, fault and message, the check order, case-sensitivity and the stop's detail format.
+   - Criteria: 20 criteria, each testable by one test function. Every Interface rule has its failing side. Unapplied keys are refused (3, 4). The unapplied key takes precedence over a missing model or a bad budget (6, 7). The first key in file order is named (5, 9). The other checks come first (10). Other refs touch no stop (14). Files with only applied keys are read (2). Success clears the stop (12, 17). The earlier `pipeline_definition_invalid` is cleared (13). Criterion 3 says "first six" but lists seven keys; the list is explicit, so I did not treat it as a finding.
+   - Demo: both blocks are runnable with `uv run python -c`, and each `Expect:` line is an exact output line that can be checked.
+   - Architecture: the constants are in domain, the file reader is in adapters, the loader and tick are in application, and `run_watch` is in entry. Layer direction holds, and the reader replaces its private tuple with the domain constant.
+   - Scope: within the feature's scope ("Agent files without dead keys, refused at load as a reported stop raised by the pipeline loader"). The shipped agents and SI4.2 are left to S0012, which matches Out of scope. The deletion of F0003's `colour` test is covered by FEATURE.md decision 28(1).
+3. tester: Wrote red tests for criteria 1–18. Criteria 19 and 20 are the check and docs criteria, so no test covers them.
+
+   - criterion 1: tests/adapters/test_agent_file_keys.py::test_the_applied_keys_are_model_tools_effort_and_budget (it also checks the text of `KEY_NOT_APPLIED`)
+   - criterion 2: tests/adapters/test_agent_file_keys.py::test_a_file_with_only_applied_keys_is_read
+   - criterion 3: tests/adapters/test_agent_file_keys.py::test_a_key_the_runner_does_not_apply_is_refused (one row per key: name, description, permissionMode, hooks, background, disallowedTools, skills)
+   - criterion 4: tests/adapters/test_agent_file_keys.py::test_an_unknown_key_or_a_key_in_another_case_is_refused (rows `colour` and `Model`)
+   - criterion 5: tests/adapters/test_agent_file_keys.py::test_the_first_unapplied_key_in_the_file_is_named
+   - criteria 6 and 7: tests/adapters/test_agent_file_keys.py::test_an_unapplied_key_is_refused_before_the_applied_keys_are_validated (rows no-model and budget-zero: one rule, so one parametrized test)
+   - criterion 8: tests/application/test_pipeline_loading_agents.py::test_the_agent_file_of_a_later_role_is_read_too
+   - criterion 9: tests/application/test_pipeline_loading_agents.py::test_of_two_refused_agent_files_the_first_role_is_named
+   - criterion 10: tests/application/test_pipeline_loading_agents.py::test_a_missing_agent_is_refused_before_any_agent_file_is_read
+   - criterion 11: tests/application/test_pipeline_loading_agents.py::test_a_refused_agent_file_on_main_raises_one_stop
+   - criterion 12: tests/application/test_pipeline_loading_agents.py::test_a_good_load_on_main_clears_the_agent_stop
+   - criterion 13: tests/application/test_pipeline_loading_agents.py::test_a_refused_agent_file_after_a_refused_definition_leaves_only_the_agent_stop
+   - criterion 14: tests/application/test_pipeline_loading_agents.py::test_a_refused_agent_file_at_a_commit_leaves_the_health_status_as_it_was (an agent stop already raised on main stays exactly as it was, so the test covers both "none raised" and "none cleared")
+   - criterion 15: tests/application/test_tick_agent_definition.py::test_the_tick_ends_at_the_agent_stop
+   - criterion 16: tests/application/test_tick_agent_definition.py::test_the_stopped_tick_requests_no_run_and_dispatches_nothing
+   - criterion 17: tests/application/test_tick_agent_definition.py::test_after_the_file_is_corrected_the_next_tick_runs_the_stage
+   - criterion 18: tests/entry/test_watch_agent_definition.py::test_a_refused_agent_file_is_reported_without_a_stop
+
+   The "two roles" of criteria 8–10 are `tester` and `coder` from the shared `PIPELINE_YAML`, with every other role's agent file valid. `tester` comes first in `roles`, which is the reverse of alphabetical order, so a check that read the roles in alphabetical order would fail. The tick tests use the `coder` role, the story from `tests/entry/test_run.py` started through `human.push_file` and `human.start`, and `handler_factory` with a PATH and HOME environment.
+
+   Files created: tests/adapters/test_agent_file_keys.py, tests/application/test_pipeline_loading_agents.py, tests/application/test_tick_agent_definition.py, tests/entry/test_watch_agent_definition.py.
+
+   Files changed:
+   - tests/adapters/test_agent_files.py: deleted `test_a_key_the_reader_does_not_interpret_is_left_aside`, as the Assignment says.
+   - tests/git_support.py: added `COLOURED_AGENT_FILE` (the shared agent file plus `colour: red`) and `write_agent(agent_home, role, text)`. `install_agents` now writes through `write_agent`.
+
+   `make test`: collection stops at tests/adapters/test_agent_file_keys.py with `ImportError: cannot import name 'APPLIED_AGENT_KEYS' from 'factory.domain.agent_runs'`, the expected reason. That error stops collection, so this run did not show the other three new files failing. They import only names that already exist, so they should fail on wrong results once collection gets through. `make lint` is green. The type check was skipped, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Made criteria 1–18 pass without changing any test. `make check` is green (coverage 99.53 %). Commits: f714e10 (feat) and 109748d (refactor).
+
+   Built:
+   - `src/factory/domain/agent_runs.py`: added `APPLIED_AGENT_KEYS` and `KEY_NOT_APPLIED`.
+   - `src/factory/adapters/agent_files.py`: the private `_INTERPRETED_KEYS` tuple is gone. A new `_refuse_unapplied_keys` goes through the front matter in the file's order and raises `AgentDefinitionInvalid(name, "key not applied by the agent runtime: <key>", key)` at the first key outside `APPLIED_AGENT_KEYS`. It runs before `AgentDefinition.model_validate`, so a dead key wins over a missing `model` or a bad budget. Once every key is known to be applied, the front matter goes to the model as a whole instead of filtered.
+   - `src/factory/application/pipeline_loading.py`: `load` now does two steps. `_load_definition` is the old behaviour: the `pipeline_definition_invalid` stop, cleared before the agent files are read. `_check_agent_files` then reads every role in the order of `roles`. When a file is refused it raises `agent_definition_invalid` with the detail `<name>: <fault>`, and a good load clears that stop. Both stops are touched only at `PIPELINE_REF`. `_stop` now takes the reason as a parameter.
+   - `src/factory/application/tick.py`: `_load` turns `AgentDefinitionInvalid` into `_Stopped("agent_definition_invalid")`.
+   - `src/factory/entry/watch.py`: writes `factory-watch: <str(error)>`, which gives `agent <name>: <fault>`, and returns 1, the same exit code as an invalid definition.
+
+   Main decision: the agent files are read in a separate step after the definition step, not inside `_read`/`_require_agents`. That way the loader can clear `pipeline_definition_invalid` before the agent check, as criterion 13 requires, and each refusal sits next to the stop it raises. I rejected wrapping `AgentDefinitionInvalid` into `PipelineDefinitionInvalid`, because the Interface requires the agent error itself to reach the caller.
+
+   Refactor: split `load` into one helper per stop (109748d). Behaviour is unchanged.
+
+   Noticed, not touched: `run_watch` returns the same exit code 1 for both refusals, which matches the Interface. The docs criterion (20) is left for the documenter. The `Assignment` is unchanged.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   Checked against the ticket and `git diff main...HEAD -- . ':!factory'`. I did not use the ticket's own account of the work.
+
+   - Acceptance criteria: criteria 1–18 each have a test that checks what it is named after:
+     - Criteria 3 and 4 are parametrized, one row per dead key plus `colour` and `Model`.
+     - Criteria 6 and 7 are rows of one parametrized test, because they are one rule.
+     - Criterion 9's roles are ordered against the alphabet.
+     - Criterion 14 starts from an existing agent stop, so the test covers both "none raised" and "none cleared".
+     - Criterion 16 checks that no run is requested, no event is returned, no dispatch happens and no pull request is opened.
+
+     Every rule in the Interface has its failing side tested:
+     - case-sensitivity: `Model`;
+     - check order: no `model`, and `budget_usd: 0`;
+     - other checks come first: criterion 10;
+     - another ref touches no stop: criterion 14.
+
+     The deleted `colour` test is the one the Assignment names. The coder's entry reports `make check` green (99.53 %).
+   - Architecture: the constants are in domain, the key check is in the adapter reader, and the stop handling is in the application loader, the one place that raises and clears the definition's stops. The tick and watch only turn the error into their outcome. Layer direction holds and nothing new wires.
+   - Security: no suppression markers. The agent name is still validated before any path is built. Keys are stringified by the YAML handler, so `key` stays a `str`.
+   - Quality: `_refuse_unapplied_keys` replaces the private tuple with `APPLIED_AGENT_KEYS`. `_load_definition` and `_check_agent_files` each own one stop. `_stop` is generalized over the reason rather than copied. The comments explain why, and the docstrings of `PipelineLoader` and `load` were updated for the second stop. `write_agent` in `tests/git_support.py` is reused by `install_agents`, not duplicated.
+
+     A side effect worth knowing: any `AgentDefinitionInvalid` met at load (no front matter, bad budget) now raises `agent_definition_invalid`, not only an unapplied key. This matches the Interface ("an `AgentDefinitionInvalid` it meets is raised to the caller").
+   - Ticket hygiene: the coder's entry names the main decision (a separate agent-file step after the definition step) and the rejected alternative (wrapping the error in `PipelineDefinitionInvalid`). The Assignment matches what was built. Criterion 20 still describes what the documenter must write.
+6. documenter: wrote the documentation for criterion 20 and fixed the places that said other agent-file keys were ignored. No findings. `make check` is green (coverage 99.53 %). I ran the first demo block and it printed `permissionMode | coder | True`, plus the error message.
+
+   Files changed:
+   - `docs/operator-guide.md`:
+     - "The agent files": the four keys are the only ones applied, and any other key (including a key in another case) is refused at load. Added the fault `key not applied by the agent runtime: <key>`, and the order of faults now puts it first.
+     - New section "The stop `agent_definition_invalid`": the detail format, a log example, and that the operator fixes the named file in the agent home. The tick does nothing else while the stop holds, and a missing agent still shows as `pipeline_definition_invalid`.
+     - "The stops of the tick": now four stops, with a row for the new one. The stops table in the health section also has a row for it.
+     - `factory-watch` exit status 1: now also covers a refused agent file, and the message is `factory-watch: agent <name>: <fault>`.
+   - `docs/project-guide.md`:
+     - The agent file section: the four applied keys, what each does, and the refusal rules. Keys are compared as written. The refusal comes before the validation of the applied keys.
+     - The faults table: added a row for the unapplied key, and removed the stale pointer to F0010-S0006.
+     - The loader section: it reads every role's agent file after clearing `pipeline_definition_invalid`. It raises and clears `agent_definition_invalid`, and passes the error through unwrapped.
+     - The tick step 2 now names both outcomes.
+   - `docs/decisions.md`: rewrote the entry "Agent files: keys beyond the four are not interpreted until F0010". It is now "the four keys are applied, every other key is refused at load", with the reason and the alternatives rejected.
+
+   Cross-read and found current: README (it has nothing on agent files) and the rest of the operator guide, including the health status reasons list, which already named `agent_definition_invalid`.
+
+   Left alone because they are unrelated to this story: nothing stale seen.
+
+   Details of the docs that rest on the code diff:
+   - The loader raises the stop for any `AgentDefinitionInvalid`, not only an unapplied key. The reviewer noted this and the Interface allows it, so I documented it as it is.
+   - `docs/project-guide.md` describes what `effort` and `budget_usd` do from the existing runner section (`--effort`, `--max-budget-usd`).
+
+   `make check`: check: green
+7. demo: both commands met their `Expect:` lines. No findings.
+
+   1. A file with `permissionMode` among applied keys is refused.
+   ```
+   permissionMode | coder | True
+   ```
+   Exit 0. Matches `permissionMode | coder | True`: the error's `key` is the unapplied key, its `name` is the agent, and the message contains the key (criterion 3).
+
+   2. A file with only the four applied keys is read.
+   ```
+   ['budget_usd', 'effort', 'model', 'tools'] opus medium 4
+   ```
+   Exit 0. Matches `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`: `APPLIED_AGENT_KEYS` is exactly the four keys (criterion 1) and the file's values are read (criterion 2).
+
+   Cross-check against the acceptance criteria: the output contradicts none of them. The demo exercises only the reader. Criteria 4–18 (loader, stops, tick, watch) are not demonstrated here; they rest on the tests listed in the tester's entry and the green `make check` reported by the coder and the documenter.

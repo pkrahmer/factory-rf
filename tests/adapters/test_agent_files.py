@@ -94,17 +94,6 @@ def test_effort_left_out_is_none_and_tools_may_be_empty(agent_home: Path) -> Non
     assert no_tools.tools == []
 
 
-def test_a_key_the_reader_does_not_interpret_is_left_aside(agent_home: Path) -> None:
-    plain = _agent_file("model: sonnet\ntools: [Read]\neffort: low\nbudget_usd: 1\n")
-    coloured = _agent_file(
-        "model: sonnet\ntools: [Read]\ncolour: red\neffort: low\nbudget_usd: 1\n"
-    )
-
-    expected = _read(agent_home, "coder", plain)
-
-    assert _read(agent_home, "coder", coloured) == expected
-
-
 def test_front_matter_is_read_as_yaml_one_point_two(agent_home: Path) -> None:
     agent = _read(agent_home, "coder", _agent_file("model: on\ntools: [Read]\nbudget_usd: 1\n"))
 

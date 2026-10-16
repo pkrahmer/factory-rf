@@ -11,7 +11,12 @@ from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PIPELINE_REF, PipelineLoader
 from factory.application.watcher import Watcher
 from factory.domain.board import render_board
-from factory.domain.errors import GitError, PipelineDefinitionInvalid, SettingsInvalid
+from factory.domain.errors import (
+    AgentDefinitionInvalid,
+    GitError,
+    PipelineDefinitionInvalid,
+    SettingsInvalid,
+)
 from factory.domain.events import Event
 from factory.domain.identifiers import Name
 from factory.entry.wiring import boundaries_from_environment
@@ -41,6 +46,9 @@ def run_watch(boundaries: Boundaries, instance: Name, out: TextIO, err: TextIO) 
         definition = PipelineLoader(boundaries).load(commit)
     except PipelineDefinitionInvalid as error:
         err.write(f"{_PROGRAM}: {error.fault}\n")
+        return _INVALID_DEFINITION
+    except AgentDefinitionInvalid as error:
+        err.write(f"{_PROGRAM}: {error}\n")
         return _INVALID_DEFINITION
     event = Watcher(boundaries, instance).evaluate(definition)
     view = BoardReader(boundaries).read(definition)
