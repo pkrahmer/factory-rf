@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 134
 blocked: null
 comments_seen: 0
 round: 0
@@ -99,3 +99,9 @@ Expect: one line, `coder 0.10 120.0`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (preflight.py constants and the two item functions, wiring.py `machine_extras`, the `build_tick` change, the `GUARD_COMMAND` move to `factory.domain.agent_runs`). Every behaviour in the rules is spelled out: item names, the order of the extras, the `sudo` item only with an agent user, the probe's request fields.
+   - Criteria: each is testable by one test function. Every rule has its failing side. Environment: a missing PATH, PATH without factory-guard, a missing HOME and a HOME that is no directory (criteria 2 and 3). Probe: `died`, `no_result`, `time_limit`, `budget`, `AgentRuntimeError` and a missing `coder` (criteria 6 to 9). Extras: with and without an agent user (criteria 12 and 13). Tick: a missing token file stops it, a valid one passes (criterion 14). The machine-item skip is criterion 11 and the flag parity is criterion 10. Criterion 14 holds two scenarios and the tester can write them as two cases of one parametrized test.
+   - Demo: both blocks are runnable with `uv run python -c`, and each Expect line is checkable against the output (`True` / `agent-environment False True True`, and `coder 0.10 120.0`).
+   - Architecture: the items live in application, the wiring in entry, and the shared constant moves down to domain so application does not import the adapter. This matches the layer rules in CLAUDE.md. Items use the existing wrappers and interfaces (AgentRuntime, AgentDefinitions), with no new tool or dependency.
+   - Scope: within the feature's scope (the preflight's items and the probe with the factory's own arguments). It matches decisions 20, 22, 25, 28 and 31. The two changes to earlier tests are the ones the human allowed in decision 28.
