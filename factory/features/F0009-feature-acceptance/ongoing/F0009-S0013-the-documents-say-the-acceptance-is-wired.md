@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 116
 blocked: null
 comments_seen: 0
 round: 0
@@ -51,3 +51,9 @@ Expect: at least one line from the first paragraph that names the feature accept
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: "None, no code changes" is right for a docs-only story; it names the exact files and sections (project-guide "Events" paragraph "The kinds:", items Opening and SplitByWorkItemKind, README first paragraph, operator guide read-only). I checked that these sections exist in the files.
+   - Criteria: criterion 2 is checkable by the two greps and by reading the named paragraphs. Criterion 1 is `make check`. The docs criterion has no failing side because no rule is stated. The story says the tester writes no tests, and I take that as the human's decision.
+   - Demo: both commands are runnable. The first grep -c prints a count and the second prints per-file counts. Both Expect lines can be checked against that output. The operator guide anchor "When a feature acceptance is due" exists (docs/operator-guide.md line 423).
+   - Architecture: documentation only, no layer is touched. The README sentence is to use the glossary's names.
+   - Scope: this is within F0009 (it is listed in FEATURE.md as S0013, proposed by the feature acceptance) and not in its Out of scope. FEATURE.md decision 5 says the "acceptance_due" handlers are registered. The story is consistent with that.
