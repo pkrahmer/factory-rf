@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 135
 blocked: null
 comments_seen: 0
@@ -191,3 +191,14 @@ Expect: one line, `0`.
    `_headings` stays as it is, as the reviewer said: it also counts `## ` lines inside fenced blocks, so it is not a copy of `sections()`.
 
    `make check` was not run this round, because I changed nothing.
+7. tester: Made the test change the coder named in entry 6, which the reviewer asked for in finding 1 of entry 5. The file is `tests/test_claude_agent_texts.py`.
+   - Deleted the private helper `_section`. It was a second copy of `factory.domain.sections.section_text`.
+   - Added the import `from factory.domain.sections import section_text`.
+   - Changed the four call sites to `section_text(body, "<Name>") or ""`, with the heading's name and no `## ` prefix: `"Rules"` twice (in the tests for criteria 6 and 7), `"Role"` + `"Stage"` (criterion 8) and `"Lessons"` (criterion 13).
+   - `_headings` is unchanged, as the reviewer said.
+   - No other test changed. The criterion-to-test mapping in entry 3 still holds.
+
+   `make test` is green (coverage 99.54 %), because the agent texts from commit 830029c already satisfy the tests. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green

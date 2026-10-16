@@ -5,6 +5,7 @@ import re
 import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.domain.sections import section_text
 from shipped_agents import ROOT, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent, front_matter_and_body
 
 _WITHOUT_ROLE = {"intake", "smoke-tester"}
@@ -94,14 +95,6 @@ def _headings(body: str) -> list[str]:
     return re.findall(r"^## .*$", body, re.MULTILINE)
 
 
-def _section(body: str, heading: str) -> str:
-    parts = re.split(r"^(## .*)$", body, flags=re.MULTILINE)
-    for index in range(1, len(parts), 2):
-        if parts[index] == heading:
-            return parts[index + 1]
-    return ""
-
-
 def _decisions(role: str) -> list[str]:
     text = (ROOT / "template" / "factory" / "pipeline.yml").read_text(encoding="utf-8")
     definition = RuamelPipelineDefinitionReader().parse(text)
@@ -161,7 +154,7 @@ def test_body_names_every_decision_of_its_stage_in_inline_code(name: str) -> Non
 def test_rules_section_carries_the_pipeline_rules_with_the_decision_contract(
     name: str, anchor: str
 ) -> None:
-    assert anchor in _section(_body(name), "## Rules")
+    assert anchor in (section_text(_body(name), "Rules") or "")
 
 
 @pytest.mark.parametrize(
@@ -173,13 +166,13 @@ def test_rules_section_carries_the_pipeline_rules_with_the_decision_contract(
 )
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_rules_section_leaves_commit_push_and_move_to_the_factory(name: str, anchor: str) -> None:
-    assert anchor in _section(_body(name), "## Rules")
+    assert anchor in (section_text(_body(name), "Rules") or "")
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_role_and_stage_sections_carry_the_texts_of_the_role(name: str) -> None:
     body = _body(name)
-    text = _section(body, "## Role") + _section(body, "## Stage")
+    text = (section_text(body, "Role") or "") + (section_text(body, "Stage") or "")
 
     missing = [anchor for anchor in ROLE_AND_STAGE_ANCHORS[name] if anchor not in text]
 
@@ -228,7 +221,7 @@ def test_coder_sends_a_wrong_test_back_to_the_tester(phrase: str) -> None:
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_lessons_section_is_last_and_holds_exactly_the_role_bullets(name: str) -> None:
     body = _body(name)
-    lines = [line for line in _section(body, "## Lessons").splitlines() if line.strip()]
+    lines = [line for line in (section_text(body, "Lessons") or "").splitlines() if line.strip()]
 
     assert _headings(body)[-1:] == ["## Lessons"]
     assert lines == LESSONS[name]
