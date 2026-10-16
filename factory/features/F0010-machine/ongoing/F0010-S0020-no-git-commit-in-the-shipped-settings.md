@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 138
 blocked: null
 comments_seen: 0
@@ -60,3 +60,33 @@ Expect: seven lines, each ending in `:1`.
    - Demo: both commands are runnable. The first prints two lists, and the Expect line gives them exactly. The second prints seven lines ending in `:1`, which matches the seven files in `claude/agents/`.
    - Architecture: this is a shipped data file plus a test constant. It touches no layer, and it matches the agents' rule "You do not commit either" (R10).
    - Scope: it fits FEATURE.md ("each key has an effect", settings and shipped agents) and nothing in "Out of scope" covers it. The change to `tests/test_claude_files.py::SETTINGS` is covered by decision 37 (6) and the Assignment, which limit it to the two lists and nothing else in that file.
+3. tester: I wrote the tests from the acceptance criteria. Four tests now fail, and each fails because `claude/settings.json` has not been changed yet. No module is missing, so there were no import errors. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: `tests/test_claude_settings_git.py::test_allow_list_holds_no_git_add_or_commit` checks that no allow entry starts with `Bash(git add` or `Bash(git commit`. `tests/test_claude_settings_git.py::test_allow_list_keeps_the_read_git_commands` is parametrized over status, diff, log, show and rev-parse.
+   - criterion 2: `tests/test_claude_settings_git.py::test_deny_list_holds_git_add_and_commit_beside_push_and_gh` is parametrized over `Bash(git add*)`, `Bash(git commit*)`, `Bash(git push*)` and `Bash(gh *)`.
+   - criterion 3: `tests/test_claude_files.py::test_settings_are_the_shared_permissions_and_environment` is unchanged. Its expected value, `SETTINGS`, is the one changed in `tests/test_claude_files.py`, below.
+   - criterion 4: `tests/test_claude_settings_git.py::test_rules_section_still_forbids_the_agent_to_commit` is parametrized over the seven shipped agents and looks for `You do not commit either` in the `## Rules` section.
+   - criteria 5 and 6: these are the closing criteria (`make check`, docs), so they have no test.
+
+   Files:
+   - I created `tests/test_claude_settings_git.py`.
+   - I changed `tests/test_claude_files.py`, as the Assignment allows. I changed only the two lists in `SETTINGS`:
+     - allow: `Bash(git add *)` and `Bash(git commit *)` are removed, and every other entry keeps its order.
+     - deny: `Bash(git add*)` and `Bash(git commit*)` are inserted after `Bash(git branch -D*)`.
+     - Nothing else in that file changed.
+
+   Rejected: I did not add the tests for criteria 1, 2 and 4 to `tests/test_claude_files.py` or `tests/test_claude_agent_texts.py`. Another story wrote those files, and the Assignment allows a change to `SETTINGS` only.
+
+   Currently failing, all because `claude/settings.json` still has the old lists:
+   - `test_settings_are_the_shared_permissions_and_environment`
+   - `test_allow_list_holds_no_git_add_or_commit`
+   - `test_deny_list_holds_git_add_and_commit_beside_push_and_gh[Bash(git add*)]`
+   - `test_deny_list_holds_git_add_and_commit_beside_push_and_gh[Bash(git commit*)]`
+
+   The criterion 4 tests and the kept-entry rows pass already.
+
+   Next: the coder edits `claude/settings.json` only.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/test_claude_settings_git.py::test_deny_list_holds_git_add_and_commit_beside_push_and_gh[Bash(git commit*)]

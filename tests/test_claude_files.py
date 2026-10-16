@@ -34,8 +34,6 @@ SETTINGS = {
             "Bash(git diff*)",
             "Bash(git log*)",
             "Bash(git show*)",
-            "Bash(git add *)",
-            "Bash(git commit *)",
             "Bash(git rev-parse*)",
         ],
         "deny": [
@@ -47,6 +45,8 @@ SETTINGS = {
             "Bash(git rebase*)",
             "Bash(git reset*)",
             "Bash(git branch -D*)",
+            "Bash(git add*)",
+            "Bash(git commit*)",
             "Bash(gh *)",
             "Bash(rm -rf *)",
         ],
