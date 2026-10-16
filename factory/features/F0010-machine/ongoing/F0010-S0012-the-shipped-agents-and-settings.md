@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 130
 blocked: null
 comments_seen: 0
@@ -236,3 +236,20 @@ Expect: one line, `16 10 True`.
 
    `make lint`: lint: green
    `make test`: ERROR tests/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[acceptance-reviewer]
+4. coder: Built the shipped data files in commit 4635b99. No code under `src/` changed.
+
+   Files:
+   - `claude/agents/{intake,tester,coder,reviewer,documenter,smoke-tester,acceptance-reviewer}.md`: front matter with exactly `model`, `effort`, `budget_usd` and `tools`, set to the table's values. The documenter's `budget_usd` is `1.5`, and `tools` is written as a YAML flow list in table order. Each body is the boundary sentence, a blank line and the entry sentence, with nothing else; the last story of the feature adds v1's role and stage texts after them.
+   - `claude/settings.json`: the Interface's JSON, kept in its line layout.
+   - `template/factory/pipeline.yml`: the Interface's pipeline definition, copied verbatim.
+   - `template/CLAUDE.md`: extracted by script from the ticket's fenced block with the four leading spaces removed. It ends with a single newline.
+
+   Main choice: I generated the agent files from one table, so the values cannot drift from the Interface by a typo. I rejected writing each file by hand. The bodies carry no extra text, because the assignment leaves v1's texts to the later story.
+
+   Refactor: nothing to refactor; the diff is data files only.
+
+   `make check` is green (coverage 99.53 %). The two new test modules pass: 55 tests.
+
+   Noticed, not touched: the tester's open point. `claude/` and `template/` lie outside `src/*`, the coder write path in the template pipeline. No hook refused the writes here, so this project's own lane covers them.
+
+   `make check`: check: green
