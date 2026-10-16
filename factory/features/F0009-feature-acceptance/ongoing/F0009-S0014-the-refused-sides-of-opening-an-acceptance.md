@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 117
 blocked: null
 comments_seen: 0
 round: 0
@@ -49,3 +49,9 @@ Expect: the last line is `<n> passed in <time>`, with n at least 9 (five rows of
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: names no new or changed names, only pinned behaviour of existing modules (`AcceptanceService.open`, `AcceptanceReader.read`/`feature_files`, `acceptance_facts`), each with the exact exception kind and message text. The test modules and fixtures (`walk`, `human.push_file`, `human.merge`) are named concretely.
+   - Criteria: each is testable by one parametrized test function. Criterion 1 has the four refusing statuses plus the passing `due` row. Criterion 2 is the no-side-effect check for the refusing rows. Criterion 3 has a failing and a passing case. Criterion 4 has the 9999 and 9998 boundary rows. Every rule is covered on both its refused and accepted sides. The Interface states no behaviour that lacks a criterion.
+   - Demo: one runnable pytest command. Its Expect line is checkable (last line `<n> passed`, n at least 9, with the row count explained).
+   - Architecture: tests only, in `tests/application/` and `tests/domain/`, mirroring the package. No `src/` change is expected. No new dependency and no change to existing tests.
+   - Scope: it is within F0009 (feature acceptance), a story proposed by the feature acceptance and listed in `FEATURE.md`. It touches nothing under Out of scope.
