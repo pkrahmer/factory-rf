@@ -19,7 +19,7 @@ factory ALL=(agent) NOPASSWD: ALL
 
 ```dockerfile
 COPY image/sudoers-factory-agent /etc/sudoers.d/factory-agent
-RUN chmod 0440 /etc/sudoers.d/factory-agent && visudo -cf /etc/sudoers.d/factory-agent
+RUN sed -i 's/\r$//' /etc/sudoers.d/factory-agent && chmod 0440 /etc/sudoers.d/factory-agent && visudo -cf /etc/sudoers.d/factory-agent
 ENV FACTORY_AGENT_USER=agent
 ```
 

@@ -33,7 +33,7 @@ def token_file_item(
 
 ```dockerfile
 COPY image/git-credential-factory /usr/local/bin/git-credential-factory
-RUN chmod 0755 /usr/local/bin/git-credential-factory
+RUN sed -i 's/\r$//' /usr/local/bin/git-credential-factory && chmod 0755 /usr/local/bin/git-credential-factory
 ENV FACTORY_TOKEN_FILE=/run/secrets/hosting-token
 ```
 

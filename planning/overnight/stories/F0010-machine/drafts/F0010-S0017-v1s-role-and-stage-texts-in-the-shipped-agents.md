@@ -63,6 +63,7 @@ The rename table, applied to every carried text:
 | `stuck` | `question` |
 | `Assignment`, `## Assignment` (the story's section) | `Description`, `## Description` |
 | `## Log (append only)` | `## Journal` |
+| `## Demo`, Demo (the story's section) | `## Smoke test`, smoke test |
 
 The row `log` has no criterion of its own: `git log`, which the texts keep, holds the word. The other rows are tested by criteria 3 and 4.
 
