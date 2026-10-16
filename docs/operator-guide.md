@@ -57,7 +57,7 @@ The factory runs a project's build through make and calls three targets: `check`
 
 ## The agent runtime
 
-The factory runs each agent as a `claude -p` call under your own `claude` login: it needs the `claude` program and a session you have already logged in to, and it holds no API key of its own. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
+The factory runs each agent as a `claude -p` call: it needs the `claude` program and a session you have already logged in to, and it holds no API key of its own. With `FACTORY_AGENT_USER` set (the image sets it) the call runs under that user's `claude` login (see "The agent runs as a second user"); only without it does it run under the factory user's own login. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
 
 A run whose budget is spent is not lost: the factory resumes the same session once with a quarter of the budget (at least 0.50 USD) and asks the agent to finish with its decision, `question` if the work is not done. That costs up to that extra amount, and the cost and tokens of both calls are added up. If the resume is also over budget, the run stops as a stall; there is no third call. A run that dies, runs past its time limit or returns no usable decision stops the work item as a stall. One `time_limit` covers both calls: the resume gets what is left. A run the `time_limit` ends is killed, is not resumed, and shows its cost, tokens and turns as unknown.
 
@@ -87,7 +87,7 @@ The files of a run are `instructions-<session>.md` and, when the stage has write
 
 The agent's home, `/home/agent`, stays writable by the agent. It holds its `claude` login and its `.claude`, and the agent could change the files there; that is left for v2 (see the decision log).
 
-A `sudo` that refuses is a misconfiguration, not a stall: when the call ends without a usable reply and `sudo` printed a line that starts `sudo:` to standard error, the run stops with an error that holds that line (`sudo: a password is required`: the rule is missing or wrong). A `sudo:` line before a good reply, for example `sudo: unable to resolve host x`, is ignored. A run that dies for another reason is still a stall.
+A `sudo` that refuses is a misconfiguration, not a stall: when the call ends without a usable reply (a call that reached its time limit counts as one, even when it printed a reply first, so a `sudo:` line then stops the run too) and `sudo` printed a line that starts `sudo:` to standard error, the run stops with an error that holds that line (`sudo: a password is required`: the rule is missing or wrong). A `sudo:` line before a good reply, for example `sudo: unable to resolve host x`, is ignored. A run that dies for another reason is still a stall.
 
 **Log in once as `agent`.** The agent runs under `agent`'s own `claude` login, not yours as `factory`. Once per instance, with the container running:
 
@@ -192,7 +192,7 @@ An agent run's environment is an allow list of six names: `PATH`, `HOME`, `LANG`
 
 The preflight item `token-file` (see "The preflight's items") checks that the file exists, belongs to the factory's user and has no permission bit for group or others. Its detail is `<path>: <fault>`, with the fault `no token file is set`, `the token file does not exist`, `the token file belongs to uid <n>, not to <m>` or `the token file has mode <mode>; make it 0600 or 0400`. Fix it with the `chown` and `chmod` above, or set `FACTORY_TOKEN_FILE`, and start the instance again.
 
-**Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs Docker and a second operating-system user that the image does not have yet. Until it has one, check by hand once after a build, inside the container:
+**Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs Docker and the image's second operating-system user. Check by hand once after a build, inside the container:
 
 - `ls -ln /run/secrets/hosting-token` shows uid 1000 and mode `-r--------`. If it does not, the compose `uid` and `mode` were ignored; apply the `chown` and `chmod` above on the host.
 - As an agent (a run that tries it, or `su` to another user), `cat /run/secrets/hosting-token` and `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
@@ -276,7 +276,7 @@ Before each tick the instance checks that `origin/main` exists and holds `factor
 
 ## The factory log and the health status file
 
-Both live in the factory's state directory. Nothing starts the factory yet, so this describes what the built parts write; the next section says when a stop is written and when it goes away.
+Both live in the factory's state directory. `factory-run` starts the factory; this describes what it writes; the next section says when a stop is written and when it goes away.
 
 ### The factory log
 

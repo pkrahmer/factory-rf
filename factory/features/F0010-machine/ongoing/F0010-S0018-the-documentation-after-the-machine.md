@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 141
 blocked: null
 comments_seen: 0
@@ -99,3 +99,45 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
       - 2–4. Architecture, security, quality: no code changed, so nothing to judge.
       - 5. Ticket hygiene: the Assignment matches what was built (nothing, on purpose). The tester and coder entries each say why they left their stage empty. The docs criterion lists every rewrite the documenter must make: the new `os_user` paragraph and each stale sentence by file and section.
       - Open: all the work is the documenter's. Every bullet of criterion 2, plus the three Demo commands, must hold afterwards.
+6. documenter: rewrote the stale sentences the Assignment names, plus a few more of the same kind. `make check` is green (coverage 99.54 %). All three Demo commands give the expected result.
+   - Demo results:
+     - The grep over `README.md` and both guides finds nothing (`exit=1`).
+     - `uv run factory-health --state-directory <tmp>` prints `healthy` and exits 0.
+     - `env -i` appears once and `RUN_FILE_MODE` once in the project guide.
+
+   Files changed:
+   - `README.md`:
+     - Removed the `ModuleNotFoundError` sentence.
+     - Now says "Six commands exist" and lists `factory-health`: it prints `healthy` and exits 0, or prints one line per stop and exits 1, and `--state-directory` is its option. The six are run, check-story, bill, watch, health and guard.
+   - `docs/operator-guide.md`:
+     - "The agent runtime" now says the call runs under `FACTORY_AGENT_USER`'s `claude` login when it is set (as the image sets it), and under the factory user's own login only without it.
+     - The paragraph on a refusing `sudo` now says a call that reached its time limit counts as ending without a usable reply, even when it printed a reply first.
+     - Removed "the image does not have yet" (the morning observation under the token file) and "Nothing starts the factory yet" (the health status section).
+   - `docs/project-guide.md`:
+     - The `ClaudeCodeRuntime` signature now names `sudo_executable=SUDO_EXECUTABLE`.
+     - The call is described as made under `request.os_user`'s login, or the process's own login without one.
+     - "The request": `os_user` is `boundaries.settings.agent_user`, or `None` without settings. I also made the same change to the `os_user` clause in `compose` ("The task composer"), and said the environment is scrubbed at its source, `production_environment()`.
+     - The flag sentence now says the preflight's `agent-run-probe` checks the flags.
+     - The "not used yet" clause was replaced by a paragraph on the call as another user, as the Interface lists it:
+       - the `sudo -n -u … -- env -i` prefix and `SUDO_EXECUTABLE`;
+       - the run files written with `RUN_FILE_MODE` (`0o640`) for every request;
+       - the `sudo:` line rule and its exception, with the error text `<sudo> refused the agent run: <line>`;
+       - the `HOME` that `agent_run_environment` sets.
+     - The `"make"` sentence now says it appears in `make_commands` and in `preflight` (`REQUIRED_TOOLS`), and that `tests/test_make_search.py` allows both.
+     - "F0010 probes the `PATH`…" became the built facts: the preflight probes the `PATH`, and `build_boundaries` builds every adapter.
+     - `FrontmatterWorkItemWriter` is described as built by `build_boundaries`.
+     - `Boundaries` lists `settings` in its field list and says `build_boundaries` builds the adapters.
+     - The cost record's `image` is `settings.image`, or `None` without settings.
+     - The PyGithub wiring is described as built from the repository's `owner/name` and the token file.
+
+   Other F0010 announcements I rewrote (not in the Assignment's list):
+   - `project-guide.md`, git options: "F0010's wiring fills `identity`…".
+   - `project-guide.md`, "Identity" paragraph: "F0010 fills `identity`…".
+   - `project-guide.md`, "ProjectCommands" paragraph: "the preflight's probe from F0010".
+   - `project-guide.md`, `build_handlers` paragraph: "No command builds a `Tick` yet; `factory-run` will."
+
+   Cross-read and found current: the rest of `README.md`; the operator guide's other "not yet observed" sentences about a real container, which are still true; `NOT_YET_HANDLED` and the "not yet handed over" wording, which are about behaviour, not F0010. I did not read `docs/decisions.md` (its F0010 mentions are dated log entries).
+
+   Stale but untouched: none found. No findings for the coder.
+
+   `make check`: check: green
