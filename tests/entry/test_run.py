@@ -211,7 +211,7 @@ def test_only_a_handled_event_that_is_not_idle_counts_as_activity(
     assert activity(outcome) is expected
 
 
-def test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls(
+def test_the_activity_tick_keeps_one_tick_and_the_errors_of_both_calls(
     boundaries: Boundaries,
     human: HumanClone,
     *,
@@ -231,8 +231,12 @@ def test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls(
     second = serve()
 
     assert (first, second) == (False, False)
-    [entry] = tick.status.errors
-    assert entry.count == 2
+    # The first call's claim turns the second call's event into a crash; a fresh tick per call
+    # would hold only the crash.
+    assert sorted(entry.event_key for entry in tick.status.errors) == [
+        "crash:F0001-S0001",
+        "run:F0001-S0001",
+    ]
 
 
 def test_run_instance_clones_a_missing_checkout_and_pauses_thirty_seconds_after_it(

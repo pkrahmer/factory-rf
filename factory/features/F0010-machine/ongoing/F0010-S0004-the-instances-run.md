@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 122
 blocked: null
 comments_seen: 6
@@ -8,7 +8,7 @@ attempts: 0
 ---
 # The instance's run
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 10)
 
 Build the process that runs one instance. `main` reads the settings and runs the instance; an invalid environment, an unreadable token file and a repository URL without an owner and a name end the process with status 2, a time-stamped line and a machine stop, never with a traceback. `run_instance` reads the token, builds the boundaries (previous story), keeps one `Tick` for the whole run, so that the tick status lives in memory across ticks (F0006 decision 11, questionnaire 1, Q28), and hands a scheduler a `tick` callable that counts as activity only a handled event that is not `idle`: a standing stop, a capped event and an error are idle, so that the pause keeps growing while nothing changes (kept thing 16). The next story gives `factory-watch` the same settings. This story covers ST7.1 (the loop is the one `tick` callable) and the settings half of ST3.3's machine stop for an invalid environment, implements R25 and keeps kept thing 16. Later stories of this feature put the repository waiter, the preflight and the other machine checks into `build_tick` and `run_instance`; each states what it adds. A real container is the morning observation. The operator guide is told to install v1.1 only on a repository v1 has not worked in (decision 008 of factory-v2: v1.1 starts fresh and detects no v1 work item).
 
@@ -74,7 +74,7 @@ Tests: `tests/entry/test_run.py`, `tests/entry/test_wiring_run.py`, `tests/test_
 2. `activity` is false for a handled `idle` event.
 3. `activity` is false for `TickOutcome(stopped="fetch_failed")`, which has no event and no dispatch.
 4. `activity` is false for a dispatch of `capped`, of `error` and of `reported`, so that a standing stop or a capped event does not keep the pause at 15 seconds.
-5. `activity_tick` serves one `Tick` for every call: two calls over a remote whose started story fails twice in its handler leave `tick.status` with the error counted twice, not once.
+5. `activity_tick` keeps one `Tick` across its calls: after two calls whose runs raise, its status holds the errors of both calls (the `run` error of the first and the `crash` error of the second).
 6. `build_tick(boundaries, settings)` over a remote with one started story runs one stage in one `run()`: the outcome is `handled` for the event `run`, and `agent_runtime.requests()` holds one request whose `environment` equals `production_environment()`; two calls of `build_tick` return two different `Tick` objects; with settings whose instance is `factory-7`, the claim on the work item's branch names `factory-7`.
 7. `boundaries_from_environment` with a valid mapping (the token file written in `tmp_path`) and `hosting` given returns settings equal to `read_settings` of the mapping with a `read_file` that reads the file (`Path.read_text`) and a `Boundaries` whose `settings` are those settings.
 8. `boundaries_from_environment` raises `SettingsInvalid` naming `FACTORY_TOKEN_FILE` when the token file does not exist, and naming `FACTORY_INSTANCE` when the mapping has no instance, and naming `FACTORY_REPOSITORY_URL` for the URL `/srv/project.git` when `hosting` is not given.
@@ -219,3 +219,18 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
 
    I recommend (a). It keeps your setup and the Interface, and it still tests what criterion 5 is for: the status survives from one call to the next. Please confirm (a), or pick (b) or (c). With (a), please also confirm the new wording of criterion 5.
 10. human (pull request comment, 2026-10-16): This replaces my previous answer (b), which would leave the Interface's `handler_factory`. Take (a): keep the setup (agents installed, a queued run that raises inside the handler) and assert that after two calls `tick.status.errors` holds both the `run` error and the `crash` error of the same work item, which a fresh `Tick` per call would not. Criterion 5 becomes: "`activity_tick` keeps one `Tick` across its calls: after two calls whose runs raise, its status holds the errors of both calls (the `run` error of the first and the `crash` error of the second)." Change 2 stays. The code stays as it is.
+11. tester: tester (approved test change, entry 10, option a): I made the change the human approved for criterion 5 and nothing else. Change 2 from entry 7 stays, and the code was not touched.
+
+    Changes:
+    - tests/entry/test_run.py: I renamed the test to `test_the_activity_tick_keeps_one_tick_and_the_errors_of_both_calls`. The setup is unchanged: agents installed with `install_agents`, two queued `ScriptedRun`s that write to `../outside.md` and raise inside the run handler, and the `Tick` built with `handler_factory`. The assertion `[entry] = tick.status.errors; entry.count == 2` is replaced. After two calls, both outcomes are idle and the sorted event keys of `tick.status.errors` equal `["crash:F0001-S0001", "run:F0001-S0001"]`. A comment explains why: the first call's claim turns the second call's event into a crash, and a fresh `Tick` per call would hold only the crash.
+    - Ticket: criterion 5 now uses the human's wording from entry 10, and the Assignment header reads "as of log entry 10".
+
+    Criterion 5 → tests/entry/test_run.py::test_the_activity_tick_keeps_one_tick_and_the_errors_of_both_calls. The mapping for every other criterion is the one in entry 3.
+
+    `make test`: green against the implementation in ba63be9. The run started before I wrapped the new comment over two lines; that wrap changes no code.
+    `make lint`: green, after the wrap.
+
+    Open: none. The coder's refactor step and the final `make check` are still to come (entry 4).
+
+    `make lint`: lint: green
+    `make test`: test: green
