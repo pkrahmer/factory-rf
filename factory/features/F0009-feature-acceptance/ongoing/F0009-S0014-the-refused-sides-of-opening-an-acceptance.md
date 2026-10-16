@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 117
 blocked: null
 comments_seen: 0
@@ -85,3 +85,14 @@ Expect: the last line is `<n> passed in <time>`, with n at least 9 (five rows of
       - Criterion 4: the 9998 row and the 9999 row are rows of one test. The 9999 row checks `type(...) is ValueError` and the exact message, so a pydantic `ValidationError` from a limit moved by one now fails the test.
       - Checks: according to the coder's entry, the factory's `make check` after the coder was green, with 99.53 % coverage. The tests follow the conventions in `CLAUDE.md`: shared setup is a fixture, the sides of one rule are parametrized rows, git is real, and there is no `type: ignore` and no silencing marker.
       - Ticket hygiene: `Assignment` matches what was built. The coder's entry says why `src/` was not touched. Criterion 6 is still correct and is open for the documenter: the operator guide's "When a feature acceptance is due" should say that a story file counts only directly in `backlog/`, `in-progress/` or `done/`.
+6. documenter: changed `docs/operator-guide.md`, "When a feature acceptance is due": a story file counts only directly in `backlog/`, `in-progress/` or `done/`. A file in a subdirectory such as `done/old/` neither archives a story nor keeps the feature incomplete. This is criterion 6.
+
+   Cross-read and found current:
+   - `docs/project-guide.md`. Its `FeatureFiles` item already says "the names directly in". Its "Opening" item already says `open` raises `CannotHandle` for any status other than `due` and changes nothing.
+   - The same operator guide section on the status table.
+
+   The diff holds only the tester's two test modules, with nothing in `src/`, so no name or behaviour moved. I found nothing stale, and the code matches the Interface, so there are no findings.
+
+   `make check` is green (coverage 99.53 %).
+
+   `make check`: check: green

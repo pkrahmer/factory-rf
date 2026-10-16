@@ -429,7 +429,7 @@ A feature is complete when:
 - it has at least one story file in `done`, and
 - no story file waits in `backlog` or `in-progress`.
 
-Only story files count (`F0001-S0001-name.md`). A `.gitkeep`, a `README.md`, a note and an acceptance's report beside the stories never keep a feature incomplete, and never make it complete.
+Only story files count (`F0001-S0001-name.md`), and only directly in `backlog/`, `in-progress/` or `done/`: a story file in a subdirectory (`done/old/F0001-S0001-name.md`) neither archives a story nor keeps the feature incomplete. A `.gitkeep`, a `README.md`, a note and an acceptance's report beside the stories never keep a feature incomplete, and never make it complete.
 
 A report covers the archived stories when it is at `done` on `main` and its `stories` list equals the set of archived stories. A report that lists fewer or more stories does not cover them, so a story archived after an acceptance makes the feature due again.
 
