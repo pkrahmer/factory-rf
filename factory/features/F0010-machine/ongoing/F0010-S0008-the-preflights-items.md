@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 126
 blocked: null
 comments_seen: 0
@@ -189,3 +189,19 @@ Expect: one line, `/srv/agents claude 2.1.289`.
       - Security: no secrets, no shell or SQL strings, no suppression markers.
       - Quality: names and docstrings fit the module and its public names. `_optional` is reused for the new setting. There is no dead or duplicated logic.
       - Ticket hygiene: the coder's entry gives the main decision (each item catches only its own boundary's error) and what was rejected (a blanket `except Exception`). `Assignment` matches the code, and criterion 19 still describes what the operator guide must say.
+6. documenter: one file changed, `docs/operator-guide.md`, and `make check` is green after the edit.
+   - Settings table: added a `FACTORY_CLAUDE_VERSION` row. `FACTORY_CLAUDE_HOME` and `FACTORY_CLAUDE` were already listed.
+   - New section "The preflight's items", placed before "The wait for a repository that is not ready". It covers:
+     - the seven items, each with what makes it pass and the fix for each failure (add the tool to the image, check the token and the network, install the agents into `FACTORY_CLAUDE_HOME`, rebuild the image or change the pinned version);
+     - that every item is reported at once and that a failed report becomes one machine stop whose detail lists each failed item;
+     - that nothing is installed for the operator, and that the commit identity is not an item.
+     - It also says plainly that nothing runs these items at start yet, because the wiring is the next two stories.
+   - "The agent runtime" section: replaced the stale "the preflight that compares it arrives with F0010, and until then nothing checks it" with a pointer to the new section.
+   - Cross-read and found current: `README.md`, `docs/project-guide.md` (the `"make"` literal remark in the project-commands paragraph, which this story widens to `factory.application.preflight`, was not touched), the "Claude Code" section of the image docs (`FACTORY_CLAUDE_VERSION` is already set there), and the stops table row for `preflight_failed`.
+   - Stale but not touched, because the wiring stories own them:
+     - The "The agent runtime" and `factory-guard` paragraphs say a guard probe is still to come.
+     - The README and the operator guide's intro still say the preflight is to come.
+     - The project-guide sentence "The string `"make"` appears in no other module under `src/factory`" is now slightly wrong, since `factory.application.preflight` holds it too. That is unrelated prose outside my lane to rewrite as a finding, so I am noting it here.
+   - No findings for the coder: the code matches the Interface, and every public name has a docstring.
+
+   `make check`: check: green

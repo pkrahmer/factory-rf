@@ -15,6 +15,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`. |
 | `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank. |
 | `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
+| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.289`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
@@ -55,7 +56,7 @@ The factory runs a project's build through make and calls three targets: `check`
 
 ## The agent runtime
 
-The factory runs each agent as a `claude -p` call under your own `claude` login: it needs the `claude` program and a session you have already logged in to, and it holds no API key of its own. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1 and have not yet been checked against the pinned `claude` version. If a call fails at once, check them first. The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight that compares it arrives with F0010, and until then nothing checks it.
+The factory runs each agent as a `claude -p` call under your own `claude` login: it needs the `claude` program and a session you have already logged in to, and it holds no API key of its own. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1 and have not yet been checked against the pinned `claude` version. If a call fails at once, check them first. The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
 
 A run whose budget is spent is not lost: the factory resumes the same session once with a quarter of the budget (at least 0.50 USD) and asks the agent to finish with its decision, `question` if the work is not done. That costs up to that extra amount, and the cost and tokens of both calls are added up. If the resume is also over budget, the run stops as a stall; there is no third call. A run that dies, runs past its time limit or returns no usable decision stops the work item as a stall. One `time_limit` covers both calls: the resume gets what is left. A run the `time_limit` ends is killed, is not resumed, and shows its cost, tokens and turns as unknown.
 
@@ -154,6 +155,20 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 | `checkout_restore_failed` | See "The stops of the tick". | As there. |
 | `pipeline_definition_invalid` | See "The stop `pipeline_definition_invalid`". | As there. |
 | `repository_unavailable` | The checkout cannot be made, or `origin/main` is not ready. The detail says which: `cannot prepare the checkout: <git's message>` (the clone failed: check `FACTORY_REPOSITORY_URL` and the credentials), `cannot fetch: <git's message>`, `the repository has no main branch yet` (the repository has no commit on `main`), or `origin/main has no factory/pipeline.yml yet`. | Fix the address or credentials, or push `factory/pipeline.yml` to `main`. |
+
+### The preflight's items
+
+The preflight is a list of seven items, built in `factory.application.preflight`. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. (Wiring the preflight into the tick, the stamp and the probe of `main` come in later stories of F0010; until then nothing runs these items at start.)
+
+| Item | Passes when | If it fails |
+|---|---|---|
+| `tool:git`, `tool:uv`, `tool:make` | the tool is on the `PATH` | The detail is `<tool> is not on the PATH; add it to the image`. Add the tool to the image and rebuild. |
+| `tool:<claude>` | the agent runtime's executable (`FACTORY_CLAUDE`, default `claude`) is on the `PATH`; the item is named after the value, for example `tool:/opt/claude/bin/claude` | As for the other tools. |
+| `hosting-service` | a read-only call (the open pull request of `main`) is answered | The detail holds the operation and the service's message. Check the token (`FACTORY_TOKEN_FILE`) and the network. |
+| `agents` | at least one agent file is in `FACTORY_CLAUDE_HOME` (`<it>/agents/<role>.md`) | The detail names the directory, whether it is empty, missing or unreadable. Install the agents into `FACTORY_CLAUDE_HOME`. |
+| `agent-runtime-version` | the first word of `claude --version` equals `FACTORY_CLAUDE_VERSION` | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without `FACTORY_CLAUDE_VERSION` it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set`; when `claude --version` cannot run, it holds the runtime's error. |
+
+The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first. The commit identity is not an item.
 
 ### The wait for a repository that is not ready
 
