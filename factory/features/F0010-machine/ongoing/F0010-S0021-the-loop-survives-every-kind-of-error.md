@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 139
 blocked: null
 comments_seen: 0
@@ -59,3 +59,14 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
    - Demo: the pytest command is runnable. Its Expect line (`26 passed`) is checkable; I did not recount the 18 existing parametrized tests, and the module has 12 test functions.
    - Architecture: tests only, in the application layer's test folder; no layering concern.
    - Scope: inside F0010 (the loop and its pauses, decision 4); the story is listed in FEATURE.md as S0021.
+3. tester: wrote the eight rows of criteria 1 and 2 as one parametrized test in `tests/application/test_scheduler.py`. It uses the module's existing `Loop` recorder.
+   - criterion 1: tests/application/test_scheduler.py::test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle, rows with `raising_side="tick"` (prepares `[]`, ticks `[error, True]`). Each row checks that `run` raises nothing, the log holds exactly the Interface's line, calls are `prepare, tick, sleep, prepare, tick, sleep`, and sleeps are `[30.0, 15.0]`.
+   - criterion 2: the same test, rows with `raising_side="prepare"` (prepares `[error, True]`, ticks `[True]`). Calls are `prepare, sleep, prepare, tick, sleep`, so the first iteration has no tick. Sleeps are `[30.0, 15.0]`.
+   - The errors are a second parameter, `_LOOP_ERRORS`: `GitError("git fetch", 128, "boom")`, `OSError("boom")`, `AgentRuntimeError("boom")` and `RuntimeError("boom")`, each paired with its exact log line. Each loop stops after its second sleep (`count("sleep") >= 2`), as the Interface says.
+   - criteria 3 and 4: no test. Criterion 3 is the factory's `make check`; criterion 4 is docs: none.
+   Files: only `tests/application/test_scheduler.py` changed, with the new test and `AgentRuntimeError` added to the existing `factory.domain.errors` import. No file was created, and every module imported fine.
+   Red/green: these tests are not red. The story says the code already behaves this way (`except Exception` in `Scheduler._iterate`), and `make test` was green with 99.54 % coverage. The demo command showed 26 tests in the module passing, which matches the Demo's Expect. `make lint` is green.
+   Open: nothing. The coder is expected to change nothing in `src/`; a mutation that narrows the handler to `except ValueError` would now fail the GitError, OSError, AgentRuntimeError and RuntimeError rows.
+
+   `make lint`: lint: green
+   `make test`: test: green
