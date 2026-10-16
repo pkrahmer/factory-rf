@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 127
 blocked: null
 comments_seen: 0
@@ -175,3 +175,26 @@ Expect: one line, `lint 600.0`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I implemented the stamp and the probe. `make check` is green and the tests are unchanged.
+
+   Built:
+   - src/factory/domain/preflight.py: `PreflightStamp`, frozen with extra="forbid", with `image` and the `CommitId | None` fields `main_probed` and `main_failed`.
+   - src/factory/application/preflight.py:
+     - The constants `PROBE_COMMAND = "lint"` and `PROBE_TIME_LIMIT = 10 min`, and the ABC `PreflightStampStore`.
+     - `Preflight.run` follows the Interface rules in this order:
+       1. The machine items run unless the image is the same and not None. A failure raises the machine stop. A pass writes `PreflightStamp(image=image)`.
+       2. `_probe` resolves origin/main. It keeps the existing stop for a commit that already failed, or raises it again with "(probed earlier)" if that stop is gone. It clears `main_branch_failing` for a commit that already passed. Otherwise it runs checkout, reset_to and `lint`.
+       3. A `GitError` or `ProjectCommandError` raised while probing becomes a `preflight_failed` stop, and the stamp is left unchanged.
+       4. When `run` ends passed or with `main_branch_failing`, it clears `preflight_failed`.
+   - src/factory/adapters/preflight_stamp_file.py: `JsonPreflightStampFile`. `read` returns None for a missing or invalid file.
+   - src/factory/adapters/atomic_file.py: `replace_text(path, text)`, the mkstemp + `os.replace` helper taken out of `JsonHealthStatusFile.write`. The health file and the stamp file both use it now.
+
+   Commits: a2ffd9b (feature) and ce626bf (refactor: `_raise` takes the stop scope explicitly and no longer works it out from the reason, which repeated the domain's rule).
+
+   Main decision: the atomic helper is a module function in adapters, as the Interface asks. I rejected a base class shared by the two JSON stores: their `read`s differ (healthy versus None), and a base class would couple two unrelated files.
+
+   Noticed, not touched:
+   - `Preflight` does not fetch. The tests fetch after each push, and the tick story will decide where the fetch goes.
+   - When the machine items fail, a `main_branch_failing` stop already in force is left as it is.
+
+   `make check`: check: green
