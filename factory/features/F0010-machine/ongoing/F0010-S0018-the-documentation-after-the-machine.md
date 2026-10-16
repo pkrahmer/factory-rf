@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 141
 blocked: null
 comments_seen: 0
@@ -141,3 +141,39 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
    Stale but untouched: none found. No findings for the coder.
 
    `make check`: check: green
+7. demo: all three commands met their `Expect:` lines; no findings.
+
+   1. Grep for the stale sentences over `README.md`, `docs/operator-guide.md`, `docs/project-guide.md`:
+   ```
+   exit=1
+   ```
+   Met: no matching line, then `exit=1`.
+
+   2. `uv run factory-health --state-directory "$(mktemp -d)"; echo "exit=$?"`:
+   ```
+   healthy
+   exit=0
+   ```
+   Met: `healthy`, then `exit=0`, as the README now says (README.md:12: "prints `healthy` and exits 0, or prints one line per stop and exits 1").
+
+   3. `grep -c -F 'env -i' docs/project-guide.md; grep -c -E 'RUN_FILE_MODE|0o?640' docs/project-guide.md`:
+   ```
+   1
+   1
+   ```
+   Met: two numbers, each at least 1.
+
+   Criteria cross-read against the files (no contradiction found):
+   - README.md:12 says "Six commands exist" and lists six: factory-run, factory-check-story, factory-bill, factory-watch, factory-health, factory-guard. No `ModuleNotFoundError`.
+   - operator-guide.md:60 ("The agent runtime"): with `FACTORY_AGENT_USER` set, as the image sets it, the call runs under that user's `claude` login. Without it, the call runs under the factory user's own login.
+   - operator-guide.md:90: a call that reached its time limit counts as ending without a usable reply, even when it printed a reply first, so a `sudo:` line then stops the run with the error that holds the line.
+   - project-guide.md:1379 ("### The request"): `os_user` is `boundaries.settings.agent_user`, or `None` without settings. The environment is "already scrubbed at its source, `production_environment()`".
+   - project-guide.md:280: the `ClaudeCodeRuntime` signature names `sudo_executable=SUDO_EXECUTABLE`.
+   - project-guide.md:300 covers the call as another user, as the Interface lists it: the `sudo -n -u … -- env -i` prefix, `SUDO_EXECUTABLE` (`/usr/bin/sudo`), `RUN_FILE_MODE` (`0o640`) for every request, the `sudo:` rule and its exception, and `HOME` from `agent_run_environment`.
+   - project-guide.md:992: the field list of `Boundaries` names `settings`.
+   - project-guide.md:215: `"make"` is in `make_commands` and `preflight`.
+   - project-guide.md:826: the cost record's `image` is `settings.image`.
+   - project-guide.md:996: the PyGithub wiring uses the token file.
+   - project-guide.md:291: the preflight's `agent-run-probe` checks the flags.
+
+   Open: none.
