@@ -185,3 +185,16 @@ class CannotHandle(FactoryError):
         super().__init__(f"cannot handle {kind}: {reason}")
         self.kind = kind
         self.reason = reason
+
+
+class SettingsInvalid(FactoryError):
+    """The instance's settings cannot be read: the variable at fault and the fault."""
+
+    variable: str
+    fault: str
+
+    def __init__(self, variable: str, fault: str) -> None:
+        """Name the variable and the fault."""
+        super().__init__(f"{variable}: {fault}")
+        self.variable = variable
+        self.fault = fault
