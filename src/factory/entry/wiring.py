@@ -1,8 +1,9 @@
 """The one module that picks the concrete adapters behind the application's interfaces."""
 
 import re
+import shutil
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
@@ -15,6 +16,7 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.acceptance import (
@@ -40,13 +42,16 @@ from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore
+from factory.application.preflight import MachineChecks, Preflight
 from factory.application.recovery import RecoveryHandler
+from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import Name
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.preflight import PreflightItem
 from factory.domain.settings import (
     CREDENTIAL_FILE_VARIABLE,
     REPOSITORY_URL_VARIABLE,
@@ -64,6 +69,7 @@ __all__ = [
     "build_bill_service",
     "build_boundaries",
     "build_handlers",
+    "build_preflight",
     "build_tick",
     "build_work_item_reader",
     "git_environment",
@@ -89,6 +95,7 @@ CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
 
 _LOG_FILE_NAME = "factory.log"
 _HEALTH_FILE_NAME = "health.json"
+_PREFLIGHT_STAMP_FILE_NAME = "preflight-stamp.json"
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -266,9 +273,32 @@ def handler_factory(
     return handlers
 
 
-def build_tick(boundaries: Boundaries, settings: InstanceSettings) -> Tick:
+def build_preflight(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    which: Callable[[str], str | None],
+    extra: Sequence[Callable[[], PreflightItem]] = (),
+) -> Preflight:
+    """Return the preflight of the machine of `settings`, its stamp in the state directory."""
+    return Preflight(
+        boundaries,
+        MachineChecks(boundaries, settings, which, extra),
+        JsonPreflightStampFile(settings.state_directory / _PREFLIGHT_STAMP_FILE_NAME),
+        StopService(boundaries),
+        settings.image,
+    )
+
+
+def build_tick(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    which: Callable[[str], str | None] = shutil.which,
+) -> Tick:
     """Return a new tick of the instance of `settings`, its agents in the production environment."""
     instance = settings.instance
     return Tick(
-        boundaries, instance, handler_factory(boundaries, instance, production_environment())
+        boundaries,
+        instance,
+        handler_factory(boundaries, instance, production_environment()),
+        preflight=build_preflight(boundaries, settings, which),
     )

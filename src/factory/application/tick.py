@@ -1,4 +1,4 @@
-"""The tick: fetch, load, restore, clean up stale branches, evaluate and dispatch one event."""
+"""The tick: fetch, load, restore, preflight, clean up stale branches, evaluate and dispatch."""
 
 from collections.abc import Callable, Mapping
 from typing import NoReturn
@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, DispatchOutcome, Handler
 from factory.application.pipeline_loading import PipelineLoader
+from factory.application.preflight import Preflight
 from factory.application.recovery import delete_stale_branches
 from factory.application.stops import StopService
 from factory.application.watcher import Watcher
@@ -62,9 +63,14 @@ class Tick:
         instance: Name,
         handlers: HandlerFactory,
         status: TickStatus | None = None,
+        preflight: Preflight | None = None,
     ) -> None:
-        """Work through `boundaries` as `instance`, building the handlers per loaded definition."""
+        """Work through `boundaries` as `instance`, building the handlers per loaded definition.
+
+        A given `preflight` runs on the restored checkout; a stop it reports ends the tick.
+        """
         self._boundaries = boundaries
+        self._preflight = preflight
         self._instance = instance
         self._handlers = handlers
         self._status = TickStatus() if status is None else status
@@ -76,7 +82,7 @@ class Tick:
         return self._status
 
     def run(self) -> TickOutcome:
-        """Fetch, load, restore, clean up, evaluate and dispatch; a repository stop ends the tick.
+        """Fetch, load, restore, preflight, clean up, evaluate and dispatch; a stop ends the tick.
 
         Raises `WorkItemFormatError`, `ValueError` from the evaluation, and `GitError`
         outside the fetch and the restore: no stop exists for them.
@@ -85,6 +91,7 @@ class Tick:
             self._fetch()
             definition = self._load()
             self._restore()
+            self._run_preflight()
         except _Stopped as stopped:
             return TickOutcome(stopped=stopped.reason)
         delete_stale_branches(self._boundaries)
@@ -116,6 +123,14 @@ class Tick:
         except GitError as error:
             self._stop("checkout_restore_failed", str(error))
         self._stops.clear_stop("checkout_restore_failed")
+
+    def _run_preflight(self) -> None:
+        # The preflight raises and clears its stops itself.
+        if self._preflight is None:
+            return
+        reason = self._preflight.run()
+        if reason is not None:
+            raise _Stopped(reason)
 
     def _restore_checkout(self) -> None:
         git = self._boundaries.git
