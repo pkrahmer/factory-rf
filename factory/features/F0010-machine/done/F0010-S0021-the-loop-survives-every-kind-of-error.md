@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 139
 blocked: null
 comments_seen: 0
@@ -114,3 +114,4 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
    - Criterion 3 (`make check`) is the factory's to run after this stage. Criterion 4 is docs: none.
 
    The demo contradicts no criterion. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 13.9 min, 38 turns, 74k tokens in (484k more from cache), 8k out, $0.73
