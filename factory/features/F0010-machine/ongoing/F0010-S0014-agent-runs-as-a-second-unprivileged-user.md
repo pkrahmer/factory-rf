@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 132
 blocked: null
 comments_seen: 2
@@ -256,3 +256,20 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
     5. Ticket hygiene: the log gives the main decision (a `sudo:` line is a refusal only when there is no result) and the alternative that was rejected. `Assignment` matches what was built. Criterion 17 still says what the operator guide and the decision log must cover.
 
     Open, not part of this story: killing a timed-out agent under `sudo` (decision 30) is still the human's decision and is one of the morning observations.
+12. documenter: documenter, round 1: docs criterion 17 written; no findings against the code. `make check` is green (coverage 99.54 %).
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The settings table has a row for `FACTORY_AGENT_USER`: the `Name` rule, blank means no user and no `sudo`.
+      - New section "The agent runs as a second user", placed before the `factory-guard` section. It covers the two users (`factory` uid 1000, `agent` uid 1001), the `sudo -n -u agent -- env -i` call and why, and the run's files being `0640` in `/state/runs`, which the agent cannot write. It also covers the home that stays writable, a `sudo:` refusal versus a warning, the one-time login (`docker exec -it -u agent <container> claude`), and a table of the morning observations for WE3.1, WE3.3 and WE3.4 with commands.
+      - The same section says a `time_limit` under `sudo` is open, and says what to look for and do by hand.
+      - The `HOME` sentence in the `factory-guard` section now says the agent user's home applies when `FACTORY_AGENT_USER` is set.
+    - `docs/decisions.md`: one new entry. It records why `sudo -n -u agent -- env -i` and the alternatives rejected, why the run's files are `0640`, that the `sudo:` line is an error only without a usable reply, that the agent home stays writable (L69, left for v2), and that the kill of a timed-out agent under `sudo` is open.
+
+    Cross-read and found current: the README, `docs/project-guide.md`, and the operator guide's "Users and directories" and "The hosting-service token" sections.
+
+    Not run: the commands in the observations table. They need a real image with the second user and the `sudo` rule, and the next story, F0010-S0015, builds those. I wrote them as the morning checks, with the expected results stated. The login command and the `curl` expectation (`401`) are the part most worth checking when you run them. The guide also says the factory's `agent_home` parent is `/home/agent`, from the existing default.
+
+    Stale but unrelated, not touched: the opening line of "The agent runtime" still says the call runs "under your own `claude` login". The new section says the login is `agent`'s once `FACTORY_AGENT_USER` is set. I left the old line because it is still true with no agent user.
+
+    `make check`: check: green

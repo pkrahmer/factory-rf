@@ -17,6 +17,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.289`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
+| `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it in the next story, F0010-S0015; until then you set it yourself. |
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
@@ -60,9 +61,42 @@ The factory runs each agent as a `claude -p` call under your own `claude` login:
 
 A run whose budget is spent is not lost: the factory resumes the same session once with a quarter of the budget (at least 0.50 USD) and asks the agent to finish with its decision, `question` if the work is not done. That costs up to that extra amount, and the cost and tokens of both calls are added up. If the resume is also over budget, the run stops as a stall; there is no third call. A run that dies, runs past its time limit or returns no usable decision stops the work item as a stall. One `time_limit` covers both calls: the resume gets what is left. A run the `time_limit` ends is killed, is not resumed, and shows its cost, tokens and turns as unknown.
 
+### The agent runs as a second user
+
+The image has two users: `factory` (uid 1000) runs the factory, and `agent` (uid 1001) runs every agent. `agent` owns nothing the factory keeps secret: it cannot read the token file (`0600`, owned by `factory`) and cannot write `/state`.
+
+With `FACTORY_AGENT_USER=agent` the runtime does not start `claude` itself. It runs `sudo -n -u agent -- env -i NAME=value ... claude ...`, in the run's working directory. `-n` makes `sudo` fail instead of asking for a password. `env -i` drops everything `sudo` would keep, so the agent sees exactly the run's allow-list environment (see "The hosting-service token") and the runtime's three switches, and nothing of the factory's environment or privileges. The image's `sudoers` rule that lets `factory` start commands as `agent`, and the variable itself, come with the next story, F0010-S0015.
+
+The files of a run are `instructions-<session>.md` and, when the stage has write paths, `guard-<session>.json` and `hooks-<session>.json`. They are in `/state/runs`. The runtime sets each to mode `0640` before it starts the agent, whatever the factory's umask. The agent reads them through the group `factory-work`, and it cannot rewrite them: the files are not writable by the group, and the directory is not writable by the agent either. So a run cannot widen its own write paths.
+
+The agent's home, `/home/agent`, stays writable by the agent. It holds its `claude` login and its `.claude`, and the agent could change the files there; that is left for v2 (see the decision log).
+
+A `sudo` that refuses is a misconfiguration, not a stall: when the call ends without a usable reply and `sudo` printed a line that starts `sudo:` to standard error, the run stops with an error that holds that line (`sudo: a password is required`: the rule is missing or wrong). A `sudo:` line before a good reply, for example `sudo: unable to resolve host x`, is ignored. A run that dies for another reason is still a stall.
+
+**Log in once as `agent`.** The agent runs under `agent`'s own `claude` login, not yours as `factory`. Once per instance, with the container running:
+
+```
+docker exec -it -u agent <container> claude
+```
+
+and complete the login. It is kept in `/home/agent`, which is in a volume only if you mount one there; otherwise a new container needs the login again.
+
+**Morning observations.** The second user, the `sudo` rule and the group exist only in a real image, so the tests cannot show these. Do them once on a running instance and note the result:
+
+| Observation | Command | Expected |
+|---|---|---|
+| WE3.1: the agent runs as `agent` | `docker exec <container> sudo -n -u agent -- id -un` | `agent` |
+| WE3.3: it cannot read the token file | `docker exec -u agent <container> cat "$FACTORY_TOKEN_FILE"` (use the path in the variable) | `Permission denied` |
+| WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
+| WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | an authentication failure, no push |
+| WE3.4: it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
+| A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `ps -eo user,pid,args \| grep claude` after the limit | see below |
+
+A `time_limit` under `sudo` is not solved. The factory kills the process group of the call, and the leader of that group is `sudo`, owned by root, which the factory's user may not signal. So a run that reaches its `time_limit` may be recorded as timed out while the `claude` process under `agent` keeps running. Whether a `timeout` inside the `sudo` call or a kill through a `sudo` rule is the fix is an open decision. Until then check the `ps` line above after a timeout and kill the process by hand (`docker exec <container> sudo -n -u agent -- kill <pid>` if the rule allows it, else restart the container).
+
 ### `factory-guard` on the agent run's `PATH`
 
-The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; F0010's preflight will probe for it, until then nothing does. The factory builds that environment itself from an allow list of six names (see "The hosting-service token"); the two that matter here are a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home). Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The details are in the project guide, "The guard command".
+The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; F0010's preflight will probe for it, until then nothing does. The factory builds that environment itself from an allow list of six names (see "The hosting-service token"); the two that matter here are a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home, or, when `FACTORY_AGENT_USER` is set, the agent user's home: the parent of `FACTORY_CLAUDE_HOME`, `/home/agent`). Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The details are in the project guide, "The guard command".
 
 ## The machine's image
 
