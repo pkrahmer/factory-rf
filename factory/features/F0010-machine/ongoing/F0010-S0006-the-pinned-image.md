@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 124
 blocked: null
 comments_seen: 2
@@ -322,3 +322,23 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
     - The real build is a morning observation.
     - `claude/`, `template/` and `image/entrypoint.sh` come from later stories.
     - Criterion 23 is the documenter's.
+12. documenter: docs (round 1): wrote the docs criterion (23). `make check` is green.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "The machine's image", placed before the factory log section.
+      - How to build the image. `FACTORY_IMAGE` is only a label; the identity is generated at build into `/opt/factory/image-id`, so every rebuild invalidates the preflight stamp.
+      - The digest and the eight `0~unpinned` package versions are placeholders to replace before the first build, with how to update each pin.
+      - Claude Code comes from its npm package at the pinned 2.1.289 with auto-update off; a maintenance feature after v1.1 updates it (Q21).
+      - A real build is the morning observation.
+      - The users and the modes of `/state`, `/state/runs`, `/work` and `/home/agent/.claude`.
+      - The image on the cost records.
+      - I also fixed the line in "The instance's settings" that said "the image story writes it"; it now points to the new section.
+    - `docs/decisions.md`: two entries. The first says why every tool is pinned (R29) and why the identity is generated at build and not passed in. The second says why `/state` is read-only for the agent and `/state/runs` is readable by it.
+
+    Cross-read against the diff: the Dockerfile, `costs.py` and the operator guide's settings text. They agree. The Dockerfile matches the Interface, `CostRecorder.begin` sets `image` as described, and the settings text on `FACTORY_IMAGE` and `FACTORY_IMAGE_ID_FILE` is current.
+
+    Not run: the `docker build`, `docker inspect` and `apt-cache` commands in the new section. They need Docker and a network, which v1's container does not have. The guide says so.
+
+    Findings: none. Nothing stale seen that is unrelated to this story.
+
+    `make check`: check: green

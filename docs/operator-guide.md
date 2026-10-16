@@ -19,7 +19,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
-The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. The image build generates the file (the image story writes it). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
+The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. The image build generates the file (see "The machine's image"). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
 
 A blank value of the three optional variables above counts as unset. The token is read once, when the boundaries are built, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a file that does not exist or cannot be read, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable; the message names the path and never the token. The token reaches the hosting service (PyGithub) from the factory process, and git only through its credential helper, `/usr/local/bin/git-credential-factory`, which the token story provides.
 
@@ -62,6 +62,50 @@ A run whose budget is spent is not lost: the factory resumes the same session on
 ### `factory-guard` on the agent run's `PATH`
 
 The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; F0010's preflight will probe for it, until then nothing does. The factory builds that environment itself and it has two variables only: a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home). Nothing else from your shell reaches the agent. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The details are in the project guide, "The guard command".
+
+## The machine's image
+
+`image/Dockerfile` builds the machine the factory runs on. Nothing in it floats (R29): the base image is named with its digest, Claude Code, `uv` and the eight Debian tools have exact versions, and the factory's own dependencies are installed by `uv sync --frozen --no-dev` from `uv.lock` alone (the build backend, `hatchling`, is pinned in `pyproject.toml`). `tests/test_image.py` checks this statically; it reports any reference that floats, such as a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, or a download piped into a shell.
+
+### Build it
+
+Run it from the repository root, with Docker:
+
+```bash
+docker build -f image/Dockerfile -t factory:local .
+```
+
+The build argument `FACTORY_IMAGE` is optional and is only a label (`docker build --build-arg FACTORY_IMAGE=2026-10 ...`); it defaults to `unlabelled`. The identity of the image is not the label. The build generates a fresh id and writes it to `/opt/factory/image-id`, which the settings read. Every rebuild that changes an earlier layer gets a new id, so it invalidates the preflight stamp, even when you pass the same label.
+
+A real build is not yet observed: v1's container has no Docker. The Dockerfile also copies `claude/`, `template/` and `image/entrypoint.sh`, which later stories of F0010 create, so the build is meaningful only once they exist. Treat the first build as the morning observation.
+
+### Replace the placeholders before the first build
+
+The digest of `BASE_IMAGE` (64 zeros) and the eight Debian package versions (`0~unpinned`: `git`, `make`, `curl`, `ca-certificates`, `procps`, `sudo`, `nodejs`, `npm`) cannot be looked up without a network, so the file carries placeholders of the right form. The build fails on them until you replace them.
+
+To update any pin, edit its line and run `uv run pytest tests/test_image.py`:
+
+- Base image: `docker pull python:3.12-slim-bookworm`, then take the digest from `docker inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
+- Debian package: in the base image, `apt-cache policy <package>` shows the version; write it as `name=version`.
+- `uv`: the `UV_VERSION` default. Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers).
+
+### Claude Code
+
+Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, at the pinned version `2.1.289`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is also in the container's environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it. A maintenance feature after v1.1 updates the pin (questionnaire 1, Q21); until then it changes only when you edit the Dockerfile.
+
+### Users and directories
+
+The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001). Both have the group `factory-work`.
+
+| Path | Mode and owner | What it means |
+|---|---|---|
+| `/state` | `0755`, `factory:factory` | The agent can read the health file, the log and the stamp, and cannot write them. |
+| `/state/runs` | `2750`, `factory:factory-work` | The files of an agent's run: the agent can read them and cannot write them. |
+| `/work`, `/home/agent/.claude` | `2775`, group `factory-work` | Both users can write. |
+
+### The image on the cost records
+
+Every cost record names the image the agent run ran on (the identity from `/opt/factory/image-id`). A record made when the instance has no image identity has none.
 
 ## The factory log and the health status file
 
