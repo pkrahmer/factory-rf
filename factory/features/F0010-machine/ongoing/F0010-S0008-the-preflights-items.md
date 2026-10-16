@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 126
 blocked: null
 comments_seen: 0
 round: 0
@@ -140,3 +140,9 @@ Expect: one line, `/srv/agents claude 2.1.289`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`domain/settings.py`, `domain/preflight.py`, `application/preflight.py`). Every rule is stated. The pieces it relies on exist: `FakeAgentRuntime.version`, `FrontmatterAgentDefinitionReader.names`, the fake hosting's `injected failure`, and the `cannot start` text in `ClaudeCodeRuntime`.
+   - Criteria: each is testable by one test function. Criterion 1 covers `read_settings` for set, missing and blank. Criterion 2 covers the frozen and closed models. Criteria 3 and 4 cover `tool_item` pass and fail. Criteria 5 and 6 cover the item order and reporting every item at once. Criteria 7 to 12 cover each item's pass side and fail side (hosting, agents with an empty or missing directory, version equal, different, unpinned, and a raising runtime). Criterion 13 covers `version_matches` on both sides. Criterion 14 covers the `extra` items. Criterion 15 covers reading `settings` and not `boundaries.settings`. Criteria 16 and 17 cover `machine_stop` for a passed and a failed report.
+   - Demo: the three commands are runnable. Each Expect line gives output that can be checked.
+   - Architecture: the domain DTOs and rules are in `factory.domain`. The checks and `REQUIRED_TOOLS` are in `factory.application` and take `which` as an argument, so no tool is called directly. The change to the `test_only_the_make_class_names_make` test has the human's word in FEATURE.md decision 28.
+   - Scope: within F0010's "preflight's items". The token file, agent user, sudo and probe items are left to later stories, and the stamp and the wiring are S0009 and S0010.
