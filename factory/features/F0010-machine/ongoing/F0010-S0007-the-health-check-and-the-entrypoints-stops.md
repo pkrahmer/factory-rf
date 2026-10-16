@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 125
 blocked: null
 comments_seen: 0
@@ -243,3 +243,31 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
    I did not run the examples. The three demo blocks and the `docker compose` commands are untried, and the health line in the guide is illustrative.
 
    `make check`: check: green
+7. demo: ran the three `## Demo` commands from the repository root in order. All three met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   1. Health check over a temporary state directory, first with no health file, then with one `preflight_failed` stop:
+   ```
+   healthy
+   0
+   preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12T00:00:00Z)
+   1
+   ```
+   Met: four lines, `healthy`, `0`, the stop line with the `(since 2026-10-12T…Z)` format, and `1`. Criteria 1 and 2.
+
+   2. Parsing `image/compose.yml` with ruamel.yaml:
+   ```
+   unless-stopped 30s factory.entry.health
+   ```
+   Met: exactly the expected line. Criterion 13.
+
+   3. Entrypoint run with a stub `python`, followed by `stat -c %a` on the runs directory:
+   ```
+   2026-10-16T08:21:21Z installed agents and settings into /tmp/tmp.9m8q4NF7hu/home
+   2026-10-16T08:21:21Z prepared /tmp/tmp.9m8q4NF7hu/state/runs
+   2026-10-16T08:21:21Z starting instance unset
+   stub -m factory.entry.run
+   2750
+   ```
+   Met: the three log lines each start with a `YYYY-MM-DDTHH:MM:SSZ` time stamp and read as criterion 15 says. Then comes `stub -m factory.entry.run` (criterion 21) and the last line is `2750` (criterion 19).
+
+   Not shown by the demo (the tests cover these): the waiter criteria 6–12, the entrypoint's error paths (17) and the working directory (20). As the documenter noted, a real container under `docker compose ps` is still the morning observation.
