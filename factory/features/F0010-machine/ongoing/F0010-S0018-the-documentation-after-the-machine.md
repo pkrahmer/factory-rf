@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 141
 blocked: null
 comments_seen: 0
@@ -93,3 +93,9 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
       - `make check`: green (coverage 99.54 %).
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes nothing outside the ticket, and that is what this documentation-only story should look like at review.
+      - 1. Acceptance criteria: criterion 1 (`make check` stays green) is held by the existing suite, which is unchanged. The coder's entry records `make check` green (coverage 99.54 %). Criterion 2 (docs) is the documenter's work and comes next. It has no test, on purpose: a test that greps prose would put the story's sentences in `tests/` (R4). The Demo greps check it after the documenter. The story adds no rule, so no failing side or limit is left untested.
+      - 2–4. Architecture, security, quality: no code changed, so nothing to judge.
+      - 5. Ticket hygiene: the Assignment matches what was built (nothing, on purpose). The tester and coder entries each say why they left their stage empty. The docs criterion lists every rewrite the documenter must make: the new `os_user` paragraph and each stale sentence by file and section.
+      - Open: all the work is the documenter's. Every bullet of criterion 2, plus the three Demo commands, must hold afterwards.
