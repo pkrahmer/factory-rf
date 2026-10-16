@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 127
 blocked: null
 comments_seen: 0
@@ -131,3 +131,47 @@ Expect: one line, `lint 600.0`.
    - Demo: both blocks are runnable. Each `Expect:` line is checkable: `None`, `build-7 aaaaaaa None`, `None`, and `lint 600.0`.
    - Architecture: the store interface is an ABC in application, the file implementation is in adapters, the stamp DTO is in domain, and the layer order holds. `Preflight` reaches git and the project commands only through `Boundaries`, and the stop service is the existing F0003 one. The Interface reuses the existing atomic-write helper instead of copying it.
    - Scope: the story is within F0010's scope ("The probe and the stamp", ST4.1, ST4.3, ST4.5) and matches decisions 13 and 14 of the feature. It touches nothing in the Out of scope list.
+3. tester: I wrote red tests for criteria 1–23 from the Interface and the criteria. `make lint` is green. `make test` stops at collection on purpose because the modules under test do not exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_preflight_run.py::test_a_red_lint_on_a_work_items_branch_does_not_fail_and_the_probe_ends_on_main
+   - criterion 2: tests/application/test_preflight_run.py::test_a_red_main_is_one_repository_stop_naming_the_commit_and_the_last_line
+   - criterion 3: tests/application/test_preflight_run.py::test_a_fix_pushed_to_main_clears_the_stop_of_the_red_main
+   - criterion 4: tests/application/test_preflight_run.py::test_a_failed_machine_item_is_a_machine_stop_and_no_lint_runs
+   - criterion 5: tests/application/test_preflight_run.py::test_a_probe_that_cannot_start_is_a_machine_stop_and_leaves_the_stamp
+   - criterion 6: tests/application/test_preflight_run.py::test_a_probe_that_reaches_its_time_limit_is_the_stop_of_a_failing_main
+   - criterion 7: tests/application/test_preflight_run.py::test_an_unchanged_image_runs_the_machine_items_once_however_much_time_passes
+   - criterion 8: tests/application/test_preflight_run.py::test_a_new_image_runs_the_machine_items_again_and_is_stamped
+   - criterion 9: tests/application/test_preflight_run.py::test_a_new_image_probes_the_unmoved_main_again
+   - criterion 10: tests/application/test_preflight_run.py::test_without_an_image_identity_the_machine_items_run_every_time
+   - criterion 11: tests/application/test_preflight_run.py::test_a_failed_machine_report_writes_no_stamp_and_its_stop_goes_once_they_pass
+   - criterion 12: tests/application/test_preflight_run.py::test_a_main_that_passed_is_probed_again_only_when_it_moves
+   - criterion 13: tests/application/test_preflight_run.py::test_a_red_main_is_probed_once_and_its_stop_stays_the_first_ones
+   - criterion 14: tests/application/test_preflight_run.py::test_a_lost_stop_of_a_red_main_is_raised_again_without_probing
+   - criterion 15: tests/application/test_preflight_run.py::test_a_valid_stamp_clears_a_standing_preflight_stop
+   - criterion 16: tests/application/test_preflight_run.py::test_without_an_origin_main_no_lint_runs_and_the_preflight_passes
+   - criterion 17: tests/application/test_preflight_run.py::test_a_git_error_while_probing_is_a_machine_stop_and_leaves_the_stamp
+   - criterion 18: tests/application/test_preflight_run.py::test_a_red_main_also_clears_a_standing_preflight_stop
+   - criterion 19: tests/application/test_preflight_run.py::test_the_probe_runs_lint_with_a_time_limit_of_ten_minutes
+   - criterion 20: tests/application/test_preflight_run.py::test_a_main_probed_before_is_not_probed_again_and_its_stale_stop_goes
+   - criterion 21: tests/domain/test_preflight_stamp.py::test_the_stamp_refuses_an_unknown_key, ::test_the_stamp_refuses_an_assignment_to_a_field, ::test_the_commit_fields_hold_a_commit_id_or_none (parametrized: both fields × "a"*40, None, "a"*39, "A"*40, "g"*40)
+   - criterion 22: tests/adapters/test_preflight_stamp_file.py::test_a_written_stamp_reads_back_as_one_json_object_of_three_keys, ::test_a_missing_or_invalid_file_reads_as_no_stamp (parametrized: missing, not a stamp, commit breaks the pattern)
+   - criterion 23: tests/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package and tests/adapters/test_preflight_stamp_file.py::test_a_write_leaves_no_file_but_the_stamp_in_its_directory
+
+   Files created: tests/application/test_preflight_run.py, tests/domain/test_preflight_stamp.py, tests/adapters/test_preflight_stamp_file.py, tests/test_atomic_replace_search.py.
+
+   Modules and names the test runner could not import: factory.adapters.preflight_stamp_file (JsonPreflightStampFile), and the new names `PreflightStamp` in factory.domain.preflight and `Preflight`, `PROBE_COMMAND`, `PROBE_TIME_LIMIT` in factory.application.preflight. Collection errors in the three files above.
+
+   Notes for the coder:
+   - The search test in tests/test_atomic_replace_search.py already passes, because today there is only the one `os.replace` in health_file.py. It guards against a second copy; it is not red now.
+   - How the run tests are built: a `Rig` fixture on the `remote`, `checkout`, `human`, `hosting`, `agent_runtime` and `clock` fixtures, with agents installed through `install_agents`. The settings pin "fake", the fake runtime's default version.
+   - The remote's `main` gets the Makefile `lint:\n\ttest ! -f BROKEN\n`, and the test fetches the checkout after every push to `main`. So `Preflight` itself is expected not to fetch.
+   - `lint` runs are counted by `RecordingCommands`, which inherits `ProjectCommands` and delegates to a real `MakeProjectCommands` on the checkout. For criteria 5, 6 and 19 it raises the error or answers a `time_limit` or passed result instead.
+   - Criteria 5 and 17 store `PreflightStamp(image=IMAGE, main_probed="a"*40)` first and run with the same image. That way the machine items are skipped and "the stored stamp is the one stored before" can be checked.
+   - Criterion 16 uses an empty bare remote cloned into `tmp_path/empty-checkout`. `git.resolve("origin/main")` must return `None` there, not raise.
+   - Criterion 3: the human's fix removes `BROKEN` with `git rm` in the human clone, then commits and pushes.
+
+   Nothing is open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
