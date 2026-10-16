@@ -444,3 +444,58 @@ def test_main_turns_a_settings_fault_of_the_runner_into_a_line_and_a_machine_sto
     [stop] = health_store(tmp_path).read().stops
     assert (stop.scope, stop.reason) == ("machine", "preflight_failed")
     assert "FACTORY_TOKEN_FILE" in stop.detail
+
+
+@pytest.mark.parametrize(
+    ("writable", "expected_errors"),
+    [
+        pytest.param(True, [], id="writable"),
+        pytest.param(
+            False,
+            [
+                re.escape("factory-run: settings invalid: FACTORY_INSTANCE: missing"),
+                re.escape("factory-run: cannot write the machine stop: ")
+                + r"(NotADirectoryError|FileNotFoundError): .+",
+            ],
+            id="unwritable",
+        ),
+    ],
+)
+def test_main_returns_two_for_invalid_settings_whether_or_not_the_stop_can_be_written(
+    environment: dict[str, str],
+    tmp_path: Path,
+    clock: ManualClock,
+    capsys: pytest.CaptureFixture[str],
+    *,
+    writable: bool,
+    expected_errors: list[str],
+) -> None:
+    (tmp_path / "file").write_text("", encoding="utf-8")
+    state = tmp_path / "state" if writable else tmp_path / "file" / "state"
+    if writable:
+        state.mkdir()
+    runner = Runner()
+
+    status = _main_without_instance(environment, state, clock, runner)
+
+    assert status == 2
+    assert runner.calls == []
+    errors = capsys.readouterr().err.splitlines()
+    assert len(errors) == len(expected_errors)
+    for line, pattern in zip(errors, expected_errors, strict=True):
+        assert re.fullmatch(pattern, line)
+    if writable:
+        [line] = _log_lines(state)
+        assert re.match(STAMP + "settings invalid: FACTORY_INSTANCE", line)
+        [stop] = health_store(state).read().stops
+        assert (stop.scope, stop.reason) == ("machine", "preflight_failed")
+
+
+def test_main_lets_an_os_error_of_the_runner_out(
+    environment: dict[str, str], tmp_path: Path, clock: ManualClock
+) -> None:
+    def failing(_settings: InstanceSettings) -> None:
+        raise OSError("disk gone")
+
+    with pytest.raises(OSError, match="disk gone"):
+        main(environment, runner=failing, state_directory=tmp_path, clock=clock)

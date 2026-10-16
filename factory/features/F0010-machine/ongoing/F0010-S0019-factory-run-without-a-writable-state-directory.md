@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 137
 blocked: null
 comments_seen: 0
@@ -61,3 +61,20 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
    - Demo: both commands are runnable. Each `Expect:` line can be checked against the output. The time-stamped line on stdout when the file cannot be written is existing behaviour (`TimestampedFactoryLog.line` writes stdout before opening the file). Criteria 1 to 3 do not assert it, but the docs criterion and the Demo state it. I did not ask about it.
    - Architecture: the change stays in `factory.entry` and touches no other layer. It adds no dependency.
    - Scope: it fits F0010 (the entrypoint's stops, S0004's promise of status 2 with no traceback). Nothing in the feature's "Out of scope" is touched.
+3. tester: Added the tests for the criteria to the end of `tests/entry/test_run.py`. I created no new files.
+   - criteria 1, 2 and 3: tests/entry/test_run.py::test_main_returns_two_for_invalid_settings_whether_or_not_the_stop_can_be_written. It is one parametrized test with two rows:
+     - `writable`: the state directory exists. The test checks that `main` returns 2, starts no runner, writes nothing to stderr, writes the time-stamped log line and records the `preflight_failed` machine stop.
+     - `unwritable`: the state directory is `tmp_path/file/state` and `file` is a regular file. The test checks that `main` returns 2, raises nothing and starts no runner. Stderr must hold exactly two lines: `factory-run: settings invalid: FACTORY_INSTANCE: missing`, then `factory-run: cannot write the machine stop: (NotADirectoryError|FileNotFoundError): …`.
+   - criterion 4: tests/entry/test_run.py::test_main_lets_an_os_error_of_the_runner_out. The runner is a function inside the test that raises `OSError`. `Runner` is unchanged.
+   - criterion 5 (`make check`) and criterion 6 (docs) have no test.
+
+   Every module the tests import already exists, so nothing fails to import.
+
+   `make test` result: one failure, the `unwritable` row of the parametrized test, because `_stop_the_machine` lets its `OSError` out of `main`. The `writable` row and the criterion 4 test pass, since they cover existing behaviour. Coverage stays at 99.5 %.
+
+   `make lint` is green. I skipped the type check, as the stage instructs.
+
+   I did not test that the time-stamped line reaches stdout when the stop cannot be written. No criterion asserts it; only the docs criterion and the Demo state it.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/entry/test_run.py::test_main_returns_two_for_invalid_settings_whether_or_not_the_stop_can_be_written[unwritable]
