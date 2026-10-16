@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 121
 blocked: null
 comments_seen: 2
@@ -250,3 +250,17 @@ Expect: one line, `/srv/agents claude None`.
     - The fix touches no tests. Criteria 1–21 are still covered as entry 9 found. The coder's entry 10 reports `make check` green.
     - Read the whole diff `main...HEAD` again: settings, boundaries, the PyGithub adapter, the wiring, and the five test files. Architecture holds: `github` is imported only in the adapter module, and the concrete adapters are picked only in `factory.entry.wiring`. Security holds: no silencing markers, and no error message contains the token. Quality holds: docstrings are present and comments say why. Ticket hygiene holds: the log records the choice of a regex over `urllib.parse`, the Assignment matches what was built, and the docs criterion 23 still describes what the reader needs.
     - Considered and not raised: a token file that is not valid UTF-8 raises `UnicodeDecodeError` rather than `SettingsInvalid`. The Rules list only missing, unreadable and blank files, and the image file behaved this way before this story.
+12. documenter: wrote the documentation criterion 23 asks for, and `make check` is green (coverage 99.55%).
+
+    Files changed:
+    - `docs/operator-guide.md`, "The instance's settings": added `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_TOKEN_FILE` to the table, with their defaults and the fact that a blank value counts as unset. Added how the token is read once and which faults are refused. Added which repository URL forms give `owner/name`. States that no running process reads these variables yet.
+    - `docs/project-guide.md`, "Boundaries": the new `settings` field, `build_boundaries(settings, token, hosting=None)` as the one place that picks the concrete adapters with every component it builds, `git_options`, `git_environment`, `repository_name`, `read_hosting_token` and `read_setting_file`, plus the new `InstanceSettings` fields.
+    - `docs/decisions.md`: two entries. The first gives why git gets its credential helper and the shared-group setting through `GitOptions.environment` (F0001 decision 7) and not through git configuration, and why `urllib.parse` was rejected for the URL. The second gives why the settings reach the services through `Boundaries.settings`, and records the open item that the default token path (F0010 decision 18) is not implemented.
+
+    Cross-read and found current: the other operator-guide sections on the agent runtime and the settings, the project guide's agent definition reader section, and the README, which does not mention these names.
+
+    I did not run the three Demo commands. I only checked the docs against the diff.
+
+    Findings: none. The code matches the Interface. I noted but did not touch two things. A token file that is not valid UTF-8 raises `UnicodeDecodeError` instead of `SettingsInvalid`, which review already considered and did not raise. The file names `factory.log` and `health.json` are literals in `build_boundaries`.
+
+    `make check`: check: green
