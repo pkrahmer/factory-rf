@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 140
 blocked: null
 comments_seen: 0
@@ -106,3 +106,4 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
      - Criterion 4 (docs: none) holds, since nothing in `docs/` changed.
    - Open, not a finding: no stage has yet run the test with `and not process.timed_out` removed by hand. The reviewer reasoned from the code that row 1 would then fail. The demo stage does not run experiments, so I did not run that check either.
    - Open, not a finding: the documenter suggested adding one clause to `docs/operator-guide.md` line 90, saying that a timed-out call counts as "without a usable reply". That would be a docs change, and the docs criterion for this story is none.
+8. done (pull request merged); cost: 6 runs, 12.4 min, 35 turns, 78k tokens in (423k more from cache), 9k out, $0.76
