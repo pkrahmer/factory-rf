@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 122
 blocked: null
 comments_seen: 6
@@ -256,3 +256,21 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
     - Security: no strings built into commands, no markers that silence a check, and no secrets. The log line and the stop detail carry only the `SettingsInvalid` message.
     - Quality: names and docstrings are in place. The comments explain why: one tick for the whole run, why some outcomes are idle, why the stop is written directly. `build_tick` is listed in `run.py`'s `__all__` on purpose, because criterion 22 patches that name.
     - Ticket hygiene: the Assignment matches what was built (as of entry 10). Entry 12 records the main decision and the alternative it rejected. Criterion 24 still says what the operator guide and the decision log must cover.
+14. documenter: criterion 24 written, `make check` green after the last edit. I did not run the two demo commands, and I added no new examples.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - New section "When the process refuses to start". `factory-run` ends with status 2 and no traceback on an invalid environment, an unreadable token file or a URL without owner and name. It writes the time-stamped line `settings invalid: <variable>: <fault>` and a `preflight_failed` machine stop, so the health check fails. Existing stops are kept and an older stop of the same reason is replaced.
+      - The same section says to install v1.1 only on a repository v1 has not worked in, or whose v1 work items are archived or discarded (decision 008), because nothing detects them.
+      - "The loop and its pauses": only a handled event that is not `idle` counts as activity. The first pause is 30 seconds. One tick serves the whole run, and its error counts are lost on a restart.
+      - Opening paragraph and the settings section: they said no command runs ticks and that `factory-run` ends with a `ModuleNotFoundError`. Both are now current. `factory-health` is still unbuilt.
+    - `README.md`: `factory-run` now runs an instance (the paragraph said nothing runs ticks yet), and the commands list is updated.
+    - `docs/decisions.md`: new entry on why one `Tick` is kept for the whole run (status lives in memory) and why only a handled non-`idle` event is activity. It also records the directly written machine stop and the shared `HealthStatus.with_stop`.
+
+    Cross-read and found current: `docs/project-guide.md`. I looked for mentions of the entry run and found none that needed a change. I did not read it line by line.
+
+    Stale but untouched: the agent-runtime paragraph in the operator guide still says the pinned-version preflight arrives with F0010. That is still true.
+
+    Findings: none. The code matches the Interface as far as I read it. I did not check docstrings in detail, and the reviewer found none missing.
+
+    `make check`: check: green
