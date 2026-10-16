@@ -1,6 +1,6 @@
 """The watcher: reads the remote and evaluates it into one event for this instance."""
 
-from factory.application.acceptance_reading import AcceptanceReader
+from factory.application.acceptance_reading import AcceptanceReader, running_work_items
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.work_items import RemoteWorkItems
@@ -8,7 +8,7 @@ from factory.domain.errors import GitError
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
 from factory.domain.git import CommitId
-from factory.domain.identifiers import Name, work_item_order
+from factory.domain.identifiers import Name
 from factory.domain.move_rule import IllegalChange, is_legal_change
 from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -35,10 +35,7 @@ class Watcher:
         boundaries = self._boundaries
         work_items = RemoteWorkItems(boundaries.git, boundaries.work_item_reader)
         acceptances = AcceptanceReader(boundaries, definition)
-        snapshots = sorted(
-            [*work_items.read(definition), *acceptances.snapshots()],
-            key=lambda snapshot: (work_item_order(snapshot.id), snapshot.path),
-        )
+        snapshots = running_work_items(work_items, acceptances, definition)
         facts = EvaluationInput(
             definition=definition,
             snapshots=snapshots,
