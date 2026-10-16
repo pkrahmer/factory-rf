@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 117
 blocked: null
 comments_seen: 0
@@ -70,3 +70,10 @@ Expect: the last line is `<n> passed in <time>`, with n at least 9 (five rows of
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: Nothing in `src/` changed, which is what the assignment expected. The tester's tests in tests/application/test_acceptance_refusals.py and tests/domain/test_acceptance_facts_limit.py already pass against the current code:
+      - `AcceptanceService.open` refuses every status other than `due`, with kind `acceptance_due` and the reason the Interface gives.
+      - `AcceptanceReader` counts only the names directly in each lifecycle folder.
+      - `acceptance_facts` raises a plain `ValueError` with `feature F0002 has no free story number after 9999`.
+      I made no commit, because there was no code to change. Refactor: nothing to do, since the diff against main (`git diff main...HEAD -- . ':!factory'`) holds only the tester's two test files. I rejected touching `src/` "for symmetry": the assignment says to change code only if a test fails, and none does. Open: criterion 6 (a line in the operator guide saying a story file counts only directly in `backlog/`, `in-progress/` or `done/`) is the documenter's job. `make check`: every gate is green (lint, types, layers, sast, secrets, licenses, test), with 99.53 % coverage.
+
+   `make check`: check: green
