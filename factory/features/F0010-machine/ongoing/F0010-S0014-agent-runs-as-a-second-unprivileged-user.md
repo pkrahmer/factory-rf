@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 132
 blocked: null
 comments_seen: 0
@@ -125,3 +125,35 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
    - Demo: all three blocks are runnable. Each `Expect:` line gives an exact output to compare. The third block's `sudo` stand-in writes its arguments, and the first seven are checked.
    - Architecture: settings sit in the domain layer, the process call in the one runtime wrapper, the composer in the application layer and the `HOME` wiring in the entry layer. This matches the layering in `CLAUDE.md`. No new dependency is needed.
    - Scope: within F0010's scope ("agent runs as a second unprivileged user", WE3.1 and R33). The `time_limit` under `sudo` stays open (decision 30) and is listed as a morning observation. This is not in the story's criteria. Running the project commands as `agent` is out of scope.
+3. tester: Tests written from the Interface and criteria 1–14. Criteria 15–16 are for the coder and the documenter.
+
+   - criterion 1: tests/domain/test_settings_agent_user.py::test_the_agent_user_comes_from_its_variable_or_is_none (set, missing, empty, blank)
+   - criterion 2: tests/domain/test_settings_agent_user.py::test_an_agent_user_that_is_no_name_is_refused_naming_its_variable (`Agent`, `1x`)
+   - criterion 3: tests/domain/test_settings_agent_user.py::test_settings_built_directly_accept_only_a_name_as_agent_user (`agent`, None and `Agent`, built through a variable typed `type[BaseModel]`)
+   - criterion 4: tests/adapters/test_claude_runtime_os_user.py::test_without_a_user_the_agent_starts_directly_and_sudo_never_runs
+   - criterion 5: tests/adapters/test_claude_runtime_os_user.py::test_with_a_user_sudo_gets_the_user_env_i_the_environment_and_the_executable. The six leading arguments are checked in order. The `NAME=value` arguments are compared as a sorted list, because the Interface does not fix their order. Then comes the executable, and the `sudo` stand-in's environment is empty apart from LC_CTYPE.
+   - criterion 6: tests/adapters/test_claude_runtime_os_user.py::test_with_a_user_the_agent_sees_only_the_request_environment_and_the_switches (GH_TOKEN set in the test process)
+   - criterion 7: tests/adapters/test_claude_runtime_os_user.py::test_with_a_user_the_agent_runs_in_the_request_working_directory
+   - criterion 8: tests/adapters/test_claude_runtime_os_user.py::test_a_sudo_refusal_is_a_runtime_error_naming_its_line
+   - criterion 9: tests/adapters/test_claude_runtime_os_user.py::test_a_failure_without_a_sudo_line_is_a_dead_run
+   - criterion 10: tests/adapters/test_claude_runtime_os_user.py::test_a_missing_sudo_executable_is_a_runtime_error
+   - criterion 11: tests/adapters/test_claude_runtime_file_modes.py::test_the_files_of_a_run_are_0640_when_the_agent_starts (with and without a guard, under umask 0000 set by a fixture that restores the old umask)
+   - criterion 12: tests/application/test_task_os_user.py::test_the_request_runs_as_the_settings_agent_user_with_the_given_environment (agent user, no agent user, no settings)
+   - criterion 13: tests/entry/test_wiring_agent_user.py::test_the_agent_run_environment_sets_home_to_the_agent_users_home (also checks that `base` is not modified)
+   - criterion 14: tests/entry/test_wiring_agent_user.py::test_a_tick_with_an_agent_user_runs_the_agent_as_that_user_in_its_home. Preflight passes the way the ticket describes: `which` answers every tool, `pinned_agent_version="fake"`, the agents are installed in `agent_home`, a `Makefile` with `lint: true` is pushed, and the boundaries are rebuilt with `dataclasses.replace(..., settings=settings)`.
+
+   How the stand-ins work:
+   - The `sudo` stand-in, inside test_claude_runtime_os_user.py, records its arguments and environment to `sudo-calls.jsonl`. It then either plays a scripted refusal (stderr and exit status) or runs `os.execvp` on everything after `--`, so the real `env -i` runs the `claude` stand-in from tests/adapters/claude_stand_in.py.
+   - The file-mode stand-in records the mode of each file its arguments name, and of the files next to them. The guard file is named only inside the hooks file, so it is found that way.
+
+   Files created:
+   - tests/domain/test_settings_agent_user.py
+   - tests/adapters/test_claude_runtime_os_user.py
+   - tests/adapters/test_claude_runtime_file_modes.py
+   - tests/application/test_task_os_user.py
+   - tests/entry/test_wiring_agent_user.py
+
+   `make test` is red as intended. It stopped at collection errors in tests/domain/test_settings_agent_user.py (`AGENT_USER_VARIABLE` cannot be imported from factory.domain.settings) and tests/entry/test_wiring_agent_user.py (`agent_run_environment` cannot be imported from factory.entry.wiring). The collection errors interrupt the run, so the other three files did not run. They should fail on missing behaviour: the `sudo_executable` keyword, the `agent_user` field, `os_user` not being set, and the file modes. `make lint` is green. The type check was skipped, as this stage allows.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
