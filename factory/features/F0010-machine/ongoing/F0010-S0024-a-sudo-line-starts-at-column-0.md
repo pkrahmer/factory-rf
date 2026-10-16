@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 143
 blocked: null
 comments_seen: 0
@@ -69,3 +69,8 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
       - Noticed but did not touch: coverage still misses `claude_runtime.py` lines 384 and 408-409. These are outside this story.
 
    `make check`: check: green
+5. reviewer: No findings.
+   - Acceptance criteria: criteria 1 to 3 are the three rows of `test_only_a_line_starting_with_sudo_makes_a_failure_a_runtime_error` in `tests/adapters/test_claude_runtime_os_user.py`. It replaces `test_a_sudo_refusal_is_a_runtime_error_naming_its_line`, as the Interface and FEATURE decision 38 allow. Row 1 checks that `AgentRuntimeError` is raised and that `detail` holds the line. Rows 2 and 3 (`sudo:` mid-line, and indented by two spaces) check `end_reason == "died"` and nothing raised. Both failing sides of "starts at column 0" are covered. I read `_sudo_line` in `src/factory/adapters/claude_runtime.py:283`: with the `SUDO_PREFIX in line` mutant, rows 2 and 3 would raise, so the test catches it. The stand-in comes from `_write_sudo(dir, (stderr, 1))`, which exits 1 without a reply, so the code reaches the died path. The coder's entry reports `make check` green and 12 tests in the demo file.
+   - Architecture and security: the diff touches only tests and adds no suppression markers.
+   - Quality: the test reuses the file's `_write_sudo`, `_runtime` and `_request` helpers. Each side of the rule is a row of one parametrized test, as `CLAUDE.md` asks.
+   - Ticket hygiene: the Assignment matches what was built (no change to `src/`). The coder's entry says what was rejected: stripping lines before matching, which would contradict criterion 3. Criterion 5 (docs: none) still holds, because the operator guide and the project guide already state the rule.
