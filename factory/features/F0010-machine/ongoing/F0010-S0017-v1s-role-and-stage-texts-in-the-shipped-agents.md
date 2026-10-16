@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 135
 blocked: null
 comments_seen: 0
@@ -232,3 +232,26 @@ Expect: one line, `0`.
    - Work item hygiene: entry 4 states the main decision (renames and mechanics only, no rewrite in other words) and what was rejected. The Description matches what was built. Criterion 15 still describes what the documenter must write.
 
    Still open from entry 4 (outside this diff and not a finding): the coder's and tester's write paths in the template do not include `{work_item}`, so the coder's step "rewrite `## Description`" only applies where a project adds it.
+10. documenter: Wrote the documentation for criterion 15. `make check` is green (coverage 99.54 %).
+
+    Files changed:
+    - `docs/project-guide.md`, section *The seven agents*:
+      - Replaced the sentence that said v1's texts were still to come.
+      - It now lists the sections of a body in order (`## Rules`, `## Role`, `## Stage`, `## Lessons`) and says which agents have no `## Role`.
+      - It says the factory commits, pushes and moves the work item, and that the agent ends with an `Allowed decisions` decision and a journal entry.
+      - It gives the full rename table.
+      - It says `stuck` does not exist, and that `## Lessons` is v1.1's own part and always last.
+      - It names `claude/agents/` as the one place to change an agent's text.
+      - It names the report sections, recommendations and backlog rule of the `acceptance-reviewer`.
+      - It points to `tests/test_claude_agent_texts.py`.
+    - `docs/decisions.md`: added an entry on why v1's texts were carried over and renamed (questionnaire 1, Q29: the baseline run compares with v1's run on the same instructions), that `stuck` does not exist in v1.1, and what was rejected (a summary of v1's texts, shipped skill files).
+
+    I compared the diff with the docs and found no code that contradicts the Interface, so I have no findings for the coder. I did not run the two demo commands this stage.
+
+    Cross-read and found current: the rest of *The shipped agents, settings and template* (front matter table, test references) and the `allowed_decisions` paragraph (`stuck` is not a decision). I did not read `docs/operator-guide.md` or `README.md` in full; I searched them for `claude/agents`, `shipped agent`, `stuck` and Q29, and the only hits were the operator guide's image check and the agent-run-probe, which this story does not touch.
+
+    Stale but not touched, both outside this story:
+    - `docs/project-guide.md` says `claude/settings.json` allows `git add` and `git commit`, although the agent bodies now say the agent does not commit. That is the earlier settings story's choice, not this one.
+    - The template's coder and tester write paths do not include `{work_item}` (open since entries 4 and 9). It is not a docs matter.
+
+    `make check`: check: green
