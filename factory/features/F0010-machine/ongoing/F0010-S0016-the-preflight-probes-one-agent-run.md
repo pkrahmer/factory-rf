@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 134
 blocked: null
 comments_seen: 0
@@ -200,3 +200,19 @@ Expect: one line, `coder 0.10 120.0`.
    Not run: the two demo blocks from the ticket. Nothing stale and unrelated was seen that I left untouched.
 
    `make check`: check: green
+7. demo: I ran both `## Demo` commands from the repository root, exactly as written. Both exited 0 and both matched their `Expect:` lines. No findings.
+
+   1. `agent_environment_item` with a PATH that holds factory-guard and an existing HOME, then with a PATH that lacks factory-guard and a HOME that does not exist:
+      ```
+      True
+      agent-environment False True True
+      ```
+      This matches the expected `True` and `agent-environment False True True`.
+
+   2. The probe's constants:
+      ```
+      coder 0.10 120.0
+      ```
+      This matches the expected `coder 0.10 120.0`.
+
+   Checked against the acceptance criteria: the output fits criteria 1 to 3. The item is named `agent-environment`, it passes when PATH holds factory-guard and HOME is a directory, and when it fails its detail names both `factory-guard` and `HOME`. The constants fit criterion 5's 2-minute limit and its budget of 0.10, and the agent is `coder`. Nothing in the output contradicts any criterion. The demo did not exercise criteria 4 and 6 to 14 (the probe run, `machine_extras`, `build_tick`). The tests named in the earlier entries cover those, and the coder and the documenter both report `make check` green. I did not run `make check` in this stage.
