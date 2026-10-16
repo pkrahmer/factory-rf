@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 123
 blocked: null
 comments_seen: 0
@@ -108,3 +108,16 @@ Expect: three lines, `2`, `''` and `True`: with no repository URL in the environ
    Stale but untouched: none seen.
 
    `make check`: check: green
+7. demo: accepted, no findings.
+
+   I ran the one `## Demo` command from the repository root, exactly as written. The only `FACTORY_` variable in the environment was `FACTORY_STARTED_AT`, so `FACTORY_REPOSITORY_URL` was unset, which is what the demo assumes.
+
+   ```
+   2
+   ''
+   True
+   ```
+
+   It met its `Expect:` line: three lines, `2`, `''` and `True`. The watcher refused at the first setting (`FACTORY_REPOSITORY_URL`), wrote the `factory-watch: settings invalid: FACTORY_REPOSITORY_URL: ` line to `err`, wrote nothing to `out` and returned 2. There was no traceback, and the process exited 0.
+
+   The demo contradicts no criterion. It matches the Interface rule: on `SettingsInvalid`, one `settings invalid` line goes to `err`, `out` stays empty and the status is 2. That is the same path as criteria 1 and 2, here for the first variable in the order of the table. I also checked criterion 5 by reading the text. `docs/operator-guide.md:7` says `factory-watch` reads the same environment as `factory-run`. `docs/operator-guide.md:467` gives `factory-watch: settings invalid: <variable>: <fault>` on standard error and exit status 2 for an invalid environment or an unreadable token file. The demo did not exercise criterion 3 (getting past the settings to `GitError`); its test covers it. Open: the real container remains the morning observation, as the Assignment says.
