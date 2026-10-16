@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 134
 blocked: null
 comments_seen: 0
@@ -105,3 +105,34 @@ Expect: one line, `coder 0.10 120.0`.
    - Demo: both blocks are runnable with `uv run python -c`, and each Expect line is checkable against the output (`True` / `agent-environment False True True`, and `coder 0.10 120.0`).
    - Architecture: the items live in application, the wiring in entry, and the shared constant moves down to domain so application does not import the adapter. This matches the layer rules in CLAUDE.md. Items use the existing wrappers and interfaces (AgentRuntime, AgentDefinitions), with no new tool or dependency.
    - Scope: within the feature's scope (the preflight's items and the probe with the factory's own arguments). It matches decisions 20, 22, 25, 28 and 31. The two changes to earlier tests are the ones the human allowed in decision 28.
+3. tester: Wrote the red tests for every acceptance criterion, and changed the two earlier build_tick tests that FEATURE.md decision 28 allows.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_agent_environment_item.py::test_a_path_holding_factory_guard_and_an_existing_home_pass
+   - criterion 2: tests/application/test_agent_environment_item.py::test_a_fault_in_the_environment_fails_naming_it, rows path-without-factory-guard and no-path
+   - criterion 3: the same test, rows no-home and home-not-a-directory (HOME is a regular file)
+   - criterion 4: tests/application/test_agent_run_probe.py::test_a_completed_probe_passes
+   - criterion 5: tests/application/test_agent_run_probe.py::test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone
+   - criteria 6 and 7: tests/application/test_agent_run_probe.py::test_a_probe_that_does_not_complete_fails_naming_its_end_and_claude_p, one parametrized test over died, no_result, time_limit and budget. Every row checks that the detail names the end reason and contains `claude -p`, because the Interface rule asks for both on any end reason other than completed.
+   - criterion 8: tests/application/test_agent_run_probe.py::test_a_runtime_that_cannot_run_the_probe_fails_with_its_message. The double is RefusingRuntime, which inherits AgentRuntime.
+   - criterion 9: tests/application/test_agent_run_probe.py::test_a_missing_coder_fails_the_probe_naming_the_agent
+   - criterion 10: tests/application/test_agent_run_probe.py::test_the_probe_calls_claude_with_the_flags_of_a_stage. It runs ClaudeCodeRuntime on the claude stand-in with no agent user, then compares the `--` arguments of the probe's call with those of a stage-like call (coder, a guard, decisions review and question).
+   - criterion 11: tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build. Both items go in as extras under Preflight. Two run() calls with image build-7 give exactly one runtime request and one `find` call.
+   - criteria 12 and 13: tests/entry/test_wiring_extras.py::test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user, with rows no-agent-user and agent-user.
+   - criterion 14: tests/entry/test_wiring_extras.py::test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_environment, with rows no-token-file and token-file. The token file is written in tmp_path with mode 0600, so it belongs to the test's uid.
+
+   Changes to earlier tests, as the Assignment specifies:
+   - tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance: the settings now have a 0600 token file and agent_user "agent". A completed probe run is queued before the stage's run. The stage's request is `requests()[-1]`, and its environment must equal `agent_run_environment(ready, production_environment())`.
+   - tests/entry/test_wiring_agent_user.py::test_a_tick_with_an_agent_user_runs_the_agent_as_that_user_in_its_home: a 0600 token file is added, a completed probe run is queued first, and the stage's request is `requests()[-1]`.
+   - In both, agent_home was already the fixture and the `which` (`_every_tool`) already answers for sudo.
+
+   Files created: tests/application/test_agent_environment_item.py, tests/application/test_agent_run_probe.py, tests/entry/test_wiring_extras.py. Files changed: tests/entry/test_wiring_run.py, tests/entry/test_wiring_agent_user.py.
+
+   `make test` stops with 3 collection errors, in the three new files, because the names under test do not exist yet: `agent_environment_item`, `agent_run_probe_item` and `PROBE_PROMPT` in factory.application.preflight, and `machine_extras` in factory.entry.wiring. The two changed tests did not run, because collection stopped the run. `make lint` is green.
+
+   Open for the coder:
+   - The criterion 14 test and the changed test_wiring_run test depend on the venv's `factory-guard` being on the production PATH (the interpreter's directory). Its HOME is the agent home's parent, tmp_path.
+   - test_wiring_preflight.py was left as it is. Its preflight fails at tool:git anyway, and the probe there fails with the fake's "no scripted run is queued".
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!

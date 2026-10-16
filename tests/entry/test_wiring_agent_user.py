@@ -42,6 +42,9 @@ Expect: nothing.
 
 ## Journal
 """
+PROBE = AgentRunResult(
+    end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
+)
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
 )
@@ -86,6 +89,10 @@ def test_a_tick_with_an_agent_user_runs_the_agent_as_that_user_in_its_home(
     human.push_file("main", "Makefile", "lint:\n\ttrue\n")
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
+    token_file = tmp_path / "hosting-token"
+    token_file.write_text("example-value\n", encoding="utf-8")
+    token_file.chmod(0o600)
+    agent_runtime.queue(ScriptedRun(result=PROBE))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
     settings = InstanceSettings(
         repository_url=str(remote),
@@ -96,11 +103,12 @@ def test_a_tick_with_an_agent_user_runs_the_agent_as_that_user_in_its_home(
         claude_executable=str(tmp_path / "no-claude"),
         pinned_agent_version="fake",
         agent_user="agent",
+        token_file=token_file,
     )
     tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, _every_tool)
 
     tick.run()
 
-    [request] = agent_runtime.requests()
+    request = agent_runtime.requests()[-1]
     assert request.os_user == "agent"
     assert request.environment["HOME"] == str(settings.agent_home.parent)
