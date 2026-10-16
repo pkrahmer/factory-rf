@@ -260,6 +260,11 @@ def test_the_shipped_dockerfile_has_no_floating_reference(dockerfile: str) -> No
         "ARG CLAUDE_CODE_VERSION=stable",
         "ARG CLAUDE_CODE_VERSION=",
         "RUN echo latest",
+        "FROM python@sha256:" + "a" * 63,
+        "FROM python@sha256:" + "a" * 65,
+        "FROM python@sha256:" + "g" * 64,
+        "ARG CLAUDE_CODE_VERSION=2.1.289.1",
+        "npm install --global @anthropic-ai/claude-code@2.1.289.1",
     ],
 )
 def test_a_floating_item_is_reported(line: str) -> None:

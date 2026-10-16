@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 124
 blocked: null
 comments_seen: 2
@@ -266,3 +266,20 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
    Code: I changed no production code. `image/Dockerfile` and `src/factory/application/costs.py` are as they were in 65c0b7c. I expect the new rows to pass as they are, because the patterns in `tests/test_image.py:16-18` are already anchored, but I have not run them.
 
    Open: nothing else.
+9. tester: tester (test change the human approved in entry 7, named by the coder in entry 8): I added exactly five rows to the parametrized `tests/test_image.py::test_a_floating_item_is_reported`. Each row must be reported as floating:
+   - `"FROM python@sha256:" + "a" * 63`
+   - `"FROM python@sha256:" + "a" * 65`
+   - `"FROM python@sha256:" + "g" * 64`
+   - `"ARG CLAUDE_CODE_VERSION=2.1.289.1"`
+   - `"npm install --global @anthropic-ai/claude-code@2.1.289.1"`
+
+   Why: these test the refused side of two limits the Interface states, "`@sha256:` followed by 64 hexadecimal digits" and "three dot-separated numbers". That closes the reviewer's finding in entry 5. Criterion 2 already lists these rows (coder, entry 8).
+
+   I changed nothing else: no other test, no production code, and not the ticket's text.
+
+   Result: one `make test` run is green, so the new rows pass against the existing anchored patterns, as the coder expected. `make lint` is green.
+
+   Open: nothing.
+
+   `make lint`: lint: green
+   `make test`: test: green
