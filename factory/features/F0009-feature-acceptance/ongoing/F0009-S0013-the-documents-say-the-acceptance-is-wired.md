@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 116
 blocked: null
 comments_seen: 0
@@ -77,3 +77,12 @@ Expect: at least one line from the first paragraph that names the feature accept
       - Architecture, security, quality: none apply because no code, test or configuration changed. No suppression markers were added.
       - Ticket hygiene: the log explains the main decision (the tester writes no tests because the docs are not executable criteria, and the coder leaves the doc edits to the documenter's lane) and what was rejected. `Assignment` matches what was built, which is nothing. Criterion 2 still states exactly what the documenter must change: the "The kinds:" paragraph and the **Opening** and `SplitByWorkItemKind` items in `docs/project-guide.md`, the first paragraph of `README.md`, and the operator guide cross-read. It also gives the two greps that check the result.
       - Open: all of criterion 2, for the documenter.
+6. documenter: wrote the four edits of criterion 2 and found no findings.
+   - `docs/project-guide.md`, "Events": the paragraph "The kinds:" now says `build_handlers` registers a handler for every kind, `acceptance_due` included, and still points to *The handlers of the events*.
+   - `docs/project-guide.md`, "The feature acceptance": the **Opening** item says `AcceptanceDueHandler` is registered for `acceptance_due` in `build_handlers`. The `SplitByWorkItemKind` item says it is registered for `hand_over`, `merged` and `closed`, and that the `RunGate` holds the same `closed` and `merged` instances. No story id and no "until then" remain in either item.
+   - `README.md`, first paragraph: one sentence names the feature acceptance. A feature whose stories are all archived becomes due, an acceptance reviewer runs on the acceptance's own work item, and the human's merge of its pull request books it accepted while a close books it refused. The sentence points to "When a feature acceptance is due" in `docs/operator-guide.md` and uses the glossary's names.
+   - Cross-read: `docs/operator-guide.md` (its intro, the acceptance sections, close, merged-before-approval, accepted-again and no-loop) and the "Handlers" wiring paragraph of `docs/project-guide.md` (`build_handlers`, 13 kinds, shared splits). Both agree with the new text, so I changed neither.
+   - Checked: the first grep counts 0. The second finds no `F0009-S00` in `docs/project-guide.md`, `README.md` or `docs/operator-guide.md`. `docs/decisions.md` still cites F0009 story ids, but those are dated decision-log entries, outside this story's grep. `make check`: green.
+   - Stale but untouched: nothing seen. The README and operator guide still say `factory-run` is unbuilt until F0010, which is true.
+
+   `make check`: check: green
