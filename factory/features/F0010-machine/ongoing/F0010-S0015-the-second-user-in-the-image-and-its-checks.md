@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 133
 blocked: null
 comments_seen: 0
@@ -152,3 +152,20 @@ Expect: one line, `0002`.
       - Still open, as the Interface says: wiring `agent-user` and `tool_item("sudo", which)` into the machine checks belongs to the probe story. The docs criterion is for the documenter.
 
    `make check`: check: green
+9. reviewer: reviewer (round 1): no findings.
+      - Last round's finding is fixed. `tests/dockerfile_support.py::dockerfile_instructions()` is now the one copy of the Dockerfile helper. `tests/test_image_users.py` and `tests/test_image_credentials.py` both import it. No assertion changed.
+      - Criteria 1–6: each has a static test or a run test that checks what it is named after.
+        - Criterion 1: the COPY and a single RUN with `chmod 0440` and `visudo -cf` come before `USER factory`, and so does the ENV.
+        - Criteria 2 and 3: the four sudoers lines are in order. There is no `root`, no `ALL=(ALL`, and no line where `agent` is the user who may use sudo.
+        - Criterion 4: the two umasks are compared as octal numbers.
+        - Criterion 5: the uids come from `useradd --uid` and are checked against the compose secret.
+        - Criterion 6: `umask 002` is the line after `set -eu`, and the stub `python` records `0002`.
+      - Criteria 7–9: the `agent-user` rule's failing side and every passing side are rows of one parametrized test. The test also checks that `exists` is asked only about the token file.
+      - Code:
+        - `agent_user_item` in `src/factory/application/preflight.py` follows the Interface. It does no I/O, has a docstring, and its name and detail are module constants beside the other item names.
+        - In `image/Dockerfile` the new lines sit before the image-id RUN, which stays after the last COPY, and before `USER factory`. `sudo` is already in the apt line.
+        - `image/sudoers-factory-agent` and `image/entrypoint.sh` match the Interface, and their comments explain why.
+      - Wiring is left to the probe story, as the Interface says.
+      - No markers that silence a check, no secrets, and no new dependencies.
+      - The coder's entry 8 reports `make check` green.
+      - Ticket hygiene: the log records the main decision (a separate item, not folded into `token_file_item`). Assignment matches what was built. The docs criterion still describes what the operator and the decision log need.
