@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 130
 blocked: null
 comments_seen: 0
@@ -286,3 +286,16 @@ Expect: one line, `16 10 True`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: Round 1. Both findings from entry 5 were in test code, and the tester fixed them in entry 7 as I asked in entry 6:
+   - `_READ_ONLY_TOOLS` is now `_TOOLS_WITHOUT_WRITE`.
+   - The front-matter split is now one shared helper, `front_matter_and_body`, in `tests/shipped_agents.py`.
+
+   That leaves nothing for the coder to do this round. The data files under `claude/` and `template/` are unchanged since commit 4635b99, and nothing under `src/` changed.
+
+   Refactor: nothing to refactor. My diff is still data files only.
+
+   I ran `make check` against the tester's updated tests and it is green, with coverage at 99.53 %. It ran longer than the 120 s foreground limit, so the tool moved it to the background. I waited for it to finish and read its output.
+
+   Noticed, not touched: nothing new.
+
+   `make check`: check: green
