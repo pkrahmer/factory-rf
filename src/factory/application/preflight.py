@@ -24,7 +24,7 @@ from factory.domain.preflight import (
     version_matches,
 )
 from factory.domain.settings import CLAUDE_VERSION_VARIABLE, InstanceSettings
-from factory.domain.stops import RepositoryStop, RepositoryStopReason
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 
 REQUIRED_TOOLS = ("git", "uv", "make")
 
@@ -156,7 +156,7 @@ class Preflight:
         try:
             reason = self._probe(stamp)
         except (GitError, ProjectCommandError) as error:
-            self._raise(_PREFLIGHT_FAILED, f"the probe on main could not run: {error}")
+            self._raise("machine", _PREFLIGHT_FAILED, f"the probe on main could not run: {error}")
             return _PREFLIGHT_FAILED
         # The machine's items have passed or been skipped, so no machine stop may stand.
         self._stops.clear_stop(_PREFLIGHT_FAILED)
@@ -198,7 +198,7 @@ class Preflight:
             self._stops.clear_stop(_MAIN_FAILING)
             self._stamps.write(PreflightStamp(image=stamp.image, main_probed=main))
             return None
-        self._raise(_MAIN_FAILING, _failing_detail(result, main))
+        self._raise("repository", _MAIN_FAILING, _failing_detail(result, main))
         # Remembered, so that idle ticks run no project command until a fix is pushed.
         self._stamps.write(PreflightStamp(image=stamp.image, main_failed=main))
         return _MAIN_FAILING
@@ -208,10 +208,9 @@ class Preflight:
         if any(stop.reason == _MAIN_FAILING for stop in status.stops):
             return
         detail = f"{PROBE_COMMAND} is red on main at {main[:_SHORT_COMMIT]} (probed earlier)"
-        self._raise(_MAIN_FAILING, detail)
+        self._raise("repository", _MAIN_FAILING, detail)
 
-    def _raise(self, reason: RepositoryStopReason, detail: str) -> None:
-        scope = "machine" if reason == _PREFLIGHT_FAILED else "repository"
+    def _raise(self, scope: StopScope, reason: RepositoryStopReason, detail: str) -> None:
         stop = RepositoryStop(
             scope=scope, reason=reason, detail=detail, at=self._boundaries.clock.now()
         )
