@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 133
 blocked: null
 comments_seen: 0
@@ -169,3 +169,18 @@ Expect: one line, `0002`.
       - No markers that silence a check, no secrets, and no new dependencies.
       - The coder's entry 8 reports `make check` green.
       - Ticket hygiene: the log records the main decision (a separate item, not folded into `token_file_item`). Assignment matches what was built. The docs criterion still describes what the operator and the decision log need.
+10. documenter: documenter (round 1): wrote the docs criterion; `make check` is green. I ran no `docker` commands, because there is no image here.
+    - `docs/operator-guide.md`, "The agent runs as a second user":
+      - Removed the "comes with the next story" wording.
+      - Added the one `sudo` rule, quoted with its four lines.
+      - Added why each of the three defaults is there: umask `0002` for the restore after an agent-made directory, no pseudo-terminal for the session.
+      - Added the preflight item `agent-user`, with the fix: set `FACTORY_AGENT_USER` or remove the token file.
+      - Added three morning observations to the table: the mode of an agent-made file and directory (`775`/`664`), the factory's restore after an agent-made directory, and a refused `sudo`.
+      - The existing rows already cover the agent run as `agent` (WE3.1) and its failed reads and pushes (WE3.3, WE3.4).
+    - `docs/operator-guide.md`, settings table and "The preflight's items": the `FACTORY_AGENT_USER` row says the image sets it. The items table has a new `agent-user` row, built but not yet wired (F0010-S0016). I changed "seven items" to "eight".
+    - `docs/decisions.md`: new entry on why the factory's user may become `agent` for one command only, why the sudoers file sets the umask and no pseudo-terminal, and why a missing agent user beside a token file is a stop (the human, 2026-10-14). It also records that I rejected folding the check into `token-file`.
+    - Cross-read the README and `docs/project-guide.md` against the diff and found nothing stale.
+    - Stale but unrelated, not touched: the opening paragraph of the operator guide still says the preflight and the other machine checks are added by later stories, and the "seven items" count was already wrong before this story (the table had more rows).
+    - Findings: none. The code matches the Interface.
+
+    `make check`: check: green

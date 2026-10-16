@@ -17,7 +17,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.289`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
-| `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it in the next story, F0010-S0015; until then you set it yourself. |
+| `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
@@ -65,7 +65,23 @@ A run whose budget is spent is not lost: the factory resumes the same session on
 
 The image has two users: `factory` (uid 1000) runs the factory, and `agent` (uid 1001) runs every agent. `agent` owns nothing the factory keeps secret: it cannot read the token file (`0600`, owned by `factory`) and cannot write `/state`.
 
-With `FACTORY_AGENT_USER=agent` the runtime does not start `claude` itself. It runs `sudo -n -u agent -- env -i NAME=value ... claude ...`, in the run's working directory. `-n` makes `sudo` fail instead of asking for a password. `env -i` drops everything `sudo` would keep, so the agent sees exactly the run's allow-list environment (see "The hosting-service token") and the runtime's three switches, and nothing of the factory's environment or privileges. The image's `sudoers` rule that lets `factory` start commands as `agent`, and the variable itself, come with the next story, F0010-S0015.
+With `FACTORY_AGENT_USER=agent` the runtime does not start `claude` itself. It runs `sudo -n -u agent -- env -i NAME=value ... claude ...`, in the run's working directory. `-n` makes `sudo` fail instead of asking for a password. `env -i` drops everything `sudo` would keep, so the agent sees exactly the run's allow-list environment (see "The hosting-service token") and the runtime's three switches, and nothing of the factory's environment or privileges. The image sets the variable and installs the `sudo` rule (next section).
+
+**The one `sudo` rule.** `image/sudoers-factory-agent` is installed as `/etc/sudoers.d/factory-agent`, mode `0440`, and the build checks it with `visudo -cf`. Apart from comments it holds four lines:
+
+```
+Defaults:factory umask=0002
+Defaults:factory umask_override
+Defaults:factory !use_pty
+factory ALL=(agent) NOPASSWD: ALL
+```
+
+The last line is the only rule: `factory` may become `agent`, for any command, without a password, and nothing else. `agent` gets no right over anyone. The three `Defaults` lines are for `sudo` to behave:
+
+- `umask=0002` with `umask_override`: `sudo` applies a umask of its own (by default `0022` joined with the caller's), so the files and directories an agent made would be `644` and `755`, and the factory's restore (`git reset --hard`, `git clean -fd`) could not remove an agent-made directory: `checkout_restore_failed`. With `0002` they are group-writable. The entrypoint sets `umask 002` for the factory's own files, so both agree.
+- `!use_pty`: Debian's `sudo` defaults to `use_pty`, which puts the command in a new session and a pseudo-terminal. The agent stays in the factory's session without one.
+
+**The preflight item `agent-user`.** If `FACTORY_AGENT_USER` is unset while the token file exists, every agent would run as `factory`, who can read the token file, and nothing else would say so. The item then fails with `FACTORY_AGENT_USER is not set: every agent would run as the factory's user, who can read the token file`. Set `FACTORY_AGENT_USER` (the image does: `agent`) or remove the token file. It passes when the user is set, and when there is no token file (tests, local runs). The item is built; F0010-S0016 wires it, with `tool:sudo`, into the machine checks.
 
 The files of a run are `instructions-<session>.md` and, when the stage has write paths, `guard-<session>.json` and `hooks-<session>.json`. They are in `/state/runs`. The runtime sets each to mode `0640` before it starts the agent, whatever the factory's umask. The agent reads them through the group `factory-work`, and it cannot rewrite them: the files are not writable by the group, and the directory is not writable by the agent either. So a run cannot widen its own write paths.
 
@@ -88,6 +104,9 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | WE3.1: the agent runs as `agent` | `docker exec <container> sudo -n -u agent -- id -un` | `agent` |
 | WE3.3: it cannot read the token file | `docker exec -u agent <container> cat "$FACTORY_TOKEN_FILE"` (use the path in the variable) | `Permission denied` |
 | WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
+| The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `775` for the directory, `664` for the file |
+| The factory's restore after an agent-made directory | after the line above, `docker exec <container> sh -c 'cd /work/checkout && git clean -fd && git status --short'` | the directory is gone, no error |
+| A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
 | WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | an authentication failure, no push |
 | WE3.4: it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
 | A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `ps -eo user,pid,args \| grep claude` after the limit | see below |
@@ -216,7 +235,7 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 
 ### The preflight's items
 
-The preflight is a list of seven items, built in `factory.application.preflight`. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch"). Wiring the preflight into the tick comes in the next story of F0010; until then nothing calls it at start.
+The preflight is a list of eight items, built in `factory.application.preflight`. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch"). Wiring the preflight into the tick comes in the next story of F0010; until then nothing calls it at start.
 
 | Item | Passes when | If it fails |
 |---|---|---|
@@ -224,6 +243,7 @@ The preflight is a list of seven items, built in `factory.application.preflight`
 | `tool:<claude>` | the agent runtime's executable (`FACTORY_CLAUDE`, default `claude`) is on the `PATH`; the item is named after the value, for example `tool:/opt/claude/bin/claude` | As for the other tools. |
 | `hosting-service` | a read-only call (the open pull request of `main`) is answered | The detail holds the operation and the service's message. Check the token (`FACTORY_TOKEN_FILE`) and the network. |
 | `token-file` | `FACTORY_TOKEN_FILE` names a file that exists, belongs to the factory's user and has no permission bit for group or others | Built, not yet in the list the tick runs: F0010-S0016 adds it. The detail is `<path>: <fault>`; see "The hosting-service token" for the fix. |
+| `agent-user` | `FACTORY_AGENT_USER` is set, or no token file exists | Set `FACTORY_AGENT_USER`, or remove the token file; see "The agent runs as a second user". Built, not yet in the list the tick runs: F0010-S0016 adds it. |
 | `agents` | at least one agent file is in `FACTORY_CLAUDE_HOME` (`<it>/agents/<role>.md`) | The detail names the directory, whether it is empty, missing or unreadable. Install the agents into `FACTORY_CLAUDE_HOME`. |
 | `agent-runtime-version` | the first word of `claude --version` equals `FACTORY_CLAUDE_VERSION` | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without `FACTORY_CLAUDE_VERSION` it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set`; when `claude --version` cannot run, it holds the runtime's error. |
 

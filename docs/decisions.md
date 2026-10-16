@@ -293,3 +293,11 @@ Date: 2026-10-16 (F0010-S0014; R32, R33; WE2, WE3.1; the human, 2026-10-14). Eve
 The runtime writes a run's instructions, guard settings and hook settings with mode `0640`, whatever the umask. The agent reads them through the group `factory-work`; it cannot rewrite them, and `/state/runs` is not writable by it, so a run cannot widen its own write paths. A `sudo:` line on standard error is a refusal, an error, only when the call gave no usable reply; before a good reply it is a warning (`unable to resolve host`) and is ignored.
 
 The agent's home stays writable by the agent (L69): its login and `.claude` live there. Left for v2. Open: the kill of a timed-out agent under `sudo`. `run_process` signals the process group, whose leader is a root-owned `sudo` that the factory's user may not signal. A `timeout` wrapper inside the `sudo` call or a kill through a `sudo` rule would fix it; the human has not chosen, and the operator guide tells the operator to look for the leftover process.
+
+## The factory's user may become `agent` for one command only, and a missing agent user is a stop
+
+Date: 2026-10-16 (F0010-S0015; R33; WE3.1; the human, 2026-10-14). One `sudo` rule in a file of its own lets `factory` run commands as `agent` and nothing else: no `root`, no `ALL=(ALL`, no right for `agent`. A wider rule would turn the second user into a way to the first.
+
+The sudoers file sets the umask and no pseudo-terminal because `sudo`'s defaults break two things. Its own umask (`0022` joined with the caller's) makes agent-made files `644` and directories `755`, so the factory's `git clean -fd` cannot remove an agent-made directory (`checkout_restore_failed`); `umask=0002` with `umask_override` keeps them group-writable, and the entrypoint's `umask 002` makes the factory's files the same. Debian's `use_pty` would put the command in a new session; `!use_pty` leaves it in the factory's.
+
+A missing agent user beside an existing token file is a stop (preflight item `agent-user`), decided by the human on 2026-10-14. Without it every agent would run as `factory`, who can read the token file, and no check would say so: WE3.1 and R33 would be silently off. With no token file (tests, local runs) there is nothing to protect and the item passes. Rejected: folding the check into `token-file`; the two answer different questions.
