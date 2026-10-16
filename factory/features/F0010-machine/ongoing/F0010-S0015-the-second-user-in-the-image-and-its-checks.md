@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 133
 blocked: null
 comments_seen: 0
 round: 0
@@ -91,3 +91,9 @@ Expect: one line, `0002`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: names concrete files (`image/sudoers-factory-agent`, `image/Dockerfile` lines, `image/entrypoint.sh` umask line) and the signature `agent_user_item(settings, exists) -> PreflightItem` in `src/factory/application/preflight.py`. Checked against the repo: `InstanceSettings.agent_user` and `token_file` exist, `PreflightItem` and `tool_item` exist, the Dockerfile has `useradd` for uid 1000 and 1001 and `USER factory`, `image/compose.yml` has the secret with uid 1000, and the entrypoint has `set -eu`. The test files are named.
+   - Criteria: 1 to 6 are static file checks, one test function each. 7 to 9 cover both sides of the `agent-user` rule: it fails with a token file and no agent user, and passes with an agent user (token file present or not), with no token file, or with a token file that `exists` denies. The sudoers rule is covered by 2 and 3, and its refused side by 3 (no `root`, no `ALL=(ALL`). The umask agreement is criterion 4 and the entrypoint's is criterion 6. 10 and 11 are the closing criteria.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable: four lines, `agent-user False` then `agent-user True`, and `0002`.
+   - Architecture: the item lives in the application layer and takes `exists` as an argument, so it has no I/O. Wiring is explicitly left to the probe story (S0016), so the item is not wired here.
+   - Scope: within F0010's scope (agent user, WE3.1, R33). It does not touch the project commands or the `time_limit` under `sudo`, which are out of scope.
