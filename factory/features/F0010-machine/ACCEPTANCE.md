@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 136
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0010-S0001, F0010-S0002, F0010-S0003, F0010-S0004, F0010-S0005, F0010-S0006, F0010-S0007, F0010-S0008, F0010-S0009, F0010-S0010, F0010-S0011, F0010-S0012, F0010-S0013, F0010-S0014, F0010-S0015, F0010-S0016, F0010-S0017]
+outcome: accepted
 ---
 # Acceptance of The machine
 
@@ -401,3 +402,4 @@ The common pattern: a review finding in test code costs a detour of four runs (c
    6. Decisions: decisions 1 to 36 stand, and 30 is still open. To revisit: the token default lives only in the image; the agent can rewrite its own agent files and settings in its home (decision 21); the standing `main_branch_failing`; the template's write paths; `git commit` in the shipped settings; a missing health file reads as `healthy`; the timed-out `sudo` rule. Five log answers are listed.
    7. Slow checks: none beyond `make check`. The image build, the container and the second user are morning observations, and the base digest and Debian versions are still placeholders.
    8. Cost: 135 runs, 405.4 min, $41.30, about $2.43 per story. Highest are S0004 ($3.97: three human answers on one test) and S0014 ($3.45, 43.5 min). A review finding in test code costs four runs (S0006, S0012, S0015, S0017).
+2. done (pull request merged); cost: 1 runs, 38.6 min, 87 turns, 189k tokens in (10138k more from cache), 60k out, $4.73
