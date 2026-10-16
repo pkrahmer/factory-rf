@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 143
 blocked: null
 comments_seen: 0
@@ -80,3 +80,16 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
    - Findings: none. Nothing stale seen.
 
    `make check`: check: green
+7. demo: I ran the one Demo command from the repository root, exactly as written.
+
+   ```
+   $ uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_os_user.py
+   ............                                                             [100%]
+   12 passed in 9.09s
+   ```
+   Expect met: the last line is `12 passed in <time>`.
+
+   - Criteria cross-read: the demo does not contradict any criterion. Criteria 1 to 3 are the three rows of the parametrized `test_only_a_line_starting_with_sudo_makes_a_failure_a_runtime_error`, and all 12 tests in the file pass. A collect-only run counts 12 tests in the file. `test_a_sudo_refusal_is_a_runtime_error_naming_its_line` no longer appears anywhere under `tests/`, so the replacement asked for in criterion 3 is done.
+   - Not checked by me: criterion 4 (`make check` green). The demo does not run it; the factory runs it after this stage. The coder and the documenter both report it green.
+   - Criterion 5: docs: none, consistent with the documenter's entry.
+   - Findings: none.
