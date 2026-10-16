@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 140
 blocked: null
 comments_seen: 0
@@ -84,3 +84,10 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
    - Architecture, security and quality: these are test-only changes inside the tests' mirror of `adapters`. There are no suppression markers. The `Step` docstring was updated for the new step order. The early `return` in the test is how the two sides share one parametrized test, as `CLAUDE.md` asks.
    - Ticket hygiene: the log explains why the tests were green from the start (tests-only story, fix already in 0ebb835). The docs criterion (none) still holds.
    - Open: the demo's expected count of `10 passed` should hold: 8 existing tests plus the 2 new rows.
+6. documenter: No files changed. The docs criterion is `none`, and the diff is tests only (`tests/adapters/claude_stand_in.py`, `tests/adapters/test_claude_runtime_os_user.py`), with nothing in `src/` touched.
+   - Cross-read: `docs/operator-guide.md` line 90 (the sudo refusal rule) matches the code. It says a `sudo:` line stops the run when the call ends without a usable reply, and that a `sudo:` line before a good reply is ignored. `docs/decisions.md` has no contradicting text. README does not mention it.
+   - Observation, not touched: line 90 does not say that a call which timed out counts as "without a usable reply", even when it printed a reply before the kill. That is the case this story pins. The sentence is not wrong, and the criterion says no docs change, so I left it. The operator may want one clause there.
+   - `make check` is green: coverage 99.54 %.
+   - No findings. The code matches the Interface: `_sudo_refusal` keeps `not process.timed_out`.
+
+   `make check`: check: green
