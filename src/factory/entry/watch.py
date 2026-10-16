@@ -1,6 +1,7 @@
 """The watcher's command line: the event the next tick would handle and the board."""
 
 import argparse
+import os
 import sys
 from collections.abc import Sequence
 from typing import TextIO
@@ -10,14 +11,15 @@ from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PIPELINE_REF, PipelineLoader
 from factory.application.watcher import Watcher
 from factory.domain.board import render_board
-from factory.domain.errors import GitError, PipelineDefinitionInvalid
+from factory.domain.errors import GitError, PipelineDefinitionInvalid, SettingsInvalid
 from factory.domain.events import Event
 from factory.domain.identifiers import Name
+from factory.entry.wiring import boundaries_from_environment
 
 _PROGRAM = "factory-watch"
 _OK = 0
 _INVALID_DEFINITION = 1
-_NOT_WIRED = 2
+_SETTINGS_INVALID = 2
 
 
 def render_event(event: Event) -> str:
@@ -54,14 +56,22 @@ def main(
     out: TextIO | None = None,
     err: TextIO | None = None,
 ) -> int:
-    """Parse the arguments, `argv` or the command's, then watch with the boundaries given."""
+    """Parse the arguments, `argv` or the command's, then watch as the instance.
+
+    The boundaries and the instance are the ones given, or both those of the environment
+    when either is missing.
+    """
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.parse_args(sys.argv[1:] if argv is None else argv)
     out_stream = sys.stdout if out is None else out
     err_stream = sys.stderr if err is None else err
     if boundaries is None or instance is None:
-        err_stream.write(f"{_PROGRAM}: no instance settings are wired yet\n")
-        return _NOT_WIRED
+        try:
+            settings, boundaries = boundaries_from_environment(os.environ)
+        except SettingsInvalid as error:
+            err_stream.write(f"{_PROGRAM}: settings invalid: {error}\n")
+            return _SETTINGS_INVALID
+        instance = settings.instance
     return run_watch(boundaries, instance, out_stream, err_stream)
 
 
