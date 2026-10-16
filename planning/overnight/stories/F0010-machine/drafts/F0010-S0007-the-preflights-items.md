@@ -74,7 +74,7 @@ Tests: `tests/domain/test_settings_pinned.py`, `tests/domain/test_preflight.py`,
 2. `PreflightItem` and `PreflightReport` refuse an unknown key and an assignment to a field with `ValidationError`.
 3. `tool_item("git", which)` passes when `which` answers a path, with the name `tool:git` and an empty detail.
 4. `tool_item("make", which)` fails when `which` answers `None`, with the detail `make is not on the PATH; add it to the image`.
-5. With every tool present, the hosting service answering, agents installed and the versions equal, `MachineChecks.run()` passes and its item names are `tool:git`, `tool:uv`, `tool:make`, `tool:claude`, `hosting-service`, `agents`, `agent-runtime-version`, in that order.
+5. With every tool present, the hosting service answering, agents installed and the versions equal, `MachineChecks.run()` passes and its item names are `tool:git`, `tool:uv`, `tool:make`, `tool:claude`, `hosting-service`, `agents`, `agent-runtime-version`, in that order; with `claude_executable` set to `/opt/claude/bin/claude` the fourth item is named `tool:/opt/claude/bin/claude` and `which` is asked for that path.
 6. Every item is reported at once: with `git` and `uv` missing, the hosting service failing and the version differing, the report holds the same seven items and exactly four of them failed, in order, and the report does not pass.
 7. `hosting-service` passes when the fake answers, and fails with a detail that holds the operation `find_open_pull_request` and the fake's detail `injected failure` when `fail_next("find_open_pull_request")` is set.
 8. `agents` passes with the real reader bound to a directory other than the user's home that holds `agents/intake.md`, when `settings.agent_home` is that directory (ST4.4).
