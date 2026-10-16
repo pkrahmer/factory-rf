@@ -70,11 +70,11 @@ class Tick:
         A given `preflight` runs on the restored checkout; a stop it reports ends the tick.
         """
         self._boundaries = boundaries
-        self._preflight = preflight
         self._instance = instance
         self._handlers = handlers
         self._status = TickStatus() if status is None else status
         self._stops = StopService(boundaries)
+        self._preflight = preflight
 
     @property
     def status(self) -> TickStatus:
