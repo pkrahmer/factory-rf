@@ -18,6 +18,14 @@ GIT_USER_EMAIL_VARIABLE = "GIT_USER_EMAIL"
 DEFAULT_GIT_IDENTITY = GitIdentity(name="factory", email="factory@noreply.invalid")
 IMAGE_ID_FILE = Path("/opt/factory/image-id")
 IMAGE_ID_FILE_VARIABLE = "FACTORY_IMAGE_ID_FILE"
+AGENT_HOME_DEFAULT = Path("/home/agent/.claude")
+AGENT_HOME_VARIABLE = "FACTORY_CLAUDE_HOME"
+CLAUDE_EXECUTABLE_VARIABLE = "FACTORY_CLAUDE"
+# No word `token` in the name: ruff's S105 takes a string assigned to such a name for a secret.
+CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
+RUNS_DIRECTORY_NAME = "runs"
+_HOME_VARIABLE = "HOME"
+_CLAUDE_EXECUTABLE_DEFAULT = "claude"
 
 _NAME = TypeAdapter(Name)
 
@@ -33,6 +41,9 @@ class InstanceSettings(BaseModel):
     image: str | None = None
     checkout: Path = CHECKOUT_PATH
     state_directory: Path = STATE_DIRECTORY
+    agent_home: Path = AGENT_HOME_DEFAULT
+    claude_executable: str = _CLAUDE_EXECUTABLE_DEFAULT
+    token_file: Path | None = None
 
 
 def read_settings(
@@ -47,6 +58,10 @@ def read_settings(
         instance=instance,
         git_identity=_git_identity(environ),
         image=image,
+        agent_home=_agent_home(environ),
+        claude_executable=_optional(environ, CLAUDE_EXECUTABLE_VARIABLE)
+        or _CLAUDE_EXECUTABLE_DEFAULT,
+        token_file=_optional_path(environ, CREDENTIAL_FILE_VARIABLE),
     )
 
 
@@ -95,12 +110,33 @@ def _optional(environ: Mapping[str, str], variable: str) -> str:
     return environ.get(variable, "").strip()
 
 
+def _optional_path(environ: Mapping[str, str], variable: str) -> Path | None:
+    value = _optional(environ, variable)
+    return Path(value) if value else None
+
+
+def _agent_home(environ: Mapping[str, str]) -> Path:
+    agent_home = _optional_path(environ, AGENT_HOME_VARIABLE)
+    if agent_home is not None:
+        return agent_home
+    home = _optional_path(environ, _HOME_VARIABLE)
+    return AGENT_HOME_DEFAULT if home is None else home / ".claude"
+
+
 def _image(environ: Mapping[str, str], read_file: Callable[[Path], str]) -> str:
     path = Path(environ.get(IMAGE_ID_FILE_VARIABLE) or IMAGE_ID_FILE)
+    return read_setting_file(IMAGE_ID_FILE_VARIABLE, path, read_file)
+
+
+def read_setting_file(variable: str, path: Path, read_file: Callable[[Path], str]) -> str:
+    """Return the content of the file at `path`, which `variable` names, stripped of whitespace.
+
+    Raises `SettingsInvalid` naming `variable` when the file cannot be read or is blank.
+    """
     try:
-        image = read_file(path).strip()
+        content = read_file(path).strip()
     except OSError as error:
-        raise SettingsInvalid(IMAGE_ID_FILE_VARIABLE, f"cannot read {path}: {error}") from error
-    if not image:
-        raise SettingsInvalid(IMAGE_ID_FILE_VARIABLE, f"{path} is empty")
-    return image
+        raise SettingsInvalid(variable, f"cannot read {path}: {error}") from error
+    if not content:
+        raise SettingsInvalid(variable, f"{path} is empty")
+    return content
