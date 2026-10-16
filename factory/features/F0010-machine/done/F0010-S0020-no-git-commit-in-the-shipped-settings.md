@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 138
 blocked: null
 comments_seen: 0
@@ -144,3 +144,4 @@ Expect: seven lines, each ending in `:1`.
    - Interface: `env` is still `{"CLAUDE_CODE_FORK_SUBAGENT": "0"}`.
    - Criterion 4: command 2 confirms it.
    - Criteria 3, 5 and 6: I did not re-run these. The tests, `make check` and the docs are covered by the earlier entries (3–6) and the factory's checks.
+8. done (pull request merged); cost: 6 runs, 32.0 min, 31 turns, 81k tokens in (431k more from cache), 9k out, $0.88
