@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 137
 blocked: null
 comments_seen: 0
 round: 0
@@ -55,3 +55,9 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: names `src/factory/entry/run.py` `main` (signature unchanged) and the handling of `OSError` from `_stop_the_machine`: the two exact stderr lines, return 2, no new public name, and an `OSError` from `run(settings)` stays uncaught. The code matches (`main` at run.py, `_stop_the_machine` writes the log line first, then the health store).
+   - Criteria: each is testable by one test function. Each rule has both sides: stop unwritable (1, 2), stop writable with an empty stderr (3), and an `OSError` from the runner not caught (4). The two stderr lines of the Interface are covered by criterion 2. Criterion 3 says its rows are one parametrized test.
+   - Demo: both commands are runnable. Each `Expect:` line can be checked against the output. The time-stamped line on stdout when the file cannot be written is existing behaviour (`TimestampedFactoryLog.line` writes stdout before opening the file). Criteria 1 to 3 do not assert it, but the docs criterion and the Demo state it. I did not ask about it.
+   - Architecture: the change stays in `factory.entry` and touches no other layer. It adds no dependency.
+   - Scope: it fits F0010 (the entrypoint's stops, S0004's promise of status 2 with no traceback). Nothing in the feature's "Out of scope" is touched.
