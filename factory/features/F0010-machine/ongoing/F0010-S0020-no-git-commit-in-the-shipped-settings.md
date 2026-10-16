@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 138
 blocked: null
 comments_seen: 0
@@ -109,3 +109,11 @@ Expect: seven lines, each ending in `:1`.
       - Architecture and security: no code under `src/` changes. The diff adds no suppression markers. The tests reuse the existing helpers `shipped_agents.AGENT_HOME`, `SHIPPED_NAMES` and `front_matter_and_body`, and `factory.domain.sections.section_text`.
       - Quality: the tests follow the conventions in `CLAUDE.md` (parametrized rows, module docstring, no mocks). `_permissions` is a small private reader. It does not duplicate an existing helper; `test_claude_files.py` reads the settings inline.
       - Hygiene: the coder's entry names its main decision, to deny the two commands rather than only drop them from allow, and the reason. The docs criterion (6) still says what the documenter has to change. The coder noted that `docs/project-guide.md` still says "the read and commit git commands"; the documenter fixes that under criterion 6.
+6. documenter: I changed two files, and `make check` is green after the edits.
+   - `docs/project-guide.md`, "The settings": the allowed git commands are now `status`, `diff`, `log`, `show` and `rev-parse`. The old text called them "the read and commit git commands". The denied list now starts with `git add` and `git commit`, with the reason: the factory makes the result commit (R10), the agents' Rules say "You do not commit either", and the runtime refuses a denied command instead of asking for a permission nobody can give.
+   - `docs/operator-guide.md`, "The shipped agents and settings": `git add` and `git commit` are named among the denied commands. The reason is the same, and I added that an agent user has no git identity of its own.
+   - Cross-read against the diff and found current: `claude/settings.json`, which matches both docs, and `README.md`, which does not mention the git permissions.
+   - Findings: none. The code matches the Interface.
+   - Stale text I saw and did not touch: nothing unrelated to this story.
+
+   `make check`: check: green
