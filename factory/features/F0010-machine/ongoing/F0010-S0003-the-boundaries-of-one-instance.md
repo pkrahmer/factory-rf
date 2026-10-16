@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 121
 blocked: null
 comments_seen: 0
 round: 0
@@ -138,3 +138,10 @@ Expect: one line, `/srv/agents claude None`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (settings.py, boundaries.py, pygithub_hosting.py, wiring.py). The rules fix the five git environment entries, the accepted URL forms, the `SettingsInvalid` variable names and the components `build_boundaries` builds.
+   - Criteria: each can be tested by one test function. Every rule has a criterion for its failing side. URLs: criterion 5. Token: criterion 7 (None, missing, directory, whitespace-only). `build_boundaries` without a repository name: criterion 19. The `HOME` fallback and the blank cases are in criterion 1, and the blank/missing cases of `FACTORY_CLAUDE` and `FACTORY_TOKEN_FILE` in criteria 2 and 3. Every comment-stated behaviour has one: the defaults, the `settings` default of None (10), the `lazy` construction (20, 21) and "writes nothing" (12).
+   - Demo: all three commands can be run and each Expect line can be checked against the printed output.
+   - Architecture: the concrete adapters are picked only in `factory.entry.wiring`, the PyGithub call stays in the adapter module, and the settings model stays in domain. Criterion 16 enforces the single construction of the agent reader. This matches the layer rules and R5/R6.
+   - Scope: within F0010 "The boundaries of the instance" and F0010 decisions 3, 18 and 34. Nothing is in Out of scope.
+   - Noted, not a question: F0010 decision 18 mentions a default token path, `/run/secrets/hosting-token`. This story's Interface gives `token_file` the default None, so I took the story as authoritative; a later story (S0004 or S0013) can add the default.
