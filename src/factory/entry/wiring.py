@@ -67,6 +67,7 @@ __all__ = [
     "CREDENTIAL_HELPER",
     "NOT_YET_HANDLED",
     "agent_environment",
+    "agent_run_environment",
     "boundaries_from_environment",
     "build_bill_service",
     "build_boundaries",
@@ -225,6 +226,15 @@ def production_environment() -> dict[str, str]:
     return scrub_environment({**os.environ, **own})
 
 
+def agent_run_environment(settings: InstanceSettings, base: Mapping[str, str]) -> dict[str, str]:
+    """Return a copy of `base`, its `HOME` the agent user's home when the agents run as one."""
+    environment = dict(base)
+    if settings.agent_user is not None:
+        # The agent home is the `.claude` folder inside the agent user's own home.
+        environment["HOME"] = str(settings.agent_home.parent)
+    return environment
+
+
 def build_handlers(
     boundaries: Boundaries,
     definition: PipelineDefinition,
@@ -302,6 +312,8 @@ def build_tick(
     return Tick(
         boundaries,
         instance,
-        handler_factory(boundaries, instance, production_environment()),
+        handler_factory(
+            boundaries, instance, agent_run_environment(settings, production_environment())
+        ),
         preflight=build_preflight(boundaries, settings, which),
     )

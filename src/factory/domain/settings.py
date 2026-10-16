@@ -24,6 +24,7 @@ CLAUDE_EXECUTABLE_VARIABLE = "FACTORY_CLAUDE"
 CLAUDE_VERSION_VARIABLE = "FACTORY_CLAUDE_VERSION"
 # No word `token` in the name: ruff's S105 takes a string assigned to such a name for a secret.
 CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
+AGENT_USER_VARIABLE = "FACTORY_AGENT_USER"
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
@@ -46,6 +47,7 @@ class InstanceSettings(BaseModel):
     claude_executable: str = _CLAUDE_EXECUTABLE_DEFAULT
     token_file: Path | None = None
     pinned_agent_version: str | None = None
+    agent_user: Name | None = None
 
 
 def read_settings(
@@ -65,6 +67,7 @@ def read_settings(
         or _CLAUDE_EXECUTABLE_DEFAULT,
         token_file=_optional_path(environ, CREDENTIAL_FILE_VARIABLE),
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
+        agent_user=_agent_user(environ),
     )
 
 
@@ -95,11 +98,19 @@ def _holds_password(url: str) -> bool:
 
 
 def _instance(environ: Mapping[str, str]) -> str:
-    instance = _required(environ, INSTANCE_VARIABLE)
+    return _name(INSTANCE_VARIABLE, _required(environ, INSTANCE_VARIABLE))
+
+
+def _agent_user(environ: Mapping[str, str]) -> str | None:
+    agent_user = _optional(environ, AGENT_USER_VARIABLE)
+    return _name(AGENT_USER_VARIABLE, agent_user) if agent_user else None
+
+
+def _name(variable: str, value: str) -> str:
     try:
-        return _NAME.validate_python(instance)
+        return _NAME.validate_python(value)
     except ValidationError as error:
-        raise SettingsInvalid(INSTANCE_VARIABLE, "is not a name") from error
+        raise SettingsInvalid(variable, "is not a name") from error
 
 
 def _git_identity(environ: Mapping[str, str]) -> GitIdentity:

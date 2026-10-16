@@ -48,6 +48,10 @@ BUDGET_SUBTYPE = "error_max_budget_usd"
 FINISH_MESSAGE = "Finish now: give your decision (question if the work is not done) and your entry."
 MINIMUM_RESUME_BUDGET = Decimal("0.50")
 VERSION_TIME_LIMIT = timedelta(seconds=30)
+SUDO_EXECUTABLE = "/usr/bin/sudo"
+SUDO_PREFIX = "sudo:"
+# The agent reads a run's files through its group and must not rewrite its own guard.
+RUN_FILE_MODE = 0o640
 CENT = Decimal("0.01")
 
 
@@ -276,6 +280,21 @@ def _resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunRe
     )
 
 
+def _sudo_line(stderr: str) -> str | None:
+    for line in stderr.splitlines():
+        if line.startswith(SUDO_PREFIX):
+            return line
+    return None
+
+
+def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
+    if request.os_user is None:
+        return None
+    if _parse_reply(process.stdout) is not None and not process.timed_out:
+        return None
+    return _sudo_line(process.stderr)
+
+
 def _first_word(output: str) -> str | None:
     for line in output.splitlines():
         if line.strip():
@@ -296,9 +315,14 @@ class ClaudeCodeRuntime(AgentRuntime):
         kill_points: KillPoints | None = None,
         *,
         version_time_limit: timedelta = VERSION_TIME_LIMIT,
+        sudo_executable: str = SUDO_EXECUTABLE,
     ) -> None:
-        """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`."""
+        """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
+
+        A request with an operating-system user is started through `sudo_executable`.
+        """
         self._executable = executable
+        self._sudo_executable = sudo_executable
         self._state_directory = state_directory
         self._kill_points = kill_points
         self._version_time_limit = version_time_limit
@@ -374,23 +398,48 @@ class ClaudeCodeRuntime(AgentRuntime):
 
     def _write_files(self, request: AgentRunRequest, files: _RunFiles) -> None:
         try:
-            files.instructions.write_text(request.agent.instructions, encoding="utf-8")
+            written = {files.instructions: request.agent.instructions}
             if request.guard is not None:
-                files.guard.write_text(request.guard.model_dump_json(), encoding="utf-8")
-                files.hooks.write_text(_hook_settings(files.guard), encoding="utf-8")
+                written[files.guard] = request.guard.model_dump_json()
+                written[files.hooks] = _hook_settings(files.guard)
+            for path, text in written.items():
+                path.write_text(text, encoding="utf-8")
+                path.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise self._state_error(exc) from exc
 
     def _call(
         self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
     ) -> ProcessResult:
-        process_request = ProcessRequest(
-            argv=[self._executable, *arguments],
+        process = self._start(self._process_request(request, arguments, time_limit))
+        refusal = _sudo_refusal(request, process)
+        if refusal is not None:
+            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
+            raise AgentRuntimeError(f"{self._sudo_executable} refused the agent run: {refusal}")
+        return process
+
+    def _process_request(
+        self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
+    ) -> ProcessRequest:
+        environment = {**request.environment, **SWITCHES}
+        argv = [self._executable, *arguments]
+        if request.os_user is None:
+            return ProcessRequest(
+                argv=argv, cwd=request.working_directory, env=environment, time_limit=time_limit
+            )
+        # `env -i` drops whatever `sudo` keeps, so the agent sees the request's environment alone.
+        assignments = [f"{name}={value}" for name, value in environment.items()]
+        sudo = [self._sudo_executable, "-n", "-u", request.os_user, "--", "env", "-i"]
+        return ProcessRequest(
+            argv=[*sudo, *assignments, *argv],
             cwd=request.working_directory,
-            env={**request.environment, **SWITCHES},
+            env={},
             time_limit=time_limit,
         )
+
+    def _start(self, process_request: ProcessRequest) -> ProcessResult:
         try:
             return run_process(process_request)
         except OSError as exc:
-            raise AgentRuntimeError(f"cannot start {self._executable}: {exc}") from exc
+            program = process_request.argv[0]
+            raise AgentRuntimeError(f"cannot start {program}: {exc}") from exc
