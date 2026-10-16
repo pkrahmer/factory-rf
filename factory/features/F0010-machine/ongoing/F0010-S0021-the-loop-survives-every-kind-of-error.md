@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 139
 blocked: null
 comments_seen: 0
@@ -78,3 +78,15 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
       - Open: nothing.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Scope: the diff touches only `tests/application/test_scheduler.py`: one new parametrized test, `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle`, and `AgentRuntimeError` added to the existing import. `src/` is unchanged, as the Assignment expected.
+      - Criteria 1 and 2: these are the eight rows (four errors × `raising_side`) of one test, as criterion 2 requires, built on the module's existing `Loop` recorder. Each row:
+        - checks the exact log line from the Interface for its error;
+        - checks the full call order, so a failed `prepare` is followed by no `tick` in that iteration;
+        - checks the sleeps `[30.0, 15.0]`;
+        - stops after the second sleep.
+        `run` raising nothing is covered because the test reaches its asserts. I read the scripted outcomes against `Scheduler._iterate` and `run` in `src/factory/application/scheduler.py`, and the expected calls and sleeps follow from them.
+      - The refused side: the existing `test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged` still pins it (a `BaseException` that is not an `Exception` leaves the loop). Narrowing the handler to `except ValueError` would now fail every row of the new test, which closes the gap the feature acceptance found.
+      - Checks: the coder's entry records `make check` green, with 99.54 % coverage.
+      - Architecture, security, quality: tests only, no new helper, names say what they are.
+      - Hygiene: the Assignment matches what was built. "docs: none" is right, because the operator guide already states the rule.
