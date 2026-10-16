@@ -4,6 +4,7 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from datetime import UTC, datetime
 
+import github
 from github import GithubException
 from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
@@ -150,3 +151,10 @@ class PyGithubHostingService(HostingService):
                 label.name for label in pull.get_labels() if not label.name.startswith(LABEL_PREFIX)
             ]
             pull.set_labels(*foreign, *labels)
+
+
+def pygithub_service(repository: str, token: str) -> PyGithubHostingService:
+    """Return the hosting service of `repository` (`owner/name`), authenticated by `token`."""
+    # Lazy, so that building the service sends no request; the first operation does.
+    client = github.Github(auth=github.Auth.Token(token), lazy=True)
+    return PyGithubHostingService(client.get_repo(repository))
