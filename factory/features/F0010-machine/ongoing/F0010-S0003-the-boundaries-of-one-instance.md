@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 121
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # The boundaries of one instance
@@ -233,3 +233,6 @@ Expect: one line, `/srv/agents claude None`.
    - Intake noted the default token path from F0010 decision 18 (`/run/secrets/hosting-token`). It is still not implemented: `token_file` defaults to `None`, as the Interface says.
 
    `make check`: check: green
+9. reviewer: Checked the diff against the criteria, the architecture and security, and they hold. Every criterion from 1 to 21 has a test that checks what the criterion says. The failing sides are parametrized: URLs in 5, the token file in 7, and the blank and missing variables in 1 to 3. The coder's entry 8 reports `make check` green. The layers are respected: `github` is still imported only in `factory.adapters.pygithub_hosting`, and the concrete adapters are picked only in `factory.entry.wiring`. There are no secrets, and the error messages name the path but never the token. Review stopped at Quality with one finding:
+
+   1. `src/factory/entry/wiring.py` `read_hosting_token`: this is a second copy of the logic in `src/factory/domain/settings.py` `_image`. Both read a file, strip it, turn an `OSError` into `SettingsInvalid(variable, f"cannot read {path}: {error}")` and turn blank content into `SettingsInvalid(variable, f"{path} is empty")`. CLAUDE.md counts a second copy of an existing helper as a finding. Fix: move that logic into one public domain function in `settings.py`, for example `read_setting_file(variable, path, read_file) -> str`, so that the domain stays pure because the reader is passed in. Make `_image` use it. `read_hosting_token` keeps its `None` check and then calls it with a reader built on `Path.read_text(encoding="utf-8")`. No test changes.
