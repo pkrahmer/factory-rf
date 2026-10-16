@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 135
 blocked: null
 comments_seen: 0
@@ -286,3 +286,4 @@ Expect: one line, `0`.
     I did not run `make check`; the factory runs it after this stage. I changed no files.
 
     Still open from entries 4, 9 and 10, outside this story: the template's write paths for the coder and tester do not include `{work_item}`, and `docs/project-guide.md` says `claude/settings.json` allows `git commit` even though the agent bodies say no agent commits.
+12. done (pull request merged); cost: 10 runs, 24.3 min, 86 turns, 281k tokens in (2272k more from cache), 45k out, $3.37
