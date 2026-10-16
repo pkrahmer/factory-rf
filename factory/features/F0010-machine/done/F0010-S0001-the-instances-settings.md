@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 119
 blocked: null
 comments_seen: 0
@@ -174,3 +174,4 @@ Expect: one line, `factory Ann`.
    - The demo does not exercise the refused cases (criteria 2–4, 10, 12, 13, 15). Those are covered by the tests the reviewer read against their criteria.
 
    Still open, as earlier entries noted: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path, and the story does not decide that case.
+8. done (pull request merged); cost: 6 runs, 12.0 min, 37 turns, 118k tokens in (590k more from cache), 19k out, $1.22
