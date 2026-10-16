@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 139
 blocked: null
 comments_seen: 0
@@ -90,3 +90,11 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
       - Checks: the coder's entry records `make check` green, with 99.54 % coverage.
       - Architecture, security, quality: tests only, no new helper, names say what they are.
       - Hygiene: the Assignment matches what was built. "docs: none" is right, because the operator guide already states the rule.
+6. documenter: none, as the docs criterion says. I changed no file.
+   - Diff: only `tests/application/test_scheduler.py` (one parametrized test); `src/` is unchanged.
+   - Cross-read: `docs/operator-guide.md`, "The loop and its pauses" (lines 44 and 46). It says that a failing preparation or tick counts as idle, that the failure is one log line `iteration failed: <exception type>: <message>`, and that the loop goes on. This matches `Scheduler._iterate` and the pinned tests, so it is current.
+   - `make check` is green (total coverage 99.54 %). I ran it once and it exceeded the tool's 120 s timeout, so the tool moved it to the background by itself. I read its finished output, which ended `check: green`.
+   - Stale text seen but not touched: none.
+   - Findings: none.
+
+   `make check`: check: green
