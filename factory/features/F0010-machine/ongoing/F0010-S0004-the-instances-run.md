@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 122
 blocked: null
 comments_seen: 6
@@ -274,3 +274,22 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
     Findings: none. The code matches the Interface as far as I read it. I did not check docstrings in detail, and the reviewer found none missing.
 
     `make check`: check: green
+15. demo: Ran both demo commands from the repository root, exactly as written in `## Demo`.
+
+    Command 1 (`activity` for a standing stop and for a capped dispatch):
+    ```
+    False False
+    ```
+    Met its Expect line: one line, `False False`. This agrees with criteria 3 and 4: a standing stop and a capped event do not count as activity.
+
+    Command 2 (`main` with no `FACTORY_INSTANCE`):
+    ```
+    2026-10-16T06:11:29Z settings invalid: FACTORY_INSTANCE: missing
+    2
+    settings invalid: FACTORY_INSTANCE: missing
+    ```
+    Met its Expect line: three lines. First the time-stamped line in the form `YYYY-MM-DDTHH:MM:SSZ`, reading `settings invalid: FACTORY_INSTANCE: ` followed by the fault (`missing`). Then the status `2`. Then the same line from `factory.log` without its time stamp. Neither command printed a traceback. This agrees with criteria 12 and 15: status 2 and a time-stamped line for an invalid environment.
+
+    I re-read the acceptance criteria against both outputs and neither contradicts any criterion. The demo does not cover the `health.json` machine stop (criteria 12, 14, 17), the cloning and pausing loop (criteria 9, 19–22) or the docs criterion (24). Those are left to the tests and the docs stage. A real container is still the morning observation, as the Assignment says.
+
+    No findings.
