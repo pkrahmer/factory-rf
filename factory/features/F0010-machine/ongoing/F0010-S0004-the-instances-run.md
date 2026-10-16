@@ -1,8 +1,8 @@
 ---
 stage: tests
 pr: 122
-blocked: asked
-comments_seen: 5
+blocked: null
+comments_seen: 6
 round: 0
 attempts: 0
 ---
@@ -218,3 +218,4 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
    (c) Build the `Tick` with a handler factory whose `run` handler always raises, as `tests/application/test_tick.py` does with `Failing`. That gives the same key, the same remote state and count 2. It moves away from the Interface, which says this test builds its handlers with `handler_factory`.
 
    I recommend (a). It keeps your setup and the Interface, and it still tests what criterion 5 is for: the status survives from one call to the next. Please confirm (a), or pick (b) or (c). With (a), please also confirm the new wording of criterion 5.
+10. human (pull request comment, 2026-10-16): This replaces my previous answer (b), which would leave the Interface's `handler_factory`. Take (a): keep the setup (agents installed, a queued run that raises inside the handler) and assert that after two calls `tick.status.errors` holds both the `run` error and the `crash` error of the same work item, which a fresh `Tick` per call would not. Criterion 5 becomes: "`activity_tick` keeps one `Tick` across its calls: after two calls whose runs raise, its status holds the errors of both calls (the `run` error of the first and the `crash` error of the second)." Change 2 stays. The code stays as it is.
