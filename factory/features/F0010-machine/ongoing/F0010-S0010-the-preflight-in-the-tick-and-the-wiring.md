@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 128
 blocked: null
 comments_seen: 0
@@ -102,3 +102,21 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Put the preflight into the tick and wired it. `make check` passes and the demo prints the two expected parameter lists.
+
+   Built:
+   - `src/factory/application/tick.py`: `Tick` takes a new `preflight: Preflight | None = None`. `Tick.run` now runs fetch, load, restore, then `_run_preflight`, then the cleanup of stale branches, the evaluation and the dispatch. `_run_preflight` sits inside the same `try` as the other three steps. If the preflight returns a reason, it raises the tick's existing `_Stopped`, so the tick ends with `TickOutcome(stopped=<reason>)` before the cleanup. With `preflight=None` the tick behaves as before.
+   - `src/factory/entry/wiring.py`:
+     - New `build_preflight(boundaries, settings, which, extra=())`, which builds `Preflight(boundaries, MachineChecks(boundaries, settings, which, extra), JsonPreflightStampFile(settings.state_directory / "preflight-stamp.json"), StopService(boundaries), settings.image)`. It is exported in `__all__`.
+     - `build_tick(boundaries, settings, which=shutil.which)` passes `preflight=build_preflight(boundaries, settings, which)`. Because `which` has a default, the caller in `entry/run.py` did not need to change.
+
+   Commits:
+   - 2ee159d (feat)
+   - 0dc5be0 (refactor): moved the `_preflight` assignment so the fields follow the parameter order. Nothing else needed cleaning up.
+
+   Main decision: the tick does not raise or clear the preflight's stops itself. `Preflight.run` already raises and clears them, so the tick only turns the reason it returns into the tick's early end.
+   - Rejected: building a `RepositoryStop` in the tick through `_stop`. It would have duplicated the stop the preflight already writes, and with the wrong scope for `preflight_failed` (the preflight writes that one as a machine stop).
+
+   Noticed, not touched: `Tick` and `build_preflight` each create their own `StopService(boundaries)`. That is harmless because the service only holds the boundaries.
+
+   `make check`: check: green
