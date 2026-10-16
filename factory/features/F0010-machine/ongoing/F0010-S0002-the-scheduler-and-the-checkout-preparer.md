@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 120
 blocked: null
 comments_seen: 0
@@ -124,3 +124,10 @@ Expect: one line, `[15.0, 30.0, 60.0]`: the first tick ran at once, activity gav
       - Not touched: the docs criterion (14) belongs to the documenter.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–12 has its own test in tests/application/test_scheduler.py, and each test checks what its criterion says. The `pause_after` limit is tested on both sides: -1 is refused, 0 gives 15 s, and the cap is checked at 2 → 60 s and 3 → 120 s. The `should_stop` checks are covered from both ends: before the first iteration (criterion 4), and after an iteration but before its sleep (criteria 3 and 6–8 check the exact call order). The coder's entry reports `make check` green.
+      - Rules: the failing side of every Interface rule has a test. Exceptions and `InjectedKill` (criteria 7–9), a `GitError` from the clone that is not caught (12), and a checkout that already exists (11) are all covered.
+      - Architecture: `src/factory/application/scheduler.py` imports only `factory.application` (Git, FactoryLog) and `factory.domain` (InstanceSettings). It calls no tool directly, has no `Any`, and is fully typed.
+      - Security: no tool call is built from strings, and no suppression markers were added.
+      - Quality: `pause_after` doubles step by step instead of using the Interface's formula, and a comment explains why: the formula overflows `timedelta` after about 43 idle ticks. It returns the same values. Every public name has a docstring, and nothing is duplicated or dead.
+      - Ticket hygiene: the log records the main decision and what was rejected (the literal formula). The Assignment matches what was built. Criterion 14 still describes what the documenter has to write.
