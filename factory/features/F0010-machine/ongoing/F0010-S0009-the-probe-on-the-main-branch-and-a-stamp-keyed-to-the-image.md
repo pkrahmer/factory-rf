@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 127
 blocked: null
 comments_seen: 0
 round: 0
@@ -125,3 +125,9 @@ Expect: one line, `lint 600.0`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.preflight.PreflightStamp`, `factory.application.preflight` with `PROBE_COMMAND`, `PROBE_TIME_LIMIT`, `PreflightStampStore` and `Preflight.__init__/run`, and `factory.adapters.preflight_stamp_file.JsonPreflightStampFile`). The rules for `run` give the order, the details and the return values.
+   - Criteria: each can be tested by one test function. Every behaviour in the Interface has a criterion. The probe's checkout and reset are covered by 1, the commit-id pattern by 21 and 22, and the atomic write and the single `os.replace` by 23. Each rule has both sides. A passing branch is criterion 1 and 3, a red main is 2, 13 and 14, and a failing machine item is 4 and 11. A probe error is 5 and 17, a time_limit is 6, and no `origin/main` is 16. `image=None` is 10, and a changed image is 8 and 9. An unchanged image or commit is 7, 12 and 20, and the clearing of `preflight_failed` is 15 and 18. A stamp that does not validate is 21 and 22. The `PROBE_TIME_LIMIT` limit is 19.
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable: `None`, `build-7 aaaaaaa None`, `None`, and `lint 600.0`.
+   - Architecture: the store interface is an ABC in application, the file implementation is in adapters, the stamp DTO is in domain, and the layer order holds. `Preflight` reaches git and the project commands only through `Boundaries`, and the stop service is the existing F0003 one. The Interface reuses the existing atomic-write helper instead of copying it.
+   - Scope: the story is within F0010's scope ("The probe and the stamp", ST4.1, ST4.3, ST4.5) and matches decisions 13 and 14 of the feature. It touches nothing in the Out of scope list.
