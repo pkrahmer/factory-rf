@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A sudo line starts at column 0
 
 <!-- proposed by feature acceptance of 2026-10-16; refine before promoting -->
