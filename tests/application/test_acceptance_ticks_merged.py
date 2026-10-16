@@ -10,36 +10,19 @@ from acceptance_walk import (
     SECOND,
     AcceptanceWalk,
     booked_state,
-    branch_of,
     last_entry,
 )
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_hosting import FakeHostingService
-from factory.application.boundaries import Boundaries
 from factory.domain.bills import bill, cost_line
+from factory.domain.identifiers import branch_name
 from factory.domain.work_item import Blocked
 from git_support import remote_commit
-from human_clone import HumanClone
 
 BEFORE_APPROVAL = "done (pull request merged before approval); cost: "
 AT_APPROVAL = "done (pull request merged); cost: "
 CASES = [("acceptance", None), ("approval", None), ("acceptance", "question")]
 CASE_IDS = ["at-acceptance", "at-approval", "asking"]
-
-
-@pytest.fixture
-def walk(
-    boundaries: Boundaries,
-    *,
-    remote: Path,
-    human: HumanClone,
-    hosting: FakeHostingService,
-    agent_home: Path,
-) -> AcceptanceWalk:
-    """Return a walk over the feature `F0002-todo`, due with two archived stories."""
-    return AcceptanceWalk(
-        boundaries, remote=remote, human=human, hosting=hosting, agent_home=agent_home
-    )
 
 
 def _merged(walk: AcceptanceWalk, stage: str, blocked: Blocked | None) -> int:
@@ -69,7 +52,7 @@ def test_a_merge_at_the_review_stage_runs_through_the_gate_and_is_booked_before_
     document = walk.booked(FIRST)
     assert (booked_state(document).stage, booked_state(document).outcome) == ("done", "accepted")
     assert last_entry(document) == BEFORE_APPROVAL + cost_line(bill(FIRST_RECORDS))
-    assert remote_commit(remote, branch_of(FIRST)) is None
+    assert remote_commit(remote, branch_name(FIRST)) is None
     assert agent_runtime.requests() == []
 
 
@@ -153,4 +136,4 @@ def test_proposed_stories_leave_the_feature_incomplete_and_open_no_new_acceptanc
 
     assert outcome.event is not None
     assert outcome.event.kind == "idle"
-    assert remote_commit(remote, branch_of(SECOND)) is None
+    assert remote_commit(remote, branch_name(SECOND)) is None

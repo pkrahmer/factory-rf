@@ -12,9 +12,14 @@ from factory.domain.acceptance import AcceptanceState
 from factory.domain.board import AcceptanceStatus
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.identifiers import FeatureId
+from factory.domain.identifiers import FeatureId, branch_name
 from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text
-from factory.domain.paths import cost_records_path
+from factory.domain.paths import (
+    LifecycleFolder,
+    cost_records_path,
+    feature_file_path,
+    work_item_path,
+)
 from factory.domain.work_item import Blocked, WorkItemDocument
 from factory.entry.wiring import handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
@@ -23,13 +28,13 @@ from human_clone import HumanClone
 INSTANCE = "factory-1"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 FEATURE = "F0002"
-TODO = "factory/features/F0002-todo"
+TODO = "F0002-todo"
 REVIEWER = "acceptance-reviewer"
 FIRST = "F0002-A0001"
 SECOND = "F0002-A0002"
 FIRST_RECORDS = completed_records(FIRST, 2)
 SECOND_RECORDS = completed_records(SECOND, 1)
-PROPOSED = f"{TODO}/backlog/F0002-S0003-c.md"
+PROPOSED = work_item_path(TODO, "backlog", "F0002-S0003-c.md")
 PROPOSED_TEXT = """\
 # C
 
@@ -59,14 +64,9 @@ Expect: nothing.
 _STARTED = NewEntry(speaker=FACTORY, kind="started", text="started.")
 
 
-def branch_of(work_item: str) -> str:
-    """The branch of `work_item`."""
-    return f"work-item/{work_item}"
-
-
-def report_of(work_item: str, folder: str = "in-progress") -> str:
+def report_of(work_item: str, folder: LifecycleFolder = "in-progress") -> str:
     """The path of the report of `work_item` in `folder` of the feature."""
-    return f"{TODO}/{folder}/{work_item}-acceptance.md"
+    return work_item_path(TODO, folder, f"{work_item}-acceptance.md")
 
 
 def last_entry(document: WorkItemDocument) -> str:
@@ -99,13 +99,13 @@ class AcceptanceWalk:
         self._hosting = hosting
         self.evaluations: list[Event] = []
         self.outcomes: list[TickOutcome] = []
-        human.push_file("main", f"{TODO}/feature.md", "# Todo service\n")
+        human.push_file("main", feature_file_path(TODO), "# Todo service\n")
         self.archive("F0002-S0001-a.md", "# A\n")
         self.archive("F0002-S0002-b.md", "# B\n")
 
     def archive(self, name: str, text: str) -> None:
         """Push the story file `name` into the feature's `done/` on main."""
-        self._human.push_file("main", f"{TODO}/done/{name}", text)
+        self._human.push_file("main", work_item_path(TODO, "done", name), text)
 
     def evaluate(self) -> Event:
         """Fetch and keep the event the watcher sees now."""
@@ -134,7 +134,7 @@ class AcceptanceWalk:
         assert outcome.event.kind == "acceptance_due"
         title = f"{work_item}: acceptance"
         return self._hosting.create_pull_request(
-            branch_of(work_item), title, "body", draft=True
+            branch_name(work_item), title, "body", draft=True
         ).number
 
     def record(
@@ -148,7 +148,7 @@ class AcceptanceWalk:
         handed_over: str | None = None,
     ) -> WorkItemDocument:
         """Push the report's state on its branch, with its cost records; return the document."""
-        branch = branch_of(work_item)
+        branch = branch_name(work_item)
         path = report_of(work_item)
         self._boundaries.git.fetch()
         text = self._boundaries.git.show_file(f"origin/{branch}", path)
@@ -171,11 +171,11 @@ class AcceptanceWalk:
 
     def propose(self, work_item: str) -> None:
         """Push the backlog story `F0002-S0003-c.md` to the acceptance's branch."""
-        self._human.push_file(branch_of(work_item), PROPOSED, PROPOSED_TEXT)
+        self._human.push_file(branch_name(work_item), PROPOSED, PROPOSED_TEXT)
 
     def merge(self, work_item: str, number: int) -> None:
         """Merge the acceptance's branch into main as the human, and its pull request with it."""
-        self._human.merge(branch_of(work_item), "merge")
+        self._human.merge(branch_name(work_item), "merge")
         main = remote_commit(self._remote, "main")
         assert main is not None
         self._hosting.merge_by_human(number, main)

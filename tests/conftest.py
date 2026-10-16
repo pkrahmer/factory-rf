@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from acceptance_walk import AcceptanceWalk
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.clock import ManualClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -100,4 +101,19 @@ def boundaries(
         log=TimestampedFactoryLog(state / "factory.log", clock),
         health=JsonHealthStatusFile(state / "health.json"),
         checkout=tmp_path / CHECKOUT,
+    )
+
+
+@pytest.fixture
+def walk(
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    human: HumanClone,
+    hosting: FakeHostingService,
+    agent_home: Path,
+) -> AcceptanceWalk:
+    """Return a walk over the feature `F0002-todo`, due with two archived stories."""
+    return AcceptanceWalk(
+        boundaries, remote=remote, human=human, hosting=hosting, agent_home=agent_home
     )

@@ -10,32 +10,19 @@ from acceptance_walk import (
     SECOND,
     SECOND_RECORDS,
     AcceptanceWalk,
-    branch_of,
     report_of,
 )
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
-from factory.application.boundaries import Boundaries
+from factory.domain.identifiers import branch_name
 from factory.domain.paths import cost_records_path
 from git_support import remote_commit
-from human_clone import HumanClone
 
 REPEATED = [("approval", "merged"), ("acceptance", "run")]
 
 
 @pytest.fixture
-def walk(
-    boundaries: Boundaries,
-    *,
-    remote: Path,
-    human: HumanClone,
-    hosting: FakeHostingService,
-    agent_home: Path,
-) -> AcceptanceWalk:
+def walk(walk: AcceptanceWalk) -> AcceptanceWalk:
     """Return a walk where `F0002-A0001` is accepted for two stories and a third is archived."""
-    walk = AcceptanceWalk(
-        boundaries, remote=remote, human=human, hosting=hosting, agent_home=agent_home
-    )
     number = walk.open(FIRST)
     walk.record(FIRST, number, FIRST_RECORDS, stage="approval", handed_over="approval")
     walk.merge(FIRST, number)
@@ -60,9 +47,9 @@ def test_a_story_archived_after_the_acceptance_opens_the_next_acceptance_in_one_
 
     assert outcome.event is not None
     assert outcome.event.kind == "acceptance_due"
-    assert remote_commit(remote, branch_of(SECOND)) is not None
+    assert remote_commit(remote, branch_name(SECOND)) is not None
     checkout.fetch()
-    assert checkout.show_file(f"origin/{branch_of(SECOND)}", report_of(SECOND)) is not None
+    assert checkout.show_file(f"origin/{branch_name(SECOND)}", report_of(SECOND)) is not None
 
 
 def test_opening_the_repeated_acceptance_leaves_the_earlier_report_and_costs_byte_for_byte(

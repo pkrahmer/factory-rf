@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 113
 blocked: null
 comments_seen: 4
@@ -142,3 +142,14 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
     2. In `tests/acceptance_walk.py`, build `report_of` as `work_item_path("F0002-todo", folder, f"{work_item}-acceptance.md")`. Its `folder` parameter must be typed `LifecycleFolder` so `mypy --strict` accepts it. Build `TODO`/`PROPOSED` the same way (`feature.md` through `feature_file_path`).
     3. Move the `walk` fixture, which is written out twice (`tests/application/test_acceptance_ticks_closed.py:28` and `tests/application/test_acceptance_ticks_merged.py:31`), into `tests/conftest.py`. In `tests/application/test_acceptance_ticks_repeated.py`, the fixture becomes one that builds on the shared `walk` and does the A0001 setup.
     After the tester's change, the coder runs `make check` and hands the ticket to review. Nothing else is open, except criterion 15 (docs), which belongs to the documenter.
+13. tester: tester (test change the human approved, review entry 11, named by the coder in entry 12): I made the three named changes and nothing else.
+       1. `tests/acceptance_walk.py`: deleted `branch_of`. The helper and the three walk files now use `factory.domain.identifiers.branch_name`.
+       2. `tests/acceptance_walk.py`: `report_of` now returns `work_item_path(TODO, folder, f"{work_item}-acceptance.md")`, with `folder: LifecycleFolder`. `TODO` is now the feature directory `"F0002-todo"`. `PROPOSED` and the archived stories use `work_item_path`, and `feature.md` uses `feature_file_path`.
+       3. `tests/conftest.py`: has the plain `walk` fixture, removed from `test_acceptance_ticks_closed.py` and `test_acceptance_ticks_merged.py`. In `test_acceptance_ticks_repeated.py`, `walk` now overrides the shared fixture by requesting it (`def walk(walk: AcceptanceWalk)`) and does only the A0001 setup, so the test functions keep their names.
+       `ruff --fix` removed the imports that became unused. No test body changed apart from the `branch_of` → `branch_name` rename. As this mode says, I did not run `make types`; the coder's `make check` covers it.
+
+       `make lint`: lint: green
+       `make test`: test: green (coverage 99.53 %)
+
+    `make lint`: lint: green
+    `make test`: test: green

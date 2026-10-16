@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from acceptance_walk import (
     FIRST,
     FIRST_RECORDS,
@@ -11,32 +9,16 @@ from acceptance_walk import (
     SECOND,
     AcceptanceWalk,
     booked_state,
-    branch_of,
 )
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import RECOMMENDATION, acceptance_description
+from factory.domain.identifiers import branch_name
 from factory.domain.sections import section_text
 from git_support import remote_commit
-from human_clone import HumanClone
 
 REASON = "The list cannot be sorted."
-
-
-@pytest.fixture
-def walk(
-    boundaries: Boundaries,
-    *,
-    remote: Path,
-    human: HumanClone,
-    hosting: FakeHostingService,
-    agent_home: Path,
-) -> AcceptanceWalk:
-    """Return a walk over the feature `F0002-todo`, due with two archived stories."""
-    return AcceptanceWalk(
-        boundaries, remote=remote, human=human, hosting=hosting, agent_home=agent_home
-    )
 
 
 def test_a_close_at_the_approval_is_booked_refused_with_the_comment_until_another_archive(
@@ -69,7 +51,7 @@ def test_a_close_at_the_approval_is_booked_refused_with_the_comment_until_anothe
     reopened = walk.tick()
     assert reopened.event is not None
     assert reopened.event.kind == "acceptance_due"
-    assert remote_commit(remote, branch_of(SECOND)) is not None
+    assert remote_commit(remote, branch_name(SECOND)) is not None
 
 
 def test_a_close_before_the_approval_runs_through_the_gate_and_is_booked_refused(
