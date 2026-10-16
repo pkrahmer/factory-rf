@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 122
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -163,3 +163,23 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: implementation committed (ba63be9). Two tests from the tester can't pass against the existing tick, and I have not edited them (R9). Everything else in `make check` is green (lint, types, layers, sast, secrets, licenses, the other 20 new tests, coverage 99.5 %).
+
+   Built:
+   - `src/factory/entry/run.py`: `activity`, `activity_tick`, `install_stop_handlers`, `run_until_stopped`, `run_instance`, `main`, and the closing `raise SystemExit(main())`.
+   - `src/factory/entry/wiring.py`: `build_tick`, `boundaries_from_environment`, `machine_log`, `health_store`, plus two helpers that `main` needs because only the wiring may import adapters: `read_environment_settings` (`read_settings` with the UTF-8 file reader) and `system_clock` (gives the stop's `at` when `clock` is `None`). `build_boundaries` now gets its log and health file through `machine_log`/`health_store`.
+   - `src/factory/domain/stops.py`: the private `_with_stop` from `application/stops.py` became `HealthStatus.with_stop`. `main` and `StopService.raise_stop` now share it instead of keeping two copies.
+
+   Questions (I recommend option a for both):
+
+   1. `tests/entry/test_run.py::test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls` (criterion 5). The test installs no agent definitions and expects the run handler to raise `AgentDefinitionMissing`. But `PipelineLoader._require_agents` (`src/factory/application/pipeline_loading.py:49`) checks the agent home while it loads the definition. A missing agents directory therefore ends each tick at a `pipeline_definition_invalid` repository stop, with no dispatch, and `tick.status.errors` stays empty. Options:
+      (a) The test installs the agents (`install_agents`) and queues an agent runtime run that raises, or uses some other failure inside the handler, so the run dispatches and errors twice.
+      (b) The test builds the `Tick` with a handler factory whose `run` handler always raises, as `tests/application/test_tick.py` does with `Failing`.
+      (c) Change the loader to stop checking agents at load time. I advise against it: that is existing behaviour outside this story.
+
+   2. `tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance` (criterion 6). The test reads the claim from the tip of the work item's branch after the stage has completed. A completed stage releases its claim, and the tip's state is `stage='tests'` with `claim=None`, so `state.claim is not None` fails. The rest of the test passes: `handled` `run`, one request in `production_environment()`, two different `Tick` objects. Options:
+      (a) Read the instance from the claim commit, the first factory commit on the branch after the start, rather than from the tip.
+      (b) Read it from a fake agent request or the journal, if the instance appears there.
+      (c) Drop the instance check from this test.
+
+   Refactor step: not done yet. It comes after the tests are fixed and `make check` is green.
