@@ -75,6 +75,8 @@ The modules F0008 to F0011 add are placed by the same rule when the story is dra
 - In this housekeeping story: `docs/project-guide.md` becomes `docs/project-guide/` with a `README.md` index (what holds for all code: layers, errors, kill points, test rules) and one file per domain, mirroring the new code tree (work items, pipeline, stages, watching, handlers, stops, recovery, costs, tools). `CLAUDE.md` then says: read the index, then the files of the domains the story touches. The operator guide and the decision log stay single files.
 - Earlier, as its own human commit between two stories, if the guide passes about 1,800 lines before F0011 is accepted (the file tool reads 2,000 lines by default); then the docs criteria of the remaining drafts are reworded to the new paths. The session checks its length after each feature acceptance.
 
+- F0011-S0005's document check reads `PROJECT_GUIDE = "docs/project-guide.md"`: the split points it at `docs/project-guide/README.md` and keeps the sections it checks (`Kill points`, the fault-path table) in that index (F0011 pre-check 3).
+
 ## The time `make check` takes (added 2026-10-16, from the metrics of v1 building v1.1)
 
 - Measured over 794 agent runs (22.7 h of agent wall time, `session-logs/metrics/README.md`): `make check` inside agent runs is 446 calls, 7.7 h, 34 %, 62 s on average; `make test` 1.1 h, 5 %. Not counted: the factory's own `check` after the doing and docs stages and the session's approval check per story.
