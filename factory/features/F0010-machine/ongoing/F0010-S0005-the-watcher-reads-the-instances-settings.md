@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 123
 blocked: null
 comments_seen: 0
@@ -94,3 +94,17 @@ Expect: three lines, `2`, `''` and `True`: with no repository URL in the environ
    - Security: `SettingsInvalid` is written as one line with no traceback. The token stays in the boundaries and is never printed. There are no new markers, secrets or string-built commands.
    - Quality: the change is one branch in `main`, and `_NOT_WIRED` became `_SETTINGS_INVALID` = 2. `main`'s docstring states the main decision: if either `boundaries` or `instance` is missing, both are taken from the environment. That matches the Interface rule and the second case of criterion 1. Nothing is duplicated: it reuses `boundaries_from_environment`, the same readers `factory.entry.run` uses.
    - Ticket hygiene: the coder's log explains the main decision and the option it rejected (reading only the missing value). The Assignment matches what was built. Criterion 5 still says what the documenter must write in `docs/operator-guide.md`.
+6. documenter: no findings; the code matches the Interface and the criteria. `make check` is green.
+
+   Files changed:
+   - `docs/operator-guide.md`: the settings intro now says `factory-watch` reads the same environment as `factory-run`. The `factory-watch` exit-status line replaces the "not wired yet" text. It now says: with an invalid environment or an unreadable token file the command prints `factory-watch: settings invalid: <variable>: <fault>` to standard error (no traceback, standard output empty) and exits 2. It also says the boundaries are built the same way as for `factory-run`. This is criterion 5.
+   - `README.md`: the `factory-watch` sentence no longer says it ends with status 2 until F0010 settings arrive. It now says it reads the same environment and ends with 2 and a `settings invalid` line when the environment is invalid.
+   - `docs/project-guide.md`: "The watcher's command line" now describes `main` taking both boundaries and instance from `boundaries_from_environment(os.environ)` when either is missing, and the `SettingsInvalid` handling. The old "not wired" sentence is gone.
+
+   Cross-read and found current: the settings table, the token-file paragraph, and the `factory-run` status 2 paragraph in `docs/operator-guide.md`.
+
+   I did not run the Demo command myself. I ran no new examples.
+
+   Stale but untouched: none seen.
+
+   `make check`: check: green
