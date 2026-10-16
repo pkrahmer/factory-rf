@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 120
 blocked: null
 comments_seen: 0
@@ -139,3 +139,18 @@ Expect: one line, `[15.0, 30.0, 60.0]`: the first tick ran at once, activity gav
    - Stale but untouched: none seen.
 
    `make check`: check: green
+7. demo: both commands ran from the repository root and each output matched its Expect line. No findings.
+
+   Command 1 (`pause_after` for 0 to 5):
+   ```
+   [15, 30, 60, 120, 120, 120]
+   ```
+   Met: the output is exactly `[15, 30, 60, 120, 120, 120]`.
+
+   Command 2 (`Scheduler.run` with ticks True, False, False, stopping after the third sleep):
+   ```
+   [15.0, 30.0, 60.0]
+   ```
+   Met: the output is the single line `[15.0, 30.0, 60.0]`, and no `log:` line was printed. The first tick ran at once. Activity gave 15 s, and each of the two idle ticks doubled the pause.
+
+   Checked against the acceptance criteria: the output agrees with criterion 1 (the values for 0 to 4), criterion 3 (the first call is `prepare` and `tick`, before any sleep) and criterion 5 (the sleeps follow the idle count since the last activity). No criterion is contradicted. The demo does not exercise criteria 2, 4 and 6–12; the tests in tests/application/test_scheduler.py cover them, and the reviewer checked each one. Criteria 13 and 14 are confirmed by the coder's and documenter's entries (`make check` green, the docs written). I did not run `make check` again myself; the factory runs it after this stage.
