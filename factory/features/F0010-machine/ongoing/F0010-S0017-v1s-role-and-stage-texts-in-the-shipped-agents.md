@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # v1's role and stage texts in the shipped agents
 
 ## Assignment (as of log entry 1)
