@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 124
 blocked: null
 comments_seen: 2
@@ -296,3 +296,29 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
     - Criterion 23 (docs) is the documenter's.
 
     `make check`: check: green
+11. reviewer: reviewer (round 1): no findings.
+
+    I read the whole diff (`image/Dockerfile`, `src/factory/application/costs.py`, `tests/test_image.py`, `tests/application/test_cost_image.py`) against the ticket.
+
+    1. Acceptance criteria:
+       - Criteria 1 to 21 each have a test that checks what the criterion says. Criterion 2 now holds all 29 rows, including the five the human approved in entry 7: digests of 63 a's, 65 a's and 64 g's, and the four-number version for both the `ARG` and npm. Criterion 3 holds the 9 accepted-side rows.
+       - Every rule in the floating-reference list is tested on both sides: digest, three-number version, apt `name=version` and `*`, pip `==`, npm `@x.y.z` and `npx`, a download piped into a shell versus one written to a file, `uv sync` with and without `--frozen`/`--locked`, and `latest` on a code line versus a comment line.
+       - The image on the cost record is tested set (18, including the record the launch writes and the completed record) and `None` (19, with no settings and with `image=None`).
+       - The coder's entry 10 reports `make check` green, with coverage at 99.54 %.
+    2. Architecture: `CostRecorder._image` sits in the application layer and reads only `Boundaries.settings`, so no layer is crossed. No similar helper already exists in `src/factory`.
+    3. Security: no secrets, no suppression markers, and no shell built from strings in `src`. The container ends as `USER factory`, not root. The digest and the `0~unpinned` versions are the placeholders the Assignment names.
+    4. Quality:
+       - The Dockerfile matches the Interface instruction for instruction, in order. The only additions are why-comments, and none of them names a ticket.
+       - `costs.py`: the private `_image` needs no docstring under CLAUDE.md. `_completed` copies the record, so the image survives completion.
+       - The test data repeated from `tests/application/test_costs.py` follows the existing practice, and the Interface asks for a separate test file.
+    5. Ticket hygiene: the log gives the main decision (a private `_image` instead of an inline conditional) and the round-1 path through the human's answer. The Assignment matches what was built. Criterion 23 still says what the documenter must write.
+
+    Rejected as findings:
+    - `floating_references` has no refused-side row for "a FROM whose substituted `ARG` default is unpinned". The substitution is a means, not a stated limit. Criterion 1 on the shipped file already covers the substituted path.
+    - `_launch` in `test_cost_image.py` is a helper with an argument, not a fixture. It takes boundaries with different settings per test, which a plain fixture cannot.
+
+    Open, as the Assignment states:
+    - The human replaces the placeholder digest and the eight Debian versions before the first build.
+    - The real build is a morning observation.
+    - `claude/`, `template/` and `image/entrypoint.sh` come from later stories.
+    - Criterion 23 is the documenter's.
