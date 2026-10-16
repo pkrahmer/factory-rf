@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 140
 blocked: null
 comments_seen: 0
 round: 0
@@ -46,3 +46,9 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: no new names in src/; it pins `ClaudeCodeRuntime(...).run` with `os_user="agent"` and `time_limit=1s`, and adds one field, `Step.stdout_before_wait`, to `tests/adapters/claude_stand_in.py`. FEATURE.md decision 37 allows that change. `Step` currently lacks the field. `_sudo_refusal` at claude_runtime.py:293 does carry `not process.timed_out`, as the story says.
+   - Criteria: criterion 1 is the refused side (a `sudo:` line leads to `AgentRuntimeError`, with the line in `detail`). Criterion 2 is the passing side (`end_reason == "time_limit"`, `decision` and `entry` None). Both are rows of one parametrized test, and each is testable. Criteria 3 and 4 are the closing two.
+   - Demo: the pytest command is runnable. The expected `10 passed` matches the 8 tests now in the file plus the 2 rows. I counted 8 `def test_` functions.
+   - Architecture: tests only, in `tests/adapters/`, which mirrors `factory.adapters`. Nothing crosses a layer.
+   - Scope: the story is inside F0010 (S0022 is listed in FEATURE.md). The kill of a call under the real `sudo` stays out of scope (decision 30), and the story says so.
