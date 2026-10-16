@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 127
 blocked: null
 comments_seen: 0
@@ -198,3 +198,23 @@ Expect: one line, `lint 600.0`.
    - When the machine items fail, a `main_branch_failing` stop already in force is left as it is.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   I read the diff of `src/` and `tests/` against the Interface and criteria 1–25, without relying on the coder's account.
+
+   - Criteria: criteria 1–23 each have a test that checks what the criterion says. Per the coder's entry, the factory's `make check` was green after the coder.
+     - The `main_failed` rule is tested on both sides: the stop is still in the health status (13) and the stop is gone (14).
+     - The `main_probed` rule is tested on both sides: a new commit (12) and the same commit with a stale stop (20).
+     - The image rule is tested for an equal image (7), a different one (8, 9) and `None` (10).
+     - The probe errors are tested for `ProjectCommandError` (5) and `GitError` (17).
+     - The `CommitId` pattern is tested on the length (39 against 40), the case and non-hex digits (21, 22).
+     - The 12-character short commit is checked by exact detail comparison in 2, 6 and 14.
+   - Architecture: `PreflightStamp` is in domain and the `PreflightStampStore` ABC is in application, with its operations abstract and docstring-only. `JsonPreflightStampFile` is in adapters and inherits the interface. The layer order holds. `Preflight` reaches git, the project commands, the health status and the clock only through `Boundaries`, and raises its stops through the existing `StopService`.
+   - Duplication: the mkstemp + `os.replace` code is extracted into `src/factory/adapters/atomic_file.py:replace_text`, and both JSON stores use it. The AST search test guards against a second copy.
+   - Security: there are no suppression markers and no shell or SQL built from strings. The stop details carry the error message, as the Interface specifies.
+   - Quality: names, docstrings and why-comments fit `CLAUDE.md`, and there is no dead code. `_raise` passes the scope explicitly, and the domain's scope/reason validator still guards it.
+   - Ticket hygiene: the log records the main decision (a module function rather than a shared base class for the two stores) and the alternative it rejected. The Assignment matches what was built, and the docs criterion (25) still covers what the operator and the decision log need.
+
+   Two points are open for later stories:
+   - `Preflight` does not fetch; the tick story decides where the fetch goes.
+   - When the machine items fail, an existing `main_branch_failing` stop is left in place.
