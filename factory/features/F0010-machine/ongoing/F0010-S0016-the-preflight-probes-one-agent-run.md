@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 134
 blocked: null
 comments_seen: 0
@@ -136,3 +136,21 @@ Expect: one line, `coder 0.10 120.0`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Made the tester's red tests pass without changing them. `make check` is green (coverage 99.54 %). The commit is "feat(preflight): probe the agent run's environment and one claude -p call".
+
+   What I built:
+   - src/factory/domain/agent_runs.py: `GUARD_COMMAND = "factory-guard"` moved here from src/factory/adapters/claude_runtime.py, which now imports it. The name has one definition.
+   - src/factory/application/preflight.py: the constants `PROBE_AGENT`, `PROBE_PROMPT`, `PROBE_BUDGET_USD` and `PROBE_RUN_TIME_LIMIT`, and two items.
+     - `agent_environment_item`: the private helpers `_path_fault` and `_home_fault` each return a fault or `None`. The item fails with every fault joined by "; ", so one detail names all of them.
+     - `agent_run_probe_item`: reads `coder`, lowers its `budget_usd` with `model_copy`, and runs one request through `_probe_request`. That request has `allowed_decisions=[QUESTION]`, a copy of the environment, a guard with no write or protected paths, and `os_user=settings.agent_user`. `AgentDefinitionError` and `AgentRuntimeError` fail the item with `str(error)`, so the agent's name or the sudo message appears in the detail. Any end reason other than `completed` fails with "the probe run ended <reason>; run claude -p by hand as <agent user or the factory user> to see why".
+   - src/factory/entry/wiring.py:
+     - `machine_extras` returns the lambdas in the order token-file, agent-user, tool:sudo (only when there is an agent user), agent-environment, agent-run-probe. The private `_which_on(name, path)` adapts `shutil.which(name, path=path)` to the `find` signature.
+     - `build_tick` computes the agent-run environment once and gives it to both `handler_factory` and `machine_extras`, then passes the extras to `build_preflight`.
+
+   Main decision: the extras are plain closures over the boundaries and settings. Their callers give `MachineChecks` the `extra` sequence that already existed. I rejected adding them as methods on `MachineChecks`, because the Interface gives the items as functions and wiring owns `os.getuid`/`os.stat`/`shutil.which`.
+
+   Refactor: I read the diff and found nothing to change, so there is no separate refactor commit.
+
+   Noticed, not touched: as the tester noted, test_wiring_preflight.py still fails at tool:git before it reaches the extras. Docs (criterion 16) are left to the documenter.
+
+   `make check`: check: green
