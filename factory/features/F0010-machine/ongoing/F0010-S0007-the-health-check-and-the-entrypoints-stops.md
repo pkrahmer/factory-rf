@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 125
 blocked: null
 comments_seen: 0
@@ -221,3 +221,25 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
       - Quality: the waiter fetches only when the checkout is not ready, and the stop is written only when no stop with that reason and detail is already in force. Nothing in `StopService` or the tick already did this, so it is not a second copy. `parse_args(sys.argv[1:] if argv is None else argv)` matches `src/factory/entry/watch.py`. The time format string already appears twice, both as private constants (`domain/board.py`, `adapters/factory_log.py`), with no public helper to reuse, so the third private copy in `health.py` is not counted as a finding. Docstrings and comments meet *Docs*.
       - Ticket hygiene: the coder's entry states the main decision (fetch only when not ready) and the rejected option (fetch on every `prepare`). The Assignment matches what was built. Criterion 24 still describes what the documenter has to write.
       - Open, outside this story: the Dockerfile's `WORKDIR`/`ENV`, which the coder noted.
+6. documenter: wrote criterion 24 and fixed stale text. `make check` is green (coverage 99.51 %). No findings: the code matches the Interface and the criteria.
+
+   Files changed:
+   - docs/operator-guide.md: new section "The container: compose, entrypoint and health check".
+     - It covers the compose variables (`FACTORY_REPOSITORY_URL` and `FACTORY_INSTANCE` required, `FACTORY_IMAGE` an optional label) and the volumes.
+     - It lists the entrypoint steps and their time-stamped lines.
+     - It explains the health check (`docker compose ps` shows unhealthy while a stop stands; `python -m factory.entry.health` names the stops, with the line format), and the restart policy.
+     - It states that a dead container is left to Docker's restart policy and that a real container is the morning observation.
+     - It has a table for `preflight_failed`, `checkout_restore_failed`, `pipeline_definition_invalid` and `repository_unavailable` (meaning and action), and a section on the wait for a repository that is not ready (fetch once, stop written once per detail, cleared on success).
+   - docs/operator-guide.md, stale text corrected:
+     - the intro no longer says `factory-health` is unbuilt or that the repository waiter is still to come;
+     - the health-file section says the check reads the file now;
+     - the Build section no longer lists `image/entrypoint.sh` among the files that later stories create.
+   - docs/decisions.md: new entry on why the entrypoint sets no git configuration and starts in `/opt/factory`. It also records why the waiter fetches only when `origin/main` is not ready.
+
+   Cross-read and found current: README.md. docs/project-guide.md was not read.
+
+   Stale but not touched (outside this story): the Dockerfile has `WORKDIR /work` and its `ENV` lacks `FACTORY_OPT` and `FACTORY_STATE`. The entrypoint's defaults cover both, and the coder already noted it.
+
+   I did not run the examples. The three demo blocks and the `docker compose` commands are untried, and the health line in the guide is illustrative.
+
+   `make check`: check: green

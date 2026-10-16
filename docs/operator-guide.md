@@ -1,6 +1,6 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, the claim of a stage with its lease, the write paths with the guard and the undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls, checks and reports, and v1's decision rules with the factory's own questions), the cost records with the bill, and the reading of the remote: the evaluation that picks the next event, the tick with its stops, the dispatcher with its handlers, and `factory-watch`. The handlers start a stage and answer the human's acts on the pull request: comments are copied into the journal, questions are recorded and then posted, a merge archives the story, a close discards it or sends it back (for an acceptance, a close books it refused), an illegal stage change is moved back, and the pull request is handed over at the approval. After a crash, a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch. `factory-run` (also `python -m factory.entry.run`) now runs one instance: it reads the settings, prepares the checkout and makes one tick per iteration until `SIGTERM` or `SIGINT`; the repository waiter, the preflight and the other machine checks are added by later stories of F0010, and a real container is not yet observed. The commands are `factory-run`, `factory-check-story`, `factory-bill` and `factory-watch` (you run them) and `factory-guard` (the agent runtime runs it). `factory-health` is declared in `pyproject.toml` but not built: it ends with a `ModuleNotFoundError` until a later story of F0010. The sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
+The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, the claim of a stage with its lease, the write paths with the guard and the undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls, checks and reports, and v1's decision rules with the factory's own questions), the cost records with the bill, and the reading of the remote: the evaluation that picks the next event, the tick with its stops, the dispatcher with its handlers, and `factory-watch`. The handlers start a stage and answer the human's acts on the pull request: comments are copied into the journal, questions are recorded and then posted, a merge archives the story, a close discards it or sends it back (for an acceptance, a close books it refused), an illegal stage change is moved back, and the pull request is handed over at the approval. After a crash, a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch. `factory-run` (also `python -m factory.entry.run`) now runs one instance: it reads the settings, prepares the checkout and makes one tick per iteration until `SIGTERM` or `SIGINT`; the repository waiter, the container's health check and the entrypoint are built (see "The container: compose, entrypoint and health check"); the preflight and the other machine checks are added by later stories of F0010, and a real container is not yet observed. The commands are `factory-run`, `factory-check-story`, `factory-bill` and `factory-watch` (you run them) and `factory-guard` (the agent runtime runs it). `factory-health` (also `python -m factory.entry.health`) prints the stops in force. The sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
 
 ## The instance's settings
 
@@ -77,7 +77,7 @@ docker build -f image/Dockerfile -t factory:local .
 
 The build argument `FACTORY_IMAGE` is optional and is only a label (`docker build --build-arg FACTORY_IMAGE=2026-10 ...`); it defaults to `unlabelled`. The identity of the image is not the label. The build generates a fresh id and writes it to `/opt/factory/image-id`, which the settings read. Every rebuild that changes an earlier layer gets a new id, so it invalidates the preflight stamp, even when you pass the same label.
 
-A real build is not yet observed: v1's container has no Docker. The Dockerfile also copies `claude/`, `template/` and `image/entrypoint.sh`, which later stories of F0010 create, so the build is meaningful only once they exist. Treat the first build as the morning observation.
+A real build is not yet observed: v1's container has no Docker. The Dockerfile also copies `claude/` and `template/`, which later stories of F0010 create, so the build is meaningful only once they exist. Treat the first build as the morning observation.
 
 ### Replace the placeholders before the first build
 
@@ -107,6 +107,58 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 
 Every cost record names the image the agent run ran on (the identity from `/opt/factory/image-id`). A record made when the instance has no image identity has none.
 
+## The container: compose, entrypoint and health check
+
+`image/compose.yml` runs the image as the service `factory`, built from the repository root with `image/Dockerfile`. Start it from the repository root:
+
+```bash
+FACTORY_REPOSITORY_URL=https://github.com/you/project.git FACTORY_INSTANCE=main docker compose -f image/compose.yml up -d
+```
+
+| Variable | Meaning |
+|---|---|
+| `FACTORY_REPOSITORY_URL` | Required. The project's repository. Compose refuses to start when it is unset. |
+| `FACTORY_INSTANCE` | Required. This instance's name. Compose refuses to start when it is unset. |
+| `FACTORY_IMAGE` | Optional. Only a label for the build (default `unlabelled`); it is not the image's identity. |
+
+The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container.
+
+### The entrypoint
+
+`image/entrypoint.sh` is the container's entrypoint. Every line it writes starts with a UTC time stamp. In order, it:
+
+1. checks that the image holds `claude/agents` and `claude/settings.json` under `/opt/factory`; if one is missing it writes `missing <path>` to standard error and exits with status 1;
+2. replaces `agents` in the Claude home with a copy of the image's (an agent file no longer in the image is gone) and copies `settings.json` next to it: `installed agents and settings into <home>`;
+3. creates `/state/runs` if needed and sets its mode to `2750`: `prepared /state/runs`;
+4. writes `starting instance <name>` and starts the factory (`python -m factory.entry.run`) from `/opt/factory`.
+
+It sets no git configuration; the factory's git gets its identity and credential helper from the factory itself. For tests, `FACTORY_OPT`, `FACTORY_CLAUDE_HOME` and `FACTORY_STATE` move the three directories; leave them unset in a container (the factory ignores `FACTORY_STATE`: the state directory is fixed).
+
+### The health check and the restart policy
+
+Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to answer, three failures to be unhealthy, 60 seconds of grace at the start). It reads `health.json` in the state directory. With no stop it prints `healthy` and exits 0; with stops it prints one line per stop and exits 1:
+
+```
+preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12T08:00:00Z)
+```
+
+So `docker compose -f image/compose.yml ps` shows the container as unhealthy while any repository or machine stop stands, and `docker compose -f image/compose.yml exec factory python -m factory.entry.health` names the stops. The container becomes healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status.
+
+`restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. A real running container has not been observed yet; the morning observation is `docker compose ps` over a container with a stop standing.
+
+### The stops you will see here
+
+| Stop | Meaning | What to do |
+|---|---|---|
+| `preflight_failed` (machine) | A tool the machine needs is missing or the agent runtime does not work; the detail names it, for example `tool:make: make is not on the PATH`. | Fix the image or the login, then rebuild or restart; the stop clears when the check passes. |
+| `checkout_restore_failed` | See "The stops of the tick". | As there. |
+| `pipeline_definition_invalid` | See "The stop `pipeline_definition_invalid`". | As there. |
+| `repository_unavailable` | The checkout cannot be made, or `origin/main` is not ready. The detail says which: `cannot prepare the checkout: <git's message>` (the clone failed: check `FACTORY_REPOSITORY_URL` and the credentials), `cannot fetch: <git's message>`, `the repository has no main branch yet` (the repository has no commit on `main`), or `origin/main has no factory/pipeline.yml yet`. | Fix the address or credentials, or push `factory/pipeline.yml` to `main`. |
+
+### The wait for a repository that is not ready
+
+Before each tick the instance checks that `origin/main` exists and holds `factory/pipeline.yml`. When it does, nothing is fetched here (the tick fetches) and any `repository_unavailable` stop is cleared. When it does not, the instance fetches once, looks again, and if the fault stays it raises the stop and skips the tick; the loop pauses as for any idle iteration and tries again. The stop is written once per detail: the same fault on the next iteration adds no second line, a different fault adds a new one. Push the missing branch or file and the next iteration clears the stop.
+
 ## The factory log and the health status file
 
 Both live in the factory's state directory. Nothing starts the factory yet, so this describes what the built parts write; the next section says when a stop is written and when it goes away.
@@ -125,7 +177,7 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 ### The health status file
 
-`health.json` in the state directory holds the stops in force for the repository or the machine, as one JSON object: `{"stops": [{"scope": ..., "reason": ..., "detail": ..., "at": ...}]}`. The container's health check will read it; an empty `stops` list is healthy.
+`health.json` in the state directory holds the stops in force for the repository or the machine, as one JSON object: `{"stops": [{"scope": ..., "reason": ..., "detail": ..., "at": ...}]}`. The container's health check reads it (see "The container: compose, entrypoint and health check"); an empty `stops` list is healthy.
 
 - One stop per reason. `scope` is `machine` for `preflight_failed` and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
 - The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing` and `preflight_failed`.
