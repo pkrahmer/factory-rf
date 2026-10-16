@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 121
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -202,3 +202,4 @@ Expect: one line, `/srv/agents claude None`.
    I recommend (a). If you agree, I will end the next round with `tests` and name exactly that change.
 
    Refactor step: not done yet. It follows once `make check` is green.
+5. human (pull request comment, 2026-10-16): (a): the tester changes the request in `test_the_built_agent_runtime_keeps_its_run_files_under_runs` to `allowed_decisions=["doing", "question"]` and changes nothing else; the domain rule stays. End with `tests` and name exactly that change.
