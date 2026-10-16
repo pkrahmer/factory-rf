@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 116
 blocked: null
 comments_seen: 0
@@ -86,3 +86,30 @@ Expect: at least one line from the first paragraph that names the feature accept
    - Stale but untouched: nothing seen. The README and operator guide still say `factory-run` is unbuilt until F0010, which is true.
 
    `make check`: check: green
+7. demo: both commands ran from the repository root. Both met their Expect lines, and I found nothing that contradicts a criterion.
+
+   1. The stale-wording grep and the story-id grep:
+   ```
+   0
+   docs/project-guide.md:0
+   README.md:0
+   docs/operator-guide.md:0
+   ```
+   Met: `0` on the first line, then `:0` for each of the three files.
+
+   2. `grep -n -i "acceptance" README.md`:
+   ```
+   3:The factory, reimplemented by v1 of itself. … After a crash, a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch. The feature acceptance is wired too: a feature whose stories are all archived becomes due, an acceptance reviewer runs on the acceptance's own work item, and the human's merge of its pull request books it accepted while a close books it refused (see "When a feature acceptance is due" in `docs/operator-guide.md`). The pipeline itself does not run on its own yet: … `docs/project-guide.md` describes each part.
+   ```
+   Met: line 3 is the first paragraph, and it names the feature acceptance.
+
+   Cross-check against criterion 2:
+   - `docs/project-guide.md:505` ("The kinds:") says "`build_handlers` registers a handler for every kind, `acceptance_due` included (see *The handlers of the events*)".
+   - `docs/project-guide.md:457` (**Opening**) ends with "it is registered for `acceptance_due` in `build_handlers`." It no longer says "not yet".
+   - `docs/project-guide.md:459` (`SplitByWorkItemKind`) says it is registered for `hand_over`, `merged` and `closed` in `build_handlers`, and that the `RunGate` holds the same `closed` and `merged` instances. It names no story and has no "until then".
+   - That matches `docs/project-guide.md:579` (the `build_handlers` wiring, all thirteen kinds).
+   - The README sentence uses the glossary's names; there is no "acceptor".
+
+   I did not run `make check` (criterion 1). The factory runs it after this stage, and the documenter recorded it green.
+
+   Open: nothing.
