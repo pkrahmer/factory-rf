@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 124
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The pinned image
@@ -211,3 +211,20 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
    Commit: `ticket F0010-S0006: feat(image): pin the machine's image and record it on cost records`.
 
    `make check`: check: green
+5. reviewer: one finding, in group 1 (acceptance criteria). I stopped there, so groups 2 to 5 were not checked.
+
+   I read the whole diff (`image/Dockerfile`, `src/factory/application/costs.py`, `tests/test_image.py`, `tests/application/test_cost_image.py`) against the ticket:
+   - The Dockerfile matches the Interface, instruction for instruction, in order. The only additions are why-comments.
+   - `CostRecorder.begin` sets `image` from `boundaries.settings`, or `None` when there are no settings. `_completed` copies the record, so a completed record keeps the image.
+   - Criteria 1 to 21 each have a test that checks what the criterion says.
+   - The coder's entry reports `make check` green.
+
+   Findings:
+   1. `tests/test_image.py::test_a_floating_item_is_reported`: some limits the Interface states are tested on one side only, which CLAUDE.md (Tests) counts as a finding.
+      - The base-image digest must be "`@sha256:` followed by 64 hexadecimal digits". The only refused case is a reference with no digest at all. Nothing tests a digest of 63 or 65 hex digits, or a 64-character digest that is not hex. A `DIGEST` loosened to `@sha256:\w+` would still pass every test.
+      - Likewise, "three dot-separated numbers" (for `ARG CLAUDE_CODE_VERSION` and for the npm package) has its two-number side tested (`2.1`) but not its four-number side (for example `2.1.289.1`).
+      - Fix: add rows to the parametrized test, for example `FROM python@sha256:` + `"a" * 63`, `FROM python@sha256:` + `"g" * 64`, `ARG CLAUDE_CODE_VERSION=2.1.289.1`, `npm install --global @anthropic-ai/claude-code@2.1.289.1`.
+      - No criterion lists these rows, so this is a gap in the story's criterion 2, not a coder defect.
+      - The coder may not edit tests (R9). This needs the human's go-ahead (as a `question`) before the tester adds the rows.
+
+   Open: nothing else.
