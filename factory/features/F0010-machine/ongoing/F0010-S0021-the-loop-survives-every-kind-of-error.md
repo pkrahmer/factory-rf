@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 139
 blocked: null
 comments_seen: 0
@@ -98,3 +98,19 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
    - Findings: none.
 
    `make check`: check: green
+7. demo: accepted, no findings.
+
+   Command 1: `uv run pytest --no-header -p no:cacheprovider tests/application/test_scheduler.py`
+   ```
+   ..........................                                               [100%]
+   26 passed in 6.40s
+   ```
+   It met its `Expect:` line. The last line is `26 passed in <time>`.
+
+   Cross-check against the acceptance criteria:
+   - `-k every_kind` selects 8 tests and all 8 pass. These are the four errors × `raising_side` rows of `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle` in `tests/application/test_scheduler.py`. That is one parametrized test, as criterion 2 requires.
+   - Criteria 1 and 2: each row checks the exact log line from the Interface, the call order (no tick after a failed prepare) and the sleeps `[30.0, 15.0]`. The loop stops after its second sleep.
+   - The refused side is still pinned by `test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged`.
+   - Criterion 3 (`make check`) is the factory's to run after this stage. Criterion 4 is docs: none.
+
+   The demo contradicts no criterion. Open: nothing.
