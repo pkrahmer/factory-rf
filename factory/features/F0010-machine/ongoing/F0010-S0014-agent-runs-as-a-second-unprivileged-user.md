@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 132
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -197,3 +197,4 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
    - (b) Leave the criteria as they are and accept the untested branch.
 
    With (a), the next run of doing ends with `tests`, naming that test row.
+7. human (pull request comment, 2026-10-16): (a): add the criterion before criterion 15 as you worded it (a `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an `AgentRuntimeError`). The tester writes it as a row next to criteria 8 and 9 in `tests/adapters/test_claude_runtime_os_user.py`. End with `tests` and name that row.
