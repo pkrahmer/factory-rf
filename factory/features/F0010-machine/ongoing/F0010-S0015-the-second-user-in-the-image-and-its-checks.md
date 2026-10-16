@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 133
 blocked: null
 comments_seen: 0
@@ -97,3 +97,20 @@ Expect: one line, `0002`.
    - Demo: all three commands are runnable. Each `Expect:` line is checkable: four lines, `agent-user False` then `agent-user True`, and `0002`.
    - Architecture: the item lives in the application layer and takes `exists` as an argument, so it has no I/O. Wiring is explicitly left to the probe story (S0016), so the item is not wired here.
    - Scope: within F0010's scope (agent user, WE3.1, R33). It does not touch the project commands or the `time_limit` under `sudo`, which are out of scope.
+3. tester: wrote red tests for criteria 1–9, one test per criterion. Criteria 7–9 share one parametrized test with a row for each side of the rule.
+   - criterion 1: tests/test_image_users.py::test_the_dockerfile_installs_the_validated_sudoers_file_and_the_agent_user (COPY to /etc/sudoers.d/factory-agent, then one RUN with `chmod 0440` and `visudo -cf` on that path, and `ENV FACTORY_AGENT_USER=agent`; all of them before `USER factory`)
+   - criterion 2: tests/test_image_users.py::test_the_sudoers_file_holds_exactly_the_three_defaults_and_the_rule_in_order
+   - criterion 3: tests/test_image_users.py::test_the_only_sudoers_rule_lets_the_factory_become_agent_and_nobody_else_more (no line names `root` or contains `ALL=(ALL`, and no line starts with `agent` or `Defaults:agent`)
+   - criterion 4: tests/test_image_users.py::test_the_sudoers_umask_equals_the_entrypoints_umask (the two values are compared as octal numbers, both equal 0o002)
+   - criterion 5: tests/test_image_users.py::test_the_token_secret_belongs_to_the_factory_user_and_not_to_the_agent (reads the uids from the Dockerfile's `useradd --uid` and compares them with the uid of the compose secret `hosting-token`)
+   - criterion 6: tests/test_entrypoint_umask.py::test_the_entrypoint_sets_umask_002_after_set_eu_and_starts_the_instance_with_it (the line after `set -eu` is `umask 002`; a stub `python` writes the output of `umask` to a file in tmp_path, and the test expects `0002`)
+   - criteria 7, 8, 9: tests/application/test_agent_user_item.py::test_the_item_fails_only_without_an_agent_user_beside_an_existing_token_file. One row fails with the exact detail (agent_user None, token file exists). Three rows have agent_user `agent`: token file exists, token file missing, no token file. Three rows have agent_user None: no token file (with `exists` answering false and answering true), and a token file `exists` denies. Every row checks the name `agent-user` and an empty detail when the item passes.
+
+   Files created: tests/test_image_users.py, tests/test_entrypoint_umask.py, tests/application/test_agent_user_item.py.
+
+   `make test` stopped at collection with one error: `ImportError: cannot import name 'agent_user_item' from 'factory.application.preflight'`. Because of that, the image and entrypoint tests did not run in that run. They read `image/sudoers-factory-agent`, which does not exist yet, and the current Dockerfile and entrypoint, which lack the new lines, so they will fail on a missing file or a wrong result. `make lint` is green. I skipped the type check, as the stage says.
+
+   I built `InstanceSettings` directly in the item test, not through `read_settings`, so the test covers only the item. I did not test the wiring into the machine checks: the Interface leaves that to the probe story.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
