@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 126
 blocked: null
 comments_seen: 0
@@ -233,3 +233,4 @@ Expect: one line, `/srv/agents claude 2.1.289`.
    - Command 3 agrees with criterion 1: `pinned_agent_version` is read from `FACTORY_CLAUDE_VERSION`. It also shows that the default `claude_executable` is `claude`, which matches criterion 5's `tool:claude`.
 
    Criteria 5 to 12, 14 and 15 are about `MachineChecks.run` against the boundaries. No demo command runs it; the earlier stages' tests cover those criteria.
+8. done (pull request merged); cost: 6 runs, 17.1 min, 45 turns, 148k tokens in (795k more from cache), 22k out, $1.54
