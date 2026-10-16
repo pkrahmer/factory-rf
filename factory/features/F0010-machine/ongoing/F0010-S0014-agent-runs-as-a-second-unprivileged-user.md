@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 132
 blocked: null
 comments_seen: 0
 round: 0
@@ -119,3 +119,9 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/settings.py` with `AGENT_USER_VARIABLE` and `agent_user: Name | None`, `ClaudeCodeRuntime.__init__` with `sudo_executable`, `entry/wiring.py::agent_run_environment`). The argument list of the `sudo` call is spelled out exactly. Nothing is left for the coder to decide.
+   - Criteria: each is testable by one test function. Every rule has its failing side. A bad name is refused in criteria 2 and 3. `sudo` refusing with a `sudo:` line is criterion 8 and a non-`sudo:` failure is 9. A missing `sudo` executable is 10. `os_user=None` is 4, 12 and 13. A missing or blank variable is 1. The `0640` mode under umask `0000` is 11. Every behaviour stated in an Interface comment (blank gives `None`, the `HOME` derivation, the empty subprocess environment) has a criterion.
+   - Demo: all three blocks are runnable. Each `Expect:` line gives an exact output to compare. The third block's `sudo` stand-in writes its arguments, and the first seven are checked.
+   - Architecture: settings sit in the domain layer, the process call in the one runtime wrapper, the composer in the application layer and the `HOME` wiring in the entry layer. This matches the layering in `CLAUDE.md`. No new dependency is needed.
+   - Scope: within F0010's scope ("agent runs as a second unprivileged user", WE3.1 and R33). The `time_limit` under `sudo` stays open (decision 30) and is listed as a morning observation. This is not in the story's criteria. Running the project commands as `agent` is out of scope.
