@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 135
 blocked: null
 comments_seen: 0
 round: 0
@@ -126,3 +126,9 @@ Expect: one line, `0`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete files (`claude/agents/<role>.md`), the exact section order, the rename table, per-role bullets verbatim and the decisions per body. These match `next` in `template/factory/pipeline.yml` (intake→tests; tests→doing; doing→review/tests; review→docs/doing; docs→smoke-test/doing; smoke-test→approval/doing; acceptance→approval). The source files exist under `planning/v1-texts/` (agents, skills). The seven target agent files exist.
+   - Criteria: each is testable by one function, with parametrised cases per role. Every stated behaviour has a criterion: the section order and absence of `## Role` (2), the rename table's banned words and `stuck` (3, 4), the decisions (5), the anchors (6 to 12) and the lessons (13). The failing sides are covered as negative checks: no extra heading, no `## Role` for intake and smoke-tester, no banned word, and exactly the listed bullets.
+   - Demo: both commands are runnable with `uv run python -c`. Each `Expect:` line is checkable: seven lines with the heading lists, then `0`.
+   - Architecture: the story only touches `claude/agents/` and a root-level test file, which CLAUDE.md allows for modules outside the layers. It adds no dependency and no code in `src/`.
+   - Scope: it is within F0010's scope ("shipped agents with v1's role and stage texts renamed ... v1.1's own lessons", decisions 16, 32 and 36). It stays out of the skill files and the story forms.
