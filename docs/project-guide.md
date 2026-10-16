@@ -562,7 +562,7 @@ The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, 
 `Tick(boundaries, instance, handlers, status=None, preflight=None).run()` (`factory.application.tick`) is one pass, in this order (fetch, load, restore, preflight, clean up, evaluate, dispatch). The order matters: the remote is the only truth, so nothing is read before the fetch.
 
 1. **Fetch** (`Git.fetch`). `FetchFailed` raises the repository stop `fetch_failed` (detail: the error's text) and ends the tick; success clears it.
-2. **Load** the pipeline definition with `PipelineLoader` from `origin/main`. `PipelineDefinitionInvalid` ends the tick; the loader raised the stop `pipeline_definition_invalid` and clears it on a later success, the tick does neither.
+2. **Load** the pipeline definition with `PipelineLoader` from `origin/main`. `PipelineDefinitionInvalid` ends the tick with `TickOutcome(stopped="pipeline_definition_invalid")`, and `AgentDefinitionInvalid` with `stopped="agent_definition_invalid"`; the loader raised the stop and clears it on a later success, the tick does neither.
 3. **Restore** the checkout: one line `discarded uncommitted changes: <path>, <path>` (the paths in the order of `Git.status()`) when there are changes, then `reset_to("HEAD")`, `checkout("main", start_point="origin/main")`, and `delete_branch` for every `work-item/<id>` of an id that has `origin/work-item/<id>` or a story in `in-progress/` on `origin/main`. Other local branches stay. A `GitError` here raises the stop `checkout_restore_failed` and ends the tick; success clears it.
 4. **Preflight**, when a `Preflight` is given (`preflight=None` skips the step): `preflight.run()` raises and clears its own stops. A reason it returns ends the tick with `TickOutcome(stopped=<reason>)`, before the cleanup. `build_tick` always gives one, made by `build_preflight(boundaries, settings, which, extra=())` in `factory.entry.wiring`; the later machine items go in through `extra`.
 5. **Clean up** with `delete_stale_branches(boundaries)` (`factory.application.recovery`, see "The stale branch" below). A stop of an earlier step, the preflight's included, ends the tick before it.
@@ -1099,9 +1099,9 @@ prints `doing 60 ['check', 'lint', 'test']` and then `unknown key: contrakt; mis
 
 ### The pipeline loader
 
-`PipelineLoader(boundaries).load(ref=PIPELINE_REF)` (`factory.application.pipeline_loading`; `PIPELINE_REF` is `origin/main`) is the one place that loads the definition. It reads `PIPELINE_DEFINITION_FILE` at `ref` with `git.show_file` (never the work tree), parses it with `pipeline_reader`, and only when the text is valid checks with `agent_definitions.names()` that every role has an agent. Every refusal is `PipelineDefinitionInvalid(fault)`; the faults are listed in the operator guide, "The stop `pipeline_definition_invalid`", and the rules in "The rules of the definition" above.
+`PipelineLoader(boundaries).load(ref=PIPELINE_REF)` (`factory.application.pipeline_loading`; `PIPELINE_REF` is `origin/main`) is the one place that loads the definition. It reads `PIPELINE_DEFINITION_FILE` at `ref` with `git.show_file` (never the work tree), parses it with `pipeline_reader`, and only when the text is valid checks with `agent_definitions.names()` that every role has an agent. Every refusal of the definition is `PipelineDefinitionInvalid(fault)`; the faults are listed in the operator guide, "The stop `pipeline_definition_invalid`", and the rules in "The rules of the definition" above. When those checks pass, `load` clears `pipeline_definition_invalid` (at `PIPELINE_REF`) and then calls `agent_definitions.read(role)` for every role in the order of `roles`; an `AgentDefinitionInvalid` is raised to the caller as it is, not wrapped.
 
-- Only the loader raises and clears the stop `pipeline_definition_invalid`; no caller does. At `PIPELINE_REF` a refusal calls `StopService.raise_stop` before it raises, and a success calls `clear_stop` before it returns.
+- Only the loader raises and clears the stops `pipeline_definition_invalid` and `agent_definition_invalid`; no caller does. At `PIPELINE_REF` a refusal calls `StopService.raise_stop` before it raises, and a success calls `clear_stop` before it returns. A refused agent file raises `RepositoryStop(reason="agent_definition_invalid", detail="<agent name>: <fault>")`; since a definition that passes its own checks has already cleared `pipeline_definition_invalid`, only the agent stop remains. Any `AgentDefinitionInvalid` raises it, not only an unapplied key.
 - A load at any other ref raises the same refusal but raises and clears no stop, so a read of a branch never changes the health status. `WritePathService` ("The write paths" below) reads the definition at another commit and parses it directly with `pipeline_reader`, not through the loader.
 - A `GitError` propagates and raises no stop. An `OSError` of the stop's writes propagates in place of `PipelineDefinitionInvalid`.
 - Tests: `tests/application/test_pipeline_loading.py`, with `human.push_file` and `checkout.fetch()` for other versions of the file and `install_agents(agent_home, roles)` in `tests/git_support.py` for the agent files.
@@ -1202,7 +1202,16 @@ Every role of the pipeline definition needs an agent file of the same name, `<ag
 | `names()` | the sorted stems of the regular `.md` files directly in `agents/` whose stem is a `Name`; `[]` for an empty directory |
 | `read(name)` | the `AgentDefinition` of the file; `name` is checked as a `Name` before any path is built |
 
-The front matter is split as the work item reader splits it, with `split_front_matter`, and loaded with ruamel.yaml through `RuamelYamlHandler`, never PyYAML (so `model: on` is the text `on`). The body, stripped, is `instructions`. Only `model`, `tools`, `effort` and `budget_usd` are validated into `AgentDefinition`; other keys are left aside. `budget_usd` becomes a `Decimal` (`0.1` gives `Decimal("0.1")`). No variable in the module is named `yaml`, because the semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`.
+The front matter is split as the work item reader splits it, with `split_front_matter`, and loaded with ruamel.yaml through `RuamelYamlHandler`, never PyYAML (so `model: on` is the text `on`). The body, stripped, is `instructions`. Only `model`, `tools`, `effort` and `budget_usd` may appear (`APPLIED_AGENT_KEYS` in `factory.domain.agent_runs`): the runner builds its flags and its prompt from them, because Claude Code ignores an agent file in print mode.
+
+| Key | What the runner does with it |
+|---|---|
+| `model` | passed as the model of the run |
+| `tools` | the tools the run may use |
+| `effort` | the effort level of the run; optional |
+| `budget_usd` | the budget of the run; the run ends with `budget` when it is spent |
+
+Any other key is refused with `AgentDefinitionInvalid` (fault `key not applied by the agent runtime: <key>`, `key` the first such key in the file's order, keys compared as written so `Model` is refused) before the applied keys are validated, so it wins over a missing `model` or a bad `budget_usd`. The validated keys go to `AgentDefinition`. `budget_usd` becomes a `Decimal` (`0.1` gives `Decimal("0.1")`). No variable in the module is named `yaml`, because the semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`.
 
 ### Faults
 
@@ -1212,9 +1221,10 @@ The front matter is split as the work item reader splits it, with `split_front_m
 |---|---|
 | `AgentDefinitionMissing` | `not an agent name: <name>`, `no agent file <path>` |
 | `AgentDefinitionInvalid` (`key` is `""`) | `cannot read: <reason>`, `no front matter`, `front matter is not valid YAML`, `front matter is not a mapping` |
+| `AgentDefinitionInvalid` (`key` is the unapplied key) | `key not applied by the agent runtime: <key>` (`KEY_NOT_APPLIED` and the key) |
 | `AgentDefinitionInvalid` (`key` is the top-level key) | `missing key: <key>`, `budget_usd must be greater than 0`, `invalid <path>: <message>` |
 
-Of several validation faults the first in the order of `first_fault` is reported (unknown key, missing key, invalid value); `first_error` in `factory.adapters.validation_faults` gives the error `first_fault` formats, so the `key` and the fault name the same problem. F0010-S0006 extends `AgentDefinitionInvalid` to refuse keys the runtime does not apply.
+Of several validation faults the first in the order of `first_fault` is reported (unapplied key, unknown key, missing key, invalid value); `first_error` in `factory.adapters.validation_faults` gives the error `first_fault` formats, so the `key` and the fault name the same problem.
 
 ```bash
 uv run python -c "

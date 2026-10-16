@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 129
 blocked: null
 comments_seen: 0
@@ -170,3 +170,27 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
 
      A side effect worth knowing: any `AgentDefinitionInvalid` met at load (no front matter, bad budget) now raises `agent_definition_invalid`, not only an unapplied key. This matches the Interface ("an `AgentDefinitionInvalid` it meets is raised to the caller").
    - Ticket hygiene: the coder's entry names the main decision (a separate agent-file step after the definition step) and the rejected alternative (wrapping the error in `PipelineDefinitionInvalid`). The Assignment matches what was built. Criterion 20 still describes what the documenter must write.
+6. documenter: wrote the documentation for criterion 20 and fixed the places that said other agent-file keys were ignored. No findings. `make check` is green (coverage 99.53 %). I ran the first demo block and it printed `permissionMode | coder | True`, plus the error message.
+
+   Files changed:
+   - `docs/operator-guide.md`:
+     - "The agent files": the four keys are the only ones applied, and any other key (including a key in another case) is refused at load. Added the fault `key not applied by the agent runtime: <key>`, and the order of faults now puts it first.
+     - New section "The stop `agent_definition_invalid`": the detail format, a log example, and that the operator fixes the named file in the agent home. The tick does nothing else while the stop holds, and a missing agent still shows as `pipeline_definition_invalid`.
+     - "The stops of the tick": now four stops, with a row for the new one. The stops table in the health section also has a row for it.
+     - `factory-watch` exit status 1: now also covers a refused agent file, and the message is `factory-watch: agent <name>: <fault>`.
+   - `docs/project-guide.md`:
+     - The agent file section: the four applied keys, what each does, and the refusal rules. Keys are compared as written. The refusal comes before the validation of the applied keys.
+     - The faults table: added a row for the unapplied key, and removed the stale pointer to F0010-S0006.
+     - The loader section: it reads every role's agent file after clearing `pipeline_definition_invalid`. It raises and clears `agent_definition_invalid`, and passes the error through unwrapped.
+     - The tick step 2 now names both outcomes.
+   - `docs/decisions.md`: rewrote the entry "Agent files: keys beyond the four are not interpreted until F0010". It is now "the four keys are applied, every other key is refused at load", with the reason and the alternatives rejected.
+
+   Cross-read and found current: README (it has nothing on agent files) and the rest of the operator guide, including the health status reasons list, which already named `agent_definition_invalid`.
+
+   Left alone because they are unrelated to this story: nothing stale seen.
+
+   Details of the docs that rest on the code diff:
+   - The loader raises the stop for any `AgentDefinitionInvalid`, not only an unapplied key. The reviewer noted this and the Interface allows it, so I documented it as it is.
+   - `docs/project-guide.md` describes what `effort` and `budget_usd` do from the existing runner section (`--effort`, `--max-budget-usd`).
+
+   `make check`: check: green

@@ -155,6 +155,7 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 | `main_branch_failing` (repository) | The probe ran `lint` on `origin/main` and it failed. The detail is `lint is red on main at <12 characters of the commit>: <last line of the output>`, or `lint reached its time_limit on main at <commit>`. | Push a fix to `main`. The next preflight probes the new commit and clears the stop. See "The stamp and the probe of the main branch". |
 | `checkout_restore_failed` | See "The stops of the tick". | As there. |
 | `pipeline_definition_invalid` | See "The stop `pipeline_definition_invalid`". | As there. |
+| `agent_definition_invalid` | See "The stop `agent_definition_invalid`". | As there. |
 | `repository_unavailable` | The checkout cannot be made, or `origin/main` is not ready. The detail says which: `cannot prepare the checkout: <git's message>` (the clone failed: check `FACTORY_REPOSITORY_URL` and the credentials), `cannot fetch: <git's message>`, `the repository has no main branch yet` (the repository has no commit on `main`), or `origin/main has no factory/pipeline.yml yet`. | Fix the address or credentials, or push `factory/pipeline.yml` to `main`. |
 
 ### The preflight's items
@@ -366,14 +367,25 @@ The agents are checked only when the text itself is valid, so a broken file and 
 
 The stop clears itself at the next load of `origin/main` that succeeds, with the line `stop cleared pipeline_definition_invalid`; stops of other reasons are not touched. Only the load of `origin/main` raises or clears this stop: a look at the definition on another branch can be refused, but it changes neither the health status nor the log. A git failure while reading (an unreachable repository, an unknown ref) is not a fault of the definition and raises no stop. If the health status cannot be written, the load reports an `OSError` and not the fault; the log line has been written. What the cycle does while the stop stands is described with the tick.
 
+## The stop `agent_definition_invalid`
+
+Once the pipeline definition on `origin/main` is valid, the load reads the agent file of every role, in the order of `roles`. A file the reader refuses (most often a key the agent runtime does not apply, see "The agent files") raises the stop `agent_definition_invalid` (scope `repository`). The detail is `<agent name>: <fault>`, and the first refused role is named:
+
+```text
+2026-10-16T12:00:07Z stop repository agent_definition_invalid: coder: key not applied by the agent runtime: permissionMode
+```
+
+The tick ends there and nothing else happens: no stage is started and no event is handled. To fix it, edit the named file in the agent home (`<agent home>/agents/<agent name>.md`) and remove or correct the key the detail names. The next tick loads again and clears the stop with the line `stop cleared agent_definition_invalid`. A role whose agent is not installed is a fault of the definition and shows as `pipeline_definition_invalid`, because the other checks come first. As for that stop, only the load of `origin/main` raises or clears this one.
+
 ## The stops of the tick
 
-A tick works from the remote alone: the checkout is disposable. It fetches first, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, and only then looks at the work items. Three repository stops end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
+A tick works from the remote alone: the checkout is disposable. It fetches first, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, and only then looks at the work items. Four repository stops end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
 
 | Stop | Meaning | What to do |
 |---|---|---|
 | `fetch_failed` | `git fetch` failed; the detail is git's message. | Fix the network, the remote's address or the credentials. An expired or revoked token shows as `fetch_failed` too: renew the token. Nothing is lost; the next tick after a successful fetch carries on. |
 | `pipeline_definition_invalid` | `factory/pipeline.yml` on `origin/main` is refused. | See "The stop `pipeline_definition_invalid`". The tick does not touch the checkout while this stop holds. |
+| `agent_definition_invalid` | An agent file of a role is refused. | See "The stop `agent_definition_invalid`". The tick does not touch the checkout while this stop holds. |
 | `checkout_restore_failed` | The factory could not put the checkout on `origin/main` (for example, an untracked file or directory it cannot remove); the detail is git's message. | Fix the cause in the checkout, such as a path's permissions, or delete the checkout and clone again. |
 
 The restore throws away every uncommitted change and every untracked file in the checkout (ignored paths stay) and deletes the local branches of the work items, so that a stage starts from the remote's branch. When it throws changes away it writes one line to the log, `discarded uncommitted changes: <path>, <path>`. Do not keep work in the factory's checkout.
@@ -453,7 +465,7 @@ The agent's instructions.
 | `effort` | optional, text |
 | `budget_usd` | required, a number greater than 0 |
 
-The body, without the whitespace around it, is the instructions; a line of hyphens inside it belongs to it. Any other front matter key is ignored for now: which ones the agent runtime applies is decided with F0010.
+The body, without the whitespace around it, is the instructions; a line of hyphens inside it belongs to it. These four are the only keys the agent runtime applies: Claude Code ignores an agent file in print mode, so the runner builds its flags and its prompt from them itself. Any other key (`name`, `description`, `permissionMode`, `hooks`, `background`, `disallowedTools`, `skills`, a misspelt one, or a known key in another case such as `Model`) would read as if it did something and do nothing, so the file is refused when the pipeline definition is loaded. See "The stop `agent_definition_invalid`".
 
 The reader reports these faults. `read` names the agent; a fault with a key names that key.
 
@@ -466,11 +478,12 @@ The reader reports these faults. `read` names the agent; a fault with a key name
 | `no front matter` | the file does not start with front matter that is closed |
 | `front matter is not valid YAML` | the YAML does not load |
 | `front matter is not a mapping` | it loads as a list or a scalar |
+| `key not applied by the agent runtime: <key>` | the front matter holds a key outside the four above; the first such key in the file's order is named |
 | `missing key: <key>` | `model`, `tools` or `budget_usd` is left out |
 | `budget_usd must be greater than 0` | zero, negative, text or a boolean |
 | `invalid <key>: <reason>` | any other value of the wrong type |
 
-When a file has several faults, the first is reported: a missing key before an invalid value.
+When a file has several faults, the first is reported: a key that is not applied before a missing key, and a missing key before an invalid value.
 
 ## Checking a story before it starts
 
@@ -592,7 +605,7 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 - The first line is `event: <key>`, followed by two spaces and the detail when the event has one.
 - A feature row counts the story files in `backlog`, `in-progress` and `done`; `.gitkeep`, `feature.md` and files that are not work item names do not count, and a feature with no story file has no row. The title is the first `# ` title of the feature's `feature.md` on `origin/main`, else the directory's name. `acceptance` is the feature's acceptance status (`incomplete`, `due`, `in_flight`, `merged_unrecorded`, `accepted` or `refused`; see "When a feature acceptance is due"), or `-` when the pipeline definition has no `acceptance_stage`.
 - A work item row exists for each story in `in-progress/` and for each running acceptance (one that is opened, waiting with a question or at its approval, or merged and not yet booked), with its title (the first `# ` title of the body, else the id), its stage, what it waits for (`blocked`), the instance holding its claim, since when (`running_since`, the claim's start in UTC) and its pull request. An absent value is `-`. The rows are in id order, so an acceptance's row comes after its feature's stories and before the stories of a later feature. An acceptance's title is `Acceptance of <feature title>`, its folder `in-progress`, and its state is the one on its branch.
-- Exit status: 0 after printing; 1 when the pipeline definition on `origin/main` is invalid (the fault goes to standard error as `factory-watch: <fault>`, standard output stays empty, no stop is raised); 2 for an unknown option, and when the environment is invalid or the token file cannot be read: then `factory-watch: settings invalid: <variable>: <fault>` goes to standard error (never a traceback) and standard output stays empty. `factory-watch` reads the same environment as `factory-run` (see the table above) and builds its boundaries the same way, so it looks at the instance the container runs. A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
+- Exit status: 0 after printing; 1 when the pipeline definition on `origin/main` is invalid or an agent file is refused (the fault goes to standard error as `factory-watch: <fault>`, or `factory-watch: agent <name>: <fault>` for an agent file; standard output stays empty, no stop is raised); 2 for an unknown option, and when the environment is invalid or the token file cannot be read: then `factory-watch: settings invalid: <variable>: <fault>` goes to standard error (never a traceback) and standard output stays empty. `factory-watch` reads the same environment as `factory-run` (see the table above) and builds its boundaries the same way, so it looks at the instance the container runs. A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
 - v1's `--follow` mode and its `factory-last-line` file are gone: `--follow` is an unknown option, and nothing writes that file. A file of that name left by v1 is not read and can be deleted.
 
 ## When a feature acceptance is due
