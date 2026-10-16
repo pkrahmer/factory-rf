@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 115
 blocked: null
 comments_seen: 0
@@ -116,3 +116,18 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
    - Quality: the names say what things are, the new public function has a docstring that names the error it raises, and there is no dead or duplicated code.
    - Ticket hygiene: the Assignment matches what was built, the log records the design and what was rejected, and criterion 10 still describes what the documenter has to write.
    - Not reviewed: the `planning/` and `docs/runs/` changes in the diff come from the human's commit ded79b2.
+8. documenter: docs (round 1): documented the acceptance rows on the board; no findings.
+
+   Changed:
+   - `docs/operator-guide.md`, `factory-watch` section: a work item row exists for each story in `in-progress/` and for each running acceptance (opened, waiting with a question or at its approval, or merged and not yet booked). Rows are in id order, so an acceptance comes after its feature's stories and before a later feature's stories. It also gives the acceptance's title (`Acceptance of <feature title>`), its folder, and that its state is the one on its branch.
+   - `docs/project-guide.md`, "The watcher's command line": the board's rows come from `running_work_items(...)` in `factory.application.acceptance_reading`. That is `RemoteWorkItems.read` plus `AcceptanceReader.snapshots()`, sorted by `(work_item_order(id), path)`. `Watcher.evaluate` calls the same function. A report that cannot be read raises `WorkItemFormatError` from `read`.
+
+   Checks run:
+   - The demo's `awk` command prints the new line from the `factory-watch` section.
+   - `make check` is green.
+
+   Cross-read and found current: the board paragraph of the project guide (apart from the sentence changed) and the watcher event text in the operator guide, against the diff in `board.py`, `watcher.py` and `acceptance_reading.py`.
+
+   Stale but untouched: nothing seen. The diff also lists `planning/` and `docs/runs/` changes from the human's commit; they are not mine.
+
+   `make check`: check: green
