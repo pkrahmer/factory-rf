@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 135
 blocked: null
 comments_seen: 0
@@ -182,3 +182,12 @@ Expect: one line, `0`.
    - Each of criteria 1–13 has a test that checks what the criterion says, including the refused sides: no extra heading, no `## Role` for intake and smoke-tester, no replaced word, exactly the listed lessons.
    - The coder's entry reports `make check` green.
    - Nothing changed under `src/`, so there is no architecture or security impact.
+6. coder: The reviewer's one finding is about a test file, and I do not edit tests, so this goes to the tester. I changed nothing under `claude/`, `src/` or `tests/`.
+
+   Test change for the tester: in `tests/test_claude_agent_texts.py`, delete the private helper `_section` and call `section_text(body, "<Name>") or ""` from `factory.domain.sections` in its four call sites instead. The heading goes in without the `## ` prefix: `"Rules"`, `"Role"`, `"Stage"` and `"Lessons"`.
+
+   I checked on `claude/agents/coder.md` that the prefix matters. `section_text(body, "Rules")` finds the section, but `section_text(body, "## Rules")` returns `None`.
+
+   `_headings` stays as it is, as the reviewer said: it also counts `## ` lines inside fenced blocks, so it is not a copy of `sections()`.
+
+   `make check` was not run this round, because I changed nothing.
