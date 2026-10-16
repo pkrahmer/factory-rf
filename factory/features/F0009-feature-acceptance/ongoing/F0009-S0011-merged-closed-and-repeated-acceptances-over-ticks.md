@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 113
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -109,3 +109,15 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
 
    `make lint`: lint: green
    `make test`: test: green
+6. coder: I made no code changes. The tester reported every walk as green at once, and `make test` agrees: the handlers, the reading and the registration from the earlier stories already do the work. `make check` is red at `make types`, though, and the cause is in the tester's helper, not in `src`:
+
+   `tests/acceptance_walk.py:128: error: Incompatible return value type (got "list[Literal['run', ..., 'idle']]", expected "list[str]")  [return-value]`
+
+   `AcceptanceWalk.kinds` is annotated `-> list[str]`. It returns a list built from `Event.kind`, whose type is the `EventKind` Literal, and `list` is invariant. The tester ran only `make lint` and `make test`, so mypy never saw the file.
+
+   I may not edit tests (R9), and changing `EventKind` in `src` to fit a test helper would be wrong. Options:
+   (a) The tester changes the return annotation of `AcceptanceWalk.kinds` in `tests/acceptance_walk.py` to `list[EventKind]`, imported from `factory.domain.events`. The callers only check membership, so nothing else changes.
+   (b) The tester keeps `list[str]` and annotates the two comprehensions as `list[str]`.
+   (c) The tester changes the annotation to `Sequence[str]`.
+
+   I would choose (a): it is the precise type and needs one import. If you approve, the coder ends with `tests` and names this change. Once mypy is green, nothing else in the story needs code; `make lint` and `make test` already pass.
