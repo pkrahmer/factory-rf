@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 130
 blocked: null
 comments_seen: 0
 round: 0
@@ -195,3 +195,9 @@ Expect: one line, `16 10 True`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete paths (`claude/agents/<role>.md`, `claude/settings.json`, `template/factory/pipeline.yml`, `template/CLAUDE.md`). The agent table, boundary and entry sentences, settings JSON, pipeline YAML and CLAUDE.md text are given in full. The runtime flags are named (`--model`, `--effort`, `--tools`, `--max-budget-usd`, `--append-system-prompt-file`), as are the test files and the stand-in helpers.
+   - Criteria: each can be tested by one test function. Criteria 4 to 8 are parametrized over the seven agents. The refusing side of every rule has a criterion. Dead keys are refused by criteria 2 and 3 (exactly four keys). The "no other `factory-` command" rule is fixed by the exact-equality criterion 10. The "template holds nothing else" rule is criterion 12. The only-one-newline rule is criterion 13.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable. I counted the settings by hand: 16 allow entries and 10 deny entries, and the sorted agent order matches `names()`.
+   - Architecture: only data files plus tests in the existing `tests/` layout. Nothing is placed in the layers. The agent reader and pipeline reader are the existing adapters.
+   - Scope: within F0010's scope (SI4.2, kept 6, R30, decisions 16 and 17). Skills and forms are not shipped, as "Out of scope" requires. v1's role and stage texts are left to S0017.
