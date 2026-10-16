@@ -21,6 +21,7 @@ from pydantic import (
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
+    GUARD_COMMAND,
     AgentRunRequest,
     AgentRunResult,
     EndReason,
@@ -42,7 +43,6 @@ SWITCHES = {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
 }
-GUARD_COMMAND = "factory-guard"
 GUARDED_TOOLS = "Edit|Write"
 BUDGET_SUBTYPE = "error_max_budget_usd"
 FINISH_MESSAGE = "Finish now: give your decision (question if the work is not done) and your entry."

@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 134
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The preflight probes one agent run
 
 ## Assignment (as of log entry 1)
@@ -91,3 +99,120 @@ Expect: one line, `coder 0.10 120.0`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (preflight.py constants and the two item functions, wiring.py `machine_extras`, the `build_tick` change, the `GUARD_COMMAND` move to `factory.domain.agent_runs`). Every behaviour in the rules is spelled out: item names, the order of the extras, the `sudo` item only with an agent user, the probe's request fields.
+   - Criteria: each is testable by one test function. Every rule has its failing side. Environment: a missing PATH, PATH without factory-guard, a missing HOME and a HOME that is no directory (criteria 2 and 3). Probe: `died`, `no_result`, `time_limit`, `budget`, `AgentRuntimeError` and a missing `coder` (criteria 6 to 9). Extras: with and without an agent user (criteria 12 and 13). Tick: a missing token file stops it, a valid one passes (criterion 14). The machine-item skip is criterion 11 and the flag parity is criterion 10. Criterion 14 holds two scenarios and the tester can write them as two cases of one parametrized test.
+   - Demo: both blocks are runnable with `uv run python -c`, and each Expect line is checkable against the output (`True` / `agent-environment False True True`, and `coder 0.10 120.0`).
+   - Architecture: the items live in application, the wiring in entry, and the shared constant moves down to domain so application does not import the adapter. This matches the layer rules in CLAUDE.md. Items use the existing wrappers and interfaces (AgentRuntime, AgentDefinitions), with no new tool or dependency.
+   - Scope: within the feature's scope (the preflight's items and the probe with the factory's own arguments). It matches decisions 20, 22, 25, 28 and 31. The two changes to earlier tests are the ones the human allowed in decision 28.
+3. tester: Wrote the red tests for every acceptance criterion, and changed the two earlier build_tick tests that FEATURE.md decision 28 allows.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_agent_environment_item.py::test_a_path_holding_factory_guard_and_an_existing_home_pass
+   - criterion 2: tests/application/test_agent_environment_item.py::test_a_fault_in_the_environment_fails_naming_it, rows path-without-factory-guard and no-path
+   - criterion 3: the same test, rows no-home and home-not-a-directory (HOME is a regular file)
+   - criterion 4: tests/application/test_agent_run_probe.py::test_a_completed_probe_passes
+   - criterion 5: tests/application/test_agent_run_probe.py::test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone
+   - criteria 6 and 7: tests/application/test_agent_run_probe.py::test_a_probe_that_does_not_complete_fails_naming_its_end_and_claude_p, one parametrized test over died, no_result, time_limit and budget. Every row checks that the detail names the end reason and contains `claude -p`, because the Interface rule asks for both on any end reason other than completed.
+   - criterion 8: tests/application/test_agent_run_probe.py::test_a_runtime_that_cannot_run_the_probe_fails_with_its_message. The double is RefusingRuntime, which inherits AgentRuntime.
+   - criterion 9: tests/application/test_agent_run_probe.py::test_a_missing_coder_fails_the_probe_naming_the_agent
+   - criterion 10: tests/application/test_agent_run_probe.py::test_the_probe_calls_claude_with_the_flags_of_a_stage. It runs ClaudeCodeRuntime on the claude stand-in with no agent user, then compares the `--` arguments of the probe's call with those of a stage-like call (coder, a guard, decisions review and question).
+   - criterion 11: tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build. Both items go in as extras under Preflight. Two run() calls with image build-7 give exactly one runtime request and one `find` call.
+   - criteria 12 and 13: tests/entry/test_wiring_extras.py::test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user, with rows no-agent-user and agent-user.
+   - criterion 14: tests/entry/test_wiring_extras.py::test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_environment, with rows no-token-file and token-file. The token file is written in tmp_path with mode 0600, so it belongs to the test's uid.
+
+   Changes to earlier tests, as the Assignment specifies:
+   - tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance: the settings now have a 0600 token file and agent_user "agent". A completed probe run is queued before the stage's run. The stage's request is `requests()[-1]`, and its environment must equal `agent_run_environment(ready, production_environment())`.
+   - tests/entry/test_wiring_agent_user.py::test_a_tick_with_an_agent_user_runs_the_agent_as_that_user_in_its_home: a 0600 token file is added, a completed probe run is queued first, and the stage's request is `requests()[-1]`.
+   - In both, agent_home was already the fixture and the `which` (`_every_tool`) already answers for sudo.
+
+   Files created: tests/application/test_agent_environment_item.py, tests/application/test_agent_run_probe.py, tests/entry/test_wiring_extras.py. Files changed: tests/entry/test_wiring_run.py, tests/entry/test_wiring_agent_user.py.
+
+   `make test` stops with 3 collection errors, in the three new files, because the names under test do not exist yet: `agent_environment_item`, `agent_run_probe_item` and `PROBE_PROMPT` in factory.application.preflight, and `machine_extras` in factory.entry.wiring. The two changed tests did not run, because collection stopped the run. `make lint` is green.
+
+   Open for the coder:
+   - The criterion 14 test and the changed test_wiring_run test depend on the venv's `factory-guard` being on the production PATH (the interpreter's directory). Its HOME is the agent home's parent, tmp_path.
+   - test_wiring_preflight.py was left as it is. Its preflight fails at tool:git anyway, and the probe there fails with the fake's "no scripted run is queued".
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Made the tester's red tests pass without changing them. `make check` is green (coverage 99.54 %). The commit is "feat(preflight): probe the agent run's environment and one claude -p call".
+
+   What I built:
+   - src/factory/domain/agent_runs.py: `GUARD_COMMAND = "factory-guard"` moved here from src/factory/adapters/claude_runtime.py, which now imports it. The name has one definition.
+   - src/factory/application/preflight.py: the constants `PROBE_AGENT`, `PROBE_PROMPT`, `PROBE_BUDGET_USD` and `PROBE_RUN_TIME_LIMIT`, and two items.
+     - `agent_environment_item`: the private helpers `_path_fault` and `_home_fault` each return a fault or `None`. The item fails with every fault joined by "; ", so one detail names all of them.
+     - `agent_run_probe_item`: reads `coder`, lowers its `budget_usd` with `model_copy`, and runs one request through `_probe_request`. That request has `allowed_decisions=[QUESTION]`, a copy of the environment, a guard with no write or protected paths, and `os_user=settings.agent_user`. `AgentDefinitionError` and `AgentRuntimeError` fail the item with `str(error)`, so the agent's name or the sudo message appears in the detail. Any end reason other than `completed` fails with "the probe run ended <reason>; run claude -p by hand as <agent user or the factory user> to see why".
+   - src/factory/entry/wiring.py:
+     - `machine_extras` returns the lambdas in the order token-file, agent-user, tool:sudo (only when there is an agent user), agent-environment, agent-run-probe. The private `_which_on(name, path)` adapts `shutil.which(name, path=path)` to the `find` signature.
+     - `build_tick` computes the agent-run environment once and gives it to both `handler_factory` and `machine_extras`, then passes the extras to `build_preflight`.
+
+   Main decision: the extras are plain closures over the boundaries and settings. Their callers give `MachineChecks` the `extra` sequence that already existed. I rejected adding them as methods on `MachineChecks`, because the Interface gives the items as functions and wiring owns `os.getuid`/`os.stat`/`shutil.which`.
+
+   Refactor: I read the diff and found nothing to change, so there is no separate refactor commit.
+
+   Noticed, not touched: as the tester noted, test_wiring_preflight.py still fails at tool:git before it reaches the extras. Docs (criterion 16) are left to the documenter.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   What I checked:
+   - Acceptance criteria 1 to 14: each has a test that checks what its criterion says.
+     - `tests/application/test_agent_environment_item.py` covers criterion 1 with its pass case. Criteria 2 and 3 are four parametrized rows: a PATH without factory-guard, no PATH, no HOME, and a HOME that is a regular file.
+     - `tests/application/test_agent_run_probe.py` covers criteria 4 to 11:
+       - the request fields, including the coder's own model and tools and the 0.10 budget;
+       - `died`, `no_result`, `time_limit` and `budget` as rows of one test, each checking the end reason and `claude -p`;
+       - the `AgentRuntimeError` raised by a double that inherits `AgentRuntime`;
+       - a missing `coder`;
+       - the `--` flags of the probe and of a stage-like call, compared on the stand-in;
+       - the machine-item skip: two `run()` calls give one request and one `find`.
+     - `tests/entry/test_wiring_extras.py` covers the order of the extras with and without an agent user (criteria 12 and 13). For criterion 14 it has a no-token-file row (the stop names `token-file`) and a token-file row (the probe and the stage have the same environment).
+     - The tester changed the two earlier `build_tick` tests (`test_wiring_run.py`, `test_wiring_agent_user.py`) only as the Assignment and FEATURE.md decision 28 allow.
+     - The coder's entry reports `make check` green.
+   - Architecture:
+     - `GUARD_COMMAND` now has one definition, in `factory.domain.agent_runs`. `claude_runtime` and `preflight` both import it from there.
+     - The two items in `factory.application.preflight` import only the application and domain layers.
+     - `os.getuid`, `os.stat` and `shutil.which` are called only in `factory.entry.wiring` (`machine_extras`, `_which_on`).
+     - `build_tick` computes the agent-run environment once and passes it to both `handler_factory` and `machine_extras`.
+     - The extras reach `MachineChecks` through the `extra` parameter that already existed in `build_preflight`.
+   - Security: no new markers, secrets, shell strings or dependencies. The probe's guard has no write paths and no protected paths. An error fails the item with the error's own message, as the Interface asks.
+   - Quality:
+     - Names follow the module's existing `_..._ITEM` style.
+     - `_path_fault` and `_home_fault` each check one thing. Their faults are joined, so one detail names every fault.
+     - Comments explain why (a guard that cannot start does not block; a rejected flag ends every run `died`), and the new public names have docstrings.
+     - No duplicate helper: `_which_on` only adapts `shutil.which` to the `find` signature.
+   - Ticket hygiene: the coder's entry gives the main decision (closures over the boundaries and settings, fed to `MachineChecks.extra`) and what was rejected (methods on `MachineChecks`). The Assignment matches what was built. Criterion 16 (docs) still names the operator guide's order of items, the probe's cost and failure meanings, and the two decision-log reasons.
+6. documenter: Wrote the documentation for criterion 16. No findings: the diff matches the Interface. `make check` is green.
+
+   Files changed:
+   - docs/operator-guide.md:
+     - The preflight's items table now follows the report's order: the seven earlier items, then `token-file`, `agent-user`, `tool:sudo` (only with an agent user), `agent-environment` and `agent-run-probe`, each with its fix.
+     - The "built, not yet run" and "wiring comes later" sentences are removed, and the item count is corrected.
+     - A new section, "The probe of the agent run", covers the one `claude -p` call of at most 0.10 dollar once for each image build. It gives the failure meanings: a rejected flag, a missing login for the agent user, a refused `sudo`, an unwritable state directory, a missing `coder`.
+     - It says `PATH` must hold `factory-guard` and `HOME` must exist.
+     - The stale lines in the opening paragraph, the "flags not yet checked" paragraph and the `factory-guard` paragraph are fixed.
+   - docs/decisions.md: a new entry on why the preflight runs the factory's own arguments once for each image build (Q22, F0001 decisions 17 and 18) and why a refused `sudo` is found by the probe before any claim. It records the rejected alternatives: leaving it to the first stage run, and probing only `claude --version`.
+   - docs/project-guide.md: the tick's preflight step now names `machine_extras`, the two new items, `GUARD_COMMAND`'s new home and the extras' order. The `token_file_item` sentence now says it has a caller.
+   - README.md: the "preflight still to come" sentence is replaced with the current state.
+
+   Cross-read and found current: the project guide's guard and environment sections, and the operator guide's stamp/probe and stops sections.
+
+   Not run: the two demo blocks from the ticket. Nothing stale and unrelated was seen that I left untouched.
+
+   `make check`: check: green
+7. demo: I ran both `## Demo` commands from the repository root, exactly as written. Both exited 0 and both matched their `Expect:` lines. No findings.
+
+   1. `agent_environment_item` with a PATH that holds factory-guard and an existing HOME, then with a PATH that lacks factory-guard and a HOME that does not exist:
+      ```
+      True
+      agent-environment False True True
+      ```
+      This matches the expected `True` and `agent-environment False True True`.
+
+   2. The probe's constants:
+      ```
+      coder 0.10 120.0
+      ```
+      This matches the expected `coder 0.10 120.0`.
+
+   Checked against the acceptance criteria: the output fits criteria 1 to 3. The item is named `agent-environment`, it passes when PATH holds factory-guard and HOME is a directory, and when it fails its detail names both `factory-guard` and `HOME`. The constants fit criterion 5's 2-minute limit and its budget of 0.10, and the agent is `coder`. Nothing in the output contradicts any criterion. The demo did not exercise criteria 4 and 6 to 14 (the probe run, `machine_extras`, `build_tick`). The tests named in the earlier entries cover those, and the coder and the documenter both report `make check` green. I did not run `make check` in this stage.

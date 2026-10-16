@@ -12,7 +12,12 @@ from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import SettingsInvalid
 from factory.domain.identifiers import branch_name
 from factory.domain.settings import InstanceSettings, read_settings
-from factory.entry.wiring import boundaries_from_environment, build_tick, production_environment
+from factory.entry.wiring import (
+    agent_run_environment,
+    boundaries_from_environment,
+    build_tick,
+    production_environment,
+)
 from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
 
@@ -47,6 +52,9 @@ Expect: nothing.
 
 ## Journal
 """
+PROBE = AgentRunResult(
+    end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
+)
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
 )
@@ -92,21 +100,28 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     human: HumanClone,
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
 ) -> None:
     install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
     human.push_file("main", "Makefile", "lint:\n\ttrue\n")
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
+    token_file = tmp_path / "hosting-token"
+    token_file.write_text("example-value\n", encoding="utf-8")
+    token_file.chmod(0o600)
+    agent_runtime.queue(ScriptedRun(result=PROBE))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    ready = settings.model_copy(update={"pinned_agent_version": "fake"})
+    ready = settings.model_copy(
+        update={"pinned_agent_version": "fake", "token_file": token_file, "agent_user": "agent"}
+    )
     tick = build_tick(boundaries, ready, _every_tool)
 
     outcome = tick.run()
 
     assert outcome.event is not None
     assert (outcome.event.kind, outcome.dispatch) == ("run", "handled")
-    [request] = agent_runtime.requests()
-    assert request.environment == production_environment()
+    request = agent_runtime.requests()[-1]
+    assert request.environment == agent_run_environment(ready, production_environment())
     assert build_tick(boundaries, ready, _every_tool) is not build_tick(
         boundaries, ready, _every_tool
     )

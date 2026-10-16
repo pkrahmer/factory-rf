@@ -3,12 +3,20 @@
 import os
 import stat as stat_module
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
+from factory.domain.agent_runs import (
+    GUARD_COMMAND,
+    QUESTION,
+    AgentDefinition,
+    AgentRunRequest,
+    GuardSettings,
+)
 from factory.domain.checks import CheckResult
 from factory.domain.errors import (
     AgentDefinitionError,
@@ -49,6 +57,14 @@ _NO_AGENT_USER = (
     "FACTORY_AGENT_USER is not set: every agent would run as the factory's user, "
     "who can read the token file"
 )
+_AGENT_ENVIRONMENT_ITEM = "agent-environment"
+_PROBE_ITEM = "agent-run-probe"
+
+PROBE_AGENT = "coder"
+PROBE_PROMPT = "Probe: end with the decision question and the entry probe."
+PROBE_BUDGET_USD = Decimal("0.10")
+PROBE_RUN_TIME_LIMIT = timedelta(minutes=2)
+
 # Any bit for group or others lets a second user read the hosting-service token.
 _GROUP_AND_OTHERS = 0o077
 
@@ -94,6 +110,86 @@ def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) 
     if settings.agent_user is None and token_file is not None and exists(token_file):
         return PreflightItem(name=_AGENT_USER_ITEM, passed=False, detail=_NO_AGENT_USER)
     return PreflightItem(name=_AGENT_USER_ITEM, passed=True)
+
+
+def agent_environment_item(
+    environment: Mapping[str, str],
+    find: Callable[[str, str], str | None],
+    is_directory: Callable[[Path], bool],
+) -> PreflightItem:
+    """Check that an agent run finds `factory-guard` on its `PATH` and its login in `HOME`."""
+    # Claude Code treats a hook that cannot start as not blocking, so a missing guard
+    # would let every write through.
+    faults = [
+        fault
+        for fault in (_path_fault(environment, find), _home_fault(environment, is_directory))
+        if fault is not None
+    ]
+    if faults:
+        return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=False, detail="; ".join(faults))
+    return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=True)
+
+
+def _path_fault(
+    environment: Mapping[str, str], find: Callable[[str, str], str | None]
+) -> str | None:
+    path = environment.get("PATH")
+    if path is None:
+        return "the agent run has no PATH"
+    if find(GUARD_COMMAND, path) is None:
+        return f"{GUARD_COMMAND} is not on the agent run's PATH {path}"
+    return None
+
+
+def _home_fault(environment: Mapping[str, str], is_directory: Callable[[Path], bool]) -> str | None:
+    home = environment.get("HOME")
+    if home is None:
+        return "the agent run has no HOME"
+    if not is_directory(Path(home)):
+        return f"the agent run's HOME {home} is no directory"
+    return None
+
+
+def agent_run_probe_item(
+    boundaries: Boundaries, settings: InstanceSettings, environment: Mapping[str, str]
+) -> PreflightItem:
+    """Run the agent runtime once with a stage's flags; it passes when the run completes."""
+    # A flag the pinned runtime rejects would end every real run `died` without saying why.
+    try:
+        installed = boundaries.agent_definitions.read(PROBE_AGENT)
+        agent = installed.model_copy(update={"budget_usd": PROBE_BUDGET_USD})
+        result = boundaries.agent_runtime.run(
+            _probe_request(boundaries, settings, agent, environment)
+        )
+    except (AgentDefinitionError, AgentRuntimeError) as error:
+        return PreflightItem(name=_PROBE_ITEM, passed=False, detail=str(error))
+    if result.end_reason != "completed":
+        detail = (
+            f"the probe run ended {result.end_reason}; "
+            f"run claude -p by hand as {settings.agent_user or 'the factory user'} to see why"
+        )
+        return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
+    return PreflightItem(name=_PROBE_ITEM, passed=True)
+
+
+def _probe_request(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    agent: AgentDefinition,
+    environment: Mapping[str, str],
+) -> AgentRunRequest:
+    checkout = boundaries.checkout
+    return AgentRunRequest(
+        agent=agent,
+        prompt=PROBE_PROMPT,
+        allowed_decisions=[QUESTION],
+        time_limit=PROBE_RUN_TIME_LIMIT,
+        working_directory=checkout,
+        environment=dict(environment),
+        # A guard like a stage's, so the call carries a stage's flags, but no write path.
+        guard=GuardSettings(root=checkout, write_paths=[], protected_paths=[]),
+        os_user=settings.agent_user,
+    )
 
 
 class MachineChecks:
