@@ -1,0 +1,10 @@
+---
+stage: feature
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+stories: [F0010-S0001, F0010-S0002, F0010-S0003, F0010-S0004, F0010-S0005, F0010-S0006, F0010-S0007, F0010-S0008, F0010-S0009, F0010-S0010, F0010-S0011, F0010-S0012, F0010-S0013, F0010-S0014, F0010-S0015, F0010-S0016, F0010-S0017]
+---
+# Acceptance of The machine
