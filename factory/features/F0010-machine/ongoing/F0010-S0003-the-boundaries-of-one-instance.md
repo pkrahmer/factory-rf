@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 121
 blocked: null
 comments_seen: 2
@@ -244,3 +244,9 @@ Expect: one line, `/srv/agents claude None`.
     - `## Assignment` is unchanged. Nothing else was touched.
 
     `make check`: check: green
+11. reviewer: reviewer (round 1): no findings.
+    - Checked the fix in 41e71af for finding 1 of entry 9. `src/factory/domain/settings.py` now has one public `read_setting_file(variable, path, read_file)`. `_image` and `src/factory/entry/wiring.py` `read_hosting_token` both call it. The domain stays free of I/O because the reader is passed in. Both keep the error messages they had before. `read_hosting_token` still checks for a `None` path itself.
+    - `_read_utf8` is not a copy of an existing helper. The only similar reader, `_read_text` in `entry/check_story.py`, wraps its error in a different type.
+    - The fix touches no tests. Criteria 1–21 are still covered as entry 9 found. The coder's entry 10 reports `make check` green.
+    - Read the whole diff `main...HEAD` again: settings, boundaries, the PyGithub adapter, the wiring, and the five test files. Architecture holds: `github` is imported only in the adapter module, and the concrete adapters are picked only in `factory.entry.wiring`. Security holds: no silencing markers, and no error message contains the token. Quality holds: docstrings are present and comments say why. Ticket hygiene holds: the log records the choice of a regex over `urllib.parse`, the Assignment matches what was built, and the docs criterion 23 still describes what the reader needs.
+    - Considered and not raised: a token file that is not valid UTF-8 raises `UnicodeDecodeError` rather than `SettingsInvalid`. The Rules list only missing, unreadable and blank files, and the image file behaved this way before this story.
