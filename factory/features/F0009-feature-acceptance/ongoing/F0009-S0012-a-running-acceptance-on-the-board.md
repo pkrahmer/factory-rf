@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 115
 blocked: null
 comments_seen: 0
@@ -101,3 +101,18 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
       - Open: criterion 10 (docs) is for the documenter.
 
    `make check`: check: green
+7. reviewer: reviewer (round 1): no findings.
+
+   - Last round's finding is fixed. `running_work_items(work_items, acceptances, definition)` at `src/factory/application/acceptance_reading.py:249` is now the only place that joins `RemoteWorkItems.read` with `AcceptanceReader.snapshots()` and sorts them by `(work_item_order(id), path)`. `Watcher.evaluate` (`src/factory/application/watcher.py:38`) and `BoardReader.read` (`src/factory/application/board.py:44`) both call it. The watcher's behaviour is unchanged, since it uses the same key it used before. The board gains the path tie-break. The unused `work_item_order` import is gone from `watcher.py`.
+   - Criteria 1 to 8 each have a test in `tests/application/test_board_reader_acceptance.py`, and I read each test against its criterion:
+     - Criterion 4 is one parametrized test with three rows, and the third pushes and starts `F0002-S0003` after the opening.
+     - Criterion 5 asserts both the merged row and that no row remains once the item is booked into `done/`.
+     - Criterion 6 covers the refused side, a definition without `acceptance_stage`.
+     - Criterion 8 covers the error side: `WorkItemFormatError` with `path == REPORT`.
+     - Criterion 7 pins the exact output line.
+     - The coder's `make check` was green, with coverage at 99.53 %.
+   - Architecture: the change touches only `factory.application`, which imports application and domain modules. Putting the function in `acceptance_reading.py` avoids an import cycle with `work_items.py`. No interface or DTO changed.
+   - Security: no subprocess, no strings built into commands, and no suppression markers.
+   - Quality: the names say what things are, the new public function has a docstring that names the error it raises, and there is no dead or duplicated code.
+   - Ticket hygiene: the Assignment matches what was built, the log records the design and what was rejected, and criterion 10 still describes what the documenter has to write.
+   - Not reviewed: the `planning/` and `docs/runs/` changes in the diff come from the human's commit ded79b2.
