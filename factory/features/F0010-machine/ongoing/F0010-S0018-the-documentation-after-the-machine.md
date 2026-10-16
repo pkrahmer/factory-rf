@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 141
 blocked: null
 comments_seen: 0
@@ -76,3 +76,13 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
    - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output: no matching line with `exit=1`, `healthy` with `exit=0`, and two counts of at least 1.
    - Architecture: no layer or module is touched. The project guide paragraph is consistent with `CLAUDE.md`'s wrapper and runtime rules.
    - Scope: the story fits F0010, appears in `FEATURE.md` as S0018, and touches nothing under "Out of scope". It depends on S0019 being merged, which the Assignment states.
+3. tester: no tests written, on purpose.
+   - The story is documentation only. Its Assignment says the tester writes no tests, and its only criteria are the two closing ones.
+   - criterion 1 (`make check` stays green): covered by the existing suite, which is unchanged.
+   - criterion 2 (docs): no test. These are statements about `README.md` and the two guides. The documenter checks them, and the Demo greps check them too. A test that greps prose would also name the story's sentences in `tests/`, which R4 forbids.
+   - Files created: none. Modules the test runner could not import: none, because no test is new and the branch adds no red tests.
+   - I did not run `make test`, because there is no new test to see fail. `make lint` is green.
+   - Next: the coder has nothing to build and can hand forward. The documenter does the work.
+
+   `make lint`: lint: green
+   `make test`: test: green
