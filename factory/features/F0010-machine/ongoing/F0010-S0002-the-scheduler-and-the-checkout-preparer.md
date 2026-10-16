@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 120
 blocked: null
 comments_seen: 0
@@ -116,3 +116,11 @@ Expect: one line, `[15.0, 30.0, 60.0]`: the first tick ran at once, activity gav
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built `src/factory/application/scheduler.py` (commit 273dcc0). It holds `FIRST_PAUSE`, `MAX_PAUSE`, `pause_after`, `Scheduler` and `CheckoutPreparer`, as the Interface says. All tests in tests/application/test_scheduler.py pass, and `make check` is green (coverage 99.54 %).
+      - `pause_after` doubles step by step from 15 s and stops at 120 s. I rejected the literal `min(FIRST_PAUSE * 2 ** n, MAX_PAUSE)` because `timedelta` raises OverflowError once n reaches the high thirties, and a long idle run reaches that.
+      - `Scheduler.run` asks `should_stop` before each iteration and again before each sleep. One iteration is `prepare() and tick()`. Any `Exception` writes `iteration failed: <type>: <message>` and counts as idle. A `BaseException` such as `InjectedKill` is not caught and leaves the loop. An activity resets the idle count to 0. The sleep is `pause_after(idle_ticks)`.
+      - `CheckoutPreparer.prepare` calls `git.clone(settings.repository_url)` only when `settings.checkout / ".git"` is missing, and always returns True. A non-empty directory without `.git` fails inside `GitCli.clone`, where git itself refuses it, so it raises `GitError` and changes nothing.
+      - Refactor pass: I read the diff and changed nothing. The module is small, it has no duplicates, and no existing helper does the same thing.
+      - Not touched: the docs criterion (14) belongs to the documenter.
+
+   `make check`: check: green
