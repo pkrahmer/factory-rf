@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 113
 blocked: null
 comments_seen: 4
@@ -161,3 +161,17 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
        `make check`: check: green
 
     `make check`: check: green
+15. reviewer: reviewer (round 1, re-review after entries 13 and 14): no findings.
+    - Acceptance criteria: each of the 13 criteria has a walk that checks what the criterion says. The walks are in `tests/application/test_acceptance_ticks_{merged,repeated,closed}.py`, over the shared `AcceptanceWalk` in `tests/acceptance_walk.py`.
+      - Criteria 1 and 12 check the `run` evaluation before the tick, `dispatch == "handled"`, the booked outcome and that there were no agent requests. Criterion 1 also checks the "merged before approval" entry and cost line, and that the branch is gone.
+      - Criterion 3 checks `blocked is None`.
+      - Criterion 4 checks that `origin/main` and `factory_posts` are unchanged, over the three rows.
+      - Criteria 5 and 10 check `reject` across every evaluation and every tick event of the walk, including the setup ticks.
+      - Criterion 9 has its two rows, `approval`→`merged` and `acceptance`→`run`. It checks `merged_unrecorded` and not due before the tick, then `accepted` and `idle` after it.
+      - Criterion 11 checks the comment as the first paragraph of the Recommendation, the `refused` status, not due, `idle` twice, and the `F0002-A0002` branch after another archive.
+      - Criterion 13 checks a ready pull request, the description equal to `acceptance_description`, and exactly one cost-table post after the second tick.
+      - The Interface states no limits that need a boundary test. Coder entry 14 reports `make check` green.
+    - Architecture and security: the diff only touches `tests/`. It adds no suppression markers and no secrets.
+    - Quality: all three findings from entry 11 are fixed. `branch_name`, `work_item_path` and `feature_file_path` replace the hand-built copies, and the shared `walk` fixture is in `tests/conftest.py`, which the repeated walk overrides with its A0001 setup. I found no other copy of a shared helper. `PROPOSED_TEXT` and `ENVIRONMENT` are module constants like the ones other test modules keep for themselves.
+    - Ticket hygiene: the log explains the main decision (leave `src` untouched, because every walk is green at once, which the Interface allows) and what was rejected. The Assignment matches the build. Criterion 15 still names what the operator guide and the decision log must explain.
+    - Open: criterion 15 is for the documenter.
