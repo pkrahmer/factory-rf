@@ -177,14 +177,28 @@ def test_with_a_user_the_agent_runs_in_the_request_working_directory(tmp_path: P
     assert call.working_directory == request.working_directory
 
 
-def test_a_sudo_refusal_is_a_runtime_error_naming_its_line(tmp_path: Path) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin", ("sudo: a password is required\n", 1))
+@pytest.mark.parametrize(
+    ("line", "refused"),
+    [
+        ("sudo: a password is required", True),
+        ("bash: sudo: command not found", False),
+        ("  sudo: a password is required", False),
+    ],
+)
+def test_only_a_line_starting_with_sudo_makes_a_failure_a_runtime_error(
+    tmp_path: Path, line: str, refused: bool
+) -> None:
+    sudo = _write_sudo(tmp_path / "sudo-bin", (f"{line}\n", 1))
     runtime, _ = _runtime(tmp_path, sudo)
 
-    with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(tmp_path, "agent"))
+    if refused:
+        with pytest.raises(AgentRuntimeError) as raised:
+            runtime.run(_request(tmp_path, "agent"))
+        assert line in raised.value.detail
+        return
+    result = runtime.run(_request(tmp_path, "agent"))
 
-    assert "sudo: a password is required" in raised.value.detail
+    assert result.end_reason == "died"
 
 
 def test_a_sudo_warning_before_a_reply_gives_the_reply_s_result(tmp_path: Path) -> None:

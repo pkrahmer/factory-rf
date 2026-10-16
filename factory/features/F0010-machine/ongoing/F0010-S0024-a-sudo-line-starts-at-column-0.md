@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 143
 blocked: null
 comments_seen: 0
@@ -51,3 +51,14 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
    - Demo: the command is runnable. I counted the expected `12 passed`. The file has 9 test functions, and the last one has 2 parametrized rows, so 10 tests run today. Replacing `test_a_sudo_refusal_is_a_runtime_error_naming_its_line` leaves 9, and the 3 new rows make 12.
    - Architecture: the change is tests only, in `tests/adapters/`, which mirrors `factory.adapters`. The story does not touch layers or wrappers.
    - Scope: the story fits F0010 and is listed in `FEATURE.md` as S0024. Replacing the old test needs the human's leave. That leave is recorded in FEATURE decision 38, which names exactly this replacement.
+3. tester: Replaced `test_a_sudo_refusal_is_a_runtime_error_naming_its_line` in `tests/adapters/test_claude_runtime_os_user.py` with one parametrized test that has three rows. The ticket's Interface and FEATURE decision 38 name this replacement. The test uses the file's existing `_write_sudo`, `_runtime` and `_request` helpers, and nothing else in the file changed.
+   - criterion 1: tests/adapters/test_claude_runtime_os_user.py::test_only_a_line_starting_with_sudo_makes_a_failure_a_runtime_error[sudo: a password is required-True]. `run` raises `AgentRuntimeError`, and `detail` contains the line.
+   - criterion 2: the same test, row `[bash: sudo: command not found-False]`: `end_reason == "died"` and nothing is raised.
+   - criterion 3: the same test, row `[  sudo: a password is required-False]` (two leading spaces): `end_reason == "died"` and nothing is raised.
+   - criterion 4: `make check`. I ran `make test` and `make lint`, and both are green. I skipped the type check, as the stage says.
+   - criterion 5: no test (docs: none).
+   Files changed: tests/adapters/test_claude_runtime_os_user.py. I created no new files. The test runner imported every module.
+   The tests pass, not fail: this story is tests only, and the code (`_sudo_line` uses `startswith`) already behaves as the criteria say. The rows for criteria 2 and 3 are the ones that catch the `SUDO_PREFIX in line` mutant. The coder should not need to change anything in `src/`. The file should now have 12 tests (9 that stayed plus 3 rows), which matches the Demo. I did not count them in a separate run, because the stage allows only one `make test`.
+
+   `make lint`: lint: green
+   `make test`: test: green
