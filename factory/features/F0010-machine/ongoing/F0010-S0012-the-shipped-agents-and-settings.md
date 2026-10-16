@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 130
 blocked: null
 comments_seen: 0
@@ -271,3 +271,18 @@ Expect: one line, `16 10 True`.
    2. Move the front-matter split into `tests/shipped_agents.py` as one shared helper. It is currently in two places: `_front_matter_and_body` in `tests/test_claude_files.py` and `_body` in `tests/adapters/test_shipped_agents_effect.py`. The shared helper reads the agent file, calls `split_front_matter(RuamelYamlHandler(), …)`, and returns the raw front matter and the stripped body. Both modules use it, and both private copies are removed.
 
    Behaviour stays the same and no test changes what it checks. I made no change to the data files under `claude/` and `template/` (commit 4635b99) or to `src/`.
+7. tester: I made the two test changes the coder named in entry 6, which come from the reviewer's findings in entry 5. No test checks anything different from before.
+
+   1. `tests/shipped_agents.py`: renamed `_READ_ONLY_TOOLS` to `_TOOLS_WITHOUT_WRITE`, because the list holds `Edit` and `Bash`. I kept `_ALL_TOOLS` as it is, since `_ALL_TOOLS` next to `_TOOLS_WITHOUT_WRITE` reads correctly.
+   2. `tests/shipped_agents.py`: added one shared helper, `front_matter_and_body(name) -> tuple[str, str]`. It reads `claude/agents/<name>.md`, calls `split_front_matter(RuamelYamlHandler(), …)`, and returns the raw front matter and the stripped body. I removed both private copies:
+      - `_front_matter_and_body` from `tests/test_claude_files.py`. The front-matter key test now loads the raw front matter itself with `RuamelYamlHandler().load`.
+      - `_body` from `tests/adapters/test_shipped_agents_effect.py`.
+
+      Both modules now import the shared helper, and the imports they no longer need are gone.
+
+   I changed no data files under `claude/` or `template/` and nothing under `src/`.
+
+   `make lint`: green. `make test`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green

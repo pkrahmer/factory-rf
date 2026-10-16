@@ -5,11 +5,13 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
+
 ROOT = Path(__file__).parent.parent
 AGENT_HOME = ROOT / "claude"
 
 _ALL_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash", "Write"]
-_READ_ONLY_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash"]
+_TOOLS_WITHOUT_WRITE = ["Read", "Grep", "Glob", "Edit", "Bash"]
 
 
 class ShippedAgent(BaseModel):
@@ -32,7 +34,7 @@ SHIPPED_AGENTS = [
         model="sonnet",
         effort="low",
         budget_usd=Decimal("1"),
-        tools=_READ_ONLY_TOOLS,
+        tools=_TOOLS_WITHOUT_WRITE,
         boundary="You do not improve the story; you accept it or ask.",
         entry=(
             "Your entry starts with `accepted` and then has one line for each of the Interface, "
@@ -71,7 +73,7 @@ SHIPPED_AGENTS = [
         model="opus",
         effort="high",
         budget_usd=Decimal("3"),
-        tools=_READ_ONLY_TOOLS,
+        tools=_TOOLS_WITHOUT_WRITE,
         boundary="You find and do not fix: you write no code, not even scratch.",
         entry=(
             "Your entry is the numbered findings, each with a location, what is wrong and what "
@@ -98,7 +100,7 @@ SHIPPED_AGENTS = [
         model="opus",
         effort="medium",
         budget_usd=Decimal("2"),
-        tools=_READ_ONLY_TOOLS,
+        tools=_TOOLS_WITHOUT_WRITE,
         boundary="Fix nothing: run the smoke test as written and report what you observe.",
         entry=(
             "Your entry gives each command's output trimmed to 40 lines and whether it met its "
@@ -123,3 +125,12 @@ SHIPPED_AGENTS = [
 ]
 
 SHIPPED_NAMES = [agent.name for agent in SHIPPED_AGENTS]
+
+
+def front_matter_and_body(name: str) -> tuple[str, str]:
+    """The raw front matter and the stripped body of the shipped agent file `name`."""
+    text = (AGENT_HOME / "agents" / f"{name}.md").read_text(encoding="utf-8")
+    split = split_front_matter(RuamelYamlHandler(), text)
+    assert split is not None
+    front_matter, body = split
+    return front_matter, body.strip()

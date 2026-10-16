@@ -6,8 +6,15 @@ import pytest
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
-from shipped_agents import AGENT_HOME, ROOT, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent
+from factory.adapters.work_item_markdown import RuamelYamlHandler
+from shipped_agents import (
+    AGENT_HOME,
+    ROOT,
+    SHIPPED_AGENTS,
+    SHIPPED_NAMES,
+    ShippedAgent,
+    front_matter_and_body,
+)
 
 TEMPLATE = ROOT / "template"
 
@@ -98,15 +105,6 @@ def _reader() -> FrontmatterAgentDefinitionReader:
     return FrontmatterAgentDefinitionReader(AGENT_HOME)
 
 
-def _front_matter_and_body(name: str) -> tuple[dict[str, object], str]:
-    handler = RuamelYamlHandler()
-    text = (AGENT_HOME / "agents" / f"{name}.md").read_text(encoding="utf-8")
-    split = split_front_matter(handler, text)
-    assert split is not None
-    front_matter, body = split
-    return handler.load(front_matter), body.strip()
-
-
 def test_agents_directory_holds_exactly_the_seven_agent_files() -> None:
     entries = sorted(path.name for path in (AGENT_HOME / "agents").iterdir())
 
@@ -123,7 +121,8 @@ def test_every_shipped_agent_is_read_and_listed_sorted() -> None:
 
 @pytest.mark.parametrize("agent", SHIPPED_AGENTS, ids=SHIPPED_NAMES)
 def test_front_matter_holds_the_four_applied_keys_with_their_values(agent: ShippedAgent) -> None:
-    values, _ = _front_matter_and_body(agent.name)
+    front_matter, _ = front_matter_and_body(agent.name)
+    values = RuamelYamlHandler().load(front_matter)
     definition = _reader().read(agent.name)
 
     assert sorted(values) == ["budget_usd", "effort", "model", "tools"]
@@ -135,7 +134,7 @@ def test_front_matter_holds_the_four_applied_keys_with_their_values(agent: Shipp
 
 @pytest.mark.parametrize("agent", SHIPPED_AGENTS, ids=SHIPPED_NAMES)
 def test_body_starts_with_the_boundary_and_the_entry_sentence(agent: ShippedAgent) -> None:
-    _, body = _front_matter_and_body(agent.name)
+    _, body = front_matter_and_body(agent.name)
 
     assert body.startswith(f"{agent.boundary}\n\n{agent.entry}")
 

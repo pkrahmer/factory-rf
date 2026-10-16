@@ -10,9 +10,14 @@ import pytest
 from adapters.claude_stand_in import StandInCall, Step, read_calls, write_stand_in
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 from factory.domain.agent_runs import AgentRunRequest
-from shipped_agents import AGENT_HOME, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent
+from shipped_agents import (
+    AGENT_HOME,
+    SHIPPED_AGENTS,
+    SHIPPED_NAMES,
+    ShippedAgent,
+    front_matter_and_body,
+)
 
 REPLY = json.dumps(
     {
@@ -64,13 +69,6 @@ def _after(call: StandInCall, flag: str) -> str:
     return call.arguments[call.arguments.index(flag) + 1]
 
 
-def _body(name: str) -> str:
-    text = (AGENT_HOME / "agents" / f"{name}.md").read_text(encoding="utf-8")
-    split = split_front_matter(RuamelYamlHandler(), text)
-    assert split is not None
-    return split[1].strip()
-
-
 @pytest.mark.parametrize("agent", SHIPPED_AGENTS, ids=SHIPPED_NAMES)
 def test_call_passes_the_agent_model(calls: dict[str, StandInCall], agent: ShippedAgent) -> None:
     assert _after(calls[agent.name], "--model") == agent.model
@@ -102,4 +100,6 @@ def test_instructions_file_holds_the_agent_body(
     call = calls[agent.name]
     instructions = call.files[_after(call, "--append-system-prompt-file")]
 
-    assert _body(agent.name) in instructions
+    _, body = front_matter_and_body(agent.name)
+
+    assert body in instructions
