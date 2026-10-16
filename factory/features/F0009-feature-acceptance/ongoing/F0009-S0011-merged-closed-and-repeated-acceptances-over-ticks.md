@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 113
 blocked: null
 comments_seen: 4
-round: 0
+round: 1
 attempts: 0
 ---
 # Merged, closed and repeated acceptances over ticks
@@ -133,3 +133,7 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
        - Open: criterion 15 (the docs in `docs/operator-guide.md` and `docs/decisions.md`) is the documenter's.
 
     `make check`: check: green
+11. reviewer: groups 1 to 3 pass. Each of the 13 criteria has a walk that checks what the criterion says. Criteria 5 and 10 check both the evaluation before each tick and every tick's event. Criterion 9 has its two rows. The Interface states no limits that need a boundary test. The coder's entry 10 reports `make check` green. The diff touches only `tests/`, so the architecture and security groups have nothing to object to. Group 4 (quality) fails. `CLAUDE.md` says to reuse an existing helper and counts a second copy as a finding, and it says shared fixtures go in `tests/conftest.py`. The test-file changes below belong to the tester (R9), so the coder routes them with `tests`.
+    1. `tests/acceptance_walk.py:62` `branch_of`: copies `factory.domain.identifiers.branch_name` (`BRANCH_PREFIX + id`) and hard-codes `"work-item/"`. Fix: delete `branch_of` and use `branch_name` in the helper and in the three test files that import it.
+    2. `tests/acceptance_walk.py:67` `report_of`: builds the path by hand when `factory.domain.paths.work_item_path(feature_directory, folder, file_name)` already does this. Fix: build it as `work_item_path("F0002-todo", folder, f"{work_item}-acceptance.md")`, and `TODO`/`PROPOSED` the same way (or through `feature_file_path` for `feature.md`).
+    3. `tests/application/test_acceptance_ticks_closed.py:28` and `tests/application/test_acceptance_ticks_merged.py:31`: the same `walk` fixture is written out twice. `CLAUDE.md` (Tests) says shared fixtures go in `tests/conftest.py`. Fix: move the plain `walk` fixture to `tests/conftest.py`. In `tests/application/test_acceptance_ticks_repeated.py`, build on it as a fixture that does the A0001 setup.
