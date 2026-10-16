@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 113
 blocked: null
 comments_seen: 4
@@ -137,3 +137,8 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
     1. `tests/acceptance_walk.py:62` `branch_of`: copies `factory.domain.identifiers.branch_name` (`BRANCH_PREFIX + id`) and hard-codes `"work-item/"`. Fix: delete `branch_of` and use `branch_name` in the helper and in the three test files that import it.
     2. `tests/acceptance_walk.py:67` `report_of`: builds the path by hand when `factory.domain.paths.work_item_path(feature_directory, folder, file_name)` already does this. Fix: build it as `work_item_path("F0002-todo", folder, f"{work_item}-acceptance.md")`, and `TODO`/`PROPOSED` the same way (or through `feature_file_path` for `feature.md`).
     3. `tests/application/test_acceptance_ticks_closed.py:28` and `tests/application/test_acceptance_ticks_merged.py:31`: the same `walk` fixture is written out twice. `CLAUDE.md` (Tests) says shared fixtures go in `tests/conftest.py`. Fix: move the plain `walk` fixture to `tests/conftest.py`. In `tests/application/test_acceptance_ticks_repeated.py`, build on it as a fixture that does the A0001 setup.
+12. coder: coder (round 1): all three findings in the review (entry 11) are about test code (`tests/acceptance_walk.py` and the three walk files). I may not edit tests (R9), so I am sending them to the tester. I made no change to `src`, because no finding is about production code. I checked that the helpers the reviewer named exist: `factory.domain.identifiers.branch_name(work_item)` returns `BRANCH_PREFIX + id` and checks the id. `factory.domain.paths.work_item_path(feature_directory, folder: LifecycleFolder, file_name)` and `feature_file_path(feature_directory)` build the same strings the helper builds by hand. The changes for the tester, exactly as entry 11 names them:
+    1. In `tests/acceptance_walk.py`, delete `branch_of`. Use `factory.domain.identifiers.branch_name` instead, both in the helper and in the three test files that import `branch_of`.
+    2. In `tests/acceptance_walk.py`, build `report_of` as `work_item_path("F0002-todo", folder, f"{work_item}-acceptance.md")`. Its `folder` parameter must be typed `LifecycleFolder` so `mypy --strict` accepts it. Build `TODO`/`PROPOSED` the same way (`feature.md` through `feature_file_path`).
+    3. Move the `walk` fixture, which is written out twice (`tests/application/test_acceptance_ticks_closed.py:28` and `tests/application/test_acceptance_ticks_merged.py:31`), into `tests/conftest.py`. In `tests/application/test_acceptance_ticks_repeated.py`, the fixture becomes one that builds on the shared `walk` and does the A0001 setup.
+    After the tester's change, the coder runs `make check` and hands the ticket to review. Nothing else is open, except criterion 15 (docs), which belongs to the documenter.
