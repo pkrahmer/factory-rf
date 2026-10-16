@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 119
 blocked: null
 comments_seen: 0
@@ -132,3 +132,11 @@ Expect: one line, `factory Ann`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the instance's settings. `make check` is green and the work is committed as 7e902f6.
+   - `src/factory/domain/errors.py`: adds `SettingsInvalid(variable, fault)`, a `FactoryError` whose message is `<variable>: <fault>`.
+   - `src/factory/domain/settings.py`: adds the constants, `InstanceSettings` (frozen, extra="forbid") and `read_settings`. Each rule has its own private helper: `_required`, `_repository_url` (refuses whitespace, a comma or a password), `_holds_password`, `_instance`, `_git_identity`/`_optional` and `_image`. The checks run in the order the story asks: URL, then instance, then the image file. Checkout and state directory are never read from the environment, so the model defaults to the two constants.
+   - Main decision: `_instance` checks the instance name with `TypeAdapter(Name)`, as `adapters/agent_files.py` already does, so the pattern lives only in `identifiers.Name`. I rejected copying the pattern into a second regex. The password check splits the URL by hand: it takes the part between `://` and the next `/` and looks for a `:` before its last `@`. I did not use `urllib.parse`, because the scp form `git@host:path` has no `://` and must be accepted anyway.
+   - Refactor: I read my diff and nothing needed changing, so there is no separate refactor commit.
+   - Noticed but not touched: if `FACTORY_IMAGE_ID_FILE` is set but empty, the reader falls back to the default path `/opt/factory/image-id`. The story leaves this case open, as intake and the tester both noted, and no test covers it. The default identity `factory <factory@noreply.invalid>` is still written separately in `GitOptions` in `domain/git.py`. Making it use `DEFAULT_GIT_IDENTITY` would mean moving the constant into `domain/git.py`, which is outside this ticket.
+
+   `make check`: check: green
