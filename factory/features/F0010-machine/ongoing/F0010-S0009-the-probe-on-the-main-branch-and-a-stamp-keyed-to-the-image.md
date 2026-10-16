@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 127
 blocked: null
 comments_seen: 0
@@ -218,3 +218,21 @@ Expect: one line, `lint 600.0`.
    Two points are open for later stories:
    - `Preflight` does not fetch; the tick story decides where the fetch goes.
    - When the machine items fail, an existing `main_branch_failing` stop is left in place.
+6. documenter: no findings.
+
+   Files changed:
+   - docs/operator-guide.md:
+     - New section "The stamp and the probe of the main branch". It covers: the machine items are skipped while the image build is unchanged and no timer expires the stamp; the probe runs `lint` on `main` only, with a 10-minute `time_limit`, and repeats only when `origin/main` moves or the image changes; a red `main` is probed once and its stop stands until a fix is pushed; `preflight-stamp.json` in the state directory, and deleting it costs one more run.
+     - New row for `main_branch_failing` in the stops table, with what the operator does.
+     - The `preflight_failed` row now covers the probe-could-not-run detail.
+     - The preflight section no longer says the stamp and probe are still to come; it says the tick wiring is the next story.
+   - docs/decisions.md: a new entry. It gives why the stamp is keyed to the image and not a timer, why `lint` runs on `main` only, why the `time_limit` is a constant, and why a red `main` is remembered. It also records the rejected alternatives and two open points: the preflight does not fetch, and a `main_branch_failing` stop stays when the machine items fail.
+   - docs/project-guide.md: one sentence in the machine-services paragraph. Both JSON stores replace their file through `replace_text` in `adapters/atomic_file.py`, and `tests/test_atomic_replace_search.py` guards it.
+
+   Cross-read and found current: README.md (its "preflight … still to come" line stays true until the tick story wires it in) and the operator-guide sections on settings, image identity, `/state` permissions and health status. I did not run the demo blocks in the ticket; the tests cover the same behaviour.
+
+   Nothing stale and unrelated seen. The code matches the Interface and the criteria, and every public name has its docstring.
+
+   `make check` is green (coverage 99.53 %).
+
+   `make check`: check: green

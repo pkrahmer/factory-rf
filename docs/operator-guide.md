@@ -151,14 +151,15 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 
 | Stop | Meaning | What to do |
 |---|---|---|
-| `preflight_failed` (machine) | A tool the machine needs is missing or the agent runtime does not work; the detail names it, for example `tool:make: make is not on the PATH`. | Fix the image or the login, then rebuild or restart; the stop clears when the check passes. |
+| `preflight_failed` (machine) | A tool the machine needs is missing or the agent runtime does not work; the detail names it, for example `tool:make: make is not on the PATH`. | Fix the image or the login, then rebuild or restart; the stop clears when the check passes. The detail `the probe on main could not run: <message>` means the probe itself failed (git or `make` could not run, the checkout is gone): fix the machine, not `main`. |
+| `main_branch_failing` (repository) | The probe ran `lint` on `origin/main` and it failed. The detail is `lint is red on main at <12 characters of the commit>: <last line of the output>`, or `lint reached its time_limit on main at <commit>`. | Push a fix to `main`. The next preflight probes the new commit and clears the stop. See "The stamp and the probe of the main branch". |
 | `checkout_restore_failed` | See "The stops of the tick". | As there. |
 | `pipeline_definition_invalid` | See "The stop `pipeline_definition_invalid`". | As there. |
 | `repository_unavailable` | The checkout cannot be made, or `origin/main` is not ready. The detail says which: `cannot prepare the checkout: <git's message>` (the clone failed: check `FACTORY_REPOSITORY_URL` and the credentials), `cannot fetch: <git's message>`, `the repository has no main branch yet` (the repository has no commit on `main`), or `origin/main has no factory/pipeline.yml yet`. | Fix the address or credentials, or push `factory/pipeline.yml` to `main`. |
 
 ### The preflight's items
 
-The preflight is a list of seven items, built in `factory.application.preflight`. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. (Wiring the preflight into the tick, the stamp and the probe of `main` come in later stories of F0010; until then nothing runs these items at start.)
+The preflight is a list of seven items, built in `factory.application.preflight`. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch"). Wiring the preflight into the tick comes in the next story of F0010; until then nothing calls it at start.
 
 | Item | Passes when | If it fails |
 |---|---|---|
@@ -169,6 +170,18 @@ The preflight is a list of seven items, built in `factory.application.preflight`
 | `agent-runtime-version` | the first word of `claude --version` equals `FACTORY_CLAUDE_VERSION` | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without `FACTORY_CLAUDE_VERSION` it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set`; when `claude --version` cannot run, it holds the runtime's error. |
 
 The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first. The commit identity is not an item.
+
+### The stamp and the probe of the main branch
+
+`Preflight.run` remembers what it has passed in `preflight-stamp.json` in the state directory: the image identity the machine's items passed on, and the commit of `origin/main` whose `lint` passed or failed. The stamp holds no time and no timer expires it.
+
+- **The machine's items** run when the stamp's image differs from the instance's image identity, when there is no stamp, and on every call when the instance has no image identity. While the image build is unchanged they are skipped, however much time passes. A failed report writes no stamp, so the items run again at the next call.
+- **The probe** runs the project's `lint` command with a `time_limit` of 10 minutes, on the main branch only: it puts the checkout on `main` at `origin/main` first. A red `lint` on a work item's branch never fails the preflight. The probe runs only when `origin/main` is a commit the stamp has not seen, and after a new image build (a new build forgets what was probed). The preflight does not fetch; the tick that calls it does.
+- **A red `main` is probed once.** The failing commit is remembered, so an idle tick runs no project command while the stop stands. If `health.json` loses the stop meanwhile, the next call raises it again with the detail `lint is red on main at <commit> (probed earlier)`, without running `lint`.
+- **A fix clears it.** When you push a new commit to `main`, the next call probes it, and when `lint` passes the stop `main_branch_failing` is cleared. A call that ends without a probe error also clears a standing `preflight_failed` stop.
+- A repository with no commit on `main` has nothing to probe, and the preflight passes once the machine's items have.
+
+Deleting `preflight-stamp.json` is safe: a missing or damaged stamp reads as no stamp, and the only cost is one more run of the machine's items and of the probe. The agent can read the file and cannot write it.
 
 ### The wait for a repository that is not ready
 
