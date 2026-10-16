@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 126
 blocked: null
 comments_seen: 0
@@ -174,3 +174,12 @@ Expect: one line, `/srv/agents claude 2.1.289`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the preflight's items. All tests pass and `make check` is green (coverage 99.52 %). Commit 1f730a8.
+      - `src/factory/domain/settings.py`: adds `CLAUDE_VERSION_VARIABLE` and `InstanceSettings.pinned_agent_version`. `read_settings` reads it with the existing `_optional` helper, and a missing or blank value becomes `None`.
+      - `src/factory/domain/preflight.py`: adds `PreflightItem` and `PreflightReport`, both frozen with `extra="forbid"`. The report has the `passed` property and `failed()`. Also adds `version_matches` (the pin must not be blank and must equal the first word of the reported version) and `machine_stop`, which joins the failed items as `name: detail` with `; ` into a `RepositoryStop` with scope `machine` and reason `preflight_failed`.
+      - `src/factory/application/preflight.py`: adds `REQUIRED_TOOLS`, `tool_item` and `MachineChecks`. `MachineChecks.run` builds the four tool items (the three required tools, then `settings.claude_executable`), then `hosting-service`, `agents` and `agent-runtime-version`, then the `extra` items. Each item reads only `self._settings`. Each failure's detail says how to fix it: check the token and the network, install the agents there, or rebuild the image or change the pinned version.
+      - Main design decision: each item catches only its own boundary's error (`HostingServiceError`, `AgentDefinitionError`, `AgentRuntimeError`) and turns it into a failed item. That way every item runs whatever the earlier ones found, and anything unexpected still surfaces as an error. Rejected: a generic `except Exception` wrapper around every item. It would hide programming errors as preflight failures.
+      - Refactor: I read the diff and found nothing to change, so there is no separate refactor commit.
+      - Not touched: the docs criterion (19) is the documenter's. `which` is passed in by the caller. Wiring the real `shutil.which` into the tick is a later story.
+
+   `make check`: check: green
