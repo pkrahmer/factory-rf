@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 145
 blocked: null
 comments_seen: 2
@@ -304,3 +304,18 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: `make check` is green on the branch with the tester's helper fixes from entry 7. All the `src/` work for this story is the domain module from commit 1599e19.
+
+   Built: `src/factory/domain/kill_point_cases.py`. It holds the `Dies` and `ResultClass` literals and the closed, frozen `KillPointCase` model. The model has two `mode="after"` validators: a kill point is given exactly when the class is crash, and a stall never charges a crash. The module also holds the six `KILL_POINT_CASES` rows in the order the Interface gives. One comment explains why `post-record` charges no crash: the kill comes after the stage's result is pushed.
+
+   Recovery proof: no `src/` defect showed up. All of `tests/test_kill_points.py` passes against the existing tick, recovery, claim and cap code. Criteria 6 to 22, including the crash cap and the attempts cap, hold without any production change.
+
+   Main design decision: two separate model validators, one per rule in the Interface, each with its own message. I rejected a single combined validator because it would mix the two refusal reasons.
+
+   Refactor pass: I read `git diff main...HEAD -- . ':!factory' ':!tests'`. Outside the 84-line domain module, the only differences are the human's own files (`CLAUDE.md`, `planning/`, `docs/runs/`), which came in through the merges from main. Nothing needed renaming, simplifying or removing, so there is no refactor commit.
+
+   Checks: all `make check` targets are green (lint, types, layers, sast, secrets, licenses, test), with coverage at 99.55 %.
+
+   Open: criterion 24 (the project guide's `## Kill points` table and the `docs/decisions.md` entry) is the documenter's job. I did not touch it.
+
+   `make check`: check: green
