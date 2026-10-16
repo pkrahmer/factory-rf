@@ -81,3 +81,23 @@ The modules F0008 to F0011 add are placed by the same rule when the story is dra
 
 - Measured over 794 agent runs (22.7 h of agent wall time, `session-logs/metrics/README.md`): `make check` inside agent runs is 446 calls, 7.7 h, 34 %, 62 s on average; `make test` 1.1 h, 5 %. Not counted: the factory's own `check` after the doing and docs stages and the session's approval check per story.
 - Levers to weigh in this housekeeping story: run the tests in parallel (pytest-xdist, a development dependency for the human to grant); skip a `make check` on a commit whose result is already known (the coder's, the documenter's and the factory's runs on the same commit); let agents run the story's own tests while they work and the full check once at the end; and record the duration of every project command in v1.1's own records.
+- Timed on 2026-10-16 with `pytest --durations`: no single test is slow (the slowest take 1 to 2 s, on purpose, to test time limits), so the time is the full suite with coverage, run several times per story, plus the model itself.
+
+## Further findings to weigh (collected 2026-10-16, before the session's context was compacted)
+
+- Ceremony per tool: an ABC, a real class, a fake and DTOs per boundary. Kept where a fake makes tests deterministic (git, hosting, agent runtime, the clock, the health file, the factory log). Fold an interface away only where the duplicate-and-dead-code report shows one with a single implementation that no test swaps; measure, do not guess.
+- Test data validity: about ten stories lost a round to fixtures that broke a rule already built (a work item text without `## Journal`, a claim of another stage, a folder git dropped, a constant typed too wide, a request without `question`, a full path compared with a file name, an unchanged push). The rule is a row of `planning/lessons-for-the-skills.md` and in the shipped tester agent; add it to `factory-rf`'s own `CLAUDE.md` Tests too.
+- Agents still wait on background `make` runs (F0010-S0006's documenter used `until … ! pgrep -x make`, which works but breaks the foreground rule). The time per story keeps rising (coder runs of 20 to 30 minutes in three turns): measure where a long agent run waits, from the transcripts in `session-logs/container/`.
+- The shared test helpers that exist now (`tests/conftest.py`, `git_support.py`, `crash_support.py`, `acceptance_walk.py`, `shipped_agents.py`, `dockerfile_support.py`, `source_search.py`, `human_clone.py`, `bill_support.py`): move them into one `tests/support/` package with the restructure.
+- F0010-S0016's optional criterion for one `GUARD_COMMAND` definition was not placed (pre-check 5, note 8).
+- The run record of F0009-S0007's early stages was lost with the corrupt checkout of 2026-10-15; its cost table on #109 undercounts.
+- At the end of the build: run `session-logs/refresh.sh` and copy `/work/factory-rf/.git/factory-dispatches.jsonl` and the factory log again into `session-logs/metrics/`.
+
+## For the human, outside the build (collected 2026-10-16)
+
+- The machine: drive C: ran full on 2026-10-15 (the root cause of two Docker hangs and the corrupt checkout); move Docker Desktop's disk image to D: (Settings → Resources → Advanced). Update Docker Desktop (4.38.0) and WSL (`wsl --update`). Windows Update's active hours or a pause while a run goes; Docker Desktop's "Start when you sign in".
+- Leftovers in v1's container, to delete by hand: `/work/factory-rf.corrupt-2026-10-15` (its run record is copied), `/work/hatch-*`, `/work/dur-*`, `/tmp/fc-*`, `/tmp/ap-*`, `/tmp/approve-*`; on the host, the approval clones in the user's temp folder (`approve-*`).
+- Parked drafts: F0003-S0011 (an unreadable YAML fault on one log line), F0008-S0007 (the defensive callers of `require_state`).
+- Decisions the session took for the human, to confirm: F0008 decision 19 (stale-branch cleanup also for `done/`), F0009 decision 22 group 3 (the board-reader test), F0010 decision 37 (the `SETTINGS` lists and the `Step` field), F0011 decision 19 (S0004 changes F0006's reader for a duplicate id), F0010-S0022's default (a timed-out run with a `sudo:` warning is an `AgentRuntimeError`).
+- Open: F0010 decision 30 (the kill of an agent run under `sudo` is not enforced) and F0010's morning observations on the real machine (the image build, `sudo`, the second user, the token mount): the first real run of v1.1.
+- Old items: the scratch repository `pkrahmer/factory-night-scratch` and the branch `ccr-cf8b451b-yugt27` of `factory-rf`.
