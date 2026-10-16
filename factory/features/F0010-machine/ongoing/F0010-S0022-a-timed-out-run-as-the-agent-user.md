@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 140
 blocked: null
 comments_seen: 0
@@ -71,3 +71,16 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
    - Open: I tried to confirm that the new test catches the mutation (drop `and not process.timed_out` and expect the first row to fail). The permission layer denied that command before it ran, so the working tree is still clean and untouched. The mutation check is still not done. The reviewer or the demo should run it by hand.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Scope: `tests/adapters/claude_stand_in.py` (`Step.stdout_before_wait`, written and flushed before the wait) and `tests/adapters/test_claude_runtime_os_user.py` (one new parametrized test). Nothing in `src/` changed, which matches the Assignment.
+   - Criteria 1 and 2 are the two rows of `test_a_timed_out_call_with_a_sudo_line_is_a_runtime_error_and_without_one_a_time_limit`. Row 1 has the warning and expects `AgentRuntimeError` whose `detail` contains the `sudo:` line. Row 2 has no warning and expects `end_reason == "time_limit"`, with `decision` and `entry` both None.
+   - Criterion 3: the coder's entry 4 reports `make check` green, with coverage at 99.54 %.
+   - Mutation check, done by reading the code because this stage may not run experiments:
+     - The agent stand-in writes the full `REPLY` and flushes it before sleeping.
+     - `run_process` kills the process group and then collects the pipes with `communicate()` (`src/factory/adapters/process.py:72-77`), so `process.stdout` is the complete `REPLY` and `_parse_reply` accepts it.
+     - With `and not process.timed_out` dropped from `_sudo_refusal` (`src/factory/adapters/claude_runtime.py:293`), the parsed reply would make it return `None`. `_call` would then not raise, and row 1's `pytest.raises` would fail. So the test pins the fix.
+     - Row 2 goes through `_result`'s timed-out branch and gets `time_limit` with no decision or entry.
+   - Architecture, security and quality: these are test-only changes inside the tests' mirror of `adapters`. There are no suppression markers. The `Step` docstring was updated for the new step order. The early `return` in the test is how the two sides share one parametrized test, as `CLAUDE.md` asks.
+   - Ticket hygiene: the log explains why the tests were green from the start (tests-only story, fix already in 0ebb835). The docs criterion (none) still holds.
+   - Open: the demo's expected count of `10 passed` should hold: 8 existing tests plus the 2 new rows.
