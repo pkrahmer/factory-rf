@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 134
 blocked: null
 comments_seen: 0
@@ -154,3 +154,31 @@ Expect: one line, `coder 0.10 120.0`.
    Noticed, not touched: as the tester noted, test_wiring_preflight.py still fails at tool:git before it reaches the extras. Docs (criterion 16) are left to the documenter.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   What I checked:
+   - Acceptance criteria 1 to 14: each has a test that checks what its criterion says.
+     - `tests/application/test_agent_environment_item.py` covers criterion 1 with its pass case. Criteria 2 and 3 are four parametrized rows: a PATH without factory-guard, no PATH, no HOME, and a HOME that is a regular file.
+     - `tests/application/test_agent_run_probe.py` covers criteria 4 to 11:
+       - the request fields, including the coder's own model and tools and the 0.10 budget;
+       - `died`, `no_result`, `time_limit` and `budget` as rows of one test, each checking the end reason and `claude -p`;
+       - the `AgentRuntimeError` raised by a double that inherits `AgentRuntime`;
+       - a missing `coder`;
+       - the `--` flags of the probe and of a stage-like call, compared on the stand-in;
+       - the machine-item skip: two `run()` calls give one request and one `find`.
+     - `tests/entry/test_wiring_extras.py` covers the order of the extras with and without an agent user (criteria 12 and 13). For criterion 14 it has a no-token-file row (the stop names `token-file`) and a token-file row (the probe and the stage have the same environment).
+     - The tester changed the two earlier `build_tick` tests (`test_wiring_run.py`, `test_wiring_agent_user.py`) only as the Assignment and FEATURE.md decision 28 allow.
+     - The coder's entry reports `make check` green.
+   - Architecture:
+     - `GUARD_COMMAND` now has one definition, in `factory.domain.agent_runs`. `claude_runtime` and `preflight` both import it from there.
+     - The two items in `factory.application.preflight` import only the application and domain layers.
+     - `os.getuid`, `os.stat` and `shutil.which` are called only in `factory.entry.wiring` (`machine_extras`, `_which_on`).
+     - `build_tick` computes the agent-run environment once and passes it to both `handler_factory` and `machine_extras`.
+     - The extras reach `MachineChecks` through the `extra` parameter that already existed in `build_preflight`.
+   - Security: no new markers, secrets, shell strings or dependencies. The probe's guard has no write paths and no protected paths. An error fails the item with the error's own message, as the Interface asks.
+   - Quality:
+     - Names follow the module's existing `_..._ITEM` style.
+     - `_path_fault` and `_home_fault` each check one thing. Their faults are joined, so one detail names every fault.
+     - Comments explain why (a guard that cannot start does not block; a rejected flag ends every run `died`), and the new public names have docstrings.
+     - No duplicate helper: `_which_on` only adapts `shutil.which` to the `find` signature.
+   - Ticket hygiene: the coder's entry gives the main decision (closures over the boundaries and settings, fed to `MachineChecks.extra`) and what was rejected (methods on `MachineChecks`). The Assignment matches what was built. Criterion 16 (docs) still names the operator guide's order of items, the probe's cost and failure meanings, and the two decision-log reasons.
