@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 113
 blocked: null
 comments_seen: 4
@@ -175,3 +175,14 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
     - Quality: all three findings from entry 11 are fixed. `branch_name`, `work_item_path` and `feature_file_path` replace the hand-built copies, and the shared `walk` fixture is in `tests/conftest.py`, which the repeated walk overrides with its A0001 setup. I found no other copy of a shared helper. `PROPOSED_TEXT` and `ENVIRONMENT` are module constants like the ones other test modules keep for themselves.
     - Ticket hygiene: the log explains the main decision (leave `src` untouched, because every walk is green at once, which the Interface allows) and what was rejected. The Assignment matches the build. Criterion 15 still names what the operator guide and the decision log must explain.
     - Open: criterion 15 is for the documenter.
+16. documenter: documenter (round 1): `docs/operator-guide.md` is the only file I changed.
+    - It had three sentences saying `AcceptanceHandOver`, `AcceptanceMerged` and `AcceptanceClosed` were "not yet registered in `build_handlers` (F0009-S0010)" and that no tick books a merge, close or hand-over. S0010 has since wired them: `src/factory/entry/wiring.py` registers them through `SplitByWorkItemKind`. I rewrote the three sentences to match.
+    - I added a short "No loop" paragraph to the acceptance section. It says that a merge or close at any stage is booked in one tick without an agent run, that the stage run hands the merged or closed pull request to the acceptance's own handler and never to a story's, and that later ticks yield `idle` with no commit and no post. It also says a refused feature is due again only after another story is archived.
+    - `docs/decisions.md` needed no change for criterion 15. "Each acceptance has its own report and its own cost records" (S0005) and "The run gate holds the acceptance splits, not the story's handlers" (S0010) already give the reasons. "A merge before the approval is booked like any merge, and a repeated acceptance is a new work item" (S0006) covers the merge-before-approval and repeat cases.
+    - Cross-read, found current: the rest of the acceptance sections in the operator guide ("Merged before its approval", "Accepted again", "What a close records first", the status table) and `docs/project-guide.md`. The diff outside `factory/` is tests only, so there is no behaviour change to document beyond the wiring that S0010 already did.
+    - Nothing stale left that I did not touch.
+    - Findings for the coder: none.
+
+    `make check`: green (coverage 99.53 %).
+
+    `make check`: check: green
