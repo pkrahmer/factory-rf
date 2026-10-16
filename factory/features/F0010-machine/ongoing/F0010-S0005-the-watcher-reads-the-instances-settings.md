@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 123
 blocked: null
 comments_seen: 0
@@ -87,3 +87,10 @@ Expect: three lines, `2`, `''` and `True`: with no repository URL in the environ
    - Noticed, not touched: none.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   - Acceptance criteria: criterion 1 → `tests/entry/test_watch_settings.py::test_an_environment_without_an_instance_is_refused_with_a_line`. It has two parametrized rows: nothing given, and the `boundaries` fixture with `instance=None`. It checks status 2, one line starting `factory-watch: settings invalid: FACTORY_INSTANCE: ` with a non-blank fault, and an empty `out`. Criterion 2 → `test_a_missing_token_file_is_refused_with_a_line_naming_it`. It checks status 2, a line naming `FACTORY_TOKEN_FILE` and an empty `out`. Criterion 3 → `test_a_valid_environment_gets_past_the_settings_to_the_fixed_checkout`. It expects `GitError` with no `settings invalid` on `err`, and it skips when `/work/checkout/.git` exists. The Interface rule's failing side (`SettingsInvalid`) is covered by criteria 1 and 2. Its passing side is covered by criterion 3. The `--follow` parser exit is still covered by F0006-S0006's existing tests, which are unchanged. The Interface states no numeric limits. As the Interface and decision 28 direct, the tester removed exactly `test_main_without_instance_settings_returns_2` and `NOT_WIRED` from `tests/entry/test_watch.py` and nothing else. The coder's entry reports `make check` green.
+   - Architecture: `src/factory/entry/watch.py` imports `boundaries_from_environment` from `factory.entry.wiring`. Nothing is wired outside `factory.entry`, and no layer is crossed upward.
+   - Security: `SettingsInvalid` is written as one line with no traceback. The token stays in the boundaries and is never printed. There are no new markers, secrets or string-built commands.
+   - Quality: the change is one branch in `main`, and `_NOT_WIRED` became `_SETTINGS_INVALID` = 2. `main`'s docstring states the main decision: if either `boundaries` or `instance` is missing, both are taken from the environment. That matches the Interface rule and the second case of criterion 1. Nothing is duplicated: it reuses `boundaries_from_environment`, the same readers `factory.entry.run` uses.
+   - Ticket hygiene: the coder's log explains the main decision and the option it rejected (reading only the missing value). The Assignment matches what was built. Criterion 5 still says what the documenter must write in `docs/operator-guide.md`.
