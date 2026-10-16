@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 145
 blocked: null
 comments_seen: 2
@@ -286,3 +286,12 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    Not done yet, because `make check` is red until then: the refactor pass and the final `make check`.
 5. human (pull request comment, 2026-10-16): (a). The tester fixes the two helpers in `tests/proof_support.py`; `src/` and the existing tests stay as they are. `leak_writes` checks that the branch exists (`git.resolve(f"origin/{branch}")`) before `show_file`. `_state_at` reads only the branch's own commits (`origin/main..origin/<branch>`) or treats a text without front matter as no state; the tester picks one, with no catch-all.
+6. coder: the human chose (a) in entry 5, so the fix belongs in the test helpers. I changed no test and no `src/`. The tester makes two changes in `tests/proof_support.py`:
+   1. In `leak_writes` (line 261), only call `boundaries.git.show_file(f"origin/{branch}", path)` when `boundaries.git.resolve(f"origin/{branch}")` finds the branch. When it doesn't, use the opening file from `origin/main`, as the Interface describes.
+   2. Stop `_state_at` (line 336) from parsing commits where the work item file has no front matter. Either have its callers log only `origin/main..origin/<branch>`, or treat a text without front matter as no state (`None`). The tester picks one, with no catch-all `except`.
+
+   Why: `GitCli.show_file` raises `GitError` for a missing ref, and `FrontmatterWorkItemReader.parse` raises `WorkItemFormatError` for a file with no front matter. Both are pinned by existing adapter tests (`tests/adapters/test_git_cli_reading.py`, `tests/adapters/test_work_item_markdown.py:208`).
+
+   Status: `src/factory/domain/kill_point_cases.py` is done (commit 1599e19), and `tests/domain/test_kill_point_cases.py` passes. With the two fixes simulated in a scratch plugin outside the repository, all 55 tests in `tests/test_kill_points.py` passed against the current `src/`.
+
+   Still open for my next round: the refactor pass and the final `make check`.
