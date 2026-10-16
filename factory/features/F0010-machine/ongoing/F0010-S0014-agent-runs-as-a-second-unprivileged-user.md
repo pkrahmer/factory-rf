@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 132
 blocked: null
 comments_seen: 2
@@ -229,3 +229,30 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
     `make check`: check: green, coverage 99.54 %.
 
     `make check`: check: green
+11. reviewer: Review, round 1: no findings.
+
+    I read the ticket, `git diff main...HEAD -- . ':!factory'` (four source files and five test files) and the coder's entries. The factory's `make check` after the coder was green (entry 10, coverage 99.54 %).
+
+    1. Acceptance criteria: every criterion 1–15 has a test that checks what it says.
+       - 1–3 are in `tests/domain/test_settings_agent_user.py`. Set, missing, empty and blank are covered, plus `Agent` and `1x`. The direct construction goes through a variable typed `type[BaseModel]`.
+       - 4–10 and 15 are in `tests/adapters/test_claude_runtime_os_user.py`:
+         - the exact six leading `sudo` arguments, the assignments and the executable;
+         - `sudo` starts with an empty environment, and `GH_TOKEN` does not reach the agent;
+         - the agent runs in the request's working directory;
+         - a `sudo:` refusal raises, a `sudo:` warning before a reply gives the reply's result, and `boom` gives `died`;
+         - a missing `sudo` raises `AgentRuntimeError`.
+       - 11 is in `tests/adapters/test_claude_runtime_file_modes.py`, with and without a guard, under umask `0000`.
+       - 12 is in `tests/application/test_task_os_user.py`, with the agent user, without one, and without settings. The environment is passed through unchanged.
+       - 13 and 14 are in `tests/entry/test_wiring_agent_user.py`. They check that `base` is unmodified, and that the tick goes through `build_tick` with the preflight passing.
+       - Last round's finding 1 is fixed in 0ebb835: `_sudo_refusal` now treats "without a result" the same way `_result` does. Finding 2 is covered by the new criterion 15 and its test.
+       - Accepted rather than flagged: the criterion-15 test is a separate function, not the row next to 8 and 9 that the human asked for. The three expected outcomes (raise, `died`, `completed`) do not share one assertion, and the tester explained this in entry 9.
+    2. Architecture holds.
+       - The setting and its name check are in `factory.domain.settings`; the coder reused the existing check as a shared `_name`.
+       - The `sudo` call lives only in the runtime wrapper and goes through `run_process`.
+       - The composer reads `boundaries.settings` in the application layer. The `HOME` wiring is in `factory.entry.wiring`.
+       - No new dependency and no new tool call outside `process.py`.
+    3. Security: the argv is a list with no shell. The `sudo` call has `env={}`, and `env -i` drops what `sudo` keeps. No secrets and no marker that silences a check. The error detail carries only the `sudo:` line, which is what the Interface requires.
+    4. Quality: the names say what things are and the functions do one thing (`_process_request`, `_start`, `_sudo_line`, `_sudo_refusal`). The comments say why (`RUN_FILE_MODE`, `env -i`, the refusal is a misconfiguration). The public constructor and `agent_run_environment` have docstrings. No dead code and no duplicate helper.
+    5. Ticket hygiene: the log gives the main decision (a `sudo:` line is a refusal only when there is no result) and the alternative that was rejected. `Assignment` matches what was built. Criterion 17 still says what the operator guide and the decision log must cover.
+
+    Open, not part of this story: killing a timed-out agent under `sudo` (decision 30) is still the human's decision and is one of the morning observations.
