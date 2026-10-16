@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 129
 blocked: null
 comments_seen: 0
@@ -130,3 +130,19 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Made criteria 1–18 pass without changing any test. `make check` is green (coverage 99.53 %). Commits: f714e10 (feat) and 109748d (refactor).
+
+   Built:
+   - `src/factory/domain/agent_runs.py`: added `APPLIED_AGENT_KEYS` and `KEY_NOT_APPLIED`.
+   - `src/factory/adapters/agent_files.py`: the private `_INTERPRETED_KEYS` tuple is gone. A new `_refuse_unapplied_keys` goes through the front matter in the file's order and raises `AgentDefinitionInvalid(name, "key not applied by the agent runtime: <key>", key)` at the first key outside `APPLIED_AGENT_KEYS`. It runs before `AgentDefinition.model_validate`, so a dead key wins over a missing `model` or a bad budget. Once every key is known to be applied, the front matter goes to the model as a whole instead of filtered.
+   - `src/factory/application/pipeline_loading.py`: `load` now does two steps. `_load_definition` is the old behaviour: the `pipeline_definition_invalid` stop, cleared before the agent files are read. `_check_agent_files` then reads every role in the order of `roles`. When a file is refused it raises `agent_definition_invalid` with the detail `<name>: <fault>`, and a good load clears that stop. Both stops are touched only at `PIPELINE_REF`. `_stop` now takes the reason as a parameter.
+   - `src/factory/application/tick.py`: `_load` turns `AgentDefinitionInvalid` into `_Stopped("agent_definition_invalid")`.
+   - `src/factory/entry/watch.py`: writes `factory-watch: <str(error)>`, which gives `agent <name>: <fault>`, and returns 1, the same exit code as an invalid definition.
+
+   Main decision: the agent files are read in a separate step after the definition step, not inside `_read`/`_require_agents`. That way the loader can clear `pipeline_definition_invalid` before the agent check, as criterion 13 requires, and each refusal sits next to the stop it raises. I rejected wrapping `AgentDefinitionInvalid` into `PipelineDefinitionInvalid`, because the Interface requires the agent error itself to reach the caller.
+
+   Refactor: split `load` into one helper per stop (109748d). Behaviour is unchanged.
+
+   Noticed, not touched: `run_watch` returns the same exit code 1 for both refusals, which matches the Interface. The docs criterion (20) is left for the documenter. The `Assignment` is unchanged.
+
+   `make check`: check: green
