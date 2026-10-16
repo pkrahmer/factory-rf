@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 133
 blocked: null
 comments_seen: 0
@@ -184,3 +184,36 @@ Expect: one line, `0002`.
     - Findings: none. The code matches the Interface.
 
     `make check`: check: green
+11. demo: demo (round 1): ran the three demo commands from the repository root, in order. All three met their `Expect:` lines, and nothing in the demo contradicts an acceptance criterion. No findings.
+
+    1. Sudoers file without comment and blank lines:
+    ```text
+    Defaults:factory umask=0002
+    Defaults:factory umask_override
+    Defaults:factory !use_pty
+    factory ALL=(agent) NOPASSWD: ALL
+    ```
+    Met: exactly the four lines, in order (criteria 2 and 3).
+
+    2. `agent_user_item` with the token file and without, then with, `FACTORY_AGENT_USER=agent`:
+    ```text
+    agent-user False
+    agent-user True
+    ```
+    Met: two lines, `agent-user False` and `agent-user True`.
+
+    3. Entrypoint with a stub `python` that prints `umask`:
+    ```text
+    0002
+    ```
+    Met: one line, `0002` (criterion 6).
+
+    Cross-check against the criteria, beyond what the commands targeted:
+    - Criterion 7: the failing item's detail is exactly `FACTORY_AGENT_USER is not set: every agent would run as the factory's user, who can read the token file`.
+    - Criterion 8: with `agent_user=agent` and `exists` false, the item is `PreflightItem(name='agent-user', passed=True, detail='')`.
+    - Criterion 9: with `agent_user` None and `exists` false, the item passes.
+    - Criterion 1: `image/Dockerfile` has the COPY at line 41, the RUN with `chmod 0440` and `visudo -cf` at line 42 and the ENV at line 43. All three come before the image-id RUN (line 45) and before `USER factory` (line 52).
+    - Criterion 5: `useradd` gives `factory` uid 1000 and `agent` uid 1001.
+    - `umask 002` sits directly after `set -eu` in `image/entrypoint.sh` (criteria 4 and 6).
+
+    Open: as the Interface says, the real `sudo` call, the umask of agent-made files, the factory's restore after an agent-made directory and a refused `sudo` need a real image. They are morning observations listed in `docs/operator-guide.md`. Wiring the item into the machine checks is left to the probe story.
