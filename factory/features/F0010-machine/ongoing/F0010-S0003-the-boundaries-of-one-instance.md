@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 121
 blocked: null
 comments_seen: 0
@@ -145,3 +145,41 @@ Expect: one line, `/srv/agents claude None`.
    - Architecture: the concrete adapters are picked only in `factory.entry.wiring`, the PyGithub call stays in the adapter module, and the settings model stays in domain. Criterion 16 enforces the single construction of the agent reader. This matches the layer rules and R5/R6.
    - Scope: within F0010 "The boundaries of the instance" and F0010 decisions 3, 18 and 34. Nothing is in Out of scope.
    - Noted, not a question: F0010 decision 18 mentions a default token path, `/run/secrets/hosting-token`. This story's Interface gives `token_file` the default None, so I took the story as authoritative; a later story (S0004 or S0013) can add the default.
+3. tester: Wrote the red tests for every criterion. Each test checks the Interface as specified. Limits are parametrized on both sides, including the blank and missing cases of each variable.
+
+   - criterion 1: tests/domain/test_settings_boundaries.py::test_agent_home_comes_from_its_variable_then_home_then_the_default (variable set, alone and alongside HOME; only HOME, also with the variable blank; neither set; both blank)
+   - criterion 2: tests/domain/test_settings_boundaries.py::test_claude_executable_comes_from_its_variable_or_is_claude
+   - criterion 3: tests/domain/test_settings_boundaries.py::test_token_file_comes_from_its_variable_or_is_none
+   - criterion 4: tests/entry/test_wiring_boundaries.py::test_repository_name_is_read_from_the_url
+   - criterion 5: tests/entry/test_wiring_boundaries.py::test_a_url_without_owner_and_name_is_refused
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_hosting_token_is_the_file_content_without_surrounding_whitespace
+   - criterion 7: tests/entry/test_wiring_boundaries.py::test_a_hosting_token_that_cannot_be_read_is_refused (None, missing, directory, whitespace)
+   - criterion 8: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_and_the_shared_group
+   - criterion 9: tests/entry/test_wiring_boundaries.py::test_git_options_carry_the_settings_identity_and_the_git_environment
+   - criterion 10: tests/application/test_boundaries_settings.py::test_boundaries_hold_no_settings_until_given_them
+   - criterion 11: tests/entry/test_wiring_boundaries.py::test_build_boundaries_uses_the_given_hosting_checkout_and_settings
+   - criterion 12: tests/entry/test_wiring_boundaries.py::test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing
+   - criterion 13: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings (a pre-commit hook in a clone of `remote` writes its environment to a JSON file in tmp_path)
+   - criterion 14: tests/entry/test_wiring_boundaries.py::test_the_built_project_commands_run_in_the_checkout
+   - criterion 15: tests/entry/test_wiring_boundaries.py::test_the_built_agent_definitions_are_read_from_the_agent_home (HOME is set by monkeypatch to a home that has another agent)
+   - criterion 16: tests/test_agent_home_wiring.py::test_the_agent_definition_reader_is_built_once_from_the_settings_agent_home (uses `source_search.modules` and `ast`)
+   - criterion 17: tests/entry/test_wiring_boundaries.py::test_the_built_log_and_health_file_lie_in_the_state_directory (the test creates the state directory first)
+   - criterion 18: tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_keeps_its_run_files_under_runs. The instructions file is found as the file the stand-in saw whose content is the agent's instructions. It is not found by its file name, which is an implementation detail.
+   - criterion 19: tests/entry/test_wiring_boundaries.py::test_build_boundaries_refuses_a_url_without_owner_and_name
+   - criterion 20: tests/entry/test_wiring_boundaries.py::test_build_boundaries_without_hosting_hands_pygithub_the_repository
+   - criterion 21: tests/adapters/test_pygithub_service.py::test_pygithub_service_is_built_lazily_for_the_repository_and_token
+
+   Files created: tests/domain/test_settings_boundaries.py, tests/application/test_boundaries_settings.py, tests/adapters/test_pygithub_service.py, tests/entry/test_wiring_boundaries.py, tests/test_agent_home_wiring.py.
+
+   Modules the runner could not import (collection errors):
+   - tests/adapters/test_pygithub_service.py: the name `pygithub_service` is missing from `factory.adapters.pygithub_hosting`.
+   - tests/entry/test_wiring_boundaries.py: `build_boundaries`, `git_environment`, `git_options`, `read_hosting_token` and `repository_name` are missing from `factory.entry.wiring`.
+
+   The domain, application and ast-search tests do collect, and they will fail on the missing fields and the missing reader construction. `make lint` is green.
+
+   Things for the coder to know:
+   - ruff's S105 flags a string literal assigned to or compared with a name containing `token`. The tests therefore hold the token value in a constant named `CREDENTIAL`.
+   - The settings fixture uses `tmp_path.resolve()`, so that `pwd` in criterion 14 prints the same path as `settings.checkout`.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
