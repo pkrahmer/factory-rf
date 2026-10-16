@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 130
 blocked: null
 comments_seen: 0
@@ -384,3 +384,4 @@ Expect: one line, `16 10 True`.
     The demo contradicts no criterion. I did not run `make check` myself; the factory runs it after this stage.
 
     Still open for the human, raised by the reviewer and the documenter and not a demo finding: the template gives the coder only the write path `src/*`. The Interface sets that value.
+12. done (pull request merged); cost: 10 runs, 30.9 min, 71 turns, 232k tokens in (1412k more from cache), 32k out, $2.53
