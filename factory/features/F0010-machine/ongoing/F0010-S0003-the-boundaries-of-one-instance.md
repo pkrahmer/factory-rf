@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 121
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -183,3 +183,22 @@ Expect: one line, `/srv/agents claude None`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Implemented the story in commit da206a3. One test fails because the test itself is wrong, so this is a question, not a hand-off to review.
+
+   Built:
+   - `src/factory/domain/settings.py`: adds `agent_home`, `claude_executable`, `token_file` and the constants from the Interface. `read_settings` fills them, falling back from `FACTORY_CLAUDE_HOME` to `<HOME>/.claude` to the default.
+   - `src/factory/application/boundaries.py`: `settings: InstanceSettings | None = None`, the last field.
+   - `src/factory/adapters/pygithub_hosting.py`: `pygithub_service`, built lazily with `Github(auth=Auth.Token(token), lazy=True).get_repo(...)`.
+   - `src/factory/entry/wiring.py`: `CREDENTIAL_HELPER`, `git_environment`, `git_options`, `repository_name` (one full-match regex for the https, scp-like and ssh forms), `read_hosting_token` and `build_boundaries`. `build_boundaries` resolves the hosting service before it builds anything else.
+
+   Status: `make lint` is green. Every new test passes except one. The rest of the suite also passes, with coverage at 99.55%.
+
+   The contradiction: `tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_keeps_its_run_files_under_runs` builds `AgentRunRequest(allowed_decisions=["doing"], ...)`. The existing domain rule (`factory/domain/agent_runs.py`, the validator `_question_is_allowed_once_each`) refuses that: "allowed decisions must contain 'question'". The test therefore fails while it is still setting up, before it reaches the code under test. This is not something the implementation can fix.
+
+   Options:
+   (a) The tester changes the request in that test to `allowed_decisions=["doing", "question"]`. Nothing else changes, and the reply's `decision: "doing"` stays valid.
+   (b) Loosen the domain rule. That would be out of scope and would change established behaviour.
+
+   I recommend (a). If you agree, I will end the next round with `tests` and name exactly that change.
+
+   Refactor step: not done yet. It follows once `make check` is green.
