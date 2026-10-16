@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 124
 blocked: null
 comments_seen: 2
@@ -375,3 +375,4 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
     - `template/` does not exist yet, so criterion 20 holds trivially.
 
     Not checked here: a real image build (ST5.1) stays a morning observation, as the ticket says. The digest and the package versions are placeholders the human replaces before the first build. No findings.
+14. done (pull request merged); cost: 11 runs, 42.4 min, 61 turns, 214k tokens in (919k more from cache), 26k out, $3.10
