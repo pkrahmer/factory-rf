@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 135
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # v1's role and stage texts in the shipped agents
@@ -173,3 +173,12 @@ Expect: one line, `0`.
    3. `docs/` is the documenter's work under criterion 15.
 
    `make check`: check: green
+5. reviewer: 1. tests/test_claude_agent_texts.py `_section`: it is a second copy of `factory.domain.sections.section_text(body, heading)`, which already returns the text under a `## ` heading. `CLAUDE.md` says to reuse an existing helper, and the reviewer counts a copy as a finding. Fix: call `section_text(body, "Rules")`, and likewise for `Role`, `Stage` and `Lessons`, with `or ""` where the section may be missing, and delete `_section`. This is a change to a test file, so the tester makes it: the coder ends with `tests` and names this change (R9). `_headings` stays: unlike `sections()`, it also counts `## ` lines inside fenced blocks, as the smoke-test command does, so it is not a copy.
+
+   Checked and fine:
+   - All seven bodies carry v1's `factory-rules`, role and stage texts. I compared them against `planning/v1-texts/skills/`: the renames are applied, and v1's mechanics are rewritten to v1.1's (no agent commits, the journal replaces the `Branch:` line, the stage `accept` becomes `approval`).
+   - The paths `factory/story-form.md`, `feature.md` and `in-progress/<id>-acceptance.md` agree with `docs/project-guide.md`.
+   - The decisions each body names agree with `template/factory/pipeline.yml`.
+   - Each of criteria 1–13 has a test that checks what the criterion says, including the refused sides: no extra heading, no `## Role` for intake and smoke-tester, no replaced word, exactly the listed lessons.
+   - The coder's entry reports `make check` green.
+   - Nothing changed under `src/`, so there is no architecture or security impact.
