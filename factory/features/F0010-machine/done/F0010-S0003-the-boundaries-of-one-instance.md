@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 121
 blocked: null
 comments_seen: 2
@@ -288,3 +288,4 @@ Expect: one line, `/srv/agents claude None`.
     Checked against the acceptance criteria: the output agrees with criteria 1, 2 and 3 (with the variables missing, `claude_executable` falls back to `claude` and `token_file` to `None`). It agrees with criterion 4 for the scp form, criterion 8 for the five environment keys, and criteria 11 and 12 for the `GitCli` and `ClaudeCodeRuntime` types and for `settings` being held. Nothing in the demo goes against any criterion. The demo does not cover the other criteria (no network, no state written, hosting through PyGithub); the tests cover those.
 
     No findings.
+14. done (pull request merged); cost: 11 runs, 23.1 min, 91 turns, 274k tokens in (2023k more from cache), 42k out, $3.17
