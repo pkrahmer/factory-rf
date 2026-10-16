@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 141
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The documentation after the machine
 
 <!-- proposed by feature acceptance of 2026-10-16; refine before promoting -->
@@ -62,3 +70,110 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: no code. The story names the three files that change (`README.md`, `docs/operator-guide.md`, `docs/project-guide.md`) and lists the content of the new `os_user` paragraph. Each behaviour in that paragraph (the `sudo -n -u … -- env -i` prefix, the `0o640` mode, the `sudo:` line rule and its exception) is existing code behaviour, and the docs criterion lists them, so nothing is left undefined.
+   - Criteria: there are only the two closing ones. The story says it is documentation only, so the tester writes no tests and the coder has nothing to build. The docs criterion lists each rewrite as an observable statement about a file, which the documenter checks with the Demo greps. No rule has a failing side without a criterion, because the story adds no rule.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output: no matching line with `exit=1`, `healthy` with `exit=0`, and two counts of at least 1.
+   - Architecture: no layer or module is touched. The project guide paragraph is consistent with `CLAUDE.md`'s wrapper and runtime rules.
+   - Scope: the story fits F0010, appears in `FEATURE.md` as S0018, and touches nothing under "Out of scope". It depends on S0019 being merged, which the Assignment states.
+3. tester: no tests written, on purpose.
+   - The story is documentation only. Its Assignment says the tester writes no tests, and its only criteria are the two closing ones.
+   - criterion 1 (`make check` stays green): covered by the existing suite, which is unchanged.
+   - criterion 2 (docs): no test. These are statements about `README.md` and the two guides. The documenter checks them, and the Demo greps check them too. A test that greps prose would also name the story's sentences in `tests/`, which R4 forbids.
+   - Files created: none. Modules the test runner could not import: none, because no test is new and the branch adds no red tests.
+   - I did not run `make test`, because there is no new test to see fail. `make lint` is green.
+   - Next: the coder has nothing to build and can hand forward. The documenter does the work.
+
+   `make lint`: lint: green
+   `make test`: test: green
+4. coder: nothing built, on purpose.
+      - The story is documentation only. The Interface says "No code", and the files that change (`README.md`, `docs/operator-guide.md`, `docs/project-guide.md`) belong to the documenter. Under `CLAUDE.md` ("the coder does not write them"), I left them alone.
+      - No commits on this branch from me. There was no diff to refactor, so I skipped the refactor step.
+      - Noticed but did not touch: the documenter will need to make every edit listed in the docs criterion and the Demo greps, including the new `os_user` paragraph in "The `claude -p` runtime".
+      - `make check`: green (coverage 99.54 %).
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes nothing outside the ticket, and that is what this documentation-only story should look like at review.
+      - 1. Acceptance criteria: criterion 1 (`make check` stays green) is held by the existing suite, which is unchanged. The coder's entry records `make check` green (coverage 99.54 %). Criterion 2 (docs) is the documenter's work and comes next. It has no test, on purpose: a test that greps prose would put the story's sentences in `tests/` (R4). The Demo greps check it after the documenter. The story adds no rule, so no failing side or limit is left untested.
+      - 2–4. Architecture, security, quality: no code changed, so nothing to judge.
+      - 5. Ticket hygiene: the Assignment matches what was built (nothing, on purpose). The tester and coder entries each say why they left their stage empty. The docs criterion lists every rewrite the documenter must make: the new `os_user` paragraph and each stale sentence by file and section.
+      - Open: all the work is the documenter's. Every bullet of criterion 2, plus the three Demo commands, must hold afterwards.
+6. documenter: rewrote the stale sentences the Assignment names, plus a few more of the same kind. `make check` is green (coverage 99.54 %). All three Demo commands give the expected result.
+   - Demo results:
+     - The grep over `README.md` and both guides finds nothing (`exit=1`).
+     - `uv run factory-health --state-directory <tmp>` prints `healthy` and exits 0.
+     - `env -i` appears once and `RUN_FILE_MODE` once in the project guide.
+
+   Files changed:
+   - `README.md`:
+     - Removed the `ModuleNotFoundError` sentence.
+     - Now says "Six commands exist" and lists `factory-health`: it prints `healthy` and exits 0, or prints one line per stop and exits 1, and `--state-directory` is its option. The six are run, check-story, bill, watch, health and guard.
+   - `docs/operator-guide.md`:
+     - "The agent runtime" now says the call runs under `FACTORY_AGENT_USER`'s `claude` login when it is set (as the image sets it), and under the factory user's own login only without it.
+     - The paragraph on a refusing `sudo` now says a call that reached its time limit counts as ending without a usable reply, even when it printed a reply first.
+     - Removed "the image does not have yet" (the morning observation under the token file) and "Nothing starts the factory yet" (the health status section).
+   - `docs/project-guide.md`:
+     - The `ClaudeCodeRuntime` signature now names `sudo_executable=SUDO_EXECUTABLE`.
+     - The call is described as made under `request.os_user`'s login, or the process's own login without one.
+     - "The request": `os_user` is `boundaries.settings.agent_user`, or `None` without settings. I also made the same change to the `os_user` clause in `compose` ("The task composer"), and said the environment is scrubbed at its source, `production_environment()`.
+     - The flag sentence now says the preflight's `agent-run-probe` checks the flags.
+     - The "not used yet" clause was replaced by a paragraph on the call as another user, as the Interface lists it:
+       - the `sudo -n -u … -- env -i` prefix and `SUDO_EXECUTABLE`;
+       - the run files written with `RUN_FILE_MODE` (`0o640`) for every request;
+       - the `sudo:` line rule and its exception, with the error text `<sudo> refused the agent run: <line>`;
+       - the `HOME` that `agent_run_environment` sets.
+     - The `"make"` sentence now says it appears in `make_commands` and in `preflight` (`REQUIRED_TOOLS`), and that `tests/test_make_search.py` allows both.
+     - "F0010 probes the `PATH`…" became the built facts: the preflight probes the `PATH`, and `build_boundaries` builds every adapter.
+     - `FrontmatterWorkItemWriter` is described as built by `build_boundaries`.
+     - `Boundaries` lists `settings` in its field list and says `build_boundaries` builds the adapters.
+     - The cost record's `image` is `settings.image`, or `None` without settings.
+     - The PyGithub wiring is described as built from the repository's `owner/name` and the token file.
+
+   Other F0010 announcements I rewrote (not in the Assignment's list):
+   - `project-guide.md`, git options: "F0010's wiring fills `identity`…".
+   - `project-guide.md`, "Identity" paragraph: "F0010 fills `identity`…".
+   - `project-guide.md`, "ProjectCommands" paragraph: "the preflight's probe from F0010".
+   - `project-guide.md`, `build_handlers` paragraph: "No command builds a `Tick` yet; `factory-run` will."
+
+   Cross-read and found current: the rest of `README.md`; the operator guide's other "not yet observed" sentences about a real container, which are still true; `NOT_YET_HANDLED` and the "not yet handed over" wording, which are about behaviour, not F0010. I did not read `docs/decisions.md` (its F0010 mentions are dated log entries).
+
+   Stale but untouched: none found. No findings for the coder.
+
+   `make check`: check: green
+7. demo: all three commands met their `Expect:` lines; no findings.
+
+   1. Grep for the stale sentences over `README.md`, `docs/operator-guide.md`, `docs/project-guide.md`:
+   ```
+   exit=1
+   ```
+   Met: no matching line, then `exit=1`.
+
+   2. `uv run factory-health --state-directory "$(mktemp -d)"; echo "exit=$?"`:
+   ```
+   healthy
+   exit=0
+   ```
+   Met: `healthy`, then `exit=0`, as the README now says (README.md:12: "prints `healthy` and exits 0, or prints one line per stop and exits 1").
+
+   3. `grep -c -F 'env -i' docs/project-guide.md; grep -c -E 'RUN_FILE_MODE|0o?640' docs/project-guide.md`:
+   ```
+   1
+   1
+   ```
+   Met: two numbers, each at least 1.
+
+   Criteria cross-read against the files (no contradiction found):
+   - README.md:12 says "Six commands exist" and lists six: factory-run, factory-check-story, factory-bill, factory-watch, factory-health, factory-guard. No `ModuleNotFoundError`.
+   - operator-guide.md:60 ("The agent runtime"): with `FACTORY_AGENT_USER` set, as the image sets it, the call runs under that user's `claude` login. Without it, the call runs under the factory user's own login.
+   - operator-guide.md:90: a call that reached its time limit counts as ending without a usable reply, even when it printed a reply first, so a `sudo:` line then stops the run with the error that holds the line.
+   - project-guide.md:1379 ("### The request"): `os_user` is `boundaries.settings.agent_user`, or `None` without settings. The environment is "already scrubbed at its source, `production_environment()`".
+   - project-guide.md:280: the `ClaudeCodeRuntime` signature names `sudo_executable=SUDO_EXECUTABLE`.
+   - project-guide.md:300 covers the call as another user, as the Interface lists it: the `sudo -n -u … -- env -i` prefix, `SUDO_EXECUTABLE` (`/usr/bin/sudo`), `RUN_FILE_MODE` (`0o640`) for every request, the `sudo:` rule and its exception, and `HOME` from `agent_run_environment`.
+   - project-guide.md:992: the field list of `Boundaries` names `settings`.
+   - project-guide.md:215: `"make"` is in `make_commands` and `preflight`.
+   - project-guide.md:826: the cost record's `image` is `settings.image`.
+   - project-guide.md:996: the PyGithub wiring uses the token file.
+   - project-guide.md:291: the preflight's `agent-run-probe` checks the flags.
+
+   Open: none.
