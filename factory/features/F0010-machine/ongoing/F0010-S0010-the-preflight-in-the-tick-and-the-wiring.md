@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 128
 blocked: null
 comments_seen: 0
 round: 0
@@ -64,3 +64,9 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `Tick(boundaries, instance, handlers, status=None, preflight=None)`, the order fetch, load, restore, preflight, cleanup, evaluate, dispatch, and the signatures of `build_preflight` and `build_tick` are concrete. The wiring line names every constructor argument. The change to S0004's criterion 6 test is covered by FEATURE.md decision 28.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 give both orders of the fetch against the preflight. Criterion 3 covers a stopped tick doing nothing else, and criterion 4 the cleanup being skipped. Criterion 5 covers the stamp. Criterion 6 covers `preflight_failed`. Criterion 7 gives the invalid-definition side and the restore side. Each stop rule has its failing side, and the passing side is criterion 1. A tick built without a preflight (`preflight=None`) keeps today's behaviour, which the existing tick tests cover.
+   - Demo: runnable. The `Expect:` line gives two exact parameter lists to compare with the output.
+   - Architecture: the tick change is in `application`, the wiring in `entry`, and the concrete `JsonPreflightStampFile` and `StopService` are named only in the wiring. The layering is respected.
+   - Scope: this is S0010 of F0010, covering ST4.2 and the wiring. The later machine items are left to S0016, which the Assignment says.
