@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 142
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0010-S0001, F0010-S0002, F0010-S0003, F0010-S0004, F0010-S0005, F0010-S0006, F0010-S0007, F0010-S0008, F0010-S0009, F0010-S0010, F0010-S0011, F0010-S0012, F0010-S0013, F0010-S0014, F0010-S0015, F0010-S0016, F0010-S0017, F0010-S0018, F0010-S0019, F0010-S0020, F0010-S0021, F0010-S0022]
+outcome: accepted
 ---
 # Acceptance of The machine
 
@@ -304,3 +305,4 @@ Each repair went through in the minimum six runs, with no question and no rework
    6. Decisions: the 37 FEATURE decisions, with decision 30 still open and decision 37 to confirm. Five open points from the first acceptance were never answered: the token default, the agent can rewrite its agent home, the standing `main_branch_failing`, a missing health file reads healthy, and the template's write paths. New: the `make check` timeout guidance.
    7. Slow checks: none beyond `make check`. The morning observations and the image pins are still pending.
    8. Cost: 165 runs, 494.4 min, $45.75 in total. The five repairs took 30 runs, 89 min and $4.45, each in six runs with no rework. S0020 took 32 min for two list edits, and its log does not say why.
+2. done (pull request merged); cost: 2 runs, 58.7 min, 130 turns, 302k tokens in (12816k more from cache), 88k out, $6.75
