@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 117
 blocked: null
 comments_seen: 0
@@ -55,3 +55,18 @@ Expect: the last line is `<n> passed in <time>`, with n at least 9 (five rows of
    - Demo: one runnable pytest command. Its Expect line is checkable (last line `<n> passed`, n at least 9, with the row count explained).
    - Architecture: tests only, in `tests/application/` and `tests/domain/`, mirroring the package. No `src/` change is expected. No new dependency and no change to existing tests.
    - Scope: it is within F0009 (feature acceptance), a story proposed by the feature acceptance and listed in `FEATURE.md`. It touches nothing under Out of scope.
+3. tester: Wrote the tests for the three refused sides. Each criterion maps to one parametrized test:
+   - criterion 1: tests/application/test_acceptance_refusals.py::test_only_a_due_feature_is_opened. It has 5 rows: in_flight, merged_unrecorded, accepted and refused, which raise `CannotHandle` with kind `acceptance_due` and the reason `feature F0002 is <status>, not due`, and a due row, where `open` returns `F0002-A0001` and the branch `work-item/F0002-A0001` exists on the remote.
+   - criterion 2: tests/application/test_acceptance_refusals.py::test_a_refused_opening_leaves_every_remote_branch_as_it_was. It has the 4 refusing rows. `for-each-ref refs/heads` on the bare remote is the same before and after, and there is no `work-item/F0002-A0002`.
+   - criterion 3: tests/application/test_acceptance_refusals.py::test_a_story_file_counts_only_directly_in_its_folder. It has 2 rows: `done/old/` only gives incomplete with done `[]`; `done/` plus `backlog/old/` gives due with done `["F0002-S0001-a.md"]`.
+   - criterion 4: tests/domain/test_acceptance_facts_limit.py::test_the_next_story_number_ends_at_9999. It has 2 rows: with 9998 as the highest, next_story is `F0002-S9999`; with 9999, `type(e) is ValueError` and the exact message.
+   - criteria 5 and 6 are not tested (they are `make check` and docs).
+
+   Setup: criteria 1 and 2 share the indirect-parametrized fixture `brought` in the new module. It uses `walk` and brings F0002 into each status the way the Interface says: open after a fetch; open, then `human.merge`; or push the done report with the outcome. It then checks `walk.status()`. Criterion 3 pushes its own feature file and story files with `human.push_file`.
+
+   Files created: tests/application/test_acceptance_refusals.py and tests/domain/test_acceptance_facts_limit.py. No existing test changed.
+
+   Run: `make test` is green; the new tests pass now. This is expected, because the assignment says the code already behaves as the criteria say, so these tests are not red. Every module imported. `make lint` is green. I skipped the type check as the stage says. The outcome is mapped through a typed `dict[AcceptanceStatus, AcceptanceOutcome]` so that `AcceptanceState(outcome=...)` passes `mypy --strict`. The coder's `make check` confirms this.
+
+   `make lint`: lint: green
+   `make test`: test: green
