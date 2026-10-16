@@ -36,6 +36,11 @@ class PipelineLoader:
         stop.
         """
         on_main = ref == PIPELINE_REF
+        definition = self._load_definition(ref, on_main)
+        self._check_agent_files(definition, on_main)
+        return definition
+
+    def _load_definition(self, ref: str, on_main: bool) -> PipelineDefinition:
         try:
             definition = self._read(ref)
         except PipelineDefinitionInvalid as error:
@@ -44,8 +49,12 @@ class PipelineLoader:
             raise
         if on_main:
             self._stops.clear_stop("pipeline_definition_invalid")
+        return definition
+
+    def _check_agent_files(self, definition: PipelineDefinition, on_main: bool) -> None:
         try:
-            self._read_agent_files(definition)
+            for role in definition.roles:
+                self._boundaries.agent_definitions.read(role)
         except AgentDefinitionInvalid as error:
             if on_main:
                 detail = f"{error.name}: {error.fault}"
@@ -53,7 +62,6 @@ class PipelineLoader:
             raise
         if on_main:
             self._stops.clear_stop("agent_definition_invalid")
-        return definition
 
     def _read(self, ref: str) -> PipelineDefinition:
         text = self._boundaries.git.show_file(ref, PIPELINE_DEFINITION_FILE)
@@ -75,10 +83,6 @@ class PipelineLoader:
         ]
         if faults:
             raise PipelineDefinitionInvalid("; ".join(faults))
-
-    def _read_agent_files(self, definition: PipelineDefinition) -> None:
-        for role in definition.roles:
-            self._boundaries.agent_definitions.read(role)
 
     def _stop(self, reason: RepositoryStopReason, detail: str) -> RepositoryStop:
         return RepositoryStop(
