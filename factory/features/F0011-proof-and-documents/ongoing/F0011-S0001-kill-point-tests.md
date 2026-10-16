@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 145
 blocked: null
 comments_seen: 2
@@ -323,3 +323,12 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    1. `tests/proof_support.py:521` (`_resumes_at_first_tick`), used by `tests/test_kill_points.py::test_the_restarted_factory_reruns_a_charged_stage_at_its_first_tick`. Criterion 7 says the rerun request comes at the *first* tick after the restart. The check only looks at `requests()` after all three ticks in `_rerun` (`proof_support.py:382`). Because `run_ticks` never moves the clock, the 5-second check of criterion 8 cannot tell the ticks apart either. So a factory that reruns at the second or third tick would still pass. Fix: in `_rerun`, run one tick, take a copy of `restarted.agent_runtime.requests()`, then run the other two ticks, and have the condition check that copy. That means adding a field to `CaseResult` beyond the Interface, which the tester should state in their entry.
    2. `tests/test_kill_points.py`, `test_no_write_of_the_interrupted_run_reaches_the_remote` is parametrized `@_over(CRASHES)`. Criterion 11 says that in "the other three cases" (`post-record`, `tick-other` and `agent-run-dies`) `MARKER` is in no commit's `src/leak.py`. `agent-run-dies` never runs this test. Criterion 18 only checks the stall commit and the branch end, not every commit. Fix: parametrize this test over `ALL`. `_no_interrupted_write_in_history` already filters to `src/leak.py` when `kill_point` is `None`. Note for the human: the Interface (ticket line 151, "the crash criteria over the crash cases") contradicts criterion 11 here. I'm treating criterion 11 as the one that counts.
+10. coder: round 1. Both of the reviewer's findings in entry 9 are test changes, and the coder may not edit tests (R9), so this goes back to the tester. I changed nothing under `src/` or `tests/`. `src/factory/domain/kill_point_cases.py` (commit 1599e19) stays as it is.
+
+    The tester makes exactly these two changes:
+    1. Criterion 7, "first tick": in `tests/proof_support.py`, `_rerun` (line 382) runs one tick, saves a copy of `restarted.agent_runtime.requests()` in a new `CaseResult` field, then runs the remaining two ticks. `_resumes_at_first_tick` (line 521) checks that saved copy, not the requests after all three ticks. The new field goes beyond the Interface, and the tester's entry should say so.
+    2. Criterion 11: in `tests/test_kill_points.py`, `test_no_write_of_the_interrupted_run_reaches_the_remote` is parametrized `@_over(ALL)` instead of `@_over(CRASHES)`, so `agent-run-dies` is covered too. `_no_interrupted_write_in_history` already limits itself to `src/leak.py` when `kill_point` is `None`.
+
+    On finding 2, the Interface (ticket line 151, "the crash criteria over the crash cases") contradicts criterion 11, which names `agent-run-dies` explicitly. I go with the reviewer: criterion 11 wins, because it is the more specific statement and it is the one the acceptance checks against. If the human wants the Interface sentence brought in line, that is a ticket text edit for the next doing round.
+
+    Expectation: neither change should need a `src/` change. Criterion 11 for `agent-run-dies` already overlaps with criterion 18, which passes, and the restart path reruns in its first tick by construction. If either one goes red, it is a `src/` defect and I fix it in the next doing round.
