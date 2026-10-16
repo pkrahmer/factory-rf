@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 125
 blocked: null
 comments_seen: 0
@@ -155,3 +155,40 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
    - Demo: all three blocks are runnable commands, and each `Expect:` line is checkable against the output.
    - Architecture: `health.py` is in `entry` and reads its store through `entry.wiring`. `RepositoryWaiter` is in `application` and uses only interfaces (preparer, git, stops). Adapters are touched only in wiring. This fits CLAUDE.md's layers.
    - Scope: inside F0010's "health check and entrypoint's stops" item. The story builds no watchdog, which FEATURE.md puts out of scope.
+3. tester: Wrote the red tests for criteria 1–22 from the Interface and criteria. `make lint` is green. One `make test` run stopped at collection on purpose: `ModuleNotFoundError` for `factory.entry.health`, and `ImportError` for `RepositoryWaiter` from `factory.application.scheduler`. `tests/entry/test_run_waiter.py`, `tests/test_compose.py` and `tests/test_entrypoint.py` were not reached in that run. When they run they fail on the missing `image/compose.yml` and `image/entrypoint.sh`, and on `run_instance` still using the bare preparer.
+
+   Mapping:
+   - criterion 1: tests/entry/test_health.py::test_a_state_directory_without_a_health_file_is_healthy
+   - criterion 2: tests/entry/test_health.py::test_one_stop_prints_its_line_and_returns_one
+   - criterion 3: tests/entry/test_health.py::test_a_given_store_is_read_and_each_stop_prints_one_line_in_order
+   - criterion 4: tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared (seven rows; real StopService on the conftest `boundaries`, `--state-directory tmp_path/state`)
+   - criterion 5: tests/entry/test_health.py::test_the_module_run_as_a_process_exits_with_the_health_status (rows: no stop → 0, one stop → 1; started through `run_process`)
+   - criterion 6: tests/application/test_repository_waiter.py::test_a_ready_checkout_is_not_fetched_and_leaves_no_stop
+   - criterion 7: tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error (rows: missing URL, remote deleted after cloning an empty bare)
+   - criterion 8: tests/application/test_repository_waiter.py::test_a_remote_without_any_commit_is_a_stop_at_the_clocks_time
+   - criterion 9: tests/application/test_repository_waiter.py::test_the_pushed_pipeline_definition_is_fetched_and_clears_the_stop
+   - criterion 10: tests/application/test_repository_waiter.py::test_a_main_branch_without_the_pipeline_definition_is_a_stop
+   - criterion 11: tests/application/test_repository_waiter.py::test_a_repeated_fault_is_reported_once_and_a_changed_fault_again (sequence: no main, no main, no pipeline file, main deleted again; expects 3 `stop repository repository_unavailable: …` lines)
+   - criterion 12: tests/entry/test_run_waiter.py::test_run_instance_over_a_remote_without_commits_stops_and_pauses_thirty_seconds
+   - criterion 13: tests/test_compose.py::test_the_service_restarts_unless_stopped_and_runs_the_health_check
+   - criterion 14: tests/test_compose.py::test_each_required_variable_refuses_to_start_unset_and_has_no_default, ::test_the_image_label_defaults_to_unlabelled, ::test_the_three_volumes_are_mounted_and_declared
+   - criterion 15: tests/test_entrypoint.py::test_every_line_of_a_full_run_is_time_stamped (rows: FACTORY_INSTANCE unset and set), ::test_the_script_writes_output_only_through_its_log_function
+   - criterion 16: tests/test_entrypoint.py::test_the_agents_are_replaced_by_the_images_and_the_settings_copied
+   - criterion 17: tests/test_entrypoint.py::test_a_missing_image_file_ends_the_run_with_one_line_before_the_instance (rows: claude/agents, claude/settings.json)
+   - criterion 18: tests/test_entrypoint.py::test_without_a_claude_home_the_agents_go_into_the_users_home
+   - criterion 19: tests/test_entrypoint.py::test_the_runs_directory_gets_the_mode_2750 (rows: missing, existing with 755)
+   - criterion 20: tests/test_entrypoint.py::test_the_instance_starts_in_the_opt_directory
+   - criterion 21: tests/test_entrypoint.py::test_the_entrypoint_hands_over_to_the_run_module
+   - criterion 22: tests/test_entrypoint.py::test_the_entrypoint_sets_no_git_configuration
+
+   Files created: tests/entry/test_health.py, tests/entry/test_run_waiter.py, tests/application/test_repository_waiter.py, tests/test_compose.py, tests/test_entrypoint.py.
+
+   Choices for the coder:
+   - Criterion 12 lives in a new file, `tests/entry/test_run_waiter.py`. I did not add it to `tests/entry/test_run.py`, a test I did not write.
+   - The waiter tests use a local `RecordingLog`. They build their boundaries with `dataclasses.replace` on the conftest `boundaries`: their own `GitCli`, the log, and the checkout at `tmp_path/instance`.
+   - The entrypoint tests run `sh image/entrypoint.sh` with PATH set to `<stubs>:/usr/local/bin:/usr/bin:/bin`. The stubs are `python` and `git` written in `sh`. They record their calls to files.
+   - Criterion 15 counts the lines of both stdout and stderr; every line must have a time stamp.
+   - Criterion 17 also expects stdout to be empty, because the check is the script's first step.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
