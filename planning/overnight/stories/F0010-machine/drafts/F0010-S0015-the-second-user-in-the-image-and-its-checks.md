@@ -15,7 +15,7 @@ Defaults:factory !use_pty
 factory ALL=(agent) NOPASSWD: ALL
 ```
 
-`image/Dockerfile` gains these instructions before the `RUN` that writes `/opt/factory/image-id` (which stays after the last `COPY`, F0010-S0005 criterion 12):
+`image/Dockerfile` gains these instructions before the `RUN` that writes `/opt/factory/image-id` (which stays after the last `COPY`, F0010-S0006 criterion 12):
 
 ```dockerfile
 COPY image/sudoers-factory-agent /etc/sudoers.d/factory-agent

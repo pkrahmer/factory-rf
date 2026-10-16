@@ -12,30 +12,32 @@
 
 Errors: a report that `snapshots()` cannot read raises `WorkItemFormatError` from `read`, as `snapshots()` already does for the watcher's evaluation.
 
-Tests: one new module, `tests/application/test_board_reader_acceptance.py`, with the fixtures of `tests/conftest.py`. It opens an acceptance as `tests/application/test_stage_run_acceptance.py` does (`AcceptanceService(boundaries, definition).open("F0002")` after pushing `F0002-todo` with archived stories). No existing test module changes.
+Tests: one new module, `tests/application/test_board_reader_acceptance.py`, with the fixtures of `tests/conftest.py`. The `walk` fixture pushes `F0002-todo` (title `Todo service`, two archived stories) and installs the agents; the module does not push that feature itself. An acceptance is opened with `AcceptanceService(boundaries, walk.definition).open("F0002")` after a fetch; its state on its branch is set with `walk.record(...)`; a claim is set by pushing the rendered report with that state to `work-item/F0002-A0001` with `human.push_file`. The merged case: `walk.open("F0002-A0001")` (one tick and the draft pull request), `walk.record("F0002-A0001", <number>, [], stage="approval", handed_over="approval")`, `walk.merge("F0002-A0001", <number>)`, and the branch deleted on the bare remote with `run_git(remote, "branch", "-D", "work-item/F0002-A0001")`, as `tests/application/test_acceptance_snapshots.py` does; it is booked into `done/` by one `walk.tick()`. A definition without an acceptance stage is `walk.definition.model_copy(update={"acceptance_stage": None})`. No existing test module changes.
 
 ## Acceptance criteria
 
 1. With the acceptance `F0002-A0001` opened on its branch and no story in progress, `BoardReader(boundaries).read(definition).rows` is one row: `work_item == "F0002-A0001"`, `title == "Acceptance of Todo service"`, `folder == "in-progress"`, `stage == "acceptance"`, `blocked is None`, `claim is None`, `pull_request is None`.
 2. After the report's state on its branch is set to stage `approval`, `pull_request` 3 and `blocked` `question`, the acceptance's row shows `stage == "approval"`, `pull_request == 3` and `blocked == "question"`.
-3. With the story `F0001-S0001` in `in-progress/` and the acceptance `F0002-A0001` opened, the rows are in the order `F0001-S0001`, `F0002-A0001`. With a story of `F0003` also in `in-progress/`, the acceptance's row comes before the `F0003` story's row.
-4. A merged acceptance not yet recorded (its report in `in-progress/` on `origin/main`, the branch deleted) still has its row. Once it is booked into `done/`, it has none.
-5. With a pipeline definition without an `acceptance_stage`, an acceptance branch on the remote adds no row, and the story rows are still there.
-6. `run_watch` prints the acceptance's row under `work items` in the same column format as a story's row: `F0002-A0001  Acceptance of Todo service  in-progress  stage=acceptance  blocked=-  claim=-  running_since=-  pull_request=-`.
-7. `make check` stays green.
-8. docs: the operator guide's `factory-watch` section says that a work item row exists for each story in `in-progress/` and for each running acceptance, and that an acceptance's row comes after its feature's stories.
+3. With the report's state on its branch holding a claim of `factory-1` at stage `acceptance`, the acceptance's row has `claim` equal to that claim and `running_since` equal to its `started_at`.
+4. The rows are in `work_item_order`, in one parametrized test with the acceptance `F0002-A0001` opened in each row: with the story `F0001-S0001` started, the order is `F0001-S0001`, `F0002-A0001`; with `F0001-S0001` started and a story `F0003-S0001` in `in-progress/` of `F0003-later`, it is `F0001-S0001`, `F0002-A0001`, `F0003-S0001`; and with the story `F0002-S0003` pushed to `F0002-todo`'s backlog and started after the opening, it is `F0002-S0003`, `F0002-A0001`.
+5. A merged acceptance not yet recorded (its report in `in-progress/` on `origin/main`, the branch deleted) still has its row. Once it is booked into `done/`, it has none.
+6. With a pipeline definition without an `acceptance_stage`, an acceptance branch on the remote adds no row, and the story rows are still there.
+7. `run_watch` prints the acceptance's row under `work items` in the same column format as a story's row: `F0002-A0001  Acceptance of Todo service  in-progress  stage=acceptance  blocked=-  claim=-  running_since=-  pull_request=-`.
+8. A report on the acceptance's branch whose front matter is a plain work item state (no `stories` or `outcome` key) makes `BoardReader(boundaries).read(definition)` raise `WorkItemFormatError` whose `path` is the report's path.
+9. `make check` stays green.
+10. docs: the operator guide's `factory-watch` section says that a work item row exists for each story in `in-progress/` and for each running acceptance, and that an acceptance's row comes after its feature's stories; the project guide's "The watcher's command line" says that the board's rows are those of `RemoteWorkItems.read` and `AcceptanceReader.snapshots()`, sorted by `work_item_order`.
 
 ## Demo
 
 ```bash
 uv run pytest --no-header -p no:cacheprovider tests/application/test_board_reader_acceptance.py
 ```
-Expect: the last line is `<n> passed in <time>`, with n at least 6.
+Expect: the last line is `<n> passed in <time>`, with n at least 10 (criteria 1 to 8, criterion 4 with three rows).
 
 ```bash
-grep -n "running acceptance" docs/operator-guide.md
+awk '/^## /{s=($0=="## Looking at the remote: `factory-watch`")} s && /running acceptance/' docs/operator-guide.md
 ```
-Expect: at least one line in the `factory-watch` section.
+Expect: at least one line, each from the `factory-watch` section (the command prints nothing from any other section).
 
 ## Log (append only)
 

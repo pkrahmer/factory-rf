@@ -13,7 +13,6 @@ PROBE_AGENT = "coder"
 PROBE_PROMPT = "Probe: end with the decision question and the entry probe."
 PROBE_BUDGET_USD = Decimal("0.10")
 PROBE_RUN_TIME_LIMIT = timedelta(minutes=2)
-GUARD_COMMAND = "factory-guard"
 
 def agent_environment_item(
     environment: Mapping[str, str],
@@ -24,6 +23,8 @@ def agent_run_probe_item(
     boundaries: Boundaries, settings: InstanceSettings, environment: Mapping[str, str]
 ) -> PreflightItem: ...
 ```
+
+`GUARD_COMMAND = "factory-guard"` moves from `factory.adapters.claude_runtime` to `factory.domain.agent_runs`; `claude_runtime` and this module import it from there, so the name has one definition (`CLAUDE.md`: a second copy of an existing helper is a finding, and the application layer cannot import the adapter's).
 
 `src/factory/entry/wiring.py` (extends the module)
 
@@ -43,7 +44,7 @@ Rules:
 - `machine_extras(boundaries, settings, which, environment)` returns these callables, in this order, each returning its item when called: `token_file_item(settings.token_file, uid=os.getuid(), stat=os.stat)` (named `token-file`), `agent_user_item(settings, Path.exists)` (`agent-user`), `tool_item("sudo", which)` (`tool:sudo`) only when `settings.agent_user` is not `None`, `agent_environment_item(environment, <shutil.which with a path>, Path.is_dir)` and `agent_run_probe_item(boundaries, settings, environment)`. They follow `agent-runtime-version` in the report, as the `extra` items of `MachineChecks`.
 - `build_tick(boundaries, settings, which=shutil.which)` computes `environment = agent_run_environment(settings, production_environment())` once, gives it to `handler_factory(...)` and to `machine_extras(...)`, and passes `preflight=build_preflight(boundaries, settings, which, machine_extras(...))` to the `Tick`.
 
-Tests: `tests/application/test_agent_environment_item.py`, `tests/application/test_agent_run_probe.py` (`FakeAgentRuntime` scripted `completed` and `died`, `ScriptedRun`; a `ClaudeCodeRuntime` on the stand-in of `tests/adapters/claude_stand_in.py` for the flags; a runtime double that inherits `AgentRuntime` and raises `AgentRuntimeError`), `tests/entry/test_wiring_extras.py`. From this story on `build_tick`'s preflight holds the extra items, so two earlier tests that tick through `build_tick` meet them: F0010-S0004's test of its criterion 6 (as F0010-S0009 changed it) and F0010-S0013's test of its criterion 14. The tester of this story changes those two tests and nothing else in them: `settings.token_file` names a file of the test's uid with mode 0600, `settings.agent_user` is `agent` (a token file without an agent user fails the item `agent-user`, decision 25), `settings.agent_home` is the `agent_home` fixture (the agent user's `HOME` is its parent, which the item `agent-environment` requires to be a directory), the `which` answers a path for `sudo` too (the item `tool:sudo`), a scripted `completed` run is queued for the probe before the stage's run, and the stage's request is the last of `agent_runtime.requests()`; in F0010-S0004's test that request's `environment` then equals `agent_run_environment(settings, production_environment())` instead of `production_environment()`; the human's word is in `FEATURE.md` decision 28. A test of `build_tick` or `run_instance` never starts the real `claude`: it uses `FakeAgentRuntime` or a `claude_executable` that does not exist.
+Tests: `tests/application/test_agent_environment_item.py`, `tests/application/test_agent_run_probe.py` (`FakeAgentRuntime` scripted `completed` and `died`, `ScriptedRun`; a `ClaudeCodeRuntime` on the stand-in of `tests/adapters/claude_stand_in.py` for the flags; a runtime double that inherits `AgentRuntime` and raises `AgentRuntimeError`), `tests/entry/test_wiring_extras.py`. From this story on `build_tick`'s preflight holds the extra items, so two earlier tests that tick through `build_tick` meet them: F0010-S0004's test of its criterion 6 (as F0010-S0010 changed it) and F0010-S0014's test of its criterion 14. The tester of this story changes those two tests and nothing else in them: `settings.token_file` names a file of the test's uid with mode 0600, `settings.agent_user` is `agent` (a token file without an agent user fails the item `agent-user`, decision 25), `settings.agent_home` is the `agent_home` fixture (the agent user's `HOME` is its parent, which the item `agent-environment` requires to be a directory), the `which` answers a path for `sudo` too (the item `tool:sudo`), a scripted `completed` run is queued for the probe before the stage's run, and the stage's request is the last of `agent_runtime.requests()`; in F0010-S0004's test that request's `environment` then equals `agent_run_environment(settings, production_environment())` instead of `production_environment()`; the human's word is in `FEATURE.md` decision 28. A test of `build_tick` or `run_instance` never starts the real `claude`: it uses `FakeAgentRuntime` or a `claude_executable` that does not exist.
 
 ## Acceptance criteria
 

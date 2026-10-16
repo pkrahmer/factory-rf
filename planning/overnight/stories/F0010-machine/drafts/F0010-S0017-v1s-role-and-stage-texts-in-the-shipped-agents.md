@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-Carry v1's role and stage texts into the seven shipped agents, in the glossary's words (questionnaire 1, Q29: v1's texts, renamed, so that the baseline run compares with v1's run on the same instructions). The shipped agent bodies of the earlier story hold only each role's boundary sentence and entry sentence; this story adds after them what v1 preloaded into each agent as skills: the pipeline rules every stage agent works under, the role's text where v1 had one, and the stage's text. The source is v1's `claude/` tree, which the human copies into the repository as `planning/v1-texts/` (the files `agents/*.md` and `skills/*/SKILL.md`, in the same relative paths) before this story starts; the copy lies in the human's directory, outside every write path, and no stage edits or cross-reads it. The coder reads it and writes only under `claude/`. When `planning/v1-texts/` is missing the coder ends with `question`. The text is renamed with the table below, and `stuck` becomes `question` (F0005 decision 24: v1.1 has no `stuck`; an agent that cannot finish asks). Sentences that describe v1's own mechanics are rewritten to what v1.1 does or dropped when v1.1 does it in code: the factory commits, pushes and moves the work item (the prompt's end line), so no agent commits or pushes; the promotion of a story, the round caps and the pipeline files are the factory's and the human's. The acceptance reviewer's text names the report sections that F0009 reads. This story covers no condition of its own; it finishes R30's shipped agents and keeps kept thing 6. A run of the real agents is the morning observation (the baseline run). No skill file is shipped (the runner applies no `skills` key).
+Carry v1's role and stage texts into the seven shipped agents, in the glossary's words (questionnaire 1, Q29: v1's texts, renamed, so that the baseline run compares with v1's run on the same instructions). The shipped agent bodies of the earlier story hold only each role's boundary sentence and entry sentence; this story adds after them what v1 preloaded into each agent as skills: the pipeline rules every stage agent works under, the role's text where v1 had one, and the stage's text. The source is `planning/v1-texts/`, the verbatim copy of v1's `claude/` tree (pkrahmer/factory at `f8bc9d2`: the files `agents/*.md` and `skills/*/SKILL.md`, in the same relative paths) that the human added on 2026-10-15 (`FEATURE.md` decision 32); the copy lies in the human's directory, outside every write path, and no stage edits or cross-reads it. The coder reads it and writes only under `claude/`. The text is renamed with the table below, and `stuck` becomes `question` (F0005 decision 24: v1.1 has no `stuck`; an agent that cannot finish asks). Sentences that describe v1's own mechanics are rewritten to what v1.1 does or dropped when v1.1 does it in code: the factory commits, pushes and moves the work item (the prompt's end line), so no agent commits or pushes; the promotion of a story, the round caps and the pipeline files are the factory's and the human's. The acceptance reviewer's text names the report sections that F0009 reads. This story covers no condition of its own; it finishes R30's shipped agents and keeps kept thing 6. A run of the real agents is the morning observation (the baseline run). After v1's texts each body ends with a section `## Lessons` of v1.1's own: the general rows of `planning/lessons-for-the-skills.md` (`FEATURE.md` decision 36). No skill file is shipped (the runner applies no `skills` key).
 
 ## Interface
 
@@ -11,6 +11,37 @@ Each `claude/agents/<role>.md` keeps its front matter and its first two paragrap
 - `## Rules`: v1's pipeline rules `factory-rules` carries. R1 to R4, R6, R8, R9 and R11 are carried with the rename table; R2 is rewritten to the v1.1 contract: the agent ends with a decision, one of the `Allowed decisions` its prompt lists, which always include `question`, and with a journal entry. R5, R7, R10 and R12 to R15 describe v1's tickets, stage table, commit conventions, round caps and pipeline files: they are rewritten in the glossary's words to what the prompt, the pipeline definition and the write paths say, or dropped when v1.1 does them in code. The section says that the factory commits, pushes and moves the work item, and that the agent never pushes, checks out, switches, merges, pulls or calls `gh`.
 - `## Role`: v1's role skill, for the roles that had one: `tester` (`role-tester`), `coder` (`role-coder`), `reviewer` (`role-reviewer`), `documenter` (`role-documenter`) and `acceptance-reviewer` (`role-acceptor`). `intake` and `smoke-tester` have no `## Role` section.
 - `## Stage`: v1's stage skill: `intake` (`stage-intake`), `tester` (`stage-tests`), `coder` (`stage-doing`), `reviewer` (`stage-review`), `documenter` (`stage-docs`), `smoke-tester` (`stage-demo`) and `acceptance-reviewer` (`stage-feature`).
+- `## Lessons`: v1.1's own part, after v1's texts: the general rows of `planning/lessons-for-the-skills.md` (the human, 2026-10-14), one bullet each, in this order and verbatim, in the bodies of the roles named. Every body starts the section with the first bullet; `smoke-tester` and `acceptance-reviewer` have only that one.
+
+The bullets, by role, exactly as they go into the files (each line that starts with `- ` is one bullet of the section; the other lines are labels):
+
+```text
+every role (the first bullet of each body):
+- Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+
+intake (after the first):
+- Every clause of an Interface rule has its own criterion, on both sides: an ordering, the second branch of an "or", a "when longer than", the value for every kind an enum names, an exact value beyond its first part. A clause without one is a question.
+- Every behaviour that the Description, the Interface or a decision of the feature states has its own criterion; one without is a question.
+- A story that changes a test another story wrote names that test and has the human's word; one that does not is a question.
+
+tester (after the first):
+- Every stated limit is tested on both sides, also when no criterion spells out the refused side. The sides of one rule are rows of one parametrized test, not separate test functions, and setup that several tests share is a fixture.
+- The test data you build (a work item text, a state, a pipeline definition, a push) is valid under the readers and validators already built, unless the test is about that rule.
+- You change a test another story wrote only when the story names that test and the human has given their word; you make that change, the coder never does.
+
+coder (after the first):
+- Before you write a helper, search the code for one that does the same, and reuse or extend it; the reviewer counts a second copy of an existing helper as a finding.
+- You never change a test, not even one the story names as changed with the human's word: the tester makes that change.
+
+reviewer (after the first):
+- Count a second copy of an existing helper as a finding, and name the helper it copies.
+- Count as a finding a stated limit tested on one side only, and the sides of one rule written as separate test functions instead of rows of one parametrized test.
+
+documenter (after the first):
+- The project guide is an index plus one file for each domain, each well under the 2,000 lines the file tool reads by default; split a file before it grows past that.
+
+smoke-tester, acceptance-reviewer: the first bullet only.
+```
 
 The rename table, applied to every carried text:
 
@@ -30,6 +61,8 @@ The rename table, applied to every carried text:
 | verdict | recommendation |
 | `max_rounds` | `round_cap` |
 | `stuck` | `question` |
+| `Assignment`, `## Assignment` (the story's section) | `Description`, `## Description` |
+| `## Log (append only)` | `## Journal` |
 
 The row `log` has no criterion of its own: `git log`, which the texts keep, holds the word. The other rows are tested by criteria 3 and 4.
 
@@ -44,9 +77,9 @@ Tests: `tests/test_claude_agent_texts.py` (reads `claude/agents/*.md` and `templ
 ## Acceptance criteria
 
 1. The body of each of the seven files still starts with its boundary sentence, a blank line and its entry sentence, exactly as in the table of the earlier story.
-2. After those two paragraphs the `## ` headings of each body are, in order, `## Rules`, `## Role` and `## Stage`, with no `## Role` for `intake` and `smoke-tester` and no other `## ` heading.
+2. After those two paragraphs the `## ` headings of each body are, in order, `## Rules`, `## Role`, `## Stage` and `## Lessons`, with no `## Role` for `intake` and `smoke-tester` and no other `## ` heading.
 3. No body contains the word `stuck`.
-4. No body contains, as a whole word and in any case, any of `ticket`, `lane`, `gate`, `demo`, `acceptor`, `verdict`, `outcome` (also in the plural), `drafts`, `ongoing`, `promote`, `max_rounds` or `stages.yml`.
+4. No body contains, as a whole word and in any case, any of `ticket`, `lane`, `gate`, `demo`, `acceptor`, `verdict`, `outcome` (also in the plural), `drafts`, `ongoing`, `promote`, `max_rounds` or `stages.yml`; and no body contains `Assignment` or `(append only)`: v1.1's story has a `## Description` and a `## Journal`.
 5. Each body names every decision of its stage in inline code, as listed under the decisions each body names: for example the body of `coder` contains `` `review` ``, `` `tests` `` and `` `question` ``, the decisions derived from the `next` of the role's stage in `template/factory/pipeline.yml`.
 6. The `## Rules` section of each body contains the anchors `Git is the only truth.`, ``To ask the human, end with `question` `` and ``one of the `Allowed decisions` your prompt lists``.
 7. The `## Rules` section of each body contains `The factory commits, pushes and moves the work item.` and ``You never push, check out, switch, merge, pull or call `gh`.``
@@ -55,8 +88,9 @@ Tests: `tests/test_claude_agent_texts.py` (reads `claude/agents/*.md` and `templ
 10. The body of `acceptance-reviewer` contains ``Write the proposed stories into the feature's `backlog/`.``
 11. The body of `smoke-tester` contains ``compare the output with its `Expect:` line`` and `its trimmed output in a fenced block`.
 12. The body of `coder` contains `A test that cannot pass against the work item` and ``end with `tests` and an entry naming the test and the change``.
-13. make check stays green.
-14. docs: `docs/project-guide.md` says that each shipped agent's body carries v1's rules, role and stage texts renamed with the table above after its two sentences, lists the rename table, and says where an agent's text is changed (`claude/agents/`); `docs/decisions.md` records why v1's texts were carried over and renamed (questionnaire 1, Q29: the baseline run compares with v1's run on the same instructions) and that `stuck` does not exist in v1.1.
+13. The `## Lessons` section, the last of each body, holds exactly the bullets the Interface lists for its role, verbatim and in that order (one test case for each role).
+14. make check stays green.
+15. docs: `docs/project-guide.md` says that each shipped agent's body carries v1's rules, role and stage texts renamed with the table above after its two sentences, lists the rename table, and says where an agent's text is changed (`claude/agents/`), and says that the last section, `## Lessons`, is v1.1's own, after v1's texts, and holds the lessons of v1.1's build for each role; `docs/decisions.md` records why v1's texts were carried over and renamed (questionnaire 1, Q29: the baseline run compares with v1's run on the same instructions) and that `stuck` does not exist in v1.1.
 
 ## Demo
 
@@ -68,7 +102,7 @@ for path in sorted(Path('claude/agents').glob('*.md')):
     print(path.stem, re.findall(r'^## .*', path.read_text(), re.M))
 "
 ```
-Expect: seven lines, one for each agent in sorted order. The lists are `['## Rules', '## Stage']` for `intake` and `smoke-tester`, and `['## Rules', '## Role', '## Stage']` for the other five.
+Expect: seven lines, one for each agent in sorted order. The lists are `['## Rules', '## Stage', '## Lessons']` for `intake` and `smoke-tester`, and `['## Rules', '## Role', '## Stage', '## Lessons']` for the other five.
 
 ```bash
 uv run python -c "

@@ -1,0 +1,52 @@
+# The watcher reads the instance's settings
+
+## Assignment (as of log entry 1)
+
+Give `factory-watch` its settings. Its `main()` was left by F0006-S0006 at exit status 2 with the line `factory-watch: no instance settings are wired yet`, until the instance settings exist. They exist now: `watch.main` reads the same environment as `factory-run` and builds the boundaries the same way, through `boundaries_from_environment` of the previous story, so that the human's window on the remote looks at the instance that the container runs. An invalid environment and an unreadable token file are written to standard error, never as a traceback, and end with status 2. This story implements R25 for the watcher. F0006-S0006's Assignment announces the change ("F0010-S0001 replaces that line by `read_settings` and `build_boundaries`"). A real container is the morning observation.
+
+## Interface
+
+`src/factory/entry/watch.py` (F0006-S0006's module: `main` changes in one branch)
+
+```python
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    boundaries: Boundaries | None = None,
+    instance: Name | None = None,
+    out: TextIO | None = None,
+    err: TextIO | None = None,
+) -> int: ...
+```
+
+Rules:
+
+- `watch.main`, when `boundaries` or `instance` is `None`, no longer writes `factory-watch: no instance settings are wired yet`: it calls `boundaries_from_environment(os.environ)` (the same readers as `main` of `factory.entry.run`) and runs `run_watch` with the boundaries and the settings' instance. A `SettingsInvalid` there is written as `factory-watch: settings invalid: <variable>: <fault>` and a newline to `err`, nothing goes to `out`, and `main` returns 2. A request for `--follow` still exits 2 from the argument parser first (F0006-S0006).
+
+Tests: `tests/entry/test_watch_settings.py`. F0006-S0006's test of its criterion 20, `tests/entry/test_watch.py::test_main_without_instance_settings_returns_2` (`main([])` with no boundaries returns 2 and writes the line `no instance settings are wired yet`), states the opposite of this story and is replaced by criteria 1 and 2 below. The tester deletes that one test function in the tests stage (the coder's write paths hold no test), with the human's word of `FEATURE.md` decision 28, and changes nothing else in the file. The tests set the environment through `monkeypatch` and put the token file and the image id file into `tmp_path`.
+
+## Acceptance criteria
+
+1. `watch.main([])` with `FACTORY_REPOSITORY_URL` set and `FACTORY_INSTANCE` removed through `monkeypatch` returns 2, writes `factory-watch: settings invalid: FACTORY_INSTANCE: ` followed by the fault to `err` and nothing to `out`.
+2. `watch.main([])` with a valid environment whose token file is missing returns 2 and its line names `FACTORY_TOKEN_FILE`.
+3. `watch.main([])` with a valid environment (`FACTORY_REPOSITORY_URL=https://github.com/owner/project.git`, `FACTORY_INSTANCE`, and a token file and an image id file in `tmp_path`, set through `monkeypatch`) gets past the settings: it writes no `settings invalid` line to `err`, and it raises `GitError`, because the fixed checkout `/work/checkout` holds no clone (the test skips when `/work/checkout/.git` exists).
+4. make check stays green.
+5. docs: `docs/operator-guide.md` says that `factory-watch` reads the same environment as `factory-run`, and that with an invalid environment or an unreadable token file it prints `factory-watch: settings invalid: <variable>: <fault>` to standard error and exits with status 2.
+
+## Demo
+
+```bash
+uv run python -c "
+import io
+from factory.entry.watch import main
+out, err = io.StringIO(), io.StringIO()
+print(main([], out=out, err=err))
+print(repr(out.getvalue()))
+print(err.getvalue().startswith('factory-watch: settings invalid: FACTORY_REPOSITORY_URL: '))
+"
+```
+Expect: three lines, `2`, `''` and `True`: with no repository URL in the environment the watcher refuses at the first setting and writes nothing to standard output.
+
+## Log (append only)
+
+1. 2026-10-12 human: created.
