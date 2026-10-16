@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 115
 blocked: null
 comments_seen: 0
@@ -152,3 +152,4 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
    - Criterion 9 (`make check`) is the factory's gate, and I did not run it in this stage.
 
    Open: nothing.
+10. done (pull request merged); cost: 8 runs, 24.5 min, 59 turns, 216k tokens in (966k more from cache), 21k out, $2.11
