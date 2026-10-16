@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 138
 blocked: null
 comments_seen: 0
@@ -90,3 +90,16 @@ Expect: seven lines, each ending in `:1`.
 
    `make lint`: lint: green
    `make test`: FAILED tests/test_claude_settings_git.py::test_deny_list_holds_git_add_and_commit_beside_push_and_gh[Bash(git commit*)]
+4. coder: I edited `claude/settings.json` and nothing else (commit 17fede5).
+   - `permissions.allow`: I removed `Bash(git add *)` and `Bash(git commit *)`. The other entries keep their order, and `Bash(git rev-parse*)` now closes the git block.
+   - `permissions.deny`: I inserted `Bash(git add*)` and `Bash(git commit*)` after `Bash(git branch -D*)` and before `Bash(gh *)`.
+   - `env` is unchanged.
+   - The file now equals `tests/test_claude_files.py::SETTINGS`. All four tests that were failing now pass, and `make check` is green (coverage 99.54 %).
+
+   Design: the deny patterns have no space before `*` (`git add*`), as the Interface says and as the other deny entries are written. The pattern therefore also covers forms like `git add-…` or a bare `git commit`. Rejected: removing the two entries from allow without adding them to deny. The runtime would then ask for permission instead of refusing, and an unattended run cannot answer.
+
+   Refactor: nothing to change. The diff is two list edits in a data file.
+
+   Noticed, not touched: `docs/project-guide.md` still calls the allowed git commands "the read and commit git commands". `docs/operator-guide.md` still has to name `git add` and `git commit` among the denied commands. Both belong to the documenter (criterion 6).
+
+   `make check`: check: green
