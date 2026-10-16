@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 138
 blocked: null
 comments_seen: 0
@@ -117,3 +117,30 @@ Expect: seven lines, each ending in `:1`.
    - Stale text I saw and did not touch: nothing unrelated to this story.
 
    `make check`: check: green
+7. demo: both commands met their Expect lines, and the demo contradicts no criterion. No findings.
+
+   1. Read the git entries in the allow list and the add/commit entries in the deny list of `claude/settings.json`:
+   ```
+   ['Bash(git status*)', 'Bash(git diff*)', 'Bash(git log*)', 'Bash(git show*)', 'Bash(git rev-parse*)']
+   ['Bash(git add*)', 'Bash(git commit*)']
+   ```
+   Met: both lists match the Expect line exactly, in the same order.
+
+   2. `grep -c 'You do not commit either' claude/agents/*.md`:
+   ```
+   claude/agents/acceptance-reviewer.md:1
+   claude/agents/coder.md:1
+   claude/agents/documenter.md:1
+   claude/agents/intake.md:1
+   claude/agents/reviewer.md:1
+   claude/agents/smoke-tester.md:1
+   claude/agents/tester.md:1
+   ```
+   Met: seven lines, each ending in `:1`. There are seven files in `claude/agents/`.
+
+   Criteria cross-check:
+   - Criterion 1: there is no `git add` or `git commit` entry in the allow list, and the five read commands are still there.
+   - Criterion 2: the full deny list is `git push*, git checkout*, git switch*, git merge*, git pull*, git rebase*, git reset*, git branch -D*, git add*, git commit*, gh *, rm -rf *`. It holds add and commit right after `git branch -D*`, and still holds push and `gh *`, as the Interface says.
+   - Interface: `env` is still `{"CLAUDE_CODE_FORK_SUBAGENT": "0"}`.
+   - Criterion 4: command 2 confirms it.
+   - Criteria 3, 5 and 6: I did not re-run these. The tests, `make check` and the docs are covered by the earlier entries (3–6) and the factory's checks.
