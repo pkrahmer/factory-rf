@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 141
 blocked: null
 comments_seen: 0
@@ -177,3 +177,4 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
    - project-guide.md:291: the preflight's `agent-run-probe` checks the flags.
 
    Open: none.
+8. done (pull request merged); cost: 6 runs, 11.0 min, 35 turns, 100k tokens in (612k more from cache), 12k out, $0.82
