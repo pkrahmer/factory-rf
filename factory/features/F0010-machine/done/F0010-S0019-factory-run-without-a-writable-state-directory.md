@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 137
 blocked: null
 comments_seen: 0
@@ -130,3 +130,4 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
    - Criterion 6: I checked the text, without running anything. `README.md:12` and `docs/operator-guide.md:38` both describe the two-line stderr case with status 2, and the operator guide also says to check the `state` volume's owner and mode.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 19.7 min, 34 turns, 113k tokens in (399k more from cache), 9k out, $1.26
