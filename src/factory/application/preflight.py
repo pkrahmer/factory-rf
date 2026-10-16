@@ -1,14 +1,41 @@
-"""The checks of the machine the preflight runs, each reported whatever the others found."""
+"""The preflight: the machine's checks, keyed to the image, and the probe of the main branch."""
 
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
+from datetime import timedelta
 
 from factory.application.boundaries import Boundaries
-from factory.domain.errors import AgentDefinitionError, AgentRuntimeError, HostingServiceError
-from factory.domain.paths import MAIN_BRANCH
-from factory.domain.preflight import PreflightItem, PreflightReport, version_matches
+from factory.application.stops import StopService
+from factory.domain.checks import CheckResult
+from factory.domain.errors import (
+    AgentDefinitionError,
+    AgentRuntimeError,
+    GitError,
+    HostingServiceError,
+    ProjectCommandError,
+)
+from factory.domain.git import CommitId
+from factory.domain.paths import MAIN_BRANCH, REMOTE
+from factory.domain.preflight import (
+    PreflightItem,
+    PreflightReport,
+    PreflightStamp,
+    machine_stop,
+    version_matches,
+)
 from factory.domain.settings import CLAUDE_VERSION_VARIABLE, InstanceSettings
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 
 REQUIRED_TOOLS = ("git", "uv", "make")
+
+PROBE_COMMAND = "lint"
+# A constant, the default of every project command: the preflight needs no pipeline definition.
+PROBE_TIME_LIMIT = timedelta(minutes=10)
+
+_MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
+_SHORT_COMMIT = 12
+_MAIN_FAILING: RepositoryStopReason = "main_branch_failing"
+_PREFLIGHT_FAILED: RepositoryStopReason = "preflight_failed"
 
 _HOSTING_ITEM = "hosting-service"
 _AGENTS_ITEM = "agents"
@@ -89,3 +116,109 @@ class MachineChecks:
             )
             return PreflightItem(name=_VERSION_ITEM, passed=False, detail=detail)
         return PreflightItem(name=_VERSION_ITEM, passed=True)
+
+
+class PreflightStampStore(ABC):
+    """Keeps the stamp of the last preflight that passed; a cache, never the truth."""
+
+    @abstractmethod
+    def read(self) -> PreflightStamp | None:
+        """The stored stamp; a missing, unreadable or invalid store reads as `None`."""
+
+    @abstractmethod
+    def write(self, stamp: PreflightStamp) -> None:
+        """Replace the stored stamp with `stamp`; a failed write raises `OSError`."""
+
+
+class Preflight:
+    """Runs the machine's checks once per image build and probes `main` once per commit."""
+
+    def __init__(
+        self,
+        boundaries: Boundaries,
+        checks: MachineChecks,
+        stamps: PreflightStampStore,
+        stops: StopService,
+        image: str | None,
+    ) -> None:
+        """Check the machine built as `image`, remembering what passed in `stamps`."""
+        self._boundaries = boundaries
+        self._checks = checks
+        self._stamps = stamps
+        self._stops = stops
+        self._image = image
+
+    def run(self) -> RepositoryStopReason | None:
+        """Run what changed since the last pass; `None` when it passed, else the stop raised."""
+        stamp = self._machine_items(self._stamps.read())
+        if stamp is None:
+            return _PREFLIGHT_FAILED
+        try:
+            reason = self._probe(stamp)
+        except (GitError, ProjectCommandError) as error:
+            self._raise("machine", _PREFLIGHT_FAILED, f"the probe on main could not run: {error}")
+            return _PREFLIGHT_FAILED
+        # The machine's items have passed or been skipped, so no machine stop may stand.
+        self._stops.clear_stop(_PREFLIGHT_FAILED)
+        return reason
+
+    def _machine_items(self, stamp: PreflightStamp | None) -> PreflightStamp | None:
+        """The stamp to probe with, or `None` when the machine's items failed."""
+        # No timer: only a new image build can change what the machine's items find.
+        if self._image is not None and stamp is not None and stamp.image == self._image:
+            return stamp
+        stop = machine_stop(self._checks.run(), at=self._boundaries.clock.now())
+        if stop is not None:
+            self._stops.raise_stop(stop)
+            return None
+        # A new build forgets what was probed: the image may hold other tools.
+        passed = PreflightStamp(image=self._image)
+        self._stamps.write(passed)
+        return passed
+
+    def _probe(self, stamp: PreflightStamp) -> RepositoryStopReason | None:
+        main = self._boundaries.git.resolve(_MAIN_REF)
+        if main is None:
+            return None
+        if stamp.main_failed == main:
+            self._keep_failing_stop(main)
+            return _MAIN_FAILING
+        if stamp.main_probed != main:
+            return self._run_probe(stamp, main)
+        self._stops.clear_stop(_MAIN_FAILING)
+        return None
+
+    def _run_probe(self, stamp: PreflightStamp, main: CommitId) -> RepositoryStopReason | None:
+        # On main only: a work item's red branch is its own concern, not the machine's.
+        git = self._boundaries.git
+        git.checkout(MAIN_BRANCH, start_point=_MAIN_REF)
+        git.reset_to(_MAIN_REF)
+        result = self._boundaries.project_commands.run(PROBE_COMMAND, time_limit=PROBE_TIME_LIMIT)
+        if result.passed:
+            self._stops.clear_stop(_MAIN_FAILING)
+            self._stamps.write(PreflightStamp(image=stamp.image, main_probed=main))
+            return None
+        self._raise("repository", _MAIN_FAILING, _failing_detail(result, main))
+        # Remembered, so that idle ticks run no project command until a fix is pushed.
+        self._stamps.write(PreflightStamp(image=stamp.image, main_failed=main))
+        return _MAIN_FAILING
+
+    def _keep_failing_stop(self, main: CommitId) -> None:
+        status = self._boundaries.health.read()
+        if any(stop.reason == _MAIN_FAILING for stop in status.stops):
+            return
+        detail = f"{PROBE_COMMAND} is red on main at {main[:_SHORT_COMMIT]} (probed earlier)"
+        self._raise("repository", _MAIN_FAILING, detail)
+
+    def _raise(self, scope: StopScope, reason: RepositoryStopReason, detail: str) -> None:
+        stop = RepositoryStop(
+            scope=scope, reason=reason, detail=detail, at=self._boundaries.clock.now()
+        )
+        self._stops.raise_stop(stop)
+
+
+def _failing_detail(result: CheckResult, main: CommitId) -> str:
+    commit = main[:_SHORT_COMMIT]
+    if result.status == "time_limit":
+        return f"{PROBE_COMMAND} reached its time_limit on main at {commit}"
+    return f"{PROBE_COMMAND} is red on main at {commit}: {result.last_line}"

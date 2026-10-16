@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 127
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The probe on the main branch and a stamp keyed to the image
 
 ## Assignment (as of log entry 1)
@@ -117,3 +125,131 @@ Expect: one line, `lint 600.0`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.preflight.PreflightStamp`, `factory.application.preflight` with `PROBE_COMMAND`, `PROBE_TIME_LIMIT`, `PreflightStampStore` and `Preflight.__init__/run`, and `factory.adapters.preflight_stamp_file.JsonPreflightStampFile`). The rules for `run` give the order, the details and the return values.
+   - Criteria: each can be tested by one test function. Every behaviour in the Interface has a criterion. The probe's checkout and reset are covered by 1, the commit-id pattern by 21 and 22, and the atomic write and the single `os.replace` by 23. Each rule has both sides. A passing branch is criterion 1 and 3, a red main is 2, 13 and 14, and a failing machine item is 4 and 11. A probe error is 5 and 17, a time_limit is 6, and no `origin/main` is 16. `image=None` is 10, and a changed image is 8 and 9. An unchanged image or commit is 7, 12 and 20, and the clearing of `preflight_failed` is 15 and 18. A stamp that does not validate is 21 and 22. The `PROBE_TIME_LIMIT` limit is 19.
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable: `None`, `build-7 aaaaaaa None`, `None`, and `lint 600.0`.
+   - Architecture: the store interface is an ABC in application, the file implementation is in adapters, the stamp DTO is in domain, and the layer order holds. `Preflight` reaches git and the project commands only through `Boundaries`, and the stop service is the existing F0003 one. The Interface reuses the existing atomic-write helper instead of copying it.
+   - Scope: the story is within F0010's scope ("The probe and the stamp", ST4.1, ST4.3, ST4.5) and matches decisions 13 and 14 of the feature. It touches nothing in the Out of scope list.
+3. tester: I wrote red tests for criteria 1–23 from the Interface and the criteria. `make lint` is green. `make test` stops at collection on purpose because the modules under test do not exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_preflight_run.py::test_a_red_lint_on_a_work_items_branch_does_not_fail_and_the_probe_ends_on_main
+   - criterion 2: tests/application/test_preflight_run.py::test_a_red_main_is_one_repository_stop_naming_the_commit_and_the_last_line
+   - criterion 3: tests/application/test_preflight_run.py::test_a_fix_pushed_to_main_clears_the_stop_of_the_red_main
+   - criterion 4: tests/application/test_preflight_run.py::test_a_failed_machine_item_is_a_machine_stop_and_no_lint_runs
+   - criterion 5: tests/application/test_preflight_run.py::test_a_probe_that_cannot_start_is_a_machine_stop_and_leaves_the_stamp
+   - criterion 6: tests/application/test_preflight_run.py::test_a_probe_that_reaches_its_time_limit_is_the_stop_of_a_failing_main
+   - criterion 7: tests/application/test_preflight_run.py::test_an_unchanged_image_runs_the_machine_items_once_however_much_time_passes
+   - criterion 8: tests/application/test_preflight_run.py::test_a_new_image_runs_the_machine_items_again_and_is_stamped
+   - criterion 9: tests/application/test_preflight_run.py::test_a_new_image_probes_the_unmoved_main_again
+   - criterion 10: tests/application/test_preflight_run.py::test_without_an_image_identity_the_machine_items_run_every_time
+   - criterion 11: tests/application/test_preflight_run.py::test_a_failed_machine_report_writes_no_stamp_and_its_stop_goes_once_they_pass
+   - criterion 12: tests/application/test_preflight_run.py::test_a_main_that_passed_is_probed_again_only_when_it_moves
+   - criterion 13: tests/application/test_preflight_run.py::test_a_red_main_is_probed_once_and_its_stop_stays_the_first_ones
+   - criterion 14: tests/application/test_preflight_run.py::test_a_lost_stop_of_a_red_main_is_raised_again_without_probing
+   - criterion 15: tests/application/test_preflight_run.py::test_a_valid_stamp_clears_a_standing_preflight_stop
+   - criterion 16: tests/application/test_preflight_run.py::test_without_an_origin_main_no_lint_runs_and_the_preflight_passes
+   - criterion 17: tests/application/test_preflight_run.py::test_a_git_error_while_probing_is_a_machine_stop_and_leaves_the_stamp
+   - criterion 18: tests/application/test_preflight_run.py::test_a_red_main_also_clears_a_standing_preflight_stop
+   - criterion 19: tests/application/test_preflight_run.py::test_the_probe_runs_lint_with_a_time_limit_of_ten_minutes
+   - criterion 20: tests/application/test_preflight_run.py::test_a_main_probed_before_is_not_probed_again_and_its_stale_stop_goes
+   - criterion 21: tests/domain/test_preflight_stamp.py::test_the_stamp_refuses_an_unknown_key, ::test_the_stamp_refuses_an_assignment_to_a_field, ::test_the_commit_fields_hold_a_commit_id_or_none (parametrized: both fields × "a"*40, None, "a"*39, "A"*40, "g"*40)
+   - criterion 22: tests/adapters/test_preflight_stamp_file.py::test_a_written_stamp_reads_back_as_one_json_object_of_three_keys, ::test_a_missing_or_invalid_file_reads_as_no_stamp (parametrized: missing, not a stamp, commit breaks the pattern)
+   - criterion 23: tests/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package and tests/adapters/test_preflight_stamp_file.py::test_a_write_leaves_no_file_but_the_stamp_in_its_directory
+
+   Files created: tests/application/test_preflight_run.py, tests/domain/test_preflight_stamp.py, tests/adapters/test_preflight_stamp_file.py, tests/test_atomic_replace_search.py.
+
+   Modules and names the test runner could not import: factory.adapters.preflight_stamp_file (JsonPreflightStampFile), and the new names `PreflightStamp` in factory.domain.preflight and `Preflight`, `PROBE_COMMAND`, `PROBE_TIME_LIMIT` in factory.application.preflight. Collection errors in the three files above.
+
+   Notes for the coder:
+   - The search test in tests/test_atomic_replace_search.py already passes, because today there is only the one `os.replace` in health_file.py. It guards against a second copy; it is not red now.
+   - How the run tests are built: a `Rig` fixture on the `remote`, `checkout`, `human`, `hosting`, `agent_runtime` and `clock` fixtures, with agents installed through `install_agents`. The settings pin "fake", the fake runtime's default version.
+   - The remote's `main` gets the Makefile `lint:\n\ttest ! -f BROKEN\n`, and the test fetches the checkout after every push to `main`. So `Preflight` itself is expected not to fetch.
+   - `lint` runs are counted by `RecordingCommands`, which inherits `ProjectCommands` and delegates to a real `MakeProjectCommands` on the checkout. For criteria 5, 6 and 19 it raises the error or answers a `time_limit` or passed result instead.
+   - Criteria 5 and 17 store `PreflightStamp(image=IMAGE, main_probed="a"*40)` first and run with the same image. That way the machine items are skipped and "the stored stamp is the one stored before" can be checked.
+   - Criterion 16 uses an empty bare remote cloned into `tmp_path/empty-checkout`. `git.resolve("origin/main")` must return `None` there, not raise.
+   - Criterion 3: the human's fix removes `BROKEN` with `git rm` in the human clone, then commits and pushes.
+
+   Nothing is open.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: I implemented the stamp and the probe. `make check` is green and the tests are unchanged.
+
+   Built:
+   - src/factory/domain/preflight.py: `PreflightStamp`, frozen with extra="forbid", with `image` and the `CommitId | None` fields `main_probed` and `main_failed`.
+   - src/factory/application/preflight.py:
+     - The constants `PROBE_COMMAND = "lint"` and `PROBE_TIME_LIMIT = 10 min`, and the ABC `PreflightStampStore`.
+     - `Preflight.run` follows the Interface rules in this order:
+       1. The machine items run unless the image is the same and not None. A failure raises the machine stop. A pass writes `PreflightStamp(image=image)`.
+       2. `_probe` resolves origin/main. It keeps the existing stop for a commit that already failed, or raises it again with "(probed earlier)" if that stop is gone. It clears `main_branch_failing` for a commit that already passed. Otherwise it runs checkout, reset_to and `lint`.
+       3. A `GitError` or `ProjectCommandError` raised while probing becomes a `preflight_failed` stop, and the stamp is left unchanged.
+       4. When `run` ends passed or with `main_branch_failing`, it clears `preflight_failed`.
+   - src/factory/adapters/preflight_stamp_file.py: `JsonPreflightStampFile`. `read` returns None for a missing or invalid file.
+   - src/factory/adapters/atomic_file.py: `replace_text(path, text)`, the mkstemp + `os.replace` helper taken out of `JsonHealthStatusFile.write`. The health file and the stamp file both use it now.
+
+   Commits: a2ffd9b (feature) and ce626bf (refactor: `_raise` takes the stop scope explicitly and no longer works it out from the reason, which repeated the domain's rule).
+
+   Main decision: the atomic helper is a module function in adapters, as the Interface asks. I rejected a base class shared by the two JSON stores: their `read`s differ (healthy versus None), and a base class would couple two unrelated files.
+
+   Noticed, not touched:
+   - `Preflight` does not fetch. The tests fetch after each push, and the tick story will decide where the fetch goes.
+   - When the machine items fail, a `main_branch_failing` stop already in force is left as it is.
+
+   `make check`: check: green
+5. reviewer: no findings.
+
+   I read the diff of `src/` and `tests/` against the Interface and criteria 1–25, without relying on the coder's account.
+
+   - Criteria: criteria 1–23 each have a test that checks what the criterion says. Per the coder's entry, the factory's `make check` was green after the coder.
+     - The `main_failed` rule is tested on both sides: the stop is still in the health status (13) and the stop is gone (14).
+     - The `main_probed` rule is tested on both sides: a new commit (12) and the same commit with a stale stop (20).
+     - The image rule is tested for an equal image (7), a different one (8, 9) and `None` (10).
+     - The probe errors are tested for `ProjectCommandError` (5) and `GitError` (17).
+     - The `CommitId` pattern is tested on the length (39 against 40), the case and non-hex digits (21, 22).
+     - The 12-character short commit is checked by exact detail comparison in 2, 6 and 14.
+   - Architecture: `PreflightStamp` is in domain and the `PreflightStampStore` ABC is in application, with its operations abstract and docstring-only. `JsonPreflightStampFile` is in adapters and inherits the interface. The layer order holds. `Preflight` reaches git, the project commands, the health status and the clock only through `Boundaries`, and raises its stops through the existing `StopService`.
+   - Duplication: the mkstemp + `os.replace` code is extracted into `src/factory/adapters/atomic_file.py:replace_text`, and both JSON stores use it. The AST search test guards against a second copy.
+   - Security: there are no suppression markers and no shell or SQL built from strings. The stop details carry the error message, as the Interface specifies.
+   - Quality: names, docstrings and why-comments fit `CLAUDE.md`, and there is no dead code. `_raise` passes the scope explicitly, and the domain's scope/reason validator still guards it.
+   - Ticket hygiene: the log records the main decision (a module function rather than a shared base class for the two stores) and the alternative it rejected. The Assignment matches what was built, and the docs criterion (25) still covers what the operator and the decision log need.
+
+   Two points are open for later stories:
+   - `Preflight` does not fetch; the tick story decides where the fetch goes.
+   - When the machine items fail, an existing `main_branch_failing` stop is left in place.
+6. documenter: no findings.
+
+   Files changed:
+   - docs/operator-guide.md:
+     - New section "The stamp and the probe of the main branch". It covers: the machine items are skipped while the image build is unchanged and no timer expires the stamp; the probe runs `lint` on `main` only, with a 10-minute `time_limit`, and repeats only when `origin/main` moves or the image changes; a red `main` is probed once and its stop stands until a fix is pushed; `preflight-stamp.json` in the state directory, and deleting it costs one more run.
+     - New row for `main_branch_failing` in the stops table, with what the operator does.
+     - The `preflight_failed` row now covers the probe-could-not-run detail.
+     - The preflight section no longer says the stamp and probe are still to come; it says the tick wiring is the next story.
+   - docs/decisions.md: a new entry. It gives why the stamp is keyed to the image and not a timer, why `lint` runs on `main` only, why the `time_limit` is a constant, and why a red `main` is remembered. It also records the rejected alternatives and two open points: the preflight does not fetch, and a `main_branch_failing` stop stays when the machine items fail.
+   - docs/project-guide.md: one sentence in the machine-services paragraph. Both JSON stores replace their file through `replace_text` in `adapters/atomic_file.py`, and `tests/test_atomic_replace_search.py` guards it.
+
+   Cross-read and found current: README.md (its "preflight … still to come" line stays true until the tick story wires it in) and the operator-guide sections on settings, image identity, `/state` permissions and health status. I did not run the demo blocks in the ticket; the tests cover the same behaviour.
+
+   Nothing stale and unrelated seen. The code matches the Interface and the criteria, and every public name has its docstring.
+
+   `make check` is green (coverage 99.53 %).
+
+   `make check`: check: green
+7. demo: both commands matched their `Expect:` lines. No findings.
+
+   1. The stamp file: read, write, then read back an invalid file.
+   ```
+   None
+   build-7 aaaaaaa None
+   None
+   ```
+   Exit 0. This matches the expected three lines, `None`, `build-7 aaaaaaa None` and `None`. It agrees with criterion 22: a missing file reads as `None`, a written stamp reads back, `main_failed` defaults to `None`, and a file whose text is not a stamp reads as `None`.
+
+   2. The probe's constants.
+   ```
+   lint 600.0
+   ```
+   Exit 0. This matches the expected line, `lint 600.0`. It agrees with the Interface (`PROBE_COMMAND = "lint"`, `PROBE_TIME_LIMIT` = 10 minutes) and with criterion 19.
+
+   I read the acceptance criteria again, and nothing in either output contradicts any of them. The demo only touches the stamp store and the constants. The behaviour of `Preflight.run` (criteria 1–20) is not part of the demo; the tests listed in entry 3 cover it.
