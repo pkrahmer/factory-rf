@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 122
 blocked: null
 comments_seen: 2
@@ -186,3 +186,7 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
 5. human (pull request comment, 2026-10-16): 1 (a): the test installs the agents with `install_agents` and queues an agent runtime run that raises inside the handler, so each tick dispatches and the error count grows across the calls; the loader stays as it is.
    2 (a): the test reads the instance from the claim commit (the first factory commit on the branch after the start), not from the tip, where a completed stage has released its claim; the instance check stays.
    The tester makes both changes and nothing else. End with `tests` and name exactly these two changes.
+6. coder: the human's answer (entry 5) calls for two test changes. The tester makes both and nothing else; I left the tests and the code alone.
+   1. In `tests/entry/test_run.py::test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls`, install the agents with `install_agents` and queue an agent runtime run that raises inside the run handler. That way each of the two ticks dispatches and `tick.status` counts the error twice. The loader stays as it is.
+   2. In `tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance`, read the instance `factory-7` from the claim commit, the first factory commit on the work item's branch after the start, not from the branch tip, where the completed stage has already released its claim. The instance check stays.
+   The implementation in ba63be9 stays as it is. The refactor step and the final `make check` come once the ticket returns from the tester.
