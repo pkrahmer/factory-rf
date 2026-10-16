@@ -12,7 +12,7 @@ Make the machine's own stops visible to Docker. A stop of the repository or the 
 def main(argv: Sequence[str] | None = None, *, store: HealthStatusStore | None = None) -> int: ...
 ```
 
-`src/factory/application/scheduler.py` (extends the module of the first story of this feature)
+`src/factory/application/scheduler.py` (extends the module of the scheduler story, F0010-S0002)
 
 ```python
 class RepositoryWaiter:
