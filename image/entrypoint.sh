@@ -1,6 +1,6 @@
 #!/bin/sh
 # Installs the image's agents and settings, prepares the runs directory and starts the
-# instance. Git is configured by the factory itself, never here (docs/decisions.md).
+# instance. Git is configured by the factory itself, never here.
 set -eu
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 opt="${FACTORY_OPT:-/opt/factory}"

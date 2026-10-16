@@ -106,18 +106,21 @@ class RepositoryWaiter:
             self._preparer.prepare()
         except GitError as error:
             return self._unavailable(f"cannot prepare the checkout: {error}")
+        # A ready checkout is left as it is; only one that is not ready yet fetches.
         fault = self._main_fault()
         if fault is not None:
-            # A clone brings the remote as it is; only a checkout that is not ready yet fetches.
-            try:
-                self._boundaries.git.fetch()
-            except GitError as error:
-                return self._unavailable(f"cannot fetch: {error}")
-            fault = self._main_fault()
+            fault = self._fault_after_fetch()
         if fault is not None:
             return self._unavailable(fault)
         self._stops.clear_stop(_UNAVAILABLE)
         return True
+
+    def _fault_after_fetch(self) -> str | None:
+        try:
+            self._boundaries.git.fetch()
+        except GitError as error:
+            return f"cannot fetch: {error}"
+        return self._main_fault()
 
     def _main_fault(self) -> str | None:
         git = self._boundaries.git
