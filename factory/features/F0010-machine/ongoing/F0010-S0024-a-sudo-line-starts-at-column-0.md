@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 143
 blocked: null
 comments_seen: 0
@@ -74,3 +74,9 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
    - Architecture and security: the diff touches only tests and adds no suppression markers.
    - Quality: the test reuses the file's `_write_sudo`, `_runtime` and `_request` helpers. Each side of the rule is a row of one parametrized test, as `CLAUDE.md` asks.
    - Ticket hygiene: the Assignment matches what was built (no change to `src/`). The coder's entry says what was rejected: stripping lines before matching, which would contradict criterion 3. Criterion 5 (docs: none) still holds, because the operator guide and the project guide already state the rule.
+6. documenter: Docs criterion is `none`, so I wrote nothing. No files changed.
+   - Cross-read against the diff (tests only, no change in `src/`): `docs/operator-guide.md` line 90 ("a line that starts `sudo:`"), `docs/project-guide.md` line 300 ("a standard-error line starting with `sudo:`") and `docs/decisions.md` line 293. All three state the rule as the code and the new test implement it. Other mentions in the operator guide (lines 109 and 257) are consistent with it.
+   - `make check` is green (coverage 99.54 %).
+   - Findings: none. Nothing stale seen.
+
+   `make check`: check: green
