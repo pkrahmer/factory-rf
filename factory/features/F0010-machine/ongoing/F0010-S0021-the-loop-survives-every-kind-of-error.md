@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 139
 blocked: null
 comments_seen: 0
@@ -70,3 +70,11 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: no change to `src/`, as the Assignment expected. `Scheduler._iterate` (`src/factory/application/scheduler.py`) already wraps `prepare` and `tick` in `except Exception` and logs `iteration failed: <type>: <error>`. All eight rows of the tester's `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle` pass against it.
+      - Verified: `uv run pytest tests/application/test_scheduler.py` passes all 26 tests in the module, which matches the Demo's Expect. `make check` is green, with total coverage 99.54 %.
+      - Refactor: none, because there is no diff outside `tests/` and `factory/`.
+      - Rejected: narrowing or restructuring the handler. The rule is "any `Exception`", and the existing `BaseException` test pins the other side.
+      - Commits: none. The working tree was already clean on the tester's commit.
+      - Open: nothing.
+
+   `make check`: check: green
