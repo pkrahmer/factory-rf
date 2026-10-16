@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 134
 blocked: null
 comments_seen: 0
@@ -182,3 +182,21 @@ Expect: one line, `coder 0.10 120.0`.
      - Comments explain why (a guard that cannot start does not block; a rejected flag ends every run `died`), and the new public names have docstrings.
      - No duplicate helper: `_which_on` only adapts `shutil.which` to the `find` signature.
    - Ticket hygiene: the coder's entry gives the main decision (closures over the boundaries and settings, fed to `MachineChecks.extra`) and what was rejected (methods on `MachineChecks`). The Assignment matches what was built. Criterion 16 (docs) still names the operator guide's order of items, the probe's cost and failure meanings, and the two decision-log reasons.
+6. documenter: Wrote the documentation for criterion 16. No findings: the diff matches the Interface. `make check` is green.
+
+   Files changed:
+   - docs/operator-guide.md:
+     - The preflight's items table now follows the report's order: the seven earlier items, then `token-file`, `agent-user`, `tool:sudo` (only with an agent user), `agent-environment` and `agent-run-probe`, each with its fix.
+     - The "built, not yet run" and "wiring comes later" sentences are removed, and the item count is corrected.
+     - A new section, "The probe of the agent run", covers the one `claude -p` call of at most 0.10 dollar once for each image build. It gives the failure meanings: a rejected flag, a missing login for the agent user, a refused `sudo`, an unwritable state directory, a missing `coder`.
+     - It says `PATH` must hold `factory-guard` and `HOME` must exist.
+     - The stale lines in the opening paragraph, the "flags not yet checked" paragraph and the `factory-guard` paragraph are fixed.
+   - docs/decisions.md: a new entry on why the preflight runs the factory's own arguments once for each image build (Q22, F0001 decisions 17 and 18) and why a refused `sudo` is found by the probe before any claim. It records the rejected alternatives: leaving it to the first stage run, and probing only `claude --version`.
+   - docs/project-guide.md: the tick's preflight step now names `machine_extras`, the two new items, `GUARD_COMMAND`'s new home and the extras' order. The `token_file_item` sentence now says it has a caller.
+   - README.md: the "preflight still to come" sentence is replaced with the current state.
+
+   Cross-read and found current: the project guide's guard and environment sections, and the operator guide's stamp/probe and stops sections.
+
+   Not run: the two demo blocks from the ticket. Nothing stale and unrelated was seen that I left untouched.
+
+   `make check`: check: green
