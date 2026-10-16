@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 132
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # Agent runs as a second unprivileged user
@@ -180,3 +180,7 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
    - The documentation criterion (16) is for the documenter.
 
    `make check`: check: green
+5. reviewer: Review, round 0. Checklist group 1 (acceptance criteria) fails, so I stopped there. Criteria 1–14 each have a test that checks what the criterion says, and the coder's entry reports `make check` green. The findings are on the `sudo` refusal rule, which has a side no test covers and one condition the Interface does not state:
+
+   1. `src/factory/adapters/claude_runtime.py:291` (`_sudo_refusal`): the coder added `or process.timed_out`, which is not in the Interface and no test covers it. The Interface's rule says "when the process ends without a result", and the runtime counts a timed-out process as one without a result (line 231). So a timed-out run as `agent` whose standard error has a `sudo:` line (for example sudo's `sudo: unable to resolve host` warning) should raise `AgentRuntimeError` under the Interface, but this code returns a `time_limit` result. Fix: drop the condition so the code matches the Interface. Or, if keeping it is right, end with `question` so the human can add it to the Interface with a criterion the tester can test.
+   2. Gap in the story's criteria, Interface rule 3 ("ends without a result" and a `sudo:` line): the failing side of "without a result" has no criterion. That is a run as `agent` that gives a parseable reply while its standard error holds a `sudo:` line, and it should return the result, not raise. The branch at `src/factory/adapters/claude_runtime.py:293` (`_parse_reply(...) is not None`) is untested, and criteria 8 and 9 cover only the `sudo:`-line side. Fix: the coder asks the human with `question` to add a criterion before criterion 15, for example "a `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an error". The tester then writes it as a row next to criteria 8 and 9.
