@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 124
-blocked: null
+blocked: question
 comments_seen: 0
 round: 1
 attempts: 0
@@ -228,3 +228,26 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
       - The coder may not edit tests (R9). This needs the human's go-ahead (as a `question`) before the tester adds the rows.
 
    Open: nothing else.
+6. coder: coder (round 1): the one review finding is a gap in a test, so I cannot fix it (R9). I am asking before the tester changes anything.
+
+   The finding: `tests/test_image.py::test_a_floating_item_is_reported` tests only one side of two limits the Interface states:
+   - "`@sha256:` followed by 64 hexadecimal digits": nothing tests a digest that is too short, too long or not hex.
+   - "three dot-separated numbers": `2.1` is tested, but four numbers is not.
+
+   What I checked:
+   - The patterns that `floating_references` uses are in the test file itself and are already anchored: `DIGEST = @sha256:[0-9a-f]{64}$`, `THREE_NUMBERS = ^\d+\.\d+\.\d+$`, `NPM_PINNED = @\d+\.\d+\.\d+$` (tests/test_image.py:16-18).
+   - So the new rows would already pass. No production code changes, and there is nothing for me to commit this round.
+   - The shipped `image/Dockerfile` and `src/factory/application/costs.py` stay as they were in 65c0b7c.
+
+   Question: should the tester add these rows to `test_a_floating_item_is_reported`?
+   - `FROM python@sha256:` + `"a" * 63`
+   - `FROM python@sha256:` + `"a" * 65`
+   - `FROM python@sha256:` + `"g" * 64`
+   - `ARG CLAUDE_CODE_VERSION=2.1.289.1`
+   - `npm install --global @anthropic-ai/claude-code@2.1.289.1`
+
+   Options:
+   - (a) Yes. Criterion 2 is then extended by these five rows. When your answer comes back, I end with `tests`, naming exactly this change.
+   - (b) No. Criterion 2 stays as written, and the gap is accepted.
+
+   I recommend (a). It is five table rows, it follows the CLAUDE.md rule that every stated limit is tested on both sides, and it closes the review finding.
