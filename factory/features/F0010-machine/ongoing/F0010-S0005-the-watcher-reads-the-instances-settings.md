@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 123
 blocked: null
 comments_seen: 0
@@ -77,3 +77,13 @@ Expect: three lines, `2`, `''` and `True`: with no repository URL in the environ
 
    `make lint`: lint: green
    `make test`: FAILED tests/entry/test_watch_settings.py::test_a_valid_environment_gets_past_the_settings_to_the_fixed_checkout
+4. coder: `factory-watch` now reads the instance's settings.
+
+   - Built: `src/factory/entry/watch.py`. If `main` is called without `boundaries` or without `instance`, it calls `boundaries_from_environment(os.environ)`, the same reader `factory.entry.run` uses through `factory.entry.wiring`. It then runs `run_watch` with those boundaries and `settings.instance`. On `SettingsInvalid` it writes `factory-watch: settings invalid: <variable>: <fault>` and a newline to `err`, writes nothing to `out`, and returns 2. The constant `_NOT_WIRED` became `_SETTINGS_INVALID`. The argument parser still runs first, so `--follow` still exits 2 before any settings are read.
+   - Main decision: when only one of `boundaries` and `instance` is given, both are taken from the environment, and the given `boundaries` is not combined with the environment's instance. This is what the Interface rule says, and the second case of criterion 1 needs the environment to be read even when `boundaries` is given. I rejected reading only the missing value, because it would mix the instance of one source with the boundaries of another.
+   - Checks: `make check` is green, with total coverage of 99.54 %. The new tests in `tests/entry/test_watch_settings.py` pass.
+   - Not committed: the change is uncommitted in the working tree and is left for the factory's commit.
+   - Refactor: none needed. The diff is one branch in `main`, one import pair and a renamed constant.
+   - Noticed, not touched: none.
+
+   `make check`: check: green
