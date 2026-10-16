@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 119
 blocked: null
 comments_seen: 0
@@ -146,3 +146,10 @@ Expect: one line, `factory Ann`.
    - Security: there are no suppression markers and no secrets; the credential URLs in the tests are joined from pieces. The password error does not echo the URL.
    - Quality: names, docstrings and the one why-comment (`settings.py`, in `_repository_url`) are in order. One duplicate is left: the default identity is spelled out both in `DEFAULT_GIT_IDENTITY` and in `GitOptions.identity` (`src/factory/domain/git.py:46`). I did not count it as a finding, because the Interface prescribes the constant in exactly this form, and the coder's log already records the duplicate for a later story.
    - Ticket hygiene: the log gives the main decisions and what was rejected (`TypeAdapter(Name)` over a second regex, a hand split over `urllib.parse` for the scp form). The Assignment matches what was built. Still open, as intake, the tester and the coder all noted: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path, and no test covers that case.
+6. documenter: wrote the documentation for the instance's settings. `make check` is green.
+   - `docs/operator-guide.md`: new section "The instance's settings" before "The project's make targets". It has a table of the variables (`FACTORY_REPOSITORY_URL`, `FACTORY_INSTANCE`, `GIT_USER_NAME`, `GIT_USER_EMAIL` with the default `factory <factory@noreply.invalid>`, `FACTORY_IMAGE_ID_FILE` with the default `/opt/factory/image-id`). It also covers the fixed `/work/checkout` and `/state`, the image identity file, and `FACTORY_IMAGE` being only a label. A subsection says a repository URL with a password is refused and the token belongs in the token file. I worded it without a credential-shaped URL because `make secrets` flagged the first draft.
+   - `docs/decisions.md`: three entries. One instance runs one project (R2), with the password rule. The commit identity has a default and no preflight item (Q18). The image identity is read from a generated file (the human, 2026-10-14).
+   - Cross-read: the operator guide's intro, which says `factory-run` and `factory-health` are declared but not built, is still true. `docs/project-guide.md` and `README.md` name no settings, so they are current.
+   - No findings. The code matches the Interface and the criteria. Noted in the decision log as open items, not edited: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path. The default identity is also spelled in `GitOptions` (`domain/git.py`).
+
+   `make check`: check: green
