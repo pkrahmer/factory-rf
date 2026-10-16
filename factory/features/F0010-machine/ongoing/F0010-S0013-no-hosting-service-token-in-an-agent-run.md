@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 131
 blocked: null
 comments_seen: 0
 round: 0
@@ -125,3 +125,9 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.agent_runs.scrub_environment` and `ALLOWED_ENVIRONMENT_NAMES`, `factory.entry.wiring.production_environment`, `factory.application.preflight.token_file_item`, `image/git-credential-factory`, the Dockerfile and compose fragments). Every behaviour stated in a rule has a criterion: the scrub (1, 2), `production_environment` (3, 4, 5), the `AgentRunRequest(` and `os.environ` search (6), the runtime's environment (7), `token_file_item` (8 to 11), the helper's `get`, failure and other operations (12 to 14), the Dockerfile and compose rules (16, 17).
+   - Criteria: each can be tested by one test function. Each rule has a failing side. The scrub drops names (2). The token file fails on group and other bits, a wrong owner, a missing file and a `None` path (9, 10). The helper prints nothing and exits 1 when the file is unreadable, missing or unset (13). The Dockerfile and compose files are refused for forbidden names (16, 17). Criterion 18 covers the factory's own push and post after an agent run.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output. The third one needs a non-root user for the `chmod 000` case, and criterion 13 already says so.
+   - Architecture: the domain function is pure. The wiring in `entry` picks the environment. `preflight` takes `stat` as a parameter, so the application layer calls no tool. The `AgentRunRequest(` search keeps the agent environment's source in one place.
+   - Scope: the story is inside F0010's scope ("No hosting-service token in an agent run"). Running the project commands as the second user stays out of scope, and decisions 18, 19, 24 and 26 cover the rest.
