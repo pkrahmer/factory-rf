@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 137
 blocked: null
 comments_seen: 0
@@ -103,3 +103,30 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
    - `make check` is green.
 
    `make check`: check: green
+7. demo: I ran both Demo commands from the repository root. There are no findings.
+
+   1. Unwritable state directory, run with an empty environment (`env -i`):
+   ```
+   2026-10-16T17:33:00Z settings invalid: FACTORY_REPOSITORY_URL: missing
+   factory-run: settings invalid: FACTORY_REPOSITORY_URL: missing
+   factory-run: cannot write the machine stop: NotADirectoryError: [Errno 20] Not a directory: '/tmp/tmp_snzw0nv/file/state'
+   status 2
+   ```
+   Met. I ran it a second time with `2>/dev/null` to check where each line goes. Only the time-stamped line and `status 2` were left, so that line is on standard output and the two `factory-run:` lines are on standard error. There was no `Traceback`, and the process exited with status 0 because `print` returned normally.
+
+   2. Writable state directory, followed by `factory-health`:
+   ```
+   2026-10-16T17:33:00Z settings invalid: FACTORY_REPOSITORY_URL: missing
+   status 2
+   preflight_failed (machine): FACTORY_REPOSITORY_URL: missing (since 2026-10-16T17:33:00Z)
+   exit=1
+   ```
+   Met. The writable path behaves as it did before: the machine stop is written and `factory-health` reports it.
+
+   Criteria cross-read:
+   - Criteria 1 and 2: command 1 returns 2 with the two stderr lines. The demo uses `FACTORY_REPOSITORY_URL` rather than `FACTORY_INSTANCE`; that is the same rule.
+   - Criterion 3: command 2 writes the time-stamped line and the stop, and nothing appeared on stderr.
+   - Criterion 4 is not exercised by the demo and nothing here contradicts it.
+   - Criterion 6: I checked the text, without running anything. `README.md:12` and `docs/operator-guide.md:38` both describe the two-line stderr case with status 2, and the operator guide also says to check the `state` volume's owner and mode.
+
+   Open: nothing.
