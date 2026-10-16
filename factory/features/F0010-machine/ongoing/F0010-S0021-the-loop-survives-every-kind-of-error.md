@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 139
 blocked: null
 comments_seen: 0
 round: 0
@@ -53,3 +53,9 @@ Expect: the last line is `26 passed in <time>` (18 tests before this story, and 
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: no new names; it pins the behaviour of `Scheduler(...).run()` (`src/factory/application/scheduler.py`, handler at line 69 is `except Exception` logging `iteration failed: <type>: <error>`). The four log lines are concrete, and I checked that `AgentRuntimeError`'s message ("agent runtime failed: ...") matches the Interface. The `Loop` recorder in `tests/application/test_scheduler.py` exists and scripts outcomes.
+   - Criteria: 1 and 2 are each testable by one parametrized test (four exceptions × raising side), with exact log line, call order and sleeps (30 then 15). The failing side (BaseException not caught) is already pinned by an existing test, which the Interface names. Criteria 3 and 4 are the closing ones.
+   - Demo: the pytest command is runnable. Its Expect line (`26 passed`) is checkable; I did not recount the 18 existing parametrized tests, and the module has 12 test functions.
+   - Architecture: tests only, in the application layer's test folder; no layering concern.
+   - Scope: inside F0010 (the loop and its pauses, decision 4); the story is listed in FEATURE.md as S0021.
