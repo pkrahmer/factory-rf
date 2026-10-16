@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 141
 blocked: null
 comments_seen: 0
 round: 0
@@ -70,3 +70,9 @@ Expect: two numbers, each at least 1 (both were 0 before this story).
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: no code. The story names the three files that change (`README.md`, `docs/operator-guide.md`, `docs/project-guide.md`) and lists the content of the new `os_user` paragraph. Each behaviour in that paragraph (the `sudo -n -u … -- env -i` prefix, the `0o640` mode, the `sudo:` line rule and its exception) is existing code behaviour, and the docs criterion lists them, so nothing is left undefined.
+   - Criteria: there are only the two closing ones. The story says it is documentation only, so the tester writes no tests and the coder has nothing to build. The docs criterion lists each rewrite as an observable statement about a file, which the documenter checks with the Demo greps. No rule has a failing side without a criterion, because the story adds no rule.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output: no matching line with `exit=1`, `healthy` with `exit=0`, and two counts of at least 1.
+   - Architecture: no layer or module is touched. The project guide paragraph is consistent with `CLAUDE.md`'s wrapper and runtime rules.
+   - Scope: the story fits F0010, appears in `FEATURE.md` as S0018, and touches nothing under "Out of scope". It depends on S0019 being merged, which the Assignment states.
