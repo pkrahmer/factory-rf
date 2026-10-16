@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 116
 blocked: null
 comments_seen: 0
@@ -64,3 +64,10 @@ Expect: at least one line from the first paragraph that names the feature accept
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: I built nothing and made no commit. This story only changes documentation. The Interface says "None: no code changes", and the tester wrote no tests. Under CLAUDE.md the coder does not write `README.md` or `docs/`, so I left all four edits in criterion 2 for the documenter: the "The kinds:" paragraph, the **Opening** item and the `SplitByWorkItemKind` item in `docs/project-guide.md`, and the first paragraph of `README.md`.
+      - Rejected: writing the doc edits here. They are outside the coder's lane, and the docs stage is where they belong.
+      - Refactor: there is no diff, so there was nothing to clean up.
+      - `make check`: green on the unchanged tree (coverage 99.53 %).
+      - Open: everything in criterion 2. The documenter does it.
+
+   `make check`: check: green
