@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 127
 blocked: null
 comments_seen: 0
@@ -236,3 +236,20 @@ Expect: one line, `lint 600.0`.
    `make check` is green (coverage 99.53 %).
 
    `make check`: check: green
+7. demo: both commands matched their `Expect:` lines. No findings.
+
+   1. The stamp file: read, write, then read back an invalid file.
+   ```
+   None
+   build-7 aaaaaaa None
+   None
+   ```
+   Exit 0. This matches the expected three lines, `None`, `build-7 aaaaaaa None` and `None`. It agrees with criterion 22: a missing file reads as `None`, a written stamp reads back, `main_failed` defaults to `None`, and a file whose text is not a stamp reads as `None`.
+
+   2. The probe's constants.
+   ```
+   lint 600.0
+   ```
+   Exit 0. This matches the expected line, `lint 600.0`. It agrees with the Interface (`PROBE_COMMAND = "lint"`, `PROBE_TIME_LIMIT` = 10 minutes) and with criterion 19.
+
+   I read the acceptance criteria again, and nothing in either output contradicts any of them. The demo only touches the stamp store and the constants. The behaviour of `Preflight.run` (criteria 1–20) is not part of the demo; the tests listed in entry 3 cover it.
