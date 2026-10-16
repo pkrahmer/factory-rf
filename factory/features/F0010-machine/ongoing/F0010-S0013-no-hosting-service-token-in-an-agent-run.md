@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 131
 blocked: null
 comments_seen: 0
@@ -131,3 +131,32 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
    - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output. The third one needs a non-root user for the `chmod 000` case, and criterion 13 already says so.
    - Architecture: the domain function is pure. The wiring in `entry` picks the environment. `preflight` takes `stat` as a parameter, so the application layer calls no tool. The `AgentRunRequest(` search keeps the agent environment's source in one place.
    - Scope: the story is inside F0010's scope ("No hosting-service token in an agent run"). Running the project commands as the second user stays out of scope, and decisions 18, 19, 24 and 26 cover the rest.
+3. tester: Tests written from the Interface and criteria 1–18. Criteria 19 and 20 are not for tests: 19 is make check, 20 is the docs.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_agent_environment.py::test_the_allowed_names_are_kept_with_their_values_in_a_new_dict
+   - criterion 2: tests/domain/test_agent_environment.py::test_a_name_outside_the_allow_list_is_dropped (one row per name, the lower-case `path` included)
+   - criterion 3: tests/entry/test_wiring_environment.py::test_the_production_environment_leaves_out_the_token_and_keeps_path_and_home
+   - criterion 4: tests/entry/test_wiring_environment.py::test_the_production_environment_keeps_the_locale_the_process_has (rows: locale set, locale unset)
+   - criterion 5: tests/entry/test_wiring_environment.py::test_a_tick_in_the_production_environment_hands_the_agent_no_token
+   - criterion 6: tests/test_agent_run_request_search.py::test_agent_run_requests_are_built_only_by_the_task_and_the_preflight and ::test_no_inner_layer_and_not_the_claude_runtime_reads_os_environ (uses `ast` through tests/source_search.py; finds `os.environ` written as an attribute and as `from os import environ`)
+   - criterion 7: tests/adapters/test_claude_runtime_environment.py::test_the_agent_gets_the_request_environment_and_the_switches_and_no_token
+   - criteria 8 and 9: tests/application/test_token_file_item.py::test_the_token_file_passes_only_without_a_bit_for_group_or_others. This is one parametrized test so that both sides of the limit sit together: 0600 and 0400 pass; 0640, 0604, 0644 and 0660 fail with the path in the detail. Every row checks the name `token-file`.
+   - criterion 10: tests/application/test_token_file_item.py::test_the_token_file_fails_naming_the_path_for_an_owner_a_missing_file_or_no_path (rows: other owner, missing file, no path; for no path the detail must contain `None`)
+   - criterion 11: tests/application/test_token_file_item.py::test_the_token_file_is_read_only_through_stat
+   - criterion 12: tests/test_git_credential_helper.py::test_get_prints_the_user_name_and_the_token_from_the_file. The token file holds `example-value` plus a newline, as in the demo, and stdout must be exactly the two lines.
+   - criterion 13: tests/test_git_credential_helper.py::test_get_without_a_readable_token_file_prints_nothing_and_fails (rows: unreadable, skipped when run as root; missing; unset)
+   - criterion 14: tests/test_git_credential_helper.py::test_any_other_operation_prints_nothing_and_succeeds (rows: store, erase, foo)
+   - criterion 15: tests/test_git_credential_helper.py::test_git_credential_fill_gets_the_token_through_the_factorys_git_environment (rows: token file present, token file missing). It drops `GIT_ASKPASS` and `SSH_ASKPASS` from the inherited `os.environ`, so that an askpass program on the test machine cannot answer instead of the helper.
+   - criterion 16: tests/test_image_credentials.py::test_the_dockerfile_installs_the_helper_and_sets_nothing_secret
+   - criterion 17: tests/test_image_credentials.py::test_the_compose_file_mounts_the_token_as_a_secret_and_sets_nothing_secret (`mode` is compared as the integer 400)
+   - criterion 18: tests/adapters/test_claude_runtime_environment.py::test_the_factory_still_pushes_and_posts_after_an_agent_run
+
+   The helper tests run `sh` through `factory.adapters.process.run_process`, the way tests/test_entrypoint.py runs its script. `run_process` gives the child no standard input, so the git request goes in from a file in tmp_path through `sh -c '… < "$0"'`.
+
+   Files created: tests/domain/test_agent_environment.py, tests/entry/test_wiring_environment.py, tests/test_agent_run_request_search.py, tests/adapters/test_claude_runtime_environment.py, tests/application/test_token_file_item.py, tests/test_git_credential_helper.py, tests/test_image_credentials.py.
+
+   The one `make test` run stopped at collection errors in three files, whose imports do not exist yet: `factory.domain.agent_runs.scrub_environment` (and `ALLOWED_ENVIRONMENT_NAMES`), used by tests/domain/test_agent_environment.py and tests/adapters/test_claude_runtime_environment.py, and `factory.application.preflight.token_file_item`, used by tests/application/test_token_file_item.py. Because collection was interrupted, the other four files did not run in that pass. They will fail once the run gets to them, because `image/git-credential-factory`, the Dockerfile and compose lines, and the scrubbing in `production_environment` are missing. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
