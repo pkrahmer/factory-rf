@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 140
 blocked: null
 comments_seen: 0
@@ -66,3 +66,8 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: Nothing to build. This is a tests-only story, and `src/` already behaves as the criteria say: `_sudo_refusal` in `src/factory/adapters/claude_runtime.py` has `and not process.timed_out`, from 0ebb835. The tester's parametrized test in `tests/adapters/test_claude_runtime_os_user.py`, together with `Step.stdout_before_wait` in `tests/adapters/claude_stand_in.py`, is green. I ran `make check` on the committed state and it is green: every check passed, coverage 99.54 %.
+   - I made no commits because there was no change to commit. The refactor pass had no diff of mine to review.
+   - Open: I tried to confirm that the new test catches the mutation (drop `and not process.timed_out` and expect the first row to fail). The permission layer denied that command before it ran, so the working tree is still clean and untouched. The mutation check is still not done. The reviewer or the demo should run it by hand.
+
+   `make check`: check: green
