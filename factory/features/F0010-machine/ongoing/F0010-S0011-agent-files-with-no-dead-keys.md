@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 129
 blocked: null
 comments_seen: 0
@@ -194,3 +194,18 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
    - `docs/project-guide.md` describes what `effort` and `budget_usd` do from the existing runner section (`--effort`, `--max-budget-usd`).
 
    `make check`: check: green
+7. demo: both commands met their `Expect:` lines. No findings.
+
+   1. A file with `permissionMode` among applied keys is refused.
+   ```
+   permissionMode | coder | True
+   ```
+   Exit 0. Matches `permissionMode | coder | True`: the error's `key` is the unapplied key, its `name` is the agent, and the message contains the key (criterion 3).
+
+   2. A file with only the four applied keys is read.
+   ```
+   ['budget_usd', 'effort', 'model', 'tools'] opus medium 4
+   ```
+   Exit 0. Matches `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`: `APPLIED_AGENT_KEYS` is exactly the four keys (criterion 1) and the file's values are read (criterion 2).
+
+   Cross-check against the acceptance criteria: the output contradicts none of them. The demo exercises only the reader. Criteria 4–18 (loader, stops, tick, watch) are not demonstrated here; they rest on the tests listed in the tester's entry and the green `make check` reported by the coder and the documenter.
