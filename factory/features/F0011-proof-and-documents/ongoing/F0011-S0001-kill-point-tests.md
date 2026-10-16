@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 145
 blocked: null
 comments_seen: 0
 round: 0
@@ -214,3 +214,9 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `factory.domain.kill_point_cases` gives the full `KillPointCase` model, the six-row table, both validator rules and the closed-model rules. `tests/proof_support.py` gives helper signatures and scenario scripts. Every `KillPoint` member it names (`AGENT_RUN`, `BEFORE_PUSH`, `AFTER_POST`, `AFTER_PUSH`) exists in `factory/domain/kill_points.py`.
+   - Criteria: 1-4 cover the table and the model rules, including the failing side of each (stall with a kill point, crash without one, stall that charges a crash, unknown key, assignment, bad values). 5-14 and 16-22 each pin one observable result, and the crash cap (16) and attempts cap (22) are covered. 15 checks the helpers are not vacuous. Every behaviour stated in the Interface comments has a criterion: the 5-second kill-to-rerun gap (8), the `charges_crash` rule (7 and 14), the stall undo and keep rules (17-21). 23 and 24 are the closing criteria.
+   - Demo: the three commands are runnable, and each `Expect:` line gives output that can be checked (six named lines; three `rejected`; a pytest `passed` last line).
+   - Architecture: the case data sits in `factory.domain` and is pure. The proof helpers sit in `tests/` and no production module imports them. Tests keep to the layout in `CLAUDE.md`: a real bare remote, the fake hosting service and the fake agent runtime, no fake git.
+   - Scope: this is the first story of F0011 and falls under its "kill-point cases and the two caps" scope item. The baseline run (WE1.4), a real container kill and the document check are not touched.
