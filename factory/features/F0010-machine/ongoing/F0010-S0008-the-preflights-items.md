@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 126
 blocked: null
 comments_seen: 0
@@ -183,3 +183,9 @@ Expect: one line, `/srv/agents claude 2.1.289`.
       - Not touched: the docs criterion (19) is the documenter's. `which` is passed in by the caller. Wiring the real `shutil.which` into the tick is a later story.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1 to 17 has a test that checks what the criterion says. The coder's entry records `make check` green (commit 1f730a8). Every rule in the Interface has its failing side tested: a blank or missing `FACTORY_CLAUDE_VERSION` (empty, blank and missing cases), unknown keys and assignment on both models, a tool missing from the PATH, a `HostingServiceError` that holds its operation and detail, the agents directory empty and the agents directory missing (`AgentDefinitionError`), the version unpinned, different and unreadable (`cannot start` from a real `ClaudeCodeRuntime`), and `version_matches` with an empty pin, a blank pin, a suffixed version and an empty reported string. The change to `tests/test_make_search.py` is exactly the one the Interface names, under FEATURE.md decision 28.
+      - Architecture: `factory.domain.preflight` is pure DTOs and rules. `factory.application.preflight` imports only `factory.application` and `factory.domain`, reaches the outside only through `Boundaries`, and takes `which` from the caller. No tool is called directly and nothing is installed. Each item catches only its own boundary's error. The items read `self._settings` and never `boundaries.settings`.
+      - Security: no secrets, no shell or SQL strings, no suppression markers.
+      - Quality: names and docstrings fit the module and its public names. `_optional` is reused for the new setting. There is no dead or duplicated logic.
+      - Ticket hygiene: the coder's entry gives the main decision (each item catches only its own boundary's error) and what was rejected (a blanket `except Exception`). `Assignment` matches the code, and criterion 19 still describes what the operator guide must say.
