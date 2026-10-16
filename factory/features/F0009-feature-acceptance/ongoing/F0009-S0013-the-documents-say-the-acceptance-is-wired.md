@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 116
 blocked: null
 comments_seen: 0
@@ -71,3 +71,9 @@ Expect: at least one line from the first paragraph that names the feature accept
       - Open: everything in criterion 2. The documenter does it.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Diff: `git diff main...HEAD -- . ':!factory'` is empty. This matches the Interface ("None: no code changes") and what the tester and coder report (entries 3 and 4).
+      - Acceptance criteria: criterion 1 has no test of its own. The coder's entry records the factory's `make check` as green on the unchanged tree. Criterion 2 is the docs criterion and the documenter writes it next. The Interface states no rule or limit, so no failing side is missing a test.
+      - Architecture, security, quality: none apply because no code, test or configuration changed. No suppression markers were added.
+      - Ticket hygiene: the log explains the main decision (the tester writes no tests because the docs are not executable criteria, and the coder leaves the doc edits to the documenter's lane) and what was rejected. `Assignment` matches what was built, which is nothing. Criterion 2 still states exactly what the documenter must change: the "The kinds:" paragraph and the **Opening** and `SplitByWorkItemKind` items in `docs/project-guide.md`, the first paragraph of `README.md`, and the operator guide cross-read. It also gives the two greps that check the result.
+      - Open: all of criterion 2, for the documenter.
