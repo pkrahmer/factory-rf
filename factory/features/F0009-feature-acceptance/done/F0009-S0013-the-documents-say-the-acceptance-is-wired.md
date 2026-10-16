@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 116
 blocked: null
 comments_seen: 0
@@ -113,3 +113,4 @@ Expect: at least one line from the first paragraph that names the feature accept
    I did not run `make check` (criterion 1). The factory runs it after this stage, and the documenter recorded it green.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 9.4 min, 30 turns, 64k tokens in (325k more from cache), 6k out, $0.54
