@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 132
 blocked: null
 comments_seen: 2
@@ -273,3 +273,26 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
     Stale but unrelated, not touched: the opening line of "The agent runtime" still says the call runs "under your own `claude` login". The new section says the login is `agent`'s once `FACTORY_AGENT_USER` is set. I left the old line because it is still true with no agent user.
 
     `make check`: check: green
+13. demo: Demo run from the repository root: all three commands ran in order, exactly as written. Each one exited 0 and matched its `Expect:` line.
+
+    1. `read_settings` with and without `FACTORY_AGENT_USER`:
+    ```
+    agent None
+    ```
+    Matches `agent None`.
+
+    2. `agent_run_environment` with `agent_user` set to `agent`:
+    ```
+    {'PATH': '/usr/bin', 'HOME': '/home/agent'}
+    ```
+    Matches `{'PATH': '/usr/bin', 'HOME': '/home/agent'}`. `HOME` is the parent of the default agent home, and `PATH` is left as it was.
+
+    3. `ClaudeCodeRuntime` with `os_user="agent"` and a `sudo` stand-in that records its arguments:
+    ```
+    ['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']
+    ```
+    Matches `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`. The stand-in exits 0 without replying, and the run returned without raising.
+
+    Checked against the acceptance criteria: nothing in the output contradicts any of them. Command 1 covers criterion 1, command 2 covers criterion 13, and command 3 covers the start of the argument list in criterion 5. The demo prints only the first seven arguments, so it does not show the `SWITCHES` entries or the executable that follow. The tests stage covers those. Criteria 11 and 15 (file modes, `sudo:` warnings), the docs criterion and the real run as `agent` (the morning observation) fall outside what this demo can show.
+
+    Findings: none.
