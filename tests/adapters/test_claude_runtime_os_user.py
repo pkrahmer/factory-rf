@@ -212,3 +212,27 @@ def test_a_missing_sudo_executable_is_a_runtime_error(tmp_path: Path) -> None:
 
     with pytest.raises(AgentRuntimeError):
         runtime.run(_request(tmp_path, "agent"))
+
+
+@pytest.mark.parametrize(
+    ("warning", "refused"),
+    [("sudo: unable to resolve host x\n", True), (None, False)],
+)
+def test_a_timed_out_call_with_a_sudo_line_is_a_runtime_error_and_without_one_a_time_limit(
+    tmp_path: Path, warning: str | None, refused: bool
+) -> None:
+    sudo = _write_sudo(tmp_path / "sudo-bin", warning=warning)
+    executable = write_stand_in(tmp_path / "bin", [Step(stdout_before_wait=REPLY, wait_seconds=60)])
+    runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state", sudo_executable=str(sudo))
+    request = _request(tmp_path, "agent").model_copy(update={"time_limit": timedelta(seconds=1)})
+
+    if refused:
+        with pytest.raises(AgentRuntimeError) as raised:
+            runtime.run(request)
+        assert "sudo: unable to resolve host x" in raised.value.detail
+        return
+    result = runtime.run(request)
+
+    assert result.end_reason == "time_limit"
+    assert result.decision is None
+    assert result.entry is None

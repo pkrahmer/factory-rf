@@ -50,6 +50,8 @@ with calls.open("a", encoding="utf-8") as out:
 step = json.loads((here / "steps.json").read_text(encoding="utf-8"))[index]
 for path, content in step["writes"].items():
     Path(path).write_text(content, encoding="utf-8")
+sys.stdout.write(step["stdout_before_wait"])
+sys.stdout.flush()
 if step["wait_seconds"]:
     time.sleep(step["wait_seconds"])
 sys.stdout.write(step["stdout"])
@@ -60,11 +62,12 @@ sys.exit(step["exit_status"])
 
 
 class Step(BaseModel):
-    """What the stand-in does on one call: write files, wait, print, exit."""
+    """What the stand-in does on one call: write files, print, wait, print, exit."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     writes: dict[str, str] = {}
+    stdout_before_wait: str = ""
     wait_seconds: float = 0
     stdout: str = ""
     stderr: str = ""
