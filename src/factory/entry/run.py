@@ -9,7 +9,8 @@ from types import FrameType
 
 from factory.application.hosting import HostingService
 from factory.application.machine import Clock
-from factory.application.scheduler import CheckoutPreparer, Scheduler
+from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
+from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import STATE_DIRECTORY, InstanceSettings
@@ -98,8 +99,9 @@ def run_instance(
     # One tick for the whole run: its status lives in memory and counts across ticks.
     tick = build_tick(boundaries, settings)
     preparer = CheckoutPreparer(boundaries.git, settings)
+    waiter = RepositoryWaiter(preparer, boundaries, StopService(boundaries))
     Scheduler(
-        prepare=preparer.prepare,
+        prepare=waiter.prepare,
         tick=activity_tick(tick),
         sleep=sleep,
         should_stop=should_stop,

@@ -3,9 +3,17 @@
 from collections.abc import Callable
 from datetime import timedelta
 
+from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.application.machine import FactoryLog
+from factory.application.stops import StopService
+from factory.domain.errors import GitError
+from factory.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
 from factory.domain.settings import InstanceSettings
+from factory.domain.stops import RepositoryStop, RepositoryStopReason
+
+_UNAVAILABLE: RepositoryStopReason = "repository_unavailable"
+_ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"
 
 FIRST_PAUSE = timedelta(seconds=15)
 MAX_PAUSE = timedelta(seconds=120)
@@ -76,3 +84,58 @@ class CheckoutPreparer:
         if not (self._settings.checkout / ".git").exists():
             self._git.clone(self._settings.repository_url)
         return True
+
+
+class RepositoryWaiter:
+    """Prepares the checkout and waits, as a stop, until `origin/main` holds the pipeline."""
+
+    def __init__(
+        self, preparer: CheckoutPreparer, boundaries: Boundaries, stops: StopService
+    ) -> None:
+        """Bind the preparer of the checkout, the boundaries it reads and the stop service."""
+        self._preparer = preparer
+        self._boundaries = boundaries
+        self._stops = stops
+
+    def prepare(self) -> bool:
+        """True once the checkout's `origin/main` holds the pipeline definition.
+
+        Otherwise the fault stands as the stop `repository_unavailable` and this is `False`.
+        """
+        try:
+            self._preparer.prepare()
+        except GitError as error:
+            return self._unavailable(f"cannot prepare the checkout: {error}")
+        fault = self._main_fault()
+        if fault is not None:
+            # A clone brings the remote as it is; only a checkout that is not ready yet fetches.
+            try:
+                self._boundaries.git.fetch()
+            except GitError as error:
+                return self._unavailable(f"cannot fetch: {error}")
+            fault = self._main_fault()
+        if fault is not None:
+            return self._unavailable(fault)
+        self._stops.clear_stop(_UNAVAILABLE)
+        return True
+
+    def _main_fault(self) -> str | None:
+        git = self._boundaries.git
+        if git.resolve(_ORIGIN_MAIN) is None:
+            return "the repository has no main branch yet"
+        if git.show_file(_ORIGIN_MAIN, PIPELINE_DEFINITION_FILE) is None:
+            return f"{_ORIGIN_MAIN} has no {PIPELINE_DEFINITION_FILE} yet"
+        return None
+
+    def _unavailable(self, detail: str) -> bool:
+        standing = self._boundaries.health.read().stops
+        # The same fault on every iteration is reported once, as v1 printed each reason once.
+        if not any(stop.reason == _UNAVAILABLE and stop.detail == detail for stop in standing):
+            stop = RepositoryStop(
+                scope="repository",
+                reason=_UNAVAILABLE,
+                detail=detail,
+                at=self._boundaries.clock.now(),
+            )
+            self._stops.raise_stop(stop)
+        return False

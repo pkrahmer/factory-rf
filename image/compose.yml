@@ -1,0 +1,27 @@
+# The factory's container: Docker restarts it and reads its health from the stops in force.
+name: factory
+services:
+  factory:
+    build:
+      context: ..
+      dockerfile: image/Dockerfile
+      args:
+        FACTORY_IMAGE: ${FACTORY_IMAGE:-unlabelled}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-m", "factory.entry.health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    environment:
+      FACTORY_REPOSITORY_URL: ${FACTORY_REPOSITORY_URL:?set FACTORY_REPOSITORY_URL to the project's repository}
+      FACTORY_INSTANCE: ${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}
+    volumes:
+      - work:/work
+      - state:/state
+      - claude-home:/home/agent/.claude
+volumes:
+  work:
+  state:
+  claude-home:
