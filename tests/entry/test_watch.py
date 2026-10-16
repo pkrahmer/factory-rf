@@ -37,7 +37,6 @@ FEATURE = "factory/features/F0001-example"
 BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"
 PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
 BODY = "# First story\n"
-NOT_WIRED = "factory-watch: no instance settings are wired yet\n"
 
 
 class _CountingHosting(FakeHostingService):
@@ -256,23 +255,6 @@ def test_the_console_script_refuses_follow_from_sys_argv(monkeypatch: pytest.Mon
         main()
 
     assert exited.value.code == 2
-
-
-@pytest.mark.parametrize("missing", ["boundaries", "instance"])
-def test_main_without_instance_settings_returns_2(boundaries: Boundaries, missing: str) -> None:
-    out, err = io.StringIO(), io.StringIO()
-
-    status = main(
-        [],
-        boundaries=None if missing == "boundaries" else boundaries,
-        instance=None if missing == "instance" else INSTANCE,
-        out=out,
-        err=err,
-    )
-
-    assert status == 2
-    assert err.getvalue() == NOT_WIRED
-    assert out.getvalue() == ""
 
 
 def test_help_names_no_follow_mode(capsys: pytest.CaptureFixture[str]) -> None:

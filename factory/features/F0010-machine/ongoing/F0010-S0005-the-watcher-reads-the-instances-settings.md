@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 123
 blocked: null
 comments_seen: 0
@@ -64,3 +64,16 @@ Expect: three lines, `2`, `''` and `True`: with no repository URL in the environ
    - Demo: runnable as written; its Expect line (`2`, `''`, `True`) can be checked against the output.
    - Architecture: `entry` uses the previous story's `boundaries_from_environment`, as `factory.entry.run` does. Nothing is wired outside `factory.entry`.
    - Scope: within F0010 ("`factory-watch` reading the same settings"); nothing falls under Out of scope.
+3. tester: Tests written for the watcher reading the instance's settings.
+
+   - criterion 1: tests/entry/test_watch_settings.py::test_an_environment_without_an_instance_is_refused_with_a_line (parametrized: `nothing-given` with `boundaries=None, instance=None`; `boundaries` with the `boundaries` fixture and `instance=None`). Sets `FACTORY_REPOSITORY_URL` and removes `FACTORY_INSTANCE` through monkeypatch. Checks status 2, exactly one line on `err` starting `factory-watch: settings invalid: FACTORY_INSTANCE: ` with a non-blank fault, and nothing on `out`.
+   - criterion 2: tests/entry/test_watch_settings.py::test_a_missing_token_file_is_refused_with_a_line_naming_it. Uses a valid environment with `FACTORY_TOKEN_FILE` pointing at a file in `tmp_path` that does not exist. Checks status 2, a line starting `factory-watch: settings invalid: FACTORY_TOKEN_FILE: `, and nothing on `out`.
+   - criterion 3: tests/entry/test_watch_settings.py::test_a_valid_environment_gets_past_the_settings_to_the_fixed_checkout. Sets `FACTORY_REPOSITORY_URL=https://github.com/owner/project.git`, `FACTORY_INSTANCE`, and `FACTORY_TOKEN_FILE` and `FACTORY_IMAGE_ID_FILE` pointing at files in `tmp_path`. Expects `GitError` and no `settings invalid` on `err`. It skips when `/work/checkout/.git` exists. Building PyGithub is lazy (`pygithub_service`), so the test makes no network request.
+   - criteria 4 and 5: not test-shaped (make check; docs stage).
+
+   Files: created tests/entry/test_watch_settings.py. In tests/entry/test_watch.py I deleted `test_main_without_instance_settings_returns_2` and the constant `NOT_WIRED`, as the Interface and FEATURE.md decision 28 direct. Nothing else in that file changed.
+
+   Red state (`make test`): all four new cases fail on wrong results, with no import errors, because `watch.main` still writes `no instance settings are wired yet`. Every module was imported. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/entry/test_watch_settings.py::test_a_valid_environment_gets_past_the_settings_to_the_fixed_checkout
