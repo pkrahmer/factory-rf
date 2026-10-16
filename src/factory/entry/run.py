@@ -2,6 +2,7 @@
 
 import os
 import signal
+import sys
 import threading
 from collections.abc import Callable, Mapping
 from pathlib import Path
@@ -122,9 +123,25 @@ def main(
         settings = read_environment_settings(os.environ if environ is None else environ)
         run(settings)
     except SettingsInvalid as error:
-        _stop_the_machine(error, state_directory, system_clock() if clock is None else clock)
+        _report_the_invalid_settings(
+            error, state_directory, system_clock() if clock is None else clock
+        )
         return _SETTINGS_INVALID
     return _OK
+
+
+def _report_the_invalid_settings(
+    error: SettingsInvalid, state_directory: Path, clock: Clock
+) -> None:
+    try:
+        _stop_the_machine(error, state_directory, clock)
+    except OSError as fault:
+        # Without a stop on disk, standard error is the operator's only trace of the cause.
+        print(f"factory-run: settings invalid: {error}", file=sys.stderr)
+        print(
+            f"factory-run: cannot write the machine stop: {type(fault).__name__}: {fault}",
+            file=sys.stderr,
+        )
 
 
 def _stop_the_machine(error: SettingsInvalid, state_directory: Path, clock: Clock) -> None:
