@@ -380,6 +380,10 @@ The restore throws away every uncommitted change and every untracked file in the
 
 A work item file that cannot be read is not a stop. The tick ends with the error, naming the file's path, and does so on every tick until a human repairs the file (on its branch, or on `main` for a started story without a branch) or moves the story out of `in-progress/` on `main`. Closing the pull request changes nothing: the tick reads every story in `in-progress/` before it looks at any pull request. A work item in a stage that the pipeline definition lacks fails the same way.
 
+### The preflight in the tick
+
+The tick runs the preflight (see "The preflight's items" and "The stamp and the probe of the main branch") after the fetch, the load and the restore, and before the cleanup of stale branches and before anything is evaluated. So the probe sees the `origin/main` the tick has just fetched: a fix you pushed is probed on the next tick, and a commit that broke `lint` stops that same tick. A tick the preflight stops (`main_branch_failing` or `preflight_failed`) does nothing else: no stale branch is deleted, no work item is read, no agent is started and no pull request is touched. The tick returns the reason as its outcome, and the stop is in the log and in `health.json`. An invalid pipeline definition ends the tick earlier, before the restore and the preflight, so it does not raise `preflight_failed`.
+
 v1's leftover files in `.git/` (`factory-run.json`, `factory-tick.lock`, `factory-tick.json`) are neither read nor written; they change nothing and can be deleted.
 
 ## The pipeline definition

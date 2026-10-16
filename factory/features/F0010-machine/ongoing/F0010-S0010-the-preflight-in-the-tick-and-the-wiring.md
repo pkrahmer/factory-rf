@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 128
 blocked: null
 comments_seen: 0
@@ -145,3 +145,17 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
      - The docstrings are current.
      - Small `which` stand-ins are copied across test modules. Existing tests already do the same (`DictionaryWhich`, `RecordingWhich`), so I did not count it as a finding.
    - Ticket hygiene: the log states the main decision and what was rejected, the Assignment matches what was built, and criterion 9 names what the documenter must write.
+6. documenter: wrote the three documents criterion 9 names. `make check` is green. I ran no demo or other examples: none of the new text contains a runnable example.
+
+   Changed:
+   - `docs/operator-guide.md`: new section "The preflight in the tick", under "The stops of the tick". It says the preflight runs after the fetch, the load and the restore, before the cleanup and before anything is evaluated. It says a tick the preflight stops does nothing else, and that an invalid definition ends the tick earlier and raises no `preflight_failed`.
+   - `docs/project-guide.md`, "The tick": the signature is now `Tick(boundaries, instance, handlers, status=None, preflight=None)`. The order is fetch, load, restore, preflight, clean up, evaluate, dispatch, with a new step 4 for the preflight and the steps after it renumbered. It also names `build_preflight` and its `extra` hook, which S0016 will use.
+   - `docs/decisions.md`: new entry "The preflight runs after the restore, not before the load" (F0006 decision 10). It gives the reasons and what I rejected.
+
+   Cross-read and found current: the operator guide sections "The stamp and the probe of the main branch" and "The preflight's items", the stops table, and "A stale branch is deleted by the tick". Two sentences there ("the preflight does not fetch; the tick that calls it does" and "After the restore ... every tick deletes ...") already match the code.
+
+   Stale but not touched: the last sentence of the S0009 decision in `docs/decisions.md` says "Open: the preflight does not fetch, and a `main_branch_failing` stop stays when the machine's items fail; the tick story decides both." It is a historical entry, and my new entry covers the fetch half. The other half (the stop staying when the machine's items fail) is not settled by this story.
+
+   No findings against the code.
+
+   `make check`: check: green
