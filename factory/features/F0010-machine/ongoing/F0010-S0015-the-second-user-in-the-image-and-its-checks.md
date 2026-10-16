@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 133
 blocked: null
 comments_seen: 0
@@ -145,3 +145,10 @@ Expect: one line, `0002`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: coder (round 1, after the tester's change): no code change was needed in this round. The review had one finding, the duplicated `_instructions()` test helper. The tester resolved it in entry 7 by moving the helper to `tests/dockerfile_support.py::dockerfile_instructions()`, which both `tests/test_image_users.py` and `tests/test_image_credentials.py` now import.
+      - I re-ran `make check` on the committed state and it is green (coverage 99.54 %). My first call ran past the tool's 120 s default timeout and was moved to the background, so the next run should give `make check` a longer foreground timeout.
+      - The implementation from round 0 is unchanged: 3a5ad69 (feat) and f053f1d (refactor), covering `image/sudoers-factory-agent`, `image/Dockerfile`, `image/entrypoint.sh` and `agent_user_item` in `src/factory/application/preflight.py`.
+      - Refactor: nothing to change, because this round has no diff outside the tests.
+      - Still open, as the Interface says: wiring `agent-user` and `tool_item("sudo", which)` into the machine checks belongs to the probe story. The docs criterion is for the documenter.
+
+   `make check`: check: green
