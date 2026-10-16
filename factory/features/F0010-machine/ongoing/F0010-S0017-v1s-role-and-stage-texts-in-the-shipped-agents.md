@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 135
 blocked: null
 comments_seen: 0
@@ -202,3 +202,14 @@ Expect: one line, `0`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: Round 1. Entry 5 had one review finding: the `_section` copy in `tests/test_claude_agent_texts.py`. The tester fixed it in entry 7, as I asked in entry 6. The test now uses `factory.domain.sections.section_text`.
+
+   That leaves no coder work for this round. I changed nothing under `claude/`, `src/` or `tests/`. The agent texts are still the ones from commit 830029c, and they pass the changed test file unchanged.
+
+   Refactor: nothing to change. The diff outside the tests is the seven agent texts, already reviewed in entry 5.
+
+   Open: the notes from entry 4 still stand, and I did not touch them. The template's coder and tester write paths do not include `{work_item}`. The `docs/` part (criterion 15) is the documenter's.
+
+   `make check`: check: green (coverage 99.54 %)
+
+   `make check`: check: green
