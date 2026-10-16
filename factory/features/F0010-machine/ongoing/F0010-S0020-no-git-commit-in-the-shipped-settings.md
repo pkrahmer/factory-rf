@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 138
 blocked: null
 comments_seen: 0
@@ -103,3 +103,9 @@ Expect: seven lines, each ending in `:1`.
    Noticed, not touched: `docs/project-guide.md` still calls the allowed git commands "the read and commit git commands". `docs/operator-guide.md` still has to name `git add` and `git commit` among the denied commands. Both belong to the documenter (criterion 6).
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Criteria: each criterion has a test, and I read each test against its criterion. Criterion 1 is covered by `tests/test_claude_settings_git.py::test_allow_list_holds_no_git_add_or_commit`, which checks that the entries are absent, the failing side. `test_allow_list_keeps_the_read_git_commands` covers the five kept entries, one row each. Criterion 2 is covered by `test_deny_list_holds_git_add_and_commit_beside_push_and_gh`, with four rows. Criterion 3 is covered by `tests/test_claude_files.py::test_settings_are_the_shared_permissions_and_environment` against `SETTINGS`. The diff to `SETTINGS` changes only the two lists, as the Assignment allows. Criterion 4 is covered by `test_rules_section_still_forbids_the_agent_to_commit`, with one row per agent in `SHIPPED_NAMES`. The coder's entry records `make check` as green.
+      - Interface: `claude/settings.json` matches it exactly. Allow drops `Bash(git add *)` and `Bash(git commit *)`, and the other entries keep their order. Deny inserts `Bash(git add*)` and `Bash(git commit*)` after `Bash(git branch -D*)`. `env` is unchanged.
+      - Architecture and security: no code under `src/` changes. The diff adds no suppression markers. The tests reuse the existing helpers `shipped_agents.AGENT_HOME`, `SHIPPED_NAMES` and `front_matter_and_body`, and `factory.domain.sections.section_text`.
+      - Quality: the tests follow the conventions in `CLAUDE.md` (parametrized rows, module docstring, no mocks). `_permissions` is a small private reader. It does not duplicate an existing helper; `test_claude_files.py` reads the settings inline.
+      - Hygiene: the coder's entry names its main decision, to deny the two commands rather than only drop them from allow, and the reason. The docs criterion (6) still says what the documenter has to change. The coder noted that `docs/project-guide.md` still says "the read and commit git commands"; the documenter fixes that under criterion 6.
