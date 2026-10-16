@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 126
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The preflight's items
 
 ## Assignment (as of log entry 1)
@@ -132,3 +140,96 @@ Expect: one line, `/srv/agents claude 2.1.289`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures (`domain/settings.py`, `domain/preflight.py`, `application/preflight.py`). Every rule is stated. The pieces it relies on exist: `FakeAgentRuntime.version`, `FrontmatterAgentDefinitionReader.names`, the fake hosting's `injected failure`, and the `cannot start` text in `ClaudeCodeRuntime`.
+   - Criteria: each is testable by one test function. Criterion 1 covers `read_settings` for set, missing and blank. Criterion 2 covers the frozen and closed models. Criteria 3 and 4 cover `tool_item` pass and fail. Criteria 5 and 6 cover the item order and reporting every item at once. Criteria 7 to 12 cover each item's pass side and fail side (hosting, agents with an empty or missing directory, version equal, different, unpinned, and a raising runtime). Criterion 13 covers `version_matches` on both sides. Criterion 14 covers the `extra` items. Criterion 15 covers reading `settings` and not `boundaries.settings`. Criteria 16 and 17 cover `machine_stop` for a passed and a failed report.
+   - Demo: the three commands are runnable. Each Expect line gives output that can be checked.
+   - Architecture: the domain DTOs and rules are in `factory.domain`. The checks and `REQUIRED_TOOLS` are in `factory.application` and take `which` as an argument, so no tool is called directly. The change to the `test_only_the_make_class_names_make` test has the human's word in FEATURE.md decision 28.
+   - Scope: within F0010's "preflight's items". The token file, agent user, sudo and probe items are left to later stories, and the stamp and the wiring are S0009 and S0010.
+3. tester: wrote the red tests for the preflight's items.
+   - criterion 1: tests/domain/test_settings_pinned.py::test_the_pinned_version_comes_from_its_variable_or_is_none (cases: set, missing, empty, blank)
+   - criterion 2: tests/domain/test_preflight.py::test_both_models_reject_an_unknown_field and ::test_a_field_cannot_be_assigned (uses `type[BaseModel]` variables and `setattr`)
+   - criterion 3: tests/application/test_preflight.py::test_a_tool_on_the_path_passes
+   - criterion 4: tests/application/test_preflight.py::test_a_tool_missing_from_the_path_fails_and_says_to_add_it_to_the_image
+   - criterion 5: tests/application/test_preflight.py::test_a_ready_machine_passes_every_item_in_order and ::test_the_claude_tool_item_asks_for_the_configured_executable
+   - criterion 6: tests/application/test_preflight.py::test_every_item_is_reported_whatever_the_others_found
+   - criterion 7: tests/application/test_preflight.py::test_the_hosting_service_item_reports_a_failed_call (cases: answers, fails)
+   - criterion 8: tests/application/test_preflight.py::test_the_agents_item_finds_the_agents_where_the_agent_home_points
+   - criterion 9: tests/application/test_preflight.py::test_the_agents_item_fails_naming_the_agent_home_without_agents (cases: no agent file, missing directory)
+   - criterion 10: tests/application/test_preflight.py::test_the_version_item_passes_when_the_first_word_is_the_pinned_version
+   - criterion 11: tests/application/test_preflight.py::test_the_version_item_fails_naming_both_versions_when_they_differ
+   - criterion 12: tests/application/test_preflight.py::test_the_version_item_fails_when_the_image_pins_no_version and ::test_the_version_item_fails_with_the_runtime_error_when_the_version_cannot_be_read (a `ClaudeCodeRuntime` whose executable does not exist, so the detail contains `cannot start`)
+   - criterion 13: tests/domain/test_preflight.py::test_a_version_matches_exactly_when_its_first_word_is_the_pinned_one (cases: equal, first word, empty pin, blank pin, `-beta` suffix, empty reported)
+   - criterion 14: tests/application/test_preflight.py::test_the_extra_items_run_last_in_order_and_are_reported_with_the_others
+   - criterion 15: tests/application/test_preflight.py::test_the_items_read_the_settings_given_and_not_those_of_the_boundaries
+   - criterion 16: tests/domain/test_preflight.py::test_a_passed_report_passes_and_makes_no_stop (cases: empty report, all passed)
+   - criterion 17: tests/domain/test_preflight.py::test_a_failed_report_becomes_one_machine_stop_naming_every_failed_item
+   - criteria 18 and 19: no tests. They are `make check` and the docs.
+
+   New files: tests/domain/test_settings_pinned.py, tests/domain/test_preflight.py, tests/application/test_preflight.py. The application tests use the shared `boundaries` fixture with `dataclasses.replace`. They swap in `FakeAgentRuntime(version=...)` and the real `FrontmatterAgentDefinitionReader` on a directory in `tmp_path`, and use a `which` stub that answers from a dictionary and records what it was asked.
+
+   Changed file: tests/test_make_search.py::test_only_the_make_class_names_make. Its expected set is now `{"factory.adapters.make_commands", "factory.application.preflight"}`. This is the change the Interface asks for, on the human's word (FEATURE.md decision 28); nothing else in the file changed.
+
+   `make test` fails with collection errors because `factory.domain.preflight` and `factory.application.preflight` do not exist yet. test_settings_pinned will also fail until `InstanceSettings` has `pinned_agent_version`. `make lint` passes.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the preflight's items. All tests pass and `make check` is green (coverage 99.52 %). Commit 1f730a8.
+      - `src/factory/domain/settings.py`: adds `CLAUDE_VERSION_VARIABLE` and `InstanceSettings.pinned_agent_version`. `read_settings` reads it with the existing `_optional` helper, and a missing or blank value becomes `None`.
+      - `src/factory/domain/preflight.py`: adds `PreflightItem` and `PreflightReport`, both frozen with `extra="forbid"`. The report has the `passed` property and `failed()`. Also adds `version_matches` (the pin must not be blank and must equal the first word of the reported version) and `machine_stop`, which joins the failed items as `name: detail` with `; ` into a `RepositoryStop` with scope `machine` and reason `preflight_failed`.
+      - `src/factory/application/preflight.py`: adds `REQUIRED_TOOLS`, `tool_item` and `MachineChecks`. `MachineChecks.run` builds the four tool items (the three required tools, then `settings.claude_executable`), then `hosting-service`, `agents` and `agent-runtime-version`, then the `extra` items. Each item reads only `self._settings`. Each failure's detail says how to fix it: check the token and the network, install the agents there, or rebuild the image or change the pinned version.
+      - Main design decision: each item catches only its own boundary's error (`HostingServiceError`, `AgentDefinitionError`, `AgentRuntimeError`) and turns it into a failed item. That way every item runs whatever the earlier ones found, and anything unexpected still surfaces as an error. Rejected: a generic `except Exception` wrapper around every item. It would hide programming errors as preflight failures.
+      - Refactor: I read the diff and found nothing to change, so there is no separate refactor commit.
+      - Not touched: the docs criterion (19) is the documenter's. `which` is passed in by the caller. Wiring the real `shutil.which` into the tick is a later story.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1 to 17 has a test that checks what the criterion says. The coder's entry records `make check` green (commit 1f730a8). Every rule in the Interface has its failing side tested: a blank or missing `FACTORY_CLAUDE_VERSION` (empty, blank and missing cases), unknown keys and assignment on both models, a tool missing from the PATH, a `HostingServiceError` that holds its operation and detail, the agents directory empty and the agents directory missing (`AgentDefinitionError`), the version unpinned, different and unreadable (`cannot start` from a real `ClaudeCodeRuntime`), and `version_matches` with an empty pin, a blank pin, a suffixed version and an empty reported string. The change to `tests/test_make_search.py` is exactly the one the Interface names, under FEATURE.md decision 28.
+      - Architecture: `factory.domain.preflight` is pure DTOs and rules. `factory.application.preflight` imports only `factory.application` and `factory.domain`, reaches the outside only through `Boundaries`, and takes `which` from the caller. No tool is called directly and nothing is installed. Each item catches only its own boundary's error. The items read `self._settings` and never `boundaries.settings`.
+      - Security: no secrets, no shell or SQL strings, no suppression markers.
+      - Quality: names and docstrings fit the module and its public names. `_optional` is reused for the new setting. There is no dead or duplicated logic.
+      - Ticket hygiene: the coder's entry gives the main decision (each item catches only its own boundary's error) and what was rejected (a blanket `except Exception`). `Assignment` matches the code, and criterion 19 still describes what the operator guide must say.
+6. documenter: one file changed, `docs/operator-guide.md`, and `make check` is green after the edit.
+   - Settings table: added a `FACTORY_CLAUDE_VERSION` row. `FACTORY_CLAUDE_HOME` and `FACTORY_CLAUDE` were already listed.
+   - New section "The preflight's items", placed before "The wait for a repository that is not ready". It covers:
+     - the seven items, each with what makes it pass and the fix for each failure (add the tool to the image, check the token and the network, install the agents into `FACTORY_CLAUDE_HOME`, rebuild the image or change the pinned version);
+     - that every item is reported at once and that a failed report becomes one machine stop whose detail lists each failed item;
+     - that nothing is installed for the operator, and that the commit identity is not an item.
+     - It also says plainly that nothing runs these items at start yet, because the wiring is the next two stories.
+   - "The agent runtime" section: replaced the stale "the preflight that compares it arrives with F0010, and until then nothing checks it" with a pointer to the new section.
+   - Cross-read and found current: `README.md`, `docs/project-guide.md` (the `"make"` literal remark in the project-commands paragraph, which this story widens to `factory.application.preflight`, was not touched), the "Claude Code" section of the image docs (`FACTORY_CLAUDE_VERSION` is already set there), and the stops table row for `preflight_failed`.
+   - Stale but not touched, because the wiring stories own them:
+     - The "The agent runtime" and `factory-guard` paragraphs say a guard probe is still to come.
+     - The README and the operator guide's intro still say the preflight is to come.
+     - The project-guide sentence "The string `"make"` appears in no other module under `src/factory`" is now slightly wrong, since `factory.application.preflight` holds it too. That is unrelated prose outside my lane to rewrite as a finding, so I am noting it here.
+   - No findings for the coder: the code matches the Interface, and every public name has a docstring.
+
+   `make check`: check: green
+7. demo: I ran all three commands from the repository root. Each exited 0 and printed exactly what its Expect line says. No findings.
+
+   Command 1 (`version_matches` and `tool_item`):
+   ```
+   True False
+   tool:make False
+   ```
+   It met its Expect line: `True False`, then `tool:make False`.
+
+   Command 2 (`machine_stop` of a report with two failed items and one passed item):
+   ```
+   machine preflight_failed
+   tool:uv: uv is not on the PATH; add it to the image; agent-runtime-version: agent runtime reports 2.1.290, the image pins 2.1.289
+   ```
+   It met its Expect line: scope and reason come first, then one detail line. That line joins the two failed items in order with `; ` and leaves out the passed item.
+
+   Command 3 (`read_settings` with `FACTORY_CLAUDE_VERSION` set):
+   ```
+   /srv/agents claude 2.1.289
+   ```
+   It met its Expect line: `/srv/agents claude 2.1.289`.
+
+   Checked against the acceptance criteria: no criterion is contradicted.
+   - Command 1 agrees with criteria 4 and 13: the first word of the reported version must match the pin, and a missing tool fails with the name `tool:<name>`.
+   - Command 2 agrees with criterion 17: scope `machine`, reason `preflight_failed`, and the detail as `name: detail` pairs joined by `; `.
+   - Command 3 agrees with criterion 1: `pinned_agent_version` is read from `FACTORY_CLAUDE_VERSION`. It also shows that the default `claude_executable` is `claude`, which matches criterion 5's `tool:claude`.
+
+   Criteria 5 to 12, 14 and 15 are about `MachineChecks.run` against the boundaries. No demo command runs it; the earlier stages' tests cover those criteria.
