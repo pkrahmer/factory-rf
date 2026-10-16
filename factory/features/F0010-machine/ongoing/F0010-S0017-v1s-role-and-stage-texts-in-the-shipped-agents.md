@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 135
 blocked: null
 comments_seen: 0
@@ -255,3 +255,34 @@ Expect: one line, `0`.
     - The template's coder and tester write paths do not include `{work_item}` (open since entries 4 and 9). It is not a docs matter.
 
     `make check`: check: green
+11. demo: Ran both `## Demo` commands from the repository root, in order. There are no findings.
+
+    1. Headings of each agent body:
+    ```text
+    acceptance-reviewer ['## Rules', '## Role', '## Stage', '## Lessons']
+    coder ['## Rules', '## Role', '## Stage', '## Lessons']
+    documenter ['## Rules', '## Role', '## Stage', '## Lessons']
+    intake ['## Rules', '## Stage', '## Lessons']
+    reviewer ['## Rules', '## Role', '## Stage', '## Lessons']
+    smoke-tester ['## Rules', '## Stage', '## Lessons']
+    tester ['## Rules', '## Role', '## Stage', '## Lessons']
+    ```
+    Met its `Expect:` line. There are seven lines in sorted order. `intake` and `smoke-tester` have no `## Role`, and the other five have all four sections.
+
+    2. Count of banned words:
+    ```text
+    0
+    ```
+    Met its `Expect:` line (`0`).
+
+    Cross-check against the acceptance criteria: nothing in the demo contradicts one. I also ran a grep over `claude/agents/*.md` for the other words criterion 4 bans that the demo regex does not cover: `drafts`, `ongoing`, `promote`, `max_rounds`, `outcome(s)`, `stages.yml`, `Assignment` and `(append only)`. It found none of them.
+
+    I spot-checked these anchors and found each one:
+    - `Git is the only truth.` appears once in each of the seven files (criterion 6).
+    - ``Write the proposed stories into the feature's `backlog/`.`` is in `acceptance-reviewer` (criterion 10).
+    - `acceptance-reviewer` names `## Recommendation` and `## Proposed stories` inline, not as headings (criterion 9).
+    - ``compare the output with its `Expect:` line`` and `its trimmed output in a fenced block` are in `smoke-tester` (criterion 11).
+
+    I did not run `make check`; the factory runs it after this stage. I changed no files.
+
+    Still open from entries 4, 9 and 10, outside this story: the template's write paths for the coder and tester do not include `{work_item}`, and `docs/project-guide.md` says `claude/settings.json` allows `git commit` even though the agent bodies say no agent commits.
