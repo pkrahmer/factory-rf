@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from pathlib import PurePosixPath
 
 from factory.application.boundaries import Boundaries
-from factory.application.work_items import parse_at
+from factory.application.work_items import RemoteWorkItems, parse_at
 from factory.domain.acceptance import (
     AcceptanceState,
     FeatureAcceptance,
@@ -244,3 +244,18 @@ class AcceptanceReader:
 
 def _is_report_of(work_item: WorkItemId, feature: FeatureId) -> bool:
     return is_acceptance(work_item) and feature_of(work_item) == feature
+
+
+def running_work_items(
+    work_items: RemoteWorkItems,
+    acceptances: AcceptanceReader,
+    definition: PipelineDefinition,
+) -> list[WorkItemSnapshot]:
+    """The stories in progress and the running acceptances, in work item order.
+
+    Raises `WorkItemFormatError` for a work item file or a report that cannot be read.
+    """
+    return sorted(
+        [*work_items.read(definition), *acceptances.snapshots()],
+        key=lambda snapshot: (work_item_order(snapshot.id), snapshot.path),
+    )
