@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 133
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The second user in the image and its checks
@@ -125,3 +125,12 @@ Expect: one line, `0002`.
       - Open: the docs criterion is for the documenter.
 
    `make check`: check: green
+5. reviewer: one finding. Everything else checks out:
+   - Criteria 1–9 each have a test that tests what it is named after.
+   - The `agent-user` rule's failing side and every passing side are rows of one parametrized test, including `exists` answering true with no token file.
+   - `agent_user_item` follows the Interface and does no I/O.
+   - The sudoers file, the Dockerfile lines (before the image-id `RUN` and before `USER factory`) and `umask 002` directly after `set -eu` match the Interface.
+   - No markers that silence a check, and no secrets.
+   - The coder's entry reports `make check` green.
+
+   1. `tests/test_image_users.py:17` `_instructions()` is a verbatim copy of `_instructions()` in `tests/test_image_credentials.py:17`: same docstring, same body. Copying an existing helper is a finding under CLAUDE.md. Fix: move it into a shared support module under `tests/` (like `tests/git_support.py`), for example `tests/dockerfile_support.py`, and import it in both test files. The coder may not edit tests, so this goes to the tester: the coder should end with `tests` and name exactly this change.
