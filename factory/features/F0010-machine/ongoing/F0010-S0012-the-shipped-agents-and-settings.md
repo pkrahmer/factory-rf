@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 130
 blocked: null
 comments_seen: 0
@@ -201,3 +201,38 @@ Expect: one line, `16 10 True`.
    - Demo: all three commands are runnable. Each `Expect:` line is checkable. I counted the settings by hand: 16 allow entries and 10 deny entries, and the sorted agent order matches `names()`.
    - Architecture: only data files plus tests in the existing `tests/` layout. Nothing is placed in the layers. The agent reader and pipeline reader are the existing adapters.
    - Scope: within F0010's scope (SI4.2, kept 6, R30, decisions 16 and 17). Skills and forms are not shipped, as "Out of scope" requires. v1's role and stage texts are left to S0017.
+3. tester: Wrote the red tests for the shipped agents, the shared settings and the template.
+
+   Criterion → test:
+   - criterion 1: tests/test_claude_files.py::test_agents_directory_holds_exactly_the_seven_agent_files
+   - criterion 2: tests/test_claude_files.py::test_every_shipped_agent_is_read_and_listed_sorted
+   - criterion 3: tests/test_claude_files.py::test_front_matter_holds_the_four_applied_keys_with_their_values. It is parametrized over the seven agents. It checks that the raw front matter keys are exactly the four keys, and that the values read through the reader match the table. `tools` is compared as a list in table order and `budget_usd` as a Decimal, so the documenter's is 1.5.
+   - criterion 4: tests/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_model
+   - criterion 5: tests/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_effort
+   - criterion 6: tests/adapters/test_shipped_agents_effect.py::test_call_passes_exactly_the_agent_tools. The `--tools` value is split on commas and whitespace and compared as a set.
+   - criterion 7: tests/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget. The value is compared as a Decimal.
+   - criterion 8: tests/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body
+   - criterion 9: tests/test_claude_files.py::test_body_starts_with_the_boundary_and_the_entry_sentence
+   - criterion 10: tests/test_claude_files.py::test_settings_are_the_shared_permissions_and_environment. It checks exact equality, which also covers "no other `factory-` command".
+   - criterion 11: tests/test_claude_files.py::test_template_pipeline_definition_is_valid_with_the_shipped_roles
+   - criterion 12: tests/test_claude_files.py::test_template_holds_only_the_rules_file_and_the_pipeline_definition
+   - criterion 13: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text. The expected text is the Interface block with the four spaces removed. I checked it against the ticket by script, and it ends with exactly one newline.
+   - criteria 14 and 15: not tested (make check, docs).
+
+   Criteria 4 to 8 run the real `ClaudeCodeRuntime` against the stand-in from `tests/adapters/claude_stand_in.py`. A module-scoped fixture `calls` reads each shipped agent with `FrontmatterAgentDefinitionReader(Path("claude"))` and makes one run per agent, with no guard and a success reply. It runs each agent once, not once per test.
+
+   Files created:
+   - tests/shipped_agents.py: a shared table of the seven agents with their values, boundary and entry sentences, plus ROOT and AGENT_HOME.
+   - tests/test_claude_files.py
+   - tests/adapters/test_shipped_agents_effect.py
+
+   Expected red state:
+   - All modules import; nothing under test is missing from `src/`.
+   - The tests fail because `claude/agents/`, `claude/settings.json` and `template/` do not exist yet. Every runtime-effect test errors in the `calls` fixture because there is no agents directory.
+
+   `make lint` is green.
+
+   Open for the coder: the files belong in `claude/` and `template/`. Those paths are outside `src/*`, which is the coder role's write path in the template pipeline. Whether the factory's own lane for this project covers them is the factory's concern, not mine.
+
+   `make lint`: lint: green
+   `make test`: ERROR tests/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[acceptance-reviewer]
