@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 115
 blocked: null
 comments_seen: 0
@@ -131,3 +131,24 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
    Stale but untouched: nothing seen. The diff also lists `planning/` and `docs/runs/` changes from the human's commit; they are not mine.
 
    `make check`: check: green
+9. demo: demo (round 1): ran both demo commands from the repository root. Both met their `Expect:` lines, and I found no findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/application/test_board_reader_acceptance.py`
+   ```
+   ..........                                                               [100%]
+   10 passed in 7.86s
+   ```
+   Met. The last line is `10 passed in <time>`, and the Expect asks for at least 10: criteria 1–8, with criterion 4 as three rows.
+
+   2. `awk '/^## /{s=($0=="## Looking at the remote: `factory-watch`")} s && /running acceptance/' docs/operator-guide.md`
+   ```
+   - A work item row exists for each story in `in-progress/` and for each running acceptance (one that is opened, waiting with a question or at its approval, or merged and not yet booked), with its title (the first `# ` title of the body, else the id), its stage, what it waits for (`blocked`), the instance holding its claim, since when (`running_since`, the claim's start in UTC) and its pull request. An absent value is `-`. The rows are in id order, so an acceptance's row comes after its feature's stories and before the stories of a later feature. An acceptance's title is `Acceptance of <feature title>`, its folder `in-progress`, and its state is the one on its branch.
+   ```
+   Met. It printed one line, and the awk filter only prints from the `factory-watch` section.
+
+   I then read the acceptance criteria again against these results. Nothing contradicts any of them:
+   - Criteria 1–8 are covered by the passing module.
+   - Criterion 10 is met in both guides. The operator guide line above says what it requires. `docs/project-guide.md:558` says that the board's rows are those of `RemoteWorkItems.read` and `AcceptanceReader.snapshots()`, sorted by `work_item_order` (through `running_work_items`).
+   - Criterion 9 (`make check`) is the factory's gate, and I did not run it in this stage.
+
+   Open: nothing.
