@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 120
 blocked: null
 comments_seen: 0
 round: 0
@@ -92,3 +92,9 @@ Expect: one line, `[15.0, 30.0, 60.0]`: the first tick ran at once, activity gav
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/application/scheduler.py` names the constants, `pause_after`, `Scheduler` and `CheckoutPreparer` with full signatures. Each type it uses exists: `FactoryLog.line` in application/machine.py, `Git.clone` in application/git.py, `InstanceSettings` in domain/settings.py, `InjectedKill` in domain/kill_points.py. The only Interface comment that states a behaviour is the `pause_after` formula, and criteria 1 and 2 test it.
+   - Criteria: each one fits a single test function with concrete values. Each rule has its failing side covered: a negative `n` (2), `prepare` returning False or raising (6, 8), `tick` raising (7), a BaseException not caught (9), a checkout that already exists (11), and a directory without `.git` (12). Criterion 4 covers should_stop true from the start. The sleeps are given as a table (3, 5, 6).
+   - Demo: both commands are runnable and each Expect line can be checked against the output. The second command prints only the list, since `Log.line` is never called.
+   - Architecture: the scheduler and the preparer sit in `factory.application` and use only the `Git` and `FactoryLog` interfaces. The tests use real `GitCli` on a bare remote, as CLAUDE.md requires.
+   - Scope: the story fits F0010's scope (the loop, its pauses, the reclone: ST7.1 and ST7.3), is not in "Out of scope", and matches decision 33.
