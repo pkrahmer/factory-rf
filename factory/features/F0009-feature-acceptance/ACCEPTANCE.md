@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 118
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0009-S0001, F0009-S0002, F0009-S0003, F0009-S0004, F0009-S0005, F0009-S0006, F0009-S0007, F0009-S0008, F0009-S0009, F0009-S0010, F0009-S0011, F0009-S0012, F0009-S0013, F0009-S0014]
+outcome: accepted
 ---
 # Acceptance of Feature acceptance
 
@@ -326,3 +327,4 @@ A pattern for the human, about the pipeline's own files, which are theirs: a doc
       7 Slow checks: none beyond `make check`, which was green as I found it (3 min 03 s, 99.53 %).
       8 Cost: 113 runs, 309.9 min, $33.45 in all (about $2.39 per story). The three new stories cost 20 runs, 50.7 min, $3.74. S0012 is the most expensive of the three ($2.11, one review round on a duplicated join). S0013 was docs-only and still paid for four stages that had nothing to do, which is a matter for the pipeline's own files.
       Open: none for this stage. Draft S0015 is the human's to refine, promote or do by hand.
+2. done (pull request merged); cost: 2 runs, 40.5 min, 113 turns, 320k tokens in (12676k more from cache), 100k out, $7.11
