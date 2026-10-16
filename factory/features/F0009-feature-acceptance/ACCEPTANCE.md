@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 114
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0009-S0001, F0009-S0002, F0009-S0003, F0009-S0004, F0009-S0005, F0009-S0006, F0009-S0007, F0009-S0008, F0009-S0009, F0009-S0010, F0009-S0011]
+outcome: accepted
 ---
 # Acceptance of Feature acceptance
 
@@ -475,3 +476,4 @@ A pattern across stories: S0004 and S0011 each spent a human round trip on a myp
    7 Slow checks: none beyond `make check`, which was green as found (3 min, 99.53 %).
    8 Cost: 93 runs, 259.2 min, $29.71 (about $2.70 per story). S0008 is the top cost at $4.12 (a missing criterion caught in review led to a question and a test round). S0011 has the most runs (14, with no change to src). S0009 is long but cheap. Pattern: the tests stage does not run `make types`, so mypy errors in tests cost S0004 and S0011 a human round trip each. That is a matter for the pipeline's own files.
    Open: none for this stage. The drafts (S0012 board row, S0013 docs repair, S0014 refused sides) are the human's to refine and promote.
+2. done (pull request merged); cost: 1 runs, 26.6 min, 89 turns, 221k tokens in (11408k more from cache), 77k out, $5.60
