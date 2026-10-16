@@ -290,7 +290,7 @@ def test_the_built_agent_runtime_keeps_its_run_files_under_runs(
             instructions=instructions,
         ),
         prompt="Stage: doing",
-        allowed_decisions=["doing"],
+        allowed_decisions=["doing", "question"],
         time_limit=timedelta(seconds=30),
         working_directory=work,
         environment={},
