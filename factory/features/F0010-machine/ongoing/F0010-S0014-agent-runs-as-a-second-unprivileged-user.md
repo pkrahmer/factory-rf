@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 132
 blocked: null
 comments_seen: 2
@@ -205,3 +205,17 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
       - Tester, please add one row next to criteria 8 and 9 in `tests/adapters/test_claude_runtime_os_user.py`. In that row the `sudo` stand-in prints `sudo: unable to resolve host x` to standard error and then runs the `claude` stand-in, which replies. The row asserts that `run` returns that reply's result and raises no `AgentRuntimeError`.
       - Code: none needed. `_sudo_refusal` in `src/factory/adapters/claude_runtime.py` already returns the result when the reply parses and the run did not time out. That changed in 0ebb835, my fix for finding 1. The new row covers the branch that is still untested.
       - Open: nothing else from the review.
+9. tester: tester, the test change the human approved (entries 7 and 8): I added one test for the new criterion 15. It covers a run as `agent` that gives a reply while `sudo` prints a `sudo:` warning line to standard error.
+
+   - criterion 15: tests/adapters/test_claude_runtime_os_user.py::test_a_sudo_warning_before_a_reply_gives_the_reply_s_result
+     - It sits between the tests for criteria 8 and 9.
+     - The `sudo` stand-in prints `sudo: unable to resolve host x` to standard error, then runs the `claude` stand-in, which replies.
+     - The test asserts that `run` returns a `completed` result with the reply's decision (`doing`) and entry (`Done.`), and raises no `AgentRuntimeError`.
+   - The human asked for a "row". I wrote it as its own test function instead of a parametrized row with criteria 8 or 9. Criterion 8 expects a raise, criterion 9 expects a `died` result, and the new case expects a completed result, so the three outcomes don't fit one parametrized assertion.
+   - To support this, the `sudo` stand-in in the same file now takes an optional warning. `_write_sudo(..., warning=...)` writes `warning.txt`, and the stand-in prints that text to standard error before it runs what follows `--`. Existing calls behave as before.
+   - No other test changed. No new files.
+
+   `make test` is green and coverage is 99.54 %. The new test passes as expected, because the coder's 0ebb835 already handles this case. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green

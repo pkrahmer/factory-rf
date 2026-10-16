@@ -30,7 +30,8 @@ REPLY = json.dumps(
     }
 )
 
-# Records its arguments and environment, then either plays a refusal or runs what follows `--`.
+# Records its arguments and environment, then either plays a refusal or runs what follows `--`,
+# after printing a warning to standard error if one is given.
 SUDO_SCRIPT = r"""
 import json
 import os
@@ -47,6 +48,10 @@ if refusal.exists():
     played = json.loads(refusal.read_text(encoding="utf-8"))
     sys.stderr.write(played["stderr"])
     sys.exit(played["exit_status"])
+warning = here / "warning.txt"
+if warning.exists():
+    sys.stderr.write(warning.read_text(encoding="utf-8"))
+    sys.stderr.flush()
 rest = arguments[arguments.index("--") + 1 :]
 os.execvp(rest[0], rest)
 """
@@ -61,8 +66,12 @@ class SudoCall(BaseModel):
     environment: dict[str, str]
 
 
-def _write_sudo(directory: Path, refusal: tuple[str, int] | None = None) -> Path:
+def _write_sudo(
+    directory: Path, refusal: tuple[str, int] | None = None, warning: str | None = None
+) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
+    if warning is not None:
+        (directory / "warning.txt").write_text(warning, encoding="utf-8")
     if refusal is not None:
         stderr, exit_status = refusal
         (directory / "refusal.json").write_text(
@@ -176,6 +185,17 @@ def test_a_sudo_refusal_is_a_runtime_error_naming_its_line(tmp_path: Path) -> No
         runtime.run(_request(tmp_path, "agent"))
 
     assert "sudo: a password is required" in raised.value.detail
+
+
+def test_a_sudo_warning_before_a_reply_gives_the_reply_s_result(tmp_path: Path) -> None:
+    sudo = _write_sudo(tmp_path / "sudo-bin", warning="sudo: unable to resolve host x\n")
+    runtime, _ = _runtime(tmp_path, sudo)
+
+    result = runtime.run(_request(tmp_path, "agent"))
+
+    assert result.end_reason == "completed"
+    assert result.decision == "doing"
+    assert result.entry == "Done."
 
 
 def test_a_failure_without_a_sudo_line_is_a_dead_run(tmp_path: Path) -> None:
