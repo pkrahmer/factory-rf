@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 143
 blocked: null
 comments_seen: 0
@@ -93,3 +93,4 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
    - Not checked by me: criterion 4 (`make check` green). The demo does not run it; the factory runs it after this stage. The coder and the documenter both report it green.
    - Criterion 5: docs: none, consistent with the documenter's entry.
    - Findings: none.
+8. done (pull request merged); cost: 6 runs, 11.5 min, 29 turns, 65k tokens in (313k more from cache), 6k out, $0.58
