@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 124
 blocked: null
 comments_seen: 2
@@ -283,3 +283,16 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: coder (round 1): the only review finding (entry 5) was missing test rows, and it is now closed. The tester added the five rows the human approved (entry 7) to `tests/test_image.py::test_a_floating_item_is_reported`, and they pass against the existing anchored patterns.
+
+    I changed no production code this round. `image/Dockerfile` and `src/factory/application/costs.py` are as they were in 65c0b7c. There is no new commit and no refactor, because there is no new diff to clean up.
+
+    `make check`: green (coverage 99.54 %).
+
+    Still open, as stated in the Assignment:
+    - The base-image digest and the eight `0~unpinned` Debian versions are placeholders. The human replaces them before the first build.
+    - The real build is a morning observation.
+    - The files the Dockerfile copies (`claude/`, `template/`, `image/entrypoint.sh`) come from later stories.
+    - Criterion 23 (docs) is the documenter's.
+
+    `make check`: check: green
