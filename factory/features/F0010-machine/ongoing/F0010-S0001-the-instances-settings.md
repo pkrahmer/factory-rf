@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 119
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The instance's settings
 
 ## Assignment (as of log entry 1)
@@ -96,3 +104,73 @@ Expect: one line, `factory Ann`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.errors.SettingsInvalid`, `factory.domain.settings` with its constants, `InstanceSettings` and `read_settings`). Defaults, stripping, fallback per half and the image-file reader are all stated.
+   - Criteria: each fits one test function (the multi-case ones are parametrized rows). Every rule has a failing-side criterion: required variables (2), URL comma/space (3), password (15, with accepted forms), instance name (4), identity fallback (8), image file (10), fault order (13), closed model (12). The tests need no further decisions.
+   - Demo: both commands are runnable with `uv run python -c` and each `Expect:` line is an exact output.
+   - Architecture: pure settings and an error in `factory.domain`; the reader is a parameter, so there is no I/O in the domain, as `CLAUDE.md` requires. The story adds no dependency.
+   - Scope: within F0010's first scope bullet and decisions 1, 2, 3, 7, 11 and 35. It builds nothing from the later stories.
+   - Not asked: the story does not say what happens when `FACTORY_IMAGE_ID_FILE` is set but blank. This is a corner the Interface does not state as a rule, so I did not ask.
+3. tester: wrote red tests for every acceptance criterion.
+   - criterion 1: tests/domain/test_settings.py::test_the_two_required_variables_give_the_settings_and_their_defaults
+   - criterion 2: tests/domain/test_settings.py::test_a_missing_or_blank_required_variable_is_refused (2 variables x missing/empty/spaces)
+   - criterion 3: tests/domain/test_settings.py::test_a_repository_url_names_one_repository
+   - criterion 4: tests/domain/test_settings.py::test_an_instance_name_must_be_a_name
+   - criterion 5: tests/domain/test_settings.py::test_the_checkout_and_state_directory_are_not_read_from_the_environment
+   - criterion 6: tests/test_single_project.py::test_no_module_names_a_list_of_repositories
+   - criterion 7: tests/domain/test_settings.py::test_the_commit_identity_is_read_from_the_environment
+   - criterion 8: tests/domain/test_settings.py::test_each_half_of_the_commit_identity_falls_back_to_its_default (five rows: name only, email only, blank name, blank email, " Ann ")
+   - criterion 9: tests/domain/test_settings.py::test_the_image_identity_is_read_from_its_file (path from FACTORY_IMAGE_ID_FILE and the default /opt/factory/image-id), ::test_without_a_reader_there_is_no_image_identity
+   - criterion 10: tests/domain/test_settings.py::test_an_image_identity_file_that_gives_no_identity_is_refused (missing/unreadable/empty/spaces)
+   - criterion 11: tests/domain/test_settings.py::test_the_image_label_variable_is_not_the_image_identity
+   - criterion 12: tests/domain/test_settings.py::test_the_settings_model_is_closed, ::test_the_settings_model_checks_the_instance_name
+   - criterion 13: tests/domain/test_settings.py::test_the_first_fault_is_reported
+   - criterion 14: tests/domain/test_settings.py::test_settings_invalid_names_the_variable_and_the_fault (also checks it is a FactoryError, per the Interface)
+   - criterion 15: tests/domain/test_settings.py::test_a_repository_url_with_a_password_is_refused (credential URLs joined from pieces; make secrets green)
+   Files created: tests/domain/test_settings.py, tests/test_single_project.py. The image reader is a stub backed by a dict that raises FileNotFoundError for unknown paths; the unreadable case uses a reader that raises PermissionError.
+   Not importable yet: factory.domain.settings, and SettingsInvalid from factory.domain.errors (make test stops at collection on tests/domain/test_settings.py). make lint green. Not tested: a blank FACTORY_IMAGE_ID_FILE value, which the Interface leaves open (as intake noted).
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built the instance's settings. `make check` is green and the work is committed as 7e902f6.
+   - `src/factory/domain/errors.py`: adds `SettingsInvalid(variable, fault)`, a `FactoryError` whose message is `<variable>: <fault>`.
+   - `src/factory/domain/settings.py`: adds the constants, `InstanceSettings` (frozen, extra="forbid") and `read_settings`. Each rule has its own private helper: `_required`, `_repository_url` (refuses whitespace, a comma or a password), `_holds_password`, `_instance`, `_git_identity`/`_optional` and `_image`. The checks run in the order the story asks: URL, then instance, then the image file. Checkout and state directory are never read from the environment, so the model defaults to the two constants.
+   - Main decision: `_instance` checks the instance name with `TypeAdapter(Name)`, as `adapters/agent_files.py` already does, so the pattern lives only in `identifiers.Name`. I rejected copying the pattern into a second regex. The password check splits the URL by hand: it takes the part between `://` and the next `/` and looks for a `:` before its last `@`. I did not use `urllib.parse`, because the scp form `git@host:path` has no `://` and must be accepted anyway.
+   - Refactor: I read my diff and nothing needed changing, so there is no separate refactor commit.
+   - Noticed but not touched: if `FACTORY_IMAGE_ID_FILE` is set but empty, the reader falls back to the default path `/opt/factory/image-id`. The story leaves this case open, as intake and the tester both noted, and no test covers it. The default identity `factory <factory@noreply.invalid>` is still written separately in `GitOptions` in `domain/git.py`. Making it use `DEFAULT_GIT_IDENTITY` would mean moving the constant into `domain/git.py`, which is outside this ticket.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: I read each of criteria 1–15 against its test in `tests/domain/test_settings.py` and `tests/test_single_project.py`, and each test checks what its criterion says. Every rule in the Interface has its failing side tested: a blank or missing required variable, a comma or space in the URL, a password in the URL (the joined pieces, and four accepted forms), an instance that is not a `Name` (both sides), a blank identity half, an image file that is missing, unreadable, empty or only spaces, the fault order, and the closed model. The coder's entry records `make check` green at 7e902f6.
+   - Architecture: `src/factory/domain/settings.py` imports only pydantic and domain modules and does no I/O, because the image reader is a parameter. The instance name is checked through `TypeAdapter(Name)`, so the pattern stays in `identifiers.Name` and is not copied.
+   - Security: there are no suppression markers and no secrets; the credential URLs in the tests are joined from pieces. The password error does not echo the URL.
+   - Quality: names, docstrings and the one why-comment (`settings.py`, in `_repository_url`) are in order. One duplicate is left: the default identity is spelled out both in `DEFAULT_GIT_IDENTITY` and in `GitOptions.identity` (`src/factory/domain/git.py:46`). I did not count it as a finding, because the Interface prescribes the constant in exactly this form, and the coder's log already records the duplicate for a later story.
+   - Ticket hygiene: the log gives the main decisions and what was rejected (`TypeAdapter(Name)` over a second regex, a hand split over `urllib.parse` for the scp form). The Assignment matches what was built. Still open, as intake, the tester and the coder all noted: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path, and no test covers that case.
+6. documenter: wrote the documentation for the instance's settings. `make check` is green.
+   - `docs/operator-guide.md`: new section "The instance's settings" before "The project's make targets". It has a table of the variables (`FACTORY_REPOSITORY_URL`, `FACTORY_INSTANCE`, `GIT_USER_NAME`, `GIT_USER_EMAIL` with the default `factory <factory@noreply.invalid>`, `FACTORY_IMAGE_ID_FILE` with the default `/opt/factory/image-id`). It also covers the fixed `/work/checkout` and `/state`, the image identity file, and `FACTORY_IMAGE` being only a label. A subsection says a repository URL with a password is refused and the token belongs in the token file. I worded it without a credential-shaped URL because `make secrets` flagged the first draft.
+   - `docs/decisions.md`: three entries. One instance runs one project (R2), with the password rule. The commit identity has a default and no preflight item (Q18). The image identity is read from a generated file (the human, 2026-10-14).
+   - Cross-read: the operator guide's intro, which says `factory-run` and `factory-health` are declared but not built, is still true. `docs/project-guide.md` and `README.md` name no settings, so they are current.
+   - No findings. The code matches the Interface and the criteria. Noted in the decision log as open items, not edited: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path. The default identity is also spelled in `GitOptions` (`domain/git.py`).
+
+   `make check`: check: green
+7. demo: ran both commands under `## Demo` from the repository root, in order. Both matched their `Expect:` lines and there are no findings.
+
+   1. The settings from the two required variables:
+      ```
+      factory-1 /srv/project.git /work/checkout /state
+      ```
+      (exit 0) Met: one line, `factory-1 /srv/project.git /work/checkout /state`.
+
+   2. The default commit name and the name from `GIT_USER_NAME`:
+      ```
+      factory Ann
+      ```
+      (exit 0) Met: one line, `factory Ann`.
+
+   Against the acceptance criteria:
+   - The first command shows the instance name, the repository URL, `/work/checkout` and `/state` read from the two required variables (criteria 1 and 5).
+   - The second shows the default name `factory`, and `Ann` when `GIT_USER_NAME` is set (criteria 1, 7 and 8).
+   - No output contradicts any other criterion.
+   - The demo does not exercise the refused cases (criteria 2–4, 10, 12, 13, 15). Those are covered by the tests the reviewer read against their criteria.
+
+   Still open, as earlier entries noted: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path, and the story does not decide that case.
