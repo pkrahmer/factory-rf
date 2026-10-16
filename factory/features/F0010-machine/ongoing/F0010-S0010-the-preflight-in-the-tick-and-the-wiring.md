@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 128
 blocked: null
 comments_seen: 0
@@ -159,3 +159,17 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
    No findings against the code.
 
    `make check`: check: green
+7. demo: I ran the one command under `## Demo` from the repository root. It met its `Expect:` line, and I found nothing to report.
+
+   Command 1 (the parameters of `Tick` and `build_tick`):
+   ```
+   ['boundaries', 'instance', 'handlers', 'status', 'preflight']
+   ['boundaries', 'settings', 'which']
+   ```
+   It met the expectation exactly: two lines, the same as both lists in the `Expect:` line.
+
+   Judgement against the acceptance criteria:
+   - The output matches the Interface: `Tick(boundaries, instance, handlers, status=None, preflight=None)` and `build_tick(boundaries, settings, which=shutil.which)`.
+   - It contradicts no criterion. The demo only shows the signatures. It does not exercise the behaviour of criteria 1 to 7, which the tests in the tester's mapping cover.
+
+   Findings: none.
