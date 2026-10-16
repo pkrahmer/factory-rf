@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 132
 blocked: null
 comments_seen: 2
@@ -72,8 +72,9 @@ Tests: `tests/domain/test_settings_agent_user.py`, `tests/adapters/test_claude_r
 12. A request composed by `factory.application.task` with `boundaries.settings.agent_user == "agent"` has `os_user == "agent"` and an `environment` equal to the one the composer was given; with no `agent_user` (or no settings) it has `os_user is None`.
 13. `agent_run_environment` with `agent_user == "agent"` and `agent_home == Path("/home/agent/.claude")` gives `HOME == "/home/agent"` and leaves every other entry of `base` as it was; with no `agent_user` it returns `base`'s entries unchanged; `base` itself is not modified.
 14. A `Tick` from `build_tick` with `settings.agent_user == "agent"` over a remote with one started story makes an agent request with `os_user == "agent"` and `environment["HOME"]` equal to `str(settings.agent_home.parent)`.
-15. make check stays green.
-16. docs: `docs/operator-guide.md` explains the two users (`factory`, uid 1000, runs the factory; `agent`, uid 1001, runs every agent), the variable `FACTORY_AGENT_USER`, that the files of a run are `0640` in a directory the agent cannot write, the one-time login as `agent`, and the morning observations of WE3.1, WE3.3 and WE3.4 with the commands that perform them, and of a `time_limit` reached under `sudo`; `docs/decisions.md` records why the agent is started through `sudo -n -u agent -- env -i`, why the run's files are `0640` (a run cannot widen its own write paths), that the agent home stays writable by the agent (L69, left for v2) and that the kill of a timed-out agent under `sudo` is open.
+15. A `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an `AgentRuntimeError`.
+16. make check stays green.
+17. docs: `docs/operator-guide.md` explains the two users (`factory`, uid 1000, runs the factory; `agent`, uid 1001, runs every agent), the variable `FACTORY_AGENT_USER`, that the files of a run are `0640` in a directory the agent cannot write, the one-time login as `agent`, and the morning observations of WE3.1, WE3.3 and WE3.4 with the commands that perform them, and of a `time_limit` reached under `sudo`; `docs/decisions.md` records why the agent is started through `sudo -n -u agent -- env -i`, why the run's files are `0640` (a run cannot widen its own write paths), that the agent home stays writable by the agent (L69, left for v2) and that the kill of a timed-out agent under `sudo` is open.
 
 ## Demo
 
@@ -198,3 +199,9 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
 
    With (a), the next run of doing ends with `tests`, naming that test row.
 7. human (pull request comment, 2026-10-16): (a): add the criterion before criterion 15 as you worded it (a `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an `AgentRuntimeError`). The tester writes it as a row next to criteria 8 and 9 in `tests/adapters/test_claude_runtime_os_user.py`. End with `tests` and name that row.
+8. coder: coder, round 1, after the human's answer (entry 7): option (a) was chosen, so the new criterion goes to the tester.
+
+      - Ticket: I added the human's criterion as the new criterion 15, before the two closing ones: "A `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an `AgentRuntimeError`." `make check` is now 16 and `docs:` is 17. I did not rewrite `## Assignment` because its text does not change.
+      - Tester, please add one row next to criteria 8 and 9 in `tests/adapters/test_claude_runtime_os_user.py`. In that row the `sudo` stand-in prints `sudo: unable to resolve host x` to standard error and then runs the `claude` stand-in, which replies. The row asserts that `run` returns that reply's result and raises no `AgentRuntimeError`.
+      - Code: none needed. `_sudo_refusal` in `src/factory/adapters/claude_runtime.py` already returns the result when the reply parses and the run did not time out. That changed in 0ebb835, my fix for finding 1. The new row covers the branch that is still untested.
+      - Open: nothing else from the review.
