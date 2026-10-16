@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 115
 blocked: null
 comments_seen: 0
@@ -92,3 +92,12 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
    1. `src/factory/application/board.py:43-47` copies the join-and-sort that `Watcher.evaluate` already does at `src/factory/application/watcher.py:36-40`. Both take `RemoteWorkItems.read(definition)` plus `AcceptanceReader(...).snapshots()` and sort them by `work_item_order`, but the copies have already drifted: the watcher also breaks ties by `snapshot.path` and the board does not. Fix: move the join into one application function that returns the ordered snapshots of every running work item (stories and acceptances), for example next to `AcceptanceReader` or in `work_items.py`. Have both `Watcher.evaluate` and `BoardReader.read` call it, so the board and the watcher cannot order rows differently. Changing `watcher.py` this way changes no behaviour.
 
    Rejected as a finding: calling `AcceptanceReader` twice in `read` (once in `fill_board`, once in `snapshots()`). They do different reads, and the Interface asks for this.
+6. coder: coder (round 1): fixed the reviewer's one finding, the duplicated join-and-sort. Commit 1665867.
+      - Built: `running_work_items(work_items, acceptances, definition)` in `src/factory/application/acceptance_reading.py`. It returns `RemoteWorkItems.read(definition)` plus `AcceptanceReader.snapshots()`, sorted by `(work_item_order(snapshot.id), snapshot.path)`. `Watcher.evaluate` (`src/factory/application/watcher.py`) and `BoardReader.read` (`src/factory/application/board.py`) now both call it, so the board and the watcher can no longer order rows differently. The board now also uses the watcher's path tie-break. Neither caller uses `work_item_order` directly any more, so I removed that import from both.
+      - Design: the function takes the caller's `RemoteWorkItems` and `AcceptanceReader` instances rather than building its own. The watcher still needs its `work_items` for `_illegal_changes`, and the board still needs its reader for `fill_board`, so passing them in avoids a second set of objects. I put it in `acceptance_reading.py` because that module already imports `work_items.py`. Putting it in `work_items.py` would have made an import cycle.
+      - Rejected: a method on `AcceptanceReader`. The function joins two readers, so it does not belong on either one.
+      - Refactor: this round's change is itself the refactor. Reading the diff again, I found nothing more to change.
+      - No tests changed. `make check`: green (coverage 99.53 %).
+      - Open: criterion 10 (docs) is for the documenter.
+
+   `make check`: check: green
