@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 132
 blocked: null
 comments_seen: 2
@@ -296,3 +296,4 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
     Checked against the acceptance criteria: nothing in the output contradicts any of them. Command 1 covers criterion 1, command 2 covers criterion 13, and command 3 covers the start of the argument list in criterion 5. The demo prints only the first seven arguments, so it does not show the `SWITCHES` entries or the executable that follow. The tests stage covers those. Criteria 11 and 15 (file modes, `sudo:` warnings), the docs criterion and the real run as `agent` (the morning observation) fall outside what this demo can show.
 
     Findings: none.
+14. done (pull request merged); cost: 11 runs, 43.5 min, 80 turns, 250k tokens in (1799k more from cache), 38k out, $3.45
