@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 131
 blocked: null
 comments_seen: 2
@@ -231,3 +231,28 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
    No findings against the code.
 
    `make check`: check: green
+9. demo: Ran the three `## Demo` commands from the repository root, in order, as uid 1000 (not root, so the 0000 case is meaningful).
+
+   Command 1 (scrub_environment):
+   ```
+   ['HOME', 'LANG', 'PATH']
+   ```
+   Met its Expect: one line, `['HOME', 'LANG', 'PATH']`.
+
+   Command 2 (token_file_item, 0600 then 0640):
+   ```
+   True
+   False
+   ```
+   Met its Expect: `True` then `False`.
+
+   Command 3 (credential helper, readable token, then mode 0000):
+   ```
+   username=x-access-token
+   password=example-value
+   status 0
+   status 1
+   ```
+   Met its Expect. The first run printed `username=x-access-token`, then `password=example-value`, then `status 0`. The second run printed no `username` or `password` line, and its last line was `status 1`.
+
+   Checked the output against the acceptance criteria and found nothing that contradicts any of them. It agrees with criteria 1–2 (only allow-listed names kept), 8–9 (0600 passes, 0640 fails), 12 (exactly two lines, exit 0) and 13 (an unreadable file gives no output and exit 1). No findings.
