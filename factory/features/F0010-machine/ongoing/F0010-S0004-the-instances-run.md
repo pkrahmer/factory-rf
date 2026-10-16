@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 122
 blocked: null
 comments_seen: 6
@@ -234,3 +234,17 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
 
     `make lint`: lint: green
     `make test`: test: green
+12. coder: the implementation from ba63be9 passes the tests the tester revised (entries 7 and 11), and I did not change it. I did the refactor step, and `make check` is green (lint, types, layers, sast, secrets, licenses, tests at 99.52 % coverage).
+
+    What I built (ba63be9):
+    - `src/factory/entry/run.py`: `activity`, `activity_tick`, `install_stop_handlers`, `run_until_stopped`, `run_instance`, `main` and the closing `raise SystemExit(main())`. `main` turns a `SettingsInvalid`, whether from `read_settings` or from the runner, into a time-stamped `settings invalid: …` line and a `preflight_failed` machine stop, and returns 2.
+    - `src/factory/entry/wiring.py`: `build_tick`, `boundaries_from_environment`, `machine_log` and `health_store`. I also added two helpers that `main` needs, because only the wiring may import adapters: `read_environment_settings` (`read_settings` with the UTF-8 file reader) and `system_clock`. `build_boundaries` now gets its log and health file through `machine_log` and `health_store`, so the file names live in one place.
+    - `src/factory/domain/stops.py`: the private `_with_stop` from `application/stops.py` became `HealthStatus.with_stop`, so `main` and `StopService.raise_stop` share one rule: a stop replaces a stop of the same reason and keeps the rest.
+
+    Main design decision: `main` writes the machine stop directly through `health_store(...).read().with_stop(...)`, with no boundaries, since none exist yet when the settings are invalid. I rejected copying the stop-merging logic into `run.py`, which would have been a second copy of the helper in `application/stops.py`.
+
+    Refactor (b4e4a5d): I put the wiring's `__all__` back in alphabetical order (`read_environment_settings` before `read_guard_settings`). Nothing else needed changing.
+
+    Noticed but not touched: `run.py` lists `build_tick` in its `__all__`, because criterion 22's test patches the name `factory.entry.run.build_tick`. The re-export is deliberate.
+
+    `make check`: check: green
