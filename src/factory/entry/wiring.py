@@ -43,7 +43,15 @@ from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore
-from factory.application.preflight import MachineChecks, Preflight
+from factory.application.preflight import (
+    MachineChecks,
+    Preflight,
+    agent_environment_item,
+    agent_run_probe_item,
+    agent_user_item,
+    token_file_item,
+    tool_item,
+)
 from factory.application.recovery import RecoveryHandler
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
@@ -80,6 +88,7 @@ __all__ = [
     "handler_factory",
     "health_store",
     "judge",
+    "machine_extras",
     "machine_log",
     "production_environment",
     "read_environment_settings",
@@ -302,6 +311,28 @@ def build_preflight(
     )
 
 
+def machine_extras(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    which: Callable[[str], str | None],
+    environment: Mapping[str, str],
+) -> list[Callable[[], PreflightItem]]:
+    """Return the preflight's items after the runtime's version, in the operator guide's order."""
+    extras: list[Callable[[], PreflightItem]] = [
+        lambda: token_file_item(settings.token_file, uid=os.getuid(), stat=os.stat),
+        lambda: agent_user_item(settings, Path.exists),
+    ]
+    if settings.agent_user is not None:
+        extras.append(lambda: tool_item("sudo", which))
+    extras.append(lambda: agent_environment_item(environment, _which_on, Path.is_dir))
+    extras.append(lambda: agent_run_probe_item(boundaries, settings, environment))
+    return extras
+
+
+def _which_on(name: str, path: str) -> str | None:
+    return shutil.which(name, path=path)
+
+
 def build_tick(
     boundaries: Boundaries,
     settings: InstanceSettings,
@@ -309,11 +340,11 @@ def build_tick(
 ) -> Tick:
     """Return a new tick of the instance of `settings`, its agents in the production environment."""
     instance = settings.instance
+    environment = agent_run_environment(settings, production_environment())
+    extras = machine_extras(boundaries, settings, which, environment)
     return Tick(
         boundaries,
         instance,
-        handler_factory(
-            boundaries, instance, agent_run_environment(settings, production_environment())
-        ),
-        preflight=build_preflight(boundaries, settings, which),
+        handler_factory(boundaries, instance, environment),
+        preflight=build_preflight(boundaries, settings, which, extras),
     )
