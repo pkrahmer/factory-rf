@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 121
 blocked: null
 comments_seen: 2
@@ -213,3 +213,23 @@ Expect: one line, `/srv/agents claude None`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: The tester made the approved change in entry 7. `make check` now passes with every test, including `test_the_built_agent_runtime_keeps_its_run_files_under_runs`, and coverage is 99.55%. This round added no code. All the work is still in commit da206a3.
+
+   Built:
+   - `src/factory/domain/settings.py`: adds the constants from the Interface and the fields `agent_home`, `claude_executable` and `token_file`. `read_settings` fills them. `agent_home` comes from `FACTORY_CLAUDE_HOME`, then from `<HOME>/.claude`, then from `AGENT_HOME_DEFAULT`. A blank variable counts as missing.
+   - `src/factory/application/boundaries.py`: adds `settings: InstanceSettings | None = None` as the last field.
+   - `src/factory/adapters/pygithub_hosting.py`: adds `pygithub_service`, which builds `github.Github(auth=github.Auth.Token(token), lazy=True).get_repo(repository)`. It sits in the one module that already imports `github`.
+   - `src/factory/entry/wiring.py`: adds `CREDENTIAL_HELPER`, `git_environment`, `git_options`, `repository_name`, `read_hosting_token` and `build_boundaries`.
+
+   Main design decisions:
+   - `repository_name` uses one regex that must match the whole URL. It covers the https, ssh and `git@host:` forms. The name segment matches as little as possible, so a trailing `.git` and `/` are dropped. I rejected `urllib.parse`. It does not understand `git@host:owner/name`, so it would have needed a second code path.
+   - `build_boundaries` resolves the hosting service before it builds anything else. A bad URL therefore fails before any adapter exists (criterion 19).
+   - One `SystemClock` is shared between `clock` and the log.
+
+   Refactor step: I read the whole diff (`git diff main...HEAD -- src`) and found nothing to rename, simplify or remove, so there is no refactor commit.
+
+   Noticed, not touched:
+   - The file names `factory.log` and `health.json` are literals in `build_boundaries`. No constant for them existed elsewhere, and the Interface names none.
+   - Intake noted the default token path from F0010 decision 18 (`/run/secrets/hosting-token`). It is still not implemented: `token_file` defaults to `None`, as the Interface says.
+
+   `make check`: check: green
