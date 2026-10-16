@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 117
 blocked: null
 comments_seen: 0
@@ -108,3 +108,4 @@ Expect: the last line is `<n> passed in <time>`, with n at least 9 (five rows of
    Met its `Expect:` line. The last line is `<n> passed in <time>` with n = 13, which is at least 9. Collecting the tests gives 11 in `test_acceptance_refusals.py` (5 rows for criterion 1, 4 refusing rows for criterion 2, 2 rows for criterion 3) and 2 in `test_acceptance_facts_limit.py` (criterion 4).
 
    I read the acceptance criteria again and the demo contradicts none of them. Criteria 1–4 pass as the tests named in the tester's entry. Criterion 6 holds: `docs/operator-guide.md:432` says a story file counts only directly in `backlog/`, `in-progress/` or `done/`, not in a subdirectory. I did not run criterion 5 (`make check`) myself; the factory runs it after this stage. No findings.
+8. done (pull request merged); cost: 6 runs, 16.8 min, 43 turns, 100k tokens in (775k more from cache), 13k out, $1.09
