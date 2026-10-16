@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 125
 blocked: null
 comments_seen: 0
@@ -214,3 +214,10 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
    - Not touched: the Dockerfile's `WORKDIR` is `/work` and its `ENV` sets `FACTORY_CLAUDE_HOME`, but not `FACTORY_OPT` or `FACTORY_STATE`. The script's defaults cover those two.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1–22 each have a test that checks what the criterion says, and the coder's entry reports `make check` green. Every rule has its failing side tested. Health: no stops gives 0, stops give 1, for all seven reasons, also when the module runs as a process. Waiter: a failed clone, a failed fetch, no main branch and no `factory/pipeline.yml` each give `False` plus a stop; a ready checkout gives `True` with no fetch; a pushed pipeline file clears the stop. The same fault is reported once and a different fault again (criterion 11). Entrypoint: both missing image paths, a `runs` directory that is missing or has mode 755, and both the static check and the stub check for git configuration.
+      - Architecture: `RepositoryWaiter` in `src/factory/application/scheduler.py` imports only application and domain modules. `src/factory/entry/health.py` reaches the adapter only through `entry.wiring.health_store`. The waiter is wired into `run_instance` in `src/factory/entry/run.py`.
+      - Security: no secrets and no silencing markers. The entrypoint quotes every path it builds from environment variables, and `health.main` validates its arguments with argparse.
+      - Quality: the waiter fetches only when the checkout is not ready, and the stop is written only when no stop with that reason and detail is already in force. Nothing in `StopService` or the tick already did this, so it is not a second copy. `parse_args(sys.argv[1:] if argv is None else argv)` matches `src/factory/entry/watch.py`. The time format string already appears twice, both as private constants (`domain/board.py`, `adapters/factory_log.py`), with no public helper to reuse, so the third private copy in `health.py` is not counted as a finding. Docstrings and comments meet *Docs*.
+      - Ticket hygiene: the coder's entry states the main decision (fetch only when not ready) and the rejected option (fetch on every `prepare`). The Assignment matches what was built. Criterion 24 still describes what the documenter has to write.
+      - Open, outside this story: the Dockerfile's `WORKDIR`/`ENV`, which the coder noted.
