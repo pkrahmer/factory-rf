@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 119
 blocked: null
 comments_seen: 0
@@ -140,3 +140,9 @@ Expect: one line, `factory Ann`.
    - Noticed but not touched: if `FACTORY_IMAGE_ID_FILE` is set but empty, the reader falls back to the default path `/opt/factory/image-id`. The story leaves this case open, as intake and the tester both noted, and no test covers it. The default identity `factory <factory@noreply.invalid>` is still written separately in `GitOptions` in `domain/git.py`. Making it use `DEFAULT_GIT_IDENTITY` would mean moving the constant into `domain/git.py`, which is outside this ticket.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Acceptance criteria: I read each of criteria 1–15 against its test in `tests/domain/test_settings.py` and `tests/test_single_project.py`, and each test checks what its criterion says. Every rule in the Interface has its failing side tested: a blank or missing required variable, a comma or space in the URL, a password in the URL (the joined pieces, and four accepted forms), an instance that is not a `Name` (both sides), a blank identity half, an image file that is missing, unreadable, empty or only spaces, the fault order, and the closed model. The coder's entry records `make check` green at 7e902f6.
+   - Architecture: `src/factory/domain/settings.py` imports only pydantic and domain modules and does no I/O, because the image reader is a parameter. The instance name is checked through `TypeAdapter(Name)`, so the pattern stays in `identifiers.Name` and is not copied.
+   - Security: there are no suppression markers and no secrets; the credential URLs in the tests are joined from pieces. The password error does not echo the URL.
+   - Quality: names, docstrings and the one why-comment (`settings.py`, in `_repository_url`) are in order. One duplicate is left: the default identity is spelled out both in `DEFAULT_GIT_IDENTITY` and in `GitOptions.identity` (`src/factory/domain/git.py:46`). I did not count it as a finding, because the Interface prescribes the constant in exactly this form, and the coder's log already records the duplicate for a later story.
+   - Ticket hygiene: the log gives the main decisions and what was rejected (`TypeAdapter(Name)` over a second regex, a hand split over `urllib.parse` for the scp form). The Assignment matches what was built. Still open, as intake, the tester and the coder all noted: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path, and no test covers that case.
