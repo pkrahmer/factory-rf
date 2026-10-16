@@ -5,21 +5,14 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
+from dockerfile_support import dockerfile_instructions
+
 ROOT = Path(__file__).parent.parent
-DOCKERFILE = ROOT / "image" / "Dockerfile"
 COMPOSE = ROOT / "image" / "compose.yml"
 SUDOERS = ROOT / "image" / "sudoers-factory-agent"
 ENTRYPOINT = ROOT / "image" / "entrypoint.sh"
 SUDOERS_TARGET = "/etc/sudoers.d/factory-agent"
 RULE = "factory ALL=(agent) NOPASSWD: ALL"
-
-
-def _instructions() -> list[str]:
-    """Every instruction of the Dockerfile on one line, continuations joined, comments dropped."""
-    text = DOCKERFILE.read_text(encoding="utf-8")
-    lines = [line for line in text.splitlines() if not line.strip().startswith("#")]
-    joined = re.sub(r"\\\n", " ", "\n".join(lines))
-    return [" ".join(line.split()) for line in joined.splitlines() if line.strip()]
 
 
 def _sudoers_lines() -> list[str]:
@@ -35,7 +28,7 @@ def _sudoers_lines() -> list[str]:
 def _uid_of(user: str) -> int:
     """The uid the Dockerfile's `useradd` gives `user`."""
     uids = []
-    for instruction in _instructions():
+    for instruction in dockerfile_instructions():
         for command in re.split(r"&&|\bRUN\b", instruction):
             words = command.split()
             if words[:1] == ["useradd"] and words[-1] == user and "--uid" in words:
@@ -45,7 +38,7 @@ def _uid_of(user: str) -> int:
 
 
 def test_the_dockerfile_installs_the_validated_sudoers_file_and_the_agent_user() -> None:
-    instructions = _instructions()
+    instructions = dockerfile_instructions()
     user = instructions.index("USER factory")
     copy = instructions.index(f"COPY image/sudoers-factory-agent {SUDOERS_TARGET}")
     installing = [

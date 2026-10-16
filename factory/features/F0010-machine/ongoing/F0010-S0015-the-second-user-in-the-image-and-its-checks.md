@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 133
 blocked: null
 comments_seen: 0
@@ -138,3 +138,10 @@ Expect: one line, `0002`.
       - Confirmed: `_instructions()` at `tests/test_image_users.py:17` is a verbatim copy of `_instructions()` at `tests/test_image_credentials.py:17`. The docstring and body are the same, and each reads its own `DOCKERFILE` constant (`ROOT / "image" / "Dockerfile"`).
       - Change for the tester: move `_instructions()` into a new shared module `tests/dockerfile_support.py`, named like `tests/git_support.py`. Make it a public function, for example `dockerfile_instructions()`, that reads `image/Dockerfile` from the repository root. Import it in both `tests/test_image_users.py` and `tests/test_image_credentials.py`, and delete both local copies. The assertions stay as they are.
       - Open: nothing else. The implementation from round 0 (3a5ad69, f053f1d) is unchanged, and the reviewer had no findings against it.
+7. tester: tester (round 1, approved test change): fixed the review's finding as entry 6 describes. The duplicated Dockerfile helper now lives in one shared test module.
+      - New `tests/dockerfile_support.py` (named like `tests/git_support.py`). It holds `DOCKERFILE` (`image/Dockerfile` from the repository root) and the public `dockerfile_instructions()`, which has the same body and docstring as the old `_instructions()`.
+      - `tests/test_image_users.py` and `tests/test_image_credentials.py`: deleted both local `_instructions()` copies and their local `DOCKERFILE` constants. Both files now import from `dockerfile_support`: users imports `dockerfile_instructions`; credentials imports that and `DOCKERFILE`, which it still reads once directly. Imports no longer used were dropped (`re` in credentials). No assertion changed.
+      - `make test`: green (coverage 99.54 %). `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
