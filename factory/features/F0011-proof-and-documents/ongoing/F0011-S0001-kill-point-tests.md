@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 145
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -268,3 +268,20 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green
    `make test`: E   ModuleNotFoundError: No module named 'factory.domain.kill_point_cases'
+4. coder: the domain module is done, but two helpers in `tests/proof_support.py` contradict tested `src/` behaviour, so every case of `tests/test_kill_points.py` errors before it reaches the code under test.
+
+   Built: `src/factory/domain/kill_point_cases.py` (commit 1599e19). It holds `KillPointCase` with its two model validators (a kill point exactly for a crash; a stall never charges a crash) and the six `KILL_POINT_CASES` rows. `tests/domain/test_kill_point_cases.py` passes (12 tests), and ruff and mypy --strict pass on both files.
+
+   The two contradictions:
+   1. `leak_writes` (`tests/proof_support.py:261`) calls `git.show_file("origin/work-item/F0001-S0001", path)` before the branch exists and expects `None` back. `GitCli.show_file` raises `GitError` for a missing ref. `tests/adapters/test_git_cli_reading.py::test_show_file_returns_none_for_no_file_and_raises_for_a_missing_ref` pins that, and so does the `Git` interface ("`None` when it is not a file there").
+   2. `_state_at` (used by `_claim_commits` and `head_state`) calls `work_item_reader.parse` on every commit of `git.log("origin/<branch>", path=...)`. That log includes the commits on `main` where the story has no front matter yet, so `FrontmatterWorkItemReader.parse` raises `WorkItemFormatError("no front matter")`. `tests/adapters/test_work_item_markdown.py:208` pins that error.
+
+   To check that nothing else blocks, I ran the module with a scratch pytest plugin outside the repository (nothing committed, no test file touched). It made `show_file` return `None` for a missing `origin/work-item/*` ref and made `_state_at` skip commits without front matter. With those two fixes all 55 tests in `tests/test_kill_points.py` pass against the current `src/`. No `src/` defect showed up.
+
+   Options:
+   - (a) The tester fixes the two helpers. `leak_writes` checks `git.resolve(f"origin/{branch}")` before `show_file`. `_state_at` returns `None` for a file without front matter, by catching `WorkItemFormatError`, or by checking `parse_specification`/front matter first, or by logging only `origin/main..origin/<branch>`.
+   - (b) I change `GitCli.show_file` to return `None` for a missing ref, and `parse` to return a state-less document. That breaks two existing tests and the documented interface.
+
+   I would choose (a). Once you answer, I end with `tests` and name exactly these two helper changes.
+
+   Not done yet, because `make check` is red until then: the refactor pass and the final `make check`.
