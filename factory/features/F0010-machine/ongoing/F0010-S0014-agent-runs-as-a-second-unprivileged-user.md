@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 132
 blocked: null
 comments_seen: 0
@@ -157,3 +157,26 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: All tests pass and `make check` is green, with coverage at 99.54 %. Commits: 03b8861 (the feature) and 4d42435 (the refactor).
+
+   What I built:
+   - `src/factory/domain/settings.py`: added `AGENT_USER_VARIABLE` and `InstanceSettings.agent_user: Name | None`. `read_settings` reads the variable through `_agent_user`. A missing or blank value gives `None`; a value that is not a name raises `SettingsInvalid` naming the variable. The name check that `_instance` already had became a shared `_name(variable, value)`, so there is no second copy of it.
+   - `src/factory/adapters/claude_runtime.py`: added the keyword `sudo_executable` (default `/usr/bin/sudo`).
+     - `_process_request` builds either the direct call as before, or `[sudo, -n, -u, U, --, env, -i, NAME=value…, executable, args…]` started with `env={}`.
+     - `_sudo_refusal` raises `AgentRuntimeError` with the `sudo:` line when the call has a user, did not time out and printed no parseable reply. Any other failure stays a `died` result.
+     - The error for a program that cannot be started now names the program that failed (`sudo` or `claude`).
+     - `_write_files` writes each file of the run and then sets mode `0640` on it (`RUN_FILE_MODE`) before the call starts. The mode does not depend on the umask.
+   - `src/factory/application/task.py`: `TaskComposer._os_user()` returns `boundaries.settings.agent_user`, or `None` when there are no settings. The environment is passed through unchanged.
+   - `src/factory/entry/wiring.py`: added `agent_run_environment(settings, base)`, which copies `base` and, when there is an agent user, sets `HOME` to `agent_home.parent`. `build_tick` passes `handler_factory` the result of `agent_run_environment(settings, production_environment())`.
+
+   Main decision: a `sudo:` line counts as a refusal only when no reply could be parsed from standard output. That follows the Interface wording "ends without a result", so an agent whose own output happens to contain such a line is not treated as a refused `sudo`. The alternative I rejected was checking standard error alone: it would also turn a completed run into an error.
+
+   Refactor (4d42435):
+   - Split `_call` into `_process_request` and the module-level helper `_sudo_refusal`.
+   - Replaced a first draft that listed the run's files with `exists()` by one loop that writes each file and sets its mode.
+
+   Noticed but not touched:
+   - The time limit under `sudo` is still open (decision 30). `run_process` kills the process group, whose leader is a root-owned `sudo` in a real image. Only the morning observation can show the effect.
+   - The documentation criterion (16) is for the documenter.
+
+   `make check`: check: green
