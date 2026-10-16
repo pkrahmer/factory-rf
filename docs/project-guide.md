@@ -1268,7 +1268,38 @@ prints `['coder']` and then a line that starts with `tools | invalid tools:`.
 | `smoke-tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash |
 | `acceptance-reviewer` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write |
 
-Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. The last story of F0010 adds v1's role and stage texts after those two paragraphs; until then they are the whole instructions. No skills are shipped, because the runner applies no `skills` key.
+Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. After them the body carries v1's texts, renamed with the table below, under these `## ` sections and no other `## ` heading, in this order:
+
+- `## Rules`: v1's pipeline rules, in every body. The agent ends with a decision, one of the `Allowed decisions` its prompt lists (`question` is always among them), and with a journal entry. The factory commits, pushes and moves the work item; the agent never pushes, checks out, switches, merges, pulls or calls `gh`. v1's rules on tickets, the stage table, commit subjects and the pipeline files are rewritten to what the prompt, the pipeline definition and the write paths say, or dropped where the factory does them in code.
+- `## Role`: v1's role skill. `intake` and `smoke-tester` have none, because v1 had none for them.
+- `## Stage`: v1's stage skill for the agent's stage.
+- `## Lessons`: v1.1's own part, after v1's texts, and always last. It holds the lessons of v1.1's build for the role, one bullet each: the first bullet (run make targets in the foreground) is in every body; `intake`, `tester`, `coder`, `reviewer` and `documenter` have more.
+
+The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions (questionnaire 1, Q29). The words are renamed, the sentences are not rewritten in other words:
+
+| v1 | v1.1 |
+|---|---|
+| ticket | work item |
+| log | journal |
+| `drafts/` | `backlog/` |
+| `ongoing/` | `in-progress/` |
+| promote | start |
+| `stages.yml`, stage table | the pipeline definition (`factory/pipeline.yml`) |
+| lane | write paths |
+| gate, the stage `accept` | approval |
+| demo (the stage and the agent) | smoke test |
+| acceptor | acceptance reviewer |
+| outcome (of an agent) | decision |
+| verdict | recommendation |
+| `max_rounds` | `round_cap` |
+| `stuck` | `question` |
+| `Assignment`, `## Assignment` | `Description`, `## Description` |
+| `## Log (append only)` | `## Journal` |
+| `## Demo`, Demo (the story's section) | `## Smoke test`, smoke test |
+
+`stuck` does not exist in v1.1: an agent that cannot finish asks. The `acceptance-reviewer` body names the report sections `## Recommendation` and `## Proposed stories` inline (F0009 reads them; at the start of a line they would be headings), the recommendations `accepted`, `accepted with stories` and `not accepted`, and tells the agent to write proposed stories into the feature's `backlog/`.
+
+To change what an agent is told, edit its file under `claude/agents/`; there is no other copy. `tests/test_claude_agent_texts.py` checks the sections, the banned v1 words, the decisions (derived from `next` in `template/factory/pipeline.yml`), the anchor phrases and the exact `## Lessons` bullets. No skills are shipped, because the runner applies no `skills` key.
 
 `tests/test_claude_files.py` checks the files (keys, values, bodies); `tests/adapters/test_shipped_agents_effect.py` runs `ClaudeCodeRuntime` against the stand-in executable over each shipped agent and checks that `--model`, `--effort`, `--tools`, `--max-budget-usd` and the instructions file carry the file's values. `tests/shipped_agents.py` holds the shared table.
 

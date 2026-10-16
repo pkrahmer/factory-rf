@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 135
+blocked: null
+comments_seen: 0
+round: 1
+attempts: 0
+---
 # v1's role and stage texts in the shipped agents
 
 ## Assignment (as of log entry 1)
@@ -118,3 +126,163 @@ Expect: one line, `0`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete files (`claude/agents/<role>.md`), the exact section order, the rename table, per-role bullets verbatim and the decisions per body. These match `next` in `template/factory/pipeline.yml` (intake→tests; tests→doing; doing→review/tests; review→docs/doing; docs→smoke-test/doing; smoke-test→approval/doing; acceptance→approval). The source files exist under `planning/v1-texts/` (agents, skills). The seven target agent files exist.
+   - Criteria: each is testable by one function, with parametrised cases per role. Every stated behaviour has a criterion: the section order and absence of `## Role` (2), the rename table's banned words and `stuck` (3, 4), the decisions (5), the anchors (6 to 12) and the lessons (13). The failing sides are covered as negative checks: no extra heading, no `## Role` for intake and smoke-tester, no banned word, and exactly the listed bullets.
+   - Demo: both commands are runnable with `uv run python -c`. Each `Expect:` line is checkable: seven lines with the heading lists, then `0`.
+   - Architecture: the story only touches `claude/agents/` and a root-level test file, which CLAUDE.md allows for modules outside the layers. It adds no dependency and no code in `src/`.
+   - Scope: it is within F0010's scope ("shipped agents with v1's role and stage texts renamed ... v1.1's own lessons", decisions 16, 32 and 36). It stays out of the skill files and the story forms.
+3. tester: Wrote the red tests for the agent texts in one new file, `tests/test_claude_agent_texts.py`. It uses `tests/shipped_agents.py` (`SHIPPED_AGENTS`, `front_matter_and_body`, `ROOT`) and reads the decisions from `template/factory/pipeline.yml` through `RuamelPipelineDefinitionReader`. `tests/test_claude_files.py` is unchanged.
+
+   - criterion 1: tests/test_claude_agent_texts.py::test_body_still_opens_with_the_boundary_and_the_entry_sentence (one case per agent)
+   - criterion 2: tests/test_claude_agent_texts.py::test_body_has_rules_role_stage_and_lessons_sections_in_order (every line starting with `## ` in the body must equal the expected list; there is no `## Role` for intake and smoke-tester)
+   - criterion 3: tests/test_claude_agent_texts.py::test_body_never_says_stuck (`\bstuck\b`, any case)
+   - criterion 4: tests/test_claude_agent_texts.py::test_body_uses_no_word_the_rename_table_replaces (whole words in any case, with a plural only for `outcome` as the criterion says; plus the substrings `Assignment` and `(append only)`)
+   - criterion 5: tests/test_claude_agent_texts.py::test_body_names_every_decision_of_its_stage_in_inline_code (the role's stage `next` from the template plus `question`, each in backticks)
+   - criterion 6: tests/test_claude_agent_texts.py::test_rules_section_carries_the_pipeline_rules_with_the_decision_contract (agent × the three anchors, looked for in the `## Rules` section)
+   - criterion 7: tests/test_claude_agent_texts.py::test_rules_section_leaves_commit_push_and_move_to_the_factory (agent × the two anchors, in `## Rules`)
+   - criterion 8: tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role (one case per role; the anchors are looked for in `## Role` and `## Stage` together)
+   - criterion 9: tests/test_claude_agent_texts.py::test_acceptance_reviewer_names_the_report_sections_and_recommendations (the five phrases are matched as plain text, because the criterion does not require inline code here, unlike criterion 5)
+   - criterion 10: tests/test_claude_agent_texts.py::test_acceptance_reviewer_writes_proposed_stories_into_the_backlog
+   - criterion 11: tests/test_claude_agent_texts.py::test_smoke_tester_compares_with_expect_and_records_trimmed_output
+   - criterion 12: tests/test_claude_agent_texts.py::test_coder_sends_a_wrong_test_back_to_the_tester
+   - criterion 13: tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets (one case per role; `## Lessons` must be the last heading, and its non-blank lines must equal the Interface's bullets verbatim and in order)
+   - criteria 14 and 15: these are not tested here; they are the `make check` gate and the documenter's work.
+
+   Run: `make test` fails as intended. The new tests fail on assertions because the bodies do not yet have the sections. There is no import error, since every module they import already exists. `make lint` passes.
+
+   Open: nothing. Two reading choices are noted above: plurals for `outcome` only in criterion 4, and plain text in criterion 9. Both follow the criteria's wording, and the smoke-test command still bans plurals of every word.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[acceptance-reviewer]
+4. coder: Built: I carried v1's pipeline rules, role skills and stage skills into the seven shipped agents, `claude/agents/{intake,tester,coder,reviewer,documenter,smoke-tester,acceptance-reviewer}.md`, in commit 830029c. Each file keeps its front matter and its two sentences. After them come `## Rules` (from `factory-rules`), `## Role` (except intake and smoke-tester), `## Stage` (from the matching `stage-*` skill) and `## Lessons`. The lessons are the Interface's bullets, verbatim and in order. Nothing changed under `src/` or `tests/`. `make check` is green, all of `tests/test_claude_agent_texts.py` passes, and both smoke-test commands print what the `Expect:` lines say: the seven heading lists, then `0`.
+
+   Main decision: I applied the rename table and rewrote each v1 mechanic as what v1.1 actually does, using the project guide as the source.
+   - R2 now uses the `Allowed decisions` contract, and "cannot finish" becomes `question`.
+   - R10 says the factory commits, pushes and moves the work item, and that no agent commits. So the coder's commit steps became "leave the work in the working tree", and the refactor step reads `git diff main` plus `git status --short` instead of `main...HEAD`.
+   - R7 points to the stage's `next` and `checks` in `factory/pipeline.yml`, and R12 to `round_cap`.
+   - R14 (commit subjects) is dropped because code writes them. R15 became R14 and talks about write paths, with `{work_item}` as the agent's own work item.
+   - Paths use v1.1's names: `feature.md`, `factory/story-form.md`, `backlog/`, `in-progress/`, and the acceptance report `in-progress/<id>-acceptance.md`.
+   - The acceptance-reviewer's report names `## Recommendation`, `## 1 Scope` to `## 8 Cost` and `## Proposed stories`, always inline so none of them becomes a heading. Its recommendations are `accepted`, `accepted with stories` and `not accepted`.
+
+   Rejected: rewriting the texts in my own words. That would break the baseline comparison with v1's run on the same instructions, so changes stay at the level of words and mechanics. I also rejected keeping the coder's v1 commit steps, which contradict the factory's commit and the Description.
+
+   Noticed, not touched:
+   1. In `template/factory/pipeline.yml` the coder's and tester's write paths do not include `{work_item}`. So the coder's step "rewrite `## Description`" can only work where a project adds it. The text says so ("and your write paths include the work item").
+   2. The texts still mention `make mutants` and `docs/openapi.json` "if the project has" them, as v1's did.
+   3. `docs/` is the documenter's work under criterion 15.
+
+   `make check`: check: green
+5. reviewer: 1. tests/test_claude_agent_texts.py `_section`: it is a second copy of `factory.domain.sections.section_text(body, heading)`, which already returns the text under a `## ` heading. `CLAUDE.md` says to reuse an existing helper, and the reviewer counts a copy as a finding. Fix: call `section_text(body, "Rules")`, and likewise for `Role`, `Stage` and `Lessons`, with `or ""` where the section may be missing, and delete `_section`. This is a change to a test file, so the tester makes it: the coder ends with `tests` and names this change (R9). `_headings` stays: unlike `sections()`, it also counts `## ` lines inside fenced blocks, as the smoke-test command does, so it is not a copy.
+
+   Checked and fine:
+   - All seven bodies carry v1's `factory-rules`, role and stage texts. I compared them against `planning/v1-texts/skills/`: the renames are applied, and v1's mechanics are rewritten to v1.1's (no agent commits, the journal replaces the `Branch:` line, the stage `accept` becomes `approval`).
+   - The paths `factory/story-form.md`, `feature.md` and `in-progress/<id>-acceptance.md` agree with `docs/project-guide.md`.
+   - The decisions each body names agree with `template/factory/pipeline.yml`.
+   - Each of criteria 1–13 has a test that checks what the criterion says, including the refused sides: no extra heading, no `## Role` for intake and smoke-tester, no replaced word, exactly the listed lessons.
+   - The coder's entry reports `make check` green.
+   - Nothing changed under `src/`, so there is no architecture or security impact.
+6. coder: The reviewer's one finding is about a test file, and I do not edit tests, so this goes to the tester. I changed nothing under `claude/`, `src/` or `tests/`.
+
+   Test change for the tester: in `tests/test_claude_agent_texts.py`, delete the private helper `_section` and call `section_text(body, "<Name>") or ""` from `factory.domain.sections` in its four call sites instead. The heading goes in without the `## ` prefix: `"Rules"`, `"Role"`, `"Stage"` and `"Lessons"`.
+
+   I checked on `claude/agents/coder.md` that the prefix matters. `section_text(body, "Rules")` finds the section, but `section_text(body, "## Rules")` returns `None`.
+
+   `_headings` stays as it is, as the reviewer said: it also counts `## ` lines inside fenced blocks, so it is not a copy of `sections()`.
+
+   `make check` was not run this round, because I changed nothing.
+7. tester: Made the test change the coder named in entry 6, which the reviewer asked for in finding 1 of entry 5. The file is `tests/test_claude_agent_texts.py`.
+   - Deleted the private helper `_section`. It was a second copy of `factory.domain.sections.section_text`.
+   - Added the import `from factory.domain.sections import section_text`.
+   - Changed the four call sites to `section_text(body, "<Name>") or ""`, with the heading's name and no `## ` prefix: `"Rules"` twice (in the tests for criteria 6 and 7), `"Role"` + `"Stage"` (criterion 8) and `"Lessons"` (criterion 13).
+   - `_headings` is unchanged, as the reviewer said.
+   - No other test changed. The criterion-to-test mapping in entry 3 still holds.
+
+   `make test` is green (coverage 99.54 %), because the agent texts from commit 830029c already satisfy the tests. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: Round 1. Entry 5 had one review finding: the `_section` copy in `tests/test_claude_agent_texts.py`. The tester fixed it in entry 7, as I asked in entry 6. The test now uses `factory.domain.sections.section_text`.
+
+   That leaves no coder work for this round. I changed nothing under `claude/`, `src/` or `tests/`. The agent texts are still the ones from commit 830029c, and they pass the changed test file unchanged.
+
+   Refactor: nothing to change. The diff outside the tests is the seven agent texts, already reviewed in entry 5.
+
+   Open: the notes from entry 4 still stand, and I did not touch them. The template's coder and tester write paths do not include `{work_item}`. The `docs/` part (criterion 15) is the documenter's.
+
+   `make check`: check: green (coverage 99.54 %)
+
+   `make check`: check: green
+9. reviewer: No findings.
+
+   Round 1 re-review of `git diff main...HEAD -- . ':!factory'`: the seven `claude/agents/*.md` files and `tests/test_claude_agent_texts.py`.
+
+   - Entry 5 finding 1 is fixed. `tests/test_claude_agent_texts.py` imports `factory.domain.sections.section_text` and uses it at the four call sites with `or ""`. The `_section` copy is gone. `_headings` stays, which is right: it also counts `## ` lines inside fenced blocks, as the smoke-test command does.
+   - Acceptance criteria:
+     - Criteria 1 to 13 each have a test that checks what the criterion says.
+     - The refused sides are covered: the heading list must be exact (so no extra heading and no `## Role` for intake and smoke-tester), no banned word, no `stuck`, no `Assignment` or `(append only)`, and the lessons must match exactly and in order.
+     - The decisions come from `template/factory/pipeline.yml` through the existing reader.
+     - Entry 8 reports `make check` green after the coder.
+   - Bodies:
+     - I read the Rules, Role, Stage and Lessons of all seven bodies.
+     - The renames are applied and v1's mechanics are rewritten to v1.1's: no agent commits (R10), there is no R14 commit-subject rule, `round_cap`, write paths, the journal, `approval`, and `question` for "cannot finish".
+     - The acceptance reviewer names `## Recommendation`, `## 1 Scope` to `## 8 Cost` and `## Proposed stories` inline only, and writes proposed stories into the feature's `backlog/`.
+     - The lessons are verbatim, matching the Interface.
+   - Architecture and security: nothing changed under `src/`, no suppression markers, no new dependency.
+   - Work item hygiene: entry 4 states the main decision (renames and mechanics only, no rewrite in other words) and what was rejected. The Description matches what was built. Criterion 15 still describes what the documenter must write.
+
+   Still open from entry 4 (outside this diff and not a finding): the coder's and tester's write paths in the template do not include `{work_item}`, so the coder's step "rewrite `## Description`" only applies where a project adds it.
+10. documenter: Wrote the documentation for criterion 15. `make check` is green (coverage 99.54 %).
+
+    Files changed:
+    - `docs/project-guide.md`, section *The seven agents*:
+      - Replaced the sentence that said v1's texts were still to come.
+      - It now lists the sections of a body in order (`## Rules`, `## Role`, `## Stage`, `## Lessons`) and says which agents have no `## Role`.
+      - It says the factory commits, pushes and moves the work item, and that the agent ends with an `Allowed decisions` decision and a journal entry.
+      - It gives the full rename table.
+      - It says `stuck` does not exist, and that `## Lessons` is v1.1's own part and always last.
+      - It names `claude/agents/` as the one place to change an agent's text.
+      - It names the report sections, recommendations and backlog rule of the `acceptance-reviewer`.
+      - It points to `tests/test_claude_agent_texts.py`.
+    - `docs/decisions.md`: added an entry on why v1's texts were carried over and renamed (questionnaire 1, Q29: the baseline run compares with v1's run on the same instructions), that `stuck` does not exist in v1.1, and what was rejected (a summary of v1's texts, shipped skill files).
+
+    I compared the diff with the docs and found no code that contradicts the Interface, so I have no findings for the coder. I did not run the two demo commands this stage.
+
+    Cross-read and found current: the rest of *The shipped agents, settings and template* (front matter table, test references) and the `allowed_decisions` paragraph (`stuck` is not a decision). I did not read `docs/operator-guide.md` or `README.md` in full; I searched them for `claude/agents`, `shipped agent`, `stuck` and Q29, and the only hits were the operator guide's image check and the agent-run-probe, which this story does not touch.
+
+    Stale but not touched, both outside this story:
+    - `docs/project-guide.md` says `claude/settings.json` allows `git add` and `git commit`, although the agent bodies now say the agent does not commit. That is the earlier settings story's choice, not this one.
+    - The template's coder and tester write paths do not include `{work_item}` (open since entries 4 and 9). It is not a docs matter.
+
+    `make check`: check: green
+11. demo: Ran both `## Demo` commands from the repository root, in order. There are no findings.
+
+    1. Headings of each agent body:
+    ```text
+    acceptance-reviewer ['## Rules', '## Role', '## Stage', '## Lessons']
+    coder ['## Rules', '## Role', '## Stage', '## Lessons']
+    documenter ['## Rules', '## Role', '## Stage', '## Lessons']
+    intake ['## Rules', '## Stage', '## Lessons']
+    reviewer ['## Rules', '## Role', '## Stage', '## Lessons']
+    smoke-tester ['## Rules', '## Stage', '## Lessons']
+    tester ['## Rules', '## Role', '## Stage', '## Lessons']
+    ```
+    Met its `Expect:` line. There are seven lines in sorted order. `intake` and `smoke-tester` have no `## Role`, and the other five have all four sections.
+
+    2. Count of banned words:
+    ```text
+    0
+    ```
+    Met its `Expect:` line (`0`).
+
+    Cross-check against the acceptance criteria: nothing in the demo contradicts one. I also ran a grep over `claude/agents/*.md` for the other words criterion 4 bans that the demo regex does not cover: `drafts`, `ongoing`, `promote`, `max_rounds`, `outcome(s)`, `stages.yml`, `Assignment` and `(append only)`. It found none of them.
+
+    I spot-checked these anchors and found each one:
+    - `Git is the only truth.` appears once in each of the seven files (criterion 6).
+    - ``Write the proposed stories into the feature's `backlog/`.`` is in `acceptance-reviewer` (criterion 10).
+    - `acceptance-reviewer` names `## Recommendation` and `## Proposed stories` inline, not as headings (criterion 9).
+    - ``compare the output with its `Expect:` line`` and `its trimmed output in a fenced block` are in `smoke-tester` (criterion 11).
+
+    I did not run `make check`; the factory runs it after this stage. I changed no files.
+
+    Still open from entries 4, 9 and 10, outside this story: the template's write paths for the coder and tester do not include `{work_item}`, and `docs/project-guide.md` says `claude/settings.json` allows `git commit` even though the agent bodies say no agent commits.
