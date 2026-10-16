@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 133
 blocked: null
 comments_seen: 0
@@ -114,3 +114,14 @@ Expect: one line, `0002`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: made the tester's tests pass without changing them. `make check` is green (coverage 99.54 %). Commits: 3a5ad69 (feat) and f053f1d (refactor).
+      - `image/sudoers-factory-agent` (new): a short comment explaining why, then exactly the four lines from the Interface, in order.
+      - `image/Dockerfile`: added the `COPY` to `/etc/sudoers.d/factory-agent`, the `RUN` (strip CR, `chmod 0440`, `visudo -cf`) and `ENV FACTORY_AGENT_USER=agent`. They sit after `ENV FACTORY_TOKEN_FILE` and before the `RUN` that writes `/opt/factory/image-id`, so that `RUN` still comes after the last `COPY`, and all of it is before `USER factory`.
+      - `image/entrypoint.sh`: `umask 002` is directly after `set -eu`. The test needs the next line to be exactly that, so I put the reason in the header comment instead of on a line of its own.
+      - `src/factory/application/preflight.py`: `agent_user_item(settings, exists)` fails with the stated detail only when `agent_user` is None and `token_file` is set and `exists(token_file)` is true. It passes otherwise. `exists` is not called when `agent_user` is set or there is no token file. The name and the detail are module constants, next to the other item names.
+      - Design: I added one small function next to `tool_item` and `token_file_item`, the same shape as those. I rejected folding the check into `token_file_item`: the two items answer different questions, and the Interface names this item `agent-user` on its own.
+      - Refactor: moved `agent_user_item` below `_token_file_fault`, so `token_file_item` stays next to its helper. Nothing else needed changing.
+      - Not done, as the Interface says: the item and `tool_item("sudo", which)` are not wired into the machine checks. That is left to the probe story.
+      - Open: the docs criterion is for the documenter.
+
+   `make check`: check: green
