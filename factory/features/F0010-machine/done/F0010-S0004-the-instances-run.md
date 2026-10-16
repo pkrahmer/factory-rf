@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 122
 blocked: null
 comments_seen: 6
@@ -293,3 +293,4 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
     I re-read the acceptance criteria against both outputs and neither contradicts any criterion. The demo does not cover the `health.json` machine stop (criteria 12, 14, 17), the cloning and pausing loop (criteria 9, 19–22) or the docs criterion (24). Those are left to the tests and the docs stage. A real container is still the morning observation, as the Assignment says.
 
     No findings.
+16. done (pull request merged); cost: 11 runs, 32.3 min, 123 turns, 286k tokens in (3303k more from cache), 50k out, $3.97
