@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 122
 blocked: null
 comments_seen: 6
@@ -248,3 +248,11 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
     Noticed but not touched: `run.py` lists `build_tick` in its `__all__`, because criterion 22's test patches the name `factory.entry.run.build_tick`. The re-export is deliberate.
 
     `make check`: check: green
+13. reviewer: no findings.
+
+    - Acceptance criteria: each of criteria 1–22 maps to a test that checks what the criterion says, as listed in entries 3 and 11. Criterion 5's test follows the human's wording from entry 10: one `Tick` holds both the `run` error and the `crash` error. The refused sides are tested: idle, repository stop, capped, error and reported in 1–4; missing token, no instance and the URL without an owner and a name in 8 and 10; an image file that is missing or empty in 13; the stops already in force kept and the old one of the same reason replaced in 14; a fault from the runner in 17. The coder's entry 12 reports `make check` green, with coverage at 99.52 %.
+    - Not raised: no test covers a `TickOutcome` with `dispatch="handled"` and no event. `Tick` never produces that outcome. The `event is not None` check is the type narrowing `mypy` needs, not a separate rule, so I do not count it as a missing side.
+    - Architecture: `factory/entry/run.py` imports only from application, domain and `factory.entry.wiring`. The adapters stay behind `machine_log`, `health_store`, `system_clock` and `read_environment_settings`. Moving `_with_stop` to `HealthStatus.with_stop` (`src/factory/domain/stops.py`) puts a pure rule in the domain, and `StopService` and `main` now share one copy instead of two.
+    - Security: no strings built into commands, no markers that silence a check, and no secrets. The log line and the stop detail carry only the `SettingsInvalid` message.
+    - Quality: names and docstrings are in place. The comments explain why: one tick for the whole run, why some outcomes are idle, why the stop is written directly. `build_tick` is listed in `run.py`'s `__all__` on purpose, because criterion 22 patches that name.
+    - Ticket hygiene: the Assignment matches what was built (as of entry 10). Entry 12 records the main decision and the alternative it rejected. Criterion 24 still says what the operator guide and the decision log must cover.
