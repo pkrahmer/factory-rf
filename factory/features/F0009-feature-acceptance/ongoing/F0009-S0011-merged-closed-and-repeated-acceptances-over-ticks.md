@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 113
 blocked: null
 comments_seen: 2
@@ -81,3 +81,31 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
    - Demo: the command is runnable, and its Expect line gives two checkable lines (`merged:F0001-A0001`, then `run:F0001-A0001`).
    - Architecture: nothing new is added. The walks go through the entry-layer wiring and the application handlers, and git and the hosting service are used only through the fixtures.
    - Scope: within F0009's goal (ST2.1, ST2.2, R31) and not in its Out of scope.
+5. tester: wrote the walks. Each one runs the real Tick through `handler_factory` against a real local remote. Before every tick it records a `Watcher.evaluate`, so the "no reject" criteria can be checked across a whole walk.
+   - criterion 1: tests/application/test_acceptance_ticks_merged.py::test_a_merge_at_the_review_stage_runs_through_the_gate_and_is_booked_before_approval
+   - criterion 2: tests/application/test_acceptance_ticks_merged.py::test_a_merge_at_the_approval_is_the_merged_event_and_is_booked_accepted
+   - criterion 3: tests/application/test_acceptance_ticks_merged.py::test_a_merge_while_the_reviewer_asks_is_booked_accepted_and_unblocked
+   - criterion 4: tests/application/test_acceptance_ticks_merged.py::test_the_ticks_after_the_booking_are_idle_commit_nothing_and_post_nothing (one row for each of the walks in criteria 1 to 3)
+   - criterion 5: tests/application/test_acceptance_ticks_merged.py::test_no_tick_or_evaluation_of_a_merged_acceptance_is_a_reject (same three rows)
+   - criterion 6: tests/application/test_acceptance_ticks_merged.py::test_proposed_stories_leave_the_feature_incomplete_and_open_no_new_acceptance
+   - criterion 7: tests/application/test_acceptance_ticks_repeated.py::test_a_story_archived_after_the_acceptance_opens_the_next_acceptance_in_one_tick
+   - criterion 8: tests/application/test_acceptance_ticks_repeated.py::test_opening_the_repeated_acceptance_leaves_the_earlier_report_and_costs_byte_for_byte
+   - criterion 9: tests/application/test_acceptance_ticks_repeated.py::test_the_merged_repeated_acceptance_is_booked_in_one_tick_and_the_feature_rests (rows: approval→merged, acceptance→run)
+   - criterion 10: tests/application/test_acceptance_ticks_repeated.py::test_no_tick_or_evaluation_of_a_repeated_acceptance_is_a_reject (same two rows)
+   - criterion 11: tests/application/test_acceptance_ticks_closed.py::test_a_close_at_the_approval_is_booked_refused_with_the_comment_until_another_archive
+   - criterion 12: tests/application/test_acceptance_ticks_closed.py::test_a_close_before_the_approval_runs_through_the_gate_and_is_booked_refused
+   - criterion 13: tests/application/test_acceptance_ticks_closed.py::test_an_acceptance_at_its_approval_is_handed_over_once_through_the_wiring
+   - criteria 14 and 15: not tests (check gate; documenter).
+
+   Files created: tests/acceptance_walk.py, a shared helper at the tests root like human_clone.py and bill_support.py, with the `AcceptanceWalk` class. It installs the agents and pushes `F0002-todo` with two archived stories. Its methods are open (the tick plus `create_pull_request`), record (rewrites the state of the opened report on its branch and adds a started entry and a cost-records sidecar), propose (pushes `backlog/F0002-S0003-c.md`, title `# C`), merge, close (optionally after `add_human_comment`), booked, status and due. Also created: the three test files the Interface names.
+
+   Choices made within the spec:
+   - At `approval`, the merge walks and the close walk record `handed_over="approval"`, as the Demo does. The hand-over walk leaves it unset.
+   - The backlog story is pushed only in the criterion 1 walk, as the Interface says.
+   - The refusal reason is checked as the first paragraph of the Recommendation, `Refused by the human on <clock date>: <comment>`, as tests/application/test_acceptance_closed.py does.
+   - The "four-part description" is checked as equal to `acceptance_description(<the recorded report>, "acceptance-reviewer")`.
+
+   Result of `make test`: green (coverage 99.53 %). Every walk passes at once: the earlier stories already do the work, which the Interface allows ("a walk that is green at once is a pass"). The test runner could import every module. `make lint` is green. The coder has nothing red to fix and only needs `make check` green.
+
+   `make lint`: lint: green
+   `make test`: test: green
