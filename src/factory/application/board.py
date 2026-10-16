@@ -6,7 +6,7 @@ from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems, read_feature_file
 from factory.domain.board import BoardRow, FeatureRow, feature_rows, work_item_row
-from factory.domain.identifiers import FeatureId, parse_feature_directory_name
+from factory.domain.identifiers import FeatureId, parse_feature_directory_name, work_item_order
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.sections import title
 from factory.domain.work_item import StoryFile
@@ -31,7 +31,7 @@ class BoardReader:
         self._work_items = RemoteWorkItems(boundaries.git, boundaries.work_item_reader)
 
     def read(self, definition: PipelineDefinition) -> BoardView:
-        """The board under `definition`, the acceptance column filled.
+        """The board under `definition`: the acceptance column filled, a row per running acceptance.
 
         Raises `GitError` and `WorkItemFormatError`.
         """
@@ -40,11 +40,13 @@ class BoardReader:
             *self._work_items.list_stories("in-progress"),
             *self._work_items.list_stories("done"),
         ]
-        snapshots = self._work_items.read(definition)
+        acceptances = AcceptanceReader(self._boundaries, definition)
+        snapshots = sorted(
+            [*self._work_items.read(definition), *acceptances.snapshots()],
+            key=lambda snapshot: work_item_order(snapshot.id),
+        )
         return BoardView(
-            features=AcceptanceReader(self._boundaries, definition).fill_board(
-                feature_rows(stories, self._titles(stories))
-            ),
+            features=acceptances.fill_board(feature_rows(stories, self._titles(stories))),
             rows=[work_item_row(snapshot) for snapshot in snapshots],
         )
 
