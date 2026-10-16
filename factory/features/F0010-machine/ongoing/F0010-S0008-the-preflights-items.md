@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 126
 blocked: null
 comments_seen: 0
@@ -146,3 +146,31 @@ Expect: one line, `/srv/agents claude 2.1.289`.
    - Demo: the three commands are runnable. Each Expect line gives output that can be checked.
    - Architecture: the domain DTOs and rules are in `factory.domain`. The checks and `REQUIRED_TOOLS` are in `factory.application` and take `which` as an argument, so no tool is called directly. The change to the `test_only_the_make_class_names_make` test has the human's word in FEATURE.md decision 28.
    - Scope: within F0010's "preflight's items". The token file, agent user, sudo and probe items are left to later stories, and the stamp and the wiring are S0009 and S0010.
+3. tester: wrote the red tests for the preflight's items.
+   - criterion 1: tests/domain/test_settings_pinned.py::test_the_pinned_version_comes_from_its_variable_or_is_none (cases: set, missing, empty, blank)
+   - criterion 2: tests/domain/test_preflight.py::test_both_models_reject_an_unknown_field and ::test_a_field_cannot_be_assigned (uses `type[BaseModel]` variables and `setattr`)
+   - criterion 3: tests/application/test_preflight.py::test_a_tool_on_the_path_passes
+   - criterion 4: tests/application/test_preflight.py::test_a_tool_missing_from_the_path_fails_and_says_to_add_it_to_the_image
+   - criterion 5: tests/application/test_preflight.py::test_a_ready_machine_passes_every_item_in_order and ::test_the_claude_tool_item_asks_for_the_configured_executable
+   - criterion 6: tests/application/test_preflight.py::test_every_item_is_reported_whatever_the_others_found
+   - criterion 7: tests/application/test_preflight.py::test_the_hosting_service_item_reports_a_failed_call (cases: answers, fails)
+   - criterion 8: tests/application/test_preflight.py::test_the_agents_item_finds_the_agents_where_the_agent_home_points
+   - criterion 9: tests/application/test_preflight.py::test_the_agents_item_fails_naming_the_agent_home_without_agents (cases: no agent file, missing directory)
+   - criterion 10: tests/application/test_preflight.py::test_the_version_item_passes_when_the_first_word_is_the_pinned_version
+   - criterion 11: tests/application/test_preflight.py::test_the_version_item_fails_naming_both_versions_when_they_differ
+   - criterion 12: tests/application/test_preflight.py::test_the_version_item_fails_when_the_image_pins_no_version and ::test_the_version_item_fails_with_the_runtime_error_when_the_version_cannot_be_read (a `ClaudeCodeRuntime` whose executable does not exist, so the detail contains `cannot start`)
+   - criterion 13: tests/domain/test_preflight.py::test_a_version_matches_exactly_when_its_first_word_is_the_pinned_one (cases: equal, first word, empty pin, blank pin, `-beta` suffix, empty reported)
+   - criterion 14: tests/application/test_preflight.py::test_the_extra_items_run_last_in_order_and_are_reported_with_the_others
+   - criterion 15: tests/application/test_preflight.py::test_the_items_read_the_settings_given_and_not_those_of_the_boundaries
+   - criterion 16: tests/domain/test_preflight.py::test_a_passed_report_passes_and_makes_no_stop (cases: empty report, all passed)
+   - criterion 17: tests/domain/test_preflight.py::test_a_failed_report_becomes_one_machine_stop_naming_every_failed_item
+   - criteria 18 and 19: no tests. They are `make check` and the docs.
+
+   New files: tests/domain/test_settings_pinned.py, tests/domain/test_preflight.py, tests/application/test_preflight.py. The application tests use the shared `boundaries` fixture with `dataclasses.replace`. They swap in `FakeAgentRuntime(version=...)` and the real `FrontmatterAgentDefinitionReader` on a directory in `tmp_path`, and use a `which` stub that answers from a dictionary and records what it was asked.
+
+   Changed file: tests/test_make_search.py::test_only_the_make_class_names_make. Its expected set is now `{"factory.adapters.make_commands", "factory.application.preflight"}`. This is the change the Interface asks for, on the human's word (FEATURE.md decision 28); nothing else in the file changed.
+
+   `make test` fails with collection errors because `factory.domain.preflight` and `factory.application.preflight` do not exist yet. test_settings_pinned will also fail until `InstanceSettings` has `pinned_agent_version`. `make lint` passes.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
