@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 143
 blocked: null
 comments_seen: 0
 round: 0
@@ -45,3 +45,9 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: no new names in `src/`. It pins `ClaudeCodeRuntime.run` with `os_user == "agent"` against the existing `_write_sudo`, `_runtime` and `_request` helpers (all present in `tests/adapters/test_claude_runtime_os_user.py`). It states the two outcomes: `AgentRuntimeError` with the line in `detail`, or `end_reason == "died"` with nothing raised.
+   - Criteria: criteria 1 to 3 are the three rows of one parametrized test, and each row is testable on its own. The rule "starts with `sudo:` at column 0" has its passing side (criterion 1) and two failing sides (criteria 2 and 3: a mid-line `sudo:` and an indented one). Criterion 4 (`make check` stays green) and criterion 5 (docs: none) close the list.
+   - Demo: the command is runnable. I counted the expected `12 passed`. The file has 9 test functions, and the last one has 2 parametrized rows, so 10 tests run today. Replacing `test_a_sudo_refusal_is_a_runtime_error_naming_its_line` leaves 9, and the 3 new rows make 12.
+   - Architecture: the change is tests only, in `tests/adapters/`, which mirrors `factory.adapters`. The story does not touch layers or wrappers.
+   - Scope: the story fits F0010 and is listed in `FEATURE.md` as S0024. Replacing the old test needs the human's leave. That leave is recorded in FEATURE decision 38, which names exactly this replacement.
