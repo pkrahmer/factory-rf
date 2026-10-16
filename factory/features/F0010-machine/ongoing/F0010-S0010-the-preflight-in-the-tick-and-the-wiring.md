@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 128
 blocked: null
 comments_seen: 0
@@ -70,3 +70,35 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
    - Demo: runnable. The `Expect:` line gives two exact parameter lists to compare with the output.
    - Architecture: the tick change is in `application`, the wiring in `entry`, and the concrete `JsonPreflightStampFile` and `StopService` are named only in the wiring. The layering is respected.
    - Scope: this is S0010 of F0010, covering ST4.2 and the wiring. The later machine items are left to S0016, which the Assignment says.
+3. tester: Wrote the red tests for the preflight in the tick and its wiring, and changed the S0004 wiring test as decision 28 says.
+
+   Mapping:
+   - criterion 1: tests/application/test_tick_preflight.py::test_a_fix_pushed_after_the_clone_is_fetched_before_the_preflight
+   - criterion 2: tests/application/test_tick_preflight.py::test_a_break_pushed_after_the_clone_is_fetched_and_stops_the_tick
+   - criterion 3: tests/application/test_tick_preflight.py::test_a_tick_the_preflight_stops_runs_no_agent_and_dispatches_nothing
+   - criterion 4: tests/application/test_tick_preflight.py::test_a_tick_the_preflight_stops_leaves_a_stale_branch_on_the_remote
+   - criterion 5: tests/entry/test_wiring_preflight.py::test_the_built_preflight_writes_its_stamp_in_the_state_directory
+   - criterion 6: tests/entry/test_wiring_preflight.py::test_the_built_tick_stops_at_a_failed_machine_item
+   - criterion 7 (the invalid-definition side): tests/application/test_tick_preflight.py::test_an_invalid_definition_stops_the_tick_before_the_preflight
+   - criterion 7 (the restore side): tests/application/test_tick_preflight.py::test_the_checkout_is_restored_before_the_preflight_stops_the_tick
+   - criteria 8 and 9: no test (`make check` and docs).
+
+   Files created: tests/application/test_tick_preflight.py and tests/entry/test_wiring_preflight.py.
+   File changed: tests/entry/test_wiring_run.py. Only `test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance` changed. It now:
+   - pushes a `Makefile` whose `lint` is `true` to `main` with `human.push_file`;
+   - uses `settings.model_copy(update={"pinned_agent_version": "fake"})`, whose `state_directory` is already `tmp_path / "state"`;
+   - calls `build_tick(boundaries, ready, _every_tool)`.
+   A module-level helper `_every_tool` was added for it. The `settings` fixture is unchanged.
+
+   How the tests are built:
+   - The tick tests build `Preflight(boundaries, MachineChecks(...), JsonPreflightStampFile(tmp_path/state/preflight-stamp.json), StopService(boundaries), "build-7")`, with the pipeline's agents installed and `pinned_agent_version="fake"`.
+   - Their handler factory holds a real `RunHandler` for `run` and an `IdleHandler`, so criterion 3 shows that no agent request and no pull request happen.
+   - `main` gets the `Makefile` with `lint: test ! -f BROKEN`. A `BROKEN` file pushed by the human makes it red.
+   - Criterion 1: "red when cloned" is simulated by pushing `BROKEN` and running `checkout.fetch()` before the human removes it again.
+   - Criterion 4: the stale branch is `work-item/F0001-S0001` with a marker file, while the story is in the backlog.
+   - Criterion 7: the invalid definition is `contract: [`.
+
+   Run of `make test`: collection stops with ImportError: cannot import name `build_preflight` from `factory.entry.wiring`. The tick tests will fail on the missing `preflight` keyword of `Tick`. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!

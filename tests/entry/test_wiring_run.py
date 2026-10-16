@@ -80,6 +80,10 @@ def environment(tmp_path: Path) -> dict[str, str]:
     }
 
 
+def _every_tool(name: str) -> str | None:
+    return f"/usr/bin/{name}"
+
+
 def test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance(
     boundaries: Boundaries,
     settings: InstanceSettings,
@@ -90,10 +94,12 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     agent_runtime: FakeAgentRuntime,
 ) -> None:
     install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+    human.push_file("main", "Makefile", "lint:\n\ttrue\n")
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    tick = build_tick(boundaries, settings)
+    ready = settings.model_copy(update={"pinned_agent_version": "fake"})
+    tick = build_tick(boundaries, ready, _every_tool)
 
     outcome = tick.run()
 
@@ -101,7 +107,9 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     assert (outcome.event.kind, outcome.dispatch) == ("run", "handled")
     [request] = agent_runtime.requests()
     assert request.environment == production_environment()
-    assert build_tick(boundaries, settings) is not build_tick(boundaries, settings)
+    assert build_tick(boundaries, ready, _every_tool) is not build_tick(
+        boundaries, ready, _every_tool
+    )
     branch = branch_name(WORK_ITEM)
     assert remote_commit(remote, branch) is not None
     # The completed stage released its claim at the tip; the claim commit comes first after main.
