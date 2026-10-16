@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 137
 blocked: null
 comments_seen: 0
@@ -87,3 +87,10 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
       - Open: the docs criterion (operator guide, README) is for the documenter stage.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Criteria: in `tests/entry/test_run.py`, the parametrized test `test_main_returns_two_for_invalid_settings_whether_or_not_the_stop_can_be_written` covers criteria 1 to 3 as two rows of one test. The `unwritable` row uses `tmp_path/file/state`. It checks that `main` returns 2, raises nothing and starts no runner (`runner.calls == []`). It checks that stderr holds exactly the two lines, each matched with `fullmatch`; the second must name `NotADirectoryError|FileNotFoundError`. The `writable` row checks status 2, an empty stderr, the time-stamped log line and the `preflight_failed` machine stop. `test_main_lets_an_os_error_of_the_runner_out` covers criterion 4: the runner is a local function, the environment is valid and `Runner` is unchanged. The coder's entry records `make check` green, coverage 99.54 %.
+      - Interface: in `src/factory/entry/run.py`, the `try` in `_report_the_invalid_settings` wraps only `_stop_the_machine`, so a runner's `OSError` still leaves `main`. Both stderr lines are written only on `OSError`. The signature of `main` is unchanged and the new helper is private, so there is no new public name.
+      - Architecture: the change stays in `factory.entry`. It adds no dependency and no suppression marker.
+      - Security: nothing new. The second stderr line carries the `OSError`'s own message (the state path). The Interface asks for that, and the operator needs it.
+      - Quality: the names say what things do. The comment explains why stderr is used. I found no second copy of an existing helper: the other modules under `entry` write to stderr with a plain `print` too.
+      - Hygiene: the coder's entry names the main decision and the rejected outer `except OSError`. The Assignment matches the code. Criterion 6 (the docs) still describes what the documenter must write.
