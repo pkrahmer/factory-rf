@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 121
 blocked: null
 comments_seen: 2
@@ -236,3 +236,11 @@ Expect: one line, `/srv/agents claude None`.
 9. reviewer: Checked the diff against the criteria, the architecture and security, and they hold. Every criterion from 1 to 21 has a test that checks what the criterion says. The failing sides are parametrized: URLs in 5, the token file in 7, and the blank and missing variables in 1 to 3. The coder's entry 8 reports `make check` green. The layers are respected: `github` is still imported only in `factory.adapters.pygithub_hosting`, and the concrete adapters are picked only in `factory.entry.wiring`. There are no secrets, and the error messages name the path but never the token. Review stopped at Quality with one finding:
 
    1. `src/factory/entry/wiring.py` `read_hosting_token`: this is a second copy of the logic in `src/factory/domain/settings.py` `_image`. Both read a file, strip it, turn an `OSError` into `SettingsInvalid(variable, f"cannot read {path}: {error}")` and turn blank content into `SettingsInvalid(variable, f"{path} is empty")`. CLAUDE.md counts a second copy of an existing helper as a finding. Fix: move that logic into one public domain function in `settings.py`, for example `read_setting_file(variable, path, read_file) -> str`, so that the domain stays pure because the reader is passed in. Make `_image` use it. `read_hosting_token` keeps its `None` check and then calls it with a reader built on `Path.read_text(encoding="utf-8")`. No test changes.
+10. coder: Round 1: fixed the one finding from review entry 9, in commit 41e71af. The commit changes no behaviour and touches no tests.
+    - `src/factory/domain/settings.py`: new public `read_setting_file(variable, path, read_file) -> str`. It reads the file through the `read_file` it is given, strips the content and raises `SettingsInvalid(variable, ...)` with the same messages as before: `cannot read {path}: {error}` on an `OSError`, `{path} is empty` on blank content. `_image` now calls it with `IMAGE_ID_FILE_VARIABLE`. Because the reader is passed in, the domain stays free of I/O.
+    - `src/factory/entry/wiring.py`: `read_hosting_token` keeps its `None` check and then calls `read_setting_file(CREDENTIAL_FILE_VARIABLE, path, _read_utf8)`. `_read_utf8` is a private reader built on `Path.read_text(encoding="utf-8")`.
+    - Rejected: a lambda for the reader. A named private function is easier to read and matches the style of the module.
+    - `make check`: green, coverage 99.55%.
+    - `## Assignment` is unchanged. Nothing else was touched.
+
+    `make check`: check: green
