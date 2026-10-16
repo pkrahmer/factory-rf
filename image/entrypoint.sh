@@ -1,7 +1,9 @@
 #!/bin/sh
 # Installs the image's agents and settings, prepares the runs directory and starts the
-# instance. Git is configured by the factory itself, never here.
+# instance. Git is configured by the factory itself, never here. The umask makes the
+# factory's files group-writable, like the agent's under sudo, so either can remove the other's.
 set -eu
+umask 002
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 opt="${FACTORY_OPT:-/opt/factory}"
 home="${FACTORY_CLAUDE_HOME:-$HOME/.claude}"
