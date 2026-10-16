@@ -1,0 +1,682 @@
+"""The recovery proof: a world of real git and fakes, the kill-point scenarios and their checks."""
+
+import re
+import shutil
+from collections import Counter
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Final
+
+from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.adapters.clock import ManualClock
+from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
+from factory.adapters.factory_log import TimestampedFactoryLog
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.adapters.fake_hosting import FakeHostingService
+from factory.adapters.git_cli import GitCli
+from factory.adapters.health_file import JsonHealthStatusFile
+from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
+from factory.application.boundaries import Boundaries
+from factory.application.costs import read_cost_records
+from factory.application.tick import Tick
+from factory.domain.agent_runs import AgentRunResult
+from factory.domain.cost_records import CostRecord
+from factory.domain.git import CommitId, GitOptions
+from factory.domain.hosting import PostKind, PullRequestComment, PullRequestView
+from factory.domain.identifiers import Name, WorkItemId, branch_name
+from factory.domain.journal import HUMAN, JournalRecord, NewEntry, append_entry
+from factory.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
+from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.domain.paths import cost_records_path
+from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
+from factory.entry.wiring import agent_environment, handler_factory
+from git_support import (
+    CHECKOUT,
+    PIPELINE_YAML,
+    TEST_IDENTITY,
+    clone,
+    install_agents,
+    make_remote,
+    run_git,
+)
+from human_clone import HumanClone
+
+MARKER: Final[str] = "interrupted-run-marker"
+JOURNAL_LEAK: Final[str] = "interrupted-journal-edit"
+KILL_TO_RERUN: Final[timedelta] = timedelta(seconds=5)
+CRASH_CONDITIONS: Final[tuple[str, ...]] = (
+    "resumes-at-first-tick",
+    "kill-to-rerun-recorded",
+    "no-repeated-post",
+    "no-repeated-step",
+    "no-interrupted-write-in-history",
+    "stage-start-kept",
+    "no-discarded-cost-record",
+    "counters",
+)
+STALL_CONDITIONS: Final[tuple[str, ...]] = (
+    "attempt-charged",
+    "outside-writes-undone",
+    "state-restored",
+    "inside-writes-kept",
+    "cost-record-kept",
+)
+
+INSTANCE = "factory-1"
+STAGE = "intake"
+START = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
+FEATURE = "factory/features/F0001-example"
+FIRST_BACKLOG_STORY = f"{FEATURE}/backlog/F0001-S0001-first.md"
+LEAK_PATH = "src/leak.py"
+QUESTION = "Which format does the title take?"
+STORY = """\
+# {title}
+
+## Description
+
+Text.
+
+## Interface
+
+None.
+
+## Acceptance criteria
+
+1. It works.
+2. make check stays green.
+3. docs: none, nothing changes.
+
+## Smoke test
+
+```bash
+true
+```
+Expect: nothing.
+
+## Journal
+"""
+_STORY_NUMBER = re.compile(r"F0001-S(\d{4})")
+
+
+@dataclass(frozen=True)
+class World:
+    """One factory instance against a real bare remote, with the fakes and the clock."""
+
+    boundaries: Boundaries
+    hosting: FakeHostingService
+    agent_runtime: FakeAgentRuntime
+    kill_points: KillPoints
+    clock: ManualClock
+    human: HumanClone
+    remote: Path
+    state: Path
+    instance: Name
+    tick: Tick
+
+
+@dataclass(frozen=True)
+class CaseResult:
+    """A world after a played scenario, and what the kill left behind."""
+
+    world: World
+    work_item: WorkItemId
+    killed_point: KillPoint | None
+    killed_at: datetime | None
+    stage_start: CommitId | None
+
+
+def _assemble(
+    root: Path,
+    *,
+    hosting: FakeHostingService,
+    kill_points: KillPoints,
+    clock: ManualClock,
+    human: HumanClone,
+    remote: Path,
+    git: GitCli,
+) -> World:
+    checkout = root / CHECKOUT
+    state = root / "state"
+    agent_runtime = FakeAgentRuntime(kill_points)
+    boundaries = Boundaries(
+        git=git,
+        hosting=hosting,
+        agent_runtime=agent_runtime,
+        project_commands=MakeProjectCommands(checkout, kill_points),
+        work_item_reader=FrontmatterWorkItemReader(),
+        work_item_writer=FrontmatterWorkItemWriter(),
+        cost_reader=JsonLinesCostRecordReader(),
+        cost_writer=JsonLinesCostRecordWriter(),
+        pipeline_reader=RuamelPipelineDefinitionReader(),
+        agent_definitions=FrontmatterAgentDefinitionReader(root / "agent-home"),
+        clock=clock,
+        log=TimestampedFactoryLog(state / "factory.log", clock),
+        health=JsonHealthStatusFile(state / "health.json"),
+        checkout=checkout,
+    )
+    environment = agent_environment(root / "scripts", root / "home")
+    tick = Tick(boundaries, INSTANCE, handler_factory(boundaries, INSTANCE, environment))
+    return World(
+        boundaries=boundaries,
+        hosting=hosting,
+        agent_runtime=agent_runtime,
+        kill_points=kill_points,
+        clock=clock,
+        human=human,
+        remote=remote,
+        state=state,
+        instance=INSTANCE,
+        tick=tick,
+    )
+
+
+def _git(root: Path, kill_points: KillPoints) -> GitCli:
+    options = GitOptions(kill_points=kill_points, identity=TEST_IDENTITY)
+    return GitCli(root / CHECKOUT, options)
+
+
+def build_world(root: Path) -> World:
+    """Build one world under `root`: remote, checkout, fakes, clock, agents and the human."""
+    remote = make_remote(root / "origin")
+    clone(remote, root / CHECKOUT)
+    kill_points = KillPoints()
+    definition = RuamelPipelineDefinitionReader().parse(PIPELINE_YAML)
+    install_agents(root / "agent-home", definition.roles)
+    return _assemble(
+        root,
+        hosting=FakeHostingService(kill_points),
+        kill_points=kill_points,
+        clock=ManualClock(START),
+        human=HumanClone(root / "human", remote),
+        remote=remote,
+        git=_git(root, kill_points),
+    )
+
+
+def _slug(title: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
+def start_story(world: World, title: str = "Example") -> WorkItemId:
+    """Push a story of the example feature that passes the form, start it and return its id."""
+    git = world.boundaries.git
+    git.fetch()
+    backlog = git.list_files("origin/main", f"{FEATURE}/backlog")
+    if FIRST_BACKLOG_STORY in backlog:
+        path = FIRST_BACKLOG_STORY
+    else:
+        names = [
+            name
+            for folder in ("backlog", "in-progress", "done")
+            for name in git.list_files("origin/main", f"{FEATURE}/{folder}")
+        ]
+        numbers = [int(match.group(1)) for name in names if (match := _STORY_NUMBER.search(name))]
+        number = max(numbers, default=0) + 1
+        path = f"{FEATURE}/backlog/F0001-S{number:04d}-{_slug(title)}.md"
+    world.human.push_file("main", path, STORY.format(title=title))
+    world.human.start(path)
+    return Path(path).name[: len("F0001-S0001")]
+
+
+def _work_item_path(world: World, work_item: WorkItemId) -> str:
+    git = world.boundaries.git
+    git.fetch()
+    for path in git.list_files("origin/main", f"{FEATURE}/in-progress"):
+        if Path(path).name.startswith(work_item):
+            return path
+    raise AssertionError(f"{work_item} is not in progress on origin/main")
+
+
+def _opening_text(world: World, path: str) -> WorkItemDocument:
+    boundaries = world.boundaries
+    text = boundaries.git.show_file("origin/main", path)
+    assert text is not None
+    body = boundaries.work_item_reader.parse_specification(text).body
+    if "## Journal" not in body:
+        body = f"{body.rstrip()}\n\n## Journal\n"
+    created = NewEntry(
+        speaker=HUMAN, kind="created", text="created.", on=boundaries.clock.now().date()
+    )
+    return append_entry(WorkItemDocument(state=initial_state(STAGE), body=body), created)
+
+
+def _with_marker_and_journal_leak(text: str) -> str:
+    lines = text.rstrip("\n").split("\n")
+    start = lines.index("## Description")
+    end = next(i for i in range(start + 1, len(lines)) if lines[i].startswith("## "))
+    while lines[end - 1] == "":
+        end -= 1
+    lines[end:end] = ["", MARKER]
+    return "\n".join([*lines, JOURNAL_LEAK]) + "\n"
+
+
+def leak_writes(world: World, work_item: WorkItemId, *, stage: str | None = None) -> dict[str, str]:
+    """The writes of an interrupted run: one outside the write paths, two in the work item."""
+    boundaries = world.boundaries
+    path = _work_item_path(world, work_item)
+    text = boundaries.git.show_file(f"origin/{branch_name(work_item)}", path)
+    if text is None:
+        document = _opening_text(world, path)
+    else:
+        document = boundaries.work_item_reader.parse(text)
+    if stage is not None:
+        assert document.state is not None
+        document = document.model_copy(
+            update={"state": document.state.model_copy(update={"stage": stage})}
+        )
+    rendered = boundaries.work_item_writer.render(document)
+    return {LEAK_PATH: f"{MARKER} = True\n", path: _with_marker_and_journal_leak(rendered)}
+
+
+def completed(
+    decision: str, entry: str = "ok", *, writes: dict[str, str] | None = None, kill: bool = False
+) -> ScriptedRun:
+    """A run that completes with `decision` and `entry` after one second."""
+    result = AgentRunResult(
+        end_reason="completed", decision=decision, entry=entry, duration=timedelta(seconds=1)
+    )
+    return ScriptedRun(writes=writes or {}, result=result, kill=kill)
+
+
+def died(*, writes: dict[str, str] | None = None, kill: bool = False) -> ScriptedRun:
+    """A run that dies after one second, without decision or entry."""
+    result = AgentRunResult(end_reason="died", duration=timedelta(seconds=1))
+    return ScriptedRun(writes=writes or {}, result=result, kill=kill)
+
+
+def _question(*, writes: dict[str, str] | None = None, kill: bool = False) -> ScriptedRun:
+    return completed("question", QUESTION, writes=writes, kill=kill)
+
+
+def run_ticks(world: World, count: int = 1) -> None:
+    """Run the world's tick `count` times without moving the clock."""
+    for _ in range(count):
+        world.tick.run()
+
+
+def restart(world: World, *, empty_disk: bool = False) -> World:
+    """The same instance started again: new runtime, boundaries and tick, same remote and fakes."""
+    root = world.state.parent
+    if empty_disk:
+        shutil.rmtree(root / CHECKOUT, ignore_errors=True)
+        shutil.rmtree(world.state, ignore_errors=True)
+        git = _git(root, world.kill_points)
+        git.clone(str(world.remote))
+    else:
+        git = _git(root, world.kill_points)
+    return _assemble(
+        root,
+        hosting=world.hosting,
+        kill_points=world.kill_points,
+        clock=world.clock,
+        human=world.human,
+        remote=world.remote,
+        git=git,
+    )
+
+
+def _claim_commits(world: World, work_item: WorkItemId, ref: str) -> list[CommitId]:
+    """The commits of `ref` whose work item state carries a claim, newest first."""
+    git = world.boundaries.git
+    if git.resolve(ref) is None:
+        return []
+    path = _work_item_path(world, work_item)
+    found: list[CommitId] = []
+    for info in git.log(ref, path=path):
+        state = _state_at(world, info.commit, path)
+        if state is not None and state.claim is not None:
+            found.append(info.commit)
+    return found
+
+
+def _state_at(world: World, ref: str, path: str) -> WorkItemState | None:
+    text = world.boundaries.git.show_file(ref, path)
+    if text is None:
+        return None
+    return world.boundaries.work_item_reader.parse(text).state
+
+
+def _tick_until_killed(world: World, limit: int = 3) -> KillPoint:
+    for _ in range(limit):
+        try:
+            world.tick.run()
+        except InjectedKill as kill:
+            return kill.point
+    raise AssertionError(f"no kill point fired in {limit} ticks")
+
+
+@dataclass(frozen=True)
+class _Kill:
+    point: KillPoint
+    at: datetime
+    stage_start: CommitId | None
+
+
+def _kill(world: World, work_item: WorkItemId) -> _Kill:
+    point = _tick_until_killed(world)
+    world.boundaries.git.fetch()
+    starts = _claim_commits(world, work_item, f"origin/{branch_name(work_item)}")
+    return _Kill(point=point, at=world.clock.now(), stage_start=starts[0] if starts else None)
+
+
+def _rerun(
+    world: World,
+    work_item: WorkItemId,
+    kill: _Kill,
+    *,
+    empty_disk: bool = False,
+    queue: bool = True,
+) -> CaseResult:
+    world.clock.advance(KILL_TO_RERUN)
+    restarted = restart(world, empty_disk=empty_disk)
+    if queue:
+        restarted.agent_runtime.queue(_question())
+    run_ticks(restarted, 3)
+    return CaseResult(restarted, work_item, kill.point, kill.at, kill.stage_start)
+
+
+def _agent_run_tick(world: World, *, empty_disk: bool = False) -> CaseResult:
+    work_item = start_story(world)
+    world.kill_points.arm(KillPoint.AGENT_RUN)
+    world.agent_runtime.queue(_question(writes=leak_writes(world, work_item), kill=True))
+    return _rerun(world, work_item, _kill(world, work_item), empty_disk=empty_disk)
+
+
+def _container(world: World) -> CaseResult:
+    return _agent_run_tick(world, empty_disk=True)
+
+
+def _commit_push(world: World) -> CaseResult:
+    work_item = start_story(world)
+    world.kill_points.arm(KillPoint.BEFORE_PUSH, after=1)
+    world.agent_runtime.queue(_question(writes=leak_writes(world, work_item)))
+    return _rerun(world, work_item, _kill(world, work_item))
+
+
+def _post_record(world: World) -> CaseResult:
+    work_item = start_story(world)
+    world.kill_points.arm(KillPoint.AFTER_POST)
+    world.agent_runtime.queue(_question(writes=leak_writes(world, work_item)))
+    return _rerun(world, work_item, _kill(world, work_item), queue=False)
+
+
+def _tick_other(world: World) -> CaseResult:
+    work_item = start_story(world)
+    world.kill_points.arm(KillPoint.AFTER_PUSH, after=0)
+    return _rerun(world, work_item, _kill(world, work_item))
+
+
+def _agent_run_dies(world: World) -> CaseResult:
+    work_item = start_story(world)
+    world.agent_runtime.queue(died(writes=leak_writes(world, work_item, stage="doing")))
+    world.agent_runtime.queue(_question())
+    run_ticks(world, 3)
+    return CaseResult(world, work_item, None, None, None)
+
+
+SCENARIOS: dict[str, Callable[[World], CaseResult]] = {
+    "agent-run-tick": _agent_run_tick,
+    "agent-run-dies": _agent_run_dies,
+    "commit-push": _commit_push,
+    "post-record": _post_record,
+    "tick-other": _tick_other,
+    "container": _container,
+}
+
+
+def run_case(case: KillPointCase, root: Path) -> CaseResult:
+    """Build a world under `root`, play the case's scenario on it and return what is left."""
+    return SCENARIOS[case.id](build_world(root))
+
+
+def head_state(world: World, work_item: WorkItemId) -> WorkItemState:
+    """The work item's state on `origin/<branch>`."""
+    world.boundaries.git.fetch()
+    state = _state_at(world, f"origin/{branch_name(work_item)}", _work_item_path(world, work_item))
+    assert state is not None
+    return state
+
+
+def head_journal(world: World, work_item: WorkItemId) -> list[JournalRecord]:
+    """The work item's journal records on `origin/<branch>`."""
+    return head_state(world, work_item).journal
+
+
+def pull_request_of(world: World, work_item: WorkItemId) -> PullRequestView:
+    """The pull request of the work item's branch, in any state."""
+    branch = branch_name(work_item)
+    [view] = [view for view in world.hosting.pull_requests() if view.branch == branch]
+    return view
+
+
+def posts(
+    world: World, work_item: WorkItemId, kind: PostKind | None = None
+) -> list[PullRequestComment]:
+    """The factory's posts on the work item's pull request, those of `kind` when given."""
+    number = pull_request_of(world, work_item).number
+    found = world.hosting.factory_posts(number)
+    return [post for post in found if kind is None or (post.key and post.key.kind == kind)]
+
+
+def repeated_posts(world: World) -> list[str]:
+    """The key lines that occur on more than one factory post, over every pull request."""
+    keys = Counter(
+        post.key.comment()
+        for view in world.hosting.pull_requests()
+        for post in world.hosting.factory_posts(view.number)
+        if post.key is not None
+    )
+    return sorted(key for key, count in keys.items() if count > 1)
+
+
+def _remote_commits(world: World) -> list[str]:
+    world.boundaries.git.fetch()
+    listing = run_git(world.boundaries.checkout, "rev-list", "--remotes=origin")
+    return listing.split()
+
+
+def markers_in_history(world: World, work_item: WorkItemId) -> list[str]:
+    """`<commit>:<path>` for each commit of any `origin/*` branch whose file holds `MARKER`."""
+    git = world.boundaries.git
+    paths = (LEAK_PATH, _work_item_path(world, work_item))
+    found: list[str] = []
+    for commit in _remote_commits(world):
+        for path in paths:
+            text = git.show_file(commit, path)
+            if text is not None and MARKER in text:
+                found.append(f"{commit}:{path}")
+    return found
+
+
+def _costs(world: World, work_item: WorkItemId, ref: str) -> list[CostRecord]:
+    sidecar = cost_records_path(_work_item_path(world, work_item))
+    boundaries = world.boundaries
+    return read_cost_records(boundaries.git, boundaries.cost_reader, ref, sidecar)
+
+
+def _stall_commit(world: World, work_item: WorkItemId) -> CommitId | None:
+    """The commit of `origin/<branch>` that adds the first `stall` record."""
+    path = _work_item_path(world, work_item)
+    adding: CommitId | None = None
+    for info in world.boundaries.git.log(f"origin/{branch_name(work_item)}", path=path):
+        state = _state_at(world, info.commit, path)
+        if state is not None and any(record.kind == "stall" for record in state.journal):
+            adding = info.commit
+    return adding
+
+
+def _branch(result: CaseResult) -> str:
+    return f"origin/{branch_name(result.work_item)}"
+
+
+def _resumes_at_first_tick(result: CaseResult, case: KillPointCase) -> bool:
+    stages = [request.agent.name for request in result.world.agent_runtime.requests()]
+    return stages == ([STAGE] if case.charges_crash else [])
+
+
+def _kill_to_rerun_recorded(result: CaseResult, case: KillPointCase) -> bool:
+    if not case.charges_crash:
+        return True
+    world = result.world
+    starts = _claim_commits(world, result.work_item, _branch(result))
+    if not starts or result.killed_at is None:
+        return False
+    state = _state_at(world, starts[0], _work_item_path(world, result.work_item))
+    assert state is not None
+    assert state.claim is not None
+    return state.claim.started_at - result.killed_at == KILL_TO_RERUN
+
+
+def _no_repeated_post(result: CaseResult, _case: KillPointCase) -> bool:
+    questions = posts(result.world, result.work_item, "question")
+    return len(questions) == 1 and repeated_posts(result.world) == []
+
+
+def _no_repeated_step(result: CaseResult, _case: KillPointCase) -> bool:
+    kinds = [record.kind for record in head_journal(result.world, result.work_item)]
+    return kinds.count("question") == 1
+
+
+def _no_interrupted_write_in_history(result: CaseResult, case: KillPointCase) -> bool:
+    found = markers_in_history(result.world, result.work_item)
+    if case.kill_point not in (KillPoint.AGENT_RUN, KillPoint.BEFORE_PUSH):
+        found = [place for place in found if place.endswith(f":{LEAK_PATH}")]
+    return found == []
+
+
+def _stage_start_kept(result: CaseResult, _case: KillPointCase) -> bool:
+    start = result.stage_start
+    if start is None:
+        return False
+    journal = head_journal(result.world, result.work_item)
+    started = any(record.kind == "started" for record in journal)
+    return started and result.world.boundaries.git.is_ancestor(start, _branch(result))
+
+
+def _no_discarded_cost_record(result: CaseResult, _case: KillPointCase) -> bool:
+    world, work_item = result.world, result.work_item
+    records = _costs(world, work_item, _branch(result))
+    if [(record.status, record.stage) for record in records] != [("completed", STAGE)]:
+        return False
+    runs = {
+        other.run for commit in _remote_commits(world) for other in _costs(world, work_item, commit)
+    }
+    return runs == {records[0].run}
+
+
+def _counters(result: CaseResult, case: KillPointCase) -> bool:
+    state = head_state(result.world, result.work_item)
+    return state.attempts == 0 and state.crashes == (1 if case.charges_crash else 0)
+
+
+@dataclass(frozen=True)
+class _Stalled:
+    result: CaseResult
+    path: str
+    commit: CommitId
+    state: WorkItemState
+
+
+def _stalled(result: CaseResult) -> _Stalled | None:
+    world = result.world
+    path = _work_item_path(world, result.work_item)
+    commit = _stall_commit(world, result.work_item)
+    if commit is None:
+        return None
+    state = _state_at(world, commit, path)
+    assert state is not None
+    return _Stalled(result, path, commit, state)
+
+
+def _attempt_charged(stalled: _Stalled) -> bool:
+    kinds = [record.kind for record in stalled.state.journal]
+    state = stalled.state
+    return state.attempts == 1 and state.stage == STAGE and kinds.count("stall") == 1
+
+
+def _outside_writes_undone(stalled: _Stalled) -> bool:
+    git = stalled.result.world.boundaries.git
+    return all(
+        git.show_file(ref, LEAK_PATH) is None for ref in (stalled.commit, _branch(stalled.result))
+    )
+
+
+def _state_restored(stalled: _Stalled) -> bool:
+    world = stalled.result.world
+    git = world.boundaries.git
+    starts = _claim_commits(world, stalled.result.work_item, stalled.commit)
+    start = _state_at(world, starts[0], stalled.path) if starts else None
+    leaked = any(
+        JOURNAL_LEAK in (git.show_file(commit, stalled.path) or "")
+        for commit in _remote_commits(world)
+    )
+    journal = stalled.state.journal
+    return (
+        start is not None
+        and stalled.state.stage == STAGE
+        and journal[:-1] == start.journal
+        and journal[-1].kind == "stall"
+        and not leaked
+    )
+
+
+def _inside_writes_kept(stalled: _Stalled) -> bool:
+    git = stalled.result.world.boundaries.git
+    refs = (stalled.commit, _branch(stalled.result))
+    return all(MARKER in (git.show_file(ref, stalled.path) or "") for ref in refs)
+
+
+def _cost_record_kept(stalled: _Stalled) -> bool:
+    records = _costs(stalled.result.world, stalled.result.work_item, stalled.commit)
+    return [
+        (
+            record.status,
+            record.end_reason,
+            record.duration_seconds,
+            record.turns,
+            record.tokens,
+            record.cost_usd,
+        )
+        for record in records
+    ] == [("completed", "died", 1.0, None, None, None)]
+
+
+_CRASH_CHECKS: dict[str, Callable[[CaseResult, KillPointCase], bool]] = {
+    "resumes-at-first-tick": _resumes_at_first_tick,
+    "kill-to-rerun-recorded": _kill_to_rerun_recorded,
+    "no-repeated-post": _no_repeated_post,
+    "no-repeated-step": _no_repeated_step,
+    "no-interrupted-write-in-history": _no_interrupted_write_in_history,
+    "stage-start-kept": _stage_start_kept,
+    "no-discarded-cost-record": _no_discarded_cost_record,
+    "counters": _counters,
+}
+_STALL_CHECKS: dict[str, Callable[[_Stalled], bool]] = {
+    "attempt-charged": _attempt_charged,
+    "outside-writes-undone": _outside_writes_undone,
+    "state-restored": _state_restored,
+    "inside-writes-kept": _inside_writes_kept,
+    "cost-record-kept": _cost_record_kept,
+}
+
+
+def _holds(result: CaseResult, case: KillPointCase, condition: str) -> bool:
+    if condition in _CRASH_CHECKS:
+        return _CRASH_CHECKS[condition](result, case)
+    stalled = _stalled(result)
+    return stalled is not None and _STALL_CHECKS[condition](stalled)
+
+
+def violations(result: CaseResult, case: KillPointCase, conditions: Sequence[str]) -> list[str]:
+    """The names among `conditions` that do not hold for `result` of `case`."""
+    return [condition for condition in conditions if not _holds(result, case, condition)]
+
+
+def case_by_id(case_id: str) -> KillPointCase:
+    """The case of `KILL_POINT_CASES` with `case_id`."""
+    [case] = [case for case in KILL_POINT_CASES if case.id == case_id]
+    return case

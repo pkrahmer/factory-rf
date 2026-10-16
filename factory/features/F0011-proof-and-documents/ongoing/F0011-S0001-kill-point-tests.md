@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 145
 blocked: null
 comments_seen: 0
@@ -220,3 +220,51 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Demo: the three commands are runnable, and each `Expect:` line gives output that can be checked (six named lines; three `rejected`; a pytest `passed` last line).
    - Architecture: the case data sits in `factory.domain` and is pure. The proof helpers sit in `tests/` and no production module imports them. Tests keep to the layout in `CLAUDE.md`: a real bare remote, the fake hosting service and the fake agent runtime, no fake git.
    - Scope: this is the first story of F0011 and falls under its "kill-point cases and the two caps" scope item. The baseline run (WE1.4), a real container kill and the document check are not touched.
+3. tester: red tests for the kill-point cases, the recovery proof and both caps.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_kill_point_cases.py::test_the_cases_are_the_six_rows_in_order
+   - criterion 2: tests/domain/test_kill_point_cases.py::test_a_kill_point_is_given_exactly_for_a_crash (4 rows: stall with point, crash without, stall without, crash with)
+   - criterion 3: tests/domain/test_kill_point_cases.py::test_a_stall_never_charges_a_crash (charges / free)
+   - criterion 4: tests/domain/test_kill_point_cases.py::test_an_assignment_to_a_built_case_is_refused, ::test_a_case_outside_the_closed_model_is_refused (unknown key, dies="process", result_class="error", kill_point="never")
+   - criterion 5: tests/test_kill_points.py::test_every_case_has_a_scenario_and_no_other_id_has_one
+   - criterion 6: tests/test_kill_points.py::test_the_armed_kill_point_ends_the_tick_that_reaches_it (5 crash cases)
+   - criterion 7: tests/test_kill_points.py::test_the_restarted_factory_reruns_a_charged_stage_at_its_first_tick (5 crash cases; post-record expects no request)
+   - criterion 8: tests/test_kill_points.py::test_the_rerun_starts_five_seconds_after_the_kill (4 charging cases; record_property("kill_to_rerun_seconds", …))
+   - criterion 9: tests/test_kill_points.py::test_the_question_is_posted_once_and_no_post_is_repeated (all 6)
+   - criterion 10: tests/test_kill_points.py::test_the_interrupted_step_is_journalled_once (all 6)
+   - criterion 11: tests/test_kill_points.py::test_no_write_of_the_interrupted_run_reaches_the_remote
+   - criterion 12: tests/test_kill_points.py::test_the_stage_start_of_the_kill_is_kept
+   - criterion 13: tests/test_kill_points.py::test_only_the_cost_record_of_the_finished_run_is_kept
+   - criterion 14: tests/test_kill_points.py::test_a_crash_charges_a_crash_only_while_a_stage_was_in_flight
+   - criterion 15: tests/test_kill_points.py::test_the_proof_helpers_find_a_leaked_marker_and_a_repeated_post
+   - criterion 16: tests/test_kill_points.py::test_tick_killed_during_agent_run_twice_reaches_crash_cap_and_asks_human
+   - criterion 17: tests/test_kill_points.py::test_a_died_run_charges_one_attempt_and_keeps_the_stage
+   - criterion 18: tests/test_kill_points.py::test_a_died_run_loses_its_writes_outside_the_write_paths
+   - criterion 19: tests/test_kill_points.py::test_a_died_run_loses_its_edits_of_state_and_journal
+   - criterion 20: tests/test_kill_points.py::test_a_died_run_keeps_its_writes_inside_the_write_paths
+   - criterion 21: tests/test_kill_points.py::test_a_died_run_keeps_its_cost_record_with_unknown_usage
+   - criterion 22: tests/test_kill_points.py::test_two_died_runs_reach_the_attempts_cap_and_ask_the_human
+   - criteria 23 and 24: these are for the coder and the documenter, so there are no tests for them.
+
+   Files:
+   - Created tests/domain/test_kill_point_cases.py, tests/test_kill_points.py and tests/proof_support.py.
+   - Changed tests/conftest.py: it now has the `world` fixture, which returns `build_world(tmp_path)`.
+
+   proof_support follows the Interface. These parts go beyond what the Interface names:
+   - Extra private helpers, plus one public helper, `case_by_id`.
+   - `violations` dispatches through two tables of small check functions, one for crashes and one for stalls.
+   - `markers_in_history` returns `<commit>:<path>` strings. It looks at every commit from `git rev-list --remotes=origin`, run through `run_git` in the checkout.
+   - `repeated_posts` returns the key lines (`PostKey.comment()`).
+   - The "stage-start commit" is the newest commit on the branch whose work item state has a `claim`.
+   - The commit that adds the stall is the oldest commit on the branch whose journal has a `stall` record.
+   - In `post-record` the kill is expected within the first three ticks. The question post may only happen on the tick after the run.
+
+   The module-scoped fixture `result` in test_kill_points.py is parametrized indirectly over case ids, so each case runs once per module.
+
+   Import failures: `make test` stops at collection with `ModuleNotFoundError: No module named 'factory.domain.kill_point_cases'`. tests/conftest.py imports proof_support, so the whole suite is red until the coder adds that module.
+
+   `make lint` is green. I skipped the type check as the stage says, so `make types` on these files is still unchecked.
+
+   `make lint`: lint: green
+   `make test`: E   ModuleNotFoundError: No module named 'factory.domain.kill_point_cases'
