@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 115
 blocked: null
 comments_seen: 0
@@ -75,3 +75,13 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
 
    `make lint`: lint: green
    `make test`: FAILED tests/application/test_board_reader_acceptance.py::test_run_watch_prints_the_acceptance_row_under_work_items
+4. coder: `BoardReader.read` in `src/factory/application/board.py` now builds its rows from `RemoteWorkItems.read(definition)` plus `AcceptanceReader(boundaries, definition).snapshots()`. It joins the two lists, sorts them by `work_item_order(snapshot.id)` and maps each snapshot through the unchanged `work_item_row`. Commit 6b578dd.
+
+      - Design: the method builds one `AcceptanceReader` and uses it for both the feature column (`fill_board`) and the new rows. A definition without an acceptance stage gets no acceptance rows, because `snapshots()` already returns `[]` for it. A report that cannot be read raises `WorkItemFormatError` from `snapshots()`, which `read` passes on.
+      - Rejected: merging the two already-sorted lists by hand. Both lists are small, and a single `sorted` with the shared key reads more clearly.
+      - Refactor: I read my diff and found nothing to change (8 lines added, 6 removed, one file).
+      - Noticed, not touched: the watch output still lists the feature rows before the work item rows, as the ticket asks.
+      - `make check`: green (coverage 99.53 %).
+      - Open: the docs criterion (10) is for the documenter.
+
+   `make check`: check: green
