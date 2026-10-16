@@ -72,6 +72,7 @@ START = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 FEATURE = "factory/features/F0001-example"
 FIRST_BACKLOG_STORY = f"{FEATURE}/backlog/F0001-S0001-first.md"
 LEAK_PATH = "src/leak.py"
+MAIN = "origin/main"
 QUESTION = "Which format does the title take?"
 STORY = """\
 # {title}
@@ -258,7 +259,10 @@ def leak_writes(world: World, work_item: WorkItemId, *, stage: str | None = None
     """The writes of an interrupted run: one outside the write paths, two in the work item."""
     boundaries = world.boundaries
     path = _work_item_path(world, work_item)
-    text = boundaries.git.show_file(f"origin/{branch_name(work_item)}", path)
+    branch = f"origin/{branch_name(work_item)}"
+    text = None
+    if boundaries.git.resolve(branch) is not None:
+        text = boundaries.git.show_file(branch, path)
     if text is None:
         document = _opening_text(world, path)
     else:
@@ -320,13 +324,13 @@ def restart(world: World, *, empty_disk: bool = False) -> World:
 
 
 def _claim_commits(world: World, work_item: WorkItemId, ref: str) -> list[CommitId]:
-    """The commits of `ref` whose work item state carries a claim, newest first."""
+    """The commits of `ref` off `origin/main` whose state carries a claim, newest first."""
     git = world.boundaries.git
     if git.resolve(ref) is None:
         return []
     path = _work_item_path(world, work_item)
     found: list[CommitId] = []
-    for info in git.log(ref, path=path):
+    for info in git.log(ref, since=MAIN, path=path):
         state = _state_at(world, info.commit, path)
         if state is not None and state.claim is not None:
             found.append(info.commit)
@@ -499,10 +503,11 @@ def _costs(world: World, work_item: WorkItemId, ref: str) -> list[CostRecord]:
 
 
 def _stall_commit(world: World, work_item: WorkItemId) -> CommitId | None:
-    """The commit of `origin/<branch>` that adds the first `stall` record."""
+    """The commit of `origin/<branch>` off `origin/main` that adds the first `stall` record."""
     path = _work_item_path(world, work_item)
     adding: CommitId | None = None
-    for info in world.boundaries.git.log(f"origin/{branch_name(work_item)}", path=path):
+    branch = f"origin/{branch_name(work_item)}"
+    for info in world.boundaries.git.log(branch, since=MAIN, path=path):
         state = _state_at(world, info.commit, path)
         if state is not None and any(record.kind == "stall" for record in state.journal):
             adding = info.commit

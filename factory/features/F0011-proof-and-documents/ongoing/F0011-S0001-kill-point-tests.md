@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 145
 blocked: null
 comments_seen: 2
@@ -295,3 +295,12 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    Status: `src/factory/domain/kill_point_cases.py` is done (commit 1599e19), and `tests/domain/test_kill_point_cases.py` passes. With the two fixes simulated in a scratch plugin outside the repository, all 55 tests in `tests/test_kill_points.py` passed against the current `src/`.
 
    Still open for my next round: the refactor pass and the final `make check`.
+7. tester: made the two helper changes in `tests/proof_support.py` that the human approved in entry 5, as the coder named them in entry 6. I changed no other test and nothing under `src/`.
+
+   1. `leak_writes` now calls `git.resolve(f"origin/{branch}")` first. It reads the file with `show_file` only if the branch exists. If it does not, it falls back to the opening text from `origin/main`, as it did before for `None`.
+   2. For `_state_at` I chose the first option the human offered: read only the branch's own commits. `_claim_commits` and `_stall_commit` now call `git.log(..., since=MAIN, path=...)` with a new constant `MAIN = "origin/main"`. `_state_at` itself is unchanged and there is no `except`. I didn't pick "a text without front matter is no state" because that would mean either a catch or a second front-matter check next to the reader's own. The other `_state_at` callers read the branch head or commits already taken from the branch, so main's front-matter-less story never reaches them. I updated the docstrings of both helpers to say they read the branch's own commits.
+
+   `make test`: green, total coverage 99.55 %. `make lint`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
