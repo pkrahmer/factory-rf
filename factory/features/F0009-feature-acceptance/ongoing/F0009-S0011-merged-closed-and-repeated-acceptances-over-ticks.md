@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 113
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -121,3 +121,4 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
    (c) The tester changes the annotation to `Sequence[str]`.
 
    I would choose (a): it is the precise type and needs one import. If you approve, the coder ends with `tests` and names this change. Once mypy is green, nothing else in the story needs code; `make lint` and `make test` already pass.
+7. human (pull request comment, 2026-10-16): (a): the tester changes the return annotation of `AcceptanceWalk.kinds` in `tests/acceptance_walk.py` to `list[EventKind]`, imported from `factory.domain.events`, and changes nothing else. End with `tests` and name exactly that change.
