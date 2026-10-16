@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 130
 blocked: null
 comments_seen: 0
@@ -349,3 +349,38 @@ Expect: one line, `16 10 True`.
     I found no findings for the coder. The template gives the coder `src/*` as its only write path. I noted this in the project guide as something a project may need to change. The reviewer raised the same point as an open one for the human.
 
     `make check`: check: green
+11. demo: I ran the three commands under `## Demo` from the repository root, as written and in order. All three met their `Expect:` lines, so there are no findings.
+
+    1. The agents read through `FrontmatterAgentDefinitionReader(Path('claude'))`:
+    ```text
+    acceptance-reviewer opus high 8
+    coder opus medium 4
+    documenter sonnet medium 1.5
+    intake sonnet low 1
+    reviewer opus high 3
+    smoke-tester opus medium 2
+    tester opus medium 2
+    ```
+    Met: seven lines, in the expected order and with the expected values.
+
+    2. The template pipeline definition read through `RuamelPipelineDefinitionReader`:
+    ```text
+    intake ['acceptance-reviewer', 'coder', 'documenter', 'intake', 'reviewer', 'smoke-tester', 'tester']
+    ```
+    Met: exactly the expected line.
+
+    3. `claude/settings.json`:
+    ```text
+    16 10 True
+    ```
+    Met: exactly the expected line.
+
+    Cross-check against the acceptance criteria:
+    - `claude/` holds exactly the seven agent files plus `settings.json` (criterion 1).
+    - `template/` holds only `CLAUDE.md` and `factory/pipeline.yml` (criterion 12).
+    - The documenter's front matter has exactly the four keys, with `budget_usd: 1.5`, and its body starts with its boundary sentence (criteria 3 and 9).
+    - The pipeline's roles are the seven agent names (criterion 11).
+
+    The demo contradicts no criterion. I did not run `make check` myself; the factory runs it after this stage.
+
+    Still open for the human, raised by the reviewer and the documenter and not a demo finding: the template gives the coder only the write path `src/*`. The Interface sets that value.
