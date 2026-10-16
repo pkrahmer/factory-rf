@@ -34,7 +34,7 @@ class StopService:
             errors.append(error)
         try:
             status = self._boundaries.health.read()
-            self._boundaries.health.write(_with_stop(status, stop))
+            self._boundaries.health.write(status.with_stop(stop))
         except OSError as error:
             errors.append(error)
         if errors:
@@ -81,14 +81,6 @@ class StopService:
                 "create_pull_request",
                 f"branch {branch} is not on the remote with a commit beyond main",
             )
-
-
-def _with_stop(status: HealthStatus, stop: RepositoryStop) -> HealthStatus:
-    if any(known.reason == stop.reason for known in status.stops):
-        return HealthStatus(
-            stops=[stop if known.reason == stop.reason else known for known in status.stops]
-        )
-    return HealthStatus(stops=[*status.stops, stop])
 
 
 def _without_stop(status: HealthStatus, reason: RepositoryStopReason) -> HealthStatus:

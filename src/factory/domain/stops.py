@@ -80,6 +80,14 @@ class HealthStatus(BaseModel):
         """True exactly when no stop is in force."""
         return not self.stops
 
+    def with_stop(self, stop: RepositoryStop) -> "HealthStatus":
+        """This status with `stop` added, in place of a stop of the same reason."""
+        if any(known.reason == stop.reason for known in self.stops):
+            return HealthStatus(
+                stops=[stop if known.reason == stop.reason else known for known in self.stops]
+            )
+        return HealthStatus(stops=[*self.stops, stop])
+
 
 class WorkItemStop(BaseModel):
     """A stop of one work item, posted once on its pull request under its key."""
