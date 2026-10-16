@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 140
 blocked: null
 comments_seen: 0
@@ -91,3 +91,18 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
    - No findings. The code matches the Interface: `_sudo_refusal` keeps `not process.timed_out`.
 
    `make check`: check: green
+7. demo: The one demo command met its expectation. No findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_os_user.py`
+      ```
+      ..........                                                               [100%]
+      10 passed in 9.08s
+      ```
+      Expect: the last line is `10 passed in <time>`. **Met**: the 8 tests from before this story plus the 2 new rows all passed.
+
+   - Acceptance criteria checked against the demo:
+     - Criteria 1 and 2 (the two rows of the parametrized test) passed.
+     - Criterion 3: the demo shows nothing against it. `make check` was reported green in entries 4 and 6, and the factory runs it after this stage.
+     - Criterion 4 (docs: none) holds, since nothing in `docs/` changed.
+   - Open, not a finding: no stage has yet run the test with `and not process.timed_out` removed by hand. The reviewer reasoned from the code that row 1 would then fail. The demo stage does not run experiments, so I did not run that check either.
+   - Open, not a finding: the documenter suggested adding one clause to `docs/operator-guide.md` line 90, saying that a timed-out call counts as "without a usable reply". That would be a docs change, and the docs criterion for this story is none.
