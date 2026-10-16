@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 129
 blocked: null
 comments_seen: 0
@@ -98,3 +98,35 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
    - Demo: both blocks are runnable with `uv run python -c`, and each `Expect:` line is an exact output line that can be checked.
    - Architecture: the constants are in domain, the file reader is in adapters, the loader and tick are in application, and `run_watch` is in entry. Layer direction holds, and the reader replaces its private tuple with the domain constant.
    - Scope: within the feature's scope ("Agent files without dead keys, refused at load as a reported stop raised by the pipeline loader"). The shipped agents and SI4.2 are left to S0012, which matches Out of scope. The deletion of F0003's `colour` test is covered by FEATURE.md decision 28(1).
+3. tester: Wrote red tests for criteria 1–18. Criteria 19 and 20 are the check and docs criteria, so no test covers them.
+
+   - criterion 1: tests/adapters/test_agent_file_keys.py::test_the_applied_keys_are_model_tools_effort_and_budget (it also checks the text of `KEY_NOT_APPLIED`)
+   - criterion 2: tests/adapters/test_agent_file_keys.py::test_a_file_with_only_applied_keys_is_read
+   - criterion 3: tests/adapters/test_agent_file_keys.py::test_a_key_the_runner_does_not_apply_is_refused (one row per key: name, description, permissionMode, hooks, background, disallowedTools, skills)
+   - criterion 4: tests/adapters/test_agent_file_keys.py::test_an_unknown_key_or_a_key_in_another_case_is_refused (rows `colour` and `Model`)
+   - criterion 5: tests/adapters/test_agent_file_keys.py::test_the_first_unapplied_key_in_the_file_is_named
+   - criteria 6 and 7: tests/adapters/test_agent_file_keys.py::test_an_unapplied_key_is_refused_before_the_applied_keys_are_validated (rows no-model and budget-zero: one rule, so one parametrized test)
+   - criterion 8: tests/application/test_pipeline_loading_agents.py::test_the_agent_file_of_a_later_role_is_read_too
+   - criterion 9: tests/application/test_pipeline_loading_agents.py::test_of_two_refused_agent_files_the_first_role_is_named
+   - criterion 10: tests/application/test_pipeline_loading_agents.py::test_a_missing_agent_is_refused_before_any_agent_file_is_read
+   - criterion 11: tests/application/test_pipeline_loading_agents.py::test_a_refused_agent_file_on_main_raises_one_stop
+   - criterion 12: tests/application/test_pipeline_loading_agents.py::test_a_good_load_on_main_clears_the_agent_stop
+   - criterion 13: tests/application/test_pipeline_loading_agents.py::test_a_refused_agent_file_after_a_refused_definition_leaves_only_the_agent_stop
+   - criterion 14: tests/application/test_pipeline_loading_agents.py::test_a_refused_agent_file_at_a_commit_leaves_the_health_status_as_it_was (an agent stop already raised on main stays exactly as it was, so the test covers both "none raised" and "none cleared")
+   - criterion 15: tests/application/test_tick_agent_definition.py::test_the_tick_ends_at_the_agent_stop
+   - criterion 16: tests/application/test_tick_agent_definition.py::test_the_stopped_tick_requests_no_run_and_dispatches_nothing
+   - criterion 17: tests/application/test_tick_agent_definition.py::test_after_the_file_is_corrected_the_next_tick_runs_the_stage
+   - criterion 18: tests/entry/test_watch_agent_definition.py::test_a_refused_agent_file_is_reported_without_a_stop
+
+   The "two roles" of criteria 8–10 are `tester` and `coder` from the shared `PIPELINE_YAML`, with every other role's agent file valid. `tester` comes first in `roles`, which is the reverse of alphabetical order, so a check that read the roles in alphabetical order would fail. The tick tests use the `coder` role, the story from `tests/entry/test_run.py` started through `human.push_file` and `human.start`, and `handler_factory` with a PATH and HOME environment.
+
+   Files created: tests/adapters/test_agent_file_keys.py, tests/application/test_pipeline_loading_agents.py, tests/application/test_tick_agent_definition.py, tests/entry/test_watch_agent_definition.py.
+
+   Files changed:
+   - tests/adapters/test_agent_files.py: deleted `test_a_key_the_reader_does_not_interpret_is_left_aside`, as the Assignment says.
+   - tests/git_support.py: added `COLOURED_AGENT_FILE` (the shared agent file plus `colour: red`) and `write_agent(agent_home, role, text)`. `install_agents` now writes through `write_agent`.
+
+   `make test`: collection stops at tests/adapters/test_agent_file_keys.py with `ImportError: cannot import name 'APPLIED_AGENT_KEYS' from 'factory.domain.agent_runs'`, the expected reason. That error stops collection, so this run did not show the other three new files failing. They import only names that already exist, so they should fail on wrong results once collection gets through. `make lint` is green. The type check was skipped, as the stage says.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!

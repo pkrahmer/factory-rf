@@ -56,6 +56,8 @@ STORY_FORM = """\
 """
 
 AGENT_FILE = "---\nmodel: sonnet\ntools: [Read, Write]\nbudget_usd: 1\n---\nDo the work.\n"
+# An agent file whose last key is one the agent runtime does not apply.
+COLOURED_AGENT_FILE = AGENT_FILE.replace("budget_usd: 1\n", "budget_usd: 1\ncolour: red\n")
 
 REMOTE_FILES = {
     "factory/pipeline.yml": PIPELINE_YAML,
@@ -142,7 +144,12 @@ def remote_commit(remote: Path, branch: str) -> str | None:
 
 def install_agents(agent_home: Path, roles: Iterable[str]) -> None:
     """Write a valid agent file `<agent_home>/agents/<role>.md` for each of `roles`."""
+    for role in roles:
+        write_agent(agent_home, role, AGENT_FILE)
+
+
+def write_agent(agent_home: Path, role: str, text: str) -> None:
+    """Write `text` as the agent file `<agent_home>/agents/<role>.md`, replacing any before."""
     agents = agent_home / "agents"
     agents.mkdir(parents=True, exist_ok=True)
-    for role in roles:
-        (agents / f"{role}.md").write_text(AGENT_FILE, encoding="utf-8")
+    (agents / f"{role}.md").write_text(text, encoding="utf-8")
