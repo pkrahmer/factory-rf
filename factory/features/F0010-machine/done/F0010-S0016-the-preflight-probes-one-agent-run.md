@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 134
 blocked: null
 comments_seen: 0
@@ -216,3 +216,4 @@ Expect: one line, `coder 0.10 120.0`.
       This matches the expected `coder 0.10 120.0`.
 
    Checked against the acceptance criteria: the output fits criteria 1 to 3. The item is named `agent-environment`, it passes when PATH holds factory-guard and HOME is a directory, and when it fails its detail names both `factory-guard` and `HOME`. The constants fit criterion 5's 2-minute limit and its budget of 0.10, and the agent is `coder`. Nothing in the output contradicts any criterion. The demo did not exercise criteria 4 and 6 to 14 (the probe run, `machine_extras`, `build_tick`). The tests named in the earlier entries cover those, and the coder and the documenter both report `make check` green. I did not run `make check` in this stage.
+8. done (pull request merged); cost: 6 runs, 24.8 min, 57 turns, 214k tokens in (1711k more from cache), 33k out, $2.38
