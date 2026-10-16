@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 137
 blocked: null
 comments_seen: 0
@@ -78,3 +78,12 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
 
    `make lint`: lint: green
    `make test`: FAILED tests/entry/test_run.py::test_main_returns_two_for_invalid_settings_whether_or_not_the_stop_can_be_written[unwritable]
+4. coder: `factory-run` now returns 2 and writes two lines to stderr when the machine stop cannot be written. Commit d763935.
+      - Built: in `src/factory/entry/run.py`, `main`'s `SettingsInvalid` branch now calls a new private `_report_the_invalid_settings`. That function calls `_stop_the_machine` unchanged. When the call raises `OSError`, it writes `factory-run: settings invalid: <error>` and then `factory-run: cannot write the machine stop: <type name>: <message>` to `sys.stderr`. `main` returns 2 in both cases. When the stop is written, the output is the same as before. No new public name.
+      - Design: the `try` wraps only the stop write, so an `OSError` from `run(settings)` still leaves `main` (criterion 4). I rejected an `except OSError` on `main`'s outer `try`: it would also catch the runner's faults, and those are not settings faults.
+      - Time-stamped line: when the state directory cannot be written, it still reaches stdout first, because `TimestampedFactoryLog.line` prints before it opens the file. I left that as it is.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - `make check` is green, total coverage 99.54 %.
+      - Open: the docs criterion (operator guide, README) is for the documenter stage.
+
+   `make check`: check: green
