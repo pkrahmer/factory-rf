@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 126
 blocked: null
 comments_seen: 0
@@ -205,3 +205,31 @@ Expect: one line, `/srv/agents claude 2.1.289`.
    - No findings for the coder: the code matches the Interface, and every public name has a docstring.
 
    `make check`: check: green
+7. demo: I ran all three commands from the repository root. Each exited 0 and printed exactly what its Expect line says. No findings.
+
+   Command 1 (`version_matches` and `tool_item`):
+   ```
+   True False
+   tool:make False
+   ```
+   It met its Expect line: `True False`, then `tool:make False`.
+
+   Command 2 (`machine_stop` of a report with two failed items and one passed item):
+   ```
+   machine preflight_failed
+   tool:uv: uv is not on the PATH; add it to the image; agent-runtime-version: agent runtime reports 2.1.290, the image pins 2.1.289
+   ```
+   It met its Expect line: scope and reason come first, then one detail line. That line joins the two failed items in order with `; ` and leaves out the passed item.
+
+   Command 3 (`read_settings` with `FACTORY_CLAUDE_VERSION` set):
+   ```
+   /srv/agents claude 2.1.289
+   ```
+   It met its Expect line: `/srv/agents claude 2.1.289`.
+
+   Checked against the acceptance criteria: no criterion is contradicted.
+   - Command 1 agrees with criteria 4 and 13: the first word of the reported version must match the pin, and a missing tool fails with the name `tool:<name>`.
+   - Command 2 agrees with criterion 17: scope `machine`, reason `preflight_failed`, and the detail as `name: detail` pairs joined by `; `.
+   - Command 3 agrees with criterion 1: `pinned_agent_version` is read from `FACTORY_CLAUDE_VERSION`. It also shows that the default `claude_executable` is `claude`, which matches criterion 5's `tool:claude`.
+
+   Criteria 5 to 12, 14 and 15 are about `MachineChecks.run` against the boundaries. No demo command runs it; the earlier stages' tests cover those criteria.
