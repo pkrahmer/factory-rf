@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 132
 blocked: null
 comments_seen: 2
@@ -219,3 +219,13 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
 
    `make lint`: lint: green
    `make test`: test: green
+10. coder: coder, round 1, after the tester's change (entry 9): both review findings are now addressed, and no code changed in this run.
+
+    - Finding 1 (`or process.timed_out` was not in the Interface): fixed earlier in this round in 0ebb835. `_sudo_refusal` in `src/factory/adapters/claude_runtime.py` now decides "without a result" the same way `_result` does: the reply is unparseable or the run timed out.
+    - Finding 2 (one side of the `sudo:` rule had no criterion): the human chose option (a) (entry 7). The tester added `tests/adapters/test_claude_runtime_os_user.py::test_a_sudo_warning_before_a_reply_gives_the_reply_s_result` for the new criterion 15. It passes against 0ebb835, and `src/factory/adapters/claude_runtime.py` is now fully covered, branch included.
+    - Refactor: nothing to change. I reviewed the diff in round 0 (4d42435), and this round only adds the fix in 0ebb835.
+    - Not touched: the time limit under `sudo` (decision 30) is still open and is one of the morning observations. The docs criterion (17) is for the documenter.
+
+    `make check`: check: green, coverage 99.54 %.
+
+    `make check`: check: green
