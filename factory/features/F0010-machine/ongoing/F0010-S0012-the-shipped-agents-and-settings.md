@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 130
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The shipped agents and settings
@@ -253,3 +253,16 @@ Expect: one line, `16 10 True`.
    Noticed, not touched: the tester's open point. `claude/` and `template/` lie outside `src/*`, the coder write path in the template pipeline. No hook refused the writes here, so this project's own lane covers them.
 
    `make check`: check: green
+5. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (7 agent files, `claude/settings.json`, `template/CLAUDE.md`, `template/factory/pipeline.yml`, and three test modules) against the ticket.
+
+   Groups 1 to 3 pass:
+   - Acceptance criteria: every criterion from 1 to 13 has a test that checks what it is named after. Criteria 4 to 8 run the real `ClaudeCodeRuntime` against the stand-in. Criterion 6 compares the tools as sets, so it also catches an extra tool. Criterion 10 checks exact equality, which also covers "no other `factory-` command". Criterion 12 uses `rglob`, which also catches dotfiles. The coder's entry reports `make check` green.
+   - Architecture: the diff is data files and tests only.
+   - Security: no secrets and no suppression markers.
+
+   Group 4 (quality) fails:
+
+   1. `tests/shipped_agents.py:12` `_READ_ONLY_TOOLS`: the name says "read-only", but the list holds `Edit` and `Bash`, which both write. Fix: rename it to what it is, the tools without `Write` (for example `_TOOLS_WITHOUT_WRITE`). Rename `_ALL_TOOLS` to match if needed.
+   2. `tests/adapters/test_shipped_agents_effect.py:67` `_body` repeats the front-matter split of `tests/test_claude_files.py:104` `_front_matter_and_body`: same file path, same `split_front_matter(RuamelYamlHandler(), …)`, same `.strip()`. Fix: move one helper that returns the raw front matter and the body into `tests/shipped_agents.py`, and use it in both modules.
+
+   Both findings are in test code the tester wrote. Per R9, the coder ends with `tests` and names these two changes, and the tester makes exactly them. I did not check ticket hygiene (group 5), because the review stops at the first failing group.
