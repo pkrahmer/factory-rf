@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 115
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # A running acceptance on the board
@@ -85,3 +85,10 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
       - Open: the docs criterion (10) is for the documenter.
 
    `make check`: check: green
+5. reviewer: one finding (quality).
+
+   Groups 1 to 3 pass. Each of criteria 1 to 8 has a test in `tests/application/test_board_reader_acceptance.py`, and each test checks what its criterion says. Criterion 4 is one parametrized test with three rows. The refused sides of the Interface are covered: no `acceptance_stage` (criterion 6) and the `WorkItemFormatError` with the report's path (criterion 8). The coder's `make check` was green. The layers are respected, since `application/board.py` imports only application and domain, and I found no security concern. The diff also lists `planning/` and `docs/runs/` changes, but they come from the human's commit ded79b2, which I did not review.
+
+   1. `src/factory/application/board.py:43-47` copies the join-and-sort that `Watcher.evaluate` already does at `src/factory/application/watcher.py:36-40`. Both take `RemoteWorkItems.read(definition)` plus `AcceptanceReader(...).snapshots()` and sort them by `work_item_order`, but the copies have already drifted: the watcher also breaks ties by `snapshot.path` and the board does not. Fix: move the join into one application function that returns the ordered snapshots of every running work item (stories and acceptances), for example next to `AcceptanceReader` or in `work_items.py`. Have both `Watcher.evaluate` and `BoardReader.read` call it, so the board and the watcher cannot order rows differently. Changing `watcher.py` this way changes no behaviour.
+
+   Rejected as a finding: calling `AcceptanceReader` twice in `read` (once in `fill_board`, once in `snapshots()`). They do different reads, and the Interface asks for this.
