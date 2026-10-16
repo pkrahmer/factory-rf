@@ -1,7 +1,7 @@
 ---
 stage: review
 pr: 131
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -179,3 +179,14 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
    Refactor: I read my diff and found nothing to change, so there is no refactor commit.
 
    `make check`: check: green
+5. reviewer: one finding against the story. It has to be fixed in the story, and that takes your decision.
+
+   1. `src/factory/entry/wiring.py:279-307` (`build_preflight`, `build_tick`): `token_file_item` is never called. The Interface says "the wiring passes `os.stat`", but nothing in the wiring passes it, and no criterion or test covers the item being in the preflight. The coder's entry 4 names this as open. Criterion 20 asks the operator guide to explain "the preflight item `token-file` and what the operator does when it fails", and today the operator would never see that item fail. The pieces are already there: `settings.token_file` exists (`src/factory/domain/settings.py:47`, read from `FACTORY_TOKEN_FILE`), and `build_preflight` takes `extra`. Wiring the item breaks `tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance`, because its `settings` have no token file. That test belongs to an earlier story, so changing it needs your approval.
+
+   Everything else in the diff matches the criteria. Criteria 1–18 each have a test that checks what the criterion says. The scrub happens once, in `production_environment`. `TaskComposer` and `ClaudeCodeRuntime` are unchanged. The helper, the Dockerfile and the compose fragments match the Interface. No silencing markers were added. The coder reports `make check` green.
+
+   Question: should the `token-file` item join the preflight in this story?
+   - (a) Yes. Add a criterion before the two closing ones: "`build_tick`'s preflight runs `token-file` with `settings.token_file`, `uid=os.getuid()` and `stat=os.stat`, and the preflight fails when that file has a bit for group or others." The tester gives the `settings` fixture behind `tests/entry/test_wiring_run.py` a token file with mode 0600 and adds the new test. Then the coder wires `functools.partial(token_file_item, settings.token_file, uid=os.getuid(), stat=os.stat)` into `extra`.
+   - (b) No, a later story does it, for example the second-user story. Remove "the wiring passes `os.stat`" from the Interface and change criterion 20 so the operator guide does not describe a check that never runs.
+
+   I recommend (a). The setting and the `extra` hook already exist, and the check only protects the operator if it runs. Without it, a mis-mounted, group-readable token goes unnoticed until the second user arrives.
