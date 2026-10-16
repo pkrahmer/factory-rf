@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 131
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -190,3 +190,4 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
    - (b) No, a later story does it, for example the second-user story. Remove "the wiring passes `os.stat`" from the Interface and change criterion 20 so the operator guide does not describe a check that never runs.
 
    I recommend (a). The setting and the `extra` hook already exist, and the check only protects the operator if it runs. Without it, a mis-mounted, group-readable token goes unnoticed until the second user arrives.
+6. human (pull request comment, 2026-10-16): (b): a later story does it. F0010-S0016 (`machine_extras`, its criteria 12 to 14) wires `token_file_item(settings.token_file, uid=os.getuid(), stat=os.stat)` into `build_tick`'s preflight, together with the other machine items, and changes the earlier wiring test under FEATURE decision 28 item (4). In this story: remove "the wiring passes `os.stat`" from the Interface (say instead that F0010-S0016 wires the item), and change criterion 20 so that the operator guide describes the item `token-file` and its fix as checked by the preflight from F0010-S0016 on, not as running today. No code or test change for this.
