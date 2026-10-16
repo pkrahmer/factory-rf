@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 143
 blocked: null
 comments_seen: 0
@@ -62,3 +62,10 @@ Expect: the last line is `12 passed in <time>`: the 9 tests before this story th
 
    `make lint`: lint: green
    `make test`: test: green
+4. coder: No change in `src/`. As the ticket expected, this story only adds tests. `_sudo_line` in `src/factory/adapters/claude_runtime.py` already uses `line.startswith(SUDO_PREFIX)`, so the tester's parametrized `test_only_a_line_starting_with_sudo_makes_a_failure_a_runtime_error` passes on all three rows: a line with `sudo:` at column 0 raises `AgentRuntimeError`, while one with `sudo:` mid-line or indented ends with the end reason `died`.
+      - Verified: `make check` is green (total coverage 99.54 %). The demo file `tests/adapters/test_claude_runtime_os_user.py` runs 12 tests, all passing, which matches the Demo.
+      - Refactor: there is no diff of mine to review, so I made no refactor commit and no commit at all.
+      - Rejected: tightening the code, for example by stripping lines before matching. That would turn the indented case into an error and contradict criterion 3.
+      - Noticed but did not touch: coverage still misses `claude_runtime.py` lines 384 and 408-409. These are outside this story.
+
+   `make check`: check: green
