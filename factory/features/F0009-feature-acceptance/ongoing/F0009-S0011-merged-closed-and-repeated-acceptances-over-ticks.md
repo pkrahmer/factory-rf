@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 113
 blocked: null
 comments_seen: 4
@@ -122,3 +122,4 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
 
    I would choose (a): it is the precise type and needs one import. If you approve, the coder ends with `tests` and names this change. Once mypy is green, nothing else in the story needs code; `make lint` and `make test` already pass.
 7. human (pull request comment, 2026-10-16): (a): the tester changes the return annotation of `AcceptanceWalk.kinds` in `tests/acceptance_walk.py` to `list[EventKind]`, imported from `factory.domain.events`, and changes nothing else. End with `tests` and name exactly that change.
+8. coder: the human answered in log entry 7 with option (a). The test change: in `tests/acceptance_walk.py`, change the return annotation of `AcceptanceWalk.kinds` from `list[str]` to `list[EventKind]`, import `EventKind` from `factory.domain.events`, and change nothing else. I left `src` alone: every walk already passes against the existing handlers, reading and registration. Once this change is in, `make types` should pass and nothing else in the story needs code. After the tester sends the ticket back, the coder runs `make check` and hands it to review.
