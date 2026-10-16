@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 145
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # Kill-point tests
@@ -319,3 +319,7 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    Open: criterion 24 (the project guide's `## Kill points` table and the `docs/decisions.md` entry) is the documenter's job. I did not touch it.
 
    `make check`: check: green
+9. reviewer: two findings, both in group 1 (acceptance criteria). The tests need changing and the coder may not edit them (R9), so the coder should end with `tests` and name these two changes. `src/factory/domain/kill_point_cases.py` matches the Interface: the six rows in order, both validators, frozen and closed. Criteria 1–6, 8–10 and 12–22 have tests that check what they claim to. The changes to `CLAUDE.md`, `planning/` and `docs/runs/` in the diff are the human's own commits on the branch, so I did not review them. I stopped at group 1 and did not go on to architecture, security or quality.
+
+   1. `tests/proof_support.py:521` (`_resumes_at_first_tick`), used by `tests/test_kill_points.py::test_the_restarted_factory_reruns_a_charged_stage_at_its_first_tick`. Criterion 7 says the rerun request comes at the *first* tick after the restart. The check only looks at `requests()` after all three ticks in `_rerun` (`proof_support.py:382`). Because `run_ticks` never moves the clock, the 5-second check of criterion 8 cannot tell the ticks apart either. So a factory that reruns at the second or third tick would still pass. Fix: in `_rerun`, run one tick, take a copy of `restarted.agent_runtime.requests()`, then run the other two ticks, and have the condition check that copy. That means adding a field to `CaseResult` beyond the Interface, which the tester should state in their entry.
+   2. `tests/test_kill_points.py`, `test_no_write_of_the_interrupted_run_reaches_the_remote` is parametrized `@_over(CRASHES)`. Criterion 11 says that in "the other three cases" (`post-record`, `tick-other` and `agent-run-dies`) `MARKER` is in no commit's `src/leak.py`. `agent-run-dies` never runs this test. Criterion 18 only checks the stall commit and the branch end, not every commit. Fix: parametrize this test over `ALL`. `_no_interrupted_write_in_history` already filters to `src/leak.py` when `kill_point` is `None`. Note for the human: the Interface (ticket line 151, "the crash criteria over the crash cases") contradicts criterion 11 here. I'm treating criterion 11 as the one that counts.
