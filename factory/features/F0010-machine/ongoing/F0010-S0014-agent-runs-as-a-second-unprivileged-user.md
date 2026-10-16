@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 132
-blocked: null
+blocked: question
 comments_seen: 0
 round: 1
 attempts: 0
@@ -184,3 +184,16 @@ Expect: one line, `['-n', '-u', 'agent', '--', 'env', '-i', 'PATH=/usr/bin']`.
 
    1. `src/factory/adapters/claude_runtime.py:291` (`_sudo_refusal`): the coder added `or process.timed_out`, which is not in the Interface and no test covers it. The Interface's rule says "when the process ends without a result", and the runtime counts a timed-out process as one without a result (line 231). So a timed-out run as `agent` whose standard error has a `sudo:` line (for example sudo's `sudo: unable to resolve host` warning) should raise `AgentRuntimeError` under the Interface, but this code returns a `time_limit` result. Fix: drop the condition so the code matches the Interface. Or, if keeping it is right, end with `question` so the human can add it to the Interface with a criterion the tester can test.
    2. Gap in the story's criteria, Interface rule 3 ("ends without a result" and a `sudo:` line): the failing side of "without a result" has no criterion. That is a run as `agent` that gives a parseable reply while its standard error holds a `sudo:` line, and it should return the result, not raise. The branch at `src/factory/adapters/claude_runtime.py:293` (`_parse_reply(...) is not None`) is untested, and criteria 8 and 9 cover only the `sudo:`-line side. Fix: the coder asks the human with `question` to add a criterion before criterion 15, for example "a `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an error". The tester then writes it as a row next to criteria 8 and 9.
+6. coder: coder, round 1: fixed finding 1; finding 2 needs the human's decision, so this is a question.
+
+   Finding 1 is fixed in 0ebb835. `_sudo_refusal` in `src/factory/adapters/claude_runtime.py` no longer skips timed-out runs. It now counts a run as "without a result" in the same way `_result` does: the reply is unparseable or the process timed out. Such a run as `agent` with a `sudo:` line in standard error now raises `AgentRuntimeError`, as the Interface says. `make check` is green and coverage is 99.54 %.
+
+   Finding 2 is open. The reviewer pointed out that one side of Interface rule 3 has no criterion: a run as `agent` that does give a result while its standard error holds a `sudo:` line. That run should return the result and not raise. Because of this gap, the branch `_parse_reply(...) is not None and not process.timed_out` is untested.
+
+   Question for the human: should a criterion be added before criterion 15? My proposed wording: "15. A `sudo` stand-in that prints `sudo: unable to resolve host x` to standard error and then runs the agent, which replies, gives that reply's result, not an `AgentRuntimeError`." The tester would write it as a row next to criteria 8 and 9 in `tests/adapters/test_claude_runtime_os_user.py`.
+
+   Options:
+   - (a) Add the criterion as worded. This is what I would choose: sudo really does print that warning on hosts with a mismatched hostname, so the rule matters in practice.
+   - (b) Leave the criteria as they are and accept the untested branch.
+
+   With (a), the next run of doing ends with `tests`, naming that test row.
