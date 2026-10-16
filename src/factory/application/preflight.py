@@ -71,14 +71,6 @@ def token_file_item(
     return PreflightItem(name=_HOSTING_FILE_ITEM, passed=False, detail=f"{path}: {fault}")
 
 
-def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) -> PreflightItem:
-    """Check that no agent would run as the factory's user while a token file is there to read."""
-    token_file = settings.token_file
-    if settings.agent_user is None and token_file is not None and exists(token_file):
-        return PreflightItem(name=_AGENT_USER_ITEM, passed=False, detail=_NO_AGENT_USER)
-    return PreflightItem(name=_AGENT_USER_ITEM, passed=True)
-
-
 def _token_file_fault(
     path: Path | None, uid: int, stat: Callable[[Path], os.stat_result]
 ) -> str | None:
@@ -94,6 +86,14 @@ def _token_file_fault(
     if mode & _GROUP_AND_OTHERS:
         return f"the token file has mode {mode:04o}; make it 0600 or 0400"
     return None
+
+
+def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) -> PreflightItem:
+    """Check that no agent would run as the factory's user while a token file is there to read."""
+    token_file = settings.token_file
+    if settings.agent_user is None and token_file is not None and exists(token_file):
+        return PreflightItem(name=_AGENT_USER_ITEM, passed=False, detail=_NO_AGENT_USER)
+    return PreflightItem(name=_AGENT_USER_ITEM, passed=True)
 
 
 class MachineChecks:
