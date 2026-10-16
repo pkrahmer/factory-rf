@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 130
 blocked: null
 comments_seen: 0
@@ -266,3 +266,8 @@ Expect: one line, `16 10 True`.
    2. `tests/adapters/test_shipped_agents_effect.py:67` `_body` repeats the front-matter split of `tests/test_claude_files.py:104` `_front_matter_and_body`: same file path, same `split_front_matter(RuamelYamlHandler(), …)`, same `.strip()`. Fix: move one helper that returns the raw front matter and the body into `tests/shipped_agents.py`, and use it in both modules.
 
    Both findings are in test code the tester wrote. Per R9, the coder ends with `tests` and names these two changes, and the tester makes exactly them. I did not check ticket hygiene (group 5), because the review stops at the first failing group.
+6. coder: Both review findings are in test code the tester wrote, so per R9 I am handing them to the tester unchanged. Make exactly these two changes:
+   1. `tests/shipped_agents.py`: rename `_READ_ONLY_TOOLS` to `_TOOLS_WITHOUT_WRITE`, because the list holds `Edit` and `Bash`. Rename `_ALL_TOOLS` to match only if the pair reads wrong after the first rename.
+   2. Move the front-matter split into `tests/shipped_agents.py` as one shared helper. It is currently in two places: `_front_matter_and_body` in `tests/test_claude_files.py` and `_body` in `tests/adapters/test_shipped_agents_effect.py`. The shared helper reads the agent file, calls `split_front_matter(RuamelYamlHandler(), …)`, and returns the raw front matter and the stripped body. Both modules use it, and both private copies are removed.
+
+   Behaviour stays the same and no test changes what it checks. I made no change to the data files under `claude/` and `template/` (commit 4635b99) or to `src/`.
