@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 120
 blocked: null
 comments_seen: 0
@@ -98,3 +98,21 @@ Expect: one line, `[15.0, 30.0, 60.0]`: the first tick ran at once, activity gav
    - Demo: both commands are runnable and each Expect line can be checked against the output. The second command prints only the list, since `Log.line` is never called.
    - Architecture: the scheduler and the preparer sit in `factory.application` and use only the `Git` and `FactoryLog` interfaces. The tests use real `GitCli` on a bare remote, as CLAUDE.md requires.
    - Scope: the story fits F0010's scope (the loop, its pauses, the reclone: ST7.1 and ST7.3), is not in "Out of scope", and matches decision 33.
+3. tester: Wrote red tests for every criterion that a test can check, in tests/application/test_scheduler.py (new file).
+   - criterion 1: tests/application/test_scheduler.py::test_pause_doubles_from_fifteen_seconds_up_to_two_minutes (parametrized over 0, 1, 2, 3, 4, 10)
+   - criterion 2: ::test_negative_idle_count_is_refused (-1; the 0 side is a row of criterion 1's test)
+   - criterion 3: ::test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep (checks the whole order of calls: prepare, tick, sleep, … ; 3 ticks, 2 sleeps)
+   - criterion 4: ::test_stop_from_the_start_calls_nothing
+   - criterion 5: ::test_sleeps_follow_the_idle_count_since_the_last_activity (both tick sequences as rows)
+   - criterion 6: ::test_a_failed_preparation_skips_the_tick_and_counts_as_idle
+   - criterion 7: ::test_an_exception_from_the_tick_is_logged_and_counts_as_idle (the tick raises, then returns True; the loop stops after the second tick)
+   - criterion 8: ::test_an_exception_from_the_preparation_is_logged_skips_the_tick_and_counts_as_idle
+   - criterion 9: ::test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged
+   - criterion 10: ::test_a_missing_checkout_is_cloned_and_cloned_again_after_removal (GitCli on tmp_path/work/checkout, a real bare remote, origin/main resolves after each prepare)
+   - criterion 11: ::test_an_existing_clone_is_kept_without_calling_git (uses the `checkout` fixture's clone; GitCli with an executable path that does not exist)
+   - criterion 12: ::test_a_directory_with_files_but_no_clone_is_refused_unchanged (compares every file and directory under the checkout before and after, so a leftover `.git` would also fail the test)
+   - criteria 13 and 14 are the make check gate and the docs stage's work; no test.
+   The scheduler tests use a local `Loop` recorder (scripted bool or exception outcomes for each call, every call kept in order) and a local `RecordingLog(FactoryLog)`, the same kind of class test_dispatcher.py has. Not importable: `factory.application.scheduler` (ModuleNotFoundError at collection, as expected). make lint is green. I skipped the type check, as this stage's instructions say.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
