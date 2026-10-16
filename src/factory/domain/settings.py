@@ -125,10 +125,18 @@ def _agent_home(environ: Mapping[str, str]) -> Path:
 
 def _image(environ: Mapping[str, str], read_file: Callable[[Path], str]) -> str:
     path = Path(environ.get(IMAGE_ID_FILE_VARIABLE) or IMAGE_ID_FILE)
+    return read_setting_file(IMAGE_ID_FILE_VARIABLE, path, read_file)
+
+
+def read_setting_file(variable: str, path: Path, read_file: Callable[[Path], str]) -> str:
+    """Return the content of the file at `path`, which `variable` names, stripped of whitespace.
+
+    Raises `SettingsInvalid` naming `variable` when the file cannot be read or is blank.
+    """
     try:
-        image = read_file(path).strip()
+        content = read_file(path).strip()
     except OSError as error:
-        raise SettingsInvalid(IMAGE_ID_FILE_VARIABLE, f"cannot read {path}: {error}") from error
-    if not image:
-        raise SettingsInvalid(IMAGE_ID_FILE_VARIABLE, f"{path} is empty")
-    return image
+        raise SettingsInvalid(variable, f"cannot read {path}: {error}") from error
+    if not content:
+        raise SettingsInvalid(variable, f"{path} is empty")
+    return content

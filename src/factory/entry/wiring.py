@@ -51,6 +51,7 @@ from factory.domain.settings import (
     REPOSITORY_URL_VARIABLE,
     RUNS_DIRECTORY_NAME,
     InstanceSettings,
+    read_setting_file,
 )
 
 __all__ = [
@@ -122,13 +123,11 @@ def read_hosting_token(path: Path | None) -> str:
     """Return the token held in the file at `path`, without surrounding whitespace."""
     if path is None:
         raise SettingsInvalid(CREDENTIAL_FILE_VARIABLE, "missing")
-    try:
-        token = path.read_text(encoding="utf-8").strip()
-    except OSError as error:
-        raise SettingsInvalid(CREDENTIAL_FILE_VARIABLE, f"cannot read {path}: {error}") from error
-    if not token:
-        raise SettingsInvalid(CREDENTIAL_FILE_VARIABLE, f"{path} is empty")
-    return token
+    return read_setting_file(CREDENTIAL_FILE_VARIABLE, path, _read_utf8)
+
+
+def _read_utf8(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
 def build_boundaries(
