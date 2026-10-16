@@ -39,8 +39,9 @@ from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
+from factory.application.machine import Clock, FactoryLog, HealthStatusStore
 from factory.application.recovery import RecoveryHandler
-from factory.application.tick import HandlerFactory, IdleHandler
+from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
@@ -52,24 +53,31 @@ from factory.domain.settings import (
     RUNS_DIRECTORY_NAME,
     InstanceSettings,
     read_setting_file,
+    read_settings,
 )
 
 __all__ = [
     "CREDENTIAL_HELPER",
     "NOT_YET_HANDLED",
     "agent_environment",
+    "boundaries_from_environment",
     "build_bill_service",
     "build_boundaries",
     "build_handlers",
+    "build_tick",
     "build_work_item_reader",
     "git_environment",
     "git_options",
     "handler_factory",
+    "health_store",
     "judge",
+    "machine_log",
     "production_environment",
+    "read_environment_settings",
     "read_guard_settings",
     "read_hosting_token",
     "repository_name",
+    "system_clock",
 ]
 
 # The kinds with no handler yet, in the order of `EventKind`; registering one removes it here.
@@ -78,6 +86,9 @@ NOT_YET_HANDLED: tuple[EventKind, ...] = ()
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
 CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
+
+_LOG_FILE_NAME = "factory.log"
+_HEALTH_FILE_NAME = "health.json"
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -130,6 +141,37 @@ def _read_utf8(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def read_environment_settings(environ: Mapping[str, str]) -> InstanceSettings:
+    """Return the settings of `environ`, the image identity read from the file it names."""
+    return read_settings(environ, read_file=_read_utf8)
+
+
+def boundaries_from_environment(
+    environ: Mapping[str, str], *, hosting: HostingService | None = None
+) -> tuple[InstanceSettings, Boundaries]:
+    """Return the settings of `environ` and their boundaries; `hosting` replaces PyGithub."""
+    settings = read_environment_settings(environ)
+    token = read_hosting_token(settings.token_file)
+    return settings, build_boundaries(settings, token, hosting=hosting)
+
+
+def system_clock() -> Clock:
+    """Return the machine's clock."""
+    return SystemClock()
+
+
+def machine_log(state_directory: Path, clock: Clock | None = None) -> FactoryLog:
+    """Return the factory log in `state_directory`, stamped by `clock` or the machine's clock."""
+    return TimestampedFactoryLog(
+        state_directory / _LOG_FILE_NAME, system_clock() if clock is None else clock
+    )
+
+
+def health_store(state_directory: Path) -> HealthStatusStore:
+    """Return the health status file in `state_directory`."""
+    return JsonHealthStatusFile(state_directory / _HEALTH_FILE_NAME)
+
+
 def build_boundaries(
     settings: InstanceSettings, token: str, *, hosting: HostingService | None = None
 ) -> Boundaries:
@@ -150,8 +192,8 @@ def build_boundaries(
         pipeline_reader=RuamelPipelineDefinitionReader(),
         agent_definitions=FrontmatterAgentDefinitionReader(settings.agent_home),
         clock=clock,
-        log=TimestampedFactoryLog(state / "factory.log", clock),
-        health=JsonHealthStatusFile(state / "health.json"),
+        log=machine_log(state, clock),
+        health=health_store(state),
         checkout=settings.checkout,
         settings=settings,
     )
@@ -222,3 +264,11 @@ def handler_factory(
         return build_handlers(boundaries, definition, instance, environment)
 
     return handlers
+
+
+def build_tick(boundaries: Boundaries, settings: InstanceSettings) -> Tick:
+    """Return a new tick of the instance of `settings`, its agents in the production environment."""
+    instance = settings.instance
+    return Tick(
+        boundaries, instance, handler_factory(boundaries, instance, production_environment())
+    )
