@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 144
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0010-S0001, F0010-S0002, F0010-S0003, F0010-S0004, F0010-S0005, F0010-S0006, F0010-S0007, F0010-S0008, F0010-S0009, F0010-S0010, F0010-S0011, F0010-S0012, F0010-S0013, F0010-S0014, F0010-S0015, F0010-S0016, F0010-S0017, F0010-S0018, F0010-S0019, F0010-S0020, F0010-S0021, F0010-S0022, F0010-S0024]
+outcome: accepted
 ---
 # Acceptance of The machine
 
@@ -247,3 +248,4 @@ For scale, the acceptances themselves now cost more than the repairs they propos
    6. Decisions: 38 in `FEATURE.md`, none contradicted by the code. Decision 30 is still open. Decisions 37 and 38 are to confirm; I checked that both test changes were made exactly as described. Five open points from the first acceptance are still unanswered. New point: a `make mutants` target, which needs `mutmut`, the human's dependency call.
    7. Slow checks: none beyond `make check`. The morning observations and the image pins are still pending.
    8. Cost: 171 runs, 505.9 min and $46.33 in total. S0024 took 6 runs, 11.5 min and $0.58, nothing stands out. The second acceptance's own cost disagrees between its log entry ($6.75) and the night log ($2.02).
+2. done (pull request merged); cost: 3 runs, 72.2 min, 161 turns, 391k tokens in (14665k more from cache), 108k out, $8.23
