@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 123
 blocked: null
 comments_seen: 0
 round: 0
@@ -58,3 +58,9 @@ Expect: three lines, `2`, `''` and `True`: with no repository URL in the environ
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `watch.main` signature is concrete (`src/factory/entry/watch.py`), the rule names `boundaries_from_environment(os.environ)`, `run_watch`, the exact stderr line, nothing on `out`, status 2, and the `--follow` parser exit kept. The removal of the old test and `NOT_WIRED` is covered by decision 28.
+   - Criteria: each is testable by one test function. The failing sides are covered: the invalid environment (1, both cases), the unreadable token file (2) and the passing side (3, with the `GitError` from the empty fixed checkout and a skip when it exists). Criteria 4 and 5 close the list as required.
+   - Demo: runnable as written; its Expect line (`2`, `''`, `True`) can be checked against the output.
+   - Architecture: `entry` uses the previous story's `boundaries_from_environment`, as `factory.entry.run` does. Nothing is wired outside `factory.entry`.
+   - Scope: within F0010 ("`factory-watch` reading the same settings"); nothing falls under Out of scope.
