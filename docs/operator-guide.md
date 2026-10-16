@@ -78,7 +78,7 @@ docker build -f image/Dockerfile -t factory:local .
 
 The build argument `FACTORY_IMAGE` is optional and is only a label (`docker build --build-arg FACTORY_IMAGE=2026-10 ...`); it defaults to `unlabelled`. The identity of the image is not the label. The build generates a fresh id and writes it to `/opt/factory/image-id`, which the settings read. Every rebuild that changes an earlier layer gets a new id, so it invalidates the preflight stamp, even when you pass the same label.
 
-A real build is not yet observed: v1's container has no Docker. The Dockerfile also copies `claude/` and `template/`, which later stories of F0010 create, so the build is meaningful only once they exist. Treat the first build as the morning observation.
+A real build is not yet observed: v1's container has no Docker. The Dockerfile also copies `claude/` and `template/`. Treat the first build as the morning observation.
 
 ### Replace the placeholders before the first build
 
@@ -484,6 +484,10 @@ The reader reports these faults. `read` names the agent; a fault with a key name
 | `invalid <key>: <reason>` | any other value of the wrong type |
 
 When a file has several faults, the first is reported: a key that is not applied before a missing key, and a missing key before an invalid value.
+
+### The shipped agents and settings
+
+The image ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. The entrypoint installs them into `FACTORY_CLAUDE_HOME` at every start, so an edit made there by hand is gone at the next start; change the files in the image instead. The settings let an agent run `factory-check-story` and no other `factory-` command: it cannot run `factory-run`, `factory-watch` or `factory-bill`. They also deny `git push`, `gh` and the commands that move or rewrite branches, because the factory alone pushes. A new project starts from `template/` in the image (a pipeline definition and a `CLAUDE.md`); the story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
 
 ## Checking a story before it starts
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 130
 blocked: null
 comments_seen: 0
@@ -325,3 +325,27 @@ Expect: one line, `16 10 True`.
      - Criterion 15, the docs criterion, still says what the documenter must write.
 
    Open, not a finding: the template gives the coder role the write path `src/*` only, so a project made from the template could not have its coder write data files outside `src/`, as this story's own coder did. The ticket's Interface specifies those write paths, so this is the human's call if it matters.
+10. documenter: Docs for the shipped agents, settings and template. `make check` is green (coverage 99.53 %). I did not run the three Demo commands.
+
+    Files changed:
+    - `docs/project-guide.md`: new section "The shipped agents, settings and template", placed before "The prompt and the request for a stage". It has:
+      - the table of the seven agents with model, effort, budget and tools;
+      - the two-paragraph body, with the note that the last story of F0010 adds v1's role and stage texts after it;
+      - the settings, including that `factory-check-story` is the only `factory-` command allowed;
+      - the template, with `template/factory/pipeline.yml` shown as the starting pipeline definition and `template/CLAUDE.md` named as the starting rules file of a Python project;
+      - the forms being the human's to add, and `StoryFormChecker` stopping every stage until `factory/story-form.md` exists.
+    - `docs/operator-guide.md`:
+      - new subsection "The shipped agents and settings", before "Checking a story before it starts". It says the entrypoint installs the agents and settings into `FACTORY_CLAUDE_HOME` at every start, and which `factory-` command an agent may run.
+      - in "Build it", I removed the stale sentence that `claude/` and `template/` are created by later stories, since they now exist.
+
+    Cross-read and found current against the diff:
+    - the "The agent definition reader" section of `docs/project-guide.md`
+    - the "The agent files" and "The entrypoint" sections of `docs/operator-guide.md`
+
+    I did not open `README.md` or `docs/decisions.md`; the criterion names neither.
+
+    Stale text I did not touch: none.
+
+    I found no findings for the coder. The template gives the coder `src/*` as its only write path. I noted this in the project guide as something a project may need to change. The reviewer raised the same point as an open one for the human.
+
+    `make check`: check: green

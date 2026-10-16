@@ -1246,6 +1246,72 @@ except AgentDefinitionInvalid as error:
 
 prints `['coder']` and then a line that starts with `tools | invalid tools:`.
 
+## The shipped agents, settings and template
+
+`claude/` and `template/` are data the image carries; no code under `src/` reads them except through the readers named here.
+
+### The seven agents
+
+`claude/agents/<role>.md` holds one agent for each role of the starting pipeline definition. Each file's front matter has exactly the four keys the runner applies (see *The agent definition reader*):
+
+| Agent | model | effort | budget_usd | tools |
+|---|---|---|---|---|
+| `intake` | sonnet | low | 1 | Read, Grep, Glob, Edit, Bash |
+| `tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash, Write |
+| `coder` | opus | medium | 4 | Read, Grep, Glob, Edit, Bash, Write |
+| `reviewer` | opus | high | 3 | Read, Grep, Glob, Edit, Bash |
+| `documenter` | sonnet | medium | 1.5 | Read, Grep, Glob, Edit, Bash, Write |
+| `smoke-tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash |
+| `acceptance-reviewer` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write |
+
+Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. The last story of F0010 adds v1's role and stage texts after those two paragraphs; until then they are the whole instructions. No skills are shipped, because the runner applies no `skills` key.
+
+`tests/test_claude_files.py` checks the files (keys, values, bodies); `tests/adapters/test_shipped_agents_effect.py` runs `ClaudeCodeRuntime` against the stand-in executable over each shipped agent and checks that `--model`, `--effort`, `--tools`, `--max-budget-usd` and the instructions file carry the file's values. `tests/shipped_agents.py` holds the shared table.
+
+### The settings
+
+`claude/settings.json` is the permissions and environment every agent run shares. It allows file tools, `uv run`, `uv sync`, `make`, `factory-check-story` and the read and commit git commands (`status`, `diff`, `log`, `show`, `add`, `commit`, `rev-parse`). It denies `git push`, `checkout`, `switch`, `merge`, `pull`, `rebase`, `reset`, `branch -D`, `gh` and `rm -rf`. `factory-check-story` is the only `factory-` command allowed: an agent may not run `factory-run`, `factory-watch` or `factory-bill`. The environment sets `CLAUDE_CODE_FORK_SUBAGENT` to `0`. A test compares the file with the expected document, so any change is a deliberate edit of both.
+
+### The template
+
+`template/` is what a new project starts from, laid out as the project's tree. It holds two files and nothing else:
+
+- `template/factory/pipeline.yml`, the starting pipeline definition. Its roles are the seven agents above. The stages run `intake`, `tests`, `doing`, `review`, `docs`, `smoke-test`, then `approval`; `acceptance` is the acceptance stage. Copy it to `factory/pipeline.yml` and adjust it.
+
+  ```yaml
+  contract: "1.0"
+  attempts_cap: 2
+  crash_cap: 2
+  acceptance_stage: acceptance
+  project_commands:
+    check: {time_limit: 10}
+    lint: {time_limit: 5}
+    test: {time_limit: 10}
+  roles:
+    intake: {write_paths: ["{work_item}"]}
+    tester: {write_paths: ["tests/*"]}
+    coder: {write_paths: ["src/*"]}
+    reviewer: {write_paths: ["{work_item}"]}
+    documenter: {write_paths: ["README.md", "docs/*"]}
+    smoke-tester: {write_paths: ["{work_item}"]}
+    acceptance-reviewer: {write_paths: ["{work_item}", "{feature}/backlog/*"]}
+  stages:
+    intake: {role: intake, next: [tests]}
+    tests: {role: tester, next: [doing], checks: [lint], reports: [test]}
+    doing: {role: coder, next: [review, tests], checks: [check]}
+    review: {role: reviewer, next: [docs, doing], round_cap: 3}
+    docs: {role: documenter, next: [smoke-test, doing], checks: [check], round_cap: 3}
+    smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 3}
+    acceptance: {role: acceptance-reviewer, next: [approval]}
+    approval: {approval: true, next: [done, doing]}
+    done: {}
+  ```
+
+  The coder's write path is `src/*` only; a project that keeps code elsewhere changes it.
+- `template/CLAUDE.md`, the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks, and it carries the Python lessons of v1.1's build (the `mypy --strict` traps in tests and low-entropy hexadecimal test values).
+
+The template ships no forms. The story and feature forms (`factory/story-form.md`, `factory/feature-form.md`) are the human's to add to a project made from it. Until `factory/story-form.md` exists, `StoryFormChecker` (see *The story form check*) stops every stage.
+
 ## The prompt and the request for a stage
 
 Before a stage's agent runs, `TaskComposer` (`factory.application.task`) builds its `AgentRunRequest`; the caller gives it `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings, the `GuardSettings`). The pure rules are in `factory.domain.prompts`.
