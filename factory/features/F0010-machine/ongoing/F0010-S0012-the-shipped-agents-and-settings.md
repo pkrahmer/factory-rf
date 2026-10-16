@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 130
 blocked: null
 comments_seen: 0
@@ -299,3 +299,29 @@ Expect: one line, `16 10 True`.
    Noticed, not touched: nothing new.
 
    `make check`: check: green
+9. reviewer: Round 1 re-review of `git diff main...HEAD -- . ':!factory'`. The diff has 7 agent files, `claude/settings.json`, `template/CLAUDE.md`, `template/factory/pipeline.yml`, `tests/shipped_agents.py`, `tests/test_claude_files.py` and `tests/adapters/test_shipped_agents_effect.py`. I read it against the ticket.
+
+   No findings.
+
+   - Acceptance criteria:
+     - Criteria 1 to 13 each have a test that checks what the criterion says.
+     - Criterion 3 checks two things: the raw front-matter keys are exactly the four, and the values read back through the reader match the table. `budget_usd` is compared as a Decimal, so the documenter's `1.5` is checked.
+     - Criteria 4 to 8 run the real `ClaudeCodeRuntime` against the stand-in, once per shipped agent, through a module-scoped fixture.
+     - Criterion 6 compares the tools as sets, so an extra tool or a missing one fails.
+     - Criterion 10 checks exact equality, which also covers "no other `factory-` command".
+     - Criterion 12 uses `rglob`, so it also catches dotfiles and extra directories.
+     - Criterion 13 checks the exact text with one trailing newline.
+     - The Interface states no numeric limit that would need a test on both sides.
+     - The coder's entry 8 reports `make check` green.
+   - Architecture: the diff is data files and tests only. Nothing under `src/` changed. The test helpers at the `tests/` root follow the existing convention (`human_clone.py`, `acceptance_walk.py`).
+   - Security: no secrets and no suppression markers. The fake values in the tests are plain.
+   - Quality: both round-1 findings are fixed.
+     - The list in `tests/shipped_agents.py` is now `_TOOLS_WITHOUT_WRITE`.
+     - The front-matter split is one shared helper, `front_matter_and_body`, in `tests/shipped_agents.py`. Both modules use it, and no private copy is left.
+     - Module and public-name docstrings are present.
+   - Ticket hygiene:
+     - The log gives the main choice (agent files generated from one table) and the alternative rejected (writing each file by hand).
+     - `Assignment` matches what was built. The template holds two files and nothing in `factory/` changed.
+     - Criterion 15, the docs criterion, still says what the documenter must write.
+
+   Open, not a finding: the template gives the coder role the write path `src/*` only, so a project made from the template could not have its coder write data files outside `src/`, as this story's own coder did. The ticket's Interface specifies those write paths, so this is the human's call if it matters.
