@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 115
 blocked: null
 comments_seen: 0
 round: 0
@@ -50,3 +50,9 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`BoardReader.read(definition)` unchanged, `AcceptanceReader(boundaries, definition).snapshots()`, `work_item_row`, `work_item_order`). It states the title, the folder, the source of the state, and the error. It also names the test module and the fixture setup.
+   - Criteria: each is testable by one test function. The title, folder and state rules are covered by 1 to 3. The ordering rule is covered by 4, with the three rows parametrized. The merged-then-booked behaviour is covered by 5. The no-`acceptance_stage` rule is covered by 6. The error rule has its failing side in 8. Criterion 6 covers the side where the stage is missing, and 1 covers the side where it exists.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable (a passed count of at least 10, and `awk` lines from the `factory-watch` section only).
+   - Architecture: the change is in `application/board.py` and reuses the domain `work_item_row`, so it follows the layer rules. It adds no new helper.
+   - Scope: it matches FEATURE.md decision 23 and the S0012 mention in "Out of scope". It leaves the feature rows and the event line unchanged, and changes no existing test.
