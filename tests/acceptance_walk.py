@@ -11,7 +11,7 @@ from factory.application.watcher import Watcher
 from factory.domain.acceptance import AcceptanceState
 from factory.domain.board import AcceptanceStatus
 from factory.domain.cost_records import CostRecord
-from factory.domain.events import Event
+from factory.domain.events import Event, EventKind
 from factory.domain.identifiers import FeatureId
 from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text
 from factory.domain.paths import cost_records_path
@@ -122,7 +122,7 @@ class AcceptanceWalk:
         self.outcomes.append(outcome)
         return outcome
 
-    def kinds(self) -> list[str]:
+    def kinds(self) -> list[EventKind]:
         """The kinds of every evaluation and every tick's event so far."""
         ticked = [outcome.event.kind for outcome in self.outcomes if outcome.event is not None]
         return [event.kind for event in self.evaluations] + ticked
