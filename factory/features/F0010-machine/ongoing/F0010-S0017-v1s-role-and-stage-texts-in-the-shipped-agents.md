@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 135
 blocked: null
 comments_seen: 0
@@ -213,3 +213,22 @@ Expect: one line, `0`.
    `make check`: check: green (coverage 99.54 %)
 
    `make check`: check: green
+9. reviewer: No findings.
+
+   Round 1 re-review of `git diff main...HEAD -- . ':!factory'`: the seven `claude/agents/*.md` files and `tests/test_claude_agent_texts.py`.
+
+   - Entry 5 finding 1 is fixed. `tests/test_claude_agent_texts.py` imports `factory.domain.sections.section_text` and uses it at the four call sites with `or ""`. The `_section` copy is gone. `_headings` stays, which is right: it also counts `## ` lines inside fenced blocks, as the smoke-test command does.
+   - Acceptance criteria:
+     - Criteria 1 to 13 each have a test that checks what the criterion says.
+     - The refused sides are covered: the heading list must be exact (so no extra heading and no `## Role` for intake and smoke-tester), no banned word, no `stuck`, no `Assignment` or `(append only)`, and the lessons must match exactly and in order.
+     - The decisions come from `template/factory/pipeline.yml` through the existing reader.
+     - Entry 8 reports `make check` green after the coder.
+   - Bodies:
+     - I read the Rules, Role, Stage and Lessons of all seven bodies.
+     - The renames are applied and v1's mechanics are rewritten to v1.1's: no agent commits (R10), there is no R14 commit-subject rule, `round_cap`, write paths, the journal, `approval`, and `question` for "cannot finish".
+     - The acceptance reviewer names `## Recommendation`, `## 1 Scope` to `## 8 Cost` and `## Proposed stories` inline only, and writes proposed stories into the feature's `backlog/`.
+     - The lessons are verbatim, matching the Interface.
+   - Architecture and security: nothing changed under `src/`, no suppression markers, no new dependency.
+   - Work item hygiene: entry 4 states the main decision (renames and mechanics only, no rewrite in other words) and what was rejected. The Description matches what was built. Criterion 15 still describes what the documenter must write.
+
+   Still open from entry 4 (outside this diff and not a finding): the coder's and tester's write paths in the template do not include `{work_item}`, so the coder's step "rewrite `## Description`" only applies where a project adds it.
