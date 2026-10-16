@@ -19,6 +19,11 @@ from factory.domain.identifiers import Name
 
 QUESTION = "question"
 
+# Claude Code ignores an agent file in print mode, so the runner applies these keys itself;
+# any other key would read as if it did something and do nothing.
+APPLIED_AGENT_KEYS: frozenset[str] = frozenset({"model", "tools", "effort", "budget_usd"})
+KEY_NOT_APPLIED = "key not applied by the agent runtime"
+
 EndReason = Literal["completed", "no_result", "time_limit", "budget", "died"]
 
 

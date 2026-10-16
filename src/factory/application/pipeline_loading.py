@@ -2,19 +2,24 @@
 
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
-from factory.domain.errors import AgentDefinitionError, PipelineDefinitionInvalid
+from factory.domain.errors import (
+    AgentDefinitionError,
+    AgentDefinitionInvalid,
+    PipelineDefinitionInvalid,
+)
 from factory.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import RepositoryStop
+from factory.domain.stops import RepositoryStop, RepositoryStopReason
 
 PIPELINE_REF = f"{REMOTE}/{MAIN_BRANCH}"
 
 
 class PipelineLoader:
-    """The one place that loads the pipeline definition and raises or clears its stop.
+    """The one place that loads the pipeline definition and raises or clears its stops.
 
-    The stop belongs to the definition on `PIPELINE_REF`: a load at any other ref raises
-    the same refusal but leaves the health status as it is.
+    The stops, `pipeline_definition_invalid` and `agent_definition_invalid`, belong to the
+    definition on `PIPELINE_REF`: a load at any other ref raises the same refusal but leaves
+    the health status as it is.
     """
 
     def __init__(self, boundaries: Boundaries) -> None:
@@ -23,19 +28,31 @@ class PipelineLoader:
         self._stops = StopService(boundaries)
 
     def load(self, ref: str = PIPELINE_REF) -> PipelineDefinition:
-        """The definition at `ref`; `PipelineDefinitionInvalid` naming the fault otherwise.
+        """The definition at `ref`, every role's agent file read; the refusal otherwise.
 
-        At `PIPELINE_REF` a refusal first raises the stop and a success first clears it.
-        `GitError` propagates and touches no stop.
+        `PipelineDefinitionInvalid` names a fault of the definition, `AgentDefinitionInvalid`
+        an agent file the agent runtime cannot apply. At `PIPELINE_REF` a refusal first
+        raises its stop and a success first clears it. `GitError` propagates and touches no
+        stop.
         """
+        on_main = ref == PIPELINE_REF
         try:
             definition = self._read(ref)
         except PipelineDefinitionInvalid as error:
-            if ref == PIPELINE_REF:
-                self._stops.raise_stop(self._stop(error.fault))
+            if on_main:
+                self._stops.raise_stop(self._stop("pipeline_definition_invalid", error.fault))
             raise
-        if ref == PIPELINE_REF:
+        if on_main:
             self._stops.clear_stop("pipeline_definition_invalid")
+        try:
+            self._read_agent_files(definition)
+        except AgentDefinitionInvalid as error:
+            if on_main:
+                detail = f"{error.name}: {error.fault}"
+                self._stops.raise_stop(self._stop("agent_definition_invalid", detail))
+            raise
+        if on_main:
+            self._stops.clear_stop("agent_definition_invalid")
         return definition
 
     def _read(self, ref: str) -> PipelineDefinition:
@@ -59,10 +76,14 @@ class PipelineLoader:
         if faults:
             raise PipelineDefinitionInvalid("; ".join(faults))
 
-    def _stop(self, fault: str) -> RepositoryStop:
+    def _read_agent_files(self, definition: PipelineDefinition) -> None:
+        for role in definition.roles:
+            self._boundaries.agent_definitions.read(role)
+
+    def _stop(self, reason: RepositoryStopReason, detail: str) -> RepositoryStop:
         return RepositoryStop(
             scope="repository",
-            reason="pipeline_definition_invalid",
-            detail=fault,
+            reason=reason,
+            detail=detail,
             at=self._boundaries.clock.now(),
         )

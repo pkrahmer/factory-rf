@@ -13,7 +13,12 @@ from factory.application.recovery import delete_stale_branches
 from factory.application.stops import StopService
 from factory.application.watcher import Watcher
 from factory.application.work_items import RemoteWorkItems
-from factory.domain.errors import FetchFailed, GitError, PipelineDefinitionInvalid
+from factory.domain.errors import (
+    AgentDefinitionInvalid,
+    FetchFailed,
+    GitError,
+    PipelineDefinitionInvalid,
+)
 from factory.domain.events import Event, EventKind
 from factory.domain.identifiers import Name, branch_name, work_item_of_branch
 from factory.domain.paths import MAIN_BRANCH, REMOTE
@@ -111,11 +116,13 @@ class Tick:
         self._stops.clear_stop("fetch_failed")
 
     def _load(self) -> PipelineDefinition:
-        # The loader raises and clears the definition's stop itself.
+        # The loader raises and clears the definition's stops itself.
         try:
             return PipelineLoader(self._boundaries).load()
         except PipelineDefinitionInvalid as error:
             raise _Stopped("pipeline_definition_invalid") from error
+        except AgentDefinitionInvalid as error:
+            raise _Stopped("agent_definition_invalid") from error
 
     def _restore(self) -> None:
         try:
