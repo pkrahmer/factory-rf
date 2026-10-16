@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 121
 blocked: null
 comments_seen: 2
@@ -264,3 +264,27 @@ Expect: one line, `/srv/agents claude None`.
     Findings: none. The code matches the Interface. I noted but did not touch two things. A token file that is not valid UTF-8 raises `UnicodeDecodeError` instead of `SettingsInvalid`, which review already considered and did not raise. The file names `factory.log` and `health.json` are literals in `build_boundaries`.
 
     `make check`: check: green
+13. demo: Ran the three `## Demo` commands from the repository root, exactly as written and in order. All three exited 0.
+
+    Command 1 (`repository_name` and `git_environment`):
+    ```
+    owner/project
+    ['GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_KEY_1', 'GIT_CONFIG_VALUE_0', 'GIT_CONFIG_VALUE_1']
+    ```
+    Met its Expect: line. Both lines are exactly as expected.
+
+    Command 2 (`build_boundaries` with the fake hosting service):
+    ```
+    GitCli ClaudeCodeRuntime True
+    ```
+    Met its Expect: line.
+
+    Command 3 (`read_settings` with `FACTORY_CLAUDE_HOME`):
+    ```
+    /srv/agents claude None
+    ```
+    Met its Expect: line.
+
+    Checked against the acceptance criteria: the output agrees with criteria 1, 2 and 3 (with the variables missing, `claude_executable` falls back to `claude` and `token_file` to `None`). It agrees with criterion 4 for the scp form, criterion 8 for the five environment keys, and criteria 11 and 12 for the `GitCli` and `ClaudeCodeRuntime` types and for `settings` being held. Nothing in the demo goes against any criterion. The demo does not cover the other criteria (no network, no state written, hosting through PyGithub); the tests cover those.
+
+    No findings.
