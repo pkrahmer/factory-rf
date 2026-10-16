@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 131
 blocked: null
 comments_seen: 2
@@ -207,3 +207,27 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
    - Criterion 20 now tells the documenter to describe the `token-file` item and its fix as checked by the preflight from F0010-S0016 on, not as running today.
 
    Open: `token_file_item` has no production caller until F0010-S0016. The human accepted this, so it is not a finding.
+8. documenter: wrote the token documentation and cross-read the rest against the diff. `make check` is green. I ran no examples: the only shell block I added is the `chown`/`chmod` pair.
+
+   Files changed:
+   - `docs/operator-guide.md`: new section "The hosting-service token". It covers:
+     - the `secrets/hosting-token` file, with `chown 1000` and `chmod 0400`, and why they are needed (Compose may ignore the secret's uid and mode);
+     - the two readers, the factory process and the credential helper, and what the helper does on `get`, on other operations and on an unreadable file;
+     - the allow list of six names;
+     - the `token-file` item and its faults, stated as built but not yet run (F0010-S0016 adds it to the tick's preflight);
+     - the morning observation of WE3.3, WE3.4 and the mounted file's ownership;
+     - the project commands running as the factory's user, left for v2.
+   - `docs/operator-guide.md`: other edits.
+     - The settings paragraph no longer says "which the token story provides".
+     - The `factory-guard` section no longer says the agent environment has "two variables only".
+     - The preflight table has a `token-file` row marked as not yet run.
+   - `docs/project-guide.md`: the paragraph on `production_environment` now covers `scrub_environment` and `ALLOWED_ENVIRONMENT_NAMES`, scrubbing once at the source, the unchanged composer and runtime, and the `AgentRunRequest(` search. It also describes `token_file_item` (no caller yet) and the helper. The `GitOptions` paragraph now says the environment holds the credential helper, not the token.
+   - `docs/decisions.md`: two entries. One says why the helper reads a file instead of the environment, with the rejected alternatives. The other says why the project commands as the factory's user are left for v2 (the human, 2026-10-14).
+
+   Cross-read and found current: `README.md`. In `docs/operator-guide.md`, the settings table and the "stops" sections. In `docs/project-guide.md`, the sections on the agent runtime and the hosting service.
+
+   Stale but unrelated, not touched: the operator guide says the preflight is "a list of seven items" and "Wiring the preflight into the tick comes in the next story". Neither count nor wording matches the table now (it has the new `token-file` row). F0010-S0016, which wires the machine items, should fix both.
+
+   No findings against the code.
+
+   `make check`: check: green

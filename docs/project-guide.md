@@ -114,7 +114,7 @@ Git is reached only through the `Git` interface (`factory.application.git`, an a
 | `executable` | `"git"` | the program to run (tests give a stand-in) |
 | `time_limit` | `GIT_TIME_LIMIT` (5 minutes) | per command |
 
-F0010's wiring fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the token for the factory's own pushes, so that the agent run never receives it.
+F0010's wiring fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the credential helper for the factory's own pushes (the helper reads the token file; the token itself is never in the environment), so that the agent run never receives it.
 
 The nineteen operations of the `Git` interface (`tests/application/test_git_interface.py` checks that the interface has exactly these and that `GitCli` has each):
 
@@ -719,7 +719,11 @@ No module under `factory.application.handlers` catches `Exception` or `BaseExcep
 
 The comment handler and the send-back use `CommentCopier`.
 
-The agent run's environment is made by `agent_environment(scripts, home)`: exactly `PATH` = `<scripts>:/usr/local/bin:/usr/bin:/bin` and `HOME` = `str(home)`. `production_environment()` calls it with the directory of `sys.executable` (where the `factory-guard` console script is installed) and `Path.home()`. F0010 scrubs the environment, probes the `PATH` and completes `build_boundaries` from the instance settings.
+The agent run's environment is made by `agent_environment(scripts, home)`: exactly `PATH` = `<scripts>:/usr/local/bin:/usr/bin:/bin` and `HOME` = `str(home)`. `production_environment()` calls it with the directory of `sys.executable` (where the `factory-guard` console script is installed) and `Path.home()`. The result goes through `scrub_environment(source)` (`factory.domain.agent_runs`), which keeps only the names in `ALLOWED_ENVIRONMENT_NAMES` (`PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM`, `TZ`, compared as written): `production_environment()` is `scrub_environment({**os.environ, **agent_environment(...)})`, so `LANG`, `LC_ALL`, `TERM` and `TZ` pass when the process has them and no token or other variable does. The scrub happens once, at this source. `TaskComposer` hands the mapping it is given unchanged to `AgentRunRequest.environment`, `ClaudeCodeRuntime` runs the agent with `request.environment` plus its `SWITCHES` and nothing of the process's own environment, and `AgentRunRequest(` is built in `factory.application.task` (and the preflight's probe); `tests/test_agent_run_request_search.py` searches for both and for `os.environ` in the inner layers and the runtime.
+
+`token_file_item(path, *, uid, stat)` (`factory.application.preflight`) is the preflight item `token-file`: it passes when the file exists, belongs to `uid` and `mode & 0o077 == 0`, reading the file only through `stat`. It is built and tested but has no caller until F0010-S0016 adds it to `build_tick`'s preflight. The credential helper is `image/git-credential-factory` (POSIX `sh`); the operator guide, "The hosting-service token", describes it, the secret and the image rules `tests/test_image_credentials.py` enforces.
+
+F0010 probes the `PATH` and completes `build_boundaries` from the instance settings.
 
 ## Reading and writing a work item file
 
