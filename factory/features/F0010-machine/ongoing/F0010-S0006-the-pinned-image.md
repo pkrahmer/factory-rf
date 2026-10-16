@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 124
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -251,3 +251,4 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
    - (b) No. Criterion 2 stays as written, and the gap is accepted.
 
    I recommend (a). It is five table rows, it follows the CLAUDE.md rule that every stated limit is tested on both sides, and it closes the review finding.
+7. human (pull request comment, 2026-10-16): (a): the tester adds exactly these five rows to `test_a_floating_item_is_reported` and criterion 2 is extended by them. End with `tests` and name exactly this change.
