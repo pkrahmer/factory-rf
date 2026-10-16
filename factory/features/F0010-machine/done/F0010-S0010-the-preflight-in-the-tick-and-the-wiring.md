@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 128
 blocked: null
 comments_seen: 0
@@ -173,3 +173,4 @@ Expect: two lines, `['boundaries', 'instance', 'handlers', 'status', 'preflight'
    - It contradicts no criterion. The demo only shows the signatures. It does not exercise the behaviour of criteria 1 to 7, which the tests in the tester's mapping cover.
 
    Findings: none.
+8. done (pull request merged); cost: 6 runs, 25.2 min, 50 turns, 160k tokens in (1052k more from cache), 24k out, $1.73
