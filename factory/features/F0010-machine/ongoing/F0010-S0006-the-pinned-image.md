@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 124
 blocked: null
 comments_seen: 2
@@ -8,7 +8,7 @@ attempts: 0
 ---
 # The pinned image
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 7)
 
 Write the machine's image so that nothing in its build floats, and record on every cost record which image the agent run ran on. The Dockerfile pins the base image by digest, Claude Code by exact version (installed from its npm package, with its auto-update off), every Debian package that is a tool by exact version, `uv` by exact version, and installs the factory's own dependencies from `uv.lock` alone. The image's identity is a fresh id that the build generates and writes to `/opt/factory/image-id` (the human's decision of 2026-10-14: a build argument could be reused by a rebuild and keep a stale preflight stamp valid, ST4.3); the settings read the identity from that file (the first story of this feature builds the reader), and the build argument `FACTORY_IMAGE` is only a label. The Dockerfile also creates the two operating-system users and the shared directories that later stories rely on, with the modes the human decided: `/state` stays `0755` for the factory's user, and the files the agent must read go to a separate directory `/state/runs` (`2750`, group `factory-work`) that the agent can read but not write. This covers ST5.1 (as a static check of the build files), ST5.2, ST5.4 and SI3.3 and implements R29 and R4 for the image. A real image build needs Docker, which v1's container does not have, so ST5.1 and the build itself are a morning observation. The digest of the base image and the Debian package versions cannot be looked up without a network: the Dockerfile carries the placeholders given below, which have the right form and make the check pass, and the human replaces them before the first build. The Dockerfile copies files that later stories of this feature create (`image/entrypoint.sh`, `claude/`, `template/`); the build is only meaningful once they exist. The build backend is pinned too, but `pyproject.toml` lies outside the coder's write paths: the human changed it on `main` in a commit of their own to `requires = ["hatchling==1.32.4"]` (the version uv resolved, finding 22 of the first round, answered "as recommended" on 2026-10-14), and criterion 21 checks the result.
 
@@ -79,7 +79,7 @@ Tests: `tests/test_image.py` (reads `image/Dockerfile`, `pyproject.toml`, `uv.lo
 ## Acceptance criteria
 
 1. `floating_references` of the shipped `image/Dockerfile` is the empty list (ST5.1, as a static check of the build files).
-2. `floating_references` reports a finding for each of these floating items, one test case each: `FROM python:3.12-slim-bookworm`, `FROM python`, `FROM python:latest`, `ARG CLAUDE_CODE_VERSION=latest`, `ARG CLAUDE_CODE_VERSION=2.1`, `apt-get install -y git`, `apt-get install -y git=*`, `apt-get upgrade -y`, `pip install uv`, `pip install uv>=0.9`, `npm install --global @anthropic-ai/claude-code`, `npm install --global @anthropic-ai/claude-code@latest`, `npm install --global @anthropic-ai/claude-code@2.1`, `npx claude-code`, `RUN curl -fsSL https://example.invalid/install.sh | bash`, `RUN wget -qO- https://example.invalid/install.sh | sh`, `uv tool install /opt/factory`, `uv sync`, `apt-get dist-upgrade -y`, `npm i -g @anthropic-ai/claude-code`, `pip install .`, `ARG CLAUDE_CODE_VERSION=stable`, `ARG CLAUDE_CODE_VERSION=` and a line `RUN echo latest`.
+2. `floating_references` reports a finding for each of these floating items, one test case each: `FROM python:3.12-slim-bookworm`, `FROM python`, `FROM python:latest`, `ARG CLAUDE_CODE_VERSION=latest`, `ARG CLAUDE_CODE_VERSION=2.1`, `apt-get install -y git`, `apt-get install -y git=*`, `apt-get upgrade -y`, `pip install uv`, `pip install uv>=0.9`, `npm install --global @anthropic-ai/claude-code`, `npm install --global @anthropic-ai/claude-code@latest`, `npm install --global @anthropic-ai/claude-code@2.1`, `npx claude-code`, `RUN curl -fsSL https://example.invalid/install.sh | bash`, `RUN wget -qO- https://example.invalid/install.sh | sh`, `uv tool install /opt/factory`, `uv sync`, `apt-get dist-upgrade -y`, `npm i -g @anthropic-ai/claude-code`, `pip install .`, `ARG CLAUDE_CODE_VERSION=stable`, `ARG CLAUDE_CODE_VERSION=`, a line `RUN echo latest`, and the limits of a digest and of a version on their refused side: `FROM python@sha256:` followed by 63 `a`s, by 65 `a`s and by 64 `g`s, `ARG CLAUDE_CODE_VERSION=2.1.289.1` and `npm install --global @anthropic-ai/claude-code@2.1.289.1` (the human's answer of 2026-10-16).
 3. `floating_references` reports nothing for the accepted side of each rule, one test case each: `FROM python:3.12-slim-bookworm@sha256:` followed by 64 `a`s, `ARG CLAUDE_CODE_VERSION=2.1.289`, `apt-get install -y git=1:2.39.5-0+deb12u2`, `pip install uv==0.9.2`, `npm install --global @anthropic-ai/claude-code@2.1.289`, `uv sync --frozen --no-dev`, `uv sync --locked --no-dev`, `RUN curl -fsSL https://example.invalid/file -o /opt/file` (a download that is not piped into a shell) and the comment line `# latest`.
 4. Every `FROM` reference of the shipped Dockerfile, after the `ARG` defaults are substituted, ends in `@sha256:` and 64 hexadecimal digits (R29).
 5. `CLAUDE_CODE_VERSION` has a default of three dot-separated numbers, and the Claude Code install command is `npm install` of `@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}`.
@@ -252,3 +252,17 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
 
    I recommend (a). It is five table rows, it follows the CLAUDE.md rule that every stated limit is tested on both sides, and it closes the review finding.
 7. human (pull request comment, 2026-10-16): (a): the tester adds exactly these five rows to `test_a_floating_item_is_reported` and criterion 2 is extended by them. End with `tests` and name exactly this change.
+8. coder: coder (round 1): the human answered (a), so the change is a test change and goes to the tester (R9).
+
+   Change for the tester: in `tests/test_image.py::test_a_floating_item_is_reported`, add exactly five rows. Each must be reported as floating:
+   - `FROM python@sha256:` + `"a" * 63`
+   - `FROM python@sha256:` + `"a" * 65`
+   - `FROM python@sha256:` + `"g" * 64`
+   - `ARG CLAUDE_CODE_VERSION=2.1.289.1`
+   - `npm install --global @anthropic-ai/claude-code@2.1.289.1`
+
+   Ticket: criterion 2 now lists these five rows and names the human's answer of 2026-10-16. The Assignment heading now reads "as of log entry 7".
+
+   Code: I changed no production code. `image/Dockerfile` and `src/factory/application/costs.py` are as they were in 65c0b7c. I expect the new rows to pass as they are, because the patterns in `tests/test_image.py:16-18` are already anchored, but I have not run them.
+
+   Open: nothing else.
