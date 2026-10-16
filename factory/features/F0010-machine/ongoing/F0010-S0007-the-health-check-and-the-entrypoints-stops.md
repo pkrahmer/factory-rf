@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 125
 blocked: null
 comments_seen: 0
 round: 0
@@ -149,3 +149,9 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.entry.health.main`, `RepositoryWaiter` in `factory.application.scheduler`, `image/compose.yml`, `image/entrypoint.sh` with its steps in order). Every comment-stated behaviour has a criterion: the health line format (2, 3), the stop details (7, 8, 10), once-only stops (11), and the entrypoint's order, log lines and exec arguments (15, 16, 20, 21).
+   - Criteria: each can be tested by one test function. Each rule has its failing side. Health: stops give exit 1 (2, 3, 4), no stops give 0 (1, 4). Waiter: clone failure, fetch failure, no main, and no pipeline file each give False plus a stop (7, 8, 10), and the passing side is 6 and 9. Entrypoint: a missing agents directory or settings file (17, two cases), a missing or wrongly-moded `runs` directory (19), and no git configuration (22). Compose: required variables with no `:-` default (14).
+   - Demo: all three blocks are runnable commands, and each `Expect:` line is checkable against the output.
+   - Architecture: `health.py` is in `entry` and reads its store through `entry.wiring`. `RepositoryWaiter` is in `application` and uses only interfaces (preparer, git, stops). Adapters are touched only in wiring. This fits CLAUDE.md's layers.
+   - Scope: inside F0010's "health check and entrypoint's stops" item. The story builds no watchdog, which FEATURE.md puts out of scope.
