@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 133
 blocked: null
 comments_seen: 0
@@ -217,3 +217,4 @@ Expect: one line, `0002`.
     - `umask 002` sits directly after `set -eu` in `image/entrypoint.sh` (criteria 4 and 6).
 
     Open: as the Interface says, the real `sudo` call, the umask of agent-made files, the factory's restore after an agent-made directory and a refused `sudo` need a real image. They are morning observations listed in `docs/operator-guide.md`. Wiring the item into the machine checks is left to the probe story.
+12. done (pull request merged); cost: 10 runs, 37.8 min, 63 turns, 178k tokens in (1017k more from cache), 24k out, $2.15
