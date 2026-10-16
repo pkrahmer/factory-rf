@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 138
 blocked: null
 comments_seen: 0
 round: 0
@@ -54,3 +54,9 @@ Expect: seven lines, each ending in `:1`.
 ## Log (append only)
 
 1. 2026-10-16 human: created.
+2. intake: accepted
+   - Interface: concrete. `claude/settings.json` allow/deny edits are exact and checked against the file as it stands today (allow holds `git add *` and `git commit *`; deny ends its git block with `Bash(git branch -D*)`, so the insertion point exists). `env` is unchanged. No code, so no signatures are needed.
+   - Criteria: 1 and 2 are testable by one function each (membership and absence). 3 is `settings == SETTINGS`, so order is covered. 4 is a single check that all seven agents hold the sentence, and I confirmed that they do today. Every rule has its failing side: criterion 1 says the entries are gone from allow and criterion 2 says they are denied. 5 and 6 are the usual closing criteria.
+   - Demo: both commands are runnable. The first prints two lists, and the Expect line gives them exactly. The second prints seven lines ending in `:1`, which matches the seven files in `claude/agents/`.
+   - Architecture: this is a shipped data file plus a test constant. It touches no layer, and it matches the agents' rule "You do not commit either" (R10).
+   - Scope: it fits FEATURE.md ("each key has an effect", settings and shipped agents) and nothing in "Out of scope" covers it. The change to `tests/test_claude_files.py::SETTINGS` is covered by decision 37 (6) and the Assignment, which limit it to the two lists and nothing else in that file.
