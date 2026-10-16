@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 135
 blocked: null
 comments_seen: 0
@@ -155,3 +155,21 @@ Expect: one line, `0`.
 
    `make lint`: lint: green
    `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[acceptance-reviewer]
+4. coder: Built: I carried v1's pipeline rules, role skills and stage skills into the seven shipped agents, `claude/agents/{intake,tester,coder,reviewer,documenter,smoke-tester,acceptance-reviewer}.md`, in commit 830029c. Each file keeps its front matter and its two sentences. After them come `## Rules` (from `factory-rules`), `## Role` (except intake and smoke-tester), `## Stage` (from the matching `stage-*` skill) and `## Lessons`. The lessons are the Interface's bullets, verbatim and in order. Nothing changed under `src/` or `tests/`. `make check` is green, all of `tests/test_claude_agent_texts.py` passes, and both smoke-test commands print what the `Expect:` lines say: the seven heading lists, then `0`.
+
+   Main decision: I applied the rename table and rewrote each v1 mechanic as what v1.1 actually does, using the project guide as the source.
+   - R2 now uses the `Allowed decisions` contract, and "cannot finish" becomes `question`.
+   - R10 says the factory commits, pushes and moves the work item, and that no agent commits. So the coder's commit steps became "leave the work in the working tree", and the refactor step reads `git diff main` plus `git status --short` instead of `main...HEAD`.
+   - R7 points to the stage's `next` and `checks` in `factory/pipeline.yml`, and R12 to `round_cap`.
+   - R14 (commit subjects) is dropped because code writes them. R15 became R14 and talks about write paths, with `{work_item}` as the agent's own work item.
+   - Paths use v1.1's names: `feature.md`, `factory/story-form.md`, `backlog/`, `in-progress/`, and the acceptance report `in-progress/<id>-acceptance.md`.
+   - The acceptance-reviewer's report names `## Recommendation`, `## 1 Scope` to `## 8 Cost` and `## Proposed stories`, always inline so none of them becomes a heading. Its recommendations are `accepted`, `accepted with stories` and `not accepted`.
+
+   Rejected: rewriting the texts in my own words. That would break the baseline comparison with v1's run on the same instructions, so changes stay at the level of words and mechanics. I also rejected keeping the coder's v1 commit steps, which contradict the factory's commit and the Description.
+
+   Noticed, not touched:
+   1. In `template/factory/pipeline.yml` the coder's and tester's write paths do not include `{work_item}`. So the coder's step "rewrite `## Description`" can only work where a project adds it. The text says so ("and your write paths include the work item").
+   2. The texts still mention `make mutants` and `docs/openapi.json` "if the project has" them, as v1's did.
+   3. `docs/` is the documenter's work under criterion 15.
+
+   `make check`: check: green
