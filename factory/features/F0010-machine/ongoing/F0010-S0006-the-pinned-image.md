@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 124
 blocked: null
 comments_seen: 0
 round: 0
@@ -132,3 +132,9 @@ Expect: one line, `37`: the identity the Dockerfile writes is a 36-character uui
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `image/Dockerfile` is given in full, in order. `floating_references(dockerfile: str) -> list[str]` has its signature and a rule list. `CostRecorder.begin` is named with `boundaries.settings.image`, which exists (`Settings.image: str | None`, and `CostRecord.image` in `domain/cost_records.py`).
+   - Criteria: criteria 2 and 3 are table cases, one per row. Each rule has its failing side (criterion 2) and its accepted side (criterion 3). The `image` rules have both sides too: set (18) and `None`, or no settings (19). Criterion 10 compares three values. Criteria 4 to 17 and 20 to 21 are static checks of the Dockerfile, `pyproject.toml` or `template/`. Each can be written as one test function.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable: `True` and `True`, `True`, and `37`.
+   - Architecture: `costs.py` is in the application layer and reads the domain settings. `tests/test_image.py` is at the `tests/` root, which suits a file outside the layers. The test file for the cost image is separate from F0005's, as the story says.
+   - Scope: the story sits inside "The pinned image" in `FEATURE.md`. It follows decisions 6, 7 and 8 and nothing in "Out of scope". The placeholders and the morning build observation are stated openly.
