@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 122
 blocked: null
 comments_seen: 0
@@ -126,3 +126,40 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
    - Demo: both commands are runnable. The second is consistent because `TimestampedFactoryLog.line` also writes the stamped line to stdout, which gives the three lines in the `Expect:`. Each expectation is checkable against the output.
    - Architecture: the code lands in `factory.entry` (`run.py`, `wiring.py`), and the adapters stay behind the wiring module. The layering rule holds.
    - Scope: it is within F0010's scope (ST7.1, the settings half of ST3.3, decision 5), and nothing in the story falls under "Out of scope".
+3. tester: wrote red tests for criteria 1–22 as the coder's specification. `make lint` is green. `make test` stops at collection on the two entry test modules, because `factory.entry.run` and the new names in `factory.entry.wiring` do not exist yet.
+
+   Criterion → test:
+   - criteria 1–4: tests/entry/test_run.py::test_only_a_handled_event_that_is_not_idle_counts_as_activity. One parametrized test with six rows: handled-run, handled-idle, repository-stop, capped, error, reported.
+   - criterion 5: tests/entry/test_run.py::test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls. It installs no agent definitions, so the run handler raises `AgentDefinitionMissing` before any claim is pushed. The remote state stays the same, which lets the one error entry reach a count of 2.
+   - criterion 6: tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance. Its settings name instance `factory-7`, and the test reads the claim from the remote work-item branch.
+   - criterion 7: tests/entry/test_wiring_run.py::test_boundaries_from_environment_reads_the_settings_and_builds_their_boundaries
+   - criterion 8: tests/entry/test_wiring_run.py::test_boundaries_from_environment_refuses_an_invalid_environment. Parametrized: missing token file, no instance, and the URL `/srv/project.git` without `hosting`.
+   - criterion 9: tests/entry/test_run.py::test_run_instance_clones_a_missing_checkout_and_pauses_thirty_seconds_after_it
+   - criterion 10: tests/entry/test_run.py::test_run_instance_refuses_a_missing_token_file_before_it_clones
+   - criterion 11: tests/entry/test_run.py::test_the_stop_handlers_set_the_event_on_sigterm_and_sigint. Parametrized over SIGTERM and SIGINT; the `restored_signals` fixture puts the old handlers back.
+   - criterion 12: tests/entry/test_run.py::test_main_refuses_an_environment_without_an_instance_with_a_line_and_a_machine_stop
+   - criterion 13: tests/entry/test_run.py::test_main_refuses_a_missing_or_empty_image_identity_file (parametrized: missing, empty) and tests/entry/test_run.py::test_main_hands_the_runner_the_image_identity_of_the_file (`build-7`).
+   - criterion 14: tests/entry/test_run.py::test_main_keeps_the_stops_in_force_and_replaces_its_own
+   - criterion 15: tests/entry/test_run.py::test_main_without_a_mapping_reads_the_process_environment
+   - criterion 16: tests/entry/test_run.py::test_main_runs_a_valid_environment_once_and_returns_zero
+   - criterion 17: tests/entry/test_run.py::test_main_turns_a_settings_fault_of_the_runner_into_a_line_and_a_machine_stop
+   - criterion 18: tests/test_run_module.py::test_the_run_module_ends_by_exiting_with_the_status_of_main. It compares `ast.unparse` of the module's last statement.
+   - criterion 19: tests/entry/test_run.py::test_run_until_stopped_with_its_event_set_returns_and_clones_nothing
+   - criterion 20: tests/entry/test_run.py::test_run_until_stopped_installs_its_own_handlers_and_refuses_a_missing_token_file
+   - criterion 21: tests/entry/test_run.py::test_run_until_stopped_pauses_on_its_stop_event. It uses a `RecordingEvent` subclass whose `wait` records the timeout, sets the event and returns True.
+   - criterion 22: tests/entry/test_run.py::test_run_instance_builds_one_tick_for_the_whole_run. It wraps `factory.entry.run.build_tick` through monkeypatch and stops after the third sleep.
+   - criteria 23 and 24 (make check, docs) need no test.
+
+   Files created: tests/entry/test_run.py, tests/entry/test_wiring_run.py, tests/test_run_module.py.
+
+   Names the test runner could not import: the module `factory.entry.run` (`activity`, `activity_tick`, `install_stop_handlers`, `run_until_stopped`, `run_instance`, `main`), and in `factory.entry.wiring` the functions `build_tick`, `boundaries_from_environment` and `health_store`. `machine_log` is not imported by any test; `main` reaches it. tests/test_run_module.py fails with FileNotFoundError until `src/factory/entry/run.py` exists.
+
+   Setup choices worth knowing:
+   - The `run_instance` and `run_until_stopped` tests pass the fake `hosting` in criterion 19 too. Without it, `build_boundaries` would refuse the local remote's URL, which names no owner and no name.
+   - Their settings use a checkout at `tmp_path/instance-checkout`, a state directory at `tmp_path/instance-state` (created by the fixture), the `agent_home` fixture, a `claude_executable` path that does not exist, and a token file holding `example-value`.
+   - The stamp is matched as `YYYY-MM-DDTHH:MM:SSZ` followed by a space, the separator the second demo command relies on.
+
+   Open: none.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
