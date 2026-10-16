@@ -24,6 +24,18 @@ The checkout and the state directory are not settings you can change: the checko
 
 A URL whose user information holds a colon, that is a user name followed by a password before the `@`, is refused, because git would keep the password in the shared checkout's `.git/config`, which the agent can read. Put the token in the token file instead. A user name alone is accepted: `ssh://git@github.com/owner/project.git`, `https://user@github.com/owner/project.git` and the form `git@github.com:owner/project.git`.
 
+## The loop and its pauses
+
+An instance repeats one iteration: it prepares the checkout, then makes one tick. The first iteration of a run happens at once, so a restart with the same instance name does not wait out a pause.
+
+After an iteration the instance pauses 15 seconds when the tick found activity. Each idle tick in a row doubles the pause (15, 30, 60 seconds) up to 120 seconds, and the next activity brings it back to 15 seconds. An iteration whose preparation or tick fails counts as idle. The failure is one line in the factory log, `iteration failed: <exception type>: <message>`, and the loop goes on.
+
+### The checkout is recloned only when it is missing
+
+The checkout lies at `/work/checkout`. When that directory has no `.git`, the instance clones the repository into it; an existing clone is left as it is, with no git call. After you delete the checkout the next iteration clones it again.
+
+A clone that was killed half-way is not recognised: if its `.git` exists, the instance takes it for a clone, and if it does not, git refuses to clone into the non-empty directory and the iteration fails. In both cases delete the checkout directory and let the next iteration clone it again. The checkout is disposable (see "The stops of the tick"), so nothing is lost.
+
 ## The project's make targets
 
 The factory runs a project's build through make and calls three targets: `check` (the full gate, which must be green before a stage hands forward), `lint` (run after the tester stage) and `test`. A project must define them in the Makefile at the root of its checkout. Each is judged by its exit status alone, and a target that does not exist counts as a failed command. A target that runs past its time limit is killed and counts as failed for that reason; the factory reads only the exit status, the last line and the last 30 lines of the output.

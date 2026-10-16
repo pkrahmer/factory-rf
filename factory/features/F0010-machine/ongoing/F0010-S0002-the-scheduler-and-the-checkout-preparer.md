@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 120
 blocked: null
 comments_seen: 0
@@ -131,3 +131,11 @@ Expect: one line, `[15.0, 30.0, 60.0]`: the first tick ran at once, activity gav
       - Security: no tool call is built from strings, and no suppression markers were added.
       - Quality: `pause_after` doubles step by step instead of using the Interface's formula, and a comment explains why: the formula overflows `timedelta` after about 43 idle ticks. It returns the same values. Every public name has a docstring, and nothing is duplicated or dead.
       - Ticket hygiene: the log records the main decision and what was rejected (the literal formula). The Assignment matches what was built. Criterion 14 still describes what the documenter has to write.
+6. documenter: no findings. `make check` is green (coverage 99.54 %).
+   - `docs/operator-guide.md`: new section "The loop and its pauses", placed before "The project's make targets". It gives the 15 s pause after activity, the doubling to 120 s while idle, the first iteration running at once, and the `iteration failed: <type>: <message>` log line. Its subsection "The checkout is recloned only when it is missing" says only a missing checkout is recloned and that the operator deletes a checkout whose clone was killed half-way. This is criterion 14.
+   - `docs/decisions.md`: new entry "A checkout whose clone was killed half-way is not recognised". It records the reason (R18, the checkout is disposable, the case is rare) and the rejected options (probing the clone on every iteration, deleting a directory the factory did not clone). It also records why `pause_after` doubles step by step: the literal formula overflows `timedelta`.
+   - Cross-read and found current: README, `docs/project-guide.md` (no mention of the scheduler or pauses), and the settings section of the operator guide (checkout at `/work/checkout`).
+   - I did not run the demo commands. Their expected output is checked by tests/application/test_scheduler.py (criteria 1 and 5).
+   - Stale but untouched: none seen.
+
+   `make check`: check: green
