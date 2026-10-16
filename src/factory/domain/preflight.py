@@ -1,7 +1,8 @@
-"""The preflight's report on the machine and the one machine stop a failed report becomes."""
+"""The preflight's report on the machine, the machine stop it becomes, and the stamp it leaves."""
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
+from factory.domain.git import CommitId
 from factory.domain.stops import RepositoryStop
 
 
@@ -30,6 +31,16 @@ class PreflightReport(BaseModel):
     def failed(self) -> list[PreflightItem]:
         """The failed items, in order."""
         return [item for item in self.items if not item.passed]
+
+
+class PreflightStamp(BaseModel):
+    """What the last preflight passed on: the image build, and the commit of main it probed."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    image: str | None
+    main_probed: CommitId | None = None
+    main_failed: CommitId | None = None
 
 
 def version_matches(reported: str, pinned: str) -> bool:
