@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 113
 blocked: null
 comments_seen: 4
@@ -199,3 +199,4 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
     Checked against the acceptance criteria. Criterion 2 says a merged acceptance at `approval` produces the `merged` event, and it did. Criteria 1 and 5 say a merged acceptance at `acceptance` produces the `run` event and never `reject`, and it did. The demo contradicts no other criterion. The multi-tick walks in criteria 3, 4 and 6 to 13 are covered by the tester's tests, not by this demo. The factory runs `make check` (criterion 14) after this stage. Criterion 15 (docs) is the documenter's.
 
     No findings.
+18. done (pull request merged); cost: 14 runs, 37.3 min, 106 turns, 307k tokens in (2639k more from cache), 44k out, $3.54
