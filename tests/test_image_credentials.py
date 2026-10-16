@@ -1,25 +1,17 @@
 """The image and its compose file: the token arrives as a mounted secret, never as a setting."""
 
-import re
 from pathlib import Path
 
 import pytest
 from ruamel.yaml import YAML
 
+from dockerfile_support import DOCKERFILE, dockerfile_instructions
+
 ROOT = Path(__file__).parent.parent
-DOCKERFILE = ROOT / "image" / "Dockerfile"
 COMPOSE = ROOT / "image" / "compose.yml"
 SECRET_WORDS = ("TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
 HELPER_COPY = "COPY image/git-credential-factory /usr/local/bin/git-credential-factory"
 FILE_SETTING = "ENV FACTORY_TOKEN_FILE=/run/secrets/hosting-token"
-
-
-def _instructions() -> list[str]:
-    """Every instruction of the Dockerfile on one line, continuations joined, comments dropped."""
-    text = DOCKERFILE.read_text(encoding="utf-8")
-    lines = [line for line in text.splitlines() if not line.strip().startswith("#")]
-    joined = re.sub(r"\\\n", " ", "\n".join(lines))
-    return [" ".join(line.split()) for line in joined.splitlines() if line.strip()]
 
 
 def _declared_names(instructions: list[str]) -> list[str]:
@@ -43,7 +35,7 @@ def compose() -> dict[str, object]:
 
 
 def test_the_dockerfile_installs_the_helper_and_sets_nothing_secret() -> None:
-    instructions = _instructions()
+    instructions = dockerfile_instructions()
     user = instructions.index("USER factory")
     text = DOCKERFILE.read_text(encoding="utf-8")
 

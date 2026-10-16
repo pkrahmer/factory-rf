@@ -37,6 +37,10 @@ COPY image/git-credential-factory /usr/local/bin/git-credential-factory
 RUN sed -i 's/\r$//' /usr/local/bin/git-credential-factory && chmod 0755 /usr/local/bin/git-credential-factory
 # The token is a mounted secret; only its path is set, and only the factory's user can read it.
 ENV FACTORY_TOKEN_FILE=/run/secrets/hosting-token
+# The factory's user may become the agent's user, so no agent can read the token.
+COPY image/sudoers-factory-agent /etc/sudoers.d/factory-agent
+RUN sed -i 's/\r$//' /etc/sudoers.d/factory-agent && chmod 0440 /etc/sudoers.d/factory-agent && visudo -cf /etc/sudoers.d/factory-agent
+ENV FACTORY_AGENT_USER=agent
 # A fresh id per build, so a rebuild never keeps a stale preflight stamp valid.
 RUN cat /proc/sys/kernel/random/uuid > /opt/factory/image-id
 ENV PATH=/opt/factory/.venv/bin:$PATH \

@@ -44,6 +44,11 @@ _HOSTING_ITEM = "hosting-service"
 _AGENTS_ITEM = "agents"
 _VERSION_ITEM = "agent-runtime-version"
 _HOSTING_FILE_ITEM = "token-file"
+_AGENT_USER_ITEM = "agent-user"
+_NO_AGENT_USER = (
+    "FACTORY_AGENT_USER is not set: every agent would run as the factory's user, "
+    "who can read the token file"
+)
 # Any bit for group or others lets a second user read the hosting-service token.
 _GROUP_AND_OTHERS = 0o077
 
@@ -81,6 +86,14 @@ def _token_file_fault(
     if mode & _GROUP_AND_OTHERS:
         return f"the token file has mode {mode:04o}; make it 0600 or 0400"
     return None
+
+
+def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) -> PreflightItem:
+    """Check that no agent would run as the factory's user while a token file is there to read."""
+    token_file = settings.token_file
+    if settings.agent_user is None and token_file is not None and exists(token_file):
+        return PreflightItem(name=_AGENT_USER_ITEM, passed=False, detail=_NO_AGENT_USER)
+    return PreflightItem(name=_AGENT_USER_ITEM, passed=True)
 
 
 class MachineChecks:
