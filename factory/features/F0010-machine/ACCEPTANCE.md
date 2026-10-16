@@ -1,36 +1,26 @@
 ---
-stage: done
-pr: 142
+stage: accept
+pr: 144
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
-stories: [F0010-S0001, F0010-S0002, F0010-S0003, F0010-S0004, F0010-S0005, F0010-S0006, F0010-S0007, F0010-S0008, F0010-S0009, F0010-S0010, F0010-S0011, F0010-S0012, F0010-S0013, F0010-S0014, F0010-S0015, F0010-S0016, F0010-S0017, F0010-S0018, F0010-S0019, F0010-S0020, F0010-S0021, F0010-S0022]
-outcome: accepted
+stories: [F0010-S0001, F0010-S0002, F0010-S0003, F0010-S0004, F0010-S0005, F0010-S0006, F0010-S0007, F0010-S0008, F0010-S0009, F0010-S0010, F0010-S0011, F0010-S0012, F0010-S0013, F0010-S0014, F0010-S0015, F0010-S0016, F0010-S0017, F0010-S0018, F0010-S0019, F0010-S0020, F0010-S0021, F0010-S0022, F0010-S0024]
 ---
 # Acceptance of The machine
 
 ## Verdict
 
-**accepted with drafts**, as a recommendation. This is the second acceptance of the feature. The first was `not accepted` and proposed S0018 to S0022, and all five are archived and do what they promised:
-
-- the README and the guides no longer announce the machine as future work;
-- `factory-run` ends with status 2 and two lines on standard error, not a traceback, when `/state` cannot be written;
-- the shipped settings deny `git add` and `git commit`;
-- the two surviving mutants of the first pass are now killed.
-
-The feature demo is green end to end, `make check` is green, and a new hand mutation pass killed 11 of 12. Two small things remain, each with a draft. One sentence of the operator guide says the first pause is always 30 seconds, while a first tick with activity pauses 15 seconds. I judge that low weight: it misstates a timing, and no operator action depends on it. If the human holds it to be a misleading contradiction, `not accepted` is the verdict for the same report. The other is one surviving mutant on the `sudo:` line rule.
+**accepted**, as a recommendation. This is the third acceptance of F0010. The second proposed two drafts. The human applied S0023 by hand: the operator guide now states the first pause as the code does, and the project guide's git table names its users. S0024 is archived, and its three rows kill the one survivor of the last pass. `make check` is green, the feature demo is green end to end (now with a step for the `sudo:` rule), and a new hand mutation pass killed 12 of 12, including that survivor. No finding is of weight. One draft, S0025, gives an owner to a small duplication that three acceptances noticed and nobody took. The five product points that the first acceptance raised still have no answer; they are listed under section 6 for the human.
 
 ## 1 Scope
 
-None. The table of the first acceptance (scope item → stories → code) still holds, and the five repair stories stayed inside the scope:
+None. The first acceptance's table (scope item → stories → code) still holds, and the second acceptance found S0018 to S0022 inside the scope. Since then, two changes:
 
-- **S0018.** Documentation only: `README.md`, `docs/operator-guide.md`, `docs/project-guide.md`.
-- **S0019.** `_report_the_invalid_settings` in `src/factory/entry/run.py`, under "The boundaries … the run".
-- **S0020.** `claude/settings.json`, under "the settings … each key with an effect". It closes the near-miss the first acceptance found.
-- **S0021 and S0022.** Tests only, in `tests/application/test_scheduler.py` and `tests/adapters/test_claude_runtime_os_user.py` (plus `Step.stdout_before_wait` in `tests/adapters/claude_stand_in.py`, FEATURE decision 37).
+- **S0024.** Tests only: one parametrized test in `tests/adapters/test_claude_runtime_os_user.py` replaces S0014's single refusal test, as FEATURE decision 38 allows. Nothing under `src/` changed. It pins the existing rule "a line that starts with `sudo:`" from the preflight and agent-user scope item.
+- **S0023, applied by hand** (commit `e1b2c24`). It changed one sentence each in `docs/operator-guide.md:44` and `docs/project-guide.md:203`, and no code.
 
-The Goal's conditions are each shown by a test, or, for Docker, root and the second user, by a static test of the files plus the morning observations the operator guide lists. Out of scope stayed out:
+The Goal's conditions are each shown by a test, or, for Docker, root and the second user, by a static test of the files plus the morning observations. Out of scope stayed out:
 
 - no watchdog;
 - no preflight of the project's setup or the token's expiry;
@@ -41,47 +31,33 @@ The Goal's conditions are each shown by a test, or, for Docker, root and the sec
 
 ## 2 Feature demo
 
-**Green.** The walk is the first acceptance's operator walk, run again unchanged, with three sections added for what S0019, S0020 and S0021 built. It covers:
+**Green.** This is the second acceptance's walk, run again unchanged, with one step added for S0024. The walk covers:
 
 - the image's environment and the settings read from it;
 - one instance's loop through `Scheduler`, `RepositoryWaiter`, `CheckoutPreparer` and one `build_tick` tick for the whole run, with `activity` as `activity_tick` applies it;
 - the container's health check after each step.
 
-It runs against:
+It runs against a real bare remote with a human clone, the shipped `claude/` copied into an agent home, the template's pipeline definition, and the production `build_boundaries`, with `FakeHostingService` and `FakeAgentRuntime` in place of the hosting service and `claude -p`. Step 8 uses the production `ClaudeCodeRuntime` with a `sudo` stand-in, a shell script that writes one line to standard error and exits 1.
 
-- a real bare remote with a human clone;
-- the shipped `claude/` copied into the agent home;
-- the template's pipeline definition;
-- the production `build_boundaries`, with `FakeHostingService` given as `hosting` and `FakeAgentRuntime` in place of `claude -p`.
-
-The settings' fixed `/work/checkout` and `/state` are moved into a temporary directory, as the tests do. The script lies outside the repository (`/tmp/f10demo2/demo.py`, the guard refuses other paths). It is the first acceptance's script, which is pasted in that report's section 2, with these lines appended:
+The script is the first acceptance's (pasted in that report's section 2), plus the second acceptance's steps 5 to 7 (pasted in that report's section 2), plus these lines. It lies outside the repository at `/tmp/f10demo3/demo.py`, because the guard refuses other paths:
 
 ```python
-print("== 5. factory-run with a state directory it cannot write ==")
-blocker = tmp / "file"; blocker.write_text("x")
-out, err = io.StringIO(), io.StringIO()
-with redirect_stderr(err), redirect_stdout(out): code = run.main(bad, state_directory=blocker / "state")
-print("   factory-run exit:", code, "| stdout:", out.getvalue().strip()[21:], "| stderr:", err.getvalue().strip().replace(str(tmp), "<tmp>").splitlines())
-
-print("== 6. the loop survives a git error and an OSError in the tick ==")
-from factory.domain.errors import GitError
-errs = [GitError("git fetch origin", 128, "could not read from remote"), OSError("disk full")]
-def failing_tick():
-    raise errs.pop(0)
-sl = []
-logged = io.StringIO()
-with redirect_stdout(logged):
-    Scheduler(prepare=lambda: True, tick=failing_tick, sleep=sl.append, should_stop=lambda: len(sl) >= 2, log=b.log).run()
-print("   sleeps:", sl, "| log:", [l[21:] for l in logged.getvalue().strip().splitlines()])
-
-print("== 7. the shipped settings refuse git add and git commit ==")
-import json
-perm = json.loads((REPO / "claude/settings.json").read_text())["permissions"]
-print("   allowed git:", [p for p in perm["allow"] if "git" in p], "| denied add/commit:", [p for p in perm["deny"] if "add" in p or "commit" in p])
+print("== 8. a sudo refusal is an error only when its line starts with `sudo:` ==")
+from factory.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.domain.errors import AgentRuntimeError
+req = runtime.requests()[-1].model_copy(update={"working_directory": tmp / "work8", "os_user": "agent"})
+(tmp / "work8").mkdir()
+for n, line in enumerate(["sudo: a password is required", "bash: sudo: command not found", "  sudo: a password is required"]):
+    sudo = tmp / f"sudo{n}"; sudo.write_text(f"#!/bin/sh\nprintf '%s\\n' '{line}' >&2\nexit 1\n"); sudo.chmod(0o755)
+    rt = ClaudeCodeRuntime("/bin/false", tmp / f"state8-{n}", sudo_executable=str(sudo))
+    try:
+        result = rt.run(req); print(f"   {line!r:34} -> end reason {result.end_reason}")
+    except AgentRuntimeError as e:
+        print(f"   {line!r:34} -> AgentRuntimeError: {e.detail}")
 ```
 
 ```bash
-PYTHONPATH=tests PYTHONDONTWRITEBYTECODE=1 uv run python /tmp/f10demo2/demo.py 2>&1 | sed "s|/tmp/tmp[a-z0-9_]*|<tmp>|g"
+PYTHONPATH=tests PYTHONDONTWRITEBYTECODE=1 uv run python /tmp/f10demo3/demo.py 2>&1 | sed "s|/tmp/tmp[a-z0-9_]*|<tmp>|g"
 ```
 
 ```text
@@ -97,35 +73,35 @@ git environment: {'GIT_CONFIG_COUNT': '2', 'GIT_CONFIG_KEY_0': 'credential.helpe
    tick 2: event=ask dispatch=handled stopped=None -> activity=True
    sleep 15 s
    -- human pushes a red lint to main --
-2026-10-16T20:09:42Z stop repository main_branch_failing: lint is red on main at 0babef56879c: E501 line too long
+2026-10-16T21:03:23Z stop repository main_branch_failing: lint is red on main at e50d79863f1f: E501 line too long
    tick 3: event=None dispatch=None stopped=main_branch_failing -> activity=False
    sleep 30 s
-   factory-health exit 1: 'main_branch_failing (repository): lint is red on main at 0babef56879c: E501 line too long (since 2026-10-16T20:09:42Z)'
+   factory-health exit 1: 'main_branch_failing (repository): lint is red on main at e50d79863f1f: E501 line too long (since 2026-10-16T21:03:23Z)'
    -- human pushes the fix --
-2026-10-16T20:09:42Z stop cleared main_branch_failing
+2026-10-16T21:03:23Z stop cleared main_branch_failing
    tick 4: event=idle dispatch=handled stopped=None -> activity=False
    sleep 60 s
    factory-health exit 0: 'healthy'
    -- operator's coder.md gains a dead key `skills: [x]` --
-2026-10-16T20:09:42Z stop repository agent_definition_invalid: coder: key not applied by the agent runtime: skills
+2026-10-16T21:03:23Z stop repository agent_definition_invalid: coder: key not applied by the agent runtime: skills
    tick 5: event=None dispatch=None stopped=agent_definition_invalid -> activity=False
    sleep 120 s
-   factory-health exit 1: 'agent_definition_invalid (repository): coder: key not applied by the agent runtime: skills (since 2026-10-16T20:09:42Z)'
+   factory-health exit 1: 'agent_definition_invalid (repository): coder: key not applied by the agent runtime: skills (since 2026-10-16T21:03:23Z)'
    -- coder.md restored; the checkout is deleted --
-2026-10-16T20:09:42Z stop cleared agent_definition_invalid
+2026-10-16T21:03:23Z stop cleared agent_definition_invalid
    tick 6: event=idle dispatch=handled stopped=None -> activity=False
    sleep 120 s
    checkout recloned: True | factory-health exit 0: 'healthy'
 pauses: [15, 15, 30, 60, 120, 120] | agent runs: ['coder', 'intake']
 == 3. a new image build: the machine items run again; sudo missing ==
-2026-10-16T20:09:42Z stop machine preflight_failed: tool:sudo: sudo is not on the PATH; add it to the image
+2026-10-16T21:03:23Z stop machine preflight_failed: tool:sudo: sudo is not on the PATH; add it to the image
    stopped: preflight_failed | agent runs started by the preflight: 1
-   factory-health exit 1: 'preflight_failed (machine): tool:sudo: sudo is not on the PATH; add it to the image (since 2026-10-16T20:09:42Z)'
-2026-10-16T20:09:42Z stop cleared preflight_failed
+   factory-health exit 1: 'preflight_failed (machine): tool:sudo: sudo is not on the PATH; add it to the image (since 2026-10-16T21:03:23Z)'
+2026-10-16T21:03:23Z stop cleared preflight_failed
    with sudo: stopped: None | factory-health exit 0: 'healthy'
 == 4. factory-run and factory-watch with an invalid environment ==
-   factory-run exit: 2 | factory-health exit 1: 'preflight_failed (machine): FACTORY_INSTANCE: missing (since 2026-10-16T20:09:42Z)'
-   log tail: 2026-10-16T20:09:42Z settings invalid: FACTORY_INSTANCE: missing
+   factory-run exit: 2 | factory-health exit 1: 'preflight_failed (machine): FACTORY_INSTANCE: missing (since 2026-10-16T21:03:23Z)'
+   log tail: 2026-10-16T21:03:23Z settings invalid: FACTORY_INSTANCE: missing
    factory-watch exit: 2 | stderr: factory-watch: settings invalid: FACTORY_INSTANCE: missing
 == 5. factory-run with a state directory it cannot write ==
    factory-run exit: 2 | stdout: settings invalid: FACTORY_INSTANCE: missing | stderr: ['factory-run: settings invalid: FACTORY_INSTANCE: missing', "factory-run: cannot write the machine stop: NotADirectoryError: [Errno 20] Not a directory: '<tmp>/file/state'"]
@@ -133,27 +109,25 @@ pauses: [15, 15, 30, 60, 120, 120] | agent runs: ['coder', 'intake']
    sleeps: [30.0, 60.0] | log: ['iteration failed: GitError: git fetch origin failed (exit 128): could not read from remote', 'iteration failed: OSError: disk full']
 == 7. the shipped settings refuse git add and git commit ==
    allowed git: ['Bash(git status*)', 'Bash(git diff*)', 'Bash(git log*)', 'Bash(git show*)', 'Bash(git rev-parse*)'] | denied add/commit: ['Bash(git add*)', 'Bash(git commit*)']
+== 8. a sudo refusal is an error only when its line starts with `sudo:` ==
+   'sudo: a password is required'     -> AgentRuntimeError: <tmp>/sudo0 refused the agent run: sudo: a password is required
+   'bash: sudo: command not found'    -> end reason died
+   '  sudo: a password is required'   -> end reason died
 ```
 
-(The probed commit in the stamp is replaced by a placeholder, so that `make secrets` does not flag a high-entropy string.) What the walk shows:
+The stamp's probed commit is replaced by a placeholder, so that `make secrets` does not flag a high-entropy string. Steps 1 to 7 print what they printed in the second acceptance, apart from time stamps and commits.
 
-- Every step of the first acceptance's walk is unchanged: the preflight and its stamp, runs as `agent` with no token in their environment, a red main as a stop that a fix clears, a dead agent key as a stop, the reclone, the pauses following activity, a new image re-running the machine items, a missing `sudo` as a machine stop.
-- **Step 5 (S0019).** An unwritable state directory now gives status 2, the time-stamped line on standard output and two `factory-run:` lines on standard error.
-- **Step 6 (S0021).** A `GitError` and an `OSError` from the tick are one log line each and count as idle, and the loop goes on.
-- **Step 7 (S0020).** The shipped settings allow only the read git commands and deny `git add` and `git commit`.
+- **Step 2, the pauses.** The first tick ran the intake stage, and the pause after it is 15 seconds. That is what the repaired operator guide now says (`docs/operator-guide.md:44`).
+- **Step 8 (S0024).** A refusal at column 0 is an `AgentRuntimeError` naming its line. A `sudo:` in the middle of a line, or after leading spaces, is the stall `died`.
 
-Note the first pause in step 2: the first tick ran the intake stage, and the pause after it is 15 seconds. The operator guide says the first pause is 30 seconds whatever the tick found (section 5).
-
-The same commands outside the image, from a shell with an empty environment, the README's getting-started path:
+The README's commands outside the image, from a shell with an empty environment:
 
 ```bash
-env -i PATH="$PATH" HOME="$HOME" uv run factory-run; echo "factory-run exit=$?"
-env -i PATH="$PATH" HOME="$HOME" uv run factory-watch; echo "factory-watch exit=$?"
-env -i PATH="$PATH" HOME="$HOME" uv run factory-health; echo "factory-health exit=$?"
+for c in factory-run factory-watch factory-health; do env -i PATH="$PATH" HOME="$HOME" uv run $c; echo "$c exit=$?"; done
 ```
 
 ```text
-2026-10-16T20:09:47Z settings invalid: FACTORY_REPOSITORY_URL: missing
+2026-10-16T21:03:26Z settings invalid: FACTORY_REPOSITORY_URL: missing
 factory-run: settings invalid: FACTORY_REPOSITORY_URL: missing
 factory-run: cannot write the machine stop: PermissionError: [Errno 13] Permission denied: '/state'
 factory-run exit=2
@@ -163,146 +137,113 @@ healthy
 factory-health exit=0
 ```
 
-In the first acceptance, `factory-run` ended here with two tracebacks and status 1. It now does what the README says. `factory-health` prints `healthy` because no health file exists; that is open item 6 under section 6.
+This is unchanged since the second acceptance. `factory-health` prints `healthy` because no health file exists; that is open point 6 under section 6.
 
 ## 3 Mutation score
 
-The project still has no `make mutants` target, so I ran a hand pass again: **11 of 12 killed**. I used a script outside the repository (`/tmp/f10mut/mutate.py`, run with `uv run python -I`). It applies one textual mutant at a time and checks that the target text occurs exactly once. It runs the targeted test modules (`pytest -x -q --no-cov`), and the whole `tests` suite when those stay green, then restores the file from a copy. `git status` afterwards showed only this report.
+The project still has no `make mutants` target, so I ran a hand pass again: **12 of 12 killed**. The script lies outside the repository (`/tmp/f10mut3/mutate.py`, run with `uv run python -I`) and is the second pass's script with a new list. It applies one textual mutant at a time, after checking that the target text occurs exactly once, and runs the targeted tests (`pytest -x -q --no-cov`). If those stay green, it runs the whole `tests` suite. It then restores the file from a copy. Afterwards, `git status` showed only this report.
 
-The pass reruns the two survivors of the first pass (N1, N2). It adds mutants on what S0019 and S0020 built (N3 to N5), and probes rules of the feature that the first pass did not touch (N6 to N12).
+P1 reruns the second pass's survivor. P2 to P12 probe rules of the feature that neither earlier pass touched.
 
 | Mutant | Module | Result |
 |---|---|---|
-| N1 `except Exception` narrowed to `except ValueError` (first pass's M10) | `application/scheduler.py` | killed (targeted) |
-| N2 `and not process.timed_out` dropped from `_sudo_refusal` (first pass's M23) | `adapters/claude_runtime.py` | killed (targeted) |
-| N3 `factory-run` catches `PermissionError` only | `entry/run.py` | killed (targeted) |
-| N4 `factory-run` drops the `settings invalid` line on standard error | `entry/run.py` | killed (targeted) |
-| N5 `Bash(git commit*)` dropped from the deny list | `claude/settings.json` | killed (targeted) |
-| N6 `line.startswith(SUDO_PREFIX)` → `SUDO_PREFIX in line` | `adapters/claude_runtime.py` | **survived** (whole suite) |
-| N7 the token file's owner unchecked | `application/preflight.py` | killed (whole suite) |
-| N8 `TZ` dropped from the agent environment's allow list | `domain/agent_runs.py` | killed (targeted) |
-| N9 `pause_after` accepts `-1` | `application/scheduler.py` | killed (targeted) |
-| N10 `factory-health` prints no stop lines | `entry/health.py` | killed (targeted) |
-| N11 the token file accepts group read (`0o077` → `0o037`) | `application/preflight.py` | killed (whole suite) |
-| N12 the guard allows a path outside the checkout | `adapters/claude_guard.py` | killed (targeted) |
+| P1 `line.startswith(SUDO_PREFIX)` → `SUDO_PREFIX in line` (second pass's N6) | `adapters/claude_runtime.py` | killed (targeted) |
+| P2 any user part of the URL counts as a password (`and ":" in user_information` dropped) | `domain/settings.py` | killed (targeted) |
+| P3 a comma in the repository URL is accepted | `domain/settings.py` | killed (targeted) |
+| P4 the version matches anywhere in the reported text (`words[0] == pinned` → `pinned in reported`) | `domain/preflight.py` | killed (targeted) |
+| P5 the pause caps at 240 seconds | `application/scheduler.py` | killed (targeted) |
+| P6 an `idle` event counts as activity | `entry/run.py` | killed (targeted) |
+| P7 the stamp ignores the image build | `application/preflight.py` | killed (targeted) |
+| P8 the `agent-user` item fails without a token file | `application/preflight.py` | killed (targeted) |
+| P9 the files of an agent run are group-writable (`0o640` → `0o660`) | `adapters/claude_runtime.py` | killed (targeted) |
+| P10 an unapplied agent key passes | `adapters/agent_files.py` | killed (targeted) |
+| P11 a failed `main` is not remembered (`lint` runs again on every tick) | `application/preflight.py` | killed (targeted) |
+| P12 the token file accepts read by others (`0o077` → `0o070`) | `application/preflight.py` | killed (targeted) |
 
-N2 also settles what S0022's coder, reviewer and demo left open: none of them ran the mutation by hand. It fails the first row of S0022's test.
-
-The survivor is the `sudo:` line's column. The rule (`_sudo_line`, the operator guide's "a line that starts `sudo:`") is tested only with lines that start with `sudo:`. Under N6, a dead run whose standard error holds `bash: sudo: command not found`, or an indented `sudo:`, becomes an `AgentRuntimeError` on the error path instead of the stall `died`. I checked the three rows the draft proposes against the current code with a scratch test outside the repository: `sudo: a password is required` → `AgentRuntimeError`, `bash: sudo: command not found` → `died`, `  sudo: a password is required` → `died`. Draft F0010-S0024.
-
-N7 and N11 are killed only outside `tests/application/test_preflight.py` (by the wiring tests). That is no gap, but the token file's rule is pinned far from its module.
+Over the three passes, every rule probed is now pinned by a test. No survivor groups into a missing criterion.
 
 ## 4 What the stories noticed
 
-From the coder, reviewer, documenter and demo entries of S0018 to S0022:
+From the coder, reviewer, documenter and demo entries of S0024:
 
-1. **S0019, coder.** The time-stamped line still reaches standard output before the log file is opened, so it appears even when the state directory cannot be written. Deliberate, and the operator guide says so. No draft.
-2. **S0020, coder.** The project guide's "the read and commit git commands" and the operator guide's denied list were stale. The documenter fixed both in the same story. Closed.
-3. **S0021, documenter.** `make check` ran longer than the tool's 120-second default timeout, and the tool moved it to the background by itself. `CLAUDE.md` forbids background runs. A stage that calls `make check` without a longer timeout risks exactly that. This is for the human (`CLAUDE.md` and the shipped agent texts are outside every write path); listed under 6. No draft.
-4. **S0022, coder, reviewer and demo.** No stage ran the mutation that the story pins: the coder's attempt was refused by the permission layer, and the reviewer reasoned from the code instead. I ran it (N2, killed). Closed.
-5. **S0022, documenter.** The operator guide's `sudo` paragraph did not say that a timed-out call counts as one without a usable reply. S0018 added that clause (`docs/operator-guide.md:90`). Closed.
+1. **S0024, coder.** "Coverage still misses `claude_runtime.py` lines 384 and 408-409." I checked both.
+   - Line 384 is the resume path when the first call has used up the whole `time_limit`. It is a clock-dependent branch, and the runtime has no injected clock to drive it without a sleep.
+   - Lines 408-409 are an `OSError` while writing the run files into an existing state directory.
 
-Still standing from the first acceptance's list, unowned:
+   Both lines are F0001's code, not this feature's, and the module is at 99 %. No draft.
+2. **S0024, reviewer, documenter and demo.** No remarks. The documenter cross-read the rule in `docs/operator-guide.md:90`, `docs/project-guide.md:300` and `docs/decisions.md:293`, and all three agree with the code.
 
-- **The default git identity is written twice.** It is `DEFAULT_GIT_IDENTITY` in `src/factory/domain/settings.py:18` and the default of `GitOptions.identity` in `src/factory/domain/git.py:46`. The two agree. It is a one-line refactor for the next story that touches `domain/git.py`. No draft.
-- **`sudo` is looked up in two ways.** `ClaudeCodeRuntime` starts the fixed `SUDO_EXECUTABLE` (`/usr/bin/sudo`), while `tool:sudo` searches the `PATH`. The `agent-run-probe` goes through the real call, so a mismatch is still seen.
-- **The shipped texts mention `make mutants` "if the project has" it.** This project still does not have it, which is why sections 3 of both acceptances are hand passes.
+Still standing from the earlier acceptances, unowned:
+
+- **The default git identity is written twice.** It is `DEFAULT_GIT_IDENTITY` in `src/factory/domain/settings.py:18` and the literal default of `GitOptions.identity` in `src/factory/domain/git.py:46`. Both earlier acceptances left it "for the next story that touches `domain/git.py`", and no such story came. This is the feature's last chance to give it an owner, so it is draft F0010-S0025.
+- **`sudo` is looked up in two ways.** `ClaudeCodeRuntime` starts the fixed `SUDO_EXECUTABLE` (`/usr/bin/sudo`), while the item `tool:sudo` searches the `PATH`. The `agent-run-probe` goes through the real call, so a mismatch is still found as a machine stop. No draft.
+- **No `make mutants` target.** The shipped texts mention `make mutants` "if the project has" it, and this project still does not. That is why section 3 is a hand pass in all three acceptances. Adding the target means a new dependency (`mutmut`), which is the human's to decide (`CLAUDE.md`, "Not without asking"). Listed under 6.
+
+Closed since the second acceptance: the `make check` timeout. `CLAUDE.md` now gives it the 600000 ms timeout (commit `0a92218`), and this stage ran `make check` in the foreground with that timeout.
 
 ## 5 The documentation as a whole
 
-I read `README.md`, `docs/operator-guide.md` (the sections on settings, start, loop, runtime, image, users, token, health, preflight and stamp) and `docs/project-guide.md`'s runtime, wiring and git sections from the top. I also grepped all three, and `docs/decisions.md`, for announcements of F0010 ("until F0010", "not yet", "yet"). S0018's repairs hold:
+I reread `README.md`, the operator guide's sections on the loop, the preflight and the stamp, the stops table and the tick, and the project guide's git table. I also grepped all four documents for "first pause", "first iteration", "not yet", "until F0010" and "no story names". The S0023 repairs hold:
 
-- `README.md` names six commands and describes `factory-health` as it behaves;
-- the operator guide's login sentence agrees with "The agent runs as a second user";
-- the project guide describes `os_user`, the `sudo -n -u … -- env -i` call, `RUN_FILE_MODE` and the `sudo:` rule.
+- `docs/operator-guide.md:44` states the first pause as the code and the demo's step 2 show: 15 seconds after a tick with activity, 30 after an idle one.
+- `docs/project-guide.md:203` names the users of `fetch` … `push`, including `clone` for the checkout preparer.
 
-The remaining "not yet" sentences are about the real container and the real build, which are indeed not observed.
+The remaining "not yet" sentences (`README.md:3`, `docs/operator-guide.md:3` and `:134`) are about the real container and its build, which are indeed not observed. Every example I ran gave what the docs say: the README's three commands outside the image, the operator guide's settings and pauses through the demo, and S0024's demo command (12 tests pass, as its Demo expects).
 
-Two findings:
-
-- **`docs/operator-guide.md:44`, "The loop and its pauses".** "The first iteration is idle whatever the tick found, so the first pause is 30 seconds." This contradicts the code. `Scheduler.run` and `activity_tick` treat the first iteration like any other, and the demo's first tick ran a stage and paused 15 seconds. A direct call shows both sides:
-
-  ```bash
-  uv run python -c "
-  from factory.application.scheduler import Scheduler
-  for active in (True, False):
-      sleeps = []
-      Scheduler(prepare=lambda: True, tick=lambda: active, sleep=sleeps.append, should_stop=lambda: len(sleeps) >= 1, log=None).run()
-      print(active, sleeps)
-  "
-  ```
-
-  ```text
-  True [15.0]
-  False [30.0]
-  ```
-
-  The sentence comes from S0004's criterion 9. Its remote has nothing to do, so its tick is idle, and its parenthesis "whatever the tick found" describes that setup; the documenter took it for a rule. It is a timing misstated in the operator guide, and no operator action depends on it. Draft F0010-S0023.
-- **`docs/project-guide.md:203`.** The git wrapper's table row for `fetch` … `push` still says "no story names a single user yet". The tick, the stages, the claim and the checkout preparer use them. This is stale wording from F0001, folded into draft F0010-S0023.
-
-No example in the docs failed when I ran it. I ran the README's three commands outside the image (section 2), the operator guide's settings through the demo, and the S0018 and S0019 demo commands as their stories give them.
+One remark, no finding: `docs/decisions.md:275` (S0009) ends with "Open: the preflight does not fetch, and a `main_branch_failing` stop stays when the machine's items fail; the tick story decides both". The tick story's entry (`docs/decisions.md:279`, S0010) decides the first part: the tick fetches before the preflight. It does not mention the second part. The second part is open point 5 below, so the sentence is true as history, and the decision log is the place where the human's answer would go. No draft.
 
 ## 6 Decisions taken for the human
 
-`FEATURE.md` lists 37 decisions, and the code contradicts none of them. To accept or revisit:
+`FEATURE.md` lists 38 decisions, and the code contradicts none of them. To accept or revisit:
 
 1. **Decisions 1 to 36.** Accept as recorded. Decision 30 (the `time_limit` under `sudo`) is still open, and neither repair is built. It waits for the morning observation.
-2. **Decision 37.** The leave for the two test changes of S0020 and S0022 was "recorded by the session for the human, for the human to confirm". Both changes were made exactly as described: S0020 changed only the two lists of `SETTINGS`, and S0022 changed only the `Step` field. Confirm.
+2. **Decisions 37 and 38.** Each was "recorded by the session for the human, for the human to confirm". Both test changes were made exactly as described. For 38, S0024's tester replaced only `test_a_sudo_refusal_is_a_runtime_error_naming_its_line`, with one parametrized test whose first row is its case, and nothing else in the file changed (`git diff b7eed89..HEAD -- tests/`). Confirm both.
 
-The first acceptance's open points have had no answer in any log since. Each stands as built until the human says otherwise:
+The open points of the first acceptance, which the night log of 2026-10-16 lists "for the morning" and no log has answered since. Each stands as built until the human says otherwise:
 
-3. **The token file's default lives only in the image's `ENV`, not in `InstanceSettings`.** Accept, or move it into the settings.
-4. **The agent can rewrite `/home/agent/.claude`** (decision 21). That includes the agent files and `settings.json` that the loader reads on every tick, so a run can widen later runs' tools, budget or permissions until the container restarts. Revisit whether that waits for v2.
-5. **A standing `main_branch_failing` stays while the machine items fail**, even if `main` was fixed meanwhile.
+3. **The token file's default lives only in the image's `ENV`** (`image/Dockerfile:39`), not in `InstanceSettings`. Accept, or move it into the settings.
+4. **The agent can rewrite `/home/agent/.claude`** (decision 21). That includes the agent files and `settings.json` that the loader reads on every tick, so one run can widen the tools, budget or permissions of later runs until the container restarts. Revisit whether that waits for v2.
+5. **A standing `main_branch_failing` stays while the machine items fail**, even if `main` was fixed meanwhile (see also `docs/decisions.md:275`).
 6. **A missing health file reads `healthy`.** Section 2 shows it outside the image: `factory-run` ends with status 2 while `factory-health` says `healthy`.
-7. **The template's write paths.** The coder has `src/*` only, and neither coder nor tester has `{work_item}`.
-8. **New: `make check` takes more than 120 seconds here** (section 4, item 3). Consider a sentence in `CLAUDE.md` or the shipped agent texts telling a stage to give the command a longer timeout, so that the tool does not move it to the background against `CLAUDE.md`'s rule.
+7. **The template's write paths.** The coder has `src/*` only, and neither coder nor tester has `{work_item}` (`template/factory/pipeline.yml:11-12`).
 
-Answers in the logs of S0018 to S0022: none. Each of the five ran without a question.
+New in this acceptance:
+
+8. **A `make mutants` target.** It needs `mutmut` as a development dependency, which is the human's to allow. Without it, every feature acceptance runs a hand pass like section 3's.
+
+Answers in S0024's log: none. It ran without a question.
 
 ## 7 The slow checks
 
 None beyond `make check`, which was green when I started and is green now (coverage 99.54 %). The project has no `make mutants` target, no image scan and no SBOM target. The morning observations are still unobserved:
 
-- the image build, which needs the human's pins first: the base image digest and the eight Debian versions are placeholders (decision 6);
+- the image build, which needs the human's pins first: the base image digest and the eight Debian package versions are placeholders (decision 6);
 - a running container that `docker compose ps` reports healthy;
 - the agent run as `agent`;
 - the umask of agent-made files;
-- the `time_limit` under `sudo`.
+- the `time_limit` under `sudo` (decision 30).
 
 ## 8 Cost
 
-165 runs, 494.4 minutes and $45.75 for 22 stories. The first 17 cost 135 runs, 405.4 minutes and $41.30 (see the first acceptance). The five repair stories cost 30 runs, 89.0 minutes and $4.45 together:
+171 runs, 505.9 minutes and $46.33 for 23 stories. The second acceptance counted 165 runs, 494.4 minutes and $45.75 for 22, so S0024 cost 6 runs, 11.5 minutes and $0.58 (its log: 29 turns). It went through in the minimum six runs, with no question and no rework, and it cost less than each of the five repairs before it ($0.73 to $1.26). Nothing stands out.
 
-| Story | Runs | Minutes | Dollars |
-|---|---|---|---|
-| S0018 | 6 | 11.0 | 0.82 |
-| S0019 | 6 | 19.7 | 1.26 |
-| S0020 | 6 | 32.0 | 0.88 |
-| S0021 | 6 | 13.9 | 0.73 |
-| S0022 | 6 | 12.4 | 0.76 |
-
-Each repair went through in the minimum six runs, with no question and no rework, at a third of the earlier stories' average cost ($0.89 against $2.43). Only S0020 stands out, for time: 32 minutes for two list edits in a data file. Its log does not say why. Its tests stage was red as it should be, and none of its entries reports a retry.
+For scale, the acceptances themselves now cost more than the repairs they propose. The second acceptance's own log entry says 2 runs, 58.7 minutes and $6.75, against $0.58 for S0024. The night-log row for that acceptance (`docs/runs/2026-10-12-overnight/night-log.md`) says "1 run, 20 minutes, $2.02". The two figures disagree; the human's file is the one to check.
 
 ## Proposed stories
 
-- `drafts/F0010-S0023-the-first-pause-in-the-operator-guide.md`: the operator guide states the first pause as the code does (15 seconds after a first tick with activity, 30 after an idle one), and the project guide's git table loses "no story names a single user yet". Documentation only.
-- `drafts/F0010-S0024-a-sudo-line-starts-at-column-0.md`: pins the refused side of "a line that starts with `sudo:`" with a mid-line and an indented row beside the refusal row, which kills the surviving mutant N6. Tests only.
+- `drafts/F0010-S0025-one-default-git-identity.md`: the default commit identity `factory <factory@noreply.invalid>` becomes one constant in `factory.domain.git`, which `GitOptions` and the settings both use, with a source search that finds the email literal once. A one-line refactor that three acceptances noticed and nobody owned. No behaviour changes.
 
 ## Log (append only)
 
-1. acceptor: accepted with drafts; 2 drafts proposed; make mutants 11/12 (hand pass: the project has no `make mutants` target)
+1. acceptor: accepted; 1 draft proposed; make mutants 12/12 (hand pass: the project has no `make mutants` target)
 
-   This is the second acceptance of F0010. The five repair stories the first one proposed (S0018 to S0022) are archived and work. `make check` was green when I started and is green now (coverage 99.54 %). I changed nothing under `src/`, `tests/` or `docs/`. Every mutant was restored from a copy, and `git status` shows only this report and `drafts/`. In the pasted demo output, the stamp's 40-character commit is replaced by a placeholder so that `make secrets` does not flag it.
+   This is the third acceptance of F0010. Since the second, the human applied S0023 by hand and S0024 was archived. `make check` was green when I started and is green now (coverage 99.54 %). I changed nothing under `src/`, `tests/` or `docs/`. Every mutant was restored from a copy, and `git status` shows only this report and `drafts/`.
 
-   The verdict is a recommendation. One operator-guide sentence contradicts the code: it says the first pause is always 30 seconds, but it is 15 after a first tick with activity. I judged it low weight because no operator action depends on it. If the human counts it as misleading, `not accepted` fits the same report.
-
-   1. Scope: no finding. S0018 to S0022 stayed inside the scope, and out-of-scope items stayed out.
-   2. Feature demo: green. The first acceptance's walk ran again unchanged, plus three new steps: an unwritable `/state` gives status 2 and two lines on stderr (S0019), a `GitError` or `OSError` in the tick counts as idle (S0021), and the settings deny `git add` and `git commit` (S0020). Run with an empty environment, `factory-run` now ends with status 2, not tracebacks.
-   3. Mutation: 11 of 12 killed. The first pass's survivors (M10, M23) are now killed, and so are the mutants on S0019 and S0020. One survivor: `startswith("sudo:")` → `"sudo:" in line` in `_sudo_line` (S0024).
-   4. Noticed by the stories: the S0018 to S0022 items are closed. I ran the mutation S0022 left open (killed). `make check` takes over 120 s and was once moved to the background by the tool. Still standing from the first acceptance: two copies of the default git identity, and two ways of finding `sudo`.
-   5. Docs: S0018's repairs hold. `docs/operator-guide.md:44`'s "first iteration is idle whatever the tick found, so the first pause is 30 seconds" contradicts the code. Also, `docs/project-guide.md:203` still says "no story names a single user yet". Both go to S0023.
-   6. Decisions: the 37 FEATURE decisions, with decision 30 still open and decision 37 to confirm. Five open points from the first acceptance were never answered: the token default, the agent can rewrite its agent home, the standing `main_branch_failing`, a missing health file reads healthy, and the template's write paths. New: the `make check` timeout guidance.
+   1. Scope: no finding. S0024 is tests only and pins the existing `sudo:` rule. S0023 repaired two docs sentences. Out-of-scope items stayed out.
+   2. Feature demo: green. The second acceptance's walk ran again unchanged. A new step 8 runs the production `ClaudeCodeRuntime` with a `sudo` stand-in: a refusal line at column 0 raises `AgentRuntimeError`, while a mid-line or indented `sudo:` gives the stall `died`. The README's commands in an empty environment behave as before: `factory-run` and `factory-watch` exit 2, and `factory-health` prints `healthy`.
+   3. Mutation: 12 of 12 killed. The second pass's survivor (N6, `startswith` → `in`) is now killed. Eleven new mutants were all killed: the URL password and comma rules, the version match, the 120-second pause cap, idle versus activity, the stamp's image key, the `agent-user` item, the run-file mode, unapplied agent keys, the remembered red `main`, and the token file mode.
+   4. Noticed: S0024's coder left two lines of `claude_runtime.py` uncovered (384, 408-409). Both are F0001 code, so no draft. The doubled default git identity has stood through three acceptances and is now draft S0025. The two ways of finding `sudo` remain, with no draft. The `make check` timeout is closed by `CLAUDE.md`.
+   5. Docs: the S0023 repairs hold, and every example I ran matches. One remark, not a finding: the "Open:" sentence at `docs/decisions.md:275` is only half answered by the S0010 entry; the other half is open point 5.
+   6. Decisions: 38 in `FEATURE.md`, none contradicted by the code. Decision 30 is still open. Decisions 37 and 38 are to confirm; I checked that both test changes were made exactly as described. Five open points from the first acceptance are still unanswered. New point: a `make mutants` target, which needs `mutmut`, the human's dependency call.
    7. Slow checks: none beyond `make check`. The morning observations and the image pins are still pending.
-   8. Cost: 165 runs, 494.4 min, $45.75 in total. The five repairs took 30 runs, 89 min and $4.45, each in six runs with no rework. S0020 took 32 min for two list edits, and its log does not say why.
-2. done (pull request merged); cost: 2 runs, 58.7 min, 130 turns, 302k tokens in (12816k more from cache), 88k out, $6.75
+   8. Cost: 171 runs, 505.9 min and $46.33 in total. S0024 took 6 runs, 11.5 min and $0.58, nothing stands out. The second acceptance's own cost disagrees between its log entry ($6.75) and the night log ($2.02).
