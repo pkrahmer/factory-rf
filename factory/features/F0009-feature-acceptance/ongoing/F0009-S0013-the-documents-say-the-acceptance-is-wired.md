@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 116
 blocked: null
 comments_seen: 0
@@ -57,3 +57,10 @@ Expect: at least one line from the first paragraph that names the feature accept
    - Demo: both commands are runnable. The first grep -c prints a count and the second prints per-file counts. Both Expect lines can be checked against that output. The operator guide anchor "When a feature acceptance is due" exists (docs/operator-guide.md line 423).
    - Architecture: documentation only, no layer is touched. The README sentence is to use the glossary's names.
    - Scope: this is within F0009 (it is listed in FEATURE.md as S0013, proposed by the feature acceptance) and not in its Out of scope. FEATURE.md decision 5 says the "acceptance_due" handlers are registered. The story is consistent with that.
+3. tester: no tests written, as the Assignment says. This story only changes documentation and the human chose that the tester writes no tests (intake confirmed this).
+   - criterion 1 (make check stays green): no test of its own. The factory's checks cover it. `make lint` is green with the tree unchanged.
+   - criterion 2 (docs): the documenter checks this with the two greps and by reading the paragraphs the criterion names. It is not an executable test in `tests/`. A test that greps the docs would put a ticket's wording into the test suite, and I decided against that.
+   Files created: none. Modules the test runner could not import: none, because no new tests exist. The coder has nothing to build and can hand straight on.
+
+   `make lint`: lint: green
+   `make test`: test: green
