@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 119
 blocked: null
 comments_seen: 0
 round: 0
@@ -104,3 +104,10 @@ Expect: one line, `factory Ann`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.errors.SettingsInvalid`, `factory.domain.settings` with its constants, `InstanceSettings` and `read_settings`). Defaults, stripping, fallback per half and the image-file reader are all stated.
+   - Criteria: each fits one test function (the multi-case ones are parametrized rows). Every rule has a failing-side criterion: required variables (2), URL comma/space (3), password (15, with accepted forms), instance name (4), identity fallback (8), image file (10), fault order (13), closed model (12). The tests need no further decisions.
+   - Demo: both commands are runnable with `uv run python -c` and each `Expect:` line is an exact output.
+   - Architecture: pure settings and an error in `factory.domain`; the reader is a parameter, so there is no I/O in the domain, as `CLAUDE.md` requires. The story adds no dependency.
+   - Scope: within F0010's first scope bullet and decisions 1, 2, 3, 7, 11 and 35. It builds nothing from the later stories.
+   - Not asked: the story does not say what happens when `FACTORY_IMAGE_ID_FILE` is set but blank. This is a corner the Interface does not state as a rule, so I did not ask.
