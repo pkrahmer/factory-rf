@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 129
 blocked: null
 comments_seen: 0
@@ -146,3 +146,27 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
    Noticed, not touched: `run_watch` returns the same exit code 1 for both refusals, which matches the Interface. The docs criterion (20) is left for the documenter. The `Assignment` is unchanged.
 
    `make check`: check: green
+5. reviewer: no findings.
+
+   Checked against the ticket and `git diff main...HEAD -- . ':!factory'`. I did not use the ticket's own account of the work.
+
+   - Acceptance criteria: criteria 1–18 each have a test that checks what it is named after:
+     - Criteria 3 and 4 are parametrized, one row per dead key plus `colour` and `Model`.
+     - Criteria 6 and 7 are rows of one parametrized test, because they are one rule.
+     - Criterion 9's roles are ordered against the alphabet.
+     - Criterion 14 starts from an existing agent stop, so the test covers both "none raised" and "none cleared".
+     - Criterion 16 checks that no run is requested, no event is returned, no dispatch happens and no pull request is opened.
+
+     Every rule in the Interface has its failing side tested:
+     - case-sensitivity: `Model`;
+     - check order: no `model`, and `budget_usd: 0`;
+     - other checks come first: criterion 10;
+     - another ref touches no stop: criterion 14.
+
+     The deleted `colour` test is the one the Assignment names. The coder's entry reports `make check` green (99.53 %).
+   - Architecture: the constants are in domain, the key check is in the adapter reader, and the stop handling is in the application loader, the one place that raises and clears the definition's stops. The tick and watch only turn the error into their outcome. Layer direction holds and nothing new wires.
+   - Security: no suppression markers. The agent name is still validated before any path is built. Keys are stringified by the YAML handler, so `key` stays a `str`.
+   - Quality: `_refuse_unapplied_keys` replaces the private tuple with `APPLIED_AGENT_KEYS`. `_load_definition` and `_check_agent_files` each own one stop. `_stop` is generalized over the reason rather than copied. The comments explain why, and the docstrings of `PipelineLoader` and `load` were updated for the second stop. `write_agent` in `tests/git_support.py` is reused by `install_agents`, not duplicated.
+
+     A side effect worth knowing: any `AgentDefinitionInvalid` met at load (no front matter, bad budget) now raises `agent_definition_invalid`, not only an unapplied key. This matches the Interface ("an `AgentDefinitionInvalid` it meets is raised to the caller").
+   - Ticket hygiene: the coder's entry names the main decision (a separate agent-file step after the definition step) and the rejected alternative (wrapping the error in `PipelineDefinitionInvalid`). The Assignment matches what was built. Criterion 20 still describes what the documenter must write.
