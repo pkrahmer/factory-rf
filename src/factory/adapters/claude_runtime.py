@@ -107,9 +107,6 @@ class _RunFiles(BaseModel):
             hooks=state_directory / f"hooks-{session}.json",
         )
 
-    def written(self) -> list[Path]:
-        return [path for path in (self.instructions, self.guard, self.hooks) if path.exists()]
-
     def remove(self) -> None:
         for path in (self.instructions, self.guard, self.hooks):
             path.unlink(missing_ok=True)
@@ -290,6 +287,14 @@ def _sudo_line(stderr: str) -> str | None:
     return None
 
 
+def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
+    if request.os_user is None or process.timed_out:
+        return None
+    if _parse_reply(process.stdout) is not None:
+        return None
+    return _sudo_line(process.stderr)
+
+
 def _first_word(output: str) -> str | None:
     for line in output.splitlines():
         if line.strip():
@@ -393,11 +398,12 @@ class ClaudeCodeRuntime(AgentRuntime):
 
     def _write_files(self, request: AgentRunRequest, files: _RunFiles) -> None:
         try:
-            files.instructions.write_text(request.agent.instructions, encoding="utf-8")
+            written = {files.instructions: request.agent.instructions}
             if request.guard is not None:
-                files.guard.write_text(request.guard.model_dump_json(), encoding="utf-8")
-                files.hooks.write_text(_hook_settings(files.guard), encoding="utf-8")
-            for path in files.written():
+                written[files.guard] = request.guard.model_dump_json()
+                written[files.hooks] = _hook_settings(files.guard)
+            for path, text in written.items():
+                path.write_text(text, encoding="utf-8")
                 path.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise self._state_error(exc) from exc
@@ -405,30 +411,31 @@ class ClaudeCodeRuntime(AgentRuntime):
     def _call(
         self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
     ) -> ProcessResult:
+        process = self._start(self._process_request(request, arguments, time_limit))
+        refusal = _sudo_refusal(request, process)
+        if refusal is not None:
+            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
+            raise AgentRuntimeError(f"{self._sudo_executable} refused the agent run: {refusal}")
+        return process
+
+    def _process_request(
+        self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
+    ) -> ProcessRequest:
         environment = {**request.environment, **SWITCHES}
         argv = [self._executable, *arguments]
         if request.os_user is None:
-            return self._start(
-                ProcessRequest(
-                    argv=argv, cwd=request.working_directory, env=environment, time_limit=time_limit
-                )
+            return ProcessRequest(
+                argv=argv, cwd=request.working_directory, env=environment, time_limit=time_limit
             )
         # `env -i` drops whatever `sudo` keeps, so the agent sees the request's environment alone.
         assignments = [f"{name}={value}" for name, value in environment.items()]
         sudo = [self._sudo_executable, "-n", "-u", request.os_user, "--", "env", "-i"]
-        process = self._start(
-            ProcessRequest(
-                argv=[*sudo, *assignments, *argv],
-                cwd=request.working_directory,
-                env={},
-                time_limit=time_limit,
-            )
+        return ProcessRequest(
+            argv=[*sudo, *assignments, *argv],
+            cwd=request.working_directory,
+            env={},
+            time_limit=time_limit,
         )
-        refusal = None if process.timed_out else _sudo_line(process.stderr)
-        if refusal is not None and _parse_reply(process.stdout) is None:
-            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
-            raise AgentRuntimeError(f"{self._sudo_executable} refused the agent run: {refusal}")
-        return process
 
     def _start(self, process_request: ProcessRequest) -> ProcessResult:
         try:
