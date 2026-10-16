@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 125
 blocked: null
 comments_seen: 0
@@ -271,3 +271,4 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
    Met: the three log lines each start with a `YYYY-MM-DDTHH:MM:SSZ` time stamp and read as criterion 15 says. Then comes `stub -m factory.entry.run` (criterion 21) and the last line is `2750` (criterion 19).
 
    Not shown by the demo (the tests cover these): the waiter criteria 6–12, the entrypoint's error paths (17) and the working directory (20). As the documenter noted, a real container under `docker compose ps` is still the morning observation.
+8. done (pull request merged); cost: 6 runs, 20.1 min, 64 turns, 225k tokens in (2093k more from cache), 39k out, $2.68
