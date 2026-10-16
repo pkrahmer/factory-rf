@@ -1,7 +1,7 @@
 ---
 stage: tests
 pr: 122
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -190,3 +190,16 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
    1. In `tests/entry/test_run.py::test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls`, install the agents with `install_agents` and queue an agent runtime run that raises inside the run handler. That way each of the two ticks dispatches and `tick.status` counts the error twice. The loader stays as it is.
    2. In `tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance`, read the instance `factory-7` from the claim commit, the first factory commit on the work item's branch after the start, not from the branch tip, where the completed stage has already released its claim. The instance check stays.
    The implementation in ba63be9 stays as it is. The refactor step and the final `make check` come once the ticket returns from the tester.
+7. tester: tester (approved test change): I made both changes from entry 5, but change 1 does not give the result the criterion expects. This replaces my earlier `doing`, which I sent before `make test` finished.
+
+   Changes made (nothing else touched):
+   1. tests/entry/test_run.py::test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls: the test now installs the agents with `install_agents` for the roles of `PIPELINE_YAML`. It queues two `ScriptedRun`s that each write to `../outside.md`, so `FakeAgentRuntime.run` raises `AgentRuntimeError` inside the run handler. New `COMPLETED` constant and its imports.
+   2. tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance: the test now reads the work item at the claim commit, the first commit of `git rev-list --reverse main..<branch>` in the bare remote, and still checks `claim.instance == "factory-7"`. `run_git` is now imported. This test was not among the failures.
+
+   `make lint`: green. `make test`: the only failure it reported is change 1. Run on its own, that test fails at `[entry] = tick.status.errors` with `ValueError: too many values to unpack (expected 1)`. The two ticks leave more than one error entry, not one entry with count 2. Probable cause, not verified: the first tick pushes its claim before the run raises, so the second tick fails at a different point and gets a different error key.
+
+   Question: how should criterion 5's test get the same error twice?
+   (a) Keep the setup and check that the error count across all entries reaches 2, without requiring a single entry.
+   (b) Build the `Tick` with a handler factory whose run handler always raises the same error, as tests/application/test_tick.py does with `Failing`. Nothing is pushed, so both ticks hit the same error key.
+   (c) Keep the single-entry check and change the code so that a claim this instance already holds leads to the same error on the second tick.
+   I recommend (b): it tests exactly what criterion 5 says (one `Tick` kept across calls, and its error count growing) without depending on how the claim behaves.

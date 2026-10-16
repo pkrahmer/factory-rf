@@ -4,17 +4,19 @@ import re
 import signal
 import threading
 from collections.abc import Callable, Iterator, Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
 import factory.entry.run as run_module
 from factory.adapters.clock import ManualClock
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import DispatchOutcome
 from factory.application.tick import Tick, TickOutcome
+from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import Event, EventKind
 from factory.domain.settings import InstanceSettings, read_settings
@@ -29,7 +31,7 @@ from factory.entry.run import (
     run_until_stopped,
 )
 from factory.entry.wiring import handler_factory, health_store
-from git_support import run_git
+from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -65,6 +67,9 @@ STATE = "a" * 40
 STAMP = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ "
 HOSTED_URL = "https://github.com/example/project.git"
 READ_FAULT = "cannot read /run/secrets/hosting-token"
+COMPLETED = AgentRunResult(
+    end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
+)
 
 
 class Sleeps:
@@ -207,11 +212,18 @@ def test_only_a_handled_event_that_is_not_idle_counts_as_activity(
 
 
 def test_the_activity_tick_keeps_one_tick_and_its_error_counts_across_calls(
-    boundaries: Boundaries, human: HumanClone
+    boundaries: Boundaries,
+    human: HumanClone,
+    *,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
 ) -> None:
-    # No agent definitions are installed, so the handler fails before it pushes a claim.
+    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
+    # A write outside the working directory makes each queued run raise inside the handler.
+    for _ in range(2):
+        agent_runtime.queue(ScriptedRun(writes={"../outside.md": "x"}, result=COMPLETED))
     tick = Tick(boundaries, INSTANCE, handler_factory(boundaries, INSTANCE, ENVIRONMENT))
     serve = activity_tick(tick)
 

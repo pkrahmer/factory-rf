@@ -13,7 +13,7 @@ from factory.domain.errors import SettingsInvalid
 from factory.domain.identifiers import branch_name
 from factory.domain.settings import InstanceSettings, read_settings
 from factory.entry.wiring import boundaries_from_environment, build_tick, production_environment
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
 
 INSTANCE = "factory-7"
@@ -102,9 +102,11 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     [request] = agent_runtime.requests()
     assert request.environment == production_environment()
     assert build_tick(boundaries, settings) is not build_tick(boundaries, settings)
-    commit = remote_commit(remote, branch_name(WORK_ITEM))
-    assert commit is not None
-    text = boundaries.git.show_file(commit, PATH)
+    branch = branch_name(WORK_ITEM)
+    assert remote_commit(remote, branch) is not None
+    # The completed stage released its claim at the tip; the claim commit comes first after main.
+    claim_commit = run_git(remote, "rev-list", "--reverse", f"main..{branch}").split()[0]
+    text = boundaries.git.show_file(claim_commit, PATH)
     assert text is not None
     state = boundaries.work_item_reader.parse(text).state
     assert state is not None
