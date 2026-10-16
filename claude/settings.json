@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read", "Edit", "Write", "Glob", "Grep",
+      "Bash(uv run *)", "Bash(uv sync*)", "Bash(make *)", "Bash(factory-check-story *)",
+      "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)",
+      "Bash(git add *)", "Bash(git commit *)", "Bash(git rev-parse*)"
+    ],
+    "deny": [
+      "Bash(git push*)", "Bash(git checkout*)", "Bash(git switch*)", "Bash(git merge*)",
+      "Bash(git pull*)", "Bash(git rebase*)", "Bash(git reset*)", "Bash(git branch -D*)",
+      "Bash(gh *)", "Bash(rm -rf *)"
+    ]
+  },
+  "env": {"CLAUDE_CODE_FORK_SUBAGENT": "0"}
+}
