@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 135
 blocked: null
 comments_seen: 0
@@ -132,3 +132,26 @@ Expect: one line, `0`.
    - Demo: both commands are runnable with `uv run python -c`. Each `Expect:` line is checkable: seven lines with the heading lists, then `0`.
    - Architecture: the story only touches `claude/agents/` and a root-level test file, which CLAUDE.md allows for modules outside the layers. It adds no dependency and no code in `src/`.
    - Scope: it is within F0010's scope ("shipped agents with v1's role and stage texts renamed ... v1.1's own lessons", decisions 16, 32 and 36). It stays out of the skill files and the story forms.
+3. tester: Wrote the red tests for the agent texts in one new file, `tests/test_claude_agent_texts.py`. It uses `tests/shipped_agents.py` (`SHIPPED_AGENTS`, `front_matter_and_body`, `ROOT`) and reads the decisions from `template/factory/pipeline.yml` through `RuamelPipelineDefinitionReader`. `tests/test_claude_files.py` is unchanged.
+
+   - criterion 1: tests/test_claude_agent_texts.py::test_body_still_opens_with_the_boundary_and_the_entry_sentence (one case per agent)
+   - criterion 2: tests/test_claude_agent_texts.py::test_body_has_rules_role_stage_and_lessons_sections_in_order (every line starting with `## ` in the body must equal the expected list; there is no `## Role` for intake and smoke-tester)
+   - criterion 3: tests/test_claude_agent_texts.py::test_body_never_says_stuck (`\bstuck\b`, any case)
+   - criterion 4: tests/test_claude_agent_texts.py::test_body_uses_no_word_the_rename_table_replaces (whole words in any case, with a plural only for `outcome` as the criterion says; plus the substrings `Assignment` and `(append only)`)
+   - criterion 5: tests/test_claude_agent_texts.py::test_body_names_every_decision_of_its_stage_in_inline_code (the role's stage `next` from the template plus `question`, each in backticks)
+   - criterion 6: tests/test_claude_agent_texts.py::test_rules_section_carries_the_pipeline_rules_with_the_decision_contract (agent × the three anchors, looked for in the `## Rules` section)
+   - criterion 7: tests/test_claude_agent_texts.py::test_rules_section_leaves_commit_push_and_move_to_the_factory (agent × the two anchors, in `## Rules`)
+   - criterion 8: tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role (one case per role; the anchors are looked for in `## Role` and `## Stage` together)
+   - criterion 9: tests/test_claude_agent_texts.py::test_acceptance_reviewer_names_the_report_sections_and_recommendations (the five phrases are matched as plain text, because the criterion does not require inline code here, unlike criterion 5)
+   - criterion 10: tests/test_claude_agent_texts.py::test_acceptance_reviewer_writes_proposed_stories_into_the_backlog
+   - criterion 11: tests/test_claude_agent_texts.py::test_smoke_tester_compares_with_expect_and_records_trimmed_output
+   - criterion 12: tests/test_claude_agent_texts.py::test_coder_sends_a_wrong_test_back_to_the_tester
+   - criterion 13: tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets (one case per role; `## Lessons` must be the last heading, and its non-blank lines must equal the Interface's bullets verbatim and in order)
+   - criteria 14 and 15: these are not tested here; they are the `make check` gate and the documenter's work.
+
+   Run: `make test` fails as intended. The new tests fail on assertions because the bodies do not yet have the sections. There is no import error, since every module they import already exists. `make lint` passes.
+
+   Open: nothing. Two reading choices are noted above: plurals for `outcome` only in criterion 4, and plain text in criterion 9. Both follow the criteria's wording, and the smoke-test command still bans plurals of every word.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[acceptance-reviewer]
