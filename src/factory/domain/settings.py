@@ -21,6 +21,7 @@ IMAGE_ID_FILE_VARIABLE = "FACTORY_IMAGE_ID_FILE"
 AGENT_HOME_DEFAULT = Path("/home/agent/.claude")
 AGENT_HOME_VARIABLE = "FACTORY_CLAUDE_HOME"
 CLAUDE_EXECUTABLE_VARIABLE = "FACTORY_CLAUDE"
+CLAUDE_VERSION_VARIABLE = "FACTORY_CLAUDE_VERSION"
 # No word `token` in the name: ruff's S105 takes a string assigned to such a name for a secret.
 CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
 RUNS_DIRECTORY_NAME = "runs"
@@ -44,6 +45,7 @@ class InstanceSettings(BaseModel):
     agent_home: Path = AGENT_HOME_DEFAULT
     claude_executable: str = _CLAUDE_EXECUTABLE_DEFAULT
     token_file: Path | None = None
+    pinned_agent_version: str | None = None
 
 
 def read_settings(
@@ -62,6 +64,7 @@ def read_settings(
         claude_executable=_optional(environ, CLAUDE_EXECUTABLE_VARIABLE)
         or _CLAUDE_EXECUTABLE_DEFAULT,
         token_file=_optional_path(environ, CREDENTIAL_FILE_VARIABLE),
+        pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
     )
 
 
