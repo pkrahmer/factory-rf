@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 113
 blocked: null
 comments_seen: 4
@@ -186,3 +186,16 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
     `make check`: green (coverage 99.53 %).
 
     `make check`: check: green
+17. demo: Demo run from the repository root: one command, exactly as written in `## Demo`.
+
+    Command 1 (`uv run python -c "…"`, evaluating a merged acceptance at `approval` and then at `acceptance`):
+
+    ```
+    merged:F0001-A0001
+    run:F0001-A0001
+    ```
+    Exit status 0. This meets its `Expect:` line: two lines, `merged:F0001-A0001` and then `run:F0001-A0001`.
+
+    Checked against the acceptance criteria. Criterion 2 says a merged acceptance at `approval` produces the `merged` event, and it did. Criteria 1 and 5 say a merged acceptance at `acceptance` produces the `run` event and never `reject`, and it did. The demo contradicts no other criterion. The multi-tick walks in criteria 3, 4 and 6 to 13 are covered by the tester's tests, not by this demo. The factory runs `make check` (criterion 14) after this stage. Criterion 15 (docs) is the documenter's.
+
+    No findings.
