@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 137
 blocked: null
 comments_seen: 0
@@ -94,3 +94,12 @@ Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `statu
       - Security: nothing new. The second stderr line carries the `OSError`'s own message (the state path). The Interface asks for that, and the operator needs it.
       - Quality: the names say what things do. The comment explains why stderr is used. I found no second copy of an existing helper: the other modules under `entry` write to stderr with a plain `print` too.
       - Hygiene: the coder's entry names the main decision and the rejected outer `except OSError`. The Assignment matches the code. Criterion 6 (the docs) still describes what the documenter must write.
+6. documenter: no findings. The code matches the Interface.
+   - `docs/operator-guide.md`, "When the process refuses to start": added that when the state directory cannot be written (a `state` volume that is read-only or has the wrong owner), `factory-run` still ends with status 2. The time-stamped line reaches standard output, the two `factory-run:` lines go to standard error, no stop is written, and the operator should check the volume's owner and mode.
+   - `README.md`: the sentence on status 2 now says "a machine stop, or two lines on standard error when the state directory cannot be written".
+   - Cross-read: the operator guide's section on refusing to start and the README's getting-started paragraph, both against the diff to `src/factory/entry/run.py`. Nothing else was stale.
+   - I did not run the Demo commands in this stage.
+   - Unrelated, not touched: none.
+   - `make check` is green.
+
+   `make check`: check: green
