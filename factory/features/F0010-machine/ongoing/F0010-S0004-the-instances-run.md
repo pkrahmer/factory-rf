@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 122
 blocked: null
 comments_seen: 0
 round: 0
@@ -120,3 +120,9 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `wiring.py` and `run.py` signatures are concrete, and each rule (`build_tick`, `boundaries_from_environment`, `activity`, `activity_tick`, stop handlers, `run_until_stopped`, `run_instance`, `main`, the module end) is stated precisely enough to build from. Only `factory.entry.wiring` imports adapters, and `main` reaches the log and the health file through `machine_log` and `health_store`.
+   - Criteria: each is testable by one test function. Every rule has its failing side: the invalid environment in 12–15 and 17 (including the unreadable image file in 13), the missing token and instance and the URL without an owner and a name in 8 and 10, the idle outcomes in 2–4, and the stops kept and replaced in 14. The Interface comments on the 30.0-second first pause, the `stop.wait` adapter, one `Tick` per run and the stop's union with existing stops are tested by 9, 21, 22 and 14.
+   - Demo: both commands are runnable. The second is consistent because `TimestampedFactoryLog.line` also writes the stamped line to stdout, which gives the three lines in the `Expect:`. Each expectation is checkable against the output.
+   - Architecture: the code lands in `factory.entry` (`run.py`, `wiring.py`), and the adapters stay behind the wiring module. The layering rule holds.
+   - Scope: it is within F0010's scope (ST7.1, the settings half of ST3.3, decision 5), and nothing in the story falls under "Out of scope".
