@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 131
 blocked: null
 comments_seen: 2
@@ -256,3 +256,4 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
    Met its Expect. The first run printed `username=x-access-token`, then `password=example-value`, then `status 0`. The second run printed no `username` or `password` line, and its last line was `status 1`.
 
    Checked the output against the acceptance criteria and found nothing that contradicts any of them. It agrees with criteria 1–2 (only allow-listed names kept), 8–9 (0600 passes, 0640 fails), 12 (exactly two lines, exit 0) and 13 (an unreadable file gives no output and exit 1). No findings.
+10. done (pull request merged); cost: 7 runs, 16.8 min, 94 turns, 239k tokens in (2711k more from cache), 43k out, $2.99
