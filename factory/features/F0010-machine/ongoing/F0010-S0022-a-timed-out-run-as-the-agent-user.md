@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 140
 blocked: null
 comments_seen: 0
@@ -52,3 +52,17 @@ Expect: the last line is `10 passed in <time>` (8 tests before this story, and t
    - Demo: the pytest command is runnable. The expected `10 passed` matches the 8 tests now in the file plus the 2 rows. I counted 8 `def test_` functions.
    - Architecture: tests only, in `tests/adapters/`, which mirrors `factory.adapters`. Nothing crosses a layer.
    - Scope: the story is inside F0010 (S0022 is listed in FEATURE.md). The kill of a call under the real `sudo` stays out of scope (decision 30), and the story says so.
+3. tester: Wrote the tests for the timed-out side of the sudo-refusal rule. They are green, not red: this is a tests-only story, and the code already has the fix (`not process.timed_out` in `_sudo_refusal`, from 0ebb835). So the only failure expected is the mutation the story describes.
+   - criterion 1: tests/adapters/test_claude_runtime_os_user.py::test_a_timed_out_call_with_a_sudo_line_is_a_runtime_error_and_without_one_a_time_limit, row `warning="sudo: unable to resolve host x\n"`. It expects `AgentRuntimeError`, and its `detail` must contain that line.
+   - criterion 2: the same test, row `warning=None`. It expects `end_reason == "time_limit"`, `decision is None` and `entry is None`.
+   - Both rows use `_write_sudo(warning=...)`, `_request(tmp_path, "agent")` with `time_limit` set to 1 second through `model_copy`, and `write_stand_in(..., [Step(stdout_before_wait=REPLY, wait_seconds=60)])`.
+   - Files changed:
+     - tests/adapters/claude_stand_in.py: `Step` gains `stdout_before_wait: str = ""`. The script writes and flushes it before the wait. The docstring now says "print, wait, print".
+     - tests/adapters/test_claude_runtime_os_user.py: the new parametrized test.
+   - Modules the runner could not import: none.
+   - `make test` output: "test: green", total coverage 99.54 %. `make lint` is green after `ruff format`.
+   - I did not rerun with the mutation applied, because this stage allows one test run. The reviewer or demo may want to confirm that dropping `and not process.timed_out` makes the first row fail.
+   - Nothing in `src/` needs changing. The coder only has to run `make check`.
+
+   `make lint`: lint: green
+   `make test`: test: green
