@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 145
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -285,3 +285,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    I would choose (a). Once you answer, I end with `tests` and name exactly these two helper changes.
 
    Not done yet, because `make check` is red until then: the refactor pass and the final `make check`.
+5. human (pull request comment, 2026-10-16): (a). The tester fixes the two helpers in `tests/proof_support.py`; `src/` and the existing tests stay as they are. `leak_writes` checks that the branch exists (`git.resolve(f"origin/{branch}")`) before `show_file`. `_state_at` reads only the branch's own commits (`origin/main..origin/<branch>`) or treats a text without front matter as no state; the tester picks one, with no catch-all.
