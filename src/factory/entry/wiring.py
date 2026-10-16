@@ -1,5 +1,6 @@
 """The one module that picks the concrete adapters behind the application's interfaces."""
 
+import os
 import re
 import shutil
 import sys
@@ -46,6 +47,7 @@ from factory.application.preflight import MachineChecks, Preflight
 from factory.application.recovery import RecoveryHandler
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
+from factory.domain.agent_runs import scrub_environment
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
@@ -217,9 +219,10 @@ def agent_environment(scripts: Path, home: Path) -> dict[str, str]:
 
 
 def production_environment() -> dict[str, str]:
-    """Return the agent environment of this interpreter's scripts and the operator's home."""
+    """Return the agent environment: the allowed names of the process, its own `PATH` and home."""
     # The console scripts, `factory-guard` among them, sit next to the interpreter.
-    return agent_environment(Path(sys.executable).parent, Path.home())
+    own = agent_environment(Path(sys.executable).parent, Path.home())
+    return scrub_environment({**os.environ, **own})
 
 
 def build_handlers(

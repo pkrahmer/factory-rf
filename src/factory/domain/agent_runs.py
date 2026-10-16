@@ -1,5 +1,6 @@
 """What the factory asks of an agent run and what it learns from one."""
 
+from collections.abc import Mapping
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -24,7 +25,18 @@ QUESTION = "question"
 APPLIED_AGENT_KEYS: frozenset[str] = frozenset({"model", "tools", "effort", "budget_usd"})
 KEY_NOT_APPLIED = "key not applied by the agent runtime"
 
+# The agent's environment is built from these names alone, so nothing the factory process
+# holds, its hosting-service token above all, reaches an agent run by accident.
+ALLOWED_ENVIRONMENT_NAMES: frozenset[str] = frozenset(
+    {"PATH", "HOME", "LANG", "LC_ALL", "TERM", "TZ"}
+)
+
 EndReason = Literal["completed", "no_result", "time_limit", "budget", "died"]
+
+
+def scrub_environment(source: Mapping[str, str]) -> dict[str, str]:
+    """Return a new dict of the entries of `source` whose name is allowed for an agent run."""
+    return {name: value for name, value in source.items() if name in ALLOWED_ENVIRONMENT_NAMES}
 
 
 def _must_be_absolute(path: Path) -> Path:

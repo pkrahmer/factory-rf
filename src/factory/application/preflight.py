@@ -1,8 +1,11 @@
 """The preflight: the machine's checks, keyed to the image, and the probe of the main branch."""
 
+import os
+import stat as stat_module
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from datetime import timedelta
+from pathlib import Path
 
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
@@ -40,6 +43,9 @@ _PREFLIGHT_FAILED: RepositoryStopReason = "preflight_failed"
 _HOSTING_ITEM = "hosting-service"
 _AGENTS_ITEM = "agents"
 _VERSION_ITEM = "agent-runtime-version"
+_HOSTING_FILE_ITEM = "token-file"
+# Any bit for group or others lets a second user read the hosting-service token.
+_GROUP_AND_OTHERS = 0o077
 
 
 def tool_item(name: str, which: Callable[[str], str | None]) -> PreflightItem:
@@ -48,6 +54,33 @@ def tool_item(name: str, which: Callable[[str], str | None]) -> PreflightItem:
         detail = f"{name} is not on the PATH; add it to the image"
         return PreflightItem(name=f"tool:{name}", passed=False, detail=detail)
     return PreflightItem(name=f"tool:{name}", passed=True)
+
+
+def token_file_item(
+    path: Path | None, *, uid: int, stat: Callable[[Path], os.stat_result]
+) -> PreflightItem:
+    """Check that the token file exists, belongs to `uid` and is readable by its owner alone."""
+    fault = _token_file_fault(path, uid, stat)
+    if fault is None:
+        return PreflightItem(name=_HOSTING_FILE_ITEM, passed=True)
+    return PreflightItem(name=_HOSTING_FILE_ITEM, passed=False, detail=f"{path}: {fault}")
+
+
+def _token_file_fault(
+    path: Path | None, uid: int, stat: Callable[[Path], os.stat_result]
+) -> str | None:
+    if path is None:
+        return "no token file is set"
+    try:
+        facts = stat(path)
+    except FileNotFoundError:
+        return "the token file does not exist"
+    if facts.st_uid != uid:
+        return f"the token file belongs to uid {facts.st_uid}, not to {uid}"
+    mode = stat_module.S_IMODE(facts.st_mode)
+    if mode & _GROUP_AND_OTHERS:
+        return f"the token file has mode {mode:04o}; make it 0600 or 0400"
+    return None
 
 
 class MachineChecks:
