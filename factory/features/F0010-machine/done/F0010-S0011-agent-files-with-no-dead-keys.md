@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 129
 blocked: null
 comments_seen: 0
@@ -209,3 +209,4 @@ Expect: one line, `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`.
    Exit 0. Matches `['budget_usd', 'effort', 'model', 'tools'] opus medium 4`: `APPLIED_AGENT_KEYS` is exactly the four keys (criterion 1) and the file's values are read (criterion 2).
 
    Cross-check against the acceptance criteria: the output contradicts none of them. The demo exercises only the reader. Criteria 4–18 (loader, stops, tick, watch) are not demonstrated here; they rest on the tests listed in the tester's entry and the green `make check` reported by the coder and the documenter.
+8. done (pull request merged); cost: 6 runs, 15.9 min, 66 turns, 192k tokens in (1731k more from cache), 35k out, $2.25
