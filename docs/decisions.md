@@ -265,3 +265,7 @@ Date: 2026-10-16 (F0010-S0006; R29; the human, 2026-10-14). The Dockerfile pins 
 ## `/state` is read-only for the agent; `/state/runs` is readable by it
 
 Date: 2026-10-16 (F0010-S0006; the human, 2026-10-14). `/state` is `0755` owned by `factory`: the agent can read the health file, the log and the stamp, and cannot rewrite them, so an agent cannot hide a stop or forge the preflight stamp. The files the agent must read for its run go to `/state/runs` (`2750`, group `factory-work`), which the agent can read and not write. Rejected: making `/state` group-writable (the agent could alter the factory's own status) and giving the agent no access (it could not read its run's input).
+
+## The entrypoint sets no git configuration and starts in `/opt/factory`
+
+Date: 2026-10-16 (F0010-S0007; questionnaire 1, Q17, Q18, Q23; F0001 decision 7). The entrypoint runs no `git config`: the factory's git gets the commit identity and the credential helper through `GitOptions` only, so no global file in the container holds them and a token never lands on disk through git. The entrypoint changes into `/opt/factory` before it starts the factory, so that `claude --version` (the preflight's probe) runs in a fixed directory and not in whatever `/work` holds; the Dockerfile's `WORKDIR /work` is only the default for a shell in the container. The waiter fetches only when `origin/main` is not ready, because the tick already fetches and a ready checkout must cost no second fetch.
