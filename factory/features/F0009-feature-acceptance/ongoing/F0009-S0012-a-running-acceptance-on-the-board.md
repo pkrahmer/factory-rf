@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 115
 blocked: null
 comments_seen: 0
@@ -56,3 +56,22 @@ Expect: at least one line, each from the `factory-watch` section (the command pr
    - Demo: both commands are runnable. Each `Expect:` line is checkable (a passed count of at least 10, and `awk` lines from the `factory-watch` section only).
    - Architecture: the change is in `application/board.py` and reuses the domain `work_item_row`, so it follows the layer rules. It adds no new helper.
    - Scope: it matches FEATURE.md decision 23 and the S0012 mention in "Out of scope". It leaves the feature rows and the event line unchanged, and changes no existing test.
+3. tester: wrote one new module, `tests/application/test_board_reader_acceptance.py`, using the fixtures in `tests/conftest.py` (`walk`, `boundaries`, `human`, `clock`, `remote`). A local `opened` fixture fetches and runs `AcceptanceService(boundaries, walk.definition).open("F0002")`. No existing test module changed.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_board_reader_acceptance.py::test_an_opened_acceptance_is_a_row_titled_by_its_report
+   - criterion 2: tests/application/test_board_reader_acceptance.py::test_an_acceptance_row_shows_stage_pull_request_and_blocked_from_its_branch (state set with `walk.record(..., 3, [], stage="approval", blocked="question")`)
+   - criterion 3: tests/application/test_board_reader_acceptance.py::test_an_acceptance_row_shows_its_claim_and_running_since (the branch's report is re-rendered with a `factory-1` claim at stage `acceptance` and pushed with `human.push_file`)
+   - criterion 4: tests/application/test_board_reader_acceptance.py::test_rows_come_in_work_item_order, three rows: story-of-an-earlier-feature, stories-around-it, story-of-its-own-feature (the last uses `PROPOSED`/`PROPOSED_TEXT` from `tests/acceptance_walk.py` for `F0002-S0003`)
+   - criterion 5: tests/application/test_board_reader_acceptance.py::test_a_merged_acceptance_has_its_row_until_it_is_booked_into_done
+   - criterion 6: tests/application/test_board_reader_acceptance.py::test_without_an_acceptance_stage_an_acceptance_branch_adds_no_row
+   - criterion 7: tests/application/test_board_reader_acceptance.py::test_run_watch_prints_the_acceptance_row_under_work_items (checks that every line after `work items` is the one expected line)
+   - criterion 8: tests/application/test_board_reader_acceptance.py::test_a_report_with_a_plain_work_item_state_is_a_format_error_with_its_path
+   - criteria 9 and 10: not tests (the check gate and docs).
+
+   Red state from one `make test` run: the tests for criteria 1–5 and 7 fail on their assertions (8 cases), because `BoardReader.read` does not yet give acceptance rows. Every module imported, so nothing failed to import. The tests for criteria 6 and 8 already pass: today's code adds no acceptance row, and it already raises through `fill_board`'s snapshot reading. They guard the refused side and the error path once the rows are added. `make lint` is green. The type check was skipped, as this stage allows.
+
+   Open: nothing.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/application/test_board_reader_acceptance.py::test_run_watch_prints_the_acceptance_row_under_work_items
