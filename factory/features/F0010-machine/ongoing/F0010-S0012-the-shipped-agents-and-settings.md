@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 130
+blocked: null
+comments_seen: 0
+round: 1
+attempts: 0
+---
 # The shipped agents and settings
 
 ## Assignment (as of log entry 1)
@@ -187,3 +195,192 @@ Expect: one line, `16 10 True`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: concrete paths (`claude/agents/<role>.md`, `claude/settings.json`, `template/factory/pipeline.yml`, `template/CLAUDE.md`). The agent table, boundary and entry sentences, settings JSON, pipeline YAML and CLAUDE.md text are given in full. The runtime flags are named (`--model`, `--effort`, `--tools`, `--max-budget-usd`, `--append-system-prompt-file`), as are the test files and the stand-in helpers.
+   - Criteria: each can be tested by one test function. Criteria 4 to 8 are parametrized over the seven agents. The refusing side of every rule has a criterion. Dead keys are refused by criteria 2 and 3 (exactly four keys). The "no other `factory-` command" rule is fixed by the exact-equality criterion 10. The "template holds nothing else" rule is criterion 12. The only-one-newline rule is criterion 13.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable. I counted the settings by hand: 16 allow entries and 10 deny entries, and the sorted agent order matches `names()`.
+   - Architecture: only data files plus tests in the existing `tests/` layout. Nothing is placed in the layers. The agent reader and pipeline reader are the existing adapters.
+   - Scope: within F0010's scope (SI4.2, kept 6, R30, decisions 16 and 17). Skills and forms are not shipped, as "Out of scope" requires. v1's role and stage texts are left to S0017.
+3. tester: Wrote the red tests for the shipped agents, the shared settings and the template.
+
+   Criterion → test:
+   - criterion 1: tests/test_claude_files.py::test_agents_directory_holds_exactly_the_seven_agent_files
+   - criterion 2: tests/test_claude_files.py::test_every_shipped_agent_is_read_and_listed_sorted
+   - criterion 3: tests/test_claude_files.py::test_front_matter_holds_the_four_applied_keys_with_their_values. It is parametrized over the seven agents. It checks that the raw front matter keys are exactly the four keys, and that the values read through the reader match the table. `tools` is compared as a list in table order and `budget_usd` as a Decimal, so the documenter's is 1.5.
+   - criterion 4: tests/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_model
+   - criterion 5: tests/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_effort
+   - criterion 6: tests/adapters/test_shipped_agents_effect.py::test_call_passes_exactly_the_agent_tools. The `--tools` value is split on commas and whitespace and compared as a set.
+   - criterion 7: tests/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget. The value is compared as a Decimal.
+   - criterion 8: tests/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body
+   - criterion 9: tests/test_claude_files.py::test_body_starts_with_the_boundary_and_the_entry_sentence
+   - criterion 10: tests/test_claude_files.py::test_settings_are_the_shared_permissions_and_environment. It checks exact equality, which also covers "no other `factory-` command".
+   - criterion 11: tests/test_claude_files.py::test_template_pipeline_definition_is_valid_with_the_shipped_roles
+   - criterion 12: tests/test_claude_files.py::test_template_holds_only_the_rules_file_and_the_pipeline_definition
+   - criterion 13: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text. The expected text is the Interface block with the four spaces removed. I checked it against the ticket by script, and it ends with exactly one newline.
+   - criteria 14 and 15: not tested (make check, docs).
+
+   Criteria 4 to 8 run the real `ClaudeCodeRuntime` against the stand-in from `tests/adapters/claude_stand_in.py`. A module-scoped fixture `calls` reads each shipped agent with `FrontmatterAgentDefinitionReader(Path("claude"))` and makes one run per agent, with no guard and a success reply. It runs each agent once, not once per test.
+
+   Files created:
+   - tests/shipped_agents.py: a shared table of the seven agents with their values, boundary and entry sentences, plus ROOT and AGENT_HOME.
+   - tests/test_claude_files.py
+   - tests/adapters/test_shipped_agents_effect.py
+
+   Expected red state:
+   - All modules import; nothing under test is missing from `src/`.
+   - The tests fail because `claude/agents/`, `claude/settings.json` and `template/` do not exist yet. Every runtime-effect test errors in the `calls` fixture because there is no agents directory.
+
+   `make lint` is green.
+
+   Open for the coder: the files belong in `claude/` and `template/`. Those paths are outside `src/*`, which is the coder role's write path in the template pipeline. Whether the factory's own lane for this project covers them is the factory's concern, not mine.
+
+   `make lint`: lint: green
+   `make test`: ERROR tests/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[acceptance-reviewer]
+4. coder: Built the shipped data files in commit 4635b99. No code under `src/` changed.
+
+   Files:
+   - `claude/agents/{intake,tester,coder,reviewer,documenter,smoke-tester,acceptance-reviewer}.md`: front matter with exactly `model`, `effort`, `budget_usd` and `tools`, set to the table's values. The documenter's `budget_usd` is `1.5`, and `tools` is written as a YAML flow list in table order. Each body is the boundary sentence, a blank line and the entry sentence, with nothing else; the last story of the feature adds v1's role and stage texts after them.
+   - `claude/settings.json`: the Interface's JSON, kept in its line layout.
+   - `template/factory/pipeline.yml`: the Interface's pipeline definition, copied verbatim.
+   - `template/CLAUDE.md`: extracted by script from the ticket's fenced block with the four leading spaces removed. It ends with a single newline.
+
+   Main choice: I generated the agent files from one table, so the values cannot drift from the Interface by a typo. I rejected writing each file by hand. The bodies carry no extra text, because the assignment leaves v1's texts to the later story.
+
+   Refactor: nothing to refactor; the diff is data files only.
+
+   `make check` is green (coverage 99.53 %). The two new test modules pass: 55 tests.
+
+   Noticed, not touched: the tester's open point. `claude/` and `template/` lie outside `src/*`, the coder write path in the template pipeline. No hook refused the writes here, so this project's own lane covers them.
+
+   `make check`: check: green
+5. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (7 agent files, `claude/settings.json`, `template/CLAUDE.md`, `template/factory/pipeline.yml`, and three test modules) against the ticket.
+
+   Groups 1 to 3 pass:
+   - Acceptance criteria: every criterion from 1 to 13 has a test that checks what it is named after. Criteria 4 to 8 run the real `ClaudeCodeRuntime` against the stand-in. Criterion 6 compares the tools as sets, so it also catches an extra tool. Criterion 10 checks exact equality, which also covers "no other `factory-` command". Criterion 12 uses `rglob`, which also catches dotfiles. The coder's entry reports `make check` green.
+   - Architecture: the diff is data files and tests only.
+   - Security: no secrets and no suppression markers.
+
+   Group 4 (quality) fails:
+
+   1. `tests/shipped_agents.py:12` `_READ_ONLY_TOOLS`: the name says "read-only", but the list holds `Edit` and `Bash`, which both write. Fix: rename it to what it is, the tools without `Write` (for example `_TOOLS_WITHOUT_WRITE`). Rename `_ALL_TOOLS` to match if needed.
+   2. `tests/adapters/test_shipped_agents_effect.py:67` `_body` repeats the front-matter split of `tests/test_claude_files.py:104` `_front_matter_and_body`: same file path, same `split_front_matter(RuamelYamlHandler(), …)`, same `.strip()`. Fix: move one helper that returns the raw front matter and the body into `tests/shipped_agents.py`, and use it in both modules.
+
+   Both findings are in test code the tester wrote. Per R9, the coder ends with `tests` and names these two changes, and the tester makes exactly them. I did not check ticket hygiene (group 5), because the review stops at the first failing group.
+6. coder: Both review findings are in test code the tester wrote, so per R9 I am handing them to the tester unchanged. Make exactly these two changes:
+   1. `tests/shipped_agents.py`: rename `_READ_ONLY_TOOLS` to `_TOOLS_WITHOUT_WRITE`, because the list holds `Edit` and `Bash`. Rename `_ALL_TOOLS` to match only if the pair reads wrong after the first rename.
+   2. Move the front-matter split into `tests/shipped_agents.py` as one shared helper. It is currently in two places: `_front_matter_and_body` in `tests/test_claude_files.py` and `_body` in `tests/adapters/test_shipped_agents_effect.py`. The shared helper reads the agent file, calls `split_front_matter(RuamelYamlHandler(), …)`, and returns the raw front matter and the stripped body. Both modules use it, and both private copies are removed.
+
+   Behaviour stays the same and no test changes what it checks. I made no change to the data files under `claude/` and `template/` (commit 4635b99) or to `src/`.
+7. tester: I made the two test changes the coder named in entry 6, which come from the reviewer's findings in entry 5. No test checks anything different from before.
+
+   1. `tests/shipped_agents.py`: renamed `_READ_ONLY_TOOLS` to `_TOOLS_WITHOUT_WRITE`, because the list holds `Edit` and `Bash`. I kept `_ALL_TOOLS` as it is, since `_ALL_TOOLS` next to `_TOOLS_WITHOUT_WRITE` reads correctly.
+   2. `tests/shipped_agents.py`: added one shared helper, `front_matter_and_body(name) -> tuple[str, str]`. It reads `claude/agents/<name>.md`, calls `split_front_matter(RuamelYamlHandler(), …)`, and returns the raw front matter and the stripped body. I removed both private copies:
+      - `_front_matter_and_body` from `tests/test_claude_files.py`. The front-matter key test now loads the raw front matter itself with `RuamelYamlHandler().load`.
+      - `_body` from `tests/adapters/test_shipped_agents_effect.py`.
+
+      Both modules now import the shared helper, and the imports they no longer need are gone.
+
+   I changed no data files under `claude/` or `template/` and nothing under `src/`.
+
+   `make lint`: green. `make test`: green.
+
+   `make lint`: lint: green
+   `make test`: test: green
+8. coder: Round 1. Both findings from entry 5 were in test code, and the tester fixed them in entry 7 as I asked in entry 6:
+   - `_READ_ONLY_TOOLS` is now `_TOOLS_WITHOUT_WRITE`.
+   - The front-matter split is now one shared helper, `front_matter_and_body`, in `tests/shipped_agents.py`.
+
+   That leaves nothing for the coder to do this round. The data files under `claude/` and `template/` are unchanged since commit 4635b99, and nothing under `src/` changed.
+
+   Refactor: nothing to refactor. My diff is still data files only.
+
+   I ran `make check` against the tester's updated tests and it is green, with coverage at 99.53 %. It ran longer than the 120 s foreground limit, so the tool moved it to the background. I waited for it to finish and read its output.
+
+   Noticed, not touched: nothing new.
+
+   `make check`: check: green
+9. reviewer: Round 1 re-review of `git diff main...HEAD -- . ':!factory'`. The diff has 7 agent files, `claude/settings.json`, `template/CLAUDE.md`, `template/factory/pipeline.yml`, `tests/shipped_agents.py`, `tests/test_claude_files.py` and `tests/adapters/test_shipped_agents_effect.py`. I read it against the ticket.
+
+   No findings.
+
+   - Acceptance criteria:
+     - Criteria 1 to 13 each have a test that checks what the criterion says.
+     - Criterion 3 checks two things: the raw front-matter keys are exactly the four, and the values read back through the reader match the table. `budget_usd` is compared as a Decimal, so the documenter's `1.5` is checked.
+     - Criteria 4 to 8 run the real `ClaudeCodeRuntime` against the stand-in, once per shipped agent, through a module-scoped fixture.
+     - Criterion 6 compares the tools as sets, so an extra tool or a missing one fails.
+     - Criterion 10 checks exact equality, which also covers "no other `factory-` command".
+     - Criterion 12 uses `rglob`, so it also catches dotfiles and extra directories.
+     - Criterion 13 checks the exact text with one trailing newline.
+     - The Interface states no numeric limit that would need a test on both sides.
+     - The coder's entry 8 reports `make check` green.
+   - Architecture: the diff is data files and tests only. Nothing under `src/` changed. The test helpers at the `tests/` root follow the existing convention (`human_clone.py`, `acceptance_walk.py`).
+   - Security: no secrets and no suppression markers. The fake values in the tests are plain.
+   - Quality: both round-1 findings are fixed.
+     - The list in `tests/shipped_agents.py` is now `_TOOLS_WITHOUT_WRITE`.
+     - The front-matter split is one shared helper, `front_matter_and_body`, in `tests/shipped_agents.py`. Both modules use it, and no private copy is left.
+     - Module and public-name docstrings are present.
+   - Ticket hygiene:
+     - The log gives the main choice (agent files generated from one table) and the alternative rejected (writing each file by hand).
+     - `Assignment` matches what was built. The template holds two files and nothing in `factory/` changed.
+     - Criterion 15, the docs criterion, still says what the documenter must write.
+
+   Open, not a finding: the template gives the coder role the write path `src/*` only, so a project made from the template could not have its coder write data files outside `src/`, as this story's own coder did. The ticket's Interface specifies those write paths, so this is the human's call if it matters.
+10. documenter: Docs for the shipped agents, settings and template. `make check` is green (coverage 99.53 %). I did not run the three Demo commands.
+
+    Files changed:
+    - `docs/project-guide.md`: new section "The shipped agents, settings and template", placed before "The prompt and the request for a stage". It has:
+      - the table of the seven agents with model, effort, budget and tools;
+      - the two-paragraph body, with the note that the last story of F0010 adds v1's role and stage texts after it;
+      - the settings, including that `factory-check-story` is the only `factory-` command allowed;
+      - the template, with `template/factory/pipeline.yml` shown as the starting pipeline definition and `template/CLAUDE.md` named as the starting rules file of a Python project;
+      - the forms being the human's to add, and `StoryFormChecker` stopping every stage until `factory/story-form.md` exists.
+    - `docs/operator-guide.md`:
+      - new subsection "The shipped agents and settings", before "Checking a story before it starts". It says the entrypoint installs the agents and settings into `FACTORY_CLAUDE_HOME` at every start, and which `factory-` command an agent may run.
+      - in "Build it", I removed the stale sentence that `claude/` and `template/` are created by later stories, since they now exist.
+
+    Cross-read and found current against the diff:
+    - the "The agent definition reader" section of `docs/project-guide.md`
+    - the "The agent files" and "The entrypoint" sections of `docs/operator-guide.md`
+
+    I did not open `README.md` or `docs/decisions.md`; the criterion names neither.
+
+    Stale text I did not touch: none.
+
+    I found no findings for the coder. The template gives the coder `src/*` as its only write path. I noted this in the project guide as something a project may need to change. The reviewer raised the same point as an open one for the human.
+
+    `make check`: check: green
+11. demo: I ran the three commands under `## Demo` from the repository root, as written and in order. All three met their `Expect:` lines, so there are no findings.
+
+    1. The agents read through `FrontmatterAgentDefinitionReader(Path('claude'))`:
+    ```text
+    acceptance-reviewer opus high 8
+    coder opus medium 4
+    documenter sonnet medium 1.5
+    intake sonnet low 1
+    reviewer opus high 3
+    smoke-tester opus medium 2
+    tester opus medium 2
+    ```
+    Met: seven lines, in the expected order and with the expected values.
+
+    2. The template pipeline definition read through `RuamelPipelineDefinitionReader`:
+    ```text
+    intake ['acceptance-reviewer', 'coder', 'documenter', 'intake', 'reviewer', 'smoke-tester', 'tester']
+    ```
+    Met: exactly the expected line.
+
+    3. `claude/settings.json`:
+    ```text
+    16 10 True
+    ```
+    Met: exactly the expected line.
+
+    Cross-check against the acceptance criteria:
+    - `claude/` holds exactly the seven agent files plus `settings.json` (criterion 1).
+    - `template/` holds only `CLAUDE.md` and `factory/pipeline.yml` (criterion 12).
+    - The documenter's front matter has exactly the four keys, with `budget_usd: 1.5`, and its body starts with its boundary sentence (criteria 3 and 9).
+    - The pipeline's roles are the seven agent names (criterion 11).
+
+    The demo contradicts no criterion. I did not run `make check` myself; the factory runs it after this stage.
+
+    Still open for the human, raised by the reviewer and the documenter and not a demo finding: the template gives the coder only the write path `src/*`. The Interface sets that value.
