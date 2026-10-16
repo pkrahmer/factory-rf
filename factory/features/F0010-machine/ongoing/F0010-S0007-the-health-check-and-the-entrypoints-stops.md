@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 125
 blocked: null
 comments_seen: 0
@@ -192,3 +192,25 @@ Expect: the output has the lines `installed agents and settings into`, `prepared
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the health check, the repository waiter, the compose file and the entrypoint. The tester's tests did not change, and `make check` is green (total coverage 99.51 %). Commits: 8430aa3 (feat) and e87bb75 (refactor).
+
+   What I built:
+   - `src/factory/entry/health.py`: `main(argv, *, store)`. It parses `--state-directory` with argparse (default `STATE_DIRECTORY`). With no `store` given, it reads `health_store(<dir>)` from the wiring. Healthy prints `healthy` and returns 0. Otherwise it prints one line per stop, `<reason> (<scope>): <detail> (since %Y-%m-%dT%H:%M:%SZ)`, and returns 1. It ends with `raise SystemExit(main())`.
+   - `src/factory/application/scheduler.py`: `RepositoryWaiter(preparer, boundaries, stops).prepare()`.
+     - It runs the preparer and turns a `GitError` into the detail `cannot prepare the checkout: <error>`.
+     - Then it checks that `origin/main` exists and holds `factory/pipeline.yml`. Only if that check fails does it fetch once (a fetch `GitError` gives the detail `cannot fetch: <error>`) and check again.
+     - A remaining fault raises `repository_unavailable` with `at = boundaries.clock.now()`. The stop is skipped when the health status already holds a stop with that reason and the same detail. Success clears the stop.
+     - The `origin/main` name and the file path are built from `REMOTE`, `MAIN_BRANCH` and `PIPELINE_DEFINITION_FILE` in `factory.domain.paths`.
+   - `src/factory/entry/run.py`: `run_instance` gives the `Scheduler` the waiter's `prepare` in place of the bare preparer.
+   - `image/compose.yml`: written exactly as in the Interface.
+   - `image/entrypoint.sh`: POSIX sh. It runs the Interface's steps in order: the `log` function, the checks for the agents directory and the settings file (a missing one is logged to stderr and exits 1), the agents and settings replaced and copied, `runs` set to 2750, `cd "$opt"`, `exec python -m factory.entry.run`. It runs no `git config`.
+
+   Main decision: the waiter fetches only when the checkout is not ready. It does not fetch on every iteration, because criterion 6 requires a ready checkout to fetch nothing. The tick does its own fetch. Rejected: a fetch on every `prepare`. It would duplicate the tick's fetch and fail criterion 6.
+
+   Refactor (e87bb75): moved the fetch-and-check-again step into `_fault_after_fetch`, so `prepare` reads as a straight sequence. I tried replacing the `if` with an `a and b` chain and dropped it as too clever. I also removed a `(docs/decisions.md)` reference from the entrypoint's comment, because that decision entry does not exist yet.
+
+   Open:
+   - The documenter still has criterion 24: the operator guide and the decision log entry on why the entrypoint sets no git configuration and starts in `/opt/factory`.
+   - Not touched: the Dockerfile's `WORKDIR` is `/work` and its `ENV` sets `FACTORY_CLAUDE_HOME`, but not `FACTORY_OPT` or `FACTORY_STATE`. The script's defaults cover those two.
+
+   `make check`: check: green
