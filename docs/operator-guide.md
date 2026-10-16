@@ -22,7 +22,7 @@ A required variable that is missing, empty or only spaces is refused. The two co
 
 The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. The image build generates the file (see "The machine's image"). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
 
-A blank value of the three optional variables above counts as unset. The token is read once, when the boundaries are built, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a file that does not exist or cannot be read, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable; the message names the path and never the token. The token reaches the hosting service (PyGithub) from the factory process, and git only through its credential helper, `/usr/local/bin/git-credential-factory`, which the token story provides.
+A blank value of the three optional variables above counts as unset. The token is read once, when the boundaries are built, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a file that does not exist or cannot be read, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable; the message names the path and never the token. The token reaches the hosting service (PyGithub) from the factory process, and git only through its credential helper, `/usr/local/bin/git-credential-factory`, which reads the same file (see "The hosting-service token").
 
 The repository's `owner/name`, which the hosting service needs, is taken from `FACTORY_REPOSITORY_URL`: `https://host/owner/name(.git)`, `ssh://git@host/owner/name(.git)` or `git@host:owner/name(.git)`. Any other URL is refused with `FACTORY_REPOSITORY_URL` as the variable. `factory-run` builds the boundaries from them when it starts.
 
@@ -62,7 +62,7 @@ A run whose budget is spent is not lost: the factory resumes the same session on
 
 ### `factory-guard` on the agent run's `PATH`
 
-The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; F0010's preflight will probe for it, until then nothing does. The factory builds that environment itself and it has two variables only: a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home). Nothing else from your shell reaches the agent. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The details are in the project guide, "The guard command".
+The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; F0010's preflight will probe for it, until then nothing does. The factory builds that environment itself from an allow list of six names (see "The hosting-service token"); the two that matter here are a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home). Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The details are in the project guide, "The guard command".
 
 ## The machine's image
 
@@ -124,6 +124,28 @@ FACTORY_REPOSITORY_URL=https://github.com/you/project.git FACTORY_INSTANCE=main 
 
 The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container.
 
+### The hosting-service token
+
+The token lives in one file, `secrets/hosting-token`, beside `image/compose.yml` (`image/secrets/`; git ignores the directory). Compose mounts it into the container as the secret `hosting_token` at `/run/secrets/hosting-token`, and the image sets `FACTORY_TOKEN_FILE` to that path. Make the host file owned by uid 1000 (the user `factory`) and readable by it alone, because Docker Compose without swarm may keep the host file's owner and mode and ignore the `uid`, `gid` and `mode` the compose file gives the secret:
+
+```bash
+chown 1000 image/secrets/hosting-token
+chmod 0400 image/secrets/hosting-token
+```
+
+Only two things read the file: the factory process, once, to hand the token to PyGithub, and git's credential helper, `/usr/local/bin/git-credential-factory`. The helper answers git's `get` with the user name `x-access-token` and the file's content as the password. If `FACTORY_TOKEN_FILE` is unset or the file cannot be read, it prints nothing and exits 1, so a process that cannot read the file gets no credential. For `store`, `erase` and any other operation it prints nothing and exits 0. The factory's git reaches the helper only through the environment the factory gives it; the image sets no `credential.helper`, stores no `.git-credentials` and has no token, secret or password in an `ENV`, an `ARG` or the compose `environment`, so the agent's git has no credential.
+
+An agent run's environment is an allow list of six names: `PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM` and `TZ`. The factory builds `PATH` and `HOME` itself and takes the other four from its own environment when it has them. Everything else the factory process holds (`FACTORY_TOKEN_FILE`, `GH_TOKEN`, `GITHUB_TOKEN`, `GIT_ASKPASS`, `SSH_AUTH_SOCK`, any variable of yours) is dropped at the source and never reaches an agent. The factory's own pushes and posts are not affected.
+
+The preflight item `token-file` (see "The preflight's items") checks that the file exists, belongs to the factory's user and has no permission bit for group or others. Its detail is `<path>: <fault>`, with the fault `no token file is set`, `the token file does not exist`, `the token file belongs to uid <n>, not to <m>` or `the token file has mode <mode>; make it 0600 or 0400`. Fix it with the `chown` and `chmod` above, or set `FACTORY_TOKEN_FILE`, and start the instance again. The item is built but not yet run: F0010-S0016 adds it to the tick's preflight with the other machine items, and until then nothing reports a wrong owner or mode.
+
+**Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs Docker and a second operating-system user that the image does not have yet. Until it has one, check by hand once after a build, inside the container:
+
+- `ls -ln /run/secrets/hosting-token` shows uid 1000 and mode `-r--------`. If it does not, the compose `uid` and `mode` were ignored; apply the `chown` and `chmod` above on the host.
+- As an agent (a run that tries it, or `su` to another user), `cat /run/secrets/hosting-token` and `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
+
+**Left for v2.** The project commands (`make check`, `lint`, `test` and the preflight's `lint`) run code that agents wrote, as the factory's user, who can read the token file. A test can print the token into the output tail the factory writes into the journal. The human decided on 2026-10-14 not to build a guard against this now; see `docs/decisions.md`.
+
 ### The entrypoint
 
 `image/entrypoint.sh` is the container's entrypoint. Every line it writes starts with a UTC time stamp. In order, it:
@@ -167,6 +189,7 @@ The preflight is a list of seven items, built in `factory.application.preflight`
 | `tool:git`, `tool:uv`, `tool:make` | the tool is on the `PATH` | The detail is `<tool> is not on the PATH; add it to the image`. Add the tool to the image and rebuild. |
 | `tool:<claude>` | the agent runtime's executable (`FACTORY_CLAUDE`, default `claude`) is on the `PATH`; the item is named after the value, for example `tool:/opt/claude/bin/claude` | As for the other tools. |
 | `hosting-service` | a read-only call (the open pull request of `main`) is answered | The detail holds the operation and the service's message. Check the token (`FACTORY_TOKEN_FILE`) and the network. |
+| `token-file` | `FACTORY_TOKEN_FILE` names a file that exists, belongs to the factory's user and has no permission bit for group or others | Built, not yet in the list the tick runs: F0010-S0016 adds it. The detail is `<path>: <fault>`; see "The hosting-service token" for the fix. |
 | `agents` | at least one agent file is in `FACTORY_CLAUDE_HOME` (`<it>/agents/<role>.md`) | The detail names the directory, whether it is empty, missing or unreadable. Install the agents into `FACTORY_CLAUDE_HOME`. |
 | `agent-runtime-version` | the first word of `claude --version` equals `FACTORY_CLAUDE_VERSION` | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without `FACTORY_CLAUDE_VERSION` it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set`; when `claude --version` cannot run, it holds the runtime's error. |
 

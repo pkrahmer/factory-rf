@@ -33,6 +33,10 @@ COPY claude ./claude
 COPY template ./template
 COPY image/entrypoint.sh ./entrypoint.sh
 RUN sed -i 's/\r$//' entrypoint.sh && chmod 0755 entrypoint.sh
+COPY image/git-credential-factory /usr/local/bin/git-credential-factory
+RUN sed -i 's/\r$//' /usr/local/bin/git-credential-factory && chmod 0755 /usr/local/bin/git-credential-factory
+# The token is a mounted secret; only its path is set, and only the factory's user can read it.
+ENV FACTORY_TOKEN_FILE=/run/secrets/hosting-token
 # A fresh id per build, so a rebuild never keeps a stale preflight stamp valid.
 RUN cat /proc/sys/kernel/random/uuid > /opt/factory/image-id
 ENV PATH=/opt/factory/.venv/bin:$PATH \
