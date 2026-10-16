@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 119
 blocked: null
 comments_seen: 0
@@ -111,3 +111,24 @@ Expect: one line, `factory Ann`.
    - Architecture: pure settings and an error in `factory.domain`; the reader is a parameter, so there is no I/O in the domain, as `CLAUDE.md` requires. The story adds no dependency.
    - Scope: within F0010's first scope bullet and decisions 1, 2, 3, 7, 11 and 35. It builds nothing from the later stories.
    - Not asked: the story does not say what happens when `FACTORY_IMAGE_ID_FILE` is set but blank. This is a corner the Interface does not state as a rule, so I did not ask.
+3. tester: wrote red tests for every acceptance criterion.
+   - criterion 1: tests/domain/test_settings.py::test_the_two_required_variables_give_the_settings_and_their_defaults
+   - criterion 2: tests/domain/test_settings.py::test_a_missing_or_blank_required_variable_is_refused (2 variables x missing/empty/spaces)
+   - criterion 3: tests/domain/test_settings.py::test_a_repository_url_names_one_repository
+   - criterion 4: tests/domain/test_settings.py::test_an_instance_name_must_be_a_name
+   - criterion 5: tests/domain/test_settings.py::test_the_checkout_and_state_directory_are_not_read_from_the_environment
+   - criterion 6: tests/test_single_project.py::test_no_module_names_a_list_of_repositories
+   - criterion 7: tests/domain/test_settings.py::test_the_commit_identity_is_read_from_the_environment
+   - criterion 8: tests/domain/test_settings.py::test_each_half_of_the_commit_identity_falls_back_to_its_default (five rows: name only, email only, blank name, blank email, " Ann ")
+   - criterion 9: tests/domain/test_settings.py::test_the_image_identity_is_read_from_its_file (path from FACTORY_IMAGE_ID_FILE and the default /opt/factory/image-id), ::test_without_a_reader_there_is_no_image_identity
+   - criterion 10: tests/domain/test_settings.py::test_an_image_identity_file_that_gives_no_identity_is_refused (missing/unreadable/empty/spaces)
+   - criterion 11: tests/domain/test_settings.py::test_the_image_label_variable_is_not_the_image_identity
+   - criterion 12: tests/domain/test_settings.py::test_the_settings_model_is_closed, ::test_the_settings_model_checks_the_instance_name
+   - criterion 13: tests/domain/test_settings.py::test_the_first_fault_is_reported
+   - criterion 14: tests/domain/test_settings.py::test_settings_invalid_names_the_variable_and_the_fault (also checks it is a FactoryError, per the Interface)
+   - criterion 15: tests/domain/test_settings.py::test_a_repository_url_with_a_password_is_refused (credential URLs joined from pieces; make secrets green)
+   Files created: tests/domain/test_settings.py, tests/test_single_project.py. The image reader is a stub backed by a dict that raises FileNotFoundError for unknown paths; the unreadable case uses a reader that raises PermissionError.
+   Not importable yet: factory.domain.settings, and SettingsInvalid from factory.domain.errors (make test stops at collection on tests/domain/test_settings.py). make lint green. Not tested: a blank FACTORY_IMAGE_ID_FILE value, which the Interface leaves open (as intake noted).
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
