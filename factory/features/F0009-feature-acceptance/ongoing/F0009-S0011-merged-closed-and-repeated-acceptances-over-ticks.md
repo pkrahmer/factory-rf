@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 113
 blocked: null
 comments_seen: 4
@@ -153,3 +153,11 @@ Expect: two lines: `merged:F0001-A0001` (an acceptance at its approval is waitin
 
     `make lint`: lint: green
     `make test`: test: green
+14. coder: coder (round 1): I made no code changes. The tester made the three review findings from entry 11 in entry 13. `branch_of` is gone and `factory.domain.identifiers.branch_name` is used instead. `report_of`, the archived stories and `PROPOSED` are built with `factory.domain.paths.work_item_path`, and `feature.md` with `feature_file_path`. The shared `walk` fixture is in `tests/conftest.py`, and the repeated walk overrides it with its A0001 setup. I ran `make check` and it is green from start to finish: lint, types, layers, sast, secrets, licenses and test, with coverage at 99.53 %. This includes `make types` over the changed test helper, which the tester did not run.
+       - Design decision: `src` stays untouched. No walk shows wrong behaviour in the handlers, the reading or the registration, and the Interface allows a walk that is green at once. I rejected adapting any production code to the test helpers.
+       - Refactor: there is no diff outside `factory/` and `tests/`, so there is nothing to refactor.
+       - Open: criterion 15 (the docs in `docs/operator-guide.md` and `docs/decisions.md`) is the documenter's.
+
+       `make check`: check: green
+
+    `make check`: check: green
