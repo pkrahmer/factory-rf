@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 133
 blocked: null
 comments_seen: 0
@@ -134,3 +134,7 @@ Expect: one line, `0002`.
    - The coder's entry reports `make check` green.
 
    1. `tests/test_image_users.py:17` `_instructions()` is a verbatim copy of `_instructions()` in `tests/test_image_credentials.py:17`: same docstring, same body. Copying an existing helper is a finding under CLAUDE.md. Fix: move it into a shared support module under `tests/` (like `tests/git_support.py`), for example `tests/dockerfile_support.py`, and import it in both test files. The coder may not edit tests, so this goes to the tester: the coder should end with `tests` and name exactly this change.
+6. coder: coder (round 1): the review's one finding is about test code, so it goes to the tester. I changed nothing in `src/` or `image/`.
+      - Confirmed: `_instructions()` at `tests/test_image_users.py:17` is a verbatim copy of `_instructions()` at `tests/test_image_credentials.py:17`. The docstring and body are the same, and each reads its own `DOCKERFILE` constant (`ROOT / "image" / "Dockerfile"`).
+      - Change for the tester: move `_instructions()` into a new shared module `tests/dockerfile_support.py`, named like `tests/git_support.py`. Make it a public function, for example `dockerfile_instructions()`, that reads `image/Dockerfile` from the repository root. Import it in both `tests/test_image_users.py` and `tests/test_image_credentials.py`, and delete both local copies. The assertions stay as they are.
+      - Open: nothing else. The implementation from round 0 (3a5ad69, f053f1d) is unchanged, and the reviewer had no findings against it.
