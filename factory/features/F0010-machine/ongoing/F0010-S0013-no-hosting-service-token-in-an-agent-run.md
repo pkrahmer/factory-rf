@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 131
 blocked: null
 comments_seen: 0
@@ -160,3 +160,22 @@ Expect: the first run prints `username=x-access-token`, then a line that starts 
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the token boundary. All 40 new tests pass and `make check` is green.
+
+   What I built:
+   - `src/factory/domain/agent_runs.py`: `ALLOWED_ENVIRONMENT_NAMES` and `scrub_environment`. It is a pure dict comprehension over the allow list and returns a new dict.
+   - `src/factory/entry/wiring.py`: `production_environment()` now returns `scrub_environment({**os.environ, **agent_environment(...)})`. `PATH` and `HOME` stay as F0006-S0007 builds them, the four locale names come from the process if it has them, and nothing else gets through. `TaskComposer` and `ClaudeCodeRuntime` are unchanged. The runtime already ran with `{**request.environment, **SWITCHES}` only, and criteria 6 and 7 confirm this.
+   - `src/factory/application/preflight.py`: `token_file_item(path, *, uid, stat)`. A private `_token_file_fault` returns the first fault it finds: no path, missing file, wrong owner, or a group/others bit (`S_IMODE(mode) & 0o077`). Its detail is `"<path>: <fault>"`, so `None` shows up for no path. The constant is called `_HOSTING_FILE_ITEM` because ruff's S105 reads `_TOKEN_FILE_ITEM = "token-file"` as a hardcoded password.
+   - `image/git-credential-factory`: a POSIX sh helper. It always drains stdin. For `get` it prints `username`/`password` through `printf '%s=%s\n'`, and if the variable is unset or the file is unreadable it exits 1 and prints nothing. Any other operation exits 0 and prints nothing.
+   - `image/Dockerfile`: the COPY, RUN and `ENV FACTORY_TOKEN_FILE` lines from the Interface, placed before the image-id RUN.
+   - `image/compose.yml`: the service's `secrets` entry and the top-level `hosting_token` secret.
+
+   Design decision: the scrub happens once, at the source (`production_environment`), not in the runtime or the composer. That keeps F0005 decision 23 (the composer passes the environment through unchanged) and keeps `os.environ` out of the inner layers. I rejected scrubbing again inside `ClaudeCodeRuntime`: it would duplicate the rule, and the runtime already ignores the process environment.
+
+   Open, not done:
+   - `token_file_item` is not yet part of the preflight that `build_tick` runs. Adding it as an `extra` there would fail the existing `tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance`, because its `settings` fixture has no token file. No criterion asks for the wiring, so the item is ready but unwired. Hooking it in (with `uid=os.getuid()`, `stat=os.stat`) needs that fixture to give a token file, and that means a test change. This is worth a later story or a reviewer's call.
+   - The docs criterion (20) is for the documenter.
+
+   Refactor: I read my diff and found nothing to change, so there is no refactor commit.
+
+   `make check`: check: green
