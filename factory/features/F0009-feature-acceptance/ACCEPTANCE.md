@@ -1,71 +1,68 @@
 ---
-stage: done
-pr: 114
+stage: accept
+pr: 118
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
-stories: [F0009-S0001, F0009-S0002, F0009-S0003, F0009-S0004, F0009-S0005, F0009-S0006, F0009-S0007, F0009-S0008, F0009-S0009, F0009-S0010, F0009-S0011]
-outcome: accepted
+stories: [F0009-S0001, F0009-S0002, F0009-S0003, F0009-S0004, F0009-S0005, F0009-S0006, F0009-S0007, F0009-S0008, F0009-S0009, F0009-S0010, F0009-S0011, F0009-S0012, F0009-S0013, F0009-S0014]
 ---
 # Acceptance of Feature acceptance
 
+This is the second acceptance of F0009. The first (pull request 114, merged) covered S0001 to S0011 and proposed S0012 to S0014, which have since been built and archived. This report covers all fourteen stories. It re-runs the first report's checks against today's `main`, and it reads the three new stories in full.
+
 ## Verdict
 
-**accepted with drafts.** The feature does what `FEATURE.md` promises. The end-to-end demo below runs through the production `handler_factory` and real ticks over a real remote, and it is green: a feature with archived stories and a `.gitkeep` becomes due, its acceptance opens, the reviewer runs with its three facts, the hand-over builds the four-part description, a merge books it accepted and keeps the proposed story, a close books it refused with the human's reason, and another archived story opens `A0002`. Every scope item has its story and its code. `make check` is green, and a hand mutation pass killed 27 of 30 mutants.
+**accepted with drafts.** The feature does what `FEATURE.md` promises, and the three findings of the first acceptance are repaired:
 
-There are three findings, and none of them breaks a promise:
+- The board now shows a running acceptance as a work item row.
+- The project guide and the README say that the acceptance is wired.
+- The three mutation survivors are killed.
 
-- The project guide still says in one place that `acceptance_due` has no handler, and the README does not mention the feature acceptance at all.
-- Opening an acceptance refuses a feature that is not due, but this is tested only for `incomplete`. Its other four refused statuses, and the "directly in the folder" rule, are pinned by nothing.
-- The board shows a running acceptance only as `acceptance=in_flight`. It gives the acceptance no work item row, so the operator cannot see on the board that it waits for them.
+The end-to-end feature demo (section 2) is green through the production `handler_factory`. `make check` is green, and a hand mutation pass killed 11 of 12 mutants. The one survivor is a near-equivalent tie-break.
 
-One draft covers each finding.
+One finding remains, of low weight. The operator guide's **Merge** bullet does not say that a merge that brought proposed stories leaves the feature `incomplete`. Its **Accepted again** paragraph says the feature is then `accepted`, without that condition. The status table says it correctly, so this is an imprecision, not a broken promise. One draft repairs it.
 
 ## 1 Scope
 
-None. Each scope item has its story and its code:
+None. The first acceptance's table of scope items, stories and code still holds, and the three later stories add to it:
 
-| Scope item | Stories | Code |
+| Story | What it added | Code |
 |---|---|---|
-| Id `F0001-A0001`, report file name, `AcceptanceState` in the front matter | S0001 | `src/factory/domain/acceptance.py` (`acceptance_id`, `next_acceptance_id`, `acceptance_file_name`, `AcceptanceState`); `src/factory/adapters/work_item_markdown.py` |
-| When an acceptance is due: story files only, six statuses, due features, reports on the remote | S0002 | `acceptance_status`, `story_file_ids` (domain); `AcceptanceReader.read`, `due_features` in `src/factory/application/acceptance_reading.py` |
-| Watcher reads the due features and the reports, order after the stories, the board's column | S0008 | `AcceptanceReader.snapshots`, `fill_board`; `Watcher.evaluate`; `EvaluationInput.due` and `_due_order` in `src/factory/domain/evaluation.py`; `BoardReader.read` |
-| The acceptance stage: opening with the head, the facts, write paths, its own cost line | S0003 | `AcceptanceService.open`/`facts`, `AcceptanceDueHandler` in `src/factory/application/acceptance.py`; `acceptance_facts`, `acceptance_head` |
-| Through F0005's stage protocol | S0009 | `StoryFormChecker.findings` and `TaskComposer._prompt` in `src/factory/application/task.py` |
-| At the approval: description by code, ready, cost table once, retry from state | S0004 | `AcceptanceHandOver`, `acceptance_description`, `cost_table_key` |
-| Merge books `accepted`, close books `refused` with the reason first | S0005, S0007 | `AcceptanceMerged`, `AcceptanceClosed`, `book_merge`, `book_refusal`, `refusal_reason` |
-| Merge before approval, repeated acceptances, handlers wired, `NOT_YET_HANDLED` empty | S0006, S0010, S0011 | `is_before_approval`; `build_handlers` and the `RunGate` splits in `src/factory/entry/wiring.py`; walks in `tests/application/test_acceptance_ticks_*.py` |
+| S0012 | A work item row for each running acceptance, in `work_item_order` after its feature's stories (decision 23) | `running_work_items` in `src/factory/application/acceptance_reading.py:249`, now shared by `BoardReader.read` (`src/factory/application/board.py:44`) and `Watcher.evaluate` (`src/factory/application/watcher.py:38`) |
+| S0013 | Documentation only: the project guide's three stale "not wired" sentences, and the README's sentence on the feature acceptance | `docs/project-guide.md:457`, `:459`, `:505`; `README.md:3` |
+| S0014 | Tests only: `open` refusing every non-due status, story files counted only directly in their folder, and the exact 9999 error | `tests/application/test_acceptance_refusals.py`, `tests/domain/test_acceptance_facts_limit.py`; no `src/` change |
 
-Each condition of the Goal's "Done when" is shown in the feature demo (section 2) or in S0011's walks:
+Each condition of the Goal's "Done when" is shown again in section 2:
 
-- **Due with a `.gitkeep`:** demo step 1.
-- **Sort order:** the demo's order line, and S0001 criteria 8 and 9 for the missing slug.
-- **Merge accepted, close refused with the reason:** demo steps 1 and 2.
-- **Merge before the approval:** S0011 criterion 1 (mutant 14 killed).
-- **Repeated acceptance:** demo step 3 and S0011 criteria 7 to 10.
-- **`NOT_YET_HANDLED` empty:** demo step 0.
+- **Due with a `.gitkeep`:** step 1.
+- **The order for a slug that starts with a digit:** step 0 and feature `F0002-2fa-login`. The missing slug is S0001 criteria 8 and 9.
+- **Merge accepted:** step 1.
+- **Close refused with the reason:** step 2.
+- **Repeat:** step 3.
+- **`NOT_YET_HANDLED` empty:** step 0.
+- **Merge before the approval:** S0011 criterion 1.
 
-No story went outside the scope. Out of scope stayed out: the report's sections and the proposed stories' form are not validated, there is no stopping rule, there are no reviewer instructions (F0010), and the reviewer may still overwrite a backlog story. Not promised, and so not a scope gap: the board gives a running acceptance no work item row. Draft S0012 proposes one.
+No story went outside the scope. S0012 changed `watcher.py` only to share the join and sort it already had (reviewer, S0012 entry 5), with no change of behaviour. Out of scope stayed out: there is no validation of the report's sections, no stopping rule, no reviewer instructions (F0010), and the backlog is still writable by the reviewer.
 
 ## 2 Feature demo
 
-This is the walk a user of the feature does, against the real entry points:
+The walk is the first acceptance's script, unchanged except for four more `watch()` calls. They show the board at the approval, while merged and unrecorded, after the booking, and after the close. That way the demo also covers the gap S0012 closed.
 
-- `handler_factory` from `factory.entry.wiring`, one `Tick` per step, and `run_watch` (the `factory-watch` code);
+The walk runs against:
+
+- the production `handler_factory` (`factory.entry.wiring`), one `Tick` per step, and `run_watch` (the code of `factory-watch`);
 - a real bare remote, a `GitCli` checkout and a human clone;
-- `FakeHostingService` and `FakeAgentRuntime`. The scripted acceptance reviewer edits the report below its head, as a real one is told to, and writes one proposed story into the feature's backlog.
+- `FakeHostingService` and `FakeAgentRuntime`. The scripted acceptance reviewer edits the report below its head and writes one proposed story into the backlog.
 
-There are three features:
-
-- **`F0002-2fa-login`** (its slug starts with a digit) is accepted with a draft.
-- **`F0003-search`** is closed with a comment.
-- **`F0003-search` again**, after another story is archived: the acceptance repeats.
-
-The guard refuses files outside the repository, so the script ran from standard input and left no file. It is reproduced in full below the output.
+The script is the `<details>` block of the first report (commit `5e5b989`, `factory/features/F0009-feature-acceptance/ACCEPTANCE.md`). The guard refuses files outside the repository, so it was taken from git and piped to standard input. No file was left behind:
 
 ```bash
-uv run python - <<'EOF'   # the script below
+git show 5e5b989:factory/features/F0009-feature-acceptance/ACCEPTANCE.md \
+  | awk '/^```python$/{f=1;next} f&&/^```$/{f=0} f' \
+  | sed -e '/^print("   state on branch:"/a watch()' -e '/^print("   -- the human squash-merges --")/a watch()' \
+        -e '/^print("   branch gone:"/a watch()' -e '/^print(f"   -- the human comments on #/a watch()' \
+  | PYTHONDONTWRITEBYTECODE=1 uv run python -
 ```
 
 ```text
@@ -88,6 +85,13 @@ tick 2 (the acceptance reviewer runs): event=run:F0002-A0001 dispatch=handled ag
    prompt's last three lines: ['Archived stories: F0002-S0001, F0002-S0002', 'Next free story number: F0002-S0003', 'Cost of the stories: 2 runs, 3.0 min, 3 turns, 30 tokens in (0 more from cache), 200 out, $1.50']
    pull request #1 draft=True title='F0002-A0001: Acceptance of Two-factor login'
    state on branch: ['stage: approval', 'blocked: null', 'pull_request: 1', 'handed_over: null', 'stories: [F0002-S0001, F0002-S0002]', 'outcome: null']
+   watch| event: hand_over:F0002-A0001
+   watch| 
+   watch| features
+   watch| F0001  Example feature  backlog=1  in-progress=0  done=0  acceptance=incomplete
+   watch| F0002  Two-factor login  backlog=0  in-progress=0  done=2  acceptance=in_flight
+   watch| work items
+   watch| F0002-A0001  Acceptance of Two-factor login  in-progress  stage=approval  blocked=-  claim=-  running_since=-  pull_request=1
 tick 3 (hand-over at the approval): event=hand_over:F0002-A0001 dispatch=handled agent runs so far=1
    pull request #1 draft=False; description:
       | ## Recommendation
@@ -108,12 +112,25 @@ tick 4 (the human has not decided yet): event=idle:- dispatch=handled agent runs
 tick 5 (still waiting: the hand-over is not repeated): event=idle:- dispatch=handled agent runs so far=1
    factory posts now: 1
    -- the human squash-merges --
+   watch| event: merged:F0002-A0001
+   watch| 
+   watch| features
+   watch| F0001  Example feature  backlog=1  in-progress=0  done=0  acceptance=incomplete
+   watch| F0002  Two-factor login  backlog=1  in-progress=0  done=2  acceptance=merged_unrecorded
+   watch| work items
+   watch| F0002-A0001  Acceptance of Two-factor login  in-progress  stage=approval  blocked=-  claim=-  running_since=-  pull_request=1
    status={'F0002': 'merged_unrecorded'} due=[]
 tick 6 (the merge is booked): event=merged:F0002-A0001 dispatch=handled agent runs so far=1
    booked state: ['stage: done', 'stories: [F0002-S0001, F0002-S0002]', 'outcome: accepted']
    last journal line: 3. factory: done (pull request merged); cost: 1 runs, 3.0 min, 12 turns, 0 tokens in (0 more from cache), 0 out, $0.42
    on main: ['factory/features/F0002-2fa-login/backlog/.gitkeep', 'factory/features/F0002-2fa-login/backlog/F0002-S0003-lockout.md', 'factory/features/F0002-2fa-login/done/F0002-A0001-acceptance.costs.jsonl', 'factory/features/F0002-2fa-login/done/F0002-A0001-acceptance.md', 'factory/features/F0002-2fa-login/done/F0002-S0001-totp.costs.jsonl', 'factory/features/F0002-2fa-login/done/F0002-S0001-totp.md', 'factory/features/F0002-2fa-login/done/F0002-S0002-recovery-codes.md', 'factory/features/F0002-2fa-login/feature.md']
    branch gone: True
+   watch| event: idle:-
+   watch| 
+   watch| features
+   watch| F0001  Example feature  backlog=1  in-progress=0  done=0  acceptance=incomplete
+   watch| F0002  Two-factor login  backlog=1  in-progress=0  done=2  acceptance=incomplete
+   watch| work items
    status={'F0002': 'incomplete'} due=[]
 tick 7 (the proposed story waits for the human): event=idle:- dispatch=handled agent runs so far=1
 == 2. feature F0003-search: reviewed, handed over, closed with a reason ==
@@ -121,6 +138,14 @@ tick 8 (opens the acceptance): event=acceptance_due:F0003 dispatch=handled agent
 tick 9 (the acceptance reviewer runs): event=run:F0003-A0001 dispatch=handled agent runs so far=2
 tick 10 (hand-over): event=hand_over:F0003-A0001 dispatch=handled agent runs so far=2
    -- the human comments on #2 and closes it --
+   watch| event: closed:F0003-A0001
+   watch| 
+   watch| features
+   watch| F0001  Example feature  backlog=1  in-progress=0  done=0  acceptance=incomplete
+   watch| F0002  Two-factor login  backlog=1  in-progress=0  done=2  acceptance=incomplete
+   watch| F0003  Search  backlog=0  in-progress=0  done=1  acceptance=in_flight
+   watch| work items
+   watch| F0003-A0001  Acceptance of Search  in-progress  stage=approval  blocked=-  claim=-  running_since=-  pull_request=2
 tick 11 (the close is booked): event=closed:F0003-A0001 dispatch=handled agent runs so far=2
    booked state: ['stage: done', 'outcome: refused']
    recommendation section: Refused by the human on 2026-10-16: The ranking belongs to another feature. / **not accepted.** Ranking is missing.
@@ -139,341 +164,165 @@ tick 13 (opens the repeated acceptance): event=acceptance_due:F0003 dispatch=han
    watch| F0002  Two-factor login  backlog=1  in-progress=0  done=2  acceptance=incomplete
    watch| F0003  Search  backlog=0  in-progress=0  done=2  acceptance=in_flight
    watch| work items
+   watch| F0003-A0002  Acceptance of Search  in-progress  stage=acceptance  blocked=-  claim=-  running_since=-  pull_request=-
 exit 0
 ```
 
-What it shows, against the Goal:
+**What it shows.** Every line of the first walk comes out as it did then:
 
-- **Opening.** The feature is due with a `.gitkeep` and two story files. The acceptance opens with no pull request and with `stories` set.
-- **The run and the hand-over.** The reviewer's prompt ends with the three facts. The facts' cost is the archived stories' only: S0001's sidecar, and none for S0002. The pull request is opened as a draft and turned ready at the hand-over. The description has its four parts, and the cost table is posted once. It is not posted again on later ticks.
-- **The merge.** A squash merge gives `merged_unrecorded`, then one tick books it `accepted`. Its cost line counts its own run only ($0.42), the proposed story stays in the backlog, the branch is gone, and the feature is `incomplete`.
-- **The close.** It books `refused`, with `Refused by the human on <date>: <comment>` first under the recommendation, and drops the proposed story.
-- **The repeat.** One more archived story makes the feature due again. `A0002` opens with the new story set, and A0001's report stays byte for byte.
-- **No loop.** No tick yields `reject`, and every waiting tick is `idle`.
+- the opening, with the head only and no pull request;
+- the three facts at the end of the prompt;
+- the four-part description, and the cost table posted once;
+- the squash merge: first `merged_unrecorded`, then booked `accepted` with its own cost, the proposed story kept and the branch gone;
+- the close, booked `refused` with the human's reason first;
+- the repeat as `A0002`, with A0001 unchanged byte for byte;
+- no `reject`, and `idle` while the acceptance waits.
 
-Two observations from the walk:
+**New since the first acceptance.** The board now lists the running acceptance under `work items` at every point of its life:
 
-- **The board.** In the last board, `F0003-A0002` is running, but the `work items` list is empty. The operator guide is consistent with this ("a work item row exists for each story in `in-progress/`"), so it is not a contradiction, but the operator cannot see a running or waiting acceptance there. Draft S0012.
-- **A report written without its front matter.** My first run had the scripted reviewer write the report from scratch, without the front matter. The undo then found the report unreadable and restored it whole from the stage start (`UndoService._restore_work_item`). The reviewer's body was lost without a word in its journal entry, and the hand-over description read `none` under Recommendation and Proposed stories. This is F0005's rule for any work item and is not a defect of this feature. F0010, which writes the acceptance reviewer's instructions, should tell it to edit below the head and keep the front matter. Listed again under 4.
+- at the approval: `stage=approval  pull_request=1`;
+- merged and not yet booked: the row is still there, beside `acceptance=merged_unrecorded`;
+- at the close: `pull_request=2`;
+- as `A0002`, just opened: `stage=acceptance  pull_request=-`.
 
-<details><summary>The demo script (run from the repository root as <code>uv run python - &lt;&lt;'EOF' … EOF</code>)</summary>
+The row is gone once the acceptance is booked. That is the gap the first demo found, and it is closed.
 
-```python
-"""Feature acceptance end to end: due, opened, reviewed, handed over, merged / closed, booked."""
-import io, sys, tempfile
-from datetime import UTC, datetime, timedelta
-from decimal import Decimal
-from pathlib import Path
-sys.path.insert(0, str(Path.cwd() / "tests"))
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.clock import ManualClock
-from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
-from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
-from factory.adapters.health_file import JsonHealthStatusFile
-from factory.adapters.make_commands import MakeProjectCommands
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
-from factory.application.acceptance_reading import AcceptanceReader
-from factory.application.boundaries import Boundaries
-from factory.application.tick import Tick
-from factory.domain.agent_runs import AgentRunResult
-from factory.domain.git import GitOptions
-from factory.domain.identifiers import work_item_order
-from factory.domain.kill_points import KillPoints
-from factory.entry.watch import run_watch
-from factory.entry.wiring import NOT_YET_HANDLED, handler_factory
-from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY, clone, install_agents, make_remote, remote_commit
-from human_clone import HumanClone
-from bill_support import completed_records, sidecar_text
-
-ENV = {"PATH": "/usr/bin:/bin", "HOME": "/home/factory"}
-root = Path(tempfile.mkdtemp(prefix="f9acc-"))
-kp = KillPoints()
-remote = make_remote(root / "origin")
-git = GitCli(clone(remote, root / CHECKOUT), GitOptions(kill_points=kp, identity=TEST_IDENTITY))
-human = HumanClone(root / "human", remote)
-hosting = FakeHostingService(kp)
-runtime = FakeAgentRuntime(kp)
-clock = ManualClock(datetime(2026, 10, 16, 9, 0, tzinfo=UTC))
-b = Boundaries(
-    git=git, hosting=hosting, agent_runtime=runtime,
-    project_commands=MakeProjectCommands(root / CHECKOUT, kp),
-    work_item_reader=FrontmatterWorkItemReader(), work_item_writer=FrontmatterWorkItemWriter(),
-    cost_reader=JsonLinesCostRecordReader(), cost_writer=JsonLinesCostRecordWriter(),
-    pipeline_reader=RuamelPipelineDefinitionReader(),
-    agent_definitions=FrontmatterAgentDefinitionReader(root / "home"),
-    clock=clock, log=TimestampedFactoryLog(root / "state/factory.log", clock),
-    health=JsonHealthStatusFile(root / "state/health.json"), checkout=root / CHECKOUT,
-)
-definition = b.pipeline_reader.parse(PIPELINE_YAML)
-install_agents(root / "home", definition.roles)
-n = 0
-
-def tick(label):
-    global n
-    n += 1
-    clock.advance(timedelta(minutes=5))
-    out = Tick(b, "factory-1", handler_factory(b, "factory-1", ENV)).run()
-    key = out.event.key if out.event else None
-    print(f"tick {n} ({label}): event={key} dispatch={out.dispatch} agent runs so far={len(runtime.requests())}")
-
-def watch():
-    git.fetch(); o = io.StringIO(); run_watch(b, "factory-1", o, io.StringIO())
-    for line in o.getvalue().splitlines():
-        print("   watch| " + line)
-
-def status():
-    git.fetch(); r = AcceptanceReader(b, definition)
-    return f"status={ {e.feature: e.status for e in r.read() if e.feature != 'F0001'} } due={r.due_features()}"
-
-def show(ref, path):
-    git.fetch(); return git.show_file(ref, path)
-
-def files(ref, prefix):
-    git.fetch(); return git.list_files(ref, prefix)
-
-def keys(text, names):
-    return [l for l in (text or "").split("\n---", 1)[0].splitlines() if l.split(":")[0] in names]
-
-SECTIONS = "## Recommendation\n\n**{verdict}.** {why}\n\n## 1 Scope\n\nnone\n\n## Proposed stories\n\n{proposed}\n\n"
-STORY = "# C\n\n## Description\n\nText.\n\n## Interface\n\nNone.\n\n## Acceptance criteria\n\n1. It works.\n\n## Smoke test\n\n```bash\ntrue\n```\nExpect: nothing.\n\n## Journal\n"
-
-def review(work_item, path, verdict, why, proposed):
-    """The reviewer edits the report below its head (front matter and title kept) and writes drafts."""
-    head = show(f"origin/work-item/{work_item}", path)
-    ptext = "\n".join(f"- `{p.rsplit('/', 1)[1]}`: a gap the parts left." for p in proposed) or "none"
-    report = head.replace("## Journal", SECTIONS.format(verdict=verdict, why=why, proposed=ptext) + "## Journal", 1)
-    runtime.queue(ScriptedRun(writes={path: report, **proposed}, result=AgentRunResult(
-        end_reason="completed", decision="approval", entry=f"{verdict}; {len(proposed)} drafts proposed",
-        duration=timedelta(minutes=3), turns=12, cost_usd=Decimal("0.42"))))
-
-print("== 0. wiring and order ==")
-print("NOT_YET_HANDLED:", NOT_YET_HANDLED)
-print("order:", sorted(["F0002-A0001", "F0002-S0002", "F0003-S0001", "F0002-S0001", "F0001-A0001"], key=work_item_order))
-
-print("== 1. feature F0002-2fa-login (slug starts with a digit): two archived stories and a .gitkeep ==")
-F2 = "factory/features/F0002-2fa-login"
-human.push_file("main", f"{F2}/feature.md", "# Two-factor login\n")
-human.push_file("main", f"{F2}/backlog/.gitkeep", "\n")
-human.push_file("main", f"{F2}/done/F0002-S0001-totp.md", "# TOTP\n")
-human.push_file("main", f"{F2}/done/F0002-S0001-totp.costs.jsonl", sidecar_text(completed_records("F0002-S0001", 2)))
-human.push_file("main", f"{F2}/done/F0002-S0002-recovery-codes.md", "# Recovery codes\n")
-print("  ", status())
-watch()
-tick("opens the acceptance")
-B2 = "origin/work-item/F0002-A0001"
-R2 = f"{F2}/in-progress/F0002-A0001-acceptance.md"
-print("   branch:", remote_commit(remote, "work-item/F0002-A0001") is not None, "| pull requests:", len(hosting.pull_requests()))
-print("   report head:", (show(B2, R2) or "").replace("\n", " | "))
-print("  ", status())
-review("F0002-A0001", R2, "accepted with drafts", "The stories together do what the feature promised.", {f"{F2}/backlog/F0002-S0003-lockout.md": STORY})
-tick("the acceptance reviewer runs")
-print("   prompt's last three lines:", runtime.requests()[-1].prompt.splitlines()[-3:])
-pr = hosting.pull_requests()[0]
-print(f"   pull request #{pr.number} draft={pr.draft} title={pr.title!r}")
-print("   state on branch:", keys(show(B2, R2), ("stage", "blocked", "pull_request", "stories", "outcome", "handed_over")))
-tick("hand-over at the approval")
-pr = hosting.pull_requests()[0]
-print(f"   pull request #{pr.number} draft={pr.draft}; description:")
-print("\n".join("      | " + l for l in hosting.description(pr.number).splitlines()))
-print("   factory posts:", [c.body.splitlines()[0][:90] for c in hosting.factory_posts(pr.number)])
-tick("the human has not decided yet")
-tick("still waiting: the hand-over is not repeated")
-print("   factory posts now:", len(hosting.factory_posts(pr.number)))
-human.merge("work-item/F0002-A0001", "squash")
-hosting.merge_by_human(pr.number, remote_commit(remote, "main"))
-print("   -- the human squash-merges --")
-print("  ", status())
-tick("the merge is booked")
-booked = show("origin/main", f"{F2}/done/F0002-A0001-acceptance.md") or ""
-print("   booked state:", keys(booked, ("stage", "outcome", "stories")))
-print("   last journal line:", [l for l in booked.splitlines() if l.strip()][-1])
-print("   on main:", files("origin/main", F2))
-print("   branch gone:", remote_commit(remote, "work-item/F0002-A0001") is None)
-print("  ", status())
-tick("the proposed story waits for the human")
-
-print("== 2. feature F0003-search: reviewed, handed over, closed with a reason ==")
-F3 = "factory/features/F0003-search"
-human.push_file("main", f"{F3}/feature.md", "# Search\n")
-human.push_file("main", f"{F3}/done/F0003-S0001-index.md", "# Index\n")
-tick("opens the acceptance")
-R3 = f"{F3}/in-progress/F0003-A0001-acceptance.md"
-review("F0003-A0001", R3, "not accepted", "Ranking is missing.", {f"{F3}/backlog/F0003-S0002-ranking.md": STORY})
-tick("the acceptance reviewer runs")
-tick("hand-over")
-pr3 = hosting.pull_requests()[-1]
-hosting.add_human_comment(pr3.number, "The ranking belongs to another feature.")
-hosting.close_by_human(pr3.number)
-print(f"   -- the human comments on #{pr3.number} and closes it --")
-tick("the close is booked")
-booked3 = show("origin/main", f"{F3}/done/F0003-A0001-acceptance.md") or ""
-print("   booked state:", keys(booked3, ("stage", "outcome")))
-print("   recommendation section:", booked3.split("## Recommendation", 1)[1].split("\n## ", 1)[0].strip().replace("\n\n", " / "))
-print("   on main:", files("origin/main", F3))
-print("  ", status())
-tick("refused rests")
-
-print("== 3. another story archived in F0003: due again, a new acceptance A0002 ==")
-human.push_file("main", f"{F3}/done/F0003-S0003-filters.md", "# Filters\n")
-print("  ", status())
-tick("opens the repeated acceptance")
-print("   branch work-item/F0003-A0002:", remote_commit(remote, "work-item/F0003-A0002") is not None,
-      "| A0001 report unchanged:", show("origin/main", f"{F3}/done/F0003-A0001-acceptance.md") == booked3)
-print("   A0002:", keys(show("origin/work-item/F0003-A0002", f"{F3}/in-progress/F0003-A0002-acceptance.md"), ("stage", "stories")))
-watch()
-```
-
-</details>
+**Observation (the finding of section 5).** After tick 6 the feature row reads `acceptance=incomplete`, because the merge brought `F0002-S0003-lockout.md` into the backlog. The code does what decision 4 says. The operator guide's **Accepted again** paragraph says that the feature is then `accepted`, without the condition. Draft S0015.
 
 ## 3 Mutation score
 
-The project has no `make mutants` target, by the decision "No `mutants` target, no mutmut" in `docs/decisions.md`. As earlier acceptances did, I ran a hand pass instead, set up like this:
+The project has no `make mutants` target, by the decision "No `mutants` target, no mutmut" in `docs/decisions.md`. I ran a hand pass like the first acceptance's:
 
-- **Mutants:** 30, chosen on the feature's rules:
-  - 16 in `src/factory/domain/acceptance.py`;
-  - 10 in `src/factory/application/acceptance.py`;
-  - 2 in `src/factory/application/acceptance_reading.py`;
-  - one each for the due ranking in `src/factory/domain/evaluation.py` and the facts' gate in `src/factory/application/task.py`.
-- **How each was applied:** in memory only. A meta-path finder compiled the mutated source in place of the module, with `PYTHONDONTWRITEBYTECODE=1`, so no file in the checkout changed. `git status` afterwards showed only this report and the drafts.
-- **Tests run:** the feature's 30 test modules: every `tests/*/test_*acceptance*.py`, plus `test_evaluation_due.py`, `test_board_reader.py`, `test_split_by_work_item_kind.py`, `test_wiring_handlers.py` and `test_wiring_human_handlers.py`. Each mutant ran with `pytest -x`.
+- **How each mutant was applied:** in memory. A meta-path finder compiled the mutated source in place of the module, with `PYTHONDONTWRITEBYTECODE=1`, so no file in the checkout changed. `git status` afterwards showed only this report and the draft.
+- **Tests run:** the feature's 35 test modules: every `tests/*/test_*acceptance*.py`, `test_board*.py`, `test_watch*.py`, `test_evaluation_due.py` and `test_split_by_work_item_kind.py`. Each mutant ran with `pytest -x`.
+- **Which mutants:** the three survivors of the first pass, to see whether S0014 killed them, and nine mutants on what S0012 added.
 
-**Score: 27 of 30 killed.**
+**Score: 11 of 12 killed.** Over both passes, 41 of 42.
 
-Every mutant of the status rules was killed: in flight, merged unrecorded, incomplete, the covering set, the highest id, and story files only. So were the facts, the description's `none` and the result-only findings, the refusal reason (after the result, blank comments skipped), the before-approval boundary, the cleared `blocked`, the push check, the hand-over guard (`handed_over`, approval stage), the merged and closed guards, the single `close` record, the "already in `done/`" guard, the empty-records copy, the kind split, the branch's document in snapshots, the rank after the stories and the facts only at the acceptance stage.
+| Mutant | Result | Killed by |
+|---|---|---|
+| `open`: `status != "due"` → `status == "incomplete"` (first pass's survivor 16) | killed | `test_acceptance_refusals.py::test_only_a_due_feature_is_opened[in_flight]` |
+| `_names`: `if len(path.parts) == 1` dropped (survivor 26) | killed | `test_a_story_file_counts_only_directly_in_its_folder` (`'due' == 'incomplete'`) |
+| `acceptance_facts`: `> _LAST_NUMBER` → `> _LAST_NUMBER + 1` (survivor 8) | killed | `test_the_next_story_number_ends_at_9999` (`ValidationError is ValueError`) |
+| `running_work_items` drops the acceptances | killed | the close walk (`'idle' == 'closed'`) |
+| `running_work_items` drops the stories | killed | board and watcher tests |
+| `running_work_items` unsorted | killed | `test_rows_come_in_work_item_order` |
+| sorted by path only | killed | `test_rows_come_in_work_item_order` (`F0002-A0001` before `F0002-S0003`) |
+| sorted by the plain id string | killed | the same |
+| `reverse=True` | killed | board tests |
+| board rows from the stories only | killed | `test_board_reader_acceptance.py` |
+| board rows without the last | killed | board tests |
+| `running_work_items` without the `snapshot.path` tie-break | **survived** | — |
 
-The survivors, grouped by rule:
+The survivor is near-equivalent. Two snapshots with one id do not occur:
 
-| # | Module | Mutant | Missing criterion |
-|---|---|---|---|
-| 16 | `application/acceptance.py` `AcceptanceService.open` | `if acceptance.status != "due"` → `if acceptance.status == "incomplete"` | `open` refusing `in_flight`, `merged_unrecorded`, `accepted` and `refused`. Only `incomplete` is tested (S0003 criterion 11). The weakened guard would start a second acceptance beside a running one. |
-| 26 | `application/acceptance_reading.py` `_names` | `if len(path.parts) == 1` dropped | Decision 3's "directly in `backlog/`, `in-progress/` or `done/`": a story file in a subdirectory counts with the mutant, and no test sees it. |
-| 8 | `domain/acceptance.py` `acceptance_facts` | `number > _LAST_NUMBER` → `number > _LAST_NUMBER + 1` | Near-equivalent. Pydantic then refuses `F0002-S10000` with a `ValidationError`, which is a `ValueError`, so the test's `pytest.raises(ValueError)` passes with the wrong message. Pinning the exact type and message closes it. |
+- `RemoteWorkItems.read` reads one `in-progress/` per feature id;
+- `snapshots()` gives one per acceptance;
+- `sorted` is stable over git's ordered listing.
 
-Draft S0014 covers all three. Line coverage is 99.53 %. The lines it misses in the feature's modules are two defensive branches: `acceptance_reading.py:238`, a report listed but missing at its ref, and `domain/acceptance.py:320`, trailing blank lines of a hand-edited report without a journal.
+The tie-break came from the S0012 reviewer's request to share the watcher's key, not from an Interface. It is not worth a story.
+
+Coverage is 99.53 %. The feature's two missed lines are the same as before:
+
+- `src/factory/application/acceptance_reading.py:238`, a report that is listed but missing at its ref;
+- `src/factory/domain/acceptance.py:320`, trailing blank lines of a hand-edited report without a journal.
+
+Both are defensive branches.
 
 ## 4 What the stories noticed
 
-These are collected from the coder, reviewer and documenter entries of the eleven stories, each checked against today's code:
+I collected these from the coder, reviewer and documenter entries of S0012 to S0014, and checked again the first acceptance's items that were still open:
 
-- **Fixed since by a later story:**
-  - The project guide's "`FeatureRow.acceptance` is always `None` until F0009-S0001" (S0001, S0002 documenters) was fixed by S0008.
-  - The operator guide's "`acceptance_due` is not yet handled" (S0002 documenter) was fixed by S0010.
-  - The three "not yet registered in `build_handlers`" sentences of the operator guide were fixed by S0011.
-  - `AcceptanceService._feature_title` and `_records` resembled private helpers of the board and the bill (S0003 coder). Both now go through the shared `read_feature_file` and `read_cost_records`.
-- **Still stale:** the project guide still says in two places that the acceptance is not wired. This is S0002's remark, not fully repaired. Draft S0013.
-- **Defensive branches in `acceptance_reading.py`:**
-  - A branch report whose feature directory is missing on main (S0008 coder) is now pinned, along with a report on main in another feature's directory, by S0008 criterion 20 (the human's answer, entry 7).
-  - A report listed but missing at its ref (S0002 coder and reviewer) is still uncovered (`acceptance_reading.py:238`). Low weight.
-- **No-state refusals untested:** `AcceptanceMerged._book` raises `CannotHandle("the report on the main branch has no state")` with no test (S0006 coder, counted by no reviewer). The hand-over and close handlers' no-state refusals (`application/acceptance.py:205` and `:339`) are in the same position. This is the same class as the open draft F0008-S0007, "The no-state refusals of require_state's callers". The human may extend that draft with these three calls rather than start a new one, so I wrote none.
-- **Story `MergedHandler` (F0007) has no "already in `done/`" guard,** so a second run fails in `git mv` (S0005 coder). Today this is harmless. After a kill between the push of main and the branch deletion, the story is in `done/` on main, so no `merged` event is raised again, and the tick's stale-branch deletion (F0008-S0004) removes the branch. It is worth a kill-point case in F0011. No draft.
-- **One-line duplicates, too small for a story:**
-  - "Today in UTC" is written twice, in `handlers/closed.py:93` and `AcceptanceClosed._today` (S0007 coder).
-  - `entry/check_story.py` builds the feature file's path by hand instead of with `feature_file_path` (S0003 coder and documenter).
-- **An empty cost-records file is not copied to `main` on a close** (S0007 coder). It is pinned (mutant 24 killed). It is a choice, not a defect.
-- **`SplitByWorkItemKind` sends every id that is not an acceptance to the story handler** (S0004 coder). This is by design: the id is already validated.
-- **Mine, from the demo:**
-  - The board has no row for a running acceptance. Draft S0012.
-  - A reviewer that drops the report's front matter loses its whole report silently (section 2). For F0010's reviewer instructions.
+- **S0012.**
+  - The reviewer rejected, as a finding, reading the remote twice in `BoardReader.read`: `fill_board` reads the statuses and `running_work_items` reads the snapshots. They are different reads, and the Interface asked for both. It costs a second set of `git show` calls per `factory-watch`. This is a performance remark, with no draft.
+  - The coder noticed that the feature rows still print before the work item rows, as asked.
+- **S0013.** The documenter noted two things, both correct as they stand:
+  - `docs/decisions.md` cites F0009 story ids, in dated decision entries;
+  - the README and the operator guide still say that `factory-run` is unbuilt until F0010.
+- **S0014.** Nothing noticed. The coder changed no `src/`, as the assignment expected.
+- **Still open from the first acceptance, checked against today's code:**
+  - **No-state refusals.** Those of the three acceptance handlers are still untested (`src/factory/application/acceptance.py:205`, `:278`, `:339`). The open draft `factory/features/F0008-crash-recovery/drafts/F0008-S0007-the-no-state-refusals-of-require-states-callers.md` covers the same class. The human can widen that draft to these three calls, so I wrote no new one.
+  - **"Today in UTC" written twice.** It is in `src/factory/application/handlers/closed.py:93` and in `AcceptanceClosed._today` (`src/factory/application/acceptance.py:327`). The duplicate is one line, too small for a story.
+  - **The story `MergedHandler` has no "already in `done/`" guard.** It is harmless today (the stale-branch deletion covers a kill) and is a case for F0011's kill points.
+  - **Corrected from the first report.** It said that `entry/check_story.py` builds the feature file's path by hand. It does so from the constants `FEATURES_DIRECTORY` and `FEATURE_FILE_NAME` (`src/factory/entry/check_story.py:78`) over a local `Path`, not a remote one, so `feature_file_path` does not fit. Not a finding.
+  - **A reviewer that drops the report's front matter loses its report silently** (F0005's restore rule). Still for F0010's reviewer instructions.
 
 ## 5 The documentation as a whole
 
-I read `README.md`, the acceptance sections of `docs/operator-guide.md` ("When a feature acceptance is due", "The hand-over of an acceptance" with merge, close, merged before approval, accepted again, no loop and a close handled again), the project guide's "The feature acceptance", "Events" and "The handlers of the events", and the three F0009 entries of `docs/decisions.md`.
+I read `README.md`; the operator guide's "Looking at the remote: `factory-watch`", "When a feature acceptance is due" and "The hand-over of an acceptance" in full; the project guide's "The feature acceptance", "Events", "The watcher's command line" and the wiring of the handlers; and the F0009 entries of `docs/decisions.md`.
 
-The operator guide agrees with the demo, word for word where it quotes:
+The first acceptance's findings are repaired:
 
-- the four description parts and the closing text;
-- `Refused by the human on <date>: <comment>` first under the recommendation;
-- `done (pull request merged); cost: ...` with the acceptance's own cost;
-- `merged_unrecorded` before the booking, `incomplete` after a merge that brought proposed stories, and due again after another archive.
+- The stale-wording grep of S0013 finds nothing.
+- `docs/project-guide.md:505` says every kind is registered, `acceptance_due` included. That agrees with `:579` and with the code.
+- `:457` and `:459` say that the handlers are registered.
+- `README.md:3` names the feature acceptance and points to the operator guide.
+- The operator guide says "directly in" (`docs/operator-guide.md:432`).
+- The `factory-watch` section describes the acceptance rows exactly as the demo printed them: the title `Acceptance of <feature title>`, the folder `in-progress`, the state from the branch, and the place after the feature's stories.
+- The project guide's board paragraph (`:558`) names `running_work_items` and says the watcher shares it.
 
-The findings:
+**The finding.** "The hand-over of an acceptance" describes the status after a merge in two places:
 
-- **Contradiction inside the project guide.** "Events" (`docs/project-guide.md:505`) ends with "`build_handlers` registers every kind except `acceptance_due`, which belongs to F0009". "The handlers of the events" (`:579`, `:581`), the operator guide and the code all say that every kind has a handler and that `NOT_YET_HANDLED` is empty. This misleads an agent, not the operator.
-- **Stale.** `docs/project-guide.md:459` says `SplitByWorkItemKind` is registered "by F0009-S0010; until then it is not in `build_handlers`".
-- **Missing for the newcomer.** `README.md` lists what is built so far and does not mention the feature acceptance. Its only trace is in the operator guide's intro, as a parenthesis ("for an acceptance, a close books it refused").
-- **Imprecise.** The operator guide says "Only story files count" but not "directly in the folder", which decision 3 and the project guide say. This is covered by S0014's docs criterion.
+- **Merge** says that the proposed stories stay in the backlog, but not what that does to the status.
+- **Accepted again** says: "Once the new acceptance's merge is recorded, the feature is `accepted` and not due".
 
-Draft S0013 repairs the first three. None of them is a contradiction between documentation and behaviour that misleads the user (the operator), so none weighs on the verdict.
+With proposed stories, which the reviewer is told to write, the feature is `incomplete` instead. The demo's tick 6 shows this. The status table (`docs/operator-guide.md:442`, "A recorded result does not stand while a story file waits") and the paragraph **Merged before its approval** (`:486`) say it correctly, so the guide contradicts itself and the code is right. An operator who expects `accepted` after the merge will see `incomplete` on the board. The rule is stated correctly a few paragraphs away, so I judge this an imprecision, not a contradiction that misleads into a wrong act. Draft S0015.
+
+Nothing else contradicts. I found no example that no longer runs: the board example and the event line match the demo.
 
 ## 6 Decisions taken for the human
 
-From `FEATURE.md` (decisions 1 to 22), in short. Each is for the human to accept or revisit:
+`FEATURE.md` now lists 23 decisions. Decisions 1 to 22 are summarized in the first acceptance's section 6 (commit `5e5b989`) and are unchanged. The ones to look at again:
 
-1. Every acceptance is a work item of its own (`F0001-A0001`, numbered per feature, gaps never filled), with its own report file and cost records. There is no single overwritten report.
-2. `AcceptanceState` adds `stories` and `outcome` to the front matter. The F0002 reader and writer learn them.
-3. Only story files directly in the lifecycle folders count. Two directories with one feature id: the first in name order counts.
-4. Status precedence: in flight, merged unrecorded, incomplete, the recorded result, due. **Consequence:** after a merge that brought proposed stories, the feature is `incomplete` until they are archived, and then it is due again. Each accepted round of drafts leads to another acceptance. The stopping rule is out of scope (v2).
-5. Without an `acceptance_stage` there are no acceptances. The handlers are still registered and refuse with `no acceptance stage`.
-6. Opening pushes only the report's head. There is no `created` entry, no claim and no pull request.
-7. The next free story number counts the backlog, in progress and done, with four digits.
-8. The facts are three prompt lines computed by code. The cost counts the archived stories' records only.
-9. The description has four parts, with `none` for a missing part. The findings are the reviewer's last `result` entry as written.
-10. The closing text names no merge method, and says that comments while it waits are only journaled.
-11. The cost table is posted once with F0007's key. A recorded hand-over does nothing.
-12. **A merge books `accepted` whatever the recommendation says.**
-13. The reason of a refusal is the human's comments after the last result, joined with one space (`no reason given` when there are none), placed first under the recommendation.
-14. A refusal keeps the report and its costs at `done/` and drops the proposed stories. A merge keeps them. A `## Recommendation` is added when it is missing.
-15. A merge before the approval is booked `accepted` with an entry that says so.
-16. A repeated acceptance is a new work item. Earlier reports stay.
-17. Acceptances run through F0005's stage protocol with two additions in `task.py`. **Alternative offered:** a separate stage runner.
-18. `AcceptanceReader.snapshots()` feeds the watcher. `EvaluationInput.due` replaces `due_events()`.
-19. A close at any stage books `refused`.
-20. The close handler can be rerun after its branch is gone.
-21. The handlers are named `Acceptance*`. Two F0007 helpers were made public (`cost_table_key`, `move_with_cost_records`). An acceptance ends at its first close.
-22. Tests of other stories changed with leave, in three groups. **The third group** (`tests/application/test_board_reader.py`, granted "by the session for the human, 2026-10-14, night; for the human to confirm in the morning") **and the second** (`tests/test_no_journal_reading.py`) are still marked for the human's confirmation.
+- **12.** A merge books `accepted` whatever the recommendation says.
+- **4.** A waiting story comes before a recorded result. Together with the reviewer's proposed stories, every accepted round of drafts leads to one more acceptance: this feature is on its second, and S0015 would make a third. There is no stopping rule (out of scope, v2).
+- **17.** Acceptances go through the stage protocol with two additions. The alternative was a separate runner.
+- **22.** The test-change leave of the second and third groups (`tests/test_no_journal_reading.py`, `tests/application/test_board_reader.py`) is still marked "for the human to confirm in the morning" in `FEATURE.md`. The first acceptance's merge did not say whether it confirmed them.
 
-From the story logs (the human's answers, recorded there):
+New since the first acceptance:
 
-- S0004 entry 3: a criterion for a push race at the hand-over, tested through a `FakeHostingService` subclass that pushes in `set_description`.
-- S0005 entry 3: `refusal_reason` strips each comment and skips blank ones, matching F0007's answer rule.
-- S0008 entry 7: a criterion added for two skipped cases of `snapshots()`, with no code change.
-- S0011 entry 3: the walk setup, with a proposed story pushed to the branch, two rows for the repeated merge, and `add_human_comment` before `close_by_human`.
-- S0004 entry 7, S0007 entry 5 and S0011 entry 7: one-line test fixes approved (two type annotations and a full-path comparison).
+- **23** (S0012). Every acceptance from `AcceptanceReader.snapshots()` gets a work item row through `work_item_row`, sorted with the stories by `work_item_order`. The feature rows and the event line are unchanged.
+- **A default no decision names** (S0012 reviewer, round 1). The board and the watcher now share `running_work_items`, which breaks ties by `snapshot.path`, so the board took over the watcher's tie-break. It has no visible effect (section 3).
+- **S0013's story text.** For a docs-only story the tester writes no tests, and the coder makes no commit. The stages still ran (section 8).
 
-Defaults I noticed that no decision names:
+The defaults the first report listed still stand:
 
-- The facts' cost line includes only stories with a sidecar, silently. The demo's `F0002-S0002` had none, and the line does not say that a story is missing.
-- The reviewer's report is restored whole when its front matter is unreadable (F0005's rule), with no word in the journal.
+- the facts' cost line silently skips a story without a cost sidecar;
+- a report with unreadable front matter is restored whole, with no word in the journal.
+
+The story logs of S0012 to S0014 hold no answers from the human.
 
 ## 7 The slow checks
 
-None. The project offers nothing beyond `make check`: no image scan, no SBOM, no `make mutants` (by decision). `make check` was green as I found it: lint, types, layers, sast, secrets, licenses, and tests at 99.53 % coverage, in 3 min 00 s.
+None. The project offers nothing beyond `make check`: no image scan, no SBOM, and no `make mutants` (by decision). `make check` was green as I found it, with lint, types, layers, sast, secrets, licenses, and tests at 99.53 % coverage, in 3 min 03 s.
 
 ## 8 Cost
 
-The eleven stories cost 93 runs, 259.2 min and $29.71. That is an average of 8.5 runs, 23.6 min and $2.70 per story.
+The fourteen stories cost 113 runs, 309.9 min and $33.45, about 8.1 runs and $2.39 per story. The first eleven cost 93 runs, 259.2 min and $29.71 (see the first report for the outliers there: S0008 at $4.12, S0011 with 14 runs). The three stories since cost 20 runs, 50.7 min and $3.74:
 
-| Story | Runs | Min | $ | Why it stands out |
+| Story | Runs | Min | $ | Note |
 |---|---|---|---|---|
-| S0008 | 11 | 27.2 | 4.12 | The highest cost in dollars. The reviewer found two refused sides of an Interface rule that no criterion named. The question to the human was followed by a test-only round. |
-| S0005 | 9 | 22.6 | 3.75 | An intake question on `refusal_reason`, two quality findings, and one run whose lease expired (entry 8). |
-| S0011 | 14 | 37.3 | 3.54 | The most runs. Two questions (three setup gaps at intake, then a mypy error in the tester's helper) and a review round on duplicated test helpers, with no change to `src/` at all. |
-| S0009 | 10 | 37.0 | 2.09 | Long but cheap. A one-line test finding (`assert pull_request.draft`) went coder → tester → coder → reviewer. |
+| S0012 | 8 | 24.5 | 2.11 | One review round: the coder had copied the watcher's join and sort, and the reviewer had it shared (`running_work_items`). This is the only one of the three that changed `src/`. |
+| S0013 | 6 | 9.4 | 0.54 | Documentation only. Intake, tester, coder and reviewer each ran and recorded "nothing to do" before the documenter wrote four sentences. |
+| S0014 | 6 | 16.8 | 1.09 | Tests only, green from the start; no `src/` change. |
 
-The other seven stories cost between $1.69 and $3.37.
+None of them stands out against the feature's average.
 
-A pattern across stories: S0004 and S0011 each spent a human round trip on a mypy error in a test that the tester stage cannot see, because by `stages.yml` it runs `make lint` and `make test` but not `make types`. S0007 did the same for a wrong assertion. That is a matter for the pipeline's own files (the human's), not for a story of this feature.
+A pattern for the human, about the pipeline's own files, which are theirs: a docs-only story still pays for four stages that have nothing to do. S0013 paid about half its runs for them. A stage path for docs-only stories, or the human's edit by hand (which S0013 itself offered), would save that.
 
 ## Proposed stories
 
-- `drafts/F0009-S0012-a-running-acceptance-on-the-board.md`: the board gives a running acceptance a work item row (stage, waits, pull request), placed after its feature's stories. Found in the feature demo.
-- `drafts/F0009-S0013-the-documents-say-the-acceptance-is-wired.md`: repairs the project guide's contradiction about `acceptance_due` and its stale "until then", and adds the feature acceptance to the README.
-- `drafts/F0009-S0014-the-refused-sides-of-opening-an-acceptance.md`: pins the three mutation survivors: `open` refusing every status other than `due`, story files only directly in the folders, and the exact error at story number 9999.
+- `drafts/F0009-S0015-what-the-board-shows-after-an-accepted-merge.md`: the operator guide's **Merge** bullet and **Accepted again** paragraph should say that a merge that brought proposed stories leaves the feature `incomplete`, as the status table, the code and the demo do. It is documentation only and small enough for a hand edit.
 
 ## Log (append only)
 
-1. acceptor: accepted with drafts; 3 drafts proposed; make mutants 27/30 (hand pass: the project has no `make mutants` target by decision, so 30 mutants were applied in memory against the feature's 30 test modules)
-   1 Scope: every scope item has its story and its code, and each "Done when" condition is shown. Nothing out of scope was built. Not promised, and not a gap: the board gives a running acceptance no work item row (S0012).
-   2 Feature demo: green. It used the production `handler_factory`, 13 real ticks, a real remote and `run_watch`, with three features: one due with a `.gitkeep`, opened, reviewed, handed over, squash-merged and booked accepted with its proposed story kept; one closed with a comment and booked refused with the reason first; one due again after another archive, opening A0002 with A0001 unchanged. No `reject`. Observation: a reviewer that drops the report's front matter loses the whole report silently (F0005's restore rule), which matters for F0010's instructions.
-   3 Mutation: 27/30 killed. Survivors: `open` is tested only against `incomplete`, not the other four non-due statuses; "story files directly in the folder" is unpinned; the 9999 limit's exact error is unpinned. All three go to S0014. Coverage is 99.53 %.
-   4 Noticed: most items were fixed by later stories. Still open: the project guide's stale wiring sentences (S0013); the untested no-state refusals of the three acceptance handlers, which could extend the open draft F0008-S0007; the story `MergedHandler`'s missing done/ guard, harmless today and a case for F0011's kill points; two one-line duplicates.
-   5 Docs: `docs/project-guide.md:505` says `acceptance_due` is not registered, contradicting `:579`, `:581`, the operator guide and the code. `:459` still says "until then". The README does not mention the feature acceptance. The operator guide matches the demo. All go to S0013.
-   6 Decisions: FEATURE.md's 22 are listed. Flagged for the human: merge accepts whatever the recommendation says (12); the accepted-drafts loop that decision 4 implies, with no stopping rule; the separate-runner alternative (17); the test-change leave of decision 22, still "for the human to confirm"; and two silent defaults (the facts' cost skips stories without a sidecar, the report restored whole).
-   7 Slow checks: none beyond `make check`, which was green as found (3 min, 99.53 %).
-   8 Cost: 93 runs, 259.2 min, $29.71 (about $2.70 per story). S0008 is the top cost at $4.12 (a missing criterion caught in review led to a question and a test round). S0011 has the most runs (14, with no change to src). S0009 is long but cheap. Pattern: the tests stage does not run `make types`, so mypy errors in tests cost S0004 and S0011 a human round trip each. That is a matter for the pipeline's own files.
-   Open: none for this stage. The drafts (S0012 board row, S0013 docs repair, S0014 refused sides) are the human's to refine and promote.
-2. done (pull request merged); cost: 1 runs, 26.6 min, 89 turns, 221k tokens in (11408k more from cache), 77k out, $5.60
+1. acceptor: accepted with drafts; 1 drafts proposed; make mutants 11/12. This was a hand pass: by decision the project has no `make mutants` target, so 12 mutants were applied in memory against the feature's 35 test modules. Over both acceptances the total is 41/42.
+      1 Scope: none. Every scope item has its story and its code. S0012 to S0014 closed the first acceptance's three findings: the board row, the stale docs, and the three survivors. No story went outside the scope, and the out-of-scope items stayed out.
+      2 Feature demo: green. It is the first acceptance's script with four more `watch()` calls, run through the production `handler_factory` with 13 real ticks and a real remote. Due with a `.gitkeep`, opened, reviewed, handed over, squash-merged and booked accepted. Closed and booked refused with the reason first. Repeated as A0002. No `reject` anywhere. The board now shows the acceptance's row at the approval, while merged and unrecorded, at the close, and when A0002 opens.
+      3 Mutation: 11/12 killed. The first pass's three survivors are all killed now, by S0014's tests. The new mutants on S0012's code (`running_work_items`, the board rows) are killed except the `snapshot.path` tie-break. That one is near-equivalent, because two snapshots with one id do not occur, so it gets no draft. Coverage is 99.53 %, and the two missed lines are defensive branches.
+      4 Noticed: S0012 reads the remote twice per board (a performance remark only). The acceptance handlers' three no-state refusals are still untested; the human can widen the open draft F0008-S0007 to cover them. "Today in UTC" is still written twice. The story `MergedHandler`'s missing done/ guard is a case for F0011. The front-matter loss is a matter for F0010's instructions. I corrected one earlier remark: check_story's path built by hand is not a finding.
+      5 Docs: the first acceptance's findings are repaired. Still open: in the operator guide's "The hand-over of an acceptance", the **Merge** bullet and the **Accepted again** paragraph say the feature is `accepted` after a recorded merge. When the merge brought proposed stories it is `incomplete` instead, as the status table (`:442`), the before-approval paragraph (`:486`), the code and the demo all show. This is an imprecision, not a broken promise. Draft S0015.
+      6 Decisions: there are 23. Flagged for the human: merge accepts whatever the recommendation says (12); every accepted round of drafts leads to another acceptance, with no stopping rule (4; this feature is on its second); the separate-runner alternative (17); and decision 22's test-change leave, still marked "for the human to confirm". New: decision 23 (the board rows) and the path tie-break default that the board took over from the watcher.
+      7 Slow checks: none beyond `make check`, which was green as I found it (3 min 03 s, 99.53 %).
+      8 Cost: 113 runs, 309.9 min, $33.45 in all (about $2.39 per story). The three new stories cost 20 runs, 50.7 min, $3.74. S0012 is the most expensive of the three ($2.11, one review round on a duplicated join). S0013 was docs-only and still paid for four stages that had nothing to do, which is a matter for the pipeline's own files.
+      Open: none for this stage. Draft S0015 is the human's to refine, promote or do by hand.
