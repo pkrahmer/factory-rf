@@ -26,17 +26,17 @@ No code changes. `tests/test_claude_files.py::SETTINGS` is changed to match, as 
 
 1. `claude/settings.json` parses as JSON. Its `permissions.allow` holds no entry that starts with `Bash(git add` or `Bash(git commit`, and still holds `Bash(git status*)`, `Bash(git diff*)`, `Bash(git log*)`, `Bash(git show*)` and `Bash(git rev-parse*)`.
 2. Its `permissions.deny` holds `Bash(git add*)` and `Bash(git commit*)`, and still holds `Bash(git push*)` and `Bash(gh *)`.
-3. The settings equal `tests/test_claude_files.py::SETTINGS` after the tester's change, key for key and in order.
+3. The settings equal `tests/test_claude_files.py::SETTINGS` after the tester's change (`settings == SETTINGS`, so each list keeps its order).
 4. The `## Rules` of every shipped agent still holds the sentence ``You do not commit either``.
 5. `make check` stays green.
-6. docs: `docs/project-guide.md`, at `claude/settings.json`, lists the git commands an agent may run (`status`, `diff`, `log`, `show`, `rev-parse`) and names `add` and `commit` among the denied ones, with the reason: the factory makes the result commit (R10).
+6. docs: `docs/project-guide.md`, "The settings", lists the git commands an agent may run (`status`, `diff`, `log`, `show`, `rev-parse`) and names `add` and `commit` among the denied ones, with the reason: the factory makes the result commit (R10). `docs/operator-guide.md`, "The shipped agents and settings", names `git add` and `git commit` among the denied commands, with the same reason.
 
 ## Demo
 
 ```bash
 uv run python -c "import json; s = json.load(open('claude/settings.json')); print([a for a in s['permissions']['allow'] if a.startswith('Bash(git')]); print([d for d in s['permissions']['deny'] if 'add' in d or 'commit' in d])"
 ```
-Expect: the first list holds the five read commands and no `add` or `commit`; the second is `['Bash(git add*)', 'Bash(git commit*)']`.
+Expect: `['Bash(git status*)', 'Bash(git diff*)', 'Bash(git log*)', 'Bash(git show*)', 'Bash(git rev-parse*)']`, then `['Bash(git add*)', 'Bash(git commit*)']`.
 
 ```bash
 grep -c 'You do not commit either' claude/agents/*.md

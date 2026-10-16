@@ -10,16 +10,16 @@ No test pins that fix. The feature acceptance's hand mutation pass dropped `and 
 
 This story pins both sides of the rule for a call that reaches its `time_limit`. It is tests only: the code already behaves as the criteria say, and the coder expects to change nothing in `src/`.
 
-One part of this is the human's call before promoting. Under this rule, a run that times out while `sudo` printed a harmless warning (`sudo: unable to resolve host x`) is an `AgentRuntimeError`, which takes the crash path, not the end reason `time_limit`. The Interface of S0014 says so, and this draft pins it. If the human prefers `time_limit` there, the criteria's first row turns around, and the coder changes `_sudo_refusal` to match.
+The rule stays as S0014's Interface has it (the human's call, taken with the default of the feature acceptance's section 6, point 8): a run that times out while `sudo` printed a harmless warning (`sudo: unable to resolve host x`) is an `AgentRuntimeError`, which takes the crash path, not the end reason `time_limit`. The kill of a call under the real `sudo` is not enforced anyway (FEATURE.md decision 30, out of scope); this story pins only how the runtime reads a call that reached its limit, with stand-ins that the test's own user can kill.
 
 ## Interface
 
-No new or changed names. The behaviour pinned is that of `ClaudeCodeRuntime(executable, state_directory, sudo_executable=<stand-in>).run(request)`, with `request.os_user == "agent"` and `request.time_limit == timedelta(seconds=1)`, and a `sudo` stand-in that runs the agent stand-in. The agent stand-in prints a reply and then waits past the limit, as `tests/adapters/test_claude_runtime.py::test_call_over_its_time_limit_is_killed_with_unknown_measures` does:
+No new or changed names in `src/`. The behaviour pinned is that of `ClaudeCodeRuntime(executable, state_directory, sudo_executable=<stand-in>).run(request)`, with `request.os_user == "agent"` and `request.time_limit == timedelta(seconds=1)`, and a `sudo` stand-in that runs the agent stand-in. The agent stand-in is `write_stand_in(<directory>, [Step(stdout_before_wait=REPLY, wait_seconds=60)])`: it prints the module's `REPLY` and flushes it, then waits past the limit and is killed:
 
 - When the stand-in `sudo` writes a line that starts with `sudo:` to standard error, `run` raises `AgentRuntimeError`. Its `detail` holds that line.
 - When the stand-in writes no such line, `run` returns a result with `end_reason == "time_limit"`, and its `decision` and `entry` are `None`.
 
-The tests go in `tests/adapters/test_claude_runtime_os_user.py`, built from its `_write_sudo` (its `warning` parameter) and the stand-in `Step` with `wait_seconds`. S0014's tests stay as they are.
+`Step` in `tests/adapters/claude_stand_in.py` gains one field, `stdout_before_wait: str = ""`, which the stand-in script writes to standard output and flushes before its wait; nothing else in that file changes (FEATURE.md decision 37). Without it the stand-in prints only after its wait, so a killed call's standard output is empty and the rule's timed-out side is never reached. The tests go in `tests/adapters/test_claude_runtime_os_user.py`, built from its `_write_sudo` (its `warning` parameter), `_request` (with `time_limit` replaced) and `REPLY`. S0014's tests stay as they are.
 
 ## Acceptance criteria
 
@@ -31,9 +31,9 @@ The tests go in `tests/adapters/test_claude_runtime_os_user.py`, built from its 
 ## Demo
 
 ```bash
-uv run pytest --no-header -p no:cacheprovider -q tests/adapters/test_claude_runtime_os_user.py
+uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_os_user.py
 ```
-Expect: the last line is `<n> passed in <time>`, with n two more than before this story.
+Expect: the last line is `10 passed in <time>` (8 tests before this story, and the two rows of criteria 1 and 2).
 
 ## Log (append only)
 

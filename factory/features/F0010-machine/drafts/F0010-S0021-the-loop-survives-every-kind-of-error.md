@@ -22,27 +22,25 @@ This story pins the rule for the kinds of exception the loop meets. It is tests 
 No new or changed names. The behaviour pinned is that of `Scheduler(prepare=..., tick=..., sleep=..., should_stop=..., log=...).run()`:
 
 - an exception of any of the types `GitError("git fetch", 128, "boom")`, `OSError("boom")`, `AgentRuntimeError("boom")` and `RuntimeError("boom")`, raised by `tick` or by `prepare`, is caught;
-- the log gets exactly one line, `iteration failed: <type name>: <str(error)>`;
+- the log gets exactly one line, `iteration failed: <type name>: <str(error)>`, for these four `iteration failed: GitError: git fetch failed (exit 128): boom`, `iteration failed: OSError: boom`, `iteration failed: AgentRuntimeError: agent runtime failed: boom` and `iteration failed: RuntimeError: boom`;
 - the iteration counts as idle, so the next sleep is `pause_after(<idle ticks>)`;
-- after a failed `prepare`, the tick is not called in that iteration;
-- `KeyboardInterrupt`, like `InjectedKill`, is not caught and leaves `run`.
+- after a failed `prepare`, the tick is not called in that iteration.
 
-The constructors of the errors follow `src/factory/domain/errors.py`; the tester uses each one's real signature. The tests go in `tests/application/test_scheduler.py`, as rows of one new parametrized test with the `Loop` recorder that the module already has. Criteria 7 and 8 of F0010-S0002 and their tests stay as they are.
+The side that is not caught, a `BaseException` that is not an `Exception`, stays pinned by `test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged`. The tests go in `tests/application/test_scheduler.py`, as the rows of one new parametrized test with the `Loop` recorder that the module already has; each loop stops after its second sleep. Criteria 7 and 8 of F0010-S0002 and their tests stay as they are.
 
 ## Acceptance criteria
 
-1. For each of the four exception types, raised by the first `tick`, with a second `tick` that returns `True`: `run` raises nothing, and the log holds exactly the one line `iteration failed: <type name>: <message>`. The first sleep is 30 seconds (one idle tick) and the second is 15 seconds (activity). One parametrized test, one row per type.
-2. For each of the four exception types, raised by the first `prepare`: `run` raises nothing, the log holds exactly the one line, the first iteration calls no `tick`, and the first sleep is 30 seconds. Rows of the same parametrized test as criterion 1, with the raising side as a parameter.
-3. `KeyboardInterrupt` raised by the `tick` leaves `run` as `KeyboardInterrupt`, and the log holds no line.
-4. `make check` stays green.
-5. docs: none. `docs/operator-guide.md`, "The loop and its pauses", already says that an exception is logged in one line and counts as idle; these tests pin that for the errors it names.
+1. For each of the four exceptions, raised by the first `tick`, with a second `tick` that returns `True`: `run` raises nothing, the log holds exactly that exception's line from the Interface, the first iteration calls `prepare` then `tick`, and the sleeps are 30 seconds (one idle tick) then 15 seconds (activity).
+2. For each of the four exceptions, raised by the first `prepare`, with a second `prepare` and a `tick` that return `True`: `run` raises nothing, the log holds exactly that exception's line, the first iteration calls no `tick`, and the sleeps are 30 then 15 seconds. Criteria 1 and 2 are the eight rows of one parametrized test, with the raising side as a parameter.
+3. `make check` stays green.
+4. docs: none. `docs/operator-guide.md`, "The loop and its pauses", already says that an exception is logged in one line and counts as idle; these tests pin that for the errors it names.
 
 ## Demo
 
 ```bash
-uv run pytest --no-header -p no:cacheprovider -q tests/application/test_scheduler.py
+uv run pytest --no-header -p no:cacheprovider tests/application/test_scheduler.py
 ```
-Expect: the last line is `<n> passed in <time>`, with n at least 9 more than before this story (eight rows for criteria 1 and 2, one test for criterion 3).
+Expect: the last line is `26 passed in <time>` (18 tests before this story, and the eight rows of criteria 1 and 2).
 
 ## Log (append only)
 

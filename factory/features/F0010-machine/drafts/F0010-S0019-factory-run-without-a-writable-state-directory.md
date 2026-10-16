@@ -21,26 +21,28 @@ This story keeps status 2 and a readable message when the stop cannot be written
 
 No new public name.
 
+Tests: in `tests/entry/test_run.py`, with its `environment` fixture and `_main_without_instance` (an environment with `FACTORY_REPOSITORY_URL` and the image identity file, without `FACTORY_INSTANCE`), and `capsys` for standard error. Criterion 4's runner is a function of the test that raises `OSError`; `Runner` stays as it is.
+
 ## Acceptance criteria
 
 1. With an environment that lacks `FACTORY_INSTANCE`, and a `state_directory` that cannot be created (`tmp_path / "file" / "state"`, where `tmp_path / "file"` is a regular file), `main` returns 2, raises nothing and starts no runner.
 2. In the case of criterion 1, standard error holds the line `factory-run: settings invalid: FACTORY_INSTANCE: missing`, followed by a line that starts with `factory-run: cannot write the machine stop: ` and names the `OSError`'s type (`NotADirectoryError` or `FileNotFoundError`).
-3. With the same environment and a writable `state_directory`, `main` returns 2. It writes the time-stamped log line and the machine stop as before, and nothing that starts with `factory-run: cannot write the machine stop` reaches standard error. The two sides of criteria 1 to 3 are rows of one parametrized test.
+3. With the same environment and a writable `state_directory`, `main` returns 2, writes the time-stamped log line and the machine stop as before, and writes nothing to standard error. The two sides of criteria 1 to 3 are rows of one parametrized test.
 4. A runner that raises `OSError` for a valid environment still lets the `OSError` out of `main`.
 5. `make check` stays green.
-6. docs: `docs/operator-guide.md`, at the stop for an invalid environment, says that a state directory the factory cannot write ends `factory-run` with status 2 and the two lines on standard error, and that the operator should check the `state` volume's owner and mode. `README.md`'s sentence on status 2 holds without a condition.
+6. docs: `docs/operator-guide.md`, "When the process refuses to start", says that when the state directory cannot be written, `factory-run` still ends with status 2: the time-stamped line reaches standard output, the two lines go to standard error and no stop is written, and the operator should check the `state` volume's owner and mode. `README.md`'s sentence on status 2 says the same in short: status 2 with a machine stop, or with the two lines on standard error when the state directory cannot be written.
 
 ## Demo
 
 ```bash
 env -i PATH="$PATH" HOME="$HOME" uv run python -c "from pathlib import Path; import tempfile; from factory.entry.run import main; f = Path(tempfile.mkdtemp()) / 'file'; f.write_text(''); print('status', main({}, state_directory=f / 'state'))"
 ```
-Expect: two lines on standard error, `factory-run: settings invalid: FACTORY_REPOSITORY_URL: missing` and `factory-run: cannot write the machine stop: NotADirectoryError: ...`, then `status 2`, and no `Traceback`.
+Expect: the time-stamped line `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing` on standard output, two lines on standard error, `factory-run: settings invalid: FACTORY_REPOSITORY_URL: missing` and `factory-run: cannot write the machine stop: NotADirectoryError: [Errno 20] Not a directory: '<tmp>/file/state'`, then `status 2`, and no `Traceback`.
 
 ```bash
 d=$(mktemp -d); uv run python -c "from pathlib import Path; from factory.entry.run import main; print('status', main({}, state_directory=Path('$d')))"; uv run factory-health --state-directory "$d"; echo "exit=$?"
 ```
-Expect: `status 2`, then one `preflight_failed (machine): FACTORY_REPOSITORY_URL: missing (since ...)` line, then `exit=1`.
+Expect: `<stamp> settings invalid: FACTORY_REPOSITORY_URL: missing`, then `status 2`, then one line `preflight_failed (machine): FACTORY_REPOSITORY_URL: missing (since <stamp>)`, then `exit=1`.
 
 ## Log (append only)
 
