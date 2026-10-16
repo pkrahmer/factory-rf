@@ -1,8 +1,8 @@
 ---
 stage: tests
 pr: 122
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -203,3 +203,4 @@ Expect: three lines: the time-stamped line the factory writes (it starts with a 
    (b) Build the `Tick` with a handler factory whose run handler always raises the same error, as tests/application/test_tick.py does with `Failing`. Nothing is pushed, so both ticks hit the same error key.
    (c) Keep the single-entry check and change the code so that a claim this instance already holds leads to the same error on the second tick.
    I recommend (b): it tests exactly what criterion 5 says (one `Tick` kept across calls, and its error count growing) without depending on how the claim behaves.
+8. human (pull request comment, 2026-10-16): (b): build the `Tick` with a handler factory whose run handler always raises the same error, as `tests/application/test_tick.py` does with `Failing`, and keep the single-entry check with count 2. Undo change 1's runtime setup that is no longer needed; change 2 stays. The code stays as it is.
