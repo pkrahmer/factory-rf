@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 167
 blocked: null
 comments_seen: 2
@@ -195,3 +195,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: no findings.
+
+   - Acceptance criteria: each of criteria 1 to 10 has a test that checks what the criterion says. The coder's entry 8 reports `make check` green, with coverage at 99.51 %. Every limit is tested on both sides: occasion inside and outside `start`/`acceptance`, `at` with and without an offset, -1 and 0 for each byte field, both values None. Every failing case has a test: `OSError` on either measure (5), on the append, with the log lines in order (6), each missing boundary (7), an empty log and no record log for `last` (8). Criterion 9 checks both the single `start` record in `records/disk.jsonl` and that no checkout was cloned. Criterion 10 compares `read_environment_settings` with `read_settings`. The changes to earlier tests stay within FEATURE decision 46: the two expected settings gain `temporary_directory`, and the two new functions are in `tests/entry/test_run.py`. Entry 7 rewrote the criterion 7 rows the way the human chose in entry 5.
+   - Architecture: the layers hold. `DiskUse`, `DiskRecord` and `disk_line` in `factory.domain.disk` are pure Pydantic code and reuse `gigabytes`. `DiskRecorder` in `factory.application.disk_records` gets everything through `Boundaries` and the `RecordLog`/`DiskSpace` interfaces. `tempfile.gettempdir()` and `JsonLinesRecordLog` are wired only in `factory.entry.wiring`. No `dict[str, Any]` crosses a function boundary, and nothing calls a command-line tool.
+   - Security: the diff has no secrets and no suppression markers. The test's `# noqa: DTZ001` is a lint marker for the deliberately naive datetime row, not a security marker. The disk record holds paths and byte counts only.
+   - Quality: names and docstrings are in place, the comment on the append `except` says why, and there is no dead code. `record` handles a failed append the same way `RecordingProjectCommands.run` does (`src/factory/application/project_commands.py:58`). It is a three-line try/except, not a helper worth sharing. `Tick._check_disk` also lists the checkout's parent and the state directory, but it stops the instance where `record` stores None, so `_folders` is no second copy of a helper.
+   - Ticket hygiene: entry 8 states the main decision (log first, then append; a full disk does not stop the instance) and the rejected alternative (setting the temporary directory in `read_settings`). The Assignment matches the build, apart from one thing it gets wrong in a harmless way: it expected `last` to show as new dead code, but `make duplicates` reports `0 new`. Criterion 12 still describes what the documenter must write.
