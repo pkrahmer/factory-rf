@@ -217,7 +217,7 @@ The preflight item `token-file` (see "The preflight's items") checks that the to
 
 The folder is checked first, so a folder the factory's user does not own is reported even when it cannot enter it.
 
-**Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs Docker and the image's second operating-system user. Check by hand once after a build, inside the container:
+**Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs a container runtime (Docker or Podman) and the image's second operating-system user. Check by hand once after a build, inside the container:
 
 - `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` are refused with `Permission denied`, and `ls -lnd /home/factory/.secrets` shows `drwx------` and uid 1000.
 - As an agent (a run that tries it, or `su` to another user), `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.

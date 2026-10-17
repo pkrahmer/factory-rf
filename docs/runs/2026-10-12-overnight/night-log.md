@@ -389,3 +389,10 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - Disk record: C: 257G free of 931G, Docker's disk image 61.6 GB.
 | 2026-10-17 21:11 | F0013-S0006 merged (#188; 6 runs, 3.1 agent minutes, $0.76, first pass; test changes as F0013 decision 16 allows). S0007 started. |
 | 2026-10-17 21:16 | F0013-S0007 merged (#189; 6 runs, 1.9 agent minutes, $0.55, first pass; documents only). F0013's second acceptance started by v1. |
+
+## 2026-10-17 21:30, F0013 accepted (second acceptance)
+
+- F0013's second acceptance (#190; 9 min, $1.17): **accepted**, no drafts; both findings of the first closed; `make mutants` 561 of 567 killed (the six survivors near-equivalent or cosmetic). Merged and booked. F0013 in all: 7 stories and two acceptances, about $9.
+- The two one-word leftovers fixed by hand: `image/compose.yml` line 1 and the operator guide's "needs Docker" now name the container runtime (Docker or Podman). `make check` green, `documents ok`.
+- API key so far: $37.68 by the factory, $17.52 by the session's agents. Disk record: C: 256G free of 931G.
+- Next: plan step 2, the first start on the real machine (the human's).

@@ -1,4 +1,4 @@
-# The factory's container: Docker restarts it and reads its health from the stops in force.
+# The factory's container: the container runtime restarts it (Docker, or Podman with its restart service) and reads its health from the stops in force.
 name: factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}
 services:
   factory:
