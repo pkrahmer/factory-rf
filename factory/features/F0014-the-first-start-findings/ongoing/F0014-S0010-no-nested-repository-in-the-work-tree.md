@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 194
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -157,3 +157,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       g. `CheckoutPreparer.prepare`: the log line is written only when it removed any. Criterion 9 tests only the case where something was removed. Option: add a row for an existing checkout with nothing nested, which writes no `removed nested repositories` line and keeps the checkout.
       h. `AfterAgent.process`: the stall is "as its first step, before the branch check". Criterion 6 does not show the order. Option: add a row in which the branch check would also fail and the reason is still `nested_repository`.
    I would choose to add all eight as rows of the existing parametrized criteria (3, 5, 8, 9 and 6), and criterion f as a new criterion before the two closing ones.
+3. human (pull request comment, 2026-10-17): 1: yes, all eight as you propose: a, b, c, d, e, g and h as rows of the existing parametrized criteria (3, 5, 8, 9 and 6), and f as a new criterion before the two closing ones (a missing checkout is cloned without a call to `remove_nested_repositories`). For b, the `0o000` folder row is skipped when the tests run as root and its mode is restored afterwards.
