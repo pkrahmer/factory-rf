@@ -34,7 +34,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
-from factory.application.files import WorkItemReader
+from factory.application.files import PipelineDefinitionReader, WorkItemReader
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentHandler
 from factory.application.handlers.hand_over import HandOverHandler
@@ -128,6 +128,11 @@ _REPOSITORY_URL = re.compile(
 def build_work_item_reader() -> WorkItemReader:
     """Return the reader of work item files."""
     return FrontmatterWorkItemReader()
+
+
+def build_pipeline_definition_reader() -> PipelineDefinitionReader:
+    """Return the reader of the pipeline definition."""
+    return RuamelPipelineDefinitionReader()
 
 
 def git_environment(helper: str = CREDENTIAL_HELPER) -> dict[str, str]:
