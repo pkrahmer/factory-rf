@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 149
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -169,3 +169,18 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: question. A test that already exists contradicts the Interface.
+
+   Built and committed in 8813045: `src/factory/domain/documents.py` (`check_documents`, `DocumentFinding`, the constants) and `src/factory/entry/check_documents.py` (`main`, `--root`). All tests in `tests/domain/test_documents.py` and `tests/entry/test_check_documents.py` pass, and coverage is 99.5 %. `make check` is still red, for one reason only:
+
+   - `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[--follow]` and `[factory-last-line]` fail. That test reads the bytes of every file under `src/`, `__pycache__` included, and forbids `--follow` and `factory-last-line`.
+   - The Interface requires `REPLACED_PHRASES` in `src/factory/domain/documents.py` to hold exactly those two strings. The check cannot reject a phrase without naming it.
+
+   Options:
+   (a) The tester narrows `test_no_source_file_knows_the_follow_mode` so it skips `src/factory/domain/documents.py` and its compiled `.pyc`. Another way to do the same: the test checks only the watch and run entry modules and the adapters, so it still proves that no code implements a follow mode. I would then end with `tests` and name this change.
+   (b) Build the two strings at runtime so their bytes appear neither in the source nor in the `.pyc`, e.g. `"".join(("-", "-follow"))`. Plain `"-" + "-follow"` is not enough, because the compiler folds it into one constant. This leaves the test untouched, but it only gets past the test rather than meeting its intent, and a reviewer would rightly flag it.
+   (c) Move the replaced phrases out of `src/` into a data file. That changes the Interface, which names them as constants in `documents.py`.
+
+   My recommendation is (a): the test is meant to stop code from knowing a follow mode, and a list of forbidden phrases is not such code.
+
+   No refactor pass yet; it follows once the check is green. Nothing else is open.
