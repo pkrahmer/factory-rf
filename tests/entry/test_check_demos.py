@@ -176,6 +176,8 @@ def test_a_feature_folder_without_its_feature_file_gives_the_place_finding(root:
     [
         pytest.param("features/F0001-x/in-progress/F0001-S0002-y.md", id="started-story"),
         pytest.param("features/notes.txt", id="loose-file"),
+        pytest.param("features/F0001-x/backlog/notes.txt", id="backlog-file-not-md"),
+        pytest.param("features/F0001-x/notes.md", id="feature-folder-file-not-feature-md"),
     ],
 )
 def test_a_file_that_is_no_feature_file_or_backlog_story_is_a_finding(

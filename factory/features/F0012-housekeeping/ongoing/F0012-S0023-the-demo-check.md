@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 173
 blocked: null
 comments_seen: 0
@@ -124,3 +124,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
         - `features/F0001-x/notes.md`, a file directly in a feature folder that is not `feature.md`
       - These rows cover the refused side of two Interface rules that criterion 8 does not name. The test was not wrong, only incomplete. The reviewer asked for a `tests` outcome naming these rows, so I did not ask a question first.
       - Nothing else is open from round 1. `make check` was green at 8450e2d, and the tree is unchanged since then.
+7. tester: tester (approved test change, from entry 6): added two rows to `tests/entry/test_check_demos.py::test_a_file_that_is_no_feature_file_or_backlog_story_is_a_finding`, and changed nothing else. Each row expects `demo/todo/<path>: not a feature file or a backlog story`:
+      - `features/F0001-x/backlog/notes.txt` (id `backlog-file-not-md`): a file in `backlog/` without the `.md` ending.
+      - `features/F0001-x/notes.md` (id `feature-folder-file-not-feature-md`): a file directly in a feature folder that is not `feature.md`.
+      Why: the reviewer's findings 1 and 2 in entry 5. These rows test the refused side of the two Interface rules for files under `features/`, which criterion 8 does not name.
+      `make test`: test: green (30.8 s). The coder's existing code already gives these findings.
+      `make lint`: lint: green (0.0 s)
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (30.5 s)
