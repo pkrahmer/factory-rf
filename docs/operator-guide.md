@@ -225,7 +225,7 @@ It sets no git configuration; the factory's git gets its identity and credential
 
 ### The health check and the restart policy
 
-Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to answer, three failures to be unhealthy, 60 seconds of grace at the start). It reads `health.json` in the state directory. With no stop it prints `healthy` and exits 0; with stops it prints one line per stop and exits 1:
+Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to answer, three failures to be unhealthy, 60 seconds of grace at the start). It reads `health.json` in the state directory. With no stop it prints `healthy` and exits 0; when the file is missing it prints `no health status: <path> is missing` and exits 1 (`factory-run` writes an empty status when it starts, so a missing file means the instance has not started or the check reads another state directory; Docker counts the failure only after the 60 seconds of grace); with stops it prints one line per stop and exits 1:
 
 ```
 preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12T08:00:00Z)
@@ -309,7 +309,8 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 - One stop per reason. `scope` is `machine` for `preflight_failed` and `disk_low`, and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
 - The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing`, `preflight_failed` and `disk_low`.
-- A file that is missing, cannot be read, is not JSON or is not a valid status reads as healthy (no stops). Do not repair it by hand: the next stop that is raised replaces the whole file, and a fault that lasts is raised again.
+- `factory-run` writes an empty status (`{"stops": []}`) when it starts and finds no file, before it reads the token file; an existing file is left as it is, its stops in force. If that write fails, `factory-run` fails with the `OSError` and clones nothing.
+- A file that is missing reads as not healthy for the health check (`no health status: <path> is missing`, exit 1). A file that cannot be read, is not JSON or is not a valid status reads as healthy (no stops). Do not repair it by hand: the next stop that is raised replaces the whole file, and a fault that lasts is raised again.
 - A write goes to a temporary file in the same directory and replaces `health.json` in one step, so a reader never sees half a file. If `health.json` is a directory, the write fails with an `OSError` and leaves nothing behind.
 
 ### The records

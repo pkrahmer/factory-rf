@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 176
 blocked: null
 comments_seen: 0
@@ -90,3 +90,14 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
       - Quality: the docstrings of `main` and `run_instance` describe the new behaviour, including the `OSError`. The comment on `_write_an_empty_health_status_when_there_is_none` says why the write is there. No dead code.
       - Ticket: the log gives the main decision: the missing-file check is in `main`, not in the store's `read`, because criterion 2 and `_stop_the_machine` both rely on how `read` works today. `Assignment` matches what was built, and the docs criterion (8) is still accurate.
       - Coder's open point: when `factory-run` exits with status 2 on invalid settings, it never writes the file. That is not a gap: with no file, `factory-health` now reports not healthy, which is the fix for F0010 open point 6.
+6. documenter: wrote the missing-health-file behaviour into the README, operator guide and decision log. `uv run python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only documents.
+   - `README.md`: the `factory-health` command now says that it prints `no health status: <path> is missing` and exits 1 outside the image, before `factory-run` has started.
+   - `docs/operator-guide.md`, "The health check and the restart policy": a missing file prints the `no health status: <path> is missing` line and exits 1. The text says `factory-run` writes an empty status at its start, and that Docker counts the failure only after the 60 s start period.
+   - `docs/operator-guide.md`, "The health status file": added that `factory-run` writes an empty status at its start before it reads the token file, and keeps an existing file's stops. A failed write raises the `OSError` and clones nothing. Split the old "missing reads as healthy" bullet: a missing file is now not healthy, while an unreadable, non-JSON or invalid file still reads as healthy.
+   - `docs/decisions.md`: new entry recording the answer to F0010's open point 6, and why the check sits in `main` and not in the store's `read`.
+   - Cross-read, found current: the rest of the operator guide (the stop sections, which refer to a stop "raised again" and to `health.json` being deleted) and `docs/project-guide.md` (health status and store sections).
+   - Stale but not touched: none seen.
+   - Findings: none. The code matches the Interface.
+
+   `make check`: check: green
+   `make documents`: documents ok
