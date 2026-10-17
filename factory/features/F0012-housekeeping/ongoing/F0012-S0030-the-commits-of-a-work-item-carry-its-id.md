@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 179
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The commits on a work item's branch carry its id
 
 ## Assignment (as of log entry 1)
@@ -45,3 +53,78 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures. `commit_subject` in `factory.application.handlers.recording` is reused, not copied. The table gives the four call sites. I checked them against `src/factory`: `claims.py:64`, `stage.py:357` (the message passed to `_commit_and_push`), `stalls.py:129` and `acceptance.py:121` are the only `Git.commit` calls outside `recording.py`. `acceptance.py` already imports the helper. The only behaviour the Interface states is the subject prefix, and criteria 1 to 4 test it.
+   - Criteria: each is testable by a test function or parametrized rows. Criterion 1 is the three changed assertions in `test_claims.py`. Criterion 2 has three rows (forward, sent back, question). Criterion 3 has two rows, one with an agent's own commit that keeps its subject. Criterion 4 is one test. Criterion 5 pins the helper and the unchanged handler subjects. The rule has no failing side in the usual sense (no input is rejected). The merge of `origin/main` into a reopened branch is deliberately left alone, and FEATURE decision 53 records that.
+   - Demo: both commands are runnable. The expected count of 7 matches the criteria: 3 + 2 + 1 for the new tests, plus 1 for the existing start test. The grep currently matches three lines (`acceptance.py:121`, `claims.py:64`, `stalls.py:129`) and should print only `status 1` after the change. Each `Expect:` line is checkable.
+   - Architecture: the change stays inside `factory.application`, and the import runs between sibling modules within a layer with no cycle. The Interface adds no new interface, DTO or dependency.
+   - Scope: it is within F0012 (the "What v1.1 writes into its commits" scope line, FEATURE decisions 51 to 53) and not in Out of scope. The test changes are covered by the human's leave in decision 52.
+3. tester: the subject tests are written, and the 9 tests that cover the new prefix fail on purpose. Each of them compares a commit subject, and the code does not add the prefix yet. Nothing else in `make test` failed. `make lint` is green.
+   - criterion 1: in `tests/application/test_claims.py`, the three subject assertions now expect `commit_subject(WORK_ITEM, f"{STAGE} starts as {INSTANCE}")`. `commit_subject` is imported from `factory.application.handlers.recording`. The three tests are `test_stage_start_commit_is_one_commit_on_the_previous_head_with_its_subject`, `test_a_rejected_push_raises_push_failed_and_leaves_the_remote_without_claim` and `test_a_kill_before_push_is_not_caught_and_leaves_the_remote_without_claim`.
+   - criterion 2: `tests/application/test_stage_finish.py::test_the_commit_of_a_stage_end_carries_the_work_item_prefix`, with three rows: `forward` (tests → doing), `sent-back` (docs → doing) and `question` (tests, QUESTION → `tests ends: tests`). It uses the module's `_aftermath` and `_finish` helpers and reads `boundaries.git.log(report.commit)[0].subject`.
+   - criterion 3: `tests/application/test_stalls.py::test_the_stall_commit_carries_the_work_item_prefix`, with two rows. `no-agent-commit` is a died run with writes inside the write paths. `agent-commit` adds a commit by the agent before the stall: the stall commit has the prefix and the agent's commit below it keeps its own subject.
+   - criterion 4: `tests/application/test_acceptance_service.py::test_the_opening_commit_carries_the_work_item_prefix`, on `opened.commit` from `AcceptanceService.open("F0002")`.
+   - criterion 5: no new test. The existing tests of the handler and acceptance subjects are unchanged and still pass. Per the Interface, the new tests compare against literal text, not against `commit_subject`, so a change to the helper itself makes them fail.
+   - criteria 6 and 7: these are the coder's and the documenter's, so there are no tests for them.
+   Files: three new test functions in the three modules above, and the change in `test_claims.py`. No new files. Every module imported fine. The failures are subject mismatches only, not import errors. I chose not to test the merge of `origin/main` on reopening: the assignment leaves that merge as it is.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/application/test_stalls.py::test_the_stall_commit_carries_the_work_item_prefix[agent-commit]
+4. coder: all four factory commits on a work item's branch now take their subject from `commit_subject`. `make check` is green.
+      - `src/factory/application/claims.py`: the stage-start commit is `commit_subject(_work_item_id(path), f"{stage} starts as {instance}")`. The new private helper `_work_item_id(path)` holds the file-name parse that used to sit in `_own_branch`, and `_own_branch` now calls it. That keeps the parse in one place instead of two.
+      - `src/factory/application/stage.py`: `StageFinisher.finish` builds `commit_subject(started.work_item, f"{started.stage} ends: {move.stage}")` and passes it to `_commit_and_push`, which is unchanged.
+      - `src/factory/application/stalls.py`: `_commit_and_push` commits `commit_subject(context.work_item, f"{context.stage} stalled")`.
+      - `src/factory/application/acceptance.py`: `open` commits `commit_subject(work_item, "opens")`.
+      - Design: I imported `commit_subject` from `factory.application.handlers.recording` as the Interface says, with no import cycle. I rejected the alternative of applying the prefix inside `_commit_and_push` or in the `Git` wrapper: that would also change the subjects of the handlers and of the agents' commits, which the assignment keeps.
+      - Refactor: I read the diff (16 lines added, 6 removed) and nothing needed changing, so there is no refactor commit.
+      - Checks: commit "feat(application): prefix the factory's own commits with the work item id". Both demo commands print what the ticket expects: `7 passed, 1126 deselected`, and the grep prints only `status 1`. `make duplicates`: 0 new, 39 known, 0 gone.
+      - Open: the docs criterion (7) is the documenter's. I did not change the merge of `origin/main` on reopening, as the assignment asks.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Criteria: criterion 1 is covered by the three changed assertions in `tests/application/test_claims.py`. Criterion 2 is covered by `test_the_commit_of_a_stage_end_carries_the_work_item_prefix` in `tests/application/test_stage_finish.py`, whose three rows (forward, sent-back, question) compare against literal subjects. Criterion 3 is covered by `test_the_stall_commit_carries_the_work_item_prefix` in `tests/application/test_stalls.py`. It has two rows, and the agent-commit row also checks that the agent's commit directly below keeps its own subject. Criterion 4 is covered by `test_the_opening_commit_carries_the_work_item_prefix` in `tests/application/test_acceptance_service.py`. The new tests use their modules' own helpers (`_aftermath`/`_finish`, `_started`/`_context`/`_stall`, `_push_todo`/`_service`) and copy no helper. For criterion 5, the diff leaves `commit_subject` and the handler tests untouched. The rule has no rejected input, so there is no failing side to test. The coder's entry says `make check` was green.
+   - Architecture: the four call sites in `claims.py`, `stage.py`, `stalls.py` and `acceptance.py` import `commit_subject` from `factory.application.handlers.recording`. That module imports only `boundaries`, `git` and domain modules, so no cycle arises. Every change stays in `factory.application`. `grep 'git.commit(' src/factory` shows the subjects of all four commits built by `commit_subject`. `stage.py:359` passes on the message that `finish` builds with it, and `recording.py` is unchanged.
+   - Security: nothing relevant changed. No markers were added and no strings reach a shell.
+   - Quality: the new `_work_item_id` in `claims.py` takes the file-name parse out of `_own_branch` and is used by both, so the parse is not duplicated. Names are clear and there is no dead code.
+   - Hygiene: the coder's entry names the main decision and the rejected alternative (adding the prefix in `_commit_and_push` or in the `Git` wrapper). `Assignment` matches what was built. Criterion 7 still describes what the documenter must write.
+6. documenter: written for criterion 7 (documents only, so no `make check` run by me). `uv run python -m factory.entry.check_documents` prints `documents ok`.
+   - `docs/project-guide.md`, *Recording the human's act*: replaced "Nothing parses commit subjects" with the rule that every factory commit on a work item's branch begins `work item <id>: `. It lists the five kinds of commit, names the merge of `origin/main` into a reopened branch as the one exception, and says a project's `make mutants` reads the prefix.
+   - `docs/project-guide.md`, *The claim service* step 4: the start subject is now `work item <id>: <stage> starts as <instance>`.
+   - `docs/decisions.md`: one new entry, "The factory's own commits on a work item's branch carry its id" (F0012 decision 51). It gives the reason and the rejected alternative.
+   - Cross-read against the diff: the stall and stage-end paragraphs of `docs/project-guide.md` and the stall text of `docs/operator-guide.md` name no commit subject. README names none either. All are current.
+   - Findings: none. The code matches the Interface. Nothing stale seen that is unrelated to this story.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: both demo commands meet their `Expect:` lines, and nothing in the run contradicts an acceptance criterion. No findings.
+
+   1. Command:
+   ```
+   uv run pytest --no-header -p no:cacheprovider -k "carries_the_work_item_prefix or test_stage_start_commit_is_one_commit_on_the_previous_head" tests/application | tail -1
+   ```
+   Output:
+   ```
+   7 passed, 1126 deselected in 1.27s
+   ```
+   Met: the output is one line with 7 passed and no failed or error count. The 7 are 3 rows for criterion 2, 2 rows for criterion 3, and one test each for criteria 1 and 4.
+
+   2. Command:
+   ```
+   grep -rn 'git.commit(f"' src/factory; echo "status $?"
+   ```
+   Output:
+   ```
+   status 1
+   ```
+   Met: the output is only `status 1`, so no `git.commit` call in `src/factory` builds its subject from an f-string.
+
+   Cross-check against the criteria:
+   - Criteria 1–4: the four commits get their subjects from `commit_subject`:
+     - `claims.py:65-66`
+     - `stage.py:287` (`stage.py:359` passes that message on)
+     - `stalls.py:130`
+     - `acceptance.py:121`
+   - Criterion 5: `commit_subject` (`handlers/recording.py:47`) and the handlers' and recovery's subjects are unchanged.
+   - Criterion 6: the documenter's entry records `make check` green. I did not run it in this stage; the factory runs it after this stage.
+   - Criterion 7: `docs/project-guide.md:641` states the prefix rule, the merge exception and the use by `make mutants`, and step 4 at `:1028` names the subject `work item <id>: <stage> starts as <instance>`. The `docs/decisions.md` entry is in the documenter's log entry; I did not open the file to check it.

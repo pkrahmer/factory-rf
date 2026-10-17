@@ -6,9 +6,10 @@ from pathlib import PurePosixPath
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
+from factory.application.handlers.recording import commit_subject
 from factory.domain.errors import PushFailed
 from factory.domain.git import CommitId
-from factory.domain.identifiers import branch_name, parse_work_item_file_name
+from factory.domain.identifiers import WorkItemId, branch_name, parse_work_item_file_name
 from factory.domain.journal import NewEntry, append_entry
 from factory.domain.lease import ClaimStatus, claim_status
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -61,7 +62,9 @@ class ClaimService:
         claimed = self._with_claim(document, state, claim)
         self._boundaries.work_item_writer.write(self._boundaries.checkout / path, claimed)
         git = self._boundaries.git
-        commit = git.commit(f"{stage} starts as {self._instance}")
+        commit = git.commit(
+            commit_subject(_work_item_id(path), f"{stage} starts as {self._instance}")
+        )
         outcome = git.push(branch)
         if outcome != "pushed":
             raise PushFailed(branch, outcome)
@@ -112,7 +115,11 @@ def _no_state() -> ValueError:
 
 
 def _own_branch(path: str) -> str:
+    return branch_name(_work_item_id(path))
+
+
+def _work_item_id(path: str) -> WorkItemId:
     file_name = parse_work_item_file_name(PurePosixPath(path).name)
     if file_name is None:
         raise ValueError(f"{path} is not a work item's file")
-    return branch_name(file_name.id)
+    return file_name.id

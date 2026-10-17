@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
+from factory.application.handlers.recording import commit_subject
 from factory.application.opening import WorkItemOpening
 from factory.application.undo import UndoReport, UndoService
 from factory.domain.decisions import StallReason
@@ -126,7 +127,7 @@ class StallService:
     def _commit_and_push(self, context: StallContext, document: WorkItemDocument) -> CommitId:
         self._boundaries.work_item_writer.write(self._boundaries.checkout / context.path, document)
         git = self._boundaries.git
-        commit = git.commit(f"{context.stage} stalled")
+        commit = git.commit(commit_subject(context.work_item, f"{context.stage} stalled"))
         outcome = git.push(context.branch)
         if outcome != "pushed":
             raise PushFailed(context.branch, outcome)

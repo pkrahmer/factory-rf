@@ -10,6 +10,7 @@ from factory.adapters.clock import ManualClock
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart, started_text
+from factory.application.handlers.recording import commit_subject
 from factory.domain.errors import PushFailed
 from factory.domain.git import GitOptions, WorkTreeStatus
 from factory.domain.identifiers import branch_name
@@ -155,7 +156,7 @@ def test_stage_start_commit_is_one_commit_on_the_previous_head_with_its_subject(
     newest = boundaries.git.log(start.commit)[0]
     assert newest.commit == start.commit
     assert newest.parents == [previous]
-    assert newest.subject == f"{STAGE} starts as {INSTANCE}"
+    assert newest.subject == commit_subject(WORK_ITEM, f"{STAGE} starts as {INSTANCE}")
 
 
 def test_pushed_work_item_holds_the_returned_claim(
@@ -253,7 +254,7 @@ def test_a_rejected_push_raises_push_failed_and_leaves_the_remote_without_claim(
     assert remote_commit(remote, BRANCH) == remote_head
     local = boundaries.git.log(BRANCH)[0]
     assert local.parents == [previous]
-    assert local.subject == f"{STAGE} starts as {INSTANCE}"
+    assert local.subject == commit_subject(WORK_ITEM, f"{STAGE} starts as {INSTANCE}")
 
 
 def test_an_unreachable_remote_raises_push_failed(
@@ -282,7 +283,7 @@ def test_a_kill_before_push_is_not_caught_and_leaves_the_remote_without_claim(
     assert remote_commit(remote, BRANCH) == previous
     local = boundaries.git.log(BRANCH)[0]
     assert local.parents == [previous]
-    assert local.subject == f"{STAGE} starts as {INSTANCE}"
+    assert local.subject == commit_subject(WORK_ITEM, f"{STAGE} starts as {INSTANCE}")
 
 
 @pytest.mark.parametrize(

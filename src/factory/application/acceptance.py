@@ -118,7 +118,7 @@ class AcceptanceService:
         report = self._boundaries.checkout / path
         report.parent.mkdir(parents=True, exist_ok=True)
         self._boundaries.work_item_writer.write(report, head)
-        commit = git.commit(f"{work_item} opens")
+        commit = git.commit(commit_subject(work_item, "opens"))
         outcome = git.push(branch)
         if outcome != "pushed":
             raise PushFailed(branch, outcome)
