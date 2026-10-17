@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 192
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -228,3 +228,31 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/adapters/test_git_cli_seal.py - ImportError while importing test ...
+6. coder: The code is built and committed (cacf17ea feat, 085a3783 refactor). Every check passes except two rows of one test, and the fault is in the test's fixture order, not in the code. I need the human's word before the tester changes that test.
+
+   **The contradiction.** Two rows of tests/entry/test_git_repository_modes.py::test_a_clone_closes_the_git_folder_to_the_group_and_leaves_the_work_tree_writable fail: `work-tree-file` and `work-tree-folder` (criterion 3). The test asks for the clone through `@pytest.mark.usefixtures("cloned")` on the function, and for the umask through the module's `pytestmark = pytest.mark.usefixtures("group_umask")`. pytest applies the function's marks first, so `cloned` runs before `group_umask` (`pytest --setup-show` shows `SETUP F cloned` before `SETUP F group_umask`). The clone therefore runs under the shell's umask `0022`, and git checks the work tree out at `0644`, which is correct. The `.git` rows pass anyway, because `core.sharedRepository=0640` sets those modes whatever the umask.
+
+   **The code is right on criterion 3.** I cloned through `GitCli` with `git_environment()` under umask `0o002`: `.git` is `0o2750`, `.git/config` is `0o640`, and the work-tree file and folder are `0o664` and `0o775`. That is exactly what the criterion wants. No change to the code can make the rows pass without the code forcing a umask on the work tree, which the story rules out.
+
+   **Options:**
+   - (a) The `cloned` fixture takes `group_umask` as a parameter: `def cloned(tmp_path: Path, remote: Path, group_umask: None) -> GitCli:`. It then always runs under `0002`, and the module's `pytestmark` can stay.
+   - (b) Request `group_umask` before `cloned` in the function's own mark: `@pytest.mark.usefixtures("group_umask", "cloned")`.
+
+   I would choose (a): the fixture states its own precondition. After the answer I end with `tests`, naming that change.
+
+   **What is built:**
+   - `RepositoryUnsealed(GitError)` in src/factory/domain/errors.py.
+   - `seal`, `check_seal` and `discard` on the `Git` interface (src/factory/application/git.py).
+   - In `GitCli` (src/factory/adapters/git_cli.py):
+     - the three operations, with no git process;
+     - one `_check_git_folder` shared by `seal` and `check_seal`: it checks that the folder exists, is not a symbolic link, is a directory, belongs to the effective user and holds a regular `HEAD` file;
+     - `seal` closes `.git`, then walks it with an `onerror` that raises, leaving symbolic links alone;
+     - `GIT_CEILING_DIRECTORIES` set to the working copy's absolute parent, among the entries no option can lift.
+   - `CheckoutPreparer` takes an optional `log`. With `os.path.lexists` it either clones, or checks the seal and, on `RepositoryUnsealed`, logs, discards and clones again. Then it always seals.
+   - run.py passes `boundaries.log` to the preparer, and wiring.py sets the shared mode to `0640`, with its comment rewritten.
+
+   **Design decision:** a `.git` that fails the check is never repaired in place, only discarded and cloned again (the story's reason: an agent cannot close a folder of the factory's). I rejected checking `HEAD` before the owner in a separate helper per operation, because one shared check keeps `seal` and `check_seal` refusing the same set of cases.
+
+   **Refactor:** the folder's `lstat` is read once, and `.git` is closed before the walk instead of inside it.
+
+   **Open:** criterion 3's two rows, above. Not touched: nothing else noticed.
