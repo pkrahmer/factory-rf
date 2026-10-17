@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 184
 blocked: null
 comments_seen: 0
@@ -71,3 +71,14 @@ Expect: `3`, the three messages the tests pin.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (27.8 s)
+4. coder: nothing in `src/` needed changing, so there is no commit. The story expected this: the code already refuses as the criteria say.
+   - I ran `make test` first. All three rows of `tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted` (hand_over, merged, closed) already pass against the current `src/factory/application/acceptance.py`.
+   - `make check`: check: green. Line coverage is 99.50 %.
+   - Demo: the test module ends with `3 passed in 0.89s`. `grep -c 'has no state' src/factory/application/acceptance.py` prints `3`.
+   - Refactor: there is no diff outside `factory/` and `tests/`, so there was nothing to refactor.
+   - Assignment: unchanged, because no log entry changed what the task means.
+   - Rejected: changing the handlers to check the state before building the exception, or before `_book`'s local `git mv`. The Interface excludes that local move, and the story asks for no behaviour change.
+   - Open: nothing.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
