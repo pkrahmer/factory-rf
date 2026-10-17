@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 147
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # Fault-injection paths 7 to 13, and reject walked
@@ -176,3 +176,19 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    Noticed, not touched: `tests/test_fault_path_names.py` (from F0011-S0002) still checks only the first six rows. It is not my test. Criterion 13 (the project guide's rows 7 to 13 and the decision-log entry) is for the docs stage.
 
    `make check`: check: green
+9. reviewer: groups 1 to 3 pass. Group 4 (quality) fails: the new test module copies a shared fixture and helpers that already exist.
+
+   Groups 1 to 3:
+   - Criteria 1 to 11 each have a test that checks what the criterion says: the ticks, the kills, the advances by `KILL_TO_RERUN` and the assertions.
+   - The coder's entry 8 reports `make check` green.
+   - The diff under `src/` is the seven data rows in `src/factory/domain/fault_paths.py`. They match the Interface table, and the first six rows are unchanged.
+   - The `CLAUDE.md` and `docs/runs/` changes on the branch are the human's own commits, not the pipeline's.
+
+   Findings:
+   1. `tests/test_fault_paths_7_to_13.py:43-45`: the `world` fixture is a copy of the shared `world` fixture in `tests/conftest.py:123-126` and shadows it (`CLAUDE.md` Tests: shared fixtures live in `tests/conftest.py`). Fix: delete the module's fixture and use the one in conftest.
+   2. `tests/test_fault_paths_7_to_13.py:53-55`: `_rerun` (advance by `KILL_TO_RERUN`, then `restart`) is a second copy of `_rerun` in `tests/test_fault_paths.py:48-50`. `CLAUDE.md` counts a second copy of an existing helper as a finding. Fix: make it one public helper in `tests/proof_support.py`, for example `rerun(world, *, empty_disk=False) -> World` with a docstring, and call it from the new module.
+   3. `tests/test_fault_paths_7_to_13.py:48-50`: the `work_item` fixture is a second copy of the one in `tests/test_fault_paths.py:43-45` (`CLAUDE.md` Tests: setup that several tests share is a fixture). Fix: put it once in `tests/conftest.py` beside `world` and use it from the new module.
+
+   Routing: all three fixes are in the tester's own files, plus a new shared helper or fixture. The coder cannot edit tests (R9), so the coder must send them to the tester through the route R9 allows. Removing the old copies in `tests/test_fault_paths.py` (F0011-S0002's tests) is not part of these findings, because that needs the human's yes.
+
+   Not judged: group 5, ticket hygiene, because the review stops at the first failing group.
