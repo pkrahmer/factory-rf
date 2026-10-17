@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 159
 blocked: null
 comments_seen: 0
@@ -134,3 +134,4 @@ Expect: a number of at least 5, one test function per call.
    Met: 5, one test function per call.
 
    Criteria check: the demo contradicts no criterion. Criteria 1 to 5 are pinned by the 6 passing cases, as the tester's entry maps them. Criterion 6 (`make check` green) is the factory's own gate after this stage. Criterion 7 (docs: none) is consistent with the diff, which adds only the test module.
+8. done (pull request merged); cost: 6 runs, 3.9 min, 43 turns, 112k tokens in (772k more from cache), 11k out, $1.13
