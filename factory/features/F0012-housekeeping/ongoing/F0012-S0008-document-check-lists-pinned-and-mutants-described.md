@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 160
 blocked: null
 comments_seen: 0
@@ -72,3 +72,12 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
    - Demo: the three commands are runnable. Each `Expect:` line is checkable: `18 ongoing/` and the two tuples, a pytest summary line, and the two `make mutants` lines with status 2. That last one holds on a ticket branch, where FEATURE is empty.
    - Architecture: tests only, in `tests/domain/test_documents.py`, with no production change. The docs go in the project guide and the decision log, which the documenter keeps.
    - Scope: inside F0012's item 1.3 and the table row that takes in F0011-S0007's criteria 1 to 3. Nothing in "Out of scope".
+3. tester: Wrote the tests for criteria 1 to 3. All new functions are in `tests/domain/test_documents.py`. No existing test changed and no new helper was added. `GLOSSARY_FORBIDDEN` was added to the module's import from `factory.domain.documents`.
+   - criterion 1: tests/domain/test_documents.py::test_the_v1_words_are_the_eighteen_in_their_order
+   - criterion 2: tests/domain/test_documents.py::test_the_operator_guide_sections_are_the_three_in_their_order and tests/domain/test_documents.py::test_the_project_guide_sections_are_the_two_in_their_order
+   - criterion 3: tests/domain/test_documents.py::test_every_v1_word_alone_on_its_line_is_one_finding. It is parametrized over `GLOSSARY_FORBIDDEN` itself with the entry as its id, giving 18 rows. The text comes from `_with(operator=operator_guide(suffix="It reads <entry> here."))`, and the check expects exactly `[_finding(OPERATOR_GUIDE, "uses the v1 word '<entry>'")]`. The exempt side is already covered by `test_the_replaced_section_is_exempt_from_both_lists`, as the criterion says.
+   Files created: none. Files changed: tests/domain/test_documents.py.
+   Modules the test runner could not import: none. The tests are not red: they pin behaviour that already exists, and the Assignment expects no production change. `make test` passed (`test: green`) and `make lint` passed. For the coder this leaves only the docs criterion 5, which the documenter handles, and keeping `make check` green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (26.7 s)
