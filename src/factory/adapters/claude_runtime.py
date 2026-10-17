@@ -372,9 +372,7 @@ class ClaudeCodeRuntime(AgentRuntime):
     A call stopped by its budget is resumed once to get the agent's decision and entry.
     """
 
-    # Each keyword is a seam the wiring or a test sets on its own; a settings object would
-    # bundle unrelated choices.
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         executable: str,
         state_directory: Path,
