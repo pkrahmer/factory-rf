@@ -1584,3 +1584,33 @@ uv run pytest tests/test_kill_points.py tests/domain/test_kill_point_cases.py
 ```
 
 The `world` fixture (`tests/conftest.py`) returns `build_world(tmp_path)` for a test of your own; `start_story`, `run_ticks` and `restart` are the steps a scenario is made of. The time from kill to rerun is read on the `ManualClock`: a scenario advances it by `KILL_TO_RERUN` (5 seconds) between the kill and the restart.
+
+## Fault-injection paths
+
+`tests/test_fault_paths.py` walks v1's thirteen behaviour paths (a question, a rework, a cap, a close, a hand edit), each with one kill or one stall added at the step the path adds. A test runs the path against a real local bare remote, the fake hosting service and the fake agent runtime, with the cases and helpers of `tests/proof_support.py`. The paths are data, `FAULT_PATHS` in `factory.domain.fault_paths` (a closed, frozen `FaultPath` with `number`, `title`, `case` and `test`), so that this guide and the document check name the same tests. The rows built so far are paths 1 to 6; the rest follow.
+
+| Path | Title | Case | Test |
+|---|---|---|---|
+| 1 | intake asks: a behaviour without a criterion | `agent-run-tick` | `test_intake_question_tick_killed_during_intake_run_reruns_free_and_asks_once` |
+| 2 | intake asks for an edge case | `commit-push` | `test_intake_edge_case_question_killed_between_commit_and_push_reruns_intake_and_posts_once` |
+| 3 | the tester finds a criterion against the interface | `post-record` | `test_tester_question_killed_between_post_and_record_posts_once` |
+| 4 | a review rework | `agent-run-dies` | `test_review_rework_after_reviewer_run_dies_charges_one_attempt_then_one_round` |
+| 5 | a documenter finding | `tick-other` | `test_docs_finding_tick_killed_after_move_back_push_counts_round_once_and_next_stage_starts` |
+| 6 | a smoke test finding | `agent-run-dies` | `test_smoke_test_finding_after_run_reaches_time_limit_charges_one_attempt_then_moves_back` |
+
+The case names the kill point the path arms (see *The kill-point cases*); the path's own crash charge may differ from the case's. Path 5 arms `AFTER_PUSH` after the result's push, which charges no crash, although its case `tick-other` does. Paths 4 and 6 use `agent-run-dies`, whose stall is a scripted result and not an armed point. Path 1 has a second half: a smoke test without an `Expect:` line is caught by `check_story_form`, not by an agent.
+
+No path is mapped to a removing item: the thirteen are behaviour paths, none of them a kill point, and v1.1 keeps every mechanism they exercise.
+
+Four further paths that v1's run 1 walked are not rows:
+
+- the restart during a stage: removed by the claim and the crash rules; walked by paths 1 and 13;
+- the close while the stages work: recorded first, no test of its own;
+- the discarded story started again: removed by the empty bill at start;
+- the merge while the move-back question is open: no item names it.
+
+A path that fails is a defect to fix under `src/`, never a test to bend. Run the paths with:
+
+```bash
+uv run pytest tests/test_fault_paths.py tests/domain/test_fault_paths.py tests/test_fault_path_names.py
+```

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 146
 blocked: null
 comments_seen: 0
@@ -149,3 +149,12 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
       - Security: nothing in the diff calls processes, builds SQL or handles secrets, and no suppression markers were added.
       - Quality: the module and class docstrings are present. The comment above `FAULT_PATHS` explains why the case and the crash charge may differ, and there is no dead code.
       - Ticket hygiene: the coder's entry records the main decision and the alternative it rejected (no validator against `KILL_POINT_CASES`). `Assignment` matches what was built, and criterion 13 still tells the documenter what to write.
+6. documenter: wrote the documentation for criterion 13. `make check` is green (99.55 % coverage).
+   - `docs/project-guide.md`: new section *Fault-injection paths*, placed after *The kill-point cases*. It holds the table of paths 1 to 6 (number, title, case, test), the sentence that the case names the kill point and the crash charge may differ (path 5 as the example), the note that no path is mapped to a removing item, the four further run-1 paths and where each went, and a run command. It also says paths 4 and 6 use the scripted stall and that path 1 has a second half (the story form check).
+   - `docs/decisions.md`: new entry "Each fault-injection path is walked with one kill, by judgment". It records the alternative I rejected, a kill at every step.
+   - Cross-read: the *Kill points* and *The kill-point cases* sections against the diff. They are current. The diff renames `_tick_until_killed` to `tick_until_killed` in `tests/proof_support.py`, and the guide never named it.
+   - README and operator guide are untouched, as the criterion says.
+   - I did not run the new test command in the guide, but `make check` ran the same tests and was green.
+   - Findings: none. The code matches the Interface. Nothing stale seen and left alone.
+
+   `make check`: check: green
