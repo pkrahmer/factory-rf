@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 193
 blocked: null
 comments_seen: 2
@@ -162,3 +162,21 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make documents`: documents ok
+11. demo: no findings.
+
+    Command 1, run from the repository root:
+    `uv run pytest --no-header -p no:cacheprovider tests/application/test_sealed_runs.py tests/application/test_dispatcher_unsealed.py tests/application/test_stage_launch.py tests/application/test_agent_run_probe.py tests/application/test_dispatcher.py`
+
+    ```
+    ................................................................         [100%]
+    64 passed in 3.32s
+    ```
+
+    Meets its `Expect:` line. The last line says `64 passed`, with no `failed`, `error` or `skipped` count.
+
+    Checked against the acceptance criteria:
+    - Criteria 1 to 4: their tests are in `test_sealed_runs.py` and `test_dispatcher_unsealed.py`, and all of them passed in this run.
+    - Criterion 5: the existing suites for the stage launcher, the agent-run probe and the dispatcher passed in the same run.
+    - Criteria 6 (`make check`) and 7 (docs): the demo does not exercise them, and nothing in its output contradicts them. Entries 8 and 10 report `check: green` and `documents ok`. The factory runs `make check` itself after this stage.
+
+    Nothing is open.
