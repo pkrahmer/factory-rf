@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 154
 blocked: null
 comments_seen: 2
@@ -154,3 +154,24 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/entry/test_check_duplicates.py - ImportError while importing test...
+6. coder: Built the duplicates report. All 41 tests in tests/domain/test_duplicates.py and tests/entry/test_check_duplicates.py pass, `make check` is green (coverage 99 %), and the first Demo prints the three expected lines. Commit 2c26dc6.
+
+   - `src/factory/domain/duplicates.py`: the `DuplicateFinding` and `DuplicateReport` DTOs from the Interface, and `similar_code_findings`, `dead_code_findings`, `read_baseline`, `compare` and `report_lines`.
+     - pylint: the JSON is decoded to `object` and narrowed with `isinstance`, so no `dict[str, Any]` crosses a function boundary.
+     - `==` lines: the `==` lines directly after the first line are read as module lines. Each one must fully match `==<module>:[<start>:<end>]`, with the module made of `[\w.]+`.
+     - Errors: a malformed `==` line, a message without a module line, or a message without a code line raises `ValueError` with the message's `repr`. The `repr` names the message and keeps the error on one line, so it fits the single `check-duplicates:` line on standard error.
+     - vulture: each line must fully match a regex whose path cannot start with whitespace or `:`. The error names `vulture line <n>`.
+   - `src/factory/entry/check_duplicates.py`: `main` parses the arguments with argparse (`--baseline` is required) and reads both inputs.
+     - With `--write-baseline` it writes the header and the keys with duplicates removed (`dict.fromkeys` keeps the first occurrence).
+     - Otherwise it prints `report_lines` and returns 1 when something is new, else 0.
+     - A file that cannot be read (`OSError` or `UnicodeDecodeError`) or a `ValueError` from parsing becomes one private `_UnreadableError`, printed as `check-duplicates: <reason>` with status 2. This follows `check_story.py`.
+
+   Main decision: the baseline's text form (header and removing duplicate keys) lives in the entry module, not in the domain. The Interface gives the domain no writer function, and only the command writes that text. I rejected adding a public `baseline_text` function to the domain, because it goes beyond the Interface.
+
+   Refactor: I read the diff as a reviewer would and found nothing to change, so there is no refactor commit. Before the commit I shortened three docstrings to fit ruff's 100-character limit. That includes `DuplicateFinding`'s docstring, which now says "A similar block or dead code: …" instead of the Interface's "a piece of dead code".
+
+   Noticed but not touched:
+   - If writing the baseline fails (`OSError`), the error is not turned into status 2. The Interface names only unreadable inputs and a missing baseline.
+   - A `==` line that comes after the code is treated as code.
+
+   `make check`: check: green
