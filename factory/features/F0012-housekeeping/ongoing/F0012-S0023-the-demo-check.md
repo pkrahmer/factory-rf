@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 173
 blocked: null
 comments_seen: 0
@@ -79,3 +79,24 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: both commands are runnable. The first has an `Expect:` of `demos ok` and `status 0`. The second expects a last line of `<n> passed` with no failed, error or skipped count. Both can be checked against the output.
    - Architecture: the new module is in `factory.entry`, a command and not wiring of tools. It reuses the domain checks and the reader that `wiring` builds, and adds no helper of its own because `check_story` supplies the shared ones. It stays within the layer rules.
    - Scope: the story falls under FEATURE.md item 1.7, "the demo check and its test in make check (S0023)". The index README is left to the human's H6, as the feature says.
+3. tester: red on purpose. `make test` stops with collection errors (ImportError) in both new modules because `factory.entry.check_demos` does not exist yet. `make lint` is green. I skipped the type check, as this stage's skill says to.
+   - criterion 1: tests/entry/test_check_demos.py::test_a_root_without_demos_gives_no_finding
+   - criterion 2: tests/entry/test_check_demos.py::test_a_complete_demo_named_in_the_index_gives_no_finding
+   - criterion 3: tests/entry/test_check_demos.py::test_a_missing_index_is_a_finding, ::test_an_index_that_does_not_name_the_demo_is_a_finding. This is two rules, so two tests. The index in the second test names `` `other/` `` and holds a bare `todo` without the backticks and slash.
+   - criterion 4: tests/entry/test_check_demos.py::test_a_missing_part_of_a_demo_is_the_one_finding, with three rows: readme, project and features.
+   - criterion 5: tests/entry/test_check_demos.py::test_a_pipeline_definition_with_a_repeated_key_is_a_finding (the test adds `attempts_cap: 3` to `PIPELINE_YAML`, so the key appears twice), ::test_a_missing_pipeline_definition_is_a_finding
+   - criterion 6: tests/entry/test_check_demos.py::test_without_the_story_form_no_story_is_checked. The story in this test also lacks its Smoke test, so it would give a finding if it were checked.
+   - criterion 7: tests/entry/test_check_demos.py::test_a_story_without_its_smoke_test_gives_the_story_check_finding, ::test_a_story_in_the_folder_of_another_feature_gives_the_place_finding, ::test_a_feature_folder_without_its_feature_file_gives_the_place_finding. The last one expects the exact message of `check_story_place`: `the feature file feature.md is missing in factory/features/F0001-x`.
+   - criterion 8: tests/entry/test_check_demos.py::test_a_file_that_is_no_feature_file_or_backlog_story_is_a_finding, with two rows: started-story and loose-file.
+   - criterion 9: tests/entry/test_check_demos.py::test_findings_of_two_demos_come_in_name_order_and_main_prints_them. Demo `a` has no `features/` and demo `b` has no `README.md`.
+   - criterion 10: tests/entry/test_check_demos.py::test_a_loose_file_and_a_hidden_folder_under_demo_are_no_demos
+   - criterion 11: tests/entry/test_check_demos.py::test_story_findings_come_in_path_order_and_carry_their_line. The expected line is that entry's line in the file text.
+   - criterion 12: tests/entry/test_check_demos.py::test_a_story_with_front_matter_that_is_not_yaml_is_one_finding
+   - criterion 13: tests/entry/test_check_demos.py::test_the_root_defaults_to_the_current_directory, using `monkeypatch.chdir`.
+   - criterion 14: tests/test_demos.py::test_the_shipped_demos_pass_the_demo_check, run on the repository root, which is `Path(__file__).parents[1]`.
+   Files created: tests/entry/test_check_demos.py and tests/test_demos.py.
+   Module the runner could not import: `factory.entry.check_demos`.
+   There are no separate tests of `backlog_story_findings` or `finding_line` in `factory.entry.check_story`. The criteria reach them only through `check_demos`, and the existing tests in tests/entry/test_check_story.py stay unchanged, as the Interface requires.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/test_demos.py - ImportError while importing test module '/work/fa...
