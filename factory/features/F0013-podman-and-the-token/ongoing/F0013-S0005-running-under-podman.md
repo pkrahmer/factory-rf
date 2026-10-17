@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 186
 blocked: null
 comments_seen: 0
@@ -66,3 +66,9 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch holds only the factory's four stage commits (ae5b0c62..96bd76dc), and the working tree is clean.
+      - Criterion 1: met, because the diff is empty. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed. The tester (entry 3) and the coder (entry 4) each wrote an entry saying so. Criterion 1 also covers the untested restart on a Linux host, so a test is not missing.
+      - Criterion 2: the coder's entry records `check: green` (coverage 99.50 %) and `duplicates: 0 new`. No code changed, so there is no new finding to read.
+      - The Interface is "None", so there is no rule whose failing side would need a test. Architecture, security and quality: nothing to review, because no code changed.
+      - Ticket hygiene: the Assignment matches what was built, which is nothing yet; the documentation is the next stage's work. The docs criterion names the *Container runtimes* section, where it goes, its five sub-topics, the pointer from *The health check and the restart policy*, the content of the decision-log entry and the `check_documents` gate. That is enough for the documenter to write from it, and the Demo's grep checks it.
