@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 149
 blocked: null
 comments_seen: 2
@@ -211,3 +211,11 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
       - **Open.** The four documents themselves are the documenter's work (criterion 25). The real files are not yet expected to print `documents ok`.
 
    `make check`: check: green
+9. reviewer: no findings.
+      - Acceptance criteria: I read every one of criteria 1 to 23 against its test in `tests/domain/test_documents.py` and `tests/entry/test_check_documents.py`. Each test checks the exact findings list or output, not just part of it.
+        - Every failing side the Interface states has a test case: missing (`None` and an absent key), blank (whitespace and the empty string), an absent section, a heading only inside a code fence, a row only inside a code fence, a row without backticks, a prose line, an indented row, the destination words in any letter case, the word-boundary cases on both sides, the edges of the exempt section, and the decision log's heading inside and outside a code fence.
+        - The coder's entry 8 records `make check` green.
+      - Architecture: `src/factory/domain/documents.py` is pure. It imports only `factory.domain` (sections, stop_table, kill_point_cases, fault_paths) and does no I/O. `src/factory/entry/check_documents.py` imports only downward and reads plain UTF-8 text without calling any tool. It reuses `sections`, `lines_outside_blocks` and `split_lines` rather than writing a second fence-aware scanner; I found no other table-row helper under `src/factory`.
+      - Security: no secrets, no suppression markers, no shell or string-built commands. The `tests/entry/test_watch.py` exemption is exactly the one the human approved in entry 5: it skips `documents.py` and its `.pyc` by name, with the reason in a comment, and still searches every other file under `src/`.
+      - Quality: names and docstrings fit and there is no dead code. One redundancy, too small to send the ticket back: `sys.argv[1:] if argv is None else argv` in `main` repeats what argparse already does.
+      - Hygiene: Assignment matches the build, and criterion 25 still tells the documenter what to write. The `docs/runs/.../night-log.md` line in the diff comes from the human's commit 6bed325 and is not under review.
