@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 180
 blocked: null
 comments_seen: 1
@@ -201,3 +201,35 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - **Not run:** `make test` and `make lint`.
 
    Open for the human: give the `tester` role a lane in `factory/stages.yml` (it should include `tests/*` and the story file), then run the tests stage again.; denied: Write: /work/factory-rf/tests/test_template_makefile.py; partial work committed
+4. tester: Tests written for every criterion. The tester lane in `factory/stages.yml` now exists, so this run finished what the stalled run left. The `tests/test_claude_files.py` change from that run was already committed in a398d663. I checked it against the Interface and left it as it is.
+
+   Criterion → test:
+   - criterion 1: tests/test_claude_files.py::test_template_holds_only_the_rules_file_the_makefile_and_the_pipeline_definition (renamed by the human's leave, FEATURE decision 49)
+   - criterion 2: tests/test_template_makefile.py::test_phony_line_names_the_targets_and_there_is_no_documents_target
+   - criterion 3: tests/test_template_makefile.py::test_check_runs_the_other_targets_and_says_green
+   - criterion 4: tests/test_template_makefile.py::test_package_folder_and_layers_command_are_placeholders
+   - criterion 5: tests/test_template_makefile.py::test_header_names_the_development_dependency (13 rows; each name is matched as a whole word, so `pytest` is not found inside `pytest-cov`)
+   - criterion 6: tests/test_template_makefile.py::test_target_is_timed_green_and_stops_at_its_first_failing_line (6 targets × statuses 0 and 1 = 12 rows)
+   - criterion 7: tests/test_template_makefile.py::test_test_runs_pytest_on_every_core_with_a_junit_report and ::test_test_is_green_when_no_test_is_collected
+   - criterion 8: tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file (5 rows: main, no-origin, branch, lock-only, secret-found)
+   - criterion 9: tests/test_template_makefile.py::test_duplicates_counts_similar_and_dead_code (4 rows: none, findings, vulture-fails, pylint-fails)
+   - criterion 10: tests/test_template_makefile.py::test_mutants_runs_mutmut_over_the_modules_the_feature_changed (4 rows: acceptance-branch, no-module, story-branch, no-repository; each row is a frozen `MutantsCase` dataclass, to stay under ruff's limit on positional arguments)
+   - criterion 11: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text (unchanged; it reads the new `TEMPLATE_RULES_LINES`, whose *Checks* now holds the two bullets)
+   - criterion 12: the factory's `make check` after the coder. Criterion 13 is for the docs stage.
+
+   Harness, as the Interface says:
+   - A `project` fixture copies `template/Makefile` into `tmp_path/project`.
+   - `_make` runs `make` there through `run_process`, with stderr merged and a time limit of 120 s. The environment is `os.environ` without MAKEFLAGS, MFLAGS, MAKELEVEL, FEATURE, SOURCE and LAYERS, with `tmp_path/bin` first on PATH.
+   - In `tmp_path/bin`, `write_stand_in` writes the stand-in and the test renames it from `claude` to `uv`. `read_calls` gives the calls.
+   - Repositories are built with `run_git`, `write_files` and `commit_all`. `origin/main` is set with `git update-ref refs/remotes/origin/main <rev-parse HEAD>`.
+
+   Files: created `tests/test_template_makefile.py`; `tests/test_claude_files.py` was changed in the earlier run.
+
+   Red run (`make test`, run once): `tests/test_template_makefile.py` fails with errors, because `template/Makefile` does not exist yet. The fixture's copy fails and the text tests cannot read the file. The changed tests in `test_claude_files.py` fail on the template's file list and on the *Checks* text. No module was missing: the imports `factory.adapters.process`, `adapters.claude_stand_in`, `git_support` and `shipped_agents` already exist.
+
+   `make lint`: green. The type check was skipped, as this stage says.
+
+   Not decided by me: only the call counts the criteria name are asserted (the fail rows of criterion 6, and the pylint-fails row of criterion 9).
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/test_template_makefile.py::test_mutants_runs_mutmut_over_the_modules_the_feature_changed[no-repository]
