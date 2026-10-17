@@ -159,7 +159,23 @@ Today a project's pipeline definition names its roles, their write paths and whi
 
 ## The demo, shipped with v1.1 (the human's word, 2026-10-17)
 
-v1 ships `demo/` (the to-do service: `project/` with its `CLAUDE.md`, `Makefile` with `mutants`, `pyproject.toml` and lock file; `features/` with the three features and eight stories; a `README.md` with the prompt for the session that plays the human). v1.1 ships its own `demo/` in the same shape, in v1.1's forms and words: it is the input of the todo run (step 3), so rewriting run 4's stories by hand lands there instead of in a separate repository. A test in `make check` runs v1.1's own story check over `demo/` (and the pipeline definition's loader over its `factory/pipeline.yml`), so the demo stays valid as v1.1 changes.
+v1 ships `demo/` (the to-do service: `project/` with its `CLAUDE.md`, `Makefile` with `mutants`, `pyproject.toml` and lock file; `features/` with the three features and eight stories; a `README.md` with the prompt for the session that plays the human). v1.1 ships its own demos, in v1.1's forms and words, one folder per demo, because there will be demos of different project kinds (the human's word, 2026-10-17):
+
+```text
+demo/
+├── README.md               the index: one line per demo (kind, stack, what it builds,
+│                           stories, the run it is the baseline of), and what every demo holds
+└── todo-service/           the first: run 4's to-do service (Python, FastAPI, SQLite)
+    ├── README.md           what it builds, what it needs, the prompt for the session
+    │                       that plays the human, what a run looks like and costs
+    ├── project/            the empty project the factory builds into: CLAUDE.md,
+    │                       Makefile (check, lint, test, mutants), pyproject.toml, uv.lock,
+    │                       factory/pipeline.yml (and later factory/agents/ and
+    │                       .claude/skills/ where the kind needs its own)
+    └── features/           the features and their stories, in v1.1's work item form
+```
+
+The todo service is the input of the todo run (step 3): rewriting run 4's stories by hand lands in `demo/todo-service/`, not in a separate repository. A demo's name is its folder; nothing in the code knows the list. One test in `make check` walks every folder under `demo/`: it requires the three parts, runs v1.1's own story check over its `features/` and loads its `project/factory/pipeline.yml`, so every demo stays valid as v1.1 changes, and a new demo is checked from the day it is added. A later demo of another kind (a Spring Boot service, a CLI, a library) proves the kind's own agents and skills of the section below.
 
 ## Renaming the repositories (the human's plan, 2026-10-17)
 
@@ -168,6 +184,16 @@ The human will rename `pkrahmer/factory` to `factory-v1` and `factory-rf` to `fa
 - The code never names `factory-rf` (the package is `factory`; the `rf"…"` hits are Python raw f-strings). Four lines of text do: the titles of `README.md` and `CLAUDE.md`, the project guide's first sentence, and one sentence of `docs/decisions.md`. Two name v1 as `pkrahmer/factory` and become `factory-v1`: `CLAUDE.md`'s first sentence and the project guide's "The texts come from v1 (pkrahmer/factory at `f8bc9d2`)". The template's "Built by the factory (github.com/pkrahmer/factory)" (and `tests/test_claude_files.py::TEMPLATE_RULES_LINES`) stays right after the rename. History (`factory/features/`, `planning/`, `docs/runs/`) keeps its names.
 - Do it after v1's last story on this repository, as one human commit; GitHub's redirect from the old name of `pkrahmer/factory` ends once `factory-rf` takes that name, so every clone's remote, v1's `REPOS` setting and v1.1's `FACTORY_REPOSITORY_URL` are set again by hand.
 - Before the first start of v1.1 (step 2), and independent of the rename: v1.1's `image/compose.yml` says `name: factory`, with the service `factory` and the volumes `work` and `claude-home`; v1's `compose.yml` in the folder `factory` has the same project name, service and volume names. `docker compose -f image/compose.yml up` would replace v1's running container and mount v1's `factory_work` and `factory_claude-home` volumes (v1's checkout and v1's own `claude` login) into v1.1. Fix: v1.1's project name per instance, `name: factory-${FACTORY_INSTANCE:?…}`, so each instance gets its own container and volumes, and a second instance on one machine cannot collide either; renaming the folder `factory` to `factory-v1` also changes v1's project name and so its volumes, unless v1's compose file gets `name: factory` first.
+
+## v1.1 builds itself (the human's word, 2026-10-17)
+
+Once the todo run has passed, v1.1 takes over `factory-rf` and builds its own fixes and extensions; the rename waits until a few self-built stories have gone through cleanly, and v1 stays the fallback until then.
+
+- Safe enough: the container runs a built image, so what v1.1 merges takes effect only when the human builds a new image after an accepted story; the previous image is the way back, and v1 can still build a fix that v1.1 cannot.
+- Needs, in order: the compose project name per instance (v1 and v1.1 side by side); the todo run passed; the handover of `factory-rf` as one human commit while no v1 story is in progress: v1.1's own pipeline definition and forms replace `factory/stages.yml`, `TICKET.md` and `FEATURE.md`, `CLAUDE.md`'s vocabulary rule turns to v1.1's words, and v1's eleven features stay as history where v1.1 does not read them (decision 008: v1.1 reads no v1 work item, so none may be left in progress).
+- The first self-built story is small: a project's own skills and agents. The restructure can follow as the strongest test, v1.1 moving its own code under its own `make check`.
+- After each new image of a self-built change to the pipeline itself (the stage rules, the claim, recovery), a short smoke run on the todo demo before v1.1 takes its next own story.
+- The order above changes accordingly: steps 1 to 3 with v1; then the handover; steps 4 and 5 built by v1.1; the rename last.
 
 ## For the human, outside the build (collected 2026-10-16)
 
