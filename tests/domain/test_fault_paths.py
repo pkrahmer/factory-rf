@@ -1,10 +1,6 @@
 """The fault-injection paths as data: the rows, their cases and the closed model."""
 
-import pydantic
-import pytest
-from pydantic import BaseModel
-
-from factory.domain.fault_paths import FAULT_PATHS, FaultPath
+from factory.domain.fault_paths import FAULT_PATHS
 from factory.domain.kill_point_cases import KILL_POINT_CASES
 
 
@@ -58,28 +54,3 @@ def test_every_path_arms_the_kill_point_of_a_known_case() -> None:
     ids = {case.id for case in KILL_POINT_CASES}
 
     assert [path.case for path in FAULT_PATHS if path.case not in ids] == []
-
-
-def _fields() -> dict[str, object]:
-    return {"number": 1, "title": "a title", "case": "agent-run-tick", "test": "test_a"}
-
-
-def test_a_built_path_refuses_the_assignment_of_a_field() -> None:
-    path = FaultPath(number=1, title="a title", case="agent-run-tick", test="test_a")
-    field = "number"
-
-    with pytest.raises(pydantic.ValidationError):
-        setattr(path, field, 2)
-
-
-@pytest.mark.parametrize(
-    "change",
-    [{"extra": "x"}, {"number": "one"}],
-    ids=["unknown-key", "wrong-type"],
-)
-def test_a_path_refuses_an_unknown_key_and_a_wrong_type(change: dict[str, object]) -> None:
-    model: type[BaseModel] = FaultPath
-
-    model(**_fields())
-    with pytest.raises(pydantic.ValidationError):
-        model(**{**_fields(), **change})

@@ -150,12 +150,3 @@ def test_acceptance_state_is_closed_and_typed(values: dict[str, object], valid: 
     else:
         with pytest.raises(ValidationError):
             model(**values)
-
-
-def test_acceptance_state_refuses_an_assignment() -> None:
-    model: type[BaseModel] = AcceptanceState
-    state = model(stage="acceptance")
-    field = "stories"
-
-    with pytest.raises(ValidationError):
-        setattr(state, field, ["F0001-S0001"])

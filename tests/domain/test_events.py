@@ -108,21 +108,6 @@ def test_every_accepted_pairing_builds(kind: str) -> None:
     assert event.detail == ""
 
 
-def test_event_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = Event
-
-    with pytest.raises(ValidationError):
-        model(kind="idle", work_item=None, remote_state=COMMIT, extra="x")
-
-
-def test_event_refuses_an_assignment() -> None:
-    event = Event(kind="idle", work_item=None, remote_state=COMMIT)
-    field = "detail"
-
-    with pytest.raises(ValidationError):
-        setattr(event, field, "changed")
-
-
 @pytest.mark.parametrize(("kind", "accepted"), [("idle", True), ("other", False)])
 def test_event_accepts_only_a_known_kind(kind: str, accepted: bool) -> None:
     model: type[BaseModel] = Event

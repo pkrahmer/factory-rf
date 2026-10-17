@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.agent_runs import TokenCounts
 from factory.domain.cost_records import CostRecord
@@ -140,17 +140,6 @@ def test_ok_only_for_a_run_that_completed(status: str, end_reason: str | None, o
         fields = {**fields, "duration_seconds": 1.0, "end_reason": end_reason}
 
     assert _record(fields).ok is ok
-
-
-def test_a_record_is_frozen_and_refuses_unknown_fields() -> None:
-    record = _record(COMPLETED)
-    model: type[BaseModel] = CostRecord
-    field = "turns"
-
-    with pytest.raises(ValidationError):
-        model(**COMPLETED, unknown=1)
-    with pytest.raises(ValidationError):
-        setattr(record, field, 3)
 
 
 @pytest.mark.parametrize(

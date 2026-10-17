@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Any
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.git import (
     GIT_TIME_LIMIT,
@@ -137,21 +137,6 @@ def test_branch_name_with_a_star_inside_or_refspec_syntax_is_refused(value: str)
 )
 def test_branch_name_that_git_takes_as_a_branch_is_accepted(value: str) -> None:
     check_branch_name(value)
-
-
-def test_remote_branch_refuses_assignment() -> None:
-    branch = RemoteBranch(name="main", commit="a" * 40)
-    field = "name"
-
-    with pytest.raises(ValidationError):
-        setattr(branch, field, "other")
-
-
-def test_remote_branch_refuses_an_unknown_field() -> None:
-    model: type[BaseModel] = RemoteBranch
-
-    with pytest.raises(ValidationError):
-        model(name="main", commit="a" * 40, unknown=1)
 
 
 def test_remote_branch_constructs_and_equal_instances_compare_equal() -> None:

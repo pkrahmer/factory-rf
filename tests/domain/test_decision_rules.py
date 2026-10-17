@@ -180,11 +180,3 @@ def test_a_stage_move_refuses_what_its_types_refuse(field: str, value: object) -
 
     with pytest.raises(ValidationError):
         model(**values)
-
-
-def test_a_stage_move_is_frozen() -> None:
-    move = StageMove(rule=6, stage="docs", blocked=None, round=0, question=None)
-    field = "stage"
-
-    with pytest.raises(ValidationError):
-        setattr(move, field, "doing")

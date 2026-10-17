@@ -4,7 +4,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.errors import FactoryError, SettingsInvalid
 from factory.domain.git import GitIdentity
@@ -180,17 +180,6 @@ def test_the_image_label_variable_is_not_the_image_identity() -> None:
 
     assert read_settings(environ, _reader({DEFAULT_IMAGE_PATH: "build-7\n"})).image == "build-7"
     assert read_settings(environ).image is None
-
-
-def test_the_settings_model_is_closed() -> None:
-    model: type[BaseModel] = InstanceSettings
-    settings = model(repository_url=URL, instance="factory-1")
-    field = "instance"
-
-    with pytest.raises(ValidationError):
-        model(repository_url=URL, instance="factory-1", unknown=1)
-    with pytest.raises(ValidationError):
-        setattr(settings, field, "factory-2")
 
 
 @pytest.mark.parametrize(("name", "accepted"), [("factory-1", True), ("Factory-1", False)])

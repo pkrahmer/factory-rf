@@ -161,40 +161,6 @@ def test_every_factory_move_is_legal(definition: PipelineDefinition) -> None:
 CHANGE = StageChange(from_stage="tests", to_stage="review")
 
 
-@pytest.mark.parametrize(
-    ("model", "fields"),
-    [
-        (StageChange, {"from_stage": "tests", "to_stage": "review"}),
-        (FactoryMove, {"from_stage": "tests", "to_stage": "doing"}),
-        (IllegalChange, {"work_item": "F0001-S0001", "change": CHANGE}),
-    ],
-    ids=["stage-change", "factory-move", "illegal-change"],
-)
-def test_move_rule_models_refuse_an_unknown_key(
-    model: type[BaseModel], fields: dict[str, object]
-) -> None:
-    model.model_validate(fields)
-    with pytest.raises(ValidationError):
-        model.model_validate({**fields, "extra": 1})
-
-
-@pytest.mark.parametrize(
-    ("instance", "field", "value"),
-    [
-        (CHANGE, "to_stage", "doing"),
-        (CHANGE, "correction", True),
-        (FactoryMove(from_stage="tests", to_stage="doing"), "from_stage", "intake"),
-        (IllegalChange(work_item="F0001-S0001", change=CHANGE), "work_item", "F0001-S0002"),
-    ],
-    ids=["stage-change", "stage-change-correction", "factory-move", "illegal-change"],
-)
-def test_move_rule_models_refuse_an_assignment(
-    instance: BaseModel, field: str, value: object
-) -> None:
-    with pytest.raises(ValidationError):
-        setattr(instance, field, value)
-
-
 @pytest.mark.parametrize(("from_stage", "valid"), [("Tests", False), ("tests", True)])
 @pytest.mark.parametrize("model", [StageChange, FactoryMove], ids=["stage-change", "factory-move"])
 def test_a_from_stage_must_be_a_lower_case_name(

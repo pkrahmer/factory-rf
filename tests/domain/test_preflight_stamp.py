@@ -1,24 +1,9 @@
 """The preflight's stamp: the image the machine passed on and the commits of main it probed."""
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.preflight import PreflightStamp
-
-
-def test_the_stamp_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = PreflightStamp
-
-    with pytest.raises(ValidationError):
-        model(image="build-7", main_probed=None, main_failed=None, probed_at="never")
-
-
-def test_the_stamp_refuses_an_assignment_to_a_field() -> None:
-    stamp = PreflightStamp(image="build-7")
-    field = "image"
-
-    with pytest.raises(ValidationError):
-        setattr(stamp, field, "build-8")
 
 
 @pytest.mark.parametrize("field", ["main_probed", "main_failed"])

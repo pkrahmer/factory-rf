@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import get_args
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.agent_runs import (
     QUESTION,
@@ -15,7 +15,6 @@ from factory.domain.agent_runs import (
     AgentRunResult,
     EndReason,
     GuardSettings,
-    PermissionDenial,
     TokenCounts,
 )
 
@@ -174,27 +173,3 @@ def test_unreported_measures_are_none_and_ok_only_when_completed(reason: EndReas
     assert result.tokens is None
     assert result.cost_usd is None
     assert result.ok is completed
-
-
-def _one_of_each_model() -> list[tuple[BaseModel, str, object]]:
-    result = AgentRunResult(end_reason="died", duration=timedelta(seconds=1))
-    return [
-        (_agent(), "model", "opus"),
-        (GuardSettings(root=ROOT, write_paths=[], protected_paths=[]), "root", Path("/other")),
-        (_request(), "prompt", "other"),
-        (TokenCounts(input=1, output=2), "input", 3),
-        (PermissionDenial(tool="Write", detail="outside write paths"), "tool", "Edit"),
-        (result, "end_reason", "budget"),
-    ]
-
-
-@pytest.mark.parametrize(("instance", "field", "value"), _one_of_each_model())
-def test_models_forbid_unknown_keys_and_are_frozen(
-    instance: BaseModel, field: str, value: object
-) -> None:
-    model = type(instance)
-    assert model(**dict(instance)) == instance
-    with pytest.raises(ValidationError):
-        model(**dict(instance), unknown=1)
-    with pytest.raises(ValidationError):
-        setattr(instance, field, value)

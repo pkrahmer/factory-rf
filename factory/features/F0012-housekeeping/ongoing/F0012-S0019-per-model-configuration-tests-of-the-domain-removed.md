@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 170
 blocked: null
 comments_seen: 0
@@ -93,3 +93,17 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
    - Demo: the three commands run as written. Each has an `Expect:` line that the output can be checked against: `status 1` twice, and a `<n> passed` line.
    - Architecture: nothing under `src/` changes. The story removes only tests and the helpers and imports that only those tests used.
    - Scope: it is housekeeping story 1.5 of F0012, and FEATURE decisions 25 and 39 grant it. It is not in the feature's "Out of scope".
+3. tester: removed the 49 per-model configuration tests the Interface names from tests/domain: 27 from acceptance to identifiers and 22 from journal to work item stop. All 49 names were found and removed, along with their decorators. Nothing under src/ changed.
+   - How: an ast-based script deleted each named top-level function together with its decorators. Then `ruff format` and `ruff check --fix` removed the imports that only those tests used (25 in total).
+   - Helpers: a second pass looked for module-level names that only the removed tests used. It removed four: `_one_of_each_model` in tests/domain/test_agent_runs.py, `_fields` in tests/domain/test_fault_paths.py, `MODELS` in tests/domain/test_hosting.py and `_valid_fields` in tests/domain/test_identifiers.py. After that, every remaining module-level helper, fixture and constant in the 33 changed modules is referenced at least twice in its module.
+   - Tests kept as the Interface says: test_acceptance_state_is_closed_and_typed, test_evaluation_due.py::test_evaluation_input_refuses_a_malformed_due_and_an_unknown_key, test_identity_needs_a_name_and_an_email_and_is_frozen, test_a_case_outside_the_closed_model_is_refused, test_a_row_with_an_unknown_key_or_value_is_rejected. They are untouched.
+   - Criterion 1: both Demo greps print only `status 1`. No test function checks this.
+   - Criterion 2: `make test` is green (coverage 99.51 %), and it includes tests/test_model_configuration.py.
+   - Criterion 3: `make lint` is green, and the helper search above finds nothing unused. No test function checks this.
+   - Criterion 4: `make test`, `make lint` and `make types` are green. I did not run the full `make check`; the factory runs it.
+   - Criterion 5: none (docs: none).
+   - Files changed: 33 modules under tests/domain (13 insertions, 589 deletions). No files created.
+   - Unlike a usual tests stage, the branch has no red tests, because the story is a test removal: no module was missing on import. The coder expects to change nothing under src/.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (30.6 s)

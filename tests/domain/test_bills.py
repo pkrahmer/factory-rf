@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.agent_runs import EndReason, TokenCounts
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
@@ -183,35 +183,3 @@ def test_a_bill_count_of_zero_is_accepted(field: str) -> None:
 def test_a_negative_bill_count_is_refused(field: str) -> None:
     with pytest.raises(ValidationError):
         _bill(**{field: -1})
-
-
-def test_a_bill_is_frozen() -> None:
-    field = "runs"
-    with pytest.raises(ValidationError):
-        setattr(_bill(), field, 2)
-
-
-def test_a_stage_bill_is_frozen() -> None:
-    field = "stage"
-    with pytest.raises(ValidationError):
-        setattr(StageBill(stage="doing", bill=_bill()), field, "review")
-
-
-def test_a_bill_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = Bill
-    with pytest.raises(ValidationError):
-        model(
-            runs=0,
-            runs_cost_unknown=0,
-            duration=timedelta(0),
-            turns=0,
-            tokens=ZERO_TOKENS,
-            cost_usd=Decimal("0"),
-            colour="red",
-        )
-
-
-def test_a_stage_bill_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = StageBill
-    with pytest.raises(ValidationError):
-        model(stage="doing", bill=_bill(), colour="red")

@@ -190,14 +190,6 @@ def test_the_first_row_of_the_table_is_accepted() -> None:
     assert row == STOP_TABLE[0]
 
 
-def test_a_built_row_refuses_the_assignment_of_a_field() -> None:
-    row = STOP_TABLE[0]
-    field = "destination"
-
-    with pytest.raises(ValidationError):
-        setattr(row, field, "none")
-
-
 @pytest.mark.parametrize(
     "changes",
     [{"severity": "high"}, {"destination": "log"}, {"reason": "v1_work_item_found"}],

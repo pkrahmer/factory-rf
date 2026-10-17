@@ -96,25 +96,3 @@ def test_an_error_count_refuses_a_remote_state_that_is_no_commit_id(remote_state
 
     with pytest.raises(ValidationError):
         model(event_key=KEY, remote_state=remote_state, count=1)
-
-
-def test_an_error_count_refuses_an_unknown_key_and_an_assignment() -> None:
-    model: type[BaseModel] = ErrorCount
-    entry = ErrorCount(event_key=KEY, remote_state=STATE, count=1)
-    field = "count"
-
-    with pytest.raises(ValidationError):
-        model(event_key=KEY, remote_state=STATE, count=1, extra="x")
-    with pytest.raises(ValidationError):
-        setattr(entry, field, 2)
-
-
-def test_a_tick_status_refuses_an_unknown_key_and_an_assignment() -> None:
-    model: type[BaseModel] = TickStatus
-    status = TickStatus()
-    field = "errors"
-
-    with pytest.raises(ValidationError):
-        model(errors=[], extra="x")
-    with pytest.raises(ValidationError):
-        setattr(status, field, [])

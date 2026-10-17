@@ -84,13 +84,6 @@ def test_a_new_entry_refuses_invalid_values(values: dict[str, object]) -> None:
         model(**values)
 
 
-def test_a_new_entry_is_frozen() -> None:
-    entry = _result("accepted")
-
-    with pytest.raises(ValidationError):
-        setattr(entry, "text", "changed")  # noqa: B010  (assigning to a frozen field)
-
-
 def test_render_entry_writes_number_date_speaker_and_text() -> None:
     started = NewEntry(speaker="factory", kind="started", text="started intake as factory-1.")
 

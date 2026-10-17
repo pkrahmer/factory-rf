@@ -57,23 +57,6 @@ def test_other_command_names_are_rejected(command: str) -> None:
         _result(command=command)
 
 
-def test_unknown_keys_and_assignment_are_rejected() -> None:
-    result = _result()
-
-    with pytest.raises(ValidationError):
-        CheckResult(
-            command="check",
-            status="passed",
-            exit_status=0,
-            duration=timedelta(seconds=1),
-            last_line="",
-            output_tail="",
-            layers=["domain"],  # type: ignore[call-arg]
-        )
-    with pytest.raises(ValidationError):
-        result.status = "failed"  # type: ignore[misc]
-
-
 def test_fields_are_exactly_the_generic_seven() -> None:
     assert set(CheckResult.model_fields) == {
         "command",

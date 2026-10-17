@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, get_args
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 import factory
 from factory.domain.hosting import (
@@ -250,29 +250,6 @@ def test_pull_request_view_accepts_consistent_states(changes: dict[str, Any]) ->
 def test_pull_request_view_rejects_inconsistent_values(changes: dict[str, Any]) -> None:
     with pytest.raises(ValidationError):
         _view(**changes)
-
-
-MODELS: list[tuple[type[BaseModel], Any]] = [
-    (PullRequestView, _view),
-    (PostKey, _key),
-    (PullRequestComment, _comment),
-]
-
-
-@pytest.mark.parametrize(
-    ("model", "make"), MODELS, ids=["PullRequestView", "PostKey", "PullRequestComment"]
-)
-def test_models_forbid_unknown_keys_and_are_frozen(model: type[BaseModel], make: Any) -> None:
-    instance = make()
-    fields = instance.model_dump()
-
-    with pytest.raises(ValidationError):
-        model.model_validate({**fields, "unknown": 1})
-    with pytest.raises(ValidationError):
-        model(**fields, unknown=1)
-    with pytest.raises(ValidationError):
-        name = next(iter(model.model_fields))
-        setattr(instance, name, getattr(instance, name))
 
 
 def _resolve(module: str, node: ast.ImportFrom) -> str:

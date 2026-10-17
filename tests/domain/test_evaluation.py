@@ -4,7 +4,6 @@ from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.domain.errors import HostingServiceError
 from factory.domain.evaluation import (
@@ -592,26 +591,3 @@ def test_work_item_events_are_at_their_branch_else_at_main(
 
     assert event.kind == kind
     assert event.remote_state == (MAIN if branch_commit is None else branch_commit)
-
-
-def test_closed_models_refuse_an_unknown_key() -> None:
-    observation: type[BaseModel] = PullRequestObservation
-    facts: type[BaseModel] = EvaluationInput
-
-    with pytest.raises(ValidationError):
-        observation(view=_view(), comments=[], extra="x")
-    with pytest.raises(ValidationError):
-        facts(definition=DEFINITION, snapshots=[], main_commit=MAIN, extra="x")
-
-
-@pytest.mark.parametrize(
-    ("instance", "field", "value"),
-    [
-        (PullRequestObservation(view=_view(), comments=[]), "comments", []),
-        (_facts(), "main_commit", BRANCH_COMMIT),
-    ],
-    ids=["observation", "evaluation-input"],
-)
-def test_closed_models_refuse_an_assignment(instance: BaseModel, field: str, value: object) -> None:
-    with pytest.raises(ValidationError):
-        setattr(instance, field, value)

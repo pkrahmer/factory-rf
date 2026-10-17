@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.domain.errors import HostingServiceError
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
@@ -281,15 +280,3 @@ def test_evaluation_input_has_no_illegal_changes_by_default() -> None:
     facts = EvaluationInput(definition=DEFINITION, snapshots=[], main_commit=MAIN)
 
     assert facts.illegal_changes == []
-
-
-def test_evaluation_input_refuses_an_unknown_key_and_an_assignment() -> None:
-    model: type[BaseModel] = EvaluationInput
-    fields = {"definition": DEFINITION, "snapshots": [], "main_commit": MAIN}
-    facts = model.model_validate({**fields, "illegal_changes": [_illegal(1)]})
-    field = "illegal_changes"
-
-    with pytest.raises(ValidationError):
-        model.model_validate({**fields, "extra": 1})
-    with pytest.raises(ValidationError):
-        setattr(facts, field, [])
