@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 160
 blocked: null
 comments_seen: 0
 round: 0
@@ -66,3 +66,9 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete constants in `src/factory/domain/documents.py` with their exact values and order, the rule (`uses the v1 word '<entry>'`), and the test helpers (`_with`, `_finding`, `operator_guide(suffix=...)`), all of which exist. It states no behaviour without a criterion.
+   - Criteria: 1 pins `GLOSSARY_FORBIDDEN`, 2 pins the two section tuples, 3 is one parametrized test over the eighteen entries. Each is testable by one function. The rule's passing side is criterion 3. Its exempt side (`## Replaced from v1`) is named as already tested by `test_the_replaced_section_is_exempt_from_both_lists`. Criterion 4 and the docs criterion 5 are the closing ones.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable: `18 ongoing/` and the two tuples, a pytest summary line, and the two `make mutants` lines with status 2. That last one holds on a ticket branch, where FEATURE is empty.
+   - Architecture: tests only, in `tests/domain/test_documents.py`, with no production change. The docs go in the project guide and the decision log, which the documenter keeps.
+   - Scope: inside F0012's item 1.3 and the table row that takes in F0011-S0007's criteria 1 to 3. Nothing in "Out of scope".
