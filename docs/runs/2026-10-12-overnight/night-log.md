@@ -381,3 +381,9 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 2026-10-17 20:40 | F0013-S0003 merged (#184; 6 runs, 3.1 agent minutes, $0.80, first pass; one new test module, no code changed). S0004 started. |
 | 2026-10-17 20:47 | F0013-S0004 merged (#185; 6 runs, 2.4 agent minutes, $0.60, first pass; F0012 decision 55's fix). S0005 started, the last story of F0013. |
 | 2026-10-17 20:55 | F0013-S0005 merged (#186; 6 runs, 2.1 agent minutes, $0.65, first pass; the operator guide's Container runtimes section). All five F0013 stories merged; F0013's acceptance started by v1. |
+
+## 2026-10-17 21:10, F0013 accepted
+
+- F0013's acceptance (#187; 8 min, $2.25): **accepted with drafts**; demo green (the image, compose file, token reading, preflight and credential helper agree on the token's folder; a user who cannot enter it gets no credential even from a 0777 file); `make mutants` 549 of 567 killed (96.8 %) in 27 s, every mutant of F0013's own code killed. Five stories: 32 runs, 17.7 min, $4.45. Merged and booked.
+- Drafts S0006 (the preflight's details pinned in full, tests only) and S0007 (the documents say what the probe observed): form check exit 0; decision 16 gives S0006's test leave; both built now, then a second acceptance. F0012's superseded drafts S0031 and S0032 removed (they became F0013-S0003 and S0004).
+- Disk record: C: 257G free of 931G, Docker's disk image 61.6 GB.

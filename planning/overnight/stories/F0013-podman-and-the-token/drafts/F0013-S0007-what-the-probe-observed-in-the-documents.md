@@ -1,0 +1,33 @@
+# What the probe observed, in the documents
+
+<!-- proposed by feature acceptance of 2026-10-17; refine before promoting -->
+
+## Assignment (as of log entry 1)
+
+The probe of 2026-10-17 (`planning/overnight/podman-probe-2026-10-17.md`), F0013's input, built v1.1's image under rootless Podman 5.8.3 on Windows (in a throwaway clone, the pins left out, because they were placeholders then), started it, and saw the entrypoint install the agents, the disk record written, the stop `repository_unavailable` reached and the health check run (`starting`, then the stop's text, exit 1). F0013-S0005 wrote this into the new section *Container runtimes* ("The image and the compose file run under Docker Desktop and under rootless Podman"). Four older sentences still say that nothing was observed, and so contradict it for a newcomer who reads from the top: `README.md` ("a real container is not yet observed"), the operator guide's introduction (the same words), its section *Build it* ("A real build is not yet observed: v1's container has no Docker ... Treat the first build as the morning observation") and *The health check and the restart policy* ("A real running container has not been observed yet"). The heading *Replace the placeholders before the first build* is stale too: the human's commit `b642dd31` pinned the image, and the section's own text already says so. This story is documentation only: nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes; the tester and the coder each end with an entry saying so. The docs criterion carries the text.
+
+## Interface
+
+None: no code, no image file and no test changes. The documents the documenter changes are `README.md` and `docs/operator-guide.md`.
+
+## Acceptance criteria
+
+1. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes; the tester and the coder each end with an entry saying so.
+2. `make check` stays green.
+3. docs: `README.md` and the operator guide's introduction say, in place of "a real container is not yet observed", that the image was built and started once under rootless Podman (the probe of 2026-10-17, without the pins) up to the stop `repository_unavailable`, and that a run against a real repository with a token is not observed yet. *Build it* says the same of the build (42 s under Podman, without the pins) and keeps a build with the pins of `image/Dockerfile` as the morning observation. *The health check and the restart policy* says that the probe saw the health check run under Podman and report the stop's text with exit 1, and keeps `docker compose ps` over a container with a stop standing as the morning observation. The heading *Replace the placeholders before the first build* becomes *Update the pins*, its text unchanged. No other document changes, the guide uses no word the document check refuses, and `python -m factory.entry.check_documents` still prints `documents ok`.
+
+## Demo
+
+```bash
+grep -c "not yet observed\|not been observed\|Replace the placeholders" README.md docs/operator-guide.md
+```
+Expect: two lines, `README.md:0` and a count for `docs/operator-guide.md` that is lower than 4 (only the observations still open, such as the restart service on a Linux host, may remain).
+
+```bash
+uv run python -m factory.entry.check_documents
+```
+Expect: `documents ok`.
+
+## Log (append only)
+
+1. 2026-10-17 feature acceptance of F0013: proposed.
