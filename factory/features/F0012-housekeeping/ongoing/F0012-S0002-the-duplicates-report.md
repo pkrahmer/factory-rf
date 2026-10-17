@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 154
-blocked: question
-comments_seen: 0
+blocked: asked
+comments_seen: 1
 round: 0
 attempts: 0
 ---
