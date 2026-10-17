@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 180
 blocked: null
 comments_seen: 1
@@ -296,3 +296,26 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+8. demo: Demo run from the repository root on branch `ticket/F0012-S0029-a-makefile-in-the-template`. I ran the three commands as written, in order.
+
+   1. `make -f template/Makefile mutants 2>/dev/null; echo "status $?"`
+   ```
+   mutants: set FEATURE, as in make mutants FEATURE=F0001
+   status 2
+   ```
+   Met its Expect line. The current branch is a ticket branch, not `work-item/<feature>-A<nnnn>`, so no feature is found and the target refuses with status 2.
+
+   2. `make -f template/Makefile lint 2>&1 | tail -1`
+   ```
+   lint: green (0.0 s)
+   ```
+   Met its Expect line. I ran it again without `tail`: it prints ruff's `All checks passed!` before the green line, so ruff really ran over the repository (`ruff check --output-format=concise .` and `ruff format --check --quiet .`). The 0.0 s comes from ruff's cache.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_template_makefile.py tests/test_claude_files.py`
+   ```
+   ...............................................................          [100%]
+   63 passed in 2.06s
+   ```
+   Met its Expect line: 63 passed, with no failed, error or skipped count.
+
+   Against the acceptance criteria: `template/` holds exactly `CLAUDE.md`, `Makefile` and `factory/` (criterion 1). The Makefile has the placeholder `SOURCE = src/<package>` (criterion 4). Nothing in the demo contradicts any criterion. No findings.
