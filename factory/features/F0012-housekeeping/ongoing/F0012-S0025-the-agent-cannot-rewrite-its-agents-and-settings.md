@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 175
 blocked: null
 comments_seen: 0
@@ -83,3 +83,16 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Architecture, security: only `image/` and tests change. No silencing markers, no secrets, no new dependency.
    - Judged and not raised: the `layout` fixture in the new module repeats the one in `tests/test_entrypoint.py`. Moving it to `tests/conftest.py` would mean editing an earlier story's test, which the Interface forbids. The entrypoint's header comment ("so either can remove the other's") is still true for `/work`. The coder flagged it for the documenter, and the Interface keeps everything else in the entrypoint unchanged.
    - Open: the sticky bit's effect on renaming and deleting is not tested, because that needs a container (noted at intake). Docs criterion 6 is for the documenter.
+6. documenter: Docs written for criterion 6. I changed only documents, so I did not run `make check`.
+   - `docs/operator-guide.md`:
+     - "The agent runs as a second user": replaced the sentence that the agent could change its home files. It now says what is protected, that the login stays the agent's, what stays writable (user `CLAUDE.md`, skills, `/home/agent/.claude.json`), and that an old `claude-home` volume keeps its old owner and mode.
+     - "Users and directories": `/home/agent/.claude` has its own row (`3775`, `factory:factory-work`), and `/work` keeps `2775`.
+     - Morning observations: one row for `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'`, expected to be refused.
+   - `docs/decisions.md`: a new section recording that F0010 decision 21 is superseded for the agent files and settings. It lists what stays open: old volumes, the other writable files, a subfolder in `agents/`, and the sticky bit not being tested.
+   - Checks: `uv run python -m factory.entry.check_documents` prints `documents ok`. The new Dockerfile and entrypoint values match the diff. I could not run the new morning-observation command, because it needs a container.
+   - Cross-read and found current: README.md and the rest of the operator guide.
+   - Not touched: the `entrypoint.sh` header comment ("so either can remove the other's") is still true for `/work` and is code, not mine to edit. The guide's "Log in once as `agent`" paragraph says the login is in a volume only if you mount one there, but compose mounts `claude-home`. That is unrelated to this story.
+   - Findings: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
