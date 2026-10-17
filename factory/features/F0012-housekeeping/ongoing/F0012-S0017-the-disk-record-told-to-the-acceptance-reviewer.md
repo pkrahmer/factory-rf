@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 168
 blocked: null
 comments_seen: 0
@@ -82,3 +82,14 @@ Expect: two lines: `Disk now: disk acceptance: /work 1.0 GB free, 0.1 GB used` a
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Criteria 1 and 2: `tests/domain/test_acceptance_facts_disk.py` checks the five lines with and without a `disk_before`, checks that `acceptance_facts` passes both values on, and checks that facts without `disk_now` give exactly the three lines of today. That last test is parametrized with `disk_before` both None and set, which covers the failing side.
+   - Criteria 3 to 5: `tests/application/test_acceptance_facts_disk.py` checks the following:
+     - the first call appends one `acceptance` record, and the second call names the first call's line as `disk_before`;
+     - a `start` record counts as the previous record;
+     - taking away the disk, the record log or the settings, one per parametrized row, gives `None`/`None` and appends nothing.
+   - Criterion 6: `tests/test_acceptance_reviewer_disk.py` pins the sentence at the end of line 7. The agent diff changes that one line and nothing else.
+   - Architecture: the domain gets only plain string fields and the formatting of the lines. `AcceptanceService._disk_lines` (`src/factory/application/acceptance.py`) reuses the existing `DiskRecorder.last`/`record` and `disk_line`, so no helper is copied. It reads the previous record before it writes the new one, which is correct. No new layer crossing and no new dependency.
+   - Security: nothing relevant. No suppression markers.
+   - Quality: the docstrings of `AcceptanceFacts` and `lines()` were updated. `NONE_TEXT` is reused. The comment explains why the read comes before the record. The coder's entry reports `make duplicates` as 0 new.
+   - Hygiene: the coder's entry reports `make check` green. The log records the decision to pass strings rather than `DiskRecord` objects, and the rejected alternative. Criterion 8 still describes what the documenter must write.
