@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 186
 blocked: null
 comments_seen: 0
@@ -49,3 +49,11 @@ Expect: `documents ok`.
    - Demo: both commands can be run. The grep with `-o` and `sort -u` prints five lines if the five terms are present, and the BRE parentheses in `Exited (0)` are literal. `check_documents` is expected to print `documents ok`. Each Expect line can be checked against the output.
    - Architecture: no layer or interface is touched, and the story changes documents only.
    - Scope: the story is inside FEATURE decisions 3 to 5, 13 and 15 (faults 2, 3 and 4). It leaves out the items listed under "Out of scope": the image pins, a Mac and SELinux, `podman-compose` as a provider, and a test of the restart.
+3. tester: no test written, as the Assignment and criterion 1 require. This story only changes documentation, and its Interface is "None". Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes.
+   - criterion 1: nothing to test here. The tester changed no files, and the coder should change none either.
+   - criterion 2 (`make check` stays green): the factory checks this. `make lint` is green, and the working tree is clean.
+   - criterion 3 (docs): the documenter's job, checked by the Demo's grep and by `check_documents`. It has no pytest test.
+   - Files created: none. Modules the test runner could not import: none, since no new tests exist. I did not run `make test` for red tests, because there are none to see fail.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (28.1 s)
