@@ -1,0 +1,48 @@
+# A cost record names its instance
+
+## Assignment (as of log entry 1)
+
+The status map reads GitHub only (the human's word of 2026-10-17, `planning/overnight/first-start-checklist.md`, "Results", item 6). A cost record already says which run, work item, stage, role and attempt it belongs to, when the run started, what it cost and on which image it ran (`CostRecord`, `src/factory/domain/cost_records.py`), but not which instance ran it, and two instances may work on one project. The human's word: `CostRecord` gains `instance`, the name of the instance that ran the agent run. It is optional when read, so every sidecar line written before this story stays valid with no migration, and it is set for every new record: `CostRecorder.begin` takes it from the instance's settings, as it takes `image` (the decision log's "Every tool of the machine's image is pinned, and its identity is generated at build"), and `complete` keeps it. The cost record writer leaves the key out when it is unset, so an earlier line is written back exactly as it was read when `begin` rewrites the sidecar, and the pinned lines of the earlier tests stay. This story follows S0007, which adds the journal's `at`, `stage` and `run` and writes the decision-log entry this story completes. No test of an earlier story changes (FEATURE decision 28).
+
+## Interface
+
+`src/factory/domain/cost_records.py`: `CostRecord` gains `instance: Name | None = None` (`factory.domain.identifiers`), its last field, after `image`. The model stays frozen and refuses unknown keys. The rule on measures (`started` and `completed`) does not concern it: either status may carry it. The class docstring names it.
+
+`src/factory/adapters/cost_records_jsonl.py`: `_line_of_record` writes `instance` as the last key when it is set (`..."image":"build-7","instance":"shakedown"}`) and leaves the key out when it is `None` (the line ends `..."image":null}` as today). Every other key is written as today. The reader is unchanged: a line without the key, or with `"instance":null`, reads with `None`; a value that is not a `Name` is `invalid instance: <reason>`, the reader's existing fault form.
+
+`src/factory/application/costs.py`: `CostRecorder.begin` sets `instance=` the `instance` of `self._boundaries.settings`, and `None` when the `Boundaries` holds no settings (as `_image()` does for `image`). `complete` keeps it (it copies the record's fields). Nothing else changes; the `Boundaries` of `tests/conftest.py` hold no settings, so the records of the existing tests have no instance.
+
+Tests: new modules `tests/domain/test_cost_record_instance.py`, `tests/adapters/test_cost_records_jsonl_instance.py` and `tests/application/test_cost_instance.py` (the last after `tests/application/test_cost_image.py`, with `InstanceSettings(repository_url=..., instance=..., image=...)` and `dataclasses.replace(boundaries, settings=...)`). No earlier test changes.
+
+## Acceptance criteria
+
+1. A cost record without `instance` is valid and has `instance` `None`; one with `instance` = `shakedown-podman` has it; `Shakedown` (not a `Name`) is refused. A `started` and a `completed` record may each carry it. One parametrized test holds every row (the wrong-typed value constructed through a variable typed `type[BaseModel]`).
+2. The writer writes `"instance":"shakedown"` as the last key of a line whose record has it, and no `instance` key for a record without it; the line of a record without it is exactly the line of today (the constants `COMPLETED_LINE` and `STARTED_LINE` of `tests/adapters/test_cost_records_jsonl.py`). One parametrized test holds both rows, each with `parse(render(records)) == records`.
+3. The reader reads a line without the key and a line with `"instance":null` with `None`, a line with `"instance":"shakedown"` with that name, and refuses `"instance":"Shakedown"` with `CostRecordFormatError` and the fault `invalid instance: ...`. One parametrized test holds the rows.
+4. `CostRecorder.begin` under settings with `instance` = `factory-1` gives a `started` record with `instance` `factory-1`, and `complete` keeps it in the `completed` record; the sidecar the stage launch writes has it (`launched.cost.records[-1].instance`). Without settings the record has `instance` `None`. One parametrized test holds the rows.
+5. What must still hold: the earlier sidecar lines and bills read and sum as before (the tests of `tests/adapters/test_cost_records_jsonl.py`, `tests/adapters/test_cost_records_jsonl_model_seconds.py`, `tests/domain/test_cost_records.py`, `tests/domain/test_bills.py`, `tests/application/test_costs.py` and `tests/application/test_cost_image.py` pass).
+6. `make check` stays green.
+7. docs: the project guide's *Cost records* names `instance` in the record's fields (a `Name`, optional when read, set by `begin` from the settings and kept by `complete`, `None` without settings) and says that the line leaves the key out when it is unset, with one example line that carries it beside the two existing ones; the paragraph *When a record is created, completed and committed* says `begin` sets it. The decision-log entry S0007 wrote ("Journal records say when, in which stage and from which run; cost records on which instance") gets the cost record's part: why the instance comes from the settings like `image`, and why its key is left out when unset while `image` is written `null` (an earlier line is rewritten unchanged at every `begin`, and the lines written before stay as they were). No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
+
+## Demo
+
+```bash
+uv run python -c "
+from datetime import UTC, datetime
+from factory.adapters.cost_records_jsonl import JsonLinesCostRecordWriter
+from factory.domain.cost_records import CostRecord
+fields = dict(work_item='F0014-S0008', stage='tests', role='tester', attempt=0, status='started', started_at=datetime(2026, 10, 17, 20, 31, tzinfo=UTC), image='build-7')
+records = [CostRecord(run='b' * 32, instance='shakedown', **fields), CostRecord(run='c' * 32, **fields)]
+print(JsonLinesCostRecordWriter().render(records), end='')
+"
+```
+Expect: two lines. The first: `{"run":"` and 32 times `b`, then `","work_item":"F0014-S0008","stage":"tests","role":"tester","attempt":0,"status":"started","started_at":"2026-10-17T20:31:00Z","duration_seconds":null,"model_seconds":null,"end_reason":null,"turns":null,"tokens":null,"cost_usd":null,"image":"build-7","instance":"shakedown"}`. The second: the same with 32 times `c` as the run, ending `"cost_usd":null,"image":"build-7"}`, with no `instance` key.
+
+```bash
+uv run pytest --no-header -p no:cacheprovider tests/domain/test_cost_record_instance.py tests/adapters/test_cost_records_jsonl_instance.py tests/application/test_cost_instance.py tests/adapters/test_cost_records_jsonl.py tests/application/test_cost_image.py tests/application/test_costs.py
+```
+Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped` count.
+
+## Log (append only)
+
+1. 2026-10-17 human: created.
