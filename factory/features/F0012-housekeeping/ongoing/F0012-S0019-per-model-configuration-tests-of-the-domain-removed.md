@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 170
 blocked: null
 comments_seen: 0
@@ -114,3 +114,10 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Scope: the diff changes 33 modules under `tests/domain`, with 13 insertions and 589 deletions. Nothing under `src/` changes.
+   - Criterion 1: the diff removes exactly 49 `def test_` functions, and each one is named in the Interface under its own module. The added lines are only shortened imports (`from pydantic import ValidationError` and two narrowed `factory.domain` imports). The five tests the Interface says stay are still in their modules and untouched. `test_acceptance_state_is_closed_and_typed`, `test_evaluation_input_refuses_a_malformed_due_and_an_unknown_key`, `test_identity_needs_a_name_and_an_email_and_is_frozen`, `test_a_case_outside_the_closed_model_is_refused` and `test_a_row_with_an_unknown_key_or_value_is_rejected`.
+   - Criterion 2: every removed body checks only an assignment to a frozen field, an unknown key, or a plain wrong type. Two do slightly more. `test_hosting.py` also went through `model_validate`. `test_agent_runs.py` also rebuilt the model from its own fields. Both are among the tests the Interface names for removal. `tests/test_model_configuration.py` still covers these models: it collects every `BaseModel` under `factory` through `pkgutil.walk_packages`, and that includes `factory.domain`.
+   - Criterion 3: I parsed each changed module with an AST script and counted each top-level helper, fixture or constant by name. Every one appears at least twice in its module, so none is left unused. Unused imports are left to `make lint`, which the coder's `make check` covers.
+   - Criterion 4: the coder reports `make check: check: green` and `duplicates: 0 new, 39 known, 0 gone`. I did not run it. The coder saw a possibly flaky test in `tests/application/test_acceptance_ticks_closed.py` that this branch does not touch. If it fails again, it may need a story of its own.
+   - Hygiene: the Assignment matches what was built. The tester's log entry says how the tests were removed and names the four helpers it removed. The docs criterion is "none", which fits a story that only removes tests.
