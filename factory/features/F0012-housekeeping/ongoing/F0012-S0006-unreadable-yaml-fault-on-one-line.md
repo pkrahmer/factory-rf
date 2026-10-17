@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 158
 blocked: null
 comments_seen: 2
@@ -196,3 +196,12 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
     - Considered, not raised:
       - Only `\n` inside a problem is tested, not `\r`. The human fixed the form of the new criterion in entry 7, and `\r` takes the same `replace` path.
       - The criterion 8 test name says "falls back", yet its first row (a problem without a mark) does not fall back. The rows match the criterion exactly.
+12. documenter: docs (round 1): wrote the three documents of criterion 12; changed only documents, so I did not run `make check` (the factory does). `make documents`: documents ok.
+    - `docs/project-guide.md`, "Faults" under "The pipeline definition": the YAML fault is now `not valid YAML: <problem> (line <l>, column <c>)`, on one line and 1-based. It names `yaml_fault`, the escaping of a line break inside the problem, what is left out (context, the "To suppress" hint), and the fallbacks (no mark, no problem). The sentence that said ruamel's text can span several lines is gone.
+    - `docs/operator-guide.md`, the fault row of "The stop `pipeline_definition_invalid`": same form, with the repeated-key example (line 27, column 3).
+    - `docs/decisions.md`: new entry on reducing the YAML fault to ruamel's problem and position (one stop, one log line, no hint for a check the factory wants), with the rejected alternatives.
+    - Cross-read against the diff and found current: `README.md`, and the rest of the project guide and operator guide (agent-definition and work-item YAML faults are a different reader, unchanged). I found no findings for the coder: the code matches the Interface (criteria 1 to 10 are covered by tests, per the reviewer).
+    - Stale but untouched: nothing.
+
+    `make check`: check: green
+    `make documents`: documents ok
