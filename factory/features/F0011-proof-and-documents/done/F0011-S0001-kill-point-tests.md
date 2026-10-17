@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 145
 blocked: null
 comments_seen: 6
@@ -498,3 +498,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     Met: the last line says `passed` and has neither `failed` nor `error`.
 
     Against the criteria: the printed rows match the Interface table and criterion 1. The rejections match criteria 2 and 3. The scenario criteria (5–22) are covered by the tests that passed. `docs/project-guide.md` has the section `## Kill points` (line 1530), as criterion 24 asks. Nothing in the demo contradicts any criterion. I did not run `make check` myself, because the factory runs it after this stage. No findings.
+24. done (pull request merged); cost: 19 runs, 50.1 min, 173 turns, 577k tokens in (4051k more from cache), 77k out, $6.68
