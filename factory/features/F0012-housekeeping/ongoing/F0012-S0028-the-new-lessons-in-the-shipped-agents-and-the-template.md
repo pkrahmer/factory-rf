@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 178
 blocked: null
 comments_seen: 0
@@ -111,3 +111,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+   - Acceptance criteria: all four criteria are covered by tests that already existed. Criteria 1 and 2 are covered by `tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets`, which compares each agent's whole `LESSONS` list. Criterion 3 is covered by `tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text`. Criterion 4 is covered by the other tests in the three modules. The coder's entry records `make check` as green.
+   - Test changes: the tester changed only what the Interface names under FEATURE decision 48. That is `_SECOND_LESSON`, now second in all seven lists; `_TIME_LIMIT_LESSON`, last in `tester`; the documents-only bullet, last in `documenter`; and the time-limit line in `TEMPLATE_RULES_LINES` after `- Fake commit ids`. No other test was changed.
+   - Shipped text: I read `claude/agents/*.md` and `template/CLAUDE.md` in the diff against the Interface. Each new bullet is one line and matches the Interface word for word. The bullet order in each `## Lessons` section matches the table (intake 5, tester 6, coder 4, reviewer 4, documenter 5, smoke-tester 3, acceptance-reviewer 4). The template bullet is the last bullet of *Tests*. No other line in the bodies or the template changed.
+   - Failing sides: the Interface states no limit or rejected input. Because the test compares the whole list exactly, a missing, extra or misplaced bullet fails it.
+   - Architecture, security, quality: the change is shipped text and test constants only. There is no code under `src/`, no suppression marker and no new dependency. Inlining the documents-only bullet, which is used once, matches how the other single-use lessons are written.
+   - Ticket hygiene: the Assignment matches what was built. The coder's log explains how the bullets were placed. Criterion 6 still says what the documenter must write in the project guide.
