@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 170
 blocked: null
 comments_seen: 0
@@ -128,3 +128,27 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran the three Demo commands from the repository root exactly as written. All three met their `Expect:` lines, so there are no findings.
+
+   1. The grep for `test_a_bill_is_frozen`, `test_event_refuses_an_assignment` and `test_remote_branch_refuses_assignment` in tests/domain. Met: the output is the single line `status 1`.
+   ```
+   status 1
+   ```
+
+   2. The grep for `test_a_new_entry_is_frozen`, `test_the_settings_model_is_closed` and `test_an_unknown_key_is_refused` in tests/domain. Met: the output is the single line `status 1`.
+   ```
+   status 1
+   ```
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/domain tests/test_model_configuration.py 2>&1 | tail -1`. Met: one `<n> passed` line, with no `failed` and no `error`.
+   ```
+   1828 passed in 1.67s
+   ```
+
+   Checked against the criteria:
+   - Criterion 1: the demo supports it, but only for the six names the greps sample. I did not search for the other 43 names. The reviewer counted all 49 removals in the diff.
+   - Criterion 2: the demo supports it. Every remaining test of tests/domain passes, and so does tests/test_model_configuration.py.
+   - Criteria 3 and 4: the demo does not cover them. The coder and the documenter both report `make check` green. The factory runs that gate itself.
+   - Criterion 5 (docs: none): nothing to show.
+
+   Nothing in the demo contradicts any criterion.
