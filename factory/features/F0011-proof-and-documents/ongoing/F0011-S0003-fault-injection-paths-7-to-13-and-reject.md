@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 147
 blocked: null
 comments_seen: 4
@@ -232,3 +232,24 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
     `make lint`: lint: green
     `make test`: test: green
+14. coder: round 1. The reviewer's three findings from entry 9 are fixed by the tester's change in entry 13, which the human approved in entry 11 as option (b). Nothing under `src/` changed this round. `make check` is green on the committed state, with total coverage at 99.55 %.
+
+    I checked that every copy is gone:
+    - `world` and `work_item` are now defined only in `tests/conftest.py` (lines 125 and 131).
+    - `rerun` is the one public helper in `tests/proof_support.py:337`.
+    - Neither `tests/test_fault_paths.py` nor `tests/test_fault_paths_7_to_13.py` defines its own fixture or `_rerun` any more.
+
+    Built (unchanged since entry 8): the seven rows for paths 7 to 13 in `FAULT_PATHS`, `src/factory/domain/fault_paths.py`, commit e6207f4. The first six rows are unchanged.
+
+    Design (as before): the paths only exercise mechanisms v1.1 already has, so they need no change under `src/`. I rejected removing the cost sidecar from beside the work item (entry 5, option (a)).
+
+    Refactor: nothing to change. The diff under `src/` is seven data rows.
+
+    Noticed, not touched:
+    - `tests/proof_support.py:388` has a private `_rerun(world, work_item, kill, ...)` used by the kill-point cases. It also advances by `KILL_TO_RERUN` and restarts, then queues an answer and runs ticks. It could call the new public `rerun` for its first two lines. It is test code, so it is not mine to change.
+    - `tests/test_fault_path_names.py` still checks only the first six rows.
+    - Criterion 13 (project guide and decision log) is for the docs stage.
+
+    `make check`: check: green
+
+    `make check`: check: green
