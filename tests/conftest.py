@@ -1,5 +1,7 @@
 """Fixtures shared by the whole test suite."""
 
+import os
+from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -24,6 +26,14 @@ from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
+
+
+@pytest.fixture
+def group_umask() -> Iterator[None]:
+    """Run the test under the entrypoint's umask `0002` and restore the previous one afterwards."""
+    previous = os.umask(0o002)
+    yield
+    os.umask(previous)
 
 
 @pytest.fixture

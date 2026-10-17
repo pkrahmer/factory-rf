@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 192
 blocked: null
 comments_seen: 2
@@ -197,3 +197,34 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: the commands are runnable. Each Expect line is checkable.
    - Architecture: the changes sit in the right layers: the error in the domain, the interface and preparer in the application, `GitCli` in the adapters, the wiring in the entry layer.
    - Scope: the story is within F0014's S0006 scope. Nothing in "Out of scope" is touched.
+5. tester: I wrote red tests for criteria 1 to 15 and made the four earlier-test changes the human allowed (FEATURE decision 23). Nothing else in an earlier story's tests changed. `make lint` is green. One `make test` run gave the expected red: the three changed tests in `tests/entry/test_wiring_boundaries.py` fail on `"group" != "0640"`, and `tests/adapters/test_git_cli_seal.py` does not collect, because `RepositoryUnsealed` is not in `factory.domain.errors` yet. The new modes and preparer tests fail on code that does not exist yet: `seal`, `check_seal`, `discard`, the `log=` keyword of `CheckoutPreparer`, `0640` and `GIT_CEILING_DIRECTORIES`.
+
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks and ::test_the_built_git_runs_with_the_git_options_of_the_settings. Each now expects `GIT_CONFIG_VALUE_1` = `0640`; their names are unchanged.
+   - criteria 2 and 3: tests/entry/test_git_repository_modes.py::test_a_clone_closes_the_git_folder_to_the_group_and_leaves_the_work_tree_writable. One row each for `.git`, `.git/config`, `PIPELINE_DEFINITION_FILE` and that file's folder.
+   - criterion 4: tests/entry/test_git_repository_modes.py::test_after_git_work_and_a_seal_nothing_in_the_git_folder_is_writable_but_by_its_owner
+   - criterion 5: tests/adapters/test_git_cli_seal.py::test_seal_takes_the_group_and_others_write_bits_and_keeps_every_other_bit. Five rows; the last is a symbolic link to `tmp_path/outside.txt`.
+   - criterion 6: tests/adapters/test_git_cli_seal.py::test_seal_refuses_a_git_folder_that_is_not_the_factorys_and_changes_nothing (four rows) and ::test_seal_refuses_a_folder_inside_that_it_cannot_list_and_names_it (skipped for root).
+   - criterion 7: tests/adapters/test_git_cli_seal.py::test_check_seal_passes_only_a_closed_git_folder_of_the_factorys_user_and_changes_nothing (eight rows, two of them passing) and ::test_check_seal_names_a_group_writable_folder_in_its_message, which checks the exact `str(error)` for `0o2770`.
+   - criterion 8: tests/adapters/test_git_cli_seal.py::test_a_git_folder_without_head_is_refused_and_changes_nothing (one row each for `seal` and `check_seal`) and the `no-entry` row of ::test_git_never_reaches_a_repository_above_a_working_copy_whose_git_folder_is_broken.
+   - criterion 9: tests/adapters/test_git_cli_seal.py::test_discard_removes_the_working_copy_and_a_missing_one_is_no_error and ::test_discard_that_cannot_remove_a_file_is_a_git_error (skipped for root).
+   - criterion 10: tests/application/test_checkout_preparer_seal.py::test_a_missing_checkout_is_cloned_and_sealed
+   - criterion 11: tests/application/test_checkout_preparer_seal.py::test_a_sealed_checkout_is_kept_and_sealed_again_without_a_log_line
+   - criterion 12: tests/application/test_checkout_preparer_seal.py::test_a_checkout_whose_git_folder_fails_the_check_is_removed_and_cloned_again (three rows)
+   - criterion 13: tests/application/test_checkout_preparer_seal.py::test_a_checkout_that_cannot_be_discarded_is_the_repository_unavailable_stop (skipped for root)
+   - criterion 14: no new test. The existing preparer, repository-waiter, scheduler, tick and git-wrapper tests cover it.
+   - criterion 15: the `parent-of-parent` and `empty` rows of tests/adapters/test_git_cli_seal.py::test_git_never_reaches_a_repository_above_a_working_copy_whose_git_folder_is_broken
+   - Interface count: in tests/application/test_git_interface.py, `OPERATIONS` gains `seal`, `check_seal` and `discard`, and the test is renamed `test_git_has_exactly_the_twenty_two_operations_and_git_cli_has_each`. In tests/application/test_interfaces.py the test is renamed `test_git_abstract_methods_are_exactly_its_twenty_two_operations`; its body is unchanged.
+
+   Files created: tests/entry/test_git_repository_modes.py, tests/adapters/test_git_cli_seal.py, tests/application/test_checkout_preparer_seal.py. Files changed: tests/conftest.py, which gains the fixture `group_umask` (umask `0o002`, the previous one restored), used by the modes tests and criterion 10; and the three earlier test files named above.
+
+   Module the test runner could not import: `RepositoryUnsealed` from `factory.domain.errors`, which stops tests/adapters/test_git_cli_seal.py from collecting.
+
+   Notes for the coder:
+   - `resolve("HEAD")` above a broken `.git` may return `None` or raise `GitError`. The tests accept either; they only require that it does not return the commit of the repository above.
+   - The "another user" rows set `.git` to `0o755` first, so the owner detail is the one that fires.
+   - This shell's umask is `0022`, so clones made by the existing tests' fixtures get a `.git` at `0o755`, which passes `check_seal()`. Those tests should keep their checkouts once the preparer checks the seal.
+
+   Open: nothing.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/adapters/test_git_cli_seal.py - ImportError while importing test ...
