@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 188
 blocked: null
 comments_seen: 0
@@ -87,3 +87,14 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: the diff changes only three test modules. There are no changes in `src/`, which matches the coder's entry. I compared each new expected string with the text in `src/factory/application/preflight.py` (lines 149–277): the `"; ".join(faults)` call, the PATH and HOME faults, `agent_user or 'the factory user'`, and both hints.
+      - Criterion 1: `tests/application/test_agent_environment_item.py::test_a_fault_in_the_environment_fails_with_its_detail` compares the whole detail. It has one row for each of the four single faults and the `neither-path-nor-home` row, all in one parametrized test.
+      - Criterion 2: `tests/application/test_agent_run_probe.py::test_a_probe_that_does_not_complete_fails_with_its_detail` crosses the four end reasons with agent user `agent` and with `None` (through `model_copy`). Each case is checked against the exact detail.
+      - Criteria 3 and 4: in `tests/application/test_preflight.py`, `test_the_hosting_service_item_reports_a_failed_call` and `test_the_version_item_fails_with_its_detail_when_the_versions_differ` now compare exactly the strings the criteria give.
+      - Criterion 5: the passing tests of the three modules are unchanged and still pass, so each item still passes on a ready machine.
+      - Criterion 6: the coder's entry reports `make check: check: green`. `make duplicates` reports 0 new.
+      - The test changes stay within the human's leave as the Interface states it: only the four named tests changed, plus the renames it allows.
+      - Architecture and security: nothing changed in `src/`, and no suppression markers were added.
+      - Quality: no findings.
+      - Ticket hygiene: `Assignment` matches what was built. Criterion 7 (the docs criterion) is still open and goes to the documenter.
