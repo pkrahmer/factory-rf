@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 145
 blocked: null
 comments_seen: 2
@@ -332,3 +332,14 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     On finding 2, the Interface (ticket line 151, "the crash criteria over the crash cases") contradicts criterion 11, which names `agent-run-dies` explicitly. I go with the reviewer: criterion 11 wins, because it is the more specific statement and it is the one the acceptance checks against. If the human wants the Interface sentence brought in line, that is a ticket text edit for the next doing round.
 
     Expectation: neither change should need a `src/` change. Criterion 11 for `agent-run-dies` already overlaps with criterion 18, which passes, and the restart path reruns in its first tick by construction. If either one goes red, it is a `src/` defect and I fix it in the next doing round.
+11. tester: made the two test changes the reviewer asked for in entry 9 and the coder named in entry 10. Nothing else changed: no other test and nothing under `src/`. An earlier tester run that was interrupted had already committed both changes in 8469746 ("work left uncommitted by an interrupted run"). I checked that diff against entry 10 line by line and it matches. This run adds no new edits.
+
+    1. Criterion 7, "first tick": `tests/proof_support.py::_rerun` now runs one tick and saves `tuple(restarted.agent_runtime.requests())` in a new `CaseResult` field. Then it runs the other two ticks. `_resumes_at_first_tick` now checks that saved copy instead of the requests after all three ticks, so a factory that reruns only at its second or third tick fails. The new field is `CaseResult.first_tick_requests: tuple[AgentRunRequest, ...] = ()`. It goes beyond the Interface and is a test-helper field only. It defaults to empty for scenarios that don't go through `_rerun`.
+    2. Criterion 11: `tests/test_kill_points.py::test_no_write_of_the_interrupted_run_reaches_the_remote` is now parametrized `@_over(ALL)` instead of `@_over(CRASHES)`, so `agent-run-dies` is covered too. `_no_interrupted_write_in_history` already limits itself to `src/leak.py` when `kill_point` is `None`.
+
+    Still open: the ticket's Interface sentence "the crash criteria over the crash cases" (ticket line 151) still contradicts criterion 11. As entry 10 says, fixing that is a text edit to the ticket for the human or the next doing round, not a test change.
+
+    `make test`: green, total coverage 99.55 %. `make lint`: green.
+
+    `make lint`: lint: green
+    `make test`: test: green
