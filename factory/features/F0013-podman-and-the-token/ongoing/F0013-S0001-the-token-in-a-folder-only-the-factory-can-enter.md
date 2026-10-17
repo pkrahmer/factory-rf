@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 182
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -122,3 +122,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    I would choose (a): it changes no meaning and leaves no marker or baseline entry once the ticket moves to `done/`. Say which, and I will apply it, run `make check` and send the story to review.
 
    Refactor: I read the diff; it is three small config changes and a comment, with nothing to tidy.
+5. human (pull request comment, 2026-10-17): (a). Reword only criterion 3's sentence as prose, with the same meaning (source `./secrets/hosting-token`, read-only, `create_host_path` false, the target, the key order), check it with the hook, then run `make check` and go on to review.
