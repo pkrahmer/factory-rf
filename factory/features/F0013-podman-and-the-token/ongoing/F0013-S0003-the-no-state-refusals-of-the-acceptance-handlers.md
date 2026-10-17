@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 184
 blocked: null
 comments_seen: 0
@@ -89,3 +89,10 @@ Expect: `3`, the three messages the tests pin.
    - Architecture: `StatelessReportReader` derives from `factory.application.files.WorkItemReader`. It hands `parse`, `parse_specification` and every other path's `read` to `FrontmatterWorkItemReader`. Git is not faked, and there are no new dependencies or suppression markers.
    - Quality: the names fit, there is no dead code, and `make duplicates` reports 0 new.
    - Ticket hygiene: the Assignment matches what was built. The log gives the reason for the parametrized form and what was rejected. Docs criterion "none" is right, since behaviour does not change.
+6. documenter: wrote nothing. The docs criterion says `none`, and the diff is one new test module (`tests/application/test_acceptance_no_state_refusals.py`) with no change in `src/`, so no behaviour or name moved.
+   - Cross-read: searched `docs/` for the three acceptance handlers and their "has no state" refusals. The mentions in `docs/project-guide.md` and `docs/operator-guide.md` match the behaviour the tests pin. I did not read every document in full.
+   - Stale but untouched: nothing seen.
+   - No findings. I ran no `make check`, as I changed no file outside the docs.
+
+   `make check`: check: green
+   `make documents`: documents ok
