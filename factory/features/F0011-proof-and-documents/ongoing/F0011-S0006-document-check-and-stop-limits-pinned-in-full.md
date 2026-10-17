@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 151
 blocked: null
 comments_seen: 0
@@ -106,3 +106,8 @@ Expect: the single line `documents ok`.
       - Open: criterion 7 (the project guide paragraph on `STOP_TABLE` and `StopRow`) is the documenter's job; I did not write it. I noticed nothing else.
 
    `make check`: check: green
+5. reviewer: no findings.
+   - Criteria: each of criteria 1 to 5 has its test, as the tester's entry lists them. Criteria 2 to 4 are parametrized over `KILL_POINT_CASES`, `FAULT_PATHS` and `STOP_TABLE` themselves, with ids `case.id`, `str(path.number)` and `row.id`. Their texts come from `project_guide(...)` and `operator_guide(...)` in `tests/document_texts.py`, which drop exactly the named row, and each test asserts the exact one-finding list. Criterion 1 compares against the literal nine-phrase tuple, so removing a phrase now fails a test. Criterion 5 is one parametrized test with all ten rows (two accepted, eight refused, including `"L7\n"` and `"L٣"`), each built from `FIRST_ROW` with `limits` replaced, through `model: type[BaseModel] = StopRow`. The edits to earlier tests are exactly the ones FEATURE decision 22 allows: the `X7` row moved into the new limit test, and the `absent` row was removed from three tests. The coder's entry reports `make check` green.
+   - Code: `src/factory/domain/stop_table.py` now uses `re.compile(r"L[0-9]+")` with `_LIMIT.fullmatch`, as the Interface specifies, and nothing else in the module changed. Architecture and security are unaffected: the change is a pure domain change with no new dependency and no suppression marker.
+   - Other changes in the diff range: the `docs/runs/...night-log.md` and `planning/overnight/restructure-after-f0011.md` changes are the human's own commits (1a7bc24, 54e348b), brought in by the merge of main. They are not the ticket's work and were not reviewed.
+   - Ticket: `Assignment` matches what was built, and criterion 7 still says what the documenter must add to the project guide.
