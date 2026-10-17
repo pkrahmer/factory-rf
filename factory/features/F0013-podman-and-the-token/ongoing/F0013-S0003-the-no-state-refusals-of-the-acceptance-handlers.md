@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 184
 blocked: null
 comments_seen: 0
@@ -96,3 +96,25 @@ Expect: `3`, the three messages the tests pin.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: ran both Demo commands from the repository root, in order. Both met their `Expect:` lines.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/application/test_acceptance_no_state_refusals.py`
+   ```
+   ...                                                                      [100%]
+   3 passed in 0.87s
+   ```
+   Met: the last line reads `3 passed in 0.87s`, with no `failed`, `error` or `skipped` count.
+
+   2. `grep -c 'has no state' src/factory/application/acceptance.py`
+   ```
+   3
+   ```
+   Met: `3`, the three messages the tests pin.
+
+   Against the acceptance criteria:
+   - Criteria 1 to 3: the three passing rows (hand_over, merged, closed) are the tests the tester mapped to these criteria. Each row asserts the kind and reason from the table, that the remote ref is unchanged, and that no new comment was posted.
+   - Criterion 4: the demo neither shows nor contradicts it. The coder's and documenter's entries report `make check` green, which runs the existing handler tests.
+   - Criterion 5: I did not run `make check`. The factory runs it as this stage's check.
+   - Criterion 6 (docs: none): consistent with the demo.
+
+   Nothing contradicts a criterion. No findings.
