@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 171
 blocked: null
 comments_seen: 2
@@ -76,3 +76,6 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
    - Options: (a) the tester adds that one `world.tick.run()` after the fourth send-back tick, before `capped` and `caps_asked` are read. (b) Change the stage so it posts the round cap question in the same tick as the block. That reverses the record-then-post design that the fault paths depend on, and it is beyond this story's scope. I would choose (a). If you answer (a), I will end with `tests` and name that change.
    - Refactor step: not reached. The diff is 5 lines and needs none.
 5. human (pull request comment, 2026-10-17): (a). The tester adds one `world.tick.run()` after the fourth send-back tick, before `capped` and `caps_asked` are read, as the fault-path test does; the record-then-post design stays.
+6. coder: tests. The human chose (a) in entry 5, so the test needs one change: in `tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over`, add one `world.tick.run()` after the fourth send-back tick (line 24, after `world.agent_runtime.queue(completed("doing", "Finding."))` and its `world.tick.run()`) and before `capped` and `caps_asked` are read (line 25). That extra tick posts the round cap question that the blocking tick recorded.
+      - The implementation is already committed (ee88826): `src/factory/domain/answers.py` `unblock` sets `round=0` for a `round_cap` wait, and `src/factory/domain/post_texts.py` `round_cap_question` returns the Interface's text. When I tried this change in a scratch copy in entry 4, the test passed against this implementation. No code changed in this run.
+      - Once the tester has made the change, the ticket comes back here for the refactor step and `review`. The diff is 5 lines and probably needs no refactor.
