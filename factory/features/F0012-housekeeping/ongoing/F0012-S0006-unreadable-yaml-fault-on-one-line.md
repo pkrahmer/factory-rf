@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The fault of an unreadable pipeline definition on one line
 
 <!-- takes in the parked draft F0003-S0011 (proposed by F0003's feature acceptance of 2026-10-14) -->
