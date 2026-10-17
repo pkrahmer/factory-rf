@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 163
 blocked: null
 comments_seen: 0
@@ -69,3 +69,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[smoke-tester]
+4. coder: Added the lessons to three agent texts. Commit 1f83114.
+      - `claude/agents/smoke-tester.md`, `claude/agents/documenter.md` and `claude/agents/acceptance-reviewer.md` now each end `## Lessons` with the Interface's temporary-directory bullet, word for word. `acceptance-reviewer.md` also has the JUnit-report bullet after it. The `## Lessons` section was already last in all three files, so I added the bullets at the end of each file and changed nothing else. The other four agents are untouched.
+      - Design: these are text-only changes. There was no choice to make beyond keeping the exact wording and order that the `LESSONS` test pins. I rejected rewording the shell example, because the test compares the text byte for byte.
+      - Refactor: nothing to change. The diff is three appended blocks of lines and has no code.
+      - Open: criterion 5 (the project guide's section on the shipped agents, replacing `tempfile.mkdtemp()` with `TemporaryDirectory()` in *The agent definition reader* example) is left for the docs stage. I did not touch any documents.
+      - Checks: `make check` is green (`check: green`), and the three named test modules pass.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 2 new, 39 known, 0 gone
