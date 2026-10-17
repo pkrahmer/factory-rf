@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 192
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -177,3 +177,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: Two rules in `## Interface` have no criterion that tests them. The format check passed. The Interface, the Demo, the architecture and the scope are otherwise fine.
+
+   1. The Interface says `GIT_CEILING_DIRECTORIES` is set "among the entries no `GitOptions.environment` can lift". Criterion 8 only tests that git refuses to look above a broken `.git`. Nothing tests that a `GitOptions.environment` entry named `GIT_CEILING_DIRECTORIES`, or one set to another folder, is overridden by the wrapper. That is the refused side of the rule, and without a test a later story will drop it unnoticed.
+      - Options: (a) add a criterion: `GitCli` built with `GitOptions(environment={"GIT_CEILING_DIRECTORIES": <other>})` still refuses the repository at the working copy's parent's `.git`, as in criterion 8. (b) Drop "no ... can lift" from the Interface.
+      - I would choose (a).
+
+   2. `seal()` "refuses an entry of another user when it reaches it" with the detail `<path> belongs to the user <uid>, not to <effective uid>`. Criterion 6's monkeypatched `os.geteuid` row only tests the folder's own owner, because the owner check comes first. No criterion covers the owner check on an entry inside `.git`. A single user cannot own an entry that differs from the folder, so the monkeypatch cannot tell the two checks apart.
+      - Options: (a) drop the entry-owner rule from the Interface, because the folder's owner and the "cannot change" rule cover it. (b) Keep the rule and name how one test reaches it. For example the test could monkeypatch `os.lstat` for one entry, but that fakes a system call inside the code under test, which `CLAUDE.md` forbids ("Never mock the code under test"). (c) Accept it as untested, stated in the ticket.
+      - I would choose (a).
+
+   Neither answer changes the Assignment. Under (a) for question 1, the new criterion goes before the two closing ones.
