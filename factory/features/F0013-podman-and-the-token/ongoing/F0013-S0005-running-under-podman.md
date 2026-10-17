@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 186
 blocked: null
 comments_seen: 0
@@ -57,3 +57,12 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (28.1 s)
+4. coder: no code changed, as the Assignment and criterion 1 require. This story only changes documentation, and its Interface is "None". Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes, and I made no commit.
+      - criterion 1: met. The working tree was clean and stayed clean.
+      - criterion 2: `make check` was green on the branch as it stands (`check: green`, coverage 99.50 %).
+      - criterion 3 (docs): left to the documenter. The *Container runtimes* section in `docs/operator-guide.md`, the pointer from *The health check and the restart policy*, and the entry in `docs/decisions.md` are its job, and the Demo checks them.
+      - Refactor: there is no diff, so nothing to refactor.
+      - Noticed and left alone: nothing.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
