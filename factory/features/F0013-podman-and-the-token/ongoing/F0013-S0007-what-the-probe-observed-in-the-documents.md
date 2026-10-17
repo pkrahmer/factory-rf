@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 189
 blocked: null
 comments_seen: 0
@@ -65,3 +65,9 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. Its `--stat` lists no file, so the branch only changes the ticket.
+      - 1. Acceptance criteria: criterion 1 holds because nothing changed under `src/`, `image/`, `template/`, `claude/` or `tests/`. The tester's and the coder's entries both say so. Criterion 2: the coder's entry records `make check` ending with `check: green` and `duplicates: 0 new`. The Interface is "None" and states no rule or limit, so no test is owed and no failing side is missing. Criterion 3 (docs) is the documenter's work next.
+      - 2. Architecture, 3. Security, 4. Quality: no code changed, so nothing to judge.
+      - 5. Ticket hygiene: the log gives the main decision (documentation only, no test and no code) and what was rejected (a grep test under `tests/`, and the coder writing the documents). The Assignment matches what was built, which is nothing outside the ticket. The docs criterion names each sentence and heading the documenter changes: README and the guide's introduction, *Build it*, *The health check and the restart policy*, and the heading becoming *Update the pins*. It also says that `documents ok` must still print.
+      Open: the documenter writes criterion 3. The Demo grep then expects `README.md:0` and a count below 4 for `docs/operator-guide.md`.
