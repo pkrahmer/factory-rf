@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 173
 blocked: null
 comments_seen: 2
@@ -179,3 +179,14 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
          - The one deviation from the Interface's wording is logged in entry 4 with its reason. The pipeline definition reader comes from the new `build_pipeline_definition_reader()` in `src/factory/entry/wiring.py`, not from `RuamelPipelineDefinitionReader()` directly, because `tests/entry/test_wiring.py` lets only the wiring import adapters. The reader and its behaviour are the same.
          - Criterion 16 still describes what the documenter must write: the README pointer, the project guide's *The demos*, and the decision log entry that the code knows no demo by name.
        - Open: the documents for criterion 16 (documenter), and the deferred `work_item_path` reuse (the human's FEATURE decision). I did not run `make check`. The coder's entry 10 reports it green at 4b9cbcf.
+14. documenter: docs (round 3): wrote the documents for criterion 16. I changed no code, so I did not run `make check`; the factory's run after this stage is the gate.
+    - `README.md`: the "Where to look next" list now names `demo/` and `python -m factory.entry.check_demos`, and says `make check` runs the same check through `tests/test_demos.py`.
+    - `docs/project-guide.md`: new section *The demos*. It covers the layout of a demo (`README.md`, `project/` with the pipeline definition and the story form, `features/` with `feature.md` and `backlog/` stories) and the index line. It lists the rules of the check in the Interface's order, says that stories are checked as backlog stories at the path they will have in the project through `backlog_story_findings` and `finding_line`, and says that `make check` runs it through `tests/test_demos.py`.
+    - `docs/decisions.md`: new entry *The demo check knows no demo by name*, with the reasons and what was rejected (a table of demos; a second copy of the story check).
+    - Run: `uv run python -m factory.entry.check_documents` prints `documents ok`, and `uv run python -m factory.entry.check_demos` prints `demos ok`.
+    - Cross-read against the diff and found current: the operator guide's description of `factory-check-story`, and *The form check of a story* and *The check command* in the project guide. Behaviour is the same for the existing commands.
+    - Code vs. docs: the code matches the Interface, with the logged deviation that the pipeline definition reader comes from `build_pipeline_definition_reader()` in the wiring; the guide says so. No findings.
+    - Seen and not touched: the second assembly of the backlog path in `check_demos.py`, in place of `work_item_path`. The human deferred it in entry 12, so it is not documented as a defect.
+
+    `make check`: check: green
+    `make documents`: documents ok

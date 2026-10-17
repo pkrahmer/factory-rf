@@ -19,6 +19,7 @@ Beside the six console commands, `uv run python -m factory.entry.check_documents
 - `docs/project-guide.md`: the guide for agents working on this code
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `CLAUDE.md`: the rules every change follows (architecture, tests, checks)
+- `demo/`: the demos v1.1 ships, one folder each; `uv run python -m factory.entry.check_demos` checks them (`make check` runs the same check through `tests/test_demos.py`)
 
 ## How it is built
 
