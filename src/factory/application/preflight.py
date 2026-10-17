@@ -194,6 +194,11 @@ def agent_run_probe_item(
             f"the probe run ended {result.end_reason}; "
             f"run claude -p by hand as {settings.agent_user or 'the factory user'} to see why"
         )
+        if settings.claude_login_file is not None:
+            detail += (
+                f"; the agent's login token is read from {settings.claude_login_file}: "
+                "make it with claude setup-token if it is missing, empty or expired"
+            )
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
     return PreflightItem(name=_PROBE_ITEM, passed=True)
 

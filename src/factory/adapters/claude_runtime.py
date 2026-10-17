@@ -60,6 +60,37 @@ KILL_STATUSES = frozenset({137, -9})
 # The agent reads a run's files through its group and must not rewrite its own guard.
 RUN_FILE_MODE = 0o640
 CENT = Decimal("0.01")
+# Claude Code's name for a token made by `claude setup-token`.
+LOGIN_VARIABLE = "CLAUDE_CODE_OAUTH_TOKEN"
+SHELL_EXECUTABLE = "/bin/sh"
+LOGIN_PREFIX = "factory-login:"
+# Run by the call's own shell, as the user the call runs as, so the factory never holds the
+# token and it stands in no process's arguments. A shell variable cannot hold a zero byte, so
+# the ASCII check counts the bytes left once the allowed ones are deleted.
+LOGIN_SCRIPT = f"""\
+login_file=$1
+shift
+if [ ! -e "$login_file" ]; then
+    unset {LOGIN_VARIABLE}
+    exec "$@"
+fi
+if [ ! -f "$login_file" ] || ! cat -- "$login_file" >/dev/null 2>&1; then
+    printf '%s\\n' '{LOGIN_PREFIX} cannot be read' >&2
+    exit 1
+fi
+other_bytes=$(LC_ALL=C tr -d '!-~ \\t\\r\\n' <"$login_file" 2>/dev/null | wc -c)
+if [ $other_bytes -ne 0 ]; then
+    printf '%s\\n' '{LOGIN_PREFIX} not ASCII text' >&2
+    exit 1
+fi
+login=$(LC_ALL=C tr -d ' \\t\\r\\n' <"$login_file" 2>/dev/null)
+if [ -z "$login" ]; then
+    unset {LOGIN_VARIABLE}
+    exec "$@"
+fi
+export {LOGIN_VARIABLE}="$login"
+exec "$@"
+"""
 
 
 # A negative count or cost is no measure: such a reply does not parse, so the call is `died`.
@@ -299,6 +330,15 @@ def _sudo_line(stderr: str) -> str | None:
     return None
 
 
+def _login_refusal(process: ProcessResult) -> str | None:
+    if _parse_reply(process.stdout) is not None:
+        return None
+    for line in process.stderr.splitlines():
+        if line.startswith(LOGIN_PREFIX):
+            return line.removeprefix(LOGIN_PREFIX).strip()
+    return None
+
+
 def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
     if request.os_user is None:
         return None
@@ -332,7 +372,9 @@ class ClaudeCodeRuntime(AgentRuntime):
     A call stopped by its budget is resumed once to get the agent's decision and entry.
     """
 
-    def __init__(
+    # Each keyword is a seam the wiring or a test sets on its own; a settings object would
+    # bundle unrelated choices.
+    def __init__(  # noqa: PLR0913
         self,
         executable: str,
         state_directory: Path,
@@ -340,12 +382,15 @@ class ClaudeCodeRuntime(AgentRuntime):
         *,
         version_time_limit: timedelta = VERSION_TIME_LIMIT,
         sudo_executable: str = SUDO_EXECUTABLE,
+        login_file: Path | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
         A request with an operating-system user is started through `sudo_executable`.
+        A run's calls get the token held in `login_file`, read by the call's own shell.
         """
         self._executable = executable
+        self._login_file = login_file
         self._sudo_executable = sudo_executable
         self._state_directory = state_directory
         self._kill_points = kill_points
@@ -448,13 +493,34 @@ class ClaudeCodeRuntime(AgentRuntime):
         if refusal is not None:
             # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
             raise AgentRuntimeError(f"{self._sudo_executable} refused the agent run: {refusal}")
+        self._check_login(process)
         return process
+
+    def _check_login(self, process: ProcessResult) -> None:
+        if self._login_file is None:
+            return
+        reason = _login_refusal(process)
+        if reason is not None:
+            raise AgentRuntimeError(
+                f"cannot read the agent's login file {self._login_file}: {reason}"
+            )
+
+    def _claude_argv(self, arguments: list[str]) -> list[str]:
+        claude = [self._executable, *arguments]
+        if self._login_file is None:
+            return claude
+        login = [SHELL_EXECUTABLE, "-c", LOGIN_SCRIPT, "factory-login", str(self._login_file)]
+        return [*login, *claude]
 
     def _process_request(
         self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
     ) -> ProcessRequest:
-        environment = {**request.environment, **SWITCHES}
-        argv = [self._executable, *arguments]
+        # The login comes from the file or not at all, never from the request.
+        given = {
+            name: value for name, value in request.environment.items() if name != LOGIN_VARIABLE
+        }
+        environment = {**given, **SWITCHES}
+        argv = self._claude_argv(arguments)
         if request.os_user is None:
             return ProcessRequest(
                 argv=argv, cwd=request.working_directory, env=environment, time_limit=time_limit
