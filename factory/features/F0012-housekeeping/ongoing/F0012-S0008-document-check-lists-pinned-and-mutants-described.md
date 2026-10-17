@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 160
 blocked: null
 comments_seen: 0
@@ -100,3 +100,12 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
    - Checks: according to the coder's entry, `make check` was green (coverage 99.51 %) and `make duplicates` reported 0 new findings.
    - Architecture and security: nothing to judge. The diff only adds tests and has no silencing markers.
    - Ticket hygiene: the coder's entry explains why there was no production change and why criterion 5 was left alone. Criterion 5 (the *Mutation testing* section in the project guide and the decision-log entry) is still open and is the documenter's work.
+6. documenter: wrote the docs criterion; no findings. I ran only `uv run python -m factory.entry.check_documents`, which printed `documents ok`. I did not run `make check`, because I changed only documents.
+   - `docs/project-guide.md`: new section *Mutation testing* after *The document check*, as the criterion asks. It covers `make mutants FEATURE=<id>`, how the modules are found, that it sits outside `make check`, and that the feature acceptance runs it. It also names `uv run mutmut results` and `uv run mutmut show <name>`, the branch-name fallback on v1's acceptance branch, and the two non-run outcomes (no `FEATURE` gives status 2; no changed module gives `mutants: no module under src/factory changed by <id>` and status 0). It uses no v1 word.
+   - `docs/decisions.md`: new entry *Mutation testing is limited to one feature's modules*. It gives the reasons: a full run is too slow, and an acceptance can act only on its own survivors. It also records the subject prefixes read (v1's `ticket <id>-S<nnnn>:` and v1.1's `work item <id>-S<nnnn>:`), the 574 s trial, and the rejected alternatives. It marks the earlier *No `mutants` target, no mutmut* entry as superseded; I left that entry's text as it was.
+   - Cross-read: the criterion's one-feature scope and the Makefile's `mutants` target match the new text, and the rest of `docs/project-guide.md` is untouched.
+   - Not cross-read: `README.md` and `docs/operator-guide.md`. I found no mention of mutants in them, so they have nothing stale about it.
+   - No contradiction between code and Interface: `src/factory/domain/documents.py` is unchanged and the tests pin its constants.
+
+   `make check`: check: green
+   `make documents`: documents ok
