@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 178
 blocked: null
 comments_seen: 0
 round: 0
@@ -83,3 +83,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: the three new bullets are given word for word, one line each. A table lists the exact bullet order of the seven `## Lessons` sections. The template gets the time-limit bullet at the end of *Tests*, after `- Fake commit ids`. The two test changes are named: `_SECOND_LESSON` in `LESSONS`, and the time-limit bullet in `TEMPLATE_RULES_LINES`.
+   - Criteria: criteria 1 to 4 are each checked by an existing test (`LESSONS`, `test_template_rules_file_is_the_python_project_text`, the other tests in the three modules), so one test function can decide each. Criterion 5 is `make check`. Criterion 6 is the docs criterion and uses the document check.
+   - Failing sides: the Interface states no limit, validation or rejected input. The bullets are text, and the exact-list comparison of `LESSONS` fails on a missing, extra or misordered bullet. The Demo also pins the negative cases: the time-limit bullet is not in `coder.md`, and the documents-only bullet is not in `tester.md`.
+   - Demo: all three blocks are runnable (`grep -c`, `uv run pytest`). Each `Expect:` line gives exact counts or a last-line form that can be checked against the output.
+   - Architecture: the change touches only `claude/agents/*.md` and `template/CLAUDE.md`, which are shipped text inside the coder's write paths. No layer or code is involved.
+   - Scope: the story is inside F0012's "What v1.1 ships to new projects" item. The mutation-testing row is explicitly left to S0029, and S0011's bullets are assumed already merged. FEATURE decision 48 covers the human's leave to change the two tests.
