@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 197
 blocked: null
 comments_seen: 0
@@ -66,3 +66,19 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: runnable. The first two commands and the pytest line are concrete, and each `Expect:` line is checkable. One check: the pytest Demo names five test modules that exist or are new.
    - Architecture: only `image/` files change, which is within the coder's write paths. No layer is touched, and nothing is added to the source.
    - Scope: this is S0004 of F0014 (the image's mount and the guide's steps), matching FEATURE.md's Scope bullet on the login and decisions 10, 12 and 14. The one earlier-test change is covered by the human's leave in decision 14. API keys and a preflight item for the login file are out of scope and not touched.
+3. tester: Wrote red tests from the Interface and criteria.
+   - criterion 1: tests/test_claude_token_mount.py::test_the_image_sets_the_login_file_once_before_the_user_changes. The ENV line appears exactly once, after `ENV FACTORY_AGENT_USER=agent` and before `USER factory`.
+   - criterion 2: tests/test_claude_token_mount.py::test_the_image_sets_the_variable_the_settings_read. The ENV name is `CLAUDE_LOGIN_FILE_VARIABLE` and the value the Dockerfile's ENV instructions set for it is `/home/agent/.claude-token`.
+   - criterion 3: tests/test_claude_token_mount.py::test_the_login_is_bind_mounted_read_only_at_the_image_setting. The fourth volume's key order, type, source, read_only and `create_host_path: false` are checked, and its target equals the Dockerfile's ENV value.
+   - criterion 4: tests/test_claude_token_mount.py::test_the_login_lies_in_the_agent_home_outside_secrets_and_named_volumes. The parent is `/home/agent` and equals the parent of `FACTORY_CLAUDE_HOME`, which is read from the multi-name ENV through `AGENT_HOME_VARIABLE`. The target is not inside `/home/factory/.secrets` and not inside any short-form named volume target, which are asserted to be `/work`, `/state` and `/home/agent/.claude`. All of these use `PurePosixPath.is_relative_to`.
+   - criterion 5: tests/test_compose.py::test_the_three_volumes_are_mounted_and_declared. Changed by the human's leave (FEATURE decision 14): the new bind mount is now the fourth expected entry, before the hosting token's. The name and the top-level volume assertion are unchanged. tests/test_token_folder.py is unchanged and still checks the last entry.
+   - criterion 6: covered by the existing tests/test_image_credentials.py and tests/test_compose_project.py, which are unchanged.
+   - criterion 7: review only, no test, as the story says.
+   - criteria 8 and 9: `make check` and docs, no tests.
+
+   Files: created tests/test_claude_token_mount.py; edited tests/test_compose.py (only the change above).
+
+   `make test`: the 4 new tests and the changed compose test fail. They fail on assertions, not on imports: the Dockerfile has no such ENV, and volumes[3] is still the hosting token's mount. Every module imported; `factory.domain.settings` already has both constants. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_claude_token_mount.py::test_the_login_lies_in_the_agent_home_outside_secrets_and_named_volumes

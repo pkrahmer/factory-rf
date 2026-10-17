@@ -65,6 +65,13 @@ def test_the_three_volumes_are_mounted_and_declared() -> None:
         "claude-home:/home/agent/.claude",
         {
             "type": "bind",
+            "source": "./secrets/claude-token",
+            "target": "/home/agent/.claude-token",
+            "read_only": True,
+            "bind": {"create_host_path": False},
+        },
+        {
+            "type": "bind",
             "source": "./secrets/hosting-token",
             "target": "/home/factory/.secrets/hosting-token",
             "read_only": True,
