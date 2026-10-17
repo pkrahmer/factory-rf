@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 193
 blocked: null
 comments_seen: 2
@@ -105,3 +105,12 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    The test change, in `tests/application/test_dispatcher_unsealed.py`, in `test_a_handlers_unsealed_repository_passes_uncounted_and_another_git_error_counts`: before the `try`, declare `outcome: str`. That way the `except RepositoryUnsealed` branch's `outcome = "raised"` passes `mypy --strict` (it fails now with "Literal['raised']" not assignable to `DispatchOutcome`, at line 43). Nothing else in the test or its parameter rows changes.
 
    After that change, `make types` should be the last red check. In entry 4, lint, layers, sast, secrets, licenses and test were all green. I did not run `make check` in this run, because nothing changed.
+7. tester: Made the one test change the human approved in entry 5 and the coder named in entry 6. In `tests/application/test_dispatcher_unsealed.py::test_a_handlers_unsealed_repository_passes_uncounted_and_another_git_error_counts` I declared `outcome: str` just before the `try`. Now the `except RepositoryUnsealed` branch can assign `outcome = "raised"` and still pass `mypy --strict`, while `Dispatcher.dispatch` keeps its `DispatchOutcome` return type. I changed nothing else: not the parameter rows, not the assertions, not any other test.
+
+   After the change:
+   - `make test`: test: green (29.8 s)
+   - `make lint`: lint: green (0.1 s)
+   - `make types`: types: green. This was the check that was red in entry 4. I did not run the full `make check`; the factory runs it next.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (28.9 s)

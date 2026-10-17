@@ -37,6 +37,7 @@ def test_a_handlers_unsealed_repository_passes_uncounted_and_another_git_error_c
     dispatcher = Dispatcher({"idle": Failing(error)}, TickStatus(), StopService(boundaries))
     event = Event(kind="idle", work_item=None, remote_state=STATE)
 
+    outcome: str
     try:
         outcome = dispatcher.dispatch(event)
     except RepositoryUnsealed:
