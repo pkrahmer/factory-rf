@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 155
 blocked: null
 comments_seen: 0
@@ -103,3 +103,14 @@ Expect: the single line `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria 1 to 4: `tests/domain/test_default_git_identity.py` checks four things against `src/factory/domain/git.py:41` and `src/factory/domain/settings.py:9-13`: the value, that `GitOptions` and `settings` share the same object, that the email literal appears only once (`holders == ["factory.domain.git"]`, through `source_search`), and the default plus the override of one half (`GIT_USER_NAME=Ann`).
+      - Criterion 5: the parametrized test in `tests/entry/test_wiring_boundaries.py` covers both cases, `which` finding `/opt/tools/sudo` and `which` returning `None` (falls back to `/usr/bin/sudo`). The test reads the new `ClaudeCodeRuntime.sudo_executable` property (`src/factory/adapters/claude_runtime.py:330`), and `build_boundaries` passes `which("sudo") or SUDO_EXECUTABLE` (`src/factory/entry/wiring.py:215`). In production, `build_boundaries` and the `tool:sudo` item of `build_tick` both default to `shutil.which`, so the runtime starts the `sudo` that the preflight checks.
+      - Criterion 6: `tests/entry/test_entry_arguments.py` has the four rows of one parametrized test. Two run `main()` with a monkeypatched `sys.argv` and expect 0; two expect `SystemExit` 2. `watch.main` parses its arguments before it needs the boundaries, so the `--follow` row really tests the refusal.
+      - Interface rules: the one rule with a refused side, the `/usr/bin/sudo` fallback, is tested. No other limits are stated.
+      - Gate: the coder's entry has `check: green` and `duplicates: 0 new`.
+      - Architecture: `wiring` (entry) imports `SUDO_EXECUTABLE` from adapters, which is allowed. The domain constant does no I/O. No layer rule is affected.
+      - Security: no lint or security markers added, no strings built for a shell, no secrets.
+      - Quality: the unused `import sys` in `check_documents` and `health` is removed. The docstrings fit what the code does.
+      - One deviation from the Interface: the explicit re-export in `settings.py` uses `__all__` instead of `import ... as ...`, because ruff's PLC0414 refuses the `as` form. The log gives the reason and the rejected alternatives. `src/factory/adapters/git_cli.py:29` already uses the same pattern, and criterion 2's guarantee holds. I did not count this as a finding.
+      - Open: the docs part of criterion 8 (project guide sections, the decision-log entry of 2026-10-17, the `GitOptions` table) is for the documenter.
