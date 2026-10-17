@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 163
 blocked: null
 comments_seen: 0
@@ -78,3 +78,11 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 2 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criterion 1: `claude/agents/smoke-tester.md`, `claude/agents/documenter.md` and `claude/agents/acceptance-reviewer.md` each end `## Lessons` with the Interface's temporary-directory bullet, matching the text exactly. `acceptance-reviewer.md` follows it with the JUnit-report bullet. The diff for each of the three files is only those appended lines. `LESSONS` in `tests/test_claude_agent_texts.py` pins both bullets word for word, in the stated order, through `_TEMPORARY_DIRECTORY_LESSON` and the inline JUnit string. `test_lessons_section_is_last_and_holds_exactly_the_role_bullets` compares the whole section, so a missing, extra or reordered bullet fails it.
+      - Criterion 2: the `LESSONS` entries for `intake`, `tester`, `coder` and `reviewer` are untouched, and those four agent files are not in the diff.
+      - Criterion 3: the other tests in the three named modules are unchanged and passed in the factory's `make check` after the coder (the coder's entry says `check: green`). The Interface has no limit or rejection rule, so it has no failing side to test.
+      - Test changes: the only one is the `LESSONS` change, which FEATURE decision 35 allows.
+      - Architecture and security: no code under `src/` changed, and no marker or baseline entry was added.
+      - Duplicates: `make duplicates` reports 2 new findings, but `src/factory` is not in this diff, so this story did not cause them.
+      - Criterion 5 (docs) is still open for the docs stage. It still describes what the reader needs: the project guide names the two lessons and which agents carry them, and `mkdtemp` is replaced in *The agent definition reader* example.
