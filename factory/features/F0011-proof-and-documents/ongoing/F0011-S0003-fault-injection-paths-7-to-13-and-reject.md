@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 147
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -122,3 +122,21 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green
    `make test`: FAILED tests/test_fault_paths_7_to_13.py::test_acceptance_container_lost_in_review_reruns_once_and_books_result[accepted]
+4. coder: two tests pick the wrong file, and I can't fix them myself (R9). Rows 7 to 13 are added. The tests for criteria 3, 4 and 7 still fail, so `make check` is red, and the cause is in the tests, not in `src/`.
+
+   Done: appended the seven rows of the Interface table to `FAULT_PATHS` in `src/factory/domain/fault_paths.py`. The first six rows are unchanged. Commit e6207f4. ruff and mypy pass on that file.
+
+   The defect: the work item's cost-record sidecar sits beside it. That file is `<work item>.costs.jsonl` (`COST_RECORDS_SUFFIX`, `cost_records_path`; project guide, *Identity, order and places of work items*). It moves with the work item into `done/` (operator guide). By the time a work item reaches `tests` or `approval`, its folder holds both `F0001-S0001-first.md` and `F0001-S0001-first.costs.jsonl`. Two selections that expect exactly one match therefore fail with `ValueError: too many values to unpack (expected 1)`:
+   - `tests/proof_support.py::work_item_file` (path 9, criteria 3 and 4). It takes "the one file whose name starts with the work item's id", but there are two.
+   - `tests/test_fault_paths_7_to_13.py::_booked`, line 236 (path 12, both cases). It takes the one file in `done/` on `origin/main` whose name starts with `F0001-A0001`, and that matches the acceptance and its `.costs.jsonl`.
+
+   Evidence: I narrowed both selections to paths ending in `.md`, but only in the working tree, and then restored the tests byte for byte. With that change all 11 tests of the three new modules pass, including paths 9 and 12. So `src/` needs no further fix.
+
+   Options:
+   (a) The tester narrows both selections to the work item's Markdown file, either by requiring `.md` or by excluding `COST_RECORDS_SUFFIX`. The Interface's sentence for `work_item_file` then reads "the one `.md` file … whose name starts with the work item's id". Recommended.
+   (b) Change `src/` so that no sidecar sits beside the work item. That contradicts the recorded cost-record design, and I reject it.
+
+   I would choose (a). On that answer I end with `tests` and name the two changes.
+
+   Refactor: nothing to refactor; the diff is seven data rows.
+   Not touched: `tests/test_fault_path_names.py` still checks only the first six rows (the tester noted this too).
