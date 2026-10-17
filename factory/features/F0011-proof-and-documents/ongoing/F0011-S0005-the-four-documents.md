@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 149
 blocked: null
 comments_seen: 2
@@ -192,3 +192,10 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
    - **Committed so far.** The implementation is in 8813045: `src/factory/domain/documents.py` and `src/factory/entry/check_documents.py`. The constants stay in `src/`, as the Interface states.
    - **Next.** Once the tester has made this change, the ticket comes back to me. I will check that `make check` is green, then do the refactor pass and hand on to review.
    - **Assignment.** Not rewritten: the answer does not change what the task means.
+7. tester: made the test change the human approved in entry 5 (option (a), first form), as the coder's entry 6 names it.
+      - `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode` now skips exactly two kinds of file, named in a new private helper `_names_the_replaced_phrases`: `src/factory/domain/documents.py`, and its compiled `.pyc` files (any file in `src/factory/domain/__pycache__/` whose name starts with `documents.`). A comment gives the reason: the document check's list of replaced phrases has to name the phrases in order to reject them. The test still searches every other file under `src/` for `--follow` and `factory-last-line`.
+      - No other test was changed.
+      - `make test` is green: every test passes, coverage is 99.53 %. `make lint` is green.
+
+   `make lint`: lint: green
+   `make test`: test: green
