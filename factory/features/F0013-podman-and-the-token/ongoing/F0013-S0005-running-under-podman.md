@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 186
 blocked: null
 comments_seen: 0
 round: 0
@@ -43,3 +43,9 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: "None" is right for a documentation-only story. It names the two documents the documenter changes (`docs/operator-guide.md`, `docs/decisions.md`). No code behaviour is stated, so no Interface comment lacks a criterion.
+   - Criteria: criterion 1 (nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes) can be checked against the diff. The docs criterion names the section, its position, the five sub-topics and the decision-log content, and gives the exact strings to look for. No code rule states a limit or a rejected input, so there is no failing side to test. The tester has nothing to test (the Assignment says so) and ends with an entry saying that.
+   - Demo: both commands can be run. The grep with `-o` and `sort -u` prints five lines if the five terms are present, and the BRE parentheses in `Exited (0)` are literal. `check_documents` is expected to print `documents ok`. Each Expect line can be checked against the output.
+   - Architecture: no layer or interface is touched, and the story changes documents only.
+   - Scope: the story is inside FEATURE decisions 3 to 5, 13 and 15 (faults 2, 3 and 4). It leaves out the items listed under "Out of scope": the image pins, a Mac and SELinux, `podman-compose` as a provider, and a test of the restart.
