@@ -22,14 +22,14 @@ STARTED_AT_TEXT = STARTED_AT.isoformat().removesuffix("+00:00") + "Z"
 COMPLETED_LINE = (
     '{"run":"' + "a" * 32 + '","work_item":"F0002-S0007","stage":"tests","role":"tester",'
     '"attempt":0,"status":"completed","started_at":"' + STARTED_AT_TEXT + '",'
-    '"duration_seconds":41.0,"end_reason":"completed","turns":7,'
+    '"duration_seconds":41.0,"model_seconds":41.5,"end_reason":"completed","turns":7,'
     '"tokens":{"input":12,"output":3438,"cache_read":127336,"cache_creation":31343},'
     '"cost_usd":"0.3450","image":null}\n'
 )
 STARTED_LINE = (
     '{"run":"' + "b" * 32 + '","work_item":"F0002-S0007","stage":"tests","role":"tester",'
     '"attempt":0,"status":"started","started_at":"' + STARTED_AT_TEXT + '",'
-    '"duration_seconds":null,"end_reason":null,"turns":null,"tokens":null,'
+    '"duration_seconds":null,"model_seconds":null,"end_reason":null,"turns":null,"tokens":null,'
     '"cost_usd":null,"image":null}\n'
 )
 REQUIRED: dict[str, object] = {
@@ -59,6 +59,7 @@ def _completed(run: str = "a" * 32) -> CostRecord:
         status="completed",
         started_at=STARTED_AT,
         duration_seconds=41.0,
+        model_seconds=41.5,
         end_reason="completed",
         turns=7,
         tokens=TokenCounts(input=12, output=3438, cache_read=127336, cache_creation=31343),

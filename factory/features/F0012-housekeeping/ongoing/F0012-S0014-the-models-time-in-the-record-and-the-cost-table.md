@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 166
 blocked: null
 comments_seen: 0
@@ -95,3 +95,30 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
    - Demo: the three commands are runnable. Each `Expect:` line is checkable text, and I checked the third's arithmetic (3.0 min, 1.0 model min, 2 unknown).
    - Architecture: the changes sit in the layer each belongs to. The reply is parsed in the adapter, the DTO fields are in the domain, and the copy into the record is in application `costs.py`. No new dependency or package.
    - Scope: this is F0012's item 1.4, "the model's time of every agent run". FEATURE decisions 22, 37 and 38 cover the story, including the leave to change the two earlier tests. Nothing in "Out of scope" is touched.
+3. tester: Wrote the red tests for criteria 1 to 11. They are the coder's specification.
+
+   - criterion 1: tests/adapters/test_claude_runtime_resume.py::test_model_duration_is_the_replys_api_time (rows: 41500 gives 41.5 s, no field gives None, -1 gives `died`)
+   - criterion 2: tests/adapters/test_claude_runtime_resume.py::test_call_killed_by_the_time_limit_has_no_model_duration (partial output is either nothing or a whole reply with `duration_api_ms`; 2 s limit)
+   - criterion 3: tests/adapters/test_claude_runtime_resume.py::test_model_duration_of_a_resumed_run_adds_the_known_calls (rows: 30000+5000, unknown+5000, 30000+unknown, both unknown, and a resume killed by a 5 s limit)
+   - criterion 4: tests/domain/test_cost_record_model_seconds.py::test_model_seconds_only_in_a_completed_record_and_never_negative_or_nan
+   - criterion 5: tests/application/test_costs_model_seconds.py::test_completed_record_copies_the_model_duration_in_seconds (rows: 41.5 s and None). It builds a `CostRun` with a started record directly and calls `CostRecorder(boundaries).complete`. It checks both the returned record and the sidecar it wrote.
+   - criterion 6, writer: the pinned `COMPLETED_LINE`, `STARTED_LINE` and `_completed()` in tests/adapters/test_cost_records_jsonl.py, changed exactly as FEATURE decision 37 allows; test_render_writes_the_lines_of_the_format pins the key order.
+   - criterion 6, reader of an older line: tests/adapters/test_cost_records_jsonl_model_seconds.py::test_lines_without_model_seconds_read_with_it_unknown. I put it in a new file rather than adding a function to the earlier story's module, to stay within "no other change to an earlier story's test".
+   - criterion 7: tests/domain/test_bills_model_time.py::test_the_bill_sums_the_known_model_time
+   - criterion 8: tests/domain/test_bills_model_time.py::test_bills_by_stage_sums_the_model_time_per_stage
+   - criterion 9: tests/domain/test_bills_model_time.py::test_the_cost_table_has_a_model_minutes_column
+   - criterion 10: tests/domain/test_bills_model_time.py::test_model_minutes_are_rounded_half_up (15 s gives 0.3; 14.4 s, which is 0.24 min, gives 0.2)
+   - criterion 11: tests/domain/test_bills_model_time.py::test_the_cost_line_does_not_show_the_model_time
+   - FEATURE decision 38: in tests/domain/test_bills.py::test_the_cost_table_of_the_demo_stage_bills, the expected header and alignment rows gain the `model min` column, and each row gains `0.0` after `min`.
+
+   New files: tests/domain/test_cost_record_model_seconds.py, tests/domain/test_bills_model_time.py, tests/application/test_costs_model_seconds.py, tests/adapters/test_cost_records_jsonl_model_seconds.py. Changed files: tests/adapters/test_claude_runtime_resume.py (new functions only), tests/adapters/test_cost_records_jsonl.py and tests/domain/test_bills.py (the changes the leave allows).
+
+   `make test` is red for the right reasons. Every module imports, because the new fields do not exist yet rather than whole modules being missing. The failures:
+   - `CostRecord` and `AgentRunResult` refuse the unknown `model_seconds` / `model_duration` keyword (`extra="forbid"`), so the fixture in test_bills_model_time.py errors.
+   - `AgentRunResult` has no `model_duration` attribute.
+   - The cost table has no `model min` column.
+
+   `make lint` is green. The type check was skipped as the stage says; it will pass once the fields exist.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/domain/test_bills_model_time.py::test_the_cost_table_has_a_model_minutes_column

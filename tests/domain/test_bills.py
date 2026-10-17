@@ -165,11 +165,11 @@ def test_minutes_and_dollars_round_half_up() -> None:
 def test_the_cost_table_of_the_demo_stage_bills() -> None:
     assert cost_table(bills_by_stage(_demo())) == "\n".join(
         [
-            "| stage | runs | min | turns | in | cached | out | USD |",
-            "| :-- | --: | --: | --: | --: | --: | --: | --: |",
-            "| tests | 1 | 1.0 | 7 | 62 | 1000 | 300 | 0.35 |",
-            "| doing | 2 | 2.5 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |",
-            "| **total** | 3 | 3.5 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |",
+            "| stage | runs | min | model min | turns | in | cached | out | USD |",
+            "| :-- | --: | --: | --: | --: | --: | --: | --: | --: |",
+            "| tests | 1 | 1.0 | 0.0 | 7 | 62 | 1000 | 300 | 0.35 |",
+            "| doing | 2 | 2.5 | 0.0 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |",
+            "| **total** | 3 | 3.5 | 0.0 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |",
         ]
     )
 
