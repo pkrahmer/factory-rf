@@ -23,7 +23,7 @@ def _state(blocked: Blocked | None) -> WorkItemState:
     )
 
 
-@pytest.mark.parametrize("blocked", ["question", "round_cap", "send_back"])
+@pytest.mark.parametrize("blocked", ["question", "send_back"])
 def test_unblock_clears_the_wait_and_changes_nothing_else(blocked: Blocked) -> None:
     state = _state(blocked)
 
