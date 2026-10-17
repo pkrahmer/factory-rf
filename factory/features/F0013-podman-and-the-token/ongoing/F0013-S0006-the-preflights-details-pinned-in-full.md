@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 188
 blocked: null
 comments_seen: 0
@@ -68,3 +68,14 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Architecture: the story touches only application-layer tests and one operator-guide paragraph. It needs no change in src and crosses no layer.
    - Scope: it is within the feature acceptance's follow-up on the survivors of F0013's mutants. It is not listed under the feature's Out of scope.
    Caveat: I did not read preflight.py or the four tests. The story itself says the code already behaves as the criteria state.
+3. tester: I tightened the four existing tests that the Interface names, which the human allowed when they promoted this story. Each one now compares the whole detail string, where before it checked part of it with `in`. I did not create or change any other test.
+   - criterion 1: tests/application/test_agent_environment_item.py::test_a_fault_in_the_environment_fails_with_its_detail. This was `..._fails_naming_it`. It has one row for each of the four single faults with the table's exact text (`{file}` stands for tmp_path/file in the HOME-not-a-directory row), plus a new row `neither-path-nor-home` expecting `the agent run has no PATH; the agent run has no HOME`.
+   - criterion 2: tests/application/test_agent_run_probe.py::test_a_probe_that_does_not_complete_fails_with_its_detail. This was `..._naming_its_end_and_claude_p`. It crosses the four end reasons with agent_user `agent` / `None` (the second through `settings.model_copy`), expecting `... as agent to see why` and `... as the factory user to see why`.
+   - criterion 3: tests/application/test_preflight.py::test_the_hosting_service_item_reports_a_failed_call. The name is unchanged; the `fails` row now compares the whole detail.
+   - criterion 4: tests/application/test_preflight.py::test_the_version_item_fails_with_its_detail_when_the_versions_differ. This was `..._naming_both_versions_when_they_differ` and now compares the whole detail.
+   - criterion 5: I left the existing passing tests of the three modules unchanged.
+   Files changed: the three test modules above. No new files.
+   Red/green: as the story expected, every module imports and the new tests pass already, because `src/factory/application/preflight.py` already produces these details. `make test` is green at 99.50 % coverage, and so is `make lint`. They are not red: they pin behaviour that already exists so that the mutants survivors die. The coder should not need to change anything in `src/`.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.7 s)

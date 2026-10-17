@@ -152,8 +152,10 @@ def test_the_hosting_service_item_reports_a_failed_call(
 
     assert item.passed is not fails
     if fails:
-        assert "find_open_pull_request" in item.detail
-        assert "injected failure" in item.detail
+        assert item.detail == (
+            "the hosting service failed find_open_pull_request: injected failure; "
+            "check the token and the network"
+        )
 
 
 def test_the_agents_item_finds_the_agents_where_the_agent_home_points(
@@ -192,7 +194,7 @@ def test_the_version_item_passes_when_the_first_word_is_the_pinned_version(
     assert item.passed
 
 
-def test_the_version_item_fails_naming_both_versions_when_they_differ(
+def test_the_version_item_fails_with_its_detail_when_the_versions_differ(
     ready: Boundaries, installed: Path
 ) -> None:
     boundaries = replace(ready, agent_runtime=FakeAgentRuntime(version="2.1.290"))
@@ -203,8 +205,10 @@ def test_the_version_item_fails_naming_both_versions_when_they_differ(
     )
 
     assert not item.passed
-    assert "2.1.290" in item.detail
-    assert "2.1.289" in item.detail
+    assert item.detail == (
+        "the agent runtime reports 2.1.290, the image pins 2.1.289; "
+        "rebuild the image or change the pinned version"
+    )
 
 
 def test_the_version_item_fails_when_the_image_pins_no_version(
