@@ -69,3 +69,4 @@ You do not edit code, tests or comments in code. The human reads the documentati
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
 - The project guide is an index plus one file for each domain, each well under the 2,000 lines the file tool reads by default; split a file before it grows past that.
+- Make every file you need outside the repository in a temporary directory that removes itself: `tempfile.TemporaryDirectory()` in Python, or `d=$(mktemp -d)` followed by `trap 'rm -rf "$d"' EXIT` in the shell. Leave nothing behind in `/tmp` when you end.
