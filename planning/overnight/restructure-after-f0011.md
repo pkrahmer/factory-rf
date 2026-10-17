@@ -2,6 +2,23 @@
 
 Decided by the human on 2026-10-14, in the session's discussion of the package tree. Built as one housekeeping story after F0011 is accepted, not before: F0008 to F0011's drafts name exact module paths, and a move in the middle of them would break those names.
 
+## The order of the work after F0011 (the human's word, 2026-10-17)
+
+The restructure comes last: it is layout only, the todo run neither needs nor tests it, and the findings and notes in this file name today's paths.
+
+1. The small fixes, as v1 stories, in this order:
+   1. `make check` faster: pytest-xdist over the 20 cores, one prepared git remote copied per test, `make secrets` over the changed files.
+   2. Duplicates and dead code: one ad hoc pylint (R0801) and vulture pass, and its findings fixed (F0010-S0025's identity, F0011-S0001's `_rerun_seconds`, the redundant `tests/test_fault_path_names.py`, the others listed below).
+   3. Mutation testing with mutmut: a `make mutants` target outside `make check`, limited to the modules a feature changed (a `FILES` variable), which v1's acceptance stage already runs when the target exists; until now every acceptance made a hand pass of 12 to 28 mutants.
+   4. What the todo run must measure: the low-disk machine stop, no temporary files left, the project-command and model-versus-tool records, the disk record.
+   5. One test of the DTOs' own configuration; an answer at the send-back cap that can grant one more round.
+2. The first start on the real machine: the human pins the image (the base image digest and the Debian versions are placeholders), builds it, logs in once as `agent`; fixes found there go in before the todo run, because its pass rule allows no fix during the run.
+3. The todo run (run 4's eight stories and three acceptances in v1.1's form): the baseline v2 is measured against.
+4. A project's own skills and agents (the sections below): after the todo run, because run 4 used neither and the baseline stays at v1's scope; before the restructure.
+5. The restructure: the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`; then `make check` and one short story run in the todo project to show nothing changed.
+
+The development dependencies to grant: pytest-xdist (1.1), mutmut (1.3), and pylint and vulture only if `make duplicates` becomes a lasting report instead of the one ad hoc pass of 1.2.
+
 ## The decision
 
 - The four layers stay at the top (`domain`, `application`, `adapters`, `entry`), and import-linter's layers contract stays as it is.
