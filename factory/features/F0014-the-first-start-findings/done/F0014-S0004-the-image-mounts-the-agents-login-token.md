@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 197
 blocked: null
 comments_seen: 0
@@ -141,3 +141,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    Met: 17 passed, with no failed, error or skipped count. These tests cover criteria 1–6: the ENV line's order, the variable name, the mount's key order and its target, the path-part checks, the volume order, and the credential and project-name tests that must still hold.
 
    Findings: none. The demo did not exercise criteria 7–9 (comments, `make check`, docs). The earlier entries record them: the reviewer checked the comments, the coder and the documenter recorded `make check` green, and the documenter recorded `documents ok`.
+8. done (pull request merged); cost: 6 runs, 3.4 min, 35 turns, 121k tokens in (552k more from cache), 13k out, $1.04
