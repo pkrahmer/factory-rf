@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 197
 blocked: null
 comments_seen: 0
@@ -93,3 +93,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria: criteria 1–4 each have a test in `tests/test_claude_token_mount.py` that checks what the criterion says. The ENV line appears once and in order. Its name is `CLAUDE_LOGIN_FILE_VARIABLE`. The key order and values of the fourth mount are checked, and its target is the Dockerfile's ENV value. The test compares paths by their parts with `PurePosixPath.is_relative_to`, which covers the string-prefix trap (`/home/agent/.claude-token` against `/home/agent/.claude`). The parent check uses `AGENT_HOME_VARIABLE`, read from the ENV block that spans several lines, which `dockerfile_instructions` joins into one. Criterion 5 is the changed `tests/test_compose.py::test_the_three_volumes_are_mounted_and_declared`. It changes only the expected `volumes` list, with the dict the Interface gives, as decision 14 allows. `tests/test_token_folder.py` still checks the last entry. Criterion 6 rests on existing tests that did not change. The new ENV name holds none of TOKEN, SECRET, PASSWORD or CREDENTIAL, so the credentials test still holds. The coder's entry records `make check` green.
+      - Diff: `image/Dockerfile` has the one ENV line in the place the Interface names, after `ENV FACTORY_AGENT_USER=agent` and before `USER factory`. `image/compose.yml` adds the bind mount as the fourth entry, before the hosting token's comment and mount, which stay last. Nothing else in either file changed.
+      - Comments (criterion 7): both say why, as the Interface asks. The ENV comment calls it the agent's login, a token from `claude setup-token` that Compose mounts, which each agent run's shell reads. The mount comment says the agent must read it, so it lies outside the token's folder, and that a missing host file makes Compose refuse to start.
+      - Architecture and security: no source or layer is touched. The diff has no secrets and no suppression markers, and the mount is read-only with `create_host_path: false`.
+      - Quality: the test module's helpers do not copy an existing helper. `tests/test_token_folder.py` and `tests/test_compose.py` each read the volumes inline.
+      - Ticket: the coder's entry explains the main decision, a separate ENV line rather than an entry in the multi-name block. `Assignment` matches what was built. Criterion 9 still describes what the documenter must write.
