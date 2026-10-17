@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 145
 blocked: null
 comments_seen: 6
@@ -449,3 +449,23 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     Open, not a send-back (entry 20):
     1. `tests/test_kill_points.py:84-104` (`_rerun_seconds`) is a second copy of the claim-commit logic in `tests/proof_support.py` (`_claim_commits`, `_state_at`). Because of it, the `kill-to-rerun-recorded` check in `_kill_to_rerun_recorded` (`proof_support.py:531`) is never reached by any test. Fix: one shared `rerun_seconds(result)` helper, in the housekeeping story.
     2. `tests/proof_support.py:236` (`_opening_text`) returns a `WorkItemDocument`, not text. Fix: rename it `_opening_document`, in the housekeeping story.
+22. documenter: round 4. Criterion 24 is written. `make check` is green and the pytest command in the guide ran.
+
+    Files changed:
+    - `docs/project-guide.md`: the section `## Kill points: testing a crash` is now `## Kill points`. Its opening line no longer says "F0011 covers all four points" and points to `tests/test_kill_points.py`. A new subsection, "The kill-point cases", holds:
+      - the six-row table (id, what dies, class, whether it charges a crash);
+      - the rule for when a crash is charged;
+      - the helpers in `tests/proof_support.py` and the two condition lists;
+      - the two cap tests;
+      - how to run `tests/test_kill_points.py` and `tests/domain/test_kill_point_cases.py`;
+      - the `world` fixture;
+      - the five-second kill-to-rerun gap read on the manual clock.
+    - `docs/decisions.md`: a new entry, "Recovery is proved by injection only; a kill after the result is pushed charges no crash". It records three decisions: injection only, no crash charged after the result is pushed, and the kill-to-rerun time measured on the manual clock. It also lists the rejected alternatives.
+
+    README and the operator guide are untouched, as criterion 24 says. I cross-read the other kill-point mentions in the project guide (the push, hosting, agent-runtime and fake-runtime sections) against the diff. They are current, and no other document linked to the old section name.
+
+    Not touched, as the human decided in entry 20: the two open reviewer findings. They are the duplicate `_rerun_seconds` in `tests/test_kill_points.py` and the `_opening_text` name in `tests/proof_support.py`. Both go to the housekeeping story after F0011.
+
+    No findings for the coder: `KILL_POINT_CASES` matches the Interface, and the module and class docstrings are there.
+
+    `make check`: check: green

@@ -1527,9 +1527,9 @@ A run adds exactly one commit of the factory's own on `origin/<branch>`: the res
 
 Tests: `tests/domain/test_labels.py`, `tests/application/test_stage_finish.py`, `tests/application/test_stage_run.py`. The checks and reports are real `make` targets from a `Makefile` the tests push to `main`; the agent is `FakeAgentRuntime`, the hosting service its fake.
 
-## Kill points: testing a crash
+## Kill points
 
-A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; F0008's tests arm `BEFORE_PUSH` (`tests/application/test_recovery_crash.py`, a kill before the crash commit's push) and `AFTER_PUSH` (`tests/application/test_tick_stale_branch.py`, a discard killed after its push); F0011 covers all four points.
+A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; F0008's tests arm `BEFORE_PUSH` (`tests/application/test_recovery_crash.py`, a kill before the crash commit's push) and `AFTER_PUSH` (`tests/application/test_tick_stale_branch.py`, a discard killed after its push); `tests/test_kill_points.py` covers all four points (below).
 
 There are four points, the members of `KillPoint`:
 
@@ -1559,3 +1559,28 @@ def test_push_dies_after_the_second_try(kill_points: KillPoints) -> None:
 - `str(InjectedKill(point))` is `injected kill at <point value>`, and `.point` is the point that fired.
 
 `InjectedKill` is a `BaseException`; see `docs/decisions.md`.
+
+### The kill-point cases
+
+`tests/test_kill_points.py` proves recovery by injection. Each case drives a real work item through the real `Tick` against a real local bare remote, the fake hosting service and the fake agent runtime, kills it at the kill point, restarts with the same instance name and checks the result after three ticks. The cases are data, `KILL_POINT_CASES` in `factory.domain.kill_point_cases` (a closed, frozen `KillPointCase`), so that other tests and the document check name the same ids.
+
+| Id | What dies | Class | Charges a crash |
+|---|---|---|---|
+| `agent-run-tick` | the tick, at `AGENT_RUN` | crash | yes |
+| `agent-run-dies` | the agent run; the tick lives | stall | no |
+| `commit-push` | the tick, at `BEFORE_PUSH` (between the result commit and its push) | crash | yes |
+| `post-record` | the tick, at `AFTER_POST` (between a post and its record) | crash | no |
+| `tick-other` | the tick, at `AFTER_PUSH` (after the claim's push) | crash | yes |
+| `container` | the container: `agent-run-tick` restarted on an empty disk | crash | yes |
+
+A crash case has a kill point; a stall has none and never charges a crash. A crash is charged exactly when a stage was in flight at the kill: its stage-start commit was pushed and its result commit was not. That is why `post-record`, killed after the result was pushed, charges none.
+
+The checks live in `tests/proof_support.py`, which no production module imports. `SCENARIOS` holds one script per id, `run_case(case, root)` plays it, and `violations(result, case, conditions)` names the conditions that do not hold, from `CRASH_CONDITIONS` (resumed at the first tick, no repeated post or step, no write of the interrupted run in any commit, stage-start commit kept, no discarded cost record, counters) or `STALL_CONDITIONS` (attempt charged, writes outside the write paths undone, state restored, writes inside kept, cost record kept). Two further tests pin the caps: two kills in one stage reach the crash cap of 2, and two died runs reach `attempts_cap` 2; each ends with exactly one post and no further request.
+
+Run the cases with:
+
+```bash
+uv run pytest tests/test_kill_points.py tests/domain/test_kill_point_cases.py
+```
+
+The `world` fixture (`tests/conftest.py`) returns `build_world(tmp_path)` for a test of your own; `start_story`, `run_ticks` and `restart` are the steps a scenario is made of. The time from kill to rerun is read on the `ManualClock`: a scenario advances it by `KILL_TO_RERUN` (5 seconds) between the kill and the restart.
