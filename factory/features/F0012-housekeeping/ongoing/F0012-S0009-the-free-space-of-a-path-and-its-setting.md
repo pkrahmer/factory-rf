@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 161
 blocked: null
 comments_seen: 0
 round: 0
@@ -90,3 +90,9 @@ Expect: `5`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures: `DiskSpace` in `application/machine.py`, `ShutilDiskSpace` in `adapters/disk_space.py`, `Boundaries.disk` as an optional last field, `MIN_FREE_SPACE_VARIABLE`, `DEFAULT_MIN_FREE_GB` and `InstanceSettings.min_free_gb` in `domain/settings.py`, and `gigabytes` and `disk_low_detail` in `domain/disk.py`. The wiring change is stated. I did not open the existing source files to confirm the named modules; I judged the story text only.
+   - Criteria: each is testable by one test function, as rows of a parametrized test where the story says so. Each behaviour the Interface states has a criterion. The conversion and its rounding down are in 1 (999_999_999 gives 0.9). The fault text, its order, the join and the exact-minimum boundary are in 2. The free-space error is in 3. Which files count, skipped links and pipes, and the missing path are in 4. The default, blank, stripped and ASCII-only parsing are in 5. The default and limit of the model field are in 6. The wiring and the `None` default are in 7. The abstract class and its subclass are in 8. Each rule has both sides: the setting accepts 1 and 12 and refuses 0, -1, 2.5, `five` and `"٣"`; `min_free_gb` accepts 1 and refuses 0; the detail is `None` at exactly the minimum and a fault one byte below it.
+   - Demo: both blocks are runnable `uv run python -c` commands, and each `Expect:` line gives output that can be compared exactly.
+   - Architecture: the interface sits in application, the implementation in adapters, the pure text rules in domain, and the wiring in entry, so the layering holds. The interface is an ABC with the implementation inheriting it. The Interface also states the Tests and the docs criterion.
+   - Scope: the story builds only the interface, the setting, the fault text and the wiring. It changes no behaviour, and the stop is left to S0010 and the disk record to S0016, matching FEATURE.md scope 1.4 and decision 20. Nothing in the story falls under Out of scope.
