@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 149
 blocked: null
 comments_seen: 2
@@ -239,3 +239,38 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
     No findings for the coder.
 
     `make check`: check: green
+11. demo: I ran the three demo commands from the repository root, exactly as written and in order. All three matched their `Expect:` lines.
+
+    1. `check_documents` on a set of hand-built texts:
+    ```
+    docs/operator-guide.md - missing
+    docs/project-guide.md - empty
+    docs/decisions.md - no decision recorded
+    ```
+    Met: the three expected lines, in the expected order. The README text `x` gave no finding, as criterion 1 implies.
+
+    2. `uv run python -m factory.entry.check_documents; echo "exit=$?"`:
+    ```
+    documents ok
+    exit=0
+    ```
+    Met: the four real documents pass the check (criterion 25).
+
+    3. `uv run python -m factory.entry.check_documents --root /nonexistent; echo "exit=$?"`:
+    ```
+    README.md: missing
+    docs/operator-guide.md: missing
+    docs/project-guide.md: missing
+    docs/decisions.md: missing
+    exit=1
+    ```
+    Met: one `missing` line per document, in the order criterion 20 gives, and exit status 1 (criterion 22).
+
+    I read the acceptance criteria again against the demo and the documents, and nothing contradicts them:
+    - `README.md` lists `uv run python -m factory.entry.check_documents` next to the six console commands, says it is not a console script and that `make check` does not run it, and links the other three documents.
+    - `docs/operator-guide.md` has `## Install`, which mentions decision 008 and says that nothing detects a v1 work item. It also has `## Configuration`, `## The stops` and `## Replaced from v1`.
+    - `docs/project-guide.md` has `## Kill points`, `## Fault-injection paths` and `## Replaced from v1`.
+    - The README's `## Replaced from v1` holds the statement that there is no `--follow` mode.
+    - `docs/decisions.md` has a section saying that this check is a command outside `make check`, that the decision log is exempt from both word lists, that the `## Replaced from v1` sections are exempt too, and that WE6.3 is observed across the stories.
+
+    I did not run `make check` myself: the factory runs it after this stage. No findings.
