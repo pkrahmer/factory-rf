@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 154
 blocked: null
 comments_seen: 2
@@ -227,3 +227,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - The Interface does not say what happens when writing the baseline fails (`OSError`).
    - The `make duplicates` target and the pipeline step come with a later change (H3).
    - The documenter added a sentence to the decision log that goes beyond the story, and asked the human to cut it if it is not what was meant.
+10. done (pull request merged); cost: 7 runs, 6.4 min, 45 turns, 173k tokens in (716k more from cache), 29k out, $1.71
