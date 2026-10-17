@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 174
 blocked: null
 comments_seen: 0
@@ -119,3 +119,18 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+
+   - Acceptance criteria: each of criteria 1 to 7 has a test in `tests/adapters/test_claude_runtime_sudo_time_limit.py` or in the existing suites, and each test checks what its criterion says.
+     - Criterion 1: both rounding rows (30 s and 1.5 s).
+     - Criterion 3: both sides of the 30 s duration boundary (30.0 s and 29.9 s), status 1, and no `os_user`.
+     - Criterion 5: with and without a user.
+     - Criterion 6: the resume's `timeout` argument and its outer limit, which must be above 59 s and at most 60 s.
+     - The one earlier test that changed is the head assertion in `tests/adapters/test_claude_runtime_os_user.py`, as FEATURE decision 41 allows.
+     - The coder's entry reports the factory's `make check` as green.
+     - The tester's open point still holds. At a 1 s limit, criteria 2 and 4 cannot tell the inner kill from the outer one. Only criterion 2's bound of under 31 s catches an inner kill that never fires. That is acceptable, and the real run is still to be observed at the first start, as the assignment says.
+   - Architecture: the change is only in `factory.adapters.claude_runtime`, which builds the argument list for the existing `run_process`. No new process call or layer import.
+   - Security: the argument list is built as a list, never a shell string. `ceil` of a positive time limit is always at least 1, so `timeout 0s` (no limit at all) cannot happen; `run` returns before the resume when nothing is left. No markers that silence a check.
+   - Quality: `_call` sets `timed_out` on the result once, so `_end_reason`, `_result` and `_sudo_refusal` stay unchanged. That is simpler than the alternative the coder rejected. The comments on `SUDO_GRACE` and `KILL_STATUSES` say why. `make duplicates` reports 0 new.
+     - Minor, not raised as a finding: the criterion 1 test reads `sudo-calls.jsonl` inline instead of importing `_sudo_calls` from the os_user test module. It is three lines and not a separate helper.
+   - Ticket hygiene: the log gives the main decision and what was rejected. `Assignment` matches what was built. Criterion 9 still says what the documenter must write.
