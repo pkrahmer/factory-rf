@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 196
 blocked: null
 comments_seen: 4
@@ -224,3 +224,27 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    Current state: the implementation is committed (25131133): `src/factory/domain/settings.py`, `src/factory/adapters/claude_runtime.py` (login shell, `LOGIN_SCRIPT`, `_claude_argv`, `_check_login`, request entry dropped), `src/factory/entry/wiring.py` and `src/factory/application/preflight.py`. All the new tests and the pinned tests pass. The refactor pass and the final `make check` are left for the next doing pass, after your answer.
 9. human (pull request comment, 2026-10-17): (b): done as the human's change on `main` (3a90bb42): `pyproject.toml` ignores `PLR0913` for `src/factory/adapters/claude_runtime.py`, with its reason. Remove the `# noqa: PLR0913` and its comment; `tests/test_process_search.py` stays unchanged. The criterion is unchanged.
+10. coder: Did what the human's answer in entry 9 asked. `pyproject.toml` on `main` (3a90bb42, merged into the branch) now ignores `PLR0913` for this module, so I removed the `# noqa: PLR0913` and its reason comment from `ClaudeCodeRuntime.__init__` in `src/factory/adapters/claude_runtime.py` (fb07f73c). `tests/test_process_search.py` was not changed, and neither was any other test. `make check`: check: green, with branch coverage at 99.45 %.
+
+    What the ticket built (implementation in 25131133):
+    - `src/factory/domain/settings.py`: `CLAUDE_LOGIN_FILE_VARIABLE`, and `InstanceSettings.claude_login_file` read through `_optional_path`.
+    - `src/factory/adapters/claude_runtime.py`:
+      - New constants `LOGIN_VARIABLE`, `SHELL_EXECUTABLE`, `LOGIN_PREFIX` and `LOGIN_SCRIPT`. `LOGIN_SCRIPT` is a POSIX sh script that checks, in this order:
+        - the file is missing: unset the variable, then `exec`;
+        - it is not a regular file or `cat` can't read it: print `cannot be read`;
+        - bytes remain after `LC_ALL=C tr -d '!-~ \t\r\n'`: print `not ASCII text`;
+        - otherwise strip the whitespace, then export the variable, or unset it if nothing is left, and `exec "$@"`.
+      - The script works under `env -i` with no PATH because dash falls back to its built-in path.
+      - `_claude_argv` puts the login shell in front of `claude` for the first call and for a resumed one.
+      - `LOGIN_VARIABLE` is always dropped from the request's environment.
+      - `_check_login` raises `AgentRuntimeError` after the `sudo` check when the call printed no reply and a `factory-login:` line is on stderr.
+      - `version()` is unchanged.
+    - `src/factory/entry/wiring.py`: passes `login_file=settings.claude_login_file`.
+    - `src/factory/application/preflight.py`: adds the login-file hint to the detail of a probe run that did not complete.
+
+    Main decision: the agent's own shell reads the file, so the factory never holds the token and it stands in no process's arguments. Rejected: dropping the separate readability check and letting the ASCII byte count catch unreadable files. `tr` sees no bytes in a folder, so a folder would pass as empty text. A dangling symlink counts as a missing file (`test -e`).
+
+    Refactor pass: I read `git diff main...HEAD` (outside `factory/` and `tests/`) and found nothing to rename, simplify or deduplicate, so there is no refactor commit. Noticed but not touched: that diff also shows `docs/runs/2026-10-12-overnight/night-log.md`, the human's file, which came in with the merge of main; I did not edit it.
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
