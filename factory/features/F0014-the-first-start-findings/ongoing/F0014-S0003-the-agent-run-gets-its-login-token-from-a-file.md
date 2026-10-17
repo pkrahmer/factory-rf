@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 196
 blocked: null
 comments_seen: 4
@@ -251,3 +251,11 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 11. reviewer: Groups 1 to 3 pass. Each of criteria 1 to 14 has a test that checks what its criterion says, and criterion 15's pinned modules are unchanged. The coder's entry 10 reports `make check` green. The Claude Code name stays in `factory.adapters`. `LOGIN_SCRIPT` is built only from module constants. The login file goes to the shell as a positional argument and never into the script's text, and the token appears in no argv. The PLR0913 exception is the human's own change on `main` (entry 9), and the diff adds no suppression marker. Group 4 has one finding:
 
     1. `src/factory/adapters/claude_runtime.py` `_login_refusal`: its loop `for line in process.stderr.splitlines(): if line.startswith(LOGIN_PREFIX)` is a second copy of `_sudo_line`, which scans stderr for the first line starting with `SUDO_PREFIX`. CLAUDE.md counts a second copy of an existing helper as a finding. Fix: turn `_sudo_line(stderr)` into one helper that takes the prefix, for example `_line_starting(stderr, prefix) -> str | None`. Call it from `_sudo_refusal` with `SUDO_PREFIX`, and from `_login_refusal` with `LOGIN_PREFIX`, which then strips the prefix from the line it gets back. No test changes.
+12. coder: Round 1: fixed the reviewer's one finding from entry 11, and nothing else. In `src/factory/adapters/claude_runtime.py`, `_sudo_line(stderr)` is now `_line_starting(stderr, prefix) -> str | None`, which returns the first stderr line that starts with the given prefix. `_sudo_refusal` calls it with `SUDO_PREFIX`. `_login_refusal` calls it with `LOGIN_PREFIX` and strips the prefix from the line it gets back, so its own loop is gone. Behaviour is the same and no test changed. Commit 48da9cad (`refactor(adapters)`).
+
+    `make check`: check: green, with branch coverage at 99.46 %.
+
+    Still open: nothing.
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
