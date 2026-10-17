@@ -8,9 +8,10 @@ from factory.application.files import PipelineDefinitionReader, WorkItemReader
 from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.paths import (
     FEATURE_FILE_NAME,
-    FEATURES_DIRECTORY,
     PIPELINE_DEFINITION_FILE,
     STORY_FORM_FILE,
+    LifecycleFolder,
+    work_item_path,
 )
 from factory.entry.check_story import backlog_story_findings, finding_line
 from factory.entry.wiring import build_pipeline_definition_reader, build_work_item_reader
@@ -20,7 +21,7 @@ _DEMOS = "demo"
 _README = "README.md"
 _PROJECT = "project"
 _FEATURES = "features"
-_BACKLOG = "backlog"
+_BACKLOG: LifecycleFolder = "backlog"
 _CLEAN = 0
 _FINDINGS = 1
 
@@ -67,7 +68,7 @@ def _story_findings(
 ) -> list[str]:
     feature, _, story = relative.split("/")
     # The story is checked at the path it will have once the demo is a project.
-    path = f"{FEATURES_DIRECTORY}/{feature}/{_BACKLOG}/{story}"
+    path = work_item_path(feature, _BACKLOG, story)
     findings = backlog_story_findings(
         reader,
         path,
