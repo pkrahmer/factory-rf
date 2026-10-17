@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 171
 blocked: null
 comments_seen: 2
@@ -96,3 +96,9 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: no findings.
+      - Acceptance criteria: criterion 1 is `tests/domain/test_answers_round_cap.py::test_unblock_resets_the_round_only_at_the_round_cap`. It has three rows: round_cap goes to round 0, question and send_back keep round 4, and every row also checks that attempts and crashes stay 2 and that nothing else changes. Criterion 2 is `tests/domain/test_question_texts.py::test_the_round_cap_question_names_the_rounds_and_the_cap`, which checks the Interface's text exactly. Criterion 3 is `tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over`. It checks blocked round_cap at review with round 4 and one post, then round 0 after the comment and one tick, then doing with round 1, and still exactly one round_cap post at the end. The extra tick before the post is read is the change the human approved in entry 5. Criterion 4 is covered by the existing attempts_cap, crash_cap and no-wait tests in `tests/domain/test_answers.py`, which are unchanged. Only the round_cap row left `test_unblock_clears_the_wait_and_changes_nothing_else`, which FEATURE decision 40 allows. Both sides of the Interface's rule are tested: round_cap resets the count, while question and send_back keep it. The coder's entry 8 reports `make check` green.
+      - Architecture: both changes are in `factory.domain`. They are pure, with no new imports or I/O.
+      - Security: no new markers, secrets or process calls.
+      - Quality: `src/factory/domain/answers.py:19-20` follows the existing branch-per-cap pattern. The docstring sentence on `round` is updated to match, and the module docstring ("its own counter starts over") now fits every cap. No other place in `src/factory` still says that an answer keeps `round`. `make duplicates` reports 0 new findings.
+      - Ticket hygiene: the log gives the main decision, the per-cap branch rather than a lookup table, and the rejected option of posting in the same tick as the block. Assignment and Interface match the code. Criterion 6 still describes what the documenter has to write.
