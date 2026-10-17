@@ -1,10 +1,8 @@
 """The state of a work item, its claim, its document and how the remote shows it."""
 
-from datetime import UTC, datetime
 from typing import Literal, Self
 
 from pydantic import (
-    AwareDatetime,
     BaseModel,
     ConfigDict,
     NonNegativeInt,
@@ -17,6 +15,7 @@ from factory.domain.git import CommitId
 from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.journal import JournalRecord
 from factory.domain.paths import LifecycleFolder
+from factory.domain.times import UtcDatetime
 
 Blocked = Literal["question", "attempts_cap", "round_cap", "crash_cap", "send_back"]
 
@@ -28,13 +27,8 @@ class Claim(BaseModel):
 
     instance: Name
     stage: Name
-    started_at: AwareDatetime
+    started_at: UtcDatetime
     lease_duration: PositiveInt
-
-    @field_validator("started_at")
-    @classmethod
-    def _to_utc(cls, value: datetime) -> datetime:
-        return value.astimezone(UTC)
 
 
 class WorkItemState(BaseModel):

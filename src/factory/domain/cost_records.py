@@ -1,11 +1,9 @@
 """The cost record of one agent run, attributed to a work item, a stage and a role."""
 
-from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Annotated, Literal, Self
 
 from pydantic import (
-    AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
@@ -17,6 +15,7 @@ from pydantic import (
 
 from factory.domain.agent_runs import EndReason, TokenCounts
 from factory.domain.identifiers import Name, WorkItemId
+from factory.domain.times import UtcDatetime
 
 RunId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
 Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
@@ -34,18 +33,13 @@ class CostRecord(BaseModel):
     role: Name
     attempt: NonNegativeInt
     status: Literal["started", "completed"]
-    started_at: AwareDatetime
+    started_at: UtcDatetime
     duration_seconds: Duration | None = None
     end_reason: EndReason | None = None
     turns: NonNegativeInt | None = None
     tokens: TokenCounts | None = None
     cost_usd: Cost | None = None
     image: str | None = None
-
-    @field_validator("started_at")
-    @classmethod
-    def _to_utc(cls, value: datetime) -> datetime:
-        return value.astimezone(UTC)
 
     @field_validator("cost_usd", mode="before")
     @classmethod
