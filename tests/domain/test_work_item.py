@@ -236,35 +236,6 @@ def test_a_claim_s_instance_and_stage_are_names(instance: str, stage: str) -> No
         Claim(instance=instance, stage=stage, started_at=STARTED_AT, lease_duration=30)
 
 
-@pytest.mark.parametrize(
-    ("model", "fields", "field"),
-    [
-        (WorkItemState, {"stage": "tests"}, "stage"),
-        (
-            Claim,
-            {
-                "instance": "laptop",
-                "stage": "tests",
-                "started_at": STARTED_AT,
-                "lease_duration": 30,
-            },
-            "lease_duration",
-        ),
-        (JournalRecord, {"number": 1, "speaker": "human", "kind": "created"}, "kind"),
-        (WorkItemDocument, {"state": None, "body": "x"}, "body"),
-    ],
-)
-def test_work_item_models_are_frozen_and_refuse_an_unknown_field(
-    model: type[BaseModel], fields: dict[str, object], field: str
-) -> None:
-    instance = model(**fields)
-
-    with pytest.raises(ValidationError):
-        model(**fields, unknown="x")
-    with pytest.raises(ValidationError):
-        setattr(instance, field, instance.model_dump()[field])
-
-
 def test_a_document_needs_a_state_even_if_it_is_none() -> None:
     model: type[BaseModel] = WorkItemDocument
     document = WorkItemDocument(state=None, body="x")

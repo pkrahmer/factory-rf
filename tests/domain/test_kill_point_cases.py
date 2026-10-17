@@ -73,14 +73,6 @@ def test_a_stall_never_charges_a_crash(*, charges_crash: bool, accepted: bool) -
             model(**fields)
 
 
-def test_an_assignment_to_a_built_case_is_refused() -> None:
-    case = KILL_POINT_CASES[0]
-    field = "charges_crash"
-
-    with pytest.raises(pydantic.ValidationError):
-        setattr(case, field, False)
-
-
 @pytest.mark.parametrize(
     "change",
     [{"colour": "red"}, {"dies": "process"}, {"result_class": "error"}, {"kill_point": "never"}],

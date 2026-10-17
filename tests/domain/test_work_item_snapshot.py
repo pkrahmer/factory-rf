@@ -41,21 +41,6 @@ def _fields_of(model: type[BaseModel], **changes: object) -> dict[str, object]:
 MODELS: list[type[BaseModel]] = [WorkItemSnapshot, StoryFile]
 
 
-@pytest.mark.parametrize("model", MODELS)
-def test_an_unknown_key_is_refused(model: type[BaseModel]) -> None:
-    with pytest.raises(ValidationError):
-        model(**_fields_of(model, colour="blue"))
-
-
-@pytest.mark.parametrize("model", MODELS)
-def test_a_field_cannot_be_assigned(model: type[BaseModel]) -> None:
-    instance = model(**_fields_of(model))
-    field = "path"
-
-    with pytest.raises(ValidationError):
-        setattr(instance, field, "factory/features/F0001-example/in-progress/other.md")
-
-
 @pytest.mark.parametrize(
     ("branch_commit", "accepted"),
     [

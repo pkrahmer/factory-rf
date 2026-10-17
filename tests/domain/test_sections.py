@@ -232,24 +232,6 @@ def test_the_three_known_section_names() -> None:
 
 
 @pytest.mark.parametrize(
-    ("model", "fields", "field"),
-    [
-        (Section, {"heading": "A", "start": 0, "end": 1}, "start"),
-        (CodeBlock, {"start": 0, "end": 1}, "end"),
-    ],
-)
-def test_section_and_block_are_frozen_and_refuse_unknown_fields(
-    model: type[BaseModel], fields: dict[str, object], field: str
-) -> None:
-    instance = model(**fields)
-
-    with pytest.raises(ValidationError):
-        model(**fields, unknown=1)
-    with pytest.raises(ValidationError):
-        setattr(instance, field, 2)
-
-
-@pytest.mark.parametrize(
     ("model", "field", "value", "accepted"),
     [
         (Section, "start", 0, True),

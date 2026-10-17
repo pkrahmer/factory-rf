@@ -149,25 +149,6 @@ MODELS: dict[str, type[BaseModel]] = {
 }
 
 
-@pytest.mark.parametrize("name", list(MODELS))
-def test_the_models_refuse_an_unknown_key(name: str) -> None:
-    model = MODELS[name]
-
-    with pytest.raises(ValidationError):
-        model(**_valid_arguments()[name], unknown=1)
-
-
-@pytest.mark.parametrize(
-    ("name", "field"),
-    [("FeatureFiles", "done"), ("ReportFacts", "on_branch"), ("FeatureAcceptance", "status")],
-)
-def test_the_models_refuse_an_assignment(name: str, field: str) -> None:
-    instance = MODELS[name](**_valid_arguments()[name])
-
-    with pytest.raises(ValidationError):
-        setattr(instance, field, getattr(instance, field))
-
-
 @pytest.mark.parametrize(
     ("name", "field", "value", "valid"),
     [

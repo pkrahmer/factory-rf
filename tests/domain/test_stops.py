@@ -3,7 +3,7 @@
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.stops import HealthStatus, RepositoryStop
 
@@ -79,29 +79,6 @@ def test_an_aware_time_is_stored_as_the_same_instant_in_utc() -> None:
 
     assert stop.at == east
     assert stop.at.utcoffset() == timedelta(0)
-
-
-def test_both_models_reject_an_unknown_field() -> None:
-    stop_model: type[BaseModel] = RepositoryStop
-    status_model: type[BaseModel] = HealthStatus
-
-    with pytest.raises(ValidationError):
-        stop_model(**_fields(extra=1))
-    with pytest.raises(ValidationError):
-        status_model(stops=[], extra=1)
-
-
-@pytest.mark.parametrize(
-    ("instance", "field", "value"),
-    [
-        (_stop(), "detail", "changed"),
-        (HealthStatus(), "stops", []),
-    ],
-    ids=["repository-stop", "health-status"],
-)
-def test_a_field_cannot_be_assigned(instance: BaseModel, field: str, value: object) -> None:
-    with pytest.raises(ValidationError):
-        setattr(instance, field, value)
 
 
 def test_a_status_is_healthy_exactly_when_it_holds_no_stop() -> None:

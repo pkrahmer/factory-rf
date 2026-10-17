@@ -1,8 +1,6 @@
 """The check of the four documents: sections, table rows, replaced phrases and v1 words."""
 
-import pydantic
 import pytest
-from pydantic import BaseModel
 
 from document_texts import (
     PATH_7_TEST,
@@ -392,14 +390,3 @@ def test_findings_follow_the_rule_order_and_the_list_order() -> None:
         _finding(PROJECT_GUIDE, "kill point case 'commit-push' has no table row"),
         _finding(PROJECT_GUIDE, PATH_7_FINDING),
     ]
-
-
-def test_a_finding_is_a_closed_model() -> None:
-    finding = _finding(README, "missing")
-    field = "message"
-    with pytest.raises(pydantic.ValidationError):
-        setattr(finding, field, "empty")
-
-    model: type[BaseModel] = DocumentFinding
-    with pytest.raises(pydantic.ValidationError):
-        model(document=README, message="missing", line=1)

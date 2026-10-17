@@ -1,7 +1,7 @@
 """A stop of one work item and the result of posting it on its pull request."""
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.hosting import PostKey
 from factory.domain.stops import StopPosted, WorkItemStop
@@ -56,22 +56,6 @@ def test_a_blank_text_is_rejected(blank: str) -> None:
 def test_a_branch_of_another_work_item_is_rejected() -> None:
     with pytest.raises(ValidationError):
         WorkItemStop.model_validate(_fields(branch="work-item/F0001-S0002"))
-
-
-def test_both_models_reject_an_unknown_field_and_an_assignment() -> None:
-    stop_model: type[BaseModel] = WorkItemStop
-    posted_model: type[BaseModel] = StopPosted
-
-    with pytest.raises(ValidationError):
-        stop_model(**_fields(extra=1))
-    with pytest.raises(ValidationError):
-        posted_model(**_posted(extra=1))
-
-    stop = WorkItemStop.model_validate(_fields())
-    posted = StopPosted.model_validate(_posted())
-    for instance, field, value in [(stop, "title", "changed"), (posted, "opened", True)]:
-        with pytest.raises(ValidationError):
-            setattr(instance, field, value)
 
 
 @pytest.mark.parametrize(

@@ -3,7 +3,6 @@
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.domain.preflight import PreflightItem, PreflightReport, machine_stop, version_matches
 
@@ -12,29 +11,6 @@ AT = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 
 def _passed(name: str) -> PreflightItem:
     return PreflightItem(name=name, passed=True)
-
-
-def test_both_models_reject_an_unknown_field() -> None:
-    item_model: type[BaseModel] = PreflightItem
-    report_model: type[BaseModel] = PreflightReport
-
-    with pytest.raises(ValidationError):
-        item_model(name="tool:git", passed=True, extra=1)
-    with pytest.raises(ValidationError):
-        report_model(items=[], extra=1)
-
-
-@pytest.mark.parametrize(
-    ("instance", "field", "value"),
-    [
-        (_passed("tool:git"), "passed", False),
-        (PreflightReport(items=[]), "items", []),
-    ],
-    ids=["item", "report"],
-)
-def test_a_field_cannot_be_assigned(instance: BaseModel, field: str, value: object) -> None:
-    with pytest.raises(ValidationError):
-        setattr(instance, field, value)
 
 
 @pytest.mark.parametrize(

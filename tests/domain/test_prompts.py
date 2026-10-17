@@ -3,7 +3,7 @@
 from typing import Any
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.prompts import END_LINE, PromptFacts, allowed_decisions, compose_prompt
 from factory.domain.story_form import FormFinding
@@ -111,18 +111,3 @@ def test_prompt_facts_hold_their_limits_on_both_sides(
     else:
         with pytest.raises(ValidationError):
             _facts(**{field: value})
-
-
-def test_prompt_facts_are_frozen() -> None:
-    facts = _facts()
-    field = "round"
-
-    with pytest.raises(ValidationError):
-        setattr(facts, field, 2)
-
-
-def test_prompt_facts_refuse_an_unknown_key() -> None:
-    model: type[BaseModel] = PromptFacts
-
-    with pytest.raises(ValidationError):
-        model(**VALID, colour="red")

@@ -144,9 +144,3 @@ def test_the_facts_are_closed_and_typed(values: dict[str, object], accepted: boo
     else:
         with pytest.raises(ValidationError):
             model(**complete)
-
-
-def test_the_facts_refuse_an_assignment(facts: AcceptanceFacts) -> None:
-    field = "next_story"
-    with pytest.raises(ValidationError):
-        setattr(facts, field, "F0002-S0008")

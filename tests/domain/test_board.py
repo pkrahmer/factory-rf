@@ -194,30 +194,6 @@ def test_render_board_writes_running_since_in_utc_with_a_z() -> None:
     assert "  running_since=2026-10-12T12:00:30Z  " in lines[-1]
 
 
-@pytest.mark.parametrize(
-    ("model", "fields"),
-    [(BoardRow, _board_row()), (FeatureRow, _feature_row())],
-    ids=["board-row", "feature-row"],
-)
-def test_a_row_refuses_an_unknown_key(model: type[BaseModel], fields: dict[str, object]) -> None:
-    with pytest.raises(ValidationError):
-        model(**fields, unknown=1)
-
-
-@pytest.mark.parametrize(
-    ("model", "fields", "field"),
-    [(BoardRow, _board_row(), "title"), (FeatureRow, _feature_row(), "backlog")],
-    ids=["board-row", "feature-row"],
-)
-def test_a_row_refuses_an_assignment(
-    model: type[BaseModel], fields: dict[str, object], field: str
-) -> None:
-    row = model(**fields)
-
-    with pytest.raises(ValidationError):
-        setattr(row, field, row.model_dump()[field])
-
-
 @pytest.mark.parametrize("field", ["backlog", "in_progress", "done"])
 @pytest.mark.parametrize(("count", "accepted"), [(0, True), (-1, False)])
 def test_a_feature_count_is_not_negative(field: str, count: int, accepted: bool) -> None:

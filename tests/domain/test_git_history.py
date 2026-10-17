@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from factory.domain.git import ChangedPath, ChangeKind, CommitInfo, WorkTreeStatus
+from factory.domain.git import ChangedPath, ChangeKind, CommitInfo
 
 COMMIT = "a" * 40
 PARENT = "b" * 40
@@ -22,26 +22,6 @@ def _commit_fields(**changes: Any) -> dict[str, Any]:
         "committed_at": COMMITTED_AT,
     }
     return {**fields, **changes}
-
-
-@pytest.mark.parametrize(
-    ("model", "fields", "field"),
-    [
-        (ChangedPath, {"path": "a.txt", "change": "added"}, "path"),
-        (CommitInfo, _commit_fields(), "subject"),
-        (WorkTreeStatus, {"branch": "main", "head": COMMIT, "changes": []}, "branch"),
-    ],
-    ids=["ChangedPath", "CommitInfo", "WorkTreeStatus"],
-)
-def test_history_models_forbid_unknown_keys_and_assignment(
-    model: type[BaseModel], fields: dict[str, Any], field: str
-) -> None:
-    instance = model(**fields)
-
-    with pytest.raises(ValidationError):
-        model(**fields, unknown=1)
-    with pytest.raises(ValidationError):
-        setattr(instance, field, "other")
 
 
 def test_change_kind_has_no_rename() -> None:

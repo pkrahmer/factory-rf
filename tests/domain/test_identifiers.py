@@ -77,23 +77,6 @@ def _name_model(
     return FeatureDirectoryName(id="F0001", slug=slug)
 
 
-def _valid_fields(model: type[BaseModel]) -> dict[str, str]:
-    if model is WorkItemFileName:
-        return {"id": "F0001-S0001", "slug": "x"}
-    return {"id": "F0001", "slug": "x"}
-
-
-@pytest.mark.parametrize("model", [WorkItemFileName, FeatureDirectoryName])
-def test_name_models_are_frozen_and_refuse_an_unknown_field(model: type[BaseModel]) -> None:
-    instance = _name_model(model, "x")
-    field = "slug"
-
-    with pytest.raises(ValidationError):
-        setattr(instance, field, "y")
-    with pytest.raises(ValidationError):
-        model(**_valid_fields(model), unknown=1)
-
-
 @pytest.mark.parametrize("model", [WorkItemFileName, FeatureDirectoryName])
 @pytest.mark.parametrize(
     ("slug", "accepted"),

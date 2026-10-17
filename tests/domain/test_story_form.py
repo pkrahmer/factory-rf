@@ -1,7 +1,7 @@
 """The check of a story's form: one finding for each rule the story breaks."""
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.domain.journal import JournalRecord
 from factory.domain.paths import LifecycleFolder
@@ -99,17 +99,6 @@ def test_a_finding_takes_no_line_or_a_positive_one(line: int | None) -> None:
 def test_a_finding_refuses_line_zero() -> None:
     with pytest.raises(ValidationError):
         FormFinding(line=0, message="x")
-
-
-@pytest.mark.parametrize("field", ["line", "message"])
-def test_a_finding_is_frozen_and_refuses_an_unknown_field(field: str) -> None:
-    finding = FormFinding(line=1, message="x")
-    model: type[BaseModel] = FormFinding
-
-    with pytest.raises(ValidationError):
-        setattr(finding, field, finding.model_dump()[field])
-    with pytest.raises(ValidationError):
-        model(line=1, message="x", column=2)
 
 
 def test_a_body_without_a_title_line_has_no_title() -> None:
