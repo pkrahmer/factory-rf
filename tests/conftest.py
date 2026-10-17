@@ -21,7 +21,7 @@ from factory.application.boundaries import Boundaries
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
 from factory.domain.kill_points import KillPoints
-from git_support import CHECKOUT, TEST_IDENTITY, clone, make_remote
+from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
 
@@ -44,10 +44,16 @@ def hosting(kill_points: KillPoints) -> FakeHostingService:
     return FakeHostingService(kill_points)
 
 
+@pytest.fixture(scope="session")
+def remote_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Return the folder of one remote made per session, which each test's remote copies."""
+    return make_remote(tmp_path_factory.mktemp("remote-template")).parent
+
+
 @pytest.fixture
-def remote(tmp_path: Path) -> Path:
+def remote(tmp_path: Path, remote_template: Path) -> Path:
     """Return a bare repository whose `main` holds a small factory layout."""
-    return make_remote(tmp_path / "origin")
+    return copy_remote(remote_template, tmp_path / "origin")
 
 
 @pytest.fixture
@@ -122,9 +128,9 @@ def walk(
 
 
 @pytest.fixture
-def world(tmp_path: Path) -> World:
+def world(tmp_path: Path, remote_template: Path) -> World:
     """Return a world of the recovery proof built under `tmp_path`."""
-    return build_world(tmp_path)
+    return build_world(tmp_path, template=remote_template)
 
 
 @pytest.fixture
