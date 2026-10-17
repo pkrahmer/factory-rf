@@ -396,3 +396,8 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - The two one-word leftovers fixed by hand: `image/compose.yml` line 1 and the operator guide's "needs Docker" now name the container runtime (Docker or Podman). `make check` green, `documents ok`.
 - API key so far: $37.68 by the factory, $17.52 by the session's agents. Disk record: C: 256G free of 931G.
 - Next: plan step 2, the first start on the real machine (the human's).
+
+## 2026-10-17 22:00, the first start (plan step 2)
+
+- The human created `pkrahmer/factory-demo-todo` (empty; the old one renamed `factory-v1-demo-todo`) and the token file (saved in v1's folder by mistake; the session moved it unread into `factory-rf/image/secrets/`). The session pushed the todo demo's empty project as its first commit (`0885fef`) and started v1.1 as `shakedown` under Docker Desktop and as `shakedown-podman` under Podman; the human logged the agent in on each (Podman through the Terminal panel with `--url`/`--identity`). Both healthy.
+- Results and four faults in `planning/overnight/first-start-checklist.md`, "Results": the agent cannot use git in the checkout (dubious ownership); the agent can write git hooks the factory runs; every new instance needs an interactive login (the human's word: all credentials injected from outside, `claude setup-token`); guide corrections. F0014 takes them before the shakedown run. The Podman instance stopped, so the two do not compete.

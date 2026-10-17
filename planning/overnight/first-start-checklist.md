@@ -40,3 +40,17 @@ Complete the login in the browser (your subscription), then `/exit`. For the Pod
 4. The same under Podman (`podman compose`, provider docker-compose v2, instance `shakedown-podman`), plus the restart after `podman machine stop` and `start` (the guide's manual restart).
 5. A short real run: one tiny story (not from the todo demo) with a short `time_limit`, to see an agent run end to end and a `time_limit` under `sudo` (F0010 decision 30); then remove it.
 6. Each fault: a story for v1 with a test, before the shakedown run. Then both instances down; the volumes stay until the shakedown.
+
+## Results (2026-10-17, the first start)
+
+Instance `shakedown` under Docker Desktop and `shakedown-podman` under rootless Podman 5.8.3 (provider docker-compose v2), both on `pkrahmer/factory-demo-todo` (the todo demo's empty project, commit `0885fef`), image built from `4aaef36e` with the pins of `b642dd31`. Both healthy after one manual `claude` login as `agent`; the preflight's `agent-run-probe` stop clears on the next tick after the login.
+
+Held on both runtimes: the agent runs as `agent`; it cannot list or read `/home/factory/.secrets` (`drwx------`, uid 1000; the mounted file itself shows `-rwxrwxrwx 0 0`); no token in its environment; an agent-made folder is `2775` and a file `664` (umask 0002; the factory's 0022); `settings.json` refused to the agent; `sudo` to root refused; no push credential (`could not read Username`) and `401` from the API; the restore removes an agent-made folder; under Docker the agent's login survives `docker compose down` and `up` (`.credentials.json` is in the `claude-home` volume; `~/.claude.json` is lost and rebuilt).
+
+Faults, for F0014 (built by v1 before the shakedown run):
+1. The agent cannot use git in the checkout: `git status` as `agent` fails with `detected dubious ownership in repository at '/work/checkout'` (the checkout is `factory`'s; no `safe.directory` for the agent). Every agent stage that reads a diff or a log is hit.
+2. The agent can write `/work/checkout/.git/hooks` (`drwxrwsr-x factory factory-work`), and the factory's git runs hooks as `factory`, who can read the token: the indirect route F0013 decision 15 named, confirmed.
+3. Every new instance (a new `claude-home` volume, the Podman machine) needs an interactive `claude` login. The human's word (2026-10-17): every credential is injected from outside, no interactive login: the Claude token from `claude setup-token` (`image/secrets/claude-token`), passed to agent runs only as `CLAUDE_CODE_OAUTH_TOKEN`; the hosting token as today; optionally an API key the same way.
+4. The guide: an agent-made folder is `2775` (setgid), not `775`; the login's place (the volume keeps `.credentials.json`); under Podman on Windows the operator's PowerShell may not see the saved connection (`connection "podman-machine-default" not found`): `--url` and `--identity`, or `podman system connection list`.
+
+Not yet observed: a real agent run end to end and a `time_limit` under `sudo` (the tiny story of step 5), after F0014.
