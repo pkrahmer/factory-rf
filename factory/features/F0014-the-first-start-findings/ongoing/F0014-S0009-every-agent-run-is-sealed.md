@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 193
 blocked: null
 comments_seen: 2
@@ -148,3 +148,17 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Quality: the module and function docstrings are there, and the comments say why. `make duplicates` reported 0 new.
    - Make check: green according to the coder's entry 8. I did not run it myself, as this stage says.
    - Ticket hygiene: entry 8 gives the main decision (`try/finally` and its implicit `__context__` instead of wrapping the error explicitly). The Assignment matches what was built, and criterion 7 still says what the documenter must write.
+10. documenter: wrote the docs criterion (7) and found no findings for the coder.
+
+    Files changed:
+    - docs/project-guide.md: added a paragraph "Every agent run is sealed" before the `CheckoutPreparer` text. It covers `run_sealed`, its order (seal, run, `check_seal` in a `finally`), which error wins, the two callers, and the tests. The preflight paragraph now says the probe runs through `run_sealed` and that its `RepositoryUnsealed` is not caught, so it leaves `Preflight.run` and the scheduler logs the iteration as failed. The dispatcher paragraph now says `RepositoryUnsealed` is re-raised and not counted, and that other errors are counted as before.
+    - docs/decisions.md: the entry "The factory alone writes the checkout's `.git`" gets the run half in place of the "S0009 adds…" pointer. It gives why the check comes after the run, why the dispatcher does not count the error, and the open window (an agent process that outlives its run, decision 21, closed only by the time limit).
+
+    Cross-read and found current: the project guide's sections on `Git.seal` and `check_seal`, the stage launcher and the scheduler's checkout preparation, plus the decisions entries on hooks and the shared checkout. I did not read README or the operator guide in depth, because the criterion says no other document changes.
+
+    `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, since I changed only docs; the factory runs it next.
+
+    Stale text seen and not touched: none.
+
+    `make check`: check: green
+    `make documents`: documents ok
