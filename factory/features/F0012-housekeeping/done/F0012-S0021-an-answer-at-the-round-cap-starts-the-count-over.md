@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 171
 blocked: null
 comments_seen: 2
@@ -129,3 +129,4 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
       - Criterion 2: the question text is exactly the Interface's text for 4 and 3.
       - The demo does not cover criterion 3 (the end-to-end tick), criterion 4 (the other caps), criterion 5 (`make check`) or criterion 6 (docs). The output contradicts none of them.
     - Not run in this stage: `make check`. The factory runs it after this stage.
+12. done (pull request merged); cost: 9 runs, 5.8 min, 57 turns, 182k tokens in (760k more from cache), 15k out, $1.16
