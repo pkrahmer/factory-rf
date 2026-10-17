@@ -21,11 +21,11 @@ from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
-from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.pygithub_hosting import PyGithubHostingService
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
+from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.errors import SettingsInvalid
 from factory.domain.git import GitIdentity
@@ -197,7 +197,7 @@ def test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing(
 
     assert isinstance(boundaries.git, GitCli)
     assert isinstance(boundaries.agent_runtime, ClaudeCodeRuntime)
-    assert isinstance(boundaries.project_commands, MakeProjectCommands)
+    assert isinstance(boundaries.project_commands, RecordingProjectCommands)
     assert isinstance(boundaries.work_item_reader, FrontmatterWorkItemReader)
     assert isinstance(boundaries.work_item_writer, FrontmatterWorkItemWriter)
     assert isinstance(boundaries.cost_reader, JsonLinesCostRecordReader)

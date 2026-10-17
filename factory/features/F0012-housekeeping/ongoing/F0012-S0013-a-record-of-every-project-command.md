@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 165
 blocked: null
 comments_seen: 0
@@ -113,3 +113,24 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: both blocks are runnable and each Expect line is checkable (`1 check 183.5`; the pytest summary with no failed, error or skipped count).
    - Architecture: the interface in application, the JSONL adapter in adapters, the wiring only in entry, the DTO in domain, so the layers are respected. The test changes (decision 36 leave, tests/record_support.py) are named in the story.
    - Scope: inside F0012 scope 1.4, and not in its Out of scope.
+3. tester: Wrote red tests for criteria 1–9.
+   - criterion 1: tests/domain/test_command_records.py::test_a_command_record_accepts_valid_values_and_refuses_the_others. One parametrized test. Accepted rows: the criterion's case with duration 0, and a passed record whose commit is "a"*40. Refused rows: a commit of 39 characters, of 41, uppercase, and non-hex; command "Check"; duration -1; duration inf; status "red"; a naive started_at.
+   - criterion 2: tests/adapters/test_record_log_jsonl.py::test_appended_records_read_back_equal_and_in_order_and_the_folder_is_created
+   - criterion 3: tests/adapters/test_record_log_jsonl.py::test_lines_that_do_not_validate_are_skipped. The file has five lines: valid, valid, `{"command":` in the middle, valid, `not json` last.
+   - criterion 4: tests/application/test_recording_project_commands.py::test_a_run_returns_the_inner_result_and_records_it
+   - criterion 5: tests/application/test_recording_project_commands.py::test_every_run_is_recorded_in_order_with_its_status. Three rows, each running three results (exit 0, 2 and None) in a different order.
+   - criterion 6: tests/application/test_recording_project_commands.py::test_an_inner_error_propagates_and_records_nothing. Two rows: ProjectCommandError and ValueError.
+   - criterion 7: tests/application/test_recording_project_commands.py::test_a_record_that_cannot_be_written_is_logged_and_the_result_still_returned
+   - criterion 8: tests/application/test_recording_project_commands.py::test_a_head_that_cannot_be_resolved_records_no_commit. The fake is `UnresolvableGit`, defined in the test: a GitCli subclass whose `resolve` raises GitError.
+   - criterion 9: tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory. It clones the remote into settings.checkout, writes a Makefile with a `lint` target and checks for one record (lint, HEAD of the built git, passed).
+
+   Files created: tests/domain/test_command_records.py, tests/adapters/test_record_log_jsonl.py, tests/application/test_recording_project_commands.py, tests/entry/test_wiring_command_records.py, and the shared helper tests/record_support.py (`UnwritableRecordLog[R]`).
+
+   File changed by the human's leave (FEATURE decision 36): tests/entry/test_wiring_boundaries.py. `test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing` now expects `RecordingProjectCommands`, and the import of MakeProjectCommands that is no longer used is gone. Nothing else in that file changed.
+
+   The recorder's inner commands are `RecordingCommands`, imported from `application.test_preflight_run`.
+
+   make test: collection errors only, because these imports fail: factory.domain.command_records, factory.adapters.record_log_jsonl, `RecordLog` from factory.application.files and `RecordingProjectCommands` from factory.application.project_commands. make lint: green. The type check was not run, as this stage's skill says.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_wiring_command_records.py - ImportError while importin...
