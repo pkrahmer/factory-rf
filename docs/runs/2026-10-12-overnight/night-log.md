@@ -388,3 +388,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - Drafts S0006 (the preflight's details pinned in full, tests only) and S0007 (the documents say what the probe observed): form check exit 0; decision 16 gives S0006's test leave; both built now, then a second acceptance. F0012's superseded drafts S0031 and S0032 removed (they became F0013-S0003 and S0004).
 - Disk record: C: 257G free of 931G, Docker's disk image 61.6 GB.
 | 2026-10-17 21:11 | F0013-S0006 merged (#188; 6 runs, 3.1 agent minutes, $0.76, first pass; test changes as F0013 decision 16 allows). S0007 started. |
+| 2026-10-17 21:16 | F0013-S0007 merged (#189; 6 runs, 1.9 agent minutes, $0.55, first pass; documents only). F0013's second acceptance started by v1. |
