@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 183
 blocked: null
 comments_seen: 0
@@ -89,3 +89,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/application/test_token_file_item.py::test_the_item_reads_only_through_stat
+4. coder: The `token-file` item now checks the folder that holds the token file instead of the file itself. The change is in `src/factory/application/preflight.py`, commit "feat(application): the token-file item checks the token's folder".
+      - `_token_file_fault` deals with a `None` path first. It then calls the new `_token_folder_fault(path.parent, uid, stat)`: a missing folder → "the token file does not exist", wrong owner → "the folder <folder> belongs to uid <n>, not to <uid>", any 0o077 bit → "the folder <folder> has mode <mode:04o>; make it 0700". Only when the folder passes does it call `stat(path)`, where a `FileNotFoundError` gives "the token file does not exist". The file's own owner and mode are no longer read. `_GROUP_AND_OTHERS` keeps its value and its comment now names the folder. The docstring says what the item checks now.
+      - The missing-file text is a shared constant `_MISSING_FILE_FAULT`. I first named it `_NO_TOKEN_FILE`, but ruff S105 flagged it as a possible hardcoded password, so I renamed it rather than add a `noqa`.
+      - Design: I split the folder check into its own helper and kept `_token_file_fault` as the sequencer. I rejected one function with both `stat` calls inline: it would have mixed two try blocks and four faults in one body.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Checks: `make check` green (test: green, check: green). `make duplicates`: 0 new, 39 known, 0 gone. The first demo prints `True` and `<tmp>/secrets/hosting-token: the folder <tmp>/secrets has mode 0750; make it 0700`. `tests/entry/test_wiring_extras.py` and `tests/application/test_agent_user_item.py` pass unchanged.
+      - Open: criterion 9 (operator guide, project guide, decision log) is for the docs stage. `src/factory/entry/wiring.py` needed no change.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
