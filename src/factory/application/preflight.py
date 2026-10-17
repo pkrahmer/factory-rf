@@ -9,6 +9,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from factory.application.boundaries import Boundaries
+from factory.application.sealed_runs import run_sealed
 from factory.application.stops import StopService
 from factory.domain.agent_runs import (
     GUARD_COMMAND,
@@ -178,9 +179,7 @@ def agent_run_probe_item(
     try:
         installed = boundaries.agent_definitions.read(PROBE_AGENT)
         agent = installed.model_copy(update={"budget_usd": PROBE_BUDGET_USD})
-        result = boundaries.agent_runtime.run(
-            _probe_request(boundaries, settings, agent, environment)
-        )
+        result = run_sealed(boundaries, _probe_request(boundaries, settings, agent, environment))
     except (AgentDefinitionError, AgentRuntimeError) as error:
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=str(error))
     if result.end_reason != "completed":
