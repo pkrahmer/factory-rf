@@ -334,3 +334,9 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 2026-10-17 14:50 | F0012-S0013 merged (#165; 6 runs, 5.8 agent minutes, $1.54, first pass; the change in test_wiring_boundaries.py is decision 36's). S0014 started. |
 | 2026-10-17 15:05 | F0012-S0014 merged (#166; 10 runs, 9.4 agent minutes, $2.14, one send-back by the reviewer; test changes as decisions 37 and 38 allow, test_claude_runtime_resume.py only gained tests). The todo demo (plan step 3) is being drafted by an opus agent on the API key (brief planning/overnight/briefs/draft-demo-todo-service.md, staging planning/overnight/demo/). S0016 started. |
 | 2026-10-17 15:20 | F0012-S0016 merged (#167; 9 runs, 7.9 agent minutes, $1.86; one question, answered (a): typed replacement callables instead of replace(**{name: None}), which fails mypy --strict; test changes as decision 46 allows). CLAUDE.md Tests and the lessons file gained that trap. S0017 started. |
+
+## 2026-10-17 15:45, the todo demo drafted (plan step 3)
+
+- Drafted by an opus agent on the API key ($5.78): `planning/overnight/demo/` (the `demo/` index, `todo-service/` with README, the empty project and the three features with eight stories in v1.1's form), plus NOTES.md with sixteen choices taken for the human. Pre-checked by opus on the key ($4.43, 14 min): passes S0023's demo check (`demos ok`); `make check` green on the empty project; required edits 1–3 and recommended A–C, E, F applied by sonnet on the key ($0.17). Edit 3 carried back into F0012-S0029 (`make test` accepts pytest's exit 5), decision 54.
+- The human answered (baseline): the baseline run compares cost and agent minutes of the stories first-pass in both runs; start-to-archive minutes are recorded, not compared. Written into the plan's step 10 and the demo's README (edit D).
+- The staging folder goes into `demo/` as the human's commit after F0012's acceptance, when S0023's check exists.
