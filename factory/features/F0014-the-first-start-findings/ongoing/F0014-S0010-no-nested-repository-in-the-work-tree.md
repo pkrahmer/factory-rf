@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 194
 blocked: null
 comments_seen: 4
@@ -252,3 +252,15 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. reviewer: no findings.
+
+    I read the ticket and `git diff main...HEAD -- . ':!factory'` against the criteria and the Interface. I did not run `make check`. The coder's entry 10 reports it green, with `make duplicates` at 0 new, 39 known, 0 gone.
+
+    - Acceptance criteria: criteria 1–12 each have a test that checks what the criterion says. Criterion 11 is covered by the existing modules, which still run.
+      - Refused sides are tested: a `.git` that cannot be removed (criteria 4 and 10); a removal that fails while the run also fails, where `RepositoryUnsealed` wins (criterion 5); a seal check that fails, so no search runs and the nested `.git` stays (criterion 5); lookalike names and an unlistable folder (criterion 3); a missing checkout, which is not searched (criterion 12).
+      - The stall's order before the branch check is shown by the left-branch-too row. The probe's order before the end reason is shown by the nested-and-died row.
+      - The one changed assertion (`in` in place of `==` for the note) is the change the human approved in entry 7.
+    - Architecture: `remove_nested_repositories` is an abstract method on `Git` (`src/factory/application/git.py`). `GitCli` implements it with `os.walk(followlinks=False)`, `lstat`, `rmtree`/`unlink` and no git process. `SealedRun` and the stall are in `application`, the reason and its sentence in `domain`, and the fourth `GIT_CONFIG` pair in `entry`. The layers hold and no untyped dict crosses a function boundary.
+    - Security: no markers that silence a check, no secrets, and no shell commands built from strings. In `run_sealed`'s `finally`, `check_seal()` runs and then the removal, before any git command. An `OSError` becomes `RepositoryUnsealed` with S0006's detail form.
+    - Quality: the docstrings are present and accurate. `AfterAgent._early_stall` keeps the old order of the branch and result checks after the new first step, and their details are unchanged: `_stall` already defaults `detail` to `""`. `CheckoutPreparer._keep_or_clone_again` reuses the existing `RepositoryUnsealed` path to clone again instead of a second handler. `_write_log` removes the repeated check for a missing log. The new `write_fsmonitor` test helper in `tests/git_support.py` is shared, not copied.
+    - Ticket hygiene: the log explains the main decision and what was rejected. The Assignment matches what was built, and the docs criterion (14) still describes what the operator guide, the project guide and the decision log must say.
