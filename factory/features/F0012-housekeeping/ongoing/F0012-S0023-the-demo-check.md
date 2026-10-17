@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 173
 blocked: null
 comments_seen: 0
@@ -133,3 +133,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (30.5 s)
+8. coder: coder (round 1, after the tester's change in entry 7): I changed no code. The review's two findings (entry 5) were test rows that were missing. The tester added both rows to `tests/entry/test_check_demos.py::test_a_file_that_is_no_feature_file_or_backlog_story_is_a_finding`: `backlog-file-not-md` and `feature-folder-file-not-feature-md`. They pass against the existing `_is_backlog_story` and `_is_feature_file` in `src/factory/entry/check_demos.py`, which was built at 4f8ca43 and refactored at 8450e2d. The working tree was clean when this stage started, and `make check` is green on it. There was nothing to refactor this round. Nothing is open apart from the documents for criterion 16, which belong to the documenter.
+
+      `make check`: check: green
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
