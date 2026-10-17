@@ -355,3 +355,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 
 - Podman 5.8.3 installed on the human's word, rootless machine started; v1.1's image built and run under it on a throwaway instance. Record: `planning/overnight/podman-probe-2026-10-17.md`. Works: build, users, volume ownership, sudo, the agent home, healthcheck. Faults: (1) the agent can read the hosting token on both runtimes (compose ignores a file secret's uid/gid/mode outside Swarm); (2) Podman restarts nothing after a machine restart; (3) podman-compose cannot build our compose file on Windows, the docker-compose v2 provider can.
 - **For the morning**: how to keep the token from the agent (fault 1); whether to delete the probe's container, volumes and image in the Podman machine.
+| 2026-10-17 18:04 | F0012-S0028 merged (#178; 6 runs, 3.4 agent minutes, $0.84, first pass; test changes as decision 48 allows). S0030 started (then S0029, the last story). |
