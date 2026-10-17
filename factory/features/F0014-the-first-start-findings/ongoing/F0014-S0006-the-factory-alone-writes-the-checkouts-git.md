@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 192
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -256,3 +256,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    **Refactor:** the folder's `lstat` is read once, and `.git` is closed before the walk instead of inside it.
 
    **Open:** criterion 3's two rows, above. Not touched: nothing else noticed.
+7. human (pull request comment, 2026-10-17): (a): `cloned` takes `group_umask` as a parameter, so it always runs under `0002`; the module's `pytestmark` stays. The criterion is unchanged.
