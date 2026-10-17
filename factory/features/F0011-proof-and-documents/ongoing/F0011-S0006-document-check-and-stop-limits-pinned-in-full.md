@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 151
 blocked: null
 comments_seen: 0
@@ -99,3 +99,10 @@ Expect: the single line `documents ok`.
 
    `make lint`: lint: green
    `make test`: FAILED tests/domain/test_stop_table.py::test_a_limit_is_the_whole_text_l_and_ascii_digits[non-ascii-digit]
+4. coder: Changed the limit rule in `src/factory/domain/stop_table.py` so that `StopRow` refuses any limit that is not, as a whole, `L` followed by ASCII digits. `_LIMIT` is now `re.compile(r"L[0-9]+")`, and `_limits_name_v1_limits` calls `_LIMIT.fullmatch(limit)` where it used to call `match` with `^L\d+$`. Commit: cae63fc.
+      - Design: I used `fullmatch` instead of keeping the anchors and switching to `\Z`. With `fullmatch` the whole-string rule lives in the call, as `MakeProjectCommands` already does. Writing `[0-9]` instead of `\d` refuses non-ASCII digits such as `"L٣"`. I rejected `re.ASCII` with `\d`: it says the same thing less directly.
+      - Result: both rows that failed before the change, `[trailing-newline]` and `[non-ascii-digit]`, now pass. `make check` is green.
+      - Refactor: the diff is two lines with nothing to clean up, so there is no refactor commit.
+      - Open: criterion 7 (the project guide paragraph on `STOP_TABLE` and `StopRow`) is the documenter's job; I did not write it. I noticed nothing else.
+
+   `make check`: check: green
