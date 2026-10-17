@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 153
 blocked: null
 comments_seen: 0
 round: 0
@@ -73,3 +73,9 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`copy_remote` in `tests/git_support.py`, fixtures `remote_template`, `remote` and `world` in `tests/conftest.py`, `build_world(root, *, template=None)` in `tests/proof_support.py`), and the new test module. Each behaviour in it is stated precisely: the return value, root creation, the refusal with `FileExistsError`, and no git process.
+   - Criteria: criteria 1 to 7 are each testable by one test function. Criterion 4 is one parametrized test with both sides of the rule: the two accepted roots, a missing one and an empty one, and the two refused roots, one holding `seed` and one holding `remote.git`. The refused rows also check that nothing is created. Criterion 5 covers the no-git rule. Criteria 3 and 6 pin the independence of the copy and its location. Criterion 7 covers both sides of the `template` parameter. Criteria 8 and 9 are the closing `make check` and docs criteria.
+   - Demo: both commands are runnable. Each Expect line names an output that can be checked: the last line `<n> passed` with no failed, error or skipped count, and one line reporting `passed` with no `failed` or `error`.
+   - Architecture: test support under `tests/` only, with nothing under `src/`. It follows CLAUDE.md: real git, no faked git, and fixtures in `tests/conftest.py`.
+   - Scope: it matches FEATURE.md item 1.1 ("one prepared git remote copied per test (S0001)"). Decision 32 grants the leave to change the three helper files. Nothing in "Out of scope" is touched.
