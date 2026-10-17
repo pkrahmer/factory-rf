@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 174
 blocked: null
 comments_seen: 0
@@ -170,3 +170,4 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
    - The demo does not run the rest of criterion 7 (`test_claude_runtime.py` and `test_claude_runtime_resume.py`), criterion 8 (`make check`) or criterion 9 (docs). Nothing it shows contradicts them. The coder's entry reports `make check` green, and the documenter's entry reports `documents ok`.
 
    Still open, as the assignment says: the real kill under `sudo` is to be observed at the first start (step 3).
+8. done (pull request merged); cost: 6 runs, 6.0 min, 35 turns, 188k tokens in (522k more from cache), 21k out, $1.24
