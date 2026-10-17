@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 186
 blocked: null
 comments_seen: 0
@@ -108,3 +108,4 @@ Expect: `documents ok`.
    - Criterion 3: `## Container runtimes` begins at line 303 of `docs/operator-guide.md`. It is the first level-2 section after *The container: compose, entrypoint and health check* (line 179). It has the five sub-sections (runtimes and team host, commands, Compose provider, restart, disk), each with the content the criterion lists. The restart sub-section says the Windows restart was tested and the Linux restart was not, and gives the observation left for later. *The health check and the restart policy* points to "Podman: the restart". *What the container cannot see* names both runtimes. The new entry in `docs/decisions.md` covers the runtimes, the provider, the Buildah check, the Windows restart, the untested Linux restart service and Rancher Desktop as untested. No other document changed.
 
    Open: the restart under Podman on a Linux host stays to be observed at the first start on such a host, as criterion 1 says.
+8. done (pull request merged); cost: 6 runs, 2.1 min, 28 turns, 125k tokens in (260k more from cache), 7k out, $0.65
