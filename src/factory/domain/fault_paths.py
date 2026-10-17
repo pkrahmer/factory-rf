@@ -56,4 +56,46 @@ FAULT_PATHS: tuple[FaultPath, ...] = (
         test="test_smoke_test_finding_after_run_reaches_time_limit_"
         "charges_one_attempt_then_moves_back",
     ),
+    FaultPath(
+        number=7,
+        title="the round cap",
+        case="post-record",
+        test="test_round_cap_question_killed_between_post_and_record_posts_once_and_waits",
+    ),
+    FaultPath(
+        number=8,
+        title="the attempts cap and its retry",
+        case="agent-run-dies",
+        test="test_attempts_cap_run_stalls_twice_asks_human_without_a_rerun_and_reruns_on_comment",
+    ),
+    FaultPath(
+        number=9,
+        title="`reject` after a stage change by hand",
+        case="commit-push",
+        test="test_reject_killed_before_push_reverts_once_and_leaves_main_clean",
+    ),
+    FaultPath(
+        number=10,
+        title="two work items in progress",
+        case="tick-other",
+        test="test_two_items_in_progress_tick_killed_after_claim_push_reruns_lower_id_and_other_waits",
+    ),
+    FaultPath(
+        number=11,
+        title="a close at the approval",
+        case="tick-other",
+        test="test_close_at_approval_tick_killed_after_close_recorded_reopens_once_and_asks_once",
+    ),
+    FaultPath(
+        number=12,
+        title="a feature acceptance refused, or merged",
+        case="container",
+        test="test_acceptance_container_lost_in_review_reruns_once_and_books_result",
+    ),
+    FaultPath(
+        number=13,
+        title="a test change the human approves",
+        case="agent-run-tick",
+        test="test_test_change_approved_tick_killed_during_tester_run_reruns_tests_without_round",
+    ),
 )

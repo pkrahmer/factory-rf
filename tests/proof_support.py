@@ -334,6 +334,12 @@ def restart(world: World, *, empty_disk: bool = False) -> World:
     )
 
 
+def rerun(world: World, *, empty_disk: bool = False) -> World:
+    """Advance the clock by `KILL_TO_RERUN` and start the instance again."""
+    world.clock.advance(KILL_TO_RERUN)
+    return restart(world, empty_disk=empty_disk)
+
+
 def _claim_commits(world: World, work_item: WorkItemId, ref: str) -> list[CommitId]:
     """The commits of `ref` off `origin/main` whose state carries a claim, newest first."""
     git = world.boundaries.git
@@ -489,6 +495,17 @@ def head_state(world: World, work_item: WorkItemId) -> WorkItemState:
     state = _state_at(world, f"origin/{branch_name(work_item)}", _work_item_path(world, work_item))
     assert state is not None
     return state
+
+
+def work_item_file(world: World, work_item: WorkItemId) -> str:
+    """The path of the work item's `.md` file in the feature's `in-progress/` on its branch."""
+    git = world.boundaries.git
+    git.fetch()
+    listed = git.list_files(f"origin/{branch_name(work_item)}", f"{FEATURE}/in-progress")
+    [path] = [
+        path for path in listed if Path(path).name.startswith(work_item) and path.endswith(".md")
+    ]
+    return path
 
 
 def head_journal(world: World, work_item: WorkItemId) -> list[JournalRecord]:
