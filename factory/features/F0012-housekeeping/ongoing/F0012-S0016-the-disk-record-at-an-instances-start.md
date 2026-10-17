@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 167
 blocked: null
 comments_seen: 2
@@ -175,3 +175,23 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (36.9 s)
+8. coder: the tester's change from entry 7 is in, and `make check` is now green: `check: green`, coverage 99.51 %, and `make types` has no errors left. This round I changed no code. The implementation is still commit 54a999c.
+
+   Built (54a999c):
+   - `src/factory/domain/disk.py`: adds `DiskOccasion`, `DiskUse`, `DiskRecord` and `disk_line`. `disk_line` reuses `gigabytes`, and a value of `None` is written as `unknown`.
+   - `src/factory/domain/settings.py`: adds `InstanceSettings.temporary_directory` as the last field. `read_settings` leaves it unset.
+   - `src/factory/application/boundaries.py`: adds `disk_records: RecordLog[DiskRecord] | None = None`.
+   - `src/factory/application/disk_records.py`: adds `DiskRecorder.record` and `DiskRecorder.last`, plus private helpers `_folders`, `_measure` and `_bytes_or_unknown`. An `OSError` in either measure leaves only that one value `None`.
+   - `src/factory/entry/wiring.py`: `build_boundaries` wires a `JsonLinesRecordLog` at `records/disk.jsonl`. `read_environment_settings` sets `temporary_directory` to `Path(tempfile.gettempdir())` with `model_copy`.
+   - `src/factory/entry/run.py`: `run_instance` calls `DiskRecorder(boundaries).record("start")` right after `build_boundaries`.
+
+   Main decision: `record` writes the log line first and then appends. If the append raises `OSError`, the error goes to the factory log and the record is still returned, so a full disk does not stop the instance. This is the same pattern `RecordingProjectCommands` uses for its records. Rejected alternative: setting `temporary_directory` inside `read_settings` from the environment. The Interface keeps `read_settings` pure, and the temporary directory belongs to the process, so it is set only in entry.
+
+   Refactor pass: I read the whole diff, found nothing to rename, simplify or deduplicate, and made no refactor commit.
+
+   Noticed:
+   - `make duplicates` gives `duplicates: 0 new, 39 known, 0 gone`. The Assignment expected `last` to show as new dead code; the tests' calls appear to count as uses, but I did not check.
+   - I did not touch the docs from criterion 12; they are the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
