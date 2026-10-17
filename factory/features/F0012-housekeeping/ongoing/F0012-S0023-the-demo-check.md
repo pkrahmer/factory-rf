@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 173
 blocked: null
 comments_seen: 2
@@ -170,3 +170,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
     This story has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
 12. human (pull request comment, 2026-10-17): Go forward: the story passes review as it is. The second assembly of the backlog path in `check_demos.py` (instead of `work_item_path(feature, "backlog", story)`) is left for now and recorded as a FEATURE decision for a later fix; behaviour does not change.
+13. reviewer: reviewer (round 3, after the human's answer in entry 12): no findings. The story goes forward to docs.
+       - Following entry 12, the finding in entry 11 is not a finding this round. That finding was the second assembly of the backlog path at `src/factory/entry/check_demos.py:70`, where `work_item_path(feature, "backlog", story)` already exists. The human leaves it as it is and records it as a FEATURE decision for a later fix. Behaviour does not change.
+       - No code or test has changed since the round-2 review: the last code commit is 4b9cbcf and the last test commit is 25890db. Groups 1 to 4 therefore stand as entries 9 and 11 found them. In group 4, only the deferred point was open, and I found nothing new on reading the full diff again.
+       - Group 5 (ticket hygiene), which earlier rounds did not reach, holds:
+         - The log names the main decision: demo stories go through the story check's `backlog_story_findings` and `finding_line`, so `check_demos` has no story logic of its own. It also names what was rejected: calling `check_story_place`/`check_story_form` directly, and keeping the `backlog` branch in `_check`.
+         - `Assignment` matches what was built.
+         - The one deviation from the Interface's wording is logged in entry 4 with its reason. The pipeline definition reader comes from the new `build_pipeline_definition_reader()` in `src/factory/entry/wiring.py`, not from `RuamelPipelineDefinitionReader()` directly, because `tests/entry/test_wiring.py` lets only the wiring import adapters. The reader and its behaviour are the same.
+         - Criterion 16 still describes what the documenter must write: the README pointer, the project guide's *The demos*, and the decision log entry that the code knows no demo by name.
+       - Open: the documents for criterion 16 (documenter), and the deferred `work_item_path` reuse (the human's FEATURE decision). I did not run `make check`. The coder's entry 10 reports it green at 4b9cbcf.
