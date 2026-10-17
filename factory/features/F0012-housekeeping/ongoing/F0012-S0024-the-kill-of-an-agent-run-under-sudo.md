@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 174
 blocked: null
 comments_seen: 0
@@ -149,3 +149,24 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root, in order. Both met their `Expect:` lines. No findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_sudo_time_limit.py tests/adapters/test_claude_runtime_os_user.py`
+   ```
+   .........................                                                [100%]
+   25 passed in 5.26s
+   ```
+   Met: the last line reads `25 passed in 5.26s`, with no failed, error or skipped count.
+
+   2. `grep -n "TIMEOUT_EXECUTABLE = \|SUDO_GRACE = " src/factory/adapters/claude_runtime.py`
+   ```
+   54:TIMEOUT_EXECUTABLE = "timeout"
+   57:SUDO_GRACE = timedelta(seconds=30)
+   ```
+   Met: two lines, each constant with the value the Interface gives, after its line number.
+
+   Against the acceptance criteria:
+   - The test run covers criteria 1 to 6 and the os_user part of criterion 7. Nothing in the output contradicts any of them.
+   - The demo does not run the rest of criterion 7 (`test_claude_runtime.py` and `test_claude_runtime_resume.py`), criterion 8 (`make check`) or criterion 9 (docs). Nothing it shows contradicts them. The coder's entry reports `make check` green, and the documenter's entry reports `documents ok`.
+
+   Still open, as the assignment says: the real kill under `sudo` is to be observed at the first start (step 3).
