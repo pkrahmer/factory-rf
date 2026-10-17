@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 178
 blocked: null
 comments_seen: 0
@@ -100,3 +100,14 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[acceptance-reviewer]
+4. coder: Added the three lessons as the Interface states them. Commit 2abcfe0b.
+   - `claude/agents/*.md` (all seven): the timeout bullet is now second in `## Lessons`, right after the foreground bullet. `claude/agents/tester.md` ends with the time-limit bullet and `claude/agents/documenter.md` with the documents-only bullet.
+   - `template/CLAUDE.md`: the time-limit bullet comes right after `- Fake commit ids`, so it is the last bullet of *Tests*.
+   - Each bullet is one line and matches the Interface word for word. These are the same strings as the tester's `_SECOND_LESSON`, `_TIME_LIMIT_LESSON` and `TEMPLATE_RULES_LINES`. Nothing else in the bodies or the template changed.
+   - Design: I placed the bullets with a one-off script anchored on the first lesson line and on the `- Fake commit ids` line, so no other line could move. I did not hand-edit each file because it repeats the same work eight times. The script lived outside the repository and is deleted.
+   - Tests: `tests/test_claude_agent_texts.py`, `tests/test_claude_files.py` and `tests/adapters/test_shipped_agents_effect.py` all pass, and `make check` is green.
+   - Refactor: nothing to change. The diff is ten added text lines with no code.
+   - Open: the docs criterion (6) is for the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
