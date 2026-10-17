@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 164
 blocked: null
 comments_seen: 0
@@ -72,3 +72,19 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
    - Demo: both blocks are runnable. Each `Expect:` line can be checked against the output: `lint 0.1` and `secrets 22.6`, and a `lint: green (<n>.<d> s)` line.
    - Architecture: pure parsing sits in domain, the adapter only calls it, and no layer rule is broken.
    - Scope: this is item 1.4 of FEATURE.md (S0012). It is not under Out of scope, and S0013 is left to record the result.
+3. tester: Wrote the tests for criteria 1 to 4, mapped below.
+   - criterion 1: tests/domain/test_target_times.py::test_green_target_lines_are_read_in_order_and_others_skipped
+   - criterion 2: tests/domain/test_target_times.py::test_only_a_line_matching_the_whole_pattern_counts. It is one parametrized test with 11 rows: the 9 lines that must give no entry, plus `lint: green (0 s)` and `lint: green (0.1 s)\r`, which must give one entry each. Each row's line is passed as the whole output. The Arabic-Indic digit is written as `١`.
+   - criterion 3: tests/domain/test_target_times.py::test_target_printed_twice_gives_two_entries_in_order and ::test_empty_output_gives_no_entries
+   - criterion 4: tests/adapters/test_make_commands.py::test_targets_are_read_from_the_whole_output checks that the `lint` line is outside `output_tail` but still appears in `targets`. ::test_target_printing_no_green_line_has_no_targets checks that a target printing only `check: green` gives `targets == []`.
+   - Interface limits on `TargetTime`, as CLAUDE.md requires: tests/domain/test_target_times.py::test_target_time_requires_a_command_name_and_non_negative_seconds checks that seconds 0.0 is accepted, -0.1 is refused, and target `Lint` is refused. ::test_target_time_refuses_an_unknown_field checks the forbidden extra field.
+   - By the human's leave (FEATURE decision 45), I renamed tests/domain/test_checks.py::test_fields_are_exactly_the_generic_six to `test_fields_are_exactly_the_generic_seven` and added `targets` to its set. I made no other change to that file.
+
+   Files: I created tests/domain/test_target_times.py. In tests/adapters/test_make_commands.py I added two functions and the import `from factory.domain.checks import TargetTime`.
+
+   State of the run: `make test` is red as intended. The test runner could not import `TargetTime` from `factory.domain.checks`, nor `target_times`, so both test_target_times.py and test_make_commands.py fail at collection. test_fields_are_exactly_the_generic_seven fails on the missing field. `make lint` is green. I skipped the type check, as the stage allows.
+
+   Nothing open. I did not test that `CheckResult.targets` defaults to `[]`, because no criterion names it.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/domain/test_target_times.py - ImportError while importing test mo...

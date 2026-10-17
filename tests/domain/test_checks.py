@@ -74,7 +74,7 @@ def test_unknown_keys_and_assignment_are_rejected() -> None:
         result.status = "failed"  # type: ignore[misc]
 
 
-def test_fields_are_exactly_the_generic_six() -> None:
+def test_fields_are_exactly_the_generic_seven() -> None:
     assert set(CheckResult.model_fields) == {
         "command",
         "status",
@@ -82,4 +82,5 @@ def test_fields_are_exactly_the_generic_six() -> None:
         "duration",
         "last_line",
         "output_tail",
+        "targets",
     }
