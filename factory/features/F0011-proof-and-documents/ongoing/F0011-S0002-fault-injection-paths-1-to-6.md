@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 146
 blocked: null
 comments_seen: 0
 round: 0
@@ -96,3 +96,9 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/fault_paths.py` gives `FaultPath` and `FAULT_PATHS` with exact fields and a six-row table. The new `drive_to` and `timed_out` helpers in `tests/proof_support.py` have signatures and behaviour spelled out. The existing helpers it relies on are all present (`start_story`, `leak_writes`, `completed`, `died`, `restart`, `pull_request_of`, `repeated_posts`, `KILL_TO_RERUN`, `check_story_form`, `Git.is_ancestor`). The five case ids it uses exist in `kill_point_cases.py`. The Interface states no conversion, default or ordering beyond the table, and criteria 8 to 11 test each of its rules.
+   - Criteria: criteria 1 to 7 are each one scripted scenario with concrete assertions, so one test function each. Criterion 8 pins the table, 9 pins the case ids, 10 pins the closed model (assignment, unknown key and wrong type), and 11 pins the name existence and the 90-character limit. The failing side of each rule is covered. Criteria 12 (`make check`) and 13 (`docs:`) are the last two.
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable: `True True True` plus the test name, and a `passed` last line with no `failed` or `error`.
+   - Architecture: the new module is a pure domain DTO and the helpers sit in the tests. Nothing crosses a layer, and the story needs no new dependency.
+   - Scope: paths 1 to 6 are within the feature's "thirteen fault-injection paths" scope. Paths 7 to 13 are left to F0011-S0003. The baseline run and a real container kill, which are out of scope, are not touched.
