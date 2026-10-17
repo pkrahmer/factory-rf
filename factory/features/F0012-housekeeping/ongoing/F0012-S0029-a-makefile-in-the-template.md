@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 180
 blocked: null
 comments_seen: 1
@@ -252,3 +252,27 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+6. reviewer: no findings.
+
+   What I checked, in `git diff main...HEAD -- . ':!factory'`:
+   - **Interface text.** `template/Makefile` is byte for byte the Interface's `make` block: I diffed the committed file against the block extracted from the ticket, and they are identical. Its recipe lines start with a tab. `template/CLAUDE.md` changes only its *Checks*: the one bullet becomes the Interface's two bullets.
+   - **Criteria 1–11, one by one.**
+     - Each criterion has its test, named as the tester's entry 4 lists them.
+     - The parametrized row counts match the criteria: 13, 12, 5, 4 and 4.
+     - The failing sides are tested:
+       - criterion 6: a stand-in exiting 1 makes the target fail with exactly one call;
+       - criterion 7: exit 5 is green, and exit 1 is red through the criterion 6 rows;
+       - criterion 8: the secret-found row, and the lock-only row with no call;
+       - criterion 9: vulture status 1, and pylint failing with exactly one call;
+       - criterion 10: a story branch and a folder that is not a git repository give status 2 with no call, and `FEATURE=F0004` with no module gives status 0 with no call.
+     - Both sides of the `origin/main` choice in `make secrets` are tested: on main or with no origin it reads every tracked file, on a branch only the changed files. The exclusion of `uv.lock` and `.secrets.baseline` is checked in the main row.
+     - The test harness follows the Interface: `run_process`, stderr merged, the six variables dropped from the environment, and the stand-in in `tmp_path/bin` renamed to `uv`. It reuses the existing `run_git`, `write_files`, `commit_all` and `write_stand_in`/`read_calls`, so no helper is duplicated.
+     - The `tests/test_claude_files.py` change is exactly the one FEATURE decision 49 allows: the rename, the new file list with the `Makefile` check, and the two bullets in `TEMPLATE_RULES_LINES`.
+   - **Checks.** The coder's entry records `make check: check: green` and `duplicates: 0 new`.
+   - **Architecture.** Nothing under `src/factory` changes, and the new test module sits at the `tests/` root, which fits a module outside the layers.
+   - **Security.** The diff adds no suppression marker and no secret.
+   - **Ticket hygiene.** The log's main decision is stated: the texts were copied by script rather than retyped. `Assignment` matches what was built. Criterion 13 (docs) still describes what the docs stage must write.
+
+   One thing to know about the diff, not a finding against this story:
+   - The diff also shows `image/Dockerfile` and `docs/operator-guide.md` (the Claude Code pin `2.1.296`, the base image digest and the Debian package pins). Those changes come from the human's own commit b642dd31 on this branch, not from the coder.
+   - The documenter should know that the operator guide already changed on this branch before adding criterion 13's sentence about the template.
