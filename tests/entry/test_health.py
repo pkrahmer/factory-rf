@@ -26,13 +26,13 @@ def _write(state_directory: Path, *stops: RepositoryStop) -> None:
     JsonHealthStatusFile(state_directory / "health.json").write(HealthStatus(stops=list(stops)))
 
 
-def test_a_state_directory_without_a_health_file_is_healthy(
+def test_a_state_directory_without_a_health_file_is_not_healthy(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     status = main(["--state-directory", str(tmp_path)])
 
-    assert capsys.readouterr().out == "healthy\n"
-    assert status == 0
+    assert capsys.readouterr().out == f"no health status: {tmp_path}/health.json is missing\n"
+    assert status == 1
 
 
 def test_one_stop_prints_its_line_and_returns_one(
@@ -107,8 +107,7 @@ def test_the_module_run_as_a_process_exits_with_the_health_status(
 ) -> None:
     state = tmp_path / "state"
     state.mkdir()
-    if stops:
-        _write(state, *stops)
+    _write(state, *stops)
 
     result = run_process(
         ProcessRequest(

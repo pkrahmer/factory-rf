@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 176
 blocked: null
 comments_seen: 0
@@ -54,3 +54,18 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
    - Demo: runnable as written; its `Expect:` line (two lines, the path with the temporary folder masked, then `1`) can be checked against the output.
    - Architecture: the change stays in `factory.entry`, which wires, and uses the existing store behind its interface. No new dependency or layer change.
    - Scope: within F0012 scope item 1.10 and decisions 29 and 43. The two earlier tests that change are named, with the human's leave.
+3. tester: red tests for the missing health file, one test per criterion.
+   - criterion 1: tests/entry/test_health_missing.py::test_only_a_missing_health_file_is_not_healthy (rows missing → `no health status: <folder>/health.json is missing`, 1; empty status → `healthy`, 0; `not json` → `healthy`, 0)
+   - criterion 2: tests/entry/test_health_missing.py::test_a_given_store_is_read_when_the_state_directory_has_no_health_file
+   - criterion 3: tests/entry/test_health_missing.py::test_the_module_run_as_a_process_exits_one_without_a_health_file
+   - criterion 4: tests/entry/test_run_health_file.py::test_run_instance_writes_an_empty_health_status_only_when_there_is_none (rows missing → the file exists and reads `HealthStatus()`; a `fetch_failed` stop already written → still there after the start, with `should_stop` true so no tick runs)
+   - criterion 5: tests/entry/test_run_health_file.py::test_run_instance_writes_the_health_file_before_it_reads_the_token_file
+   - criterion 6: tests/entry/test_run_health_file.py::test_run_instance_on_a_state_directory_that_is_a_file_raises_and_clones_nothing
+   - Interface `health_file`: tests/entry/test_health_missing.py::test_the_health_file_lies_in_the_state_directory (`<dir>/health.json`)
+   - Two earlier tests changed by the human's leave (FEATURE decision 43), as the Interface describes, and nothing else in that file: in tests/entry/test_health.py, `test_a_state_directory_without_a_health_file_is_healthy` is renamed to `..._is_not_healthy` and now expects the criterion 1 line and status 1. In `test_the_module_run_as_a_process_exits_with_the_health_status`, the row without stops now writes an empty status first (`_write` always runs).
+   - Files created: tests/entry/test_health_missing.py and tests/entry/test_run_health_file.py. test_run_health_file.py has its own `settings` fixture with the same shape as test_run.py's, because that fixture lives in test_run.py and I may not change that file. The fakes (`hosting`, `remote`, `agent_home`) come from conftest.
+   - One `make test` run: both new modules fail at import, because the test runner could not import `health_file` from `factory.entry.wiring`. `test_a_state_directory_without_a_health_file_is_not_healthy` fails on the wrong result. `make lint` is green. I did not run the type check, as this stage says.
+   - Criterion 6 may already raise `OSError` before the change, from the later writes in the state directory. Its test pins the outcome, not the order. Criterion 5 is the test that pins the order.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_run_health_file.py - ImportError while importing test ...
