@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 158
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The fault of an unreadable pipeline definition on one line
@@ -125,3 +125,7 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: Findings (group 1, acceptance criteria and the Interface's rules):
+
+   1. `src/factory/adapters/pipeline_yaml.py`, `yaml_fault`, the two `error.problem` branches: these break the Interface rule "The fault never contains a line break". ruamel's duplicate-key problem includes the values (`with value "{value}" (original value: "{mk}")`, `ruamel/yaml/constructor.py:266`). So if a repeated key has a multi-line string value, the line break ends up in the fault. I fed the reader `a: 1\na: |\n  x\n  y\n` and the fault was `not valid YAML: found duplicate key "a" with value "x\ny\n" (original value: "1") (line 2, column 1)`, which is several log lines again. The coder's entry says "No ruamel problem text does that today", and that is wrong. Fix: put the problem on one line before using it, e.g. replace each `\n`/`\r` with an escaped `\n` or collapse the whitespace. The Interface doesn't say which form to use; if you don't want to pick one, end with `question`.
+   2. Story gap for the human: the rule "The fault never contains a line break" has no criterion for its failing side, a `problem` that itself holds a line break. Criterion 6 only checks the five texts, and none of their problems contain a line break. A criterion is needed (e.g. a repeated key with a block-scalar value gives a fault with no `\n`/`\r`, in a stated form), and so is the tester's row for it. That's a test change, so it goes through the human's answer and `tests` (R9).
