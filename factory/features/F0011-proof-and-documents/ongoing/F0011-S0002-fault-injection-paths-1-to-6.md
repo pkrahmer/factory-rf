@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 146
 blocked: null
 comments_seen: 0
@@ -134,3 +134,18 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
       - Not touched: the docs criterion (13) is the documenter's work.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read every test in `tests/test_fault_paths.py`, `tests/domain/test_fault_paths.py` and `tests/test_fault_path_names.py` against its criterion, and each test checks what its criterion says.
+        - Criteria 1, 3 and 4: one kill each at the stated point, the clock advanced by `KILL_TO_RERUN`, then `restart`. The post count, state tuple, journal kinds, ancestor checks and runtime requests are asserted as stated.
+        - Criteria 5 and 7: the state is asserted after the stall tick and again after the move-back tick, and criterion 7 also checks that the cost sidecar has a record with `end_reason == "time_limit"` and `cost_usd is None`.
+        - Criterion 6: `AFTER_PUSH` is armed with `after=1`. The test asserts the round, the crash count, a single documenter `result` record and a single request to the restarted runtime.
+        - Criterion 2: one parametrized test with two rows, `Expect:` kept and `Expect:` blanked, so both sides of the rule are covered.
+        - Criterion 8 pins all six rows exactly, and criterion 9 checks the case ids against `KILL_POINT_CASES`.
+        - Criterion 10 covers all three rejections: frozen assignment through `setattr` with the field name in a variable, and an unknown key and `number="one"` as parametrized rows built through `type[BaseModel]`, next to a valid build.
+        - Criterion 11 reads the function names with `ast` and checks the 90-character limit. The limit is a property of the rows, not a model validation, so it has no refused side to test.
+        - The coder's entry reports `make check` green, with 99.55 % coverage.
+      - Helpers: `drive_to` and `timed_out` in `tests/proof_support.py` match the Interface. The Makefile is pushed only when `main` differs, and the queued run writes `tests/test_example.py` for `tests` and `src/example.py` for `doing`. The `approval` stop uses `handed_over`, and `timed_out` sets `end_reason="time_limit"`, no decision or entry, and 40 minutes. Renaming `_tick_until_killed` to `tick_until_killed` reuses the existing helper rather than adding a second copy, and `branch_cost_records` reuses `_costs`.
+      - Architecture: `src/factory/domain/fault_paths.py` is a pure domain DTO with no I/O. It has the same frozen, closed, module-level tuple shape as `KILL_POINT_CASES`.
+      - Security: nothing in the diff calls processes, builds SQL or handles secrets, and no suppression markers were added.
+      - Quality: the module and class docstrings are present. The comment above `FAULT_PATHS` explains why the case and the crash charge may differ, and there is no dead code.
+      - Ticket hygiene: the coder's entry records the main decision and the alternative it rejected (no validator against `KILL_POINT_CASES`). `Assignment` matches what was built, and criterion 13 still tells the documenter what to write.
