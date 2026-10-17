@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 196
 blocked: null
 comments_seen: 4
-round: 0
+round: 1
 attempts: 0
 ---
 # The agent run gets its login token from a file
@@ -248,3 +248,6 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. reviewer: Groups 1 to 3 pass. Each of criteria 1 to 14 has a test that checks what its criterion says, and criterion 15's pinned modules are unchanged. The coder's entry 10 reports `make check` green. The Claude Code name stays in `factory.adapters`. `LOGIN_SCRIPT` is built only from module constants. The login file goes to the shell as a positional argument and never into the script's text, and the token appears in no argv. The PLR0913 exception is the human's own change on `main` (entry 9), and the diff adds no suppression marker. Group 4 has one finding:
+
+    1. `src/factory/adapters/claude_runtime.py` `_login_refusal`: its loop `for line in process.stderr.splitlines(): if line.startswith(LOGIN_PREFIX)` is a second copy of `_sudo_line`, which scans stderr for the first line starting with `SUDO_PREFIX`. CLAUDE.md counts a second copy of an existing helper as a finding. Fix: turn `_sudo_line(stderr)` into one helper that takes the prefix, for example `_line_starting(stderr, prefix) -> str | None`. Call it from `_sudo_refusal` with `SUDO_PREFIX`, and from `_login_refusal` with `LOGIN_PREFIX`, which then strips the prefix from the line it gets back. No test changes.
