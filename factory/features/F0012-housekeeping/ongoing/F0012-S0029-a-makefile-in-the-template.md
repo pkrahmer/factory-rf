@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 180
 blocked: null
 comments_seen: 0
 round: 0
@@ -181,3 +181,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `template/Makefile` is given as exact text, and the two replacement bullets for `template/CLAUDE.md` *Checks* are exact text. The test changes in `tests/test_claude_files.py` are named (the one rename, the new `TEMPLATE_RULES_LINES` bullets), with the human's leave in FEATURE decision 49. The new test module and its stand-in harness are specified concretely: `run_process`, `write_stand_in`, `read_calls`, the cleaned environment, and how `origin/main` is set up.
+   - Criteria: 13 criteria. Each is testable by one function or one parametrized test, and the row counts add up (13 header names, 6 targets × 2 sides = 12 rows, 5 for secrets, 4 for duplicates, 4 for mutants). Every behaviour the Interface comments state has a criterion: the timed last line, exit status 5 on an empty project, secrets over the changed files with the `uv.lock` and baseline exclusion, the duplicates count lines, mutants by commit subject (both the `work item` and the squash-merge forms) and by acceptance branch. Every rule has its failing side: a stand-in that exits 1 (and called exactly once), a secret found, vulture status 1, pylint failing, and mutants with no FEATURE, with a story branch, and outside a git repository.
+   - Demo: all three commands are runnable. The `mutants` run with no FEATURE on a ticket branch gives status 2 and the stated line. `lint` runs for real over this repository, which `make lint` already keeps clean. The pytest line is checkable. Every Expect line says something the output can be checked against.
+   - Architecture: the change only adds a file under `template/` (inside the coder's write paths) and a tests module at the `tests/` root, where a module outside the layers belongs. No `src/factory` module changes, so the layering is not touched. Layers stay a project placeholder, as CLAUDE.md R8 requires.
+   - Scope: this is the "What v1.1 ships to new projects" item of FEATURE.md's Scope. Its dependency on S0030 is stated in the story and in FEATURE decision 51. `documents` and the baseline comparison are left out, with reasons in decisions 50 and 53. None of it falls under Out of scope.
