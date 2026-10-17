@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 159
 blocked: null
 comments_seen: 0
@@ -118,3 +118,19 @@ Expect: a number of at least 5, one test function per call.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their expectations; no findings.
+
+   Command 1: `uv run pytest --no-header -p no:cacheprovider tests/application/test_no_state_refusals.py`
+   ```
+   ......                                                                   [100%]
+   6 passed in 0.31s
+   ```
+   Met: the last line is `6 passed in 0.31s`, and the expectation asks for at least 6 (the five calls plus the second row of criterion 2).
+
+   Command 2: `grep -c "def test_" tests/application/test_no_state_refusals.py`
+   ```
+   5
+   ```
+   Met: 5, one test function per call.
+
+   Criteria check: the demo contradicts no criterion. Criteria 1 to 5 are pinned by the 6 passing cases, as the tester's entry maps them. Criterion 6 (`make check` green) is the factory's own gate after this stage. Criterion 7 (docs: none) is consistent with the diff, which adds only the test module.
