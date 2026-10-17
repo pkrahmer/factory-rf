@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 147
 blocked: null
 comments_seen: 2
@@ -34,7 +34,7 @@ The rows of this story, after the six of F0011-S0002, in number order. `case` is
 def work_item_file(world: World, work_item: WorkItemId) -> str: ...
 ```
 
-- `work_item_file` is the path of the work item's file on `origin/<branch>`: the one file of `Git.list_files("origin/<branch>", "factory/features/F0001-example/in-progress")` whose name starts with the work item's id.
+- `work_item_file` is the path of the work item's file on `origin/<branch>`: the one `.md` file of `Git.list_files("origin/<branch>", "factory/features/F0001-example/in-progress")` whose name starts with the work item's id.
 
 How the paths treat the numbers of the pipeline fixture: `round_cap` is 3 at `review`, `docs` and `smoke-test`; `attempts_cap` is 2; `ERROR_CAP` is 3. In every path test the clock is advanced by `KILL_TO_RERUN` between a kill and the restart; "the restarted runtime" is the `agent_runtime` of the world returned by `restart`; "the pull request" is `pull_request_of(world, work_item)`; the work item is the one `start_story` returned; a run queued for a tick that is said to raise at `AGENT_RUN` carries `kill=True`.
 
@@ -141,3 +141,12 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    Refactor: nothing to refactor; the diff is seven data rows.
    Not touched: `tests/test_fault_path_names.py` still checks only the first six rows (the tester noted this too).
 5. human (pull request comment, 2026-10-17): (a). The tester narrows both selections to the work item's Markdown file: `tests/proof_support.py::work_item_file` and `tests/test_fault_paths_7_to_13.py::_booked` take the one `.md` file whose name starts with the id, so the `.costs.jsonl` sidecar is not counted; `src/` stays. The Interface's sentence for `work_item_file` reads "the one `.md` file … whose name starts with the work item's id".
+6. coder: the human answered (a), so this goes back to the tester for two test changes. `src/` stays as it is.
+
+   Test changes for the tester: in `tests/proof_support.py::work_item_file` and `tests/test_fault_paths_7_to_13.py::_booked`, select only the one file whose name starts with the id and ends in `.md`. That way the `.costs.jsonl` sidecar no longer makes the match ambiguous.
+
+   Ticket: I changed the Interface sentence for `work_item_file` to read "the one `.md` file of `Git.list_files(...)` whose name starts with the work item's id", as the human stated. The Assignment's meaning is unchanged, so I did not rewrite it.
+
+   State: rows 7 to 13 are already in `src/factory/domain/fault_paths.py` (commit e6207f4). Last round I tried the `.md` narrowing in the working tree only and restored the tests afterwards. With it, all 11 tests of the three new modules passed. After the tester's change I expect `make check` to be green with no further change under `src/`.
+
+   Still open: `tests/test_fault_path_names.py` checks only the first six rows. I have not touched it.
