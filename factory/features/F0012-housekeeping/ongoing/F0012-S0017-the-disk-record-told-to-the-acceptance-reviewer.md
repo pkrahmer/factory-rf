@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 168
 blocked: null
 comments_seen: 0
@@ -93,3 +93,11 @@ Expect: two lines: `Disk now: disk acceptance: /work 1.0 GB free, 0.1 GB used` a
    - Security: nothing relevant. No suppression markers.
    - Quality: the docstrings of `AcceptanceFacts` and `lines()` were updated. `NONE_TEXT` is reused. The comment explains why the read comes before the record. The coder's entry reports `make duplicates` as 0 new.
    - Hygiene: the coder's entry reports `make check` green. The log records the decision to pass strings rather than `DiskRecord` objects, and the rejected alternative. Criterion 8 still describes what the documenter must write.
+6. documenter: wrote the two documents criterion 8 names; no findings.
+   - `docs/operator-guide.md`: in "When a feature acceptance is due", a paragraph says the acceptance reviewer's prompt carries `Disk now` and `Disk at the previous record` (the latest earlier record of any occasion, or `none`). It also says the report compares them and that the lines are left out without the disk, the records or the settings.
+   - `docs/project-guide.md`: in "The feature acceptance", "The reviewer's facts" names the `disk_now` and `disk_before` fields, the order of `last()` then `record("acceptance")`, the two added lines, the `acceptance_facts` keywords and the reviewer's comparison sentence.
+   - Checked: `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, since I changed only docs. The diff matches the Interface and criteria, so there are no findings for the coder.
+   - Cross-read: the rest of both guides is unaffected by this diff. I saw nothing stale.
+
+   `make check`: check: green
+   `make documents`: documents ok
