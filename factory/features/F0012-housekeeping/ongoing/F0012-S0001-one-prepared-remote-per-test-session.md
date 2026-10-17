@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 153
 blocked: null
 comments_seen: 0
@@ -79,3 +79,32 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    - Demo: both commands are runnable. Each Expect line names an output that can be checked: the last line `<n> passed` with no failed, error or skipped count, and one line reporting `passed` with no `failed` or `error`.
    - Architecture: test support under `tests/` only, with nothing under `src/`. It follows CLAUDE.md: real git, no faked git, and fixtures in `tests/conftest.py`.
    - Scope: it matches FEATURE.md item 1.1 ("one prepared git remote copied per test (S0001)"). Decision 32 grants the leave to change the three helper files. Nothing in "Out of scope" is touched.
+3. tester: I wrote the helper, the fixtures and the tests, all under `tests/`. The suite is green, not red: the story is test support only, so the code the tests exercise lives in `tests/` and is already there. `make test` passes in 34.8 s with 99.53 % coverage. `make lint` and `make types` are green too.
+   - Helper: `tests/git_support.py::copy_remote(template, root)`. It first refuses a `root` that holds `seed` or `remote.git` with `FileExistsError`, before it creates or copies anything. Then it runs `mkdir(parents=True, exist_ok=True)` and `shutil.copytree(..., symlinks=True)` on `seed/` and `remote.git/`. No git process runs.
+   - Fixtures in `tests/conftest.py`:
+     - new session-scoped `remote_template`, which is `make_remote(tmp_path_factory.mktemp("remote-template")).parent`;
+     - `remote` is now `copy_remote(remote_template, tmp_path / "origin")`;
+     - `world` is now `build_world(tmp_path, template=remote_template)`.
+   - `tests/proof_support.py::build_world(root, *, template=None)` copies the template when one is given and calls `make_remote` otherwise.
+   - New module `tests/test_git_support.py`. Every test except the `remote` fixture test uses its own `template` fixture, built with `make_remote(tmp_path / "template")`, and pushes are real git. I did not use `commit_all`; the commit in `_push_commit` uses `run_git`.
+
+   Criterion → test:
+   - criterion 1: tests/test_git_support.py::test_copy_is_a_bare_remote_at_the_templates_main
+   - criterion 2: tests/test_git_support.py::test_clone_of_the_copy_holds_exactly_the_remote_files
+   - criterion 3: tests/test_git_support.py::test_push_to_the_copy_leaves_the_template_alone and ::test_push_to_the_template_leaves_the_copy_alone (one test per direction)
+   - criterion 4: tests/test_git_support.py::test_copy_creates_its_root_and_refuses_one_already_filled. Four rows: a root two levels deep that does not exist, an empty root, a root holding `remote.git`, a root holding `seed`. The refused rows check that the existing folder keeps only its marker file and the other folder is not created.
+   - criterion 5: tests/test_git_support.py::test_copy_runs_no_git (`PATH` is an empty folder inside `monkeypatch.context()`, and `main` is checked after `PATH` is restored)
+   - criterion 6: tests/test_git_support.py::test_remote_fixture_is_a_copy_of_the_session_template
+   - criterion 7: tests/test_git_support.py::test_world_with_a_template_copies_its_remote and ::test_world_without_a_template_makes_its_own_remote
+   - criteria 8 and 9 have no tests: 8 is the `make check` gate and 9 is for the documenter.
+
+   Rejected: a parametrized test for criterion 7. Its two sides assert different things (the template's commit versus `REMOTE_FILES`), so they are two functions.
+
+   Files: created `tests/test_git_support.py`; changed `tests/git_support.py`, `tests/conftest.py` and `tests/proof_support.py`.
+
+   Unimportable modules: none.
+
+   Open for the coder: nothing under `src/` is expected to change; confirm `make check`.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (32.5 s)

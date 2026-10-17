@@ -39,6 +39,7 @@ from git_support import (
     PIPELINE_YAML,
     TEST_IDENTITY,
     clone,
+    copy_remote,
     install_agents,
     make_remote,
     run_git,
@@ -185,9 +186,15 @@ def _git(root: Path, kill_points: KillPoints) -> GitCli:
     return GitCli(root / CHECKOUT, options)
 
 
-def build_world(root: Path) -> World:
-    """Build one world under `root`: remote, checkout, fakes, clock, agents and the human."""
-    remote = make_remote(root / "origin")
+def build_world(root: Path, *, template: Path | None = None) -> World:
+    """Build one world under `root`: remote, checkout, fakes, clock, agents and the human.
+
+    With a `template` that `make_remote` filled, the remote is a copy of it; no git runs for it.
+    """
+    if template is None:
+        remote = make_remote(root / "origin")
+    else:
+        remote = copy_remote(template, root / "origin")
     clone(remote, root / CHECKOUT)
     kill_points = KillPoints()
     definition = RuamelPipelineDefinitionReader().parse(PIPELINE_YAML)

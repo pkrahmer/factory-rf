@@ -1,6 +1,7 @@
 """Helpers for tests against real git: isolated runs, stand-in executables, the remote."""
 
 import os
+import shutil
 import sys
 from collections.abc import Iterable
 from pathlib import Path
@@ -120,6 +121,22 @@ def make_remote(root: Path) -> Path:
     remote = root / "remote.git"
     run_git(seed, "push", "-q", str(remote), "main")
     return remote
+
+
+def copy_remote(template: Path, root: Path) -> Path:
+    """Copy the folder `template`, which `make_remote` filled, into `root`.
+
+    Return `root / "remote.git"`. A `root` that already holds `seed` or `remote.git` is refused.
+    """
+    folders = ("seed", "remote.git")
+    for name in folders:
+        if (root / name).exists():
+            raise FileExistsError(root / name)
+    root.mkdir(parents=True, exist_ok=True)
+    for name in folders:
+        # symlinks=True keeps git's own links as links instead of following them.
+        shutil.copytree(template / name, root / name, symlinks=True)
+    return root / "remote.git"
 
 
 def write_executable(directory: Path, body: str) -> Path:
