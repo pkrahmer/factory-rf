@@ -1,5 +1,5 @@
 # The factory's container: Docker restarts it and reads its health from the stops in force.
-name: factory
+name: factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}
 services:
   factory:
     build:
