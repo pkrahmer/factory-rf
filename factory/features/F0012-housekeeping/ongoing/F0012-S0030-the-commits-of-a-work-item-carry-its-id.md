@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 179
 blocked: null
 comments_seen: 0
@@ -82,3 +82,9 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Criteria: criterion 1 is covered by the three changed assertions in `tests/application/test_claims.py`. Criterion 2 is covered by `test_the_commit_of_a_stage_end_carries_the_work_item_prefix` in `tests/application/test_stage_finish.py`, whose three rows (forward, sent-back, question) compare against literal subjects. Criterion 3 is covered by `test_the_stall_commit_carries_the_work_item_prefix` in `tests/application/test_stalls.py`. It has two rows, and the agent-commit row also checks that the agent's commit directly below keeps its own subject. Criterion 4 is covered by `test_the_opening_commit_carries_the_work_item_prefix` in `tests/application/test_acceptance_service.py`. The new tests use their modules' own helpers (`_aftermath`/`_finish`, `_started`/`_context`/`_stall`, `_push_todo`/`_service`) and copy no helper. For criterion 5, the diff leaves `commit_subject` and the handler tests untouched. The rule has no rejected input, so there is no failing side to test. The coder's entry says `make check` was green.
+   - Architecture: the four call sites in `claims.py`, `stage.py`, `stalls.py` and `acceptance.py` import `commit_subject` from `factory.application.handlers.recording`. That module imports only `boundaries`, `git` and domain modules, so no cycle arises. Every change stays in `factory.application`. `grep 'git.commit(' src/factory` shows the subjects of all four commits built by `commit_subject`. `stage.py:359` passes on the message that `finish` builds with it, and `recording.py` is unchanged.
+   - Security: nothing relevant changed. No markers were added and no strings reach a shell.
+   - Quality: the new `_work_item_id` in `claims.py` takes the file-name parse out of `_own_branch` and is used by both, so the parse is not duplicated. Names are clear and there is no dead code.
+   - Hygiene: the coder's entry names the main decision and the rejected alternative (adding the prefix in `_commit_and_push` or in the `Git` wrapper). `Assignment` matches what was built. Criterion 7 still describes what the documenter must write.
