@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 192
 blocked: null
 comments_seen: 4
@@ -305,3 +305,18 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. reviewer: no findings.
+
+    I read the diff (`git diff main...HEAD -- . ':!factory'`, 13 files) against the Interface and criteria 1 to 17. I did not trust the log's own account.
+
+    - Acceptance criteria: each of criteria 1 to 15 has a test that checks what the criterion says. Criteria 2 and 3 are rows of one parametrized test. The four rows of criterion 6 and the eight of criterion 7 compare every mode under `tmp_path` before and after the call. The exact `str(error)` is tested for `0o2770`. Criterion 8 covers both `seal` and `check_seal`, plus the repository above. The `parent-of-parent` and `empty` rows of criterion 15 would fail if `GitOptions.environment` could lift the ceiling: git would then find `tmp_path/.git`. The `0o022` limit of `check_seal()` is tested on both sides: `2750`/`750` pass, while `2770` (group) and `757` (others) are refused. The failing sides of the Interface's rules are tested: missing, symbolic link, file, another user, no `HEAD`, a folder that cannot be listed, a discard that cannot remove, and a failed check that leads to a new clone or to the `repository_unavailable` stop. Root-only cases are skipped for root as `test_tick.py` does, and their modes are restored. The four changes to earlier tests are exactly the ones FEATURE decision 23 allows. The coder's entry 10 records `check: green` and `duplicates: 0 new`.
+    - Architecture: `RepositoryUnsealed` is in the domain. The three abstract operations on `Git` have docstring-only bodies. The implementations are in `GitCli` and start no process. The preparer stays in the application layer. Its `os.path.lexists` is a file-system check like the `Path.exists` it replaces, not a tool. `run.py` does the wiring. No `dict[str, Any]` crosses a boundary.
+    - Security: there are no suppression markers. `_close` uses `lstat` and skips symbolic links, and `os.walk` does not follow them. The folder's owner is checked before any change, which the another-user row with a `0o666` file confirms. `onerror` raises, so a folder that cannot be listed is not silently skipped. The ceiling comes after `**self._options.environment`. A `.git` that is not closed is discarded, never repaired.
+    - Quality: `seal` and `check_seal` share one `_check_git_folder`, so they refuse the same cases. The comments say why: the ceiling, the walk's `onerror`, and why the preparer never repairs. The public names have docstrings.
+    - Ticket hygiene: the log gives the main decision (discard and clone again, never repair) and what was rejected. The Assignment matches what was built, including that until S0009 the seal holds only at the start of each iteration. The docs criterion still describes what the operator guide, the project guide and the decision log must say.
+
+    Considered and not raised:
+    - Criterion 8 tests a missing `HEAD` but not a `HEAD` that exists and is not a regular file. I count the empty folder as the failing side the story names.
+    - The test-local `RecordingLog` follows the pattern of three existing test modules.
+
+    Open: nothing.
