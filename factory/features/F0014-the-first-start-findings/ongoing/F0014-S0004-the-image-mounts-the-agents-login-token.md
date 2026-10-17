@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 197
 blocked: null
 comments_seen: 0
@@ -117,3 +117,27 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran all three commands. Each met its `Expect:` line, and none of the output contradicts an acceptance criterion.
+
+   1. Compose volumes (ruamel.yaml safe load of `image/compose.yml`):
+   ```
+   5
+   {'type': 'bind', 'source': './secrets/claude-token', 'target': '/home/agent/.claude-token', 'read_only': True, 'bind': {'create_host_path': False}}
+   /home/factory/.secrets/hosting-token
+   ```
+   Met: there are five entries. The fourth is the read-only bind mount of `./secrets/claude-token`, with its keys in the expected order and `create_host_path: False`. The hosting token's mount is still last. This agrees with criteria 3 and 5.
+
+   2. `grep -x "ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token" image/Dockerfile`:
+   ```
+   ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token
+   ```
+   Met: the line appears exactly once (criterion 1).
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_token_mount.py tests/test_compose.py tests/test_token_folder.py tests/test_image_credentials.py tests/test_compose_project.py`:
+   ```
+   .................                                                        [100%]
+   17 passed in 0.04s
+   ```
+   Met: 17 passed, with no failed, error or skipped count. These tests cover criteria 1–6: the ENV line's order, the variable name, the mount's key order and its target, the path-part checks, the volume order, and the credential and project-name tests that must still hold.
+
+   Findings: none. The demo did not exercise criteria 7–9 (comments, `make check`, docs). The earlier entries record them: the reviewer checked the comments, the coder and the documenter recorded `make check` green, and the documenter recorded `documents ok`.
