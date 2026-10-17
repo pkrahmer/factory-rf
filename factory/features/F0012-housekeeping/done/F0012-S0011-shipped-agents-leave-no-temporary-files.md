@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 163
 blocked: null
 comments_seen: 0
@@ -126,3 +126,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Criterion 4: `make check` is left to the factory's own check.
 
    Findings: none.
+8. done (pull request merged); cost: 6 runs, 3.1 min, 32 turns, 130k tokens in (331k more from cache), 9k out, $0.71
