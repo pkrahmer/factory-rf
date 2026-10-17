@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 194
 blocked: null
 comments_seen: 2
@@ -170,3 +170,31 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: three runnable commands, and each `Expect:` line can be checked against the output.
    - Architecture: the walk and the removal sit in the `GitCli` wrapper behind the `Git` interface, the stall in `application`, the stall reason and its text in `domain`, and the wiring in `entry`. This fits the four layers.
    - Scope: within F0014's scope, which lists S0010 and its modules. It touches nothing in "Out of scope". The five earlier tests it changes are covered by FEATURE decision 32.
+5. tester: Wrote the tests for every acceptance criterion and made the five changes to earlier tests that FEATURE decision 32 allows. `make lint` is green. `make test` is red on purpose: the new names (`remove_nested_repositories`, `SealedRun`, `LaunchedStage.nested_repositories`, the `nested_repository` stall reason, the fourth git config pair) do not exist yet. The red tests fail on a missing attribute or a wrong result, not on a collection error. Every module imports, because the only new names a test module imports from the code are the ones that already exist. `run_sealed(...).result` and `.nested_repositories` fail at run time.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks (now expects the nine entries, `GIT_CONFIG_COUNT` = `4`) and ::test_the_built_git_runs_with_the_git_options_of_the_settings (also asserts `GIT_CONFIG_KEY_3`/`VALUE_3`). Names unchanged.
+   - criterion 2: tests/entry/test_git_nested_repositories.py::test_a_nested_repositorys_fsmonitor_does_not_run_under_the_factorys_git (four rows: status / changed-paths × factory / plain).
+   - criterion 3: tests/adapters/test_git_cli_nested.py::test_remove_nested_repositories_removes_and_reports_each_nested_git_entry (rows nothing-nested, repository, gitdir-file, link-outside, two-levels, lookalikes, venv, closed-folder; closed-folder is skipped for root). Every row compares a snapshot of all of `tmp_path` before and after, so "only the reported entries are gone" covers the files that stay: `notes/sub/a.txt`, the link's target outside the checkout, the root's `.git`. Every row also checks `resolve("HEAD")`.
+   - criterion 4: tests/adapters/test_git_cli_nested.py::test_a_nested_repository_that_cannot_be_removed_raises_repository_unsealed
+   - criterion 5: tests/application/test_nested_repositories.py::test_run_sealed_reports_and_removes_the_nested_repositories (rows nested-and-completed, nothing-nested, nested-and-run-error, nested-and-unsealed, run-error-and-removal-fails; the last is skipped for root).
+   - criterion 6: tests/application/test_nested_repositories.py::test_a_stage_whose_agent_leaves_a_nested_repository_stalls (rows on-branch, left-branch-too). The left-branch-too row asserts the launch paths, the removal, the reason, the attempts and the marker. The note and the journal are asserted only in the on-branch row: criterion 6 asks only for the reason in its second row.
+   - criterion 7: tests/domain/test_stall_texts.py::test_each_stall_cause_is_its_sentence_alone_or_with_the_detail (new `SENTENCES` row after `merge_conflict`).
+   - criterion 8: tests/application/test_nested_repositories.py::test_a_probe_run_that_leaves_a_nested_repository_fails_the_item (rows nested-and-completed, nothing-nested, nested-and-died).
+   - criterion 9: tests/application/test_nested_repositories.py::test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout (rows nested, nested-without-log, nothing-nested).
+   - criterion 10: tests/application/test_nested_repositories.py::test_a_nested_repository_the_preparer_cannot_remove_makes_it_clone_again. Skipped for root. The log line is checked to start with `cloning the checkout again: seal failed (no exit status): <absolute locked/.git>: `, the `RepositoryUnsealed` detail form the Interface gives.
+   - criterion 11: no new test. The existing modules it lists still run. The approved edits are tests/application/test_git_interface.py (`OPERATIONS` adds `remove_nested_repositories`; the test is renamed to `..._twenty_three_...`), tests/application/test_interfaces.py (renamed to `..._twenty_three_operations`, body unchanged) and tests/application/test_sealed_runs.py (`run_sealed(...).result`).
+   - criterion 12: tests/application/test_nested_repositories.py::test_a_missing_checkout_is_cloned_without_a_search. `RecordingGit`, a `GitCli` subclass, counts calls of `remove_nested_repositories`.
+
+   Files created: tests/entry/test_git_nested_repositories.py, tests/adapters/test_git_cli_nested.py, tests/application/test_nested_repositories.py. Files changed: the five earlier tests above, and tests/git_support.py, which gains `write_fsmonitor(directory, marker)`. That helper is shared by the entry and application tests.
+
+   Why `write_fsmonitor` answers git's protocol (prints a token and `/`): with an empty answer, the nested child git writes "warning: Empty last update token." to stderr. `GitCli` merges stderr into stdout, so `changed_paths` failed to parse the diff (`ValueError` in `_changes_in_diff`) in the plain row, which is meant to show that the command is real. With a valid answer the plain rows pass, and the factory rows fail only because `core.fsmonitor=false` is not set yet. I found this with one diagnostic run of that module alone.
+
+   Reuse rather than copies: the stall test imports `_launch`, `_stalled`, `_note`, `_completed` from application.test_after_agent, and also `_pushed`, `_started_attempts`, `BRANCH` and `SwitchingRuntime`. `SwitchingRuntime` makes the branch check fail in the second row. The new nesting runtime wraps it, and `_launch` gets the replaced `Boundaries` with the `FakeAgentRuntime` as `agent_runtime=`. From application.test_checkout_preparer_seal the tests import `RecordingLog`, `_existing` and `_settings`. From application.test_sealed_runs they import `COMPLETED` and `_request`.
+
+   Already green before implementation, because the behaviour already holds: run_sealed nested-and-unsealed, probe nothing-nested, preparer nothing-nested, and the missing-checkout test.
+
+   Modules the test runner could not import: none. The red tests fail on `AttributeError` (`remove_nested_repositories`, `.result`, `.nested_repositories`) or on wrong values (the git environment, the stall sentence, the interface operation sets).
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks[/opt/other-helper-/opt/other-helper]

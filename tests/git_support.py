@@ -1,6 +1,7 @@
 """Helpers for tests against real git: isolated runs, stand-in executables, the remote."""
 
 import os
+import shlex
 import shutil
 import sys
 from collections.abc import Iterable
@@ -170,3 +171,18 @@ def write_agent(agent_home: Path, role: str, text: str) -> None:
     agents = agent_home / "agents"
     agents.mkdir(parents=True, exist_ok=True)
     (agents / f"{role}.md").write_text(text, encoding="utf-8")
+
+
+def write_fsmonitor(directory: Path, marker: Path) -> Path:
+    """Write a `core.fsmonitor` script that appends a line to `marker`; return its path.
+
+    It answers git's protocol with a token and "everything changed", so that git, which would
+    warn about an empty answer on its error output, writes nothing beside its own output.
+    """
+    path = directory / "fsmonitor.sh"
+    path.write_text(
+        f"#!/bin/sh\necho ran >> {shlex.quote(str(marker))}\nprintf 'token\\0/\\0'\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+    return path
