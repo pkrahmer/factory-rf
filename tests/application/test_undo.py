@@ -6,7 +6,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.adapters.claude_guard import judge
 from factory.application.boundaries import Boundaries
@@ -414,18 +413,3 @@ def test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed(
         _undo(boundaries, start)
 
     assert _text(boundaries, GUIDE) == AGENT_TEXT
-
-
-def test_the_undo_report_is_frozen() -> None:
-    report = UndoReport(reverted=[], deleted=[], restored_work_item=False)
-    field = "reverted"
-
-    with pytest.raises(ValidationError):
-        setattr(report, field, ["docs/a.md"])
-
-
-def test_the_undo_report_forbids_unknown_fields() -> None:
-    model: type[BaseModel] = UndoReport
-
-    with pytest.raises(ValidationError):
-        model(reverted=[], deleted=[], restored_work_item=False, extra=1)

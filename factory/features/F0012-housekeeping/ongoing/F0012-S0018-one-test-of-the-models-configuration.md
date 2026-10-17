@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 169
 blocked: null
 comments_seen: 2
@@ -75,3 +75,32 @@ Expect: the single line `status 1`.
    - Demo: both commands run as written. The first expects at least 100 passed, and 6 + 90 + 1 + 6 = 103 meets that. The second is a grep that should exit 1 and print `status 1`. Both `Expect:` lines can be checked against the output.
    - Architecture: this is a test-only change under `tests/` at the root, which is where CLAUDE.md puts a module outside the layers. Pydantic models and `Boundaries` (a dataclass) are separated correctly.
    - Scope: it is inside FEATURE 1.5 and decisions 25 and 39. The six exceptions match decision 25. Only the tests of `tests/adapters` and `tests/application` are removed here, and S0019 handles `tests/domain`.
+5. tester: Wrote `tests/test_model_configuration.py` and removed the 25 per-model tests listed in the Interface.
+
+   Criteria → tests:
+   - criterion 1: tests/test_model_configuration.py::test_the_rule_names_the_model_and_each_missing_setting (6 rows: closed, frozen-only, forbid-only, frozen-ignore, not-frozen-forbid, no-config). Each failing row checks that the fault contains the stand-in's `__name__` and every missing setting.
+   - criterion 2: tests/test_model_configuration.py::test_every_model_is_frozen_and_forbids_unknown_keys (one row per collected model outside the exceptions, id = dotted name)
+   - criterion 3: tests/test_model_configuration.py::test_the_collection_finds_every_model_and_nothing_else
+   - criterion 4: tests/test_model_configuration.py::test_each_exception_is_a_model_that_ignores_unknown_keys (6 rows)
+   - criterion 5: done by removal. The 25 functions are gone from the 17 modules. A grep for the Demo's three names finds nothing (`status 1`). The rest of those modules passed in `make test`.
+   - criteria 6 and 7: not tests. Criterion 6 is the coder's `make check`; criterion 7 is for the docs stage.
+
+   Module contents: the module holds the rule `closed_fault(model) -> str | None` and the `EXCEPTIONS` list (the six dotted names). `MODELS` is collected through `pkgutil.walk_packages(factory.__path__, prefix="factory.")`. It keeps every `BaseModel` subclass whose `__module__` is the module being walked, private ones included.
+
+   Removal and cleanup:
+   - The functions were removed with their decorators.
+   - The imports that only they used were removed with `ruff --select F401 --fix`, and `ruff format` was run on the changed files.
+   - `tests/application/test_bill_service.py` got its import block re-sorted.
+   - The helper `_prepared` in `tests/application/test_opening.py` was used only by the removed tests, so it went too.
+   - No other helpers, fixtures or constants were left without a use by this change. `_agents` in `tests/application/test_tick.py` is a fixture that was already not referenced by name before this change, so I left it alone.
+
+   Files:
+   - created: tests/test_model_configuration.py
+   - changed: tests/adapters/{test_claude_guard,test_fake_agent_runtime}.py, tests/application/handlers/{test_comments,test_recording}.py, tests/application/{test_acceptance_service,test_after_agent,test_bill_service,test_board_reader,test_claims,test_costs,test_opening,test_stage_finish,test_stage_launch,test_stalls,test_task,test_tick,test_undo}.py
+
+   Test run: as the Assignment expected, `make test` was green (`test: green`, coverage 99.51%) and there are no red tests. All the modules imported. After that run I made two lint-only edits: `ids=str` in place of a lambda, and the import sort. `make lint` is green.
+
+   For the coder: no production code is needed. Run `make check` and say so.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (25.4 s)

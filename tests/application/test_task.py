@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.application.boundaries import Boundaries
@@ -363,18 +363,3 @@ def test_task_context_holds_the_pull_request_limit_on_both_sides(
     else:
         with pytest.raises(ValidationError):
             TaskContext.model_validate(values)
-
-
-def test_task_context_is_frozen(tmp_path: Path) -> None:
-    context = TaskContext.model_validate(_context_values(tmp_path))
-    field = "branch"
-
-    with pytest.raises(ValidationError):
-        setattr(context, field, "work-item/F0001-S0009")
-
-
-def test_task_context_refuses_an_unknown_key(tmp_path: Path) -> None:
-    model: type[BaseModel] = TaskContext
-
-    with pytest.raises(ValidationError):
-        model(**_context_values(tmp_path), colour="red")

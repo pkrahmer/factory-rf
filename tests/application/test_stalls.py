@@ -577,23 +577,3 @@ def test_a_stall_result_refuses_a_count_below_one_and_a_short_commit_id(
 ) -> None:
     with pytest.raises(ValidationError):
         _result(**{field: value})
-
-
-def test_stall_results_and_contexts_are_frozen_and_forbid_unknown_keys() -> None:
-    result = _result()
-    context = StallContext(
-        work_item=WORK_ITEM, stage="tests", branch=BRANCH, path=PATH, stage_start=None
-    )
-    result_model: type[BaseModel] = StallResult
-    context_model: type[BaseModel] = StallContext
-    reason_field = "reason"
-    branch_field = "branch"
-
-    with pytest.raises(ValidationError):
-        setattr(result, reason_field, "budget")
-    with pytest.raises(ValidationError):
-        setattr(context, branch_field, "other")
-    with pytest.raises(ValidationError):
-        result_model(**dict(result), unknown=1)
-    with pytest.raises(ValidationError):
-        context_model(**dict(context), unknown=1)

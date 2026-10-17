@@ -2,13 +2,10 @@
 
 from pathlib import Path
 
-import pytest
-from pydantic import BaseModel, ValidationError
-
 from bill_support import completed_records, sidecar_text
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.adapters.git_cli import GitCli
-from factory.application.costs import BillService, WorkItemBill
+from factory.application.costs import BillService
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.identifiers import branch_name
 from factory.domain.paths import cost_records_path
@@ -135,29 +132,3 @@ def test_in_flight_lists_the_work_item_branches_in_work_item_order(
     checkout.fetch()
 
     assert _service(checkout).in_flight() == ["F0001-S0001", "F0001-S0002", "F0001-A0001"]
-
-
-def test_a_work_item_bill_is_frozen() -> None:
-    field = "line"
-    result = WorkItemBill(
-        work_item=WORK_ITEM,
-        total=bill([]),
-        stages=[],
-        line=cost_line(bill([])),
-        table=cost_table([]),
-    )
-    with pytest.raises(ValidationError):
-        setattr(result, field, "changed")
-
-
-def test_a_work_item_bill_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = WorkItemBill
-    with pytest.raises(ValidationError):
-        model(
-            work_item=WORK_ITEM,
-            total=bill([]),
-            stages=[],
-            line=cost_line(bill([])),
-            table=cost_table([]),
-            colour="red",
-        )

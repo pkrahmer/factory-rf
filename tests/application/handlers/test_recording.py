@@ -4,7 +4,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -150,18 +149,3 @@ def test_publish_raises_push_failed_when_the_push_does_not_reach_the_remote(
     assert raised.value.outcome == outcome
     if outcome == "rejected":
         assert remote_commit(remote, work_item.branch) == human_head
-
-
-def test_a_target_is_frozen_and_forbids_unknown_keys(
-    snapshot_of: SnapshotOf, state_with: StateWith
-) -> None:
-    state = state_with(5)
-    snapshot = snapshot_of(state)
-    target = Target(snapshot=snapshot, state=state, pull_request=5)
-    model: type[BaseModel] = Target
-    field = "pull_request"
-
-    with pytest.raises(ValidationError):
-        model(snapshot=snapshot, state=state, pull_request=5, extra="unknown")
-    with pytest.raises(ValidationError):
-        setattr(target, field, 6)

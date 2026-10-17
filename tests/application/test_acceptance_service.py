@@ -347,11 +347,3 @@ def test_the_opened_acceptance_is_closed_and_typed(
     else:
         with pytest.raises(ValidationError):
             model(**complete)
-
-
-def test_the_opened_acceptance_refuses_an_assignment() -> None:
-    opened = OpenedAcceptance(id=ACCEPTANCE, branch=BRANCH, path=REPORT, commit="a" * 40)
-    field = "branch"
-
-    with pytest.raises(ValidationError):
-        setattr(opened, field, "work-item/F0002-A0002")

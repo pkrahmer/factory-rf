@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.adapters.clock import ManualClock
 from factory.adapters.git_cli import GitCli
@@ -377,23 +377,6 @@ def test_claim_on_a_new_branch_commits_the_uncommitted_opening_on_main(
     assert pushed.state is not None
     assert pushed.state.claim == start.claim
     assert boundaries.git.resolve(f"origin/{BRANCH}") == start.commit
-
-
-def test_stage_start_is_frozen(clock: ManualClock) -> None:
-    claim = Claim(instance=INSTANCE, stage=STAGE, started_at=clock.now(), lease_duration=60)
-    start = StageStart(commit="a" * 40, claim=claim)
-    field = "commit"
-
-    with pytest.raises(ValidationError):
-        setattr(start, field, "b" * 40)
-
-
-def test_stage_start_forbids_an_unknown_field(clock: ManualClock) -> None:
-    claim = Claim(instance=INSTANCE, stage=STAGE, started_at=clock.now(), lease_duration=60)
-    model: type[BaseModel] = StageStart
-
-    with pytest.raises(ValidationError):
-        model(commit="a" * 40, claim=claim, extra="unknown")
 
 
 @pytest.mark.parametrize(

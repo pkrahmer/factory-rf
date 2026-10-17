@@ -6,7 +6,6 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -14,7 +13,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
-from factory.application.stage import LaunchedStage, StageLauncher, StartedStage
+from factory.application.stage import LaunchedStage, StageLauncher
 from factory.application.task import StoryFormChecker
 from factory.application.write_paths import WritePathService
 from factory.domain.agent_runs import AgentRunResult, EndReason
@@ -536,37 +535,3 @@ def test_a_runtime_error_propagates_and_leaves_the_claim_pushed(
     claim = _state_at(boundaries, observed.remote_head).claim
     assert claim is not None
     assert claim.instance == INSTANCE
-
-
-def test_started_and_launched_stages_are_frozen_and_forbid_unknown_keys(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    checkout: GitCli,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-    remote: Path,
-    hosting: FakeHostingService,
-) -> None:
-    launched, _ = _launch_new(
-        boundaries,
-        human=human,
-        checkout=checkout,
-        agent_home=agent_home,
-        agent_runtime=agent_runtime,
-        remote=remote,
-        hosting=hosting,
-    )
-    started_model: type[BaseModel] = StartedStage
-    launched_model: type[BaseModel] = LaunchedStage
-    branch_field = "branch"
-    result_field = "result"
-
-    with pytest.raises(ValidationError):
-        setattr(launched.started, branch_field, "other")
-    with pytest.raises(ValidationError):
-        setattr(launched, result_field, COMPLETED)
-    with pytest.raises(ValidationError):
-        started_model(**dict(launched.started), unknown=1)
-    with pytest.raises(ValidationError):
-        launched_model(**dict(launched), unknown=1)
