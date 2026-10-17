@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 179
 blocked: null
 comments_seen: 0
@@ -97,3 +97,34 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both demo commands meet their `Expect:` lines, and nothing in the run contradicts an acceptance criterion. No findings.
+
+   1. Command:
+   ```
+   uv run pytest --no-header -p no:cacheprovider -k "carries_the_work_item_prefix or test_stage_start_commit_is_one_commit_on_the_previous_head" tests/application | tail -1
+   ```
+   Output:
+   ```
+   7 passed, 1126 deselected in 1.27s
+   ```
+   Met: the output is one line with 7 passed and no failed or error count. The 7 are 3 rows for criterion 2, 2 rows for criterion 3, and one test each for criteria 1 and 4.
+
+   2. Command:
+   ```
+   grep -rn 'git.commit(f"' src/factory; echo "status $?"
+   ```
+   Output:
+   ```
+   status 1
+   ```
+   Met: the output is only `status 1`, so no `git.commit` call in `src/factory` builds its subject from an f-string.
+
+   Cross-check against the criteria:
+   - Criteria 1–4: the four commits get their subjects from `commit_subject`:
+     - `claims.py:65-66`
+     - `stage.py:287` (`stage.py:359` passes that message on)
+     - `stalls.py:130`
+     - `acceptance.py:121`
+   - Criterion 5: `commit_subject` (`handlers/recording.py:47`) and the handlers' and recovery's subjects are unchanged.
+   - Criterion 6: the documenter's entry records `make check` green. I did not run it in this stage; the factory runs it after this stage.
+   - Criterion 7: `docs/project-guide.md:641` states the prefix rule, the merge exception and the use by `make mutants`, and step 4 at `:1028` names the subject `work item <id>: <stage> starts as <instance>`. The `docs/decisions.md` entry is in the documenter's log entry; I did not open the file to check it.
