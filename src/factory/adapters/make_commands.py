@@ -7,7 +7,13 @@ from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, run_process
 from factory.application.project_commands import ProjectCommands
-from factory.domain.checks import COMMAND_NAME_PATTERN, OUTPUT_TAIL_LINES, CheckResult, status_of
+from factory.domain.checks import (
+    COMMAND_NAME_PATTERN,
+    OUTPUT_TAIL_LINES,
+    CheckResult,
+    status_of,
+    target_times,
+)
 from factory.domain.errors import ProjectCommandError
 from factory.domain.kill_points import KillPoints
 
@@ -71,4 +77,5 @@ class MakeProjectCommands(ProjectCommands):
             duration=result.duration,
             last_line=_last_line(lines),
             output_tail=_tail(lines),
+            targets=target_times(result.stdout),
         )
