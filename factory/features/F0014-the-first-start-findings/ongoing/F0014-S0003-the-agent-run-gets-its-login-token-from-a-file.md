@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 196
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -213,3 +213,13 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper
+8. coder: Question: the `# noqa: PLR0913` you accepted in entry 5 conflicts with an existing structural test, and I can't fix that without a change you have to approve. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` allows suppression markers only in `src/factory/adapters/process.py`. It reports `adapters/claude_runtime.py:377 noqa: PLR0913`, the marker on `ClaudeCodeRuntime.__init__`. That is the only red test (tester, entry 7). The ticket pins the signature `(executable, state_directory, kill_points=None, *, version_time_limit, sudo_executable, login_file)`. Ruff doesn't count `self`, so that's 6 arguments against `max-args = 5` in `pyproject.toml`. I can't drop the marker without one of these:
+
+   (a) A test change: `test_process_search.py` also allows this one marker on `ClaudeCodeRuntime.__init__`. I would end with `tests`, and the tester makes that change.
+   (b) A tool-configuration change, no marker: in `pyproject.toml`, add `"src/factory/adapters/claude_runtime.py" = ["PLR0913"]` under `[tool.ruff.lint.per-file-ignores]`, with a reason comment. This is narrow, but it turns the rule off for the whole module, and `pyproject.toml` is configuration that agents don't touch without asking.
+   (c) Raise `max-args` to 6 for the whole project. This loosens the rule everywhere, so I reject it.
+   (d) Pass the keyword options as `**options: Unpack[RuntimeOptions]` with a TypedDict. Calls look the same, but the pinned signature turns into an opaque one. I reject it as a clever workaround.
+
+   My choice is (b). It touches no test, adds no marker in the source, and keeps the exception to the one module whose signature the ticket pins. I would also remove the `# noqa` and its comment. If you prefer (a), I'll hand over to the tester.
+
+   Current state: the implementation is committed (25131133): `src/factory/domain/settings.py`, `src/factory/adapters/claude_runtime.py` (login shell, `LOGIN_SCRIPT`, `_claude_argv`, `_check_login`, request entry dropped), `src/factory/entry/wiring.py` and `src/factory/application/preflight.py`. All the new tests and the pinned tests pass. The refactor pass and the final `make check` are left for the next doing pass, after your answer.
