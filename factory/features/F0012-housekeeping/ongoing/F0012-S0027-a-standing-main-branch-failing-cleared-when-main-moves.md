@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 177
 blocked: null
 comments_seen: 0
@@ -60,3 +60,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/application/test_preflight_stale_main_stop.py::test_a_failed_machine_clears_the_stop_of_a_main_that_moved_on[gone]
+4. coder: Implemented the change in `src/factory/application/preflight.py` (commit ebb5d7d1). `Preflight.run` now keeps the stamp it read at the start (`started_with`). When the machine's items fail, it calls a new private method, `_clear_stale_failing_stop`, before it returns `preflight_failed`. That method does nothing if there is no stamp or the stamp has no `main_failed`. Otherwise it resolves `origin/main`; a `GitError` leaves the stop in place. If the result differs from `main_failed`, which includes `None`, it calls `clear_stop("main_branch_failing")`. The stamp is never rewritten on this path, and the rest of the preflight is unchanged.
+
+   Main design decision: I passed in the stamp read before the machine's items run. The alternative was to read the store again after they fail. I rejected it because the Interface asks for "the stamp it started with", and one read keeps the path free of a second I/O call. I also kept the check separate from `_probe`, because `_probe` assumes the machine has passed: it checks out main and runs `lint`.
+
+   Refactor: I read the diff as a reviewer would and found nothing to change. It is one small method and a two-line change in `run`.
+
+   `make check`: green. The new test file, `tests/application/test_preflight_run.py` and `tests/application/test_tick_preflight.py` all pass. Nothing else noticed. The docs criterion is left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
