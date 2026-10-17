@@ -22,6 +22,7 @@ from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY, clone, make_remote
 from human_clone import HumanClone
+from proof_support import World, build_world
 
 
 @pytest.fixture
@@ -117,3 +118,9 @@ def walk(
     return AcceptanceWalk(
         boundaries, remote=remote, human=human, hosting=hosting, agent_home=agent_home
     )
+
+
+@pytest.fixture
+def world(tmp_path: Path) -> World:
+    """Return a world of the recovery proof built under `tmp_path`."""
+    return build_world(tmp_path)
