@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 192
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -188,3 +188,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - I would choose (a).
 
    Neither answer changes the Assignment. Under (a) for question 1, the new criterion goes before the two closing ones.
+3. human (pull request comment, 2026-10-17): 1: (a), add the criterion before the two closing ones. 2: (a), drop the entry-owner rule from the Interface; the folder's owner and the "cannot change" rule cover it.
