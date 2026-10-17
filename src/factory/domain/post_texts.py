@@ -75,7 +75,7 @@ def round_cap_question(rounds: int, cap: int) -> str:
     """The question asked when a rework would send the work item back more often than its cap."""
     return (
         f"This work item has now been sent back {rounds} times, more than {cap}."
-        " What should happen? Answer with a comment;"
+        " What should happen? Answer with a comment, which starts the count of rounds over;"
         " close the pull request to discard the work item."
     )
 
