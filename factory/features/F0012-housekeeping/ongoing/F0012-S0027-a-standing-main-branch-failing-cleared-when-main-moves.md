@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 177
 blocked: null
 comments_seen: 0
@@ -82,3 +82,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - Security: nothing applies. The diff adds no markers, no string-built commands and no new input boundary.
       - Quality: `_clear_stale_failing_stop` (`src/factory/application/preflight.py:323`) does one thing and reuses `_MAIN_REF` and `_MAIN_FAILING`. Its comment says why, and it has no docstring because it is private. Keeping it separate from `_probe` is right, because `_probe` checks out `main` and runs `lint`. `make duplicates` reports 0 new findings.
       - Ticket hygiene: the coder's entry explains the main decision (pass in the stamp read at the start) and what it rejected (reading the store again). `Assignment` matches the code. The docs criterion still describes what the documenter must write.
+6. documenter: - `docs/operator-guide.md`, "The stamp and the probe of the main branch": new bullet saying that while the machine's items fail, a `main_branch_failing` whose commit is no longer `origin/main` (moved or gone) is cleared, the result stays `preflight_failed`, the stamp is not rewritten, the new `main` is probed when the machine passes again, and a stop whose commit is still `main` (or when git cannot resolve it) stays.
+   - `docs/decisions.md`: new entry at the end answering the S0009 entry's open point (the human's answer of 2026-10-17), with what was rejected.
+   - Cross-read the diff of `src/factory/application/preflight.py` against the operator guide's stop table and the tick section; both are still true. `python -m factory.entry.check_documents` prints `documents ok`. No `make check` run: only documents changed. No findings; the code matches the Interface.
+   - Stale but untouched: the S0009 entry in the decision log still carries its "Open:" text; the log is a history, so the new entry answers it instead.
+
+   `make check`: check: green
+   `make documents`: documents ok
