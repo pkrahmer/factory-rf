@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 148
 blocked: null
 comments_seen: 0
@@ -252,3 +252,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Criteria 6 to 15: they are tested by the suite, which passed.
 
    The demo does not exercise criteria 16 to 18 directly, and nothing it shows contradicts them. The earlier entries report `make check` green.
+8. done (pull request merged); cost: 6 runs, 14.3 min, 54 turns, 190k tokens in (1484k more from cache), 32k out, $2.13
