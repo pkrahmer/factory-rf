@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 195
 blocked: null
 comments_seen: 0
@@ -88,3 +88,8 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Diff read: `image/gitconfig` (3 comment lines, `[safe]`, tab-indented `directory = /work/checkout`); `image/Dockerfile` (a comment, `COPY image/gitconfig /etc/gitconfig` with no `--chown`/`--chmod`, then the exact sed/`chmod 0644` RUN, placed between the git-credential-factory RUN and `ENV FACTORY_TOKEN_FILE=...`; nothing else changed); `tests/test_image_gitconfig.py`.
+      - Criteria 1–6: each has a test in `tests/test_image_gitconfig.py` that checks what the criterion says. It uses the routes the Interface names: `run_git` for the real `git config --file <absolute> --list`, `dockerfile_instructions`/`DOCKERFILE`, and `_path_settings` of `tests/test_image.py`. The failing sides are covered: any extra entry or `*` (equality on the full list), any other line (equality on the non-comment lines), a duplicate or flagged COPY (the filter catches any COPY naming gitconfig), a missing comment above, and any chown of the file. Criterion 7 is covered by the unchanged existing tests. The coder's entry records `make check` green.
+      - Considered, not counted: the Interface puts the COPY before `ENV FACTORY_TOKEN_FILE` and the directory line under a tab, and criteria 3 and 4 do not test either (criterion 4 orders only the helper RUN against the ENV). Neither changes what the image installs or how git reads the file, and the code matches the Interface on both.
+      - Architecture: no `src/` change. Security: no secrets, no markers, and the file stays root-owned with mode 0644. Quality: the test helpers are reused, not copied. Hygiene: Assignment matches what was built, and criterion 9 states what the documenter must write.
