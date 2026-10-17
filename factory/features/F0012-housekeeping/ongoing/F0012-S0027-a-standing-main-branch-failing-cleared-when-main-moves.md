@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 177
 blocked: null
 comments_seen: 0
 round: 0
@@ -39,3 +39,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names `src/factory/application/preflight.py`, `Preflight.run`, `git.resolve("origin/main")` and `clear_stop("main_branch_failing")`. It states each case: the same commit, a different commit, `None`, no `main_failed` in the stamp, a `GitError`. The result stays `preflight_failed` and the stamp is not rewritten. The `rig`, `red_main` and `Rig.raise_standing` names it cites exist in `tests/application/test_preflight_run.py`, and `preflight.py` already compares `stamp.main_failed` with `main`.
+   - Criteria: each one is a single test, or two parametrized rows (1 and 5). Every behaviour the Interface states has a criterion on the passing side and the failing side: moved or gone is 1, unmoved is 2, no `main_failed` is 3, a git error is 4, and the later probe, green or red, is 5. The pass-through of existing tests is 6, and `make check` and `docs:` come last.
+   - Demo: one runnable pytest command over two named test files. Its `Expect:` line names the last line's form (`<n> passed in <t>s`, with no failed, error or skipped count), which can be checked against the output.
+   - Architecture: the change sits in the application layer and uses only the existing git and stop-clearing interfaces. It adds no dependency and no new module, and the only test file is the new one in `tests/application/`.
+   - Scope: this is item 1.10 of FEATURE.md. It matches FEATURE decision 30, which the human confirmed in decision 47, and nothing in "Out of scope" applies.
