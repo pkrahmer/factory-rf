@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 196
 blocked: null
 comments_seen: 4
@@ -259,3 +259,18 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+13. reviewer: No findings.
+
+    - Round 1 finding (entry 11) is fixed. `_line_starting(stderr, prefix)` in `src/factory/adapters/claude_runtime.py` replaces `_sudo_line`, and both `_sudo_refusal` (`SUDO_PREFIX`) and `_login_refusal` (`LOGIN_PREFIX`) call it. There is no second copy of the stderr scan.
+    - Acceptance criteria. Criteria 1 to 14 each have a test that checks what the criterion says:
+      - `tests/domain/test_settings_claude_login.py`
+      - `tests/adapters/test_claude_runtime_login.py`
+      - `tests/entry/test_wiring_login.py`
+      - `tests/application/test_agent_run_probe_login.py`
+
+      The rejected sides are covered: unset, empty and blank settings; a missing, empty or blank file; a folder; UTF-16 with and without a byte order mark, with and without a user; a login entry in the request; `version()`. The `completed` row is now built with a decision (entry 7, as the human answered in entry 5). Criterion 15's pinned modules are unchanged. The coder's entry 12 reports `make check` green.
+    - Architecture. `CLAUDE_CODE_OAUTH_TOKEN` stays in `factory.adapters`. The domain only gains `claude_login_file` read through `_optional_path`. The wiring passes `login_file=settings.claude_login_file`. The probe adds the hint only when the run did not complete and a file is set.
+    - Security. `LOGIN_SCRIPT` is built from module constants only. The login file is a positional argument (`$1`), never part of the script's text. Read errors go to `/dev/null`. The criterion 8 test pins that the token is in no argv and no `ProcessRequest`. The diff adds no suppression marker. The `PLR0913` per-file ignore in `pyproject.toml` is the human's own change on `main` (entry 9).
+    - Quality. Names are clear. The script's comment says why the check counts bytes. No dead code.
+    - Not counted against the coder: `docs/runs/2026-10-12-overnight/night-log.md` and `pyproject.toml` appear in the diff only because the human's `main` was merged in.
+    - Ticket hygiene. Entry 10 gives the main decision (the agent's own shell reads the file) and what was rejected. The Assignment matches what was built, and the docs criterion still describes what the reader needs to know.
