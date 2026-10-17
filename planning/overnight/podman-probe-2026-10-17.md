@@ -18,3 +18,9 @@ Podman 5.8.3 CLI (`winget install RedHat.Podman`, the human's go), the default r
 5. Not Podman: the image pins are placeholders (`@sha256:000…`, `=0~unpinned`), so the image builds nowhere until the human pins it (step 2).
 
 Not probed: a Mac (no machine here); Podman without a Compose provider; a real run with a token.
+
+## The human's answers (2026-10-17)
+
+- Fault 1: the token file is mounted into a folder only the factory user can enter (for example `/home/factory/.secrets`, mode 0700, made in the image), so the agent cannot traverse it whatever the file's own mode; the first story of F0013, before any real run with a token.
+- F0013 also takes faults 2 (the restart service in the Podman machine, operator guide) and 3 (docker-compose v2 as the provider, operator guide), drafted from this record.
+- The probe's container, volumes and images in the Podman machine and its clones were deleted.
