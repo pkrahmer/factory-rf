@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 177
 blocked: null
 comments_seen: 0
@@ -70,3 +70,15 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–5 has a test in `tests/application/test_preflight_stale_main_stop.py`, and criteria 1 and 5 are two parametrized rows each. Every behaviour the Interface states is tested from both sides:
+        - a moved or gone `main` clears the stop (criterion 1);
+        - the same commit keeps the stop (criterion 2);
+        - no `main_failed` in the stamp keeps the stop (criterion 3);
+        - a `GitError` keeps the stop, and the error would propagate without the `except` (criterion 4);
+        - the stamp is left as it was (checked in 1 and 2).
+        A wrong implementation would fail at least one of these: one that always clears fails 2 and 3, one that never clears fails 1. Criterion 6 holds: neither existing test file is in the diff. The coder's entry records `check: green`.
+      - Architecture: the change stays inside `factory.application.preflight`. It reaches git only through `Boundaries.git` and clears the stop only through `StopService`. It adds no new import, dependency or module.
+      - Security: nothing applies. The diff adds no markers, no string-built commands and no new input boundary.
+      - Quality: `_clear_stale_failing_stop` (`src/factory/application/preflight.py:323`) does one thing and reuses `_MAIN_REF` and `_MAIN_FAILING`. Its comment says why, and it has no docstring because it is private. Keeping it separate from `_probe` is right, because `_probe` checks out `main` and runs `lint`. `make duplicates` reports 0 new findings.
+      - Ticket hygiene: the coder's entry explains the main decision (pass in the stamp read at the start) and what it rejected (reading the store again). `Assignment` matches the code. The docs criterion still describes what the documenter must write.
