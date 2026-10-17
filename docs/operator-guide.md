@@ -50,11 +50,13 @@ An instance repeats one iteration: it prepares the checkout, then makes one tick
 
 After an iteration the instance pauses 15 seconds when the tick found activity. Each idle tick in a row doubles the pause (15, 30, 60 seconds) up to 120 seconds, and the next activity brings it back to 15 seconds. An iteration whose preparation or tick fails counts as idle. The failure is one line in the factory log, `iteration failed: <exception type>: <message>`, and the loop goes on.
 
-### The checkout is recloned only when it is missing
+### The checkout is cloned again when it is missing or its `.git` is not the factory's alone
 
-The checkout lies at `/work/checkout`. When that directory has no `.git`, the instance clones the repository into it; an existing clone is left as it is, with no git call. After you delete the checkout the next iteration clones it again.
+The checkout lies at `/work/checkout`. When that directory has no `.git`, the instance clones the repository into it. At the start of every iteration it then seals the checkout's `.git`: the group's and others' write permission is taken from the folder and from every entry in it, so that only the factory writes the repository (see "Users and directories").
 
-A clone that was killed half-way is not recognised: if its `.git` exists, the instance takes it for a clone, and if it does not, git refuses to clone into the non-empty directory and the iteration fails. In both cases delete the checkout directory and let the next iteration clone it again. The checkout is disposable (see "The stops of the tick"), so nothing is lost.
+An existing `.git` is checked first. It must be a directory (not a symbolic link) of the factory's own user, closed to the group's and others' writes, and hold a `HEAD` file. A checkout whose `.git` fails the check is removed and cloned again on the next iteration, with the line `cloning the checkout again: <reason>` in `/state/factory.log`. That covers a clone made before this check existed (its `.git` is group-writable), a `.git` an agent replaced, and one without `HEAD`. A `.git` that is not closed is never repaired, because the factory cannot tell what an agent put in it. The instance's local state in the checkout is lost, which the restore discards anyway. A checkout the factory cannot remove is the stop `repository_unavailable`.
+
+A folder with files and no `.git` is still refused: git will not clone into a non-empty directory and the iteration fails. Delete the checkout directory and let the next iteration clone it again. The checkout is disposable (see "The stops of the tick"), so nothing is lost.
 
 ## The project's make targets
 
@@ -116,7 +118,10 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
 | WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | an authentication failure, no push |
 | WE3.4: it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
+| The agent cannot write the checkout's `.git` | `docker exec -u agent <container> sh -c 'cd /work/checkout && stat -c "%a %U:%G %n" .git .git/config && find .git -perm /022 \| wc -l && git config --local factory.sealcheck agent; touch .git/agent-file; mv .git/hooks .git/hooks-moved'` | line by line: `2750 factory:factory-work .git`, `640 factory:factory-work .git/config`, `0`, `error: could not lock config file .git/config: Permission denied`, `touch: cannot touch '.git/agent-file': Permission denied`, `mv: cannot move '.git/hooks' to '.git/hooks-moved': Permission denied` |
 | A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `ps -eo user,pid,args \| grep claude` after the limit | no `claude` process of `agent`; see "A `time_limit` under `sudo`" above |
+
+Make the `.git` observation after the instance's second iteration: right after a new clone, `FETCH_HEAD` stays group-writable until the next iteration seals it. The agent's git also needs the checkout's `safe.directory`, or it refuses the checkout before it tries to write.
 
 **A `time_limit` under `sudo`.** The factory cannot signal `sudo`, which is owned by root, so it does not rely on killing the call's process group. The runtime puts `timeout --signal=KILL <limit>s` inside the `sudo` call, where `<limit>` is the call's time limit in whole seconds, rounded up. `timeout` runs as `agent`, so the agent's own user kills its own process tree at the limit. A call that ends with status 137 (or a death by `SIGKILL`) after at least its time limit is read as `time_limit`, like any other timed-out run: it is not resumed and shows its cost, tokens and turns as unknown. The same status before the limit is a death, as before. The factory's own kill of the call comes only after 30 more seconds, and fires only if the inner one did not. After a `time_limit`, `ps -eo user,pid,args | grep claude` must show no `claude` process of `agent`; if one is left, the inner kill did not work, so kill it by hand (`docker exec <container> sudo -n -u agent -- kill <pid>`) and report it. A `sudo:` line printed by a call that ended this way still stops the run with an error (above). A run without `FACTORY_AGENT_USER` has no `timeout` and is limited by the factory's own kill, with no extra 30 seconds.
 
@@ -170,6 +175,7 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 | `/state/runs` | `2750`, `factory:factory-work` | The files of an agent's run: the agent can read them and cannot write them. |
 | `/home/factory/.secrets` | `0700`, `factory:factory` | The folder where Compose mounts the token file. Only `factory` can enter it, so the agent cannot read the file whatever the file's own mode. |
 | `/work` | `2775`, `factory:factory-work` | Both users can write. |
+| `/work/checkout/.git` | `2750`, `factory:factory-work`; its files `0640` | Git's repository of the checkout. The factory alone writes it. The agent's git reads it (`git status`, `git diff`, `git log`) and cannot create, change, rename or remove anything in it. The work tree around it stays group-writable. |
 | `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
 
 ### The image on the cost records
@@ -222,7 +228,7 @@ The folder is checked first, so a folder the factory's user does not own is repo
 - `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` are refused with `Permission denied`, and `ls -lnd /home/factory/.secrets` shows `drwx------` and uid 1000.
 - As an agent (a run that tries it, or `su` to another user), `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
 
-**Left for v2.** The project commands (`make check`, `lint`, `test` and the preflight's `lint`) run code that agents wrote, as the factory's user, who can read the token file. A test can print the token into the output tail the factory writes into the journal. Git's hooks are not a route: the factory's git sets `core.hooksPath` to `/dev/null` through its own environment, which wins over a `core.hooksPath` in the checkout's `.git/config`, so a hook in `/work/checkout/.git/hooks` never runs as the factory's user. The folder closes the agent's direct read, not code the factory's user runs for it. The human decided on 2026-10-14 not to build a guard against this now; see `docs/decisions.md`.
+**Left for v2.** The project commands (`make check`, `lint`, `test` and the preflight's `lint`) run code that agents wrote, as the factory's user, who can read the token file. A test can print the token into the output tail the factory writes into the journal. The checkout's `.git` is not a route: the agent cannot write it (the factory seals it and refuses one that is not closed), so no configuration, hook or attribute file of the agent's reaches the factory's git; as a second line the factory's git sets `core.hooksPath` to `/dev/null` through its own environment. The folder closes the agent's direct read, not code the factory's user runs for it. The human decided on 2026-10-14 not to build a guard against this now; see `docs/decisions.md`.
 
 ### The entrypoint
 
@@ -600,7 +606,7 @@ A work item file that cannot be read is not a stop. The tick ends with the error
 
 At the start of every tick, before the fetch, the factory reads the free space of the work directory (the checkout's parent) and of the state directory. When either has less than `FACTORY_MIN_FREE_GB` (exactly the minimum is enough), it raises the machine stop `disk_low` and ends the tick; nothing is fetched or written after it. The detail names each short directory with its free space, the work directory first. A free space that cannot be read is the same stop, with the detail `cannot read the free space of <path>: <error>`, and no later path is read. The first tick that finds enough room clears the stop. The preflight runs inside the tick, so this one check covers it.
 
-What you do: make room on the file system the detail names. A checkout that is missing is cloned before the first check, by the iteration's preparation (see "The checkout is recloned only when it is missing"), so a clone onto a full disk fails as `repository_unavailable` first. On a full disk the stop's own writes (`health.json`, the factory log) can fail with an `OSError`; the iteration then ends with the `iteration failed` line (see "The loop and its pauses") and the next one tries again.
+What you do: make room on the file system the detail names. A checkout that is missing is cloned before the first check, by the iteration's preparation (see "The checkout is cloned again when it is missing or its `.git` is not the factory's alone"), so a clone onto a full disk fails as `repository_unavailable` first. On a full disk the stop's own writes (`health.json`, the factory log) can fail with an `OSError`; the iteration then ends with the `iteration failed` line (see "The loop and its pauses") and the next one tries again.
 
 ### The preflight in the tick
 

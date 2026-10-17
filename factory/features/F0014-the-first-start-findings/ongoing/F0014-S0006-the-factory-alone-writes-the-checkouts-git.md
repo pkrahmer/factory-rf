@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 192
 blocked: null
 comments_seen: 4
@@ -320,3 +320,28 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     - The test-local `RecordingLog` follows the pattern of three existing test modules.
 
     Open: nothing.
+12. documenter: Docs written from the docs criterion. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, since I changed only docs. I did not run the `docker exec` observation either, because it needs a real image.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - "Users and directories" has the new `/work/checkout/.git` row.
+      - The morning observations table has the `.git` row. A note after the table says to make it after the second iteration and that the agent's git needs `safe.directory`.
+      - The section is renamed "The checkout is cloned again when it is missing or its `.git` is not the factory's alone". It now describes the seal, the check, the `cloning the checkout again: ...` log line, the never-repair rule and the `repository_unavailable` stop. The cross-reference in "The low disk" takes the new title.
+      - "Left for v2" no longer names the checkout's `.git` as a route.
+    - `docs/project-guide.md`:
+      - The `Git` interface now has twenty-two operations, with `seal`, `check_seal` (including the `HEAD` check) and `discard` described.
+      - `GIT_CEILING_DIRECTORIES` is added to the `GitOptions` table row for `environment`.
+      - `git_environment` gives `core.sharedRepository` = `0640`.
+      - A new paragraph covers `RepositoryUnsealed` and `CheckoutPreparer.prepare` (check, removal, new clone, seal).
+    - `docs/decisions.md`:
+      - New entry "The factory alone writes the checkout's `.git`", with the rejected options.
+      - The "credential helper and shared group" entry now says `0640`.
+      - The "clone killed half-way" entry has an update note.
+      - The open point in the token bind-mount entry is marked closed.
+
+    Cross-read and found current: README, and the rest of the operator guide. The project guide already named the three new operations only in the count, which I fixed.
+
+    Not touched: nothing stale that is unrelated. I found no code that contradicts the Interface or the criteria, so there are no findings for the coder.
+
+    `make check`: check: green
+    `make documents`: documents ok
