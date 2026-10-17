@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 147
 blocked: null
 comments_seen: 4
@@ -277,3 +277,22 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     - `tests/test_fault_paths_7_to_13.py::_branch_state` repeats the three lines of `show_file`-then-parse that `tests/proof_support.py::_state_at` (private) does. It is small enough that I let it stand.
     - `tests/proof_support.py::_rerun` could call the new `rerun` (coder, entry 14), and `tests/test_fault_path_names.py` still checks only the first six rows. Neither file is in this diff.
     - For the documenter: `docs/project-guide.md:1586` names `start_story`, `run_ticks` and `restart` as the steps of a scenario. It could also name the shared `work_item` fixture and `rerun`, so the next fault-path test reuses them instead of copying them.
+16. documenter: wrote the criterion 13 documentation. `make check` is green (coverage 99.55 %). The three new test modules pass when run alone (11 tests).
+
+    Files changed:
+    - `docs/project-guide.md`, section *Fault-injection paths*:
+      - Added the table rows for paths 7 to 13, so the table holds one row per path.
+      - Removed "the rest follow", which was stale.
+      - Said that `tests/test_fault_paths_7_to_13.py` holds paths 7 to 13.
+      - Added two sentences: path 9 walks `reject` with the kill between commit and push, and path 12 runs for both results on an empty disk.
+      - The run command now lists the new test modules.
+    - `docs/project-guide.md`, the kill-point section: added the shared test helpers `rerun`, `work_item` and `work_item_file` (the last takes only the `.md` file, not the `.costs.jsonl` sidecar).
+    - `docs/decisions.md`: new entry. Paths 7 to 13 are walked with one kill or one stall each, by judgment. Path 9 walks `reject` with the kill between commit and push. The sidecar stays beside the work item, and tests select the `.md` file only.
+
+    Cross-read and found current: the rest of the fault-injection section (the case notes and the four non-row paths), the kill-point section, and the decision entries of F0011-S0001 and F0011-S0002. README and operator guide are untouched, as the criterion says.
+
+    Code check: `FAULT_PATHS` matches the Interface table (rows, cases, test names). The demo's `13 True True` follows from that. I did not run the first demo command.
+
+    Findings: none. Stale but not touched: nothing seen.
+
+    `make check`: check: green
