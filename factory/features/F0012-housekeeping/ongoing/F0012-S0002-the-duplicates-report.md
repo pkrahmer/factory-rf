@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 154
 blocked: null
 comments_seen: 2
@@ -48,7 +48,7 @@ def report_lines(report: DuplicateReport) -> list[str]: ...
 - `where` is the `==` lines without their `==`, in the message's order, joined by `, ` (`factory.domain.git:[73:77], factory.domain.stops:[49:53]`);
 - `message` is the message's first line.
 
-A text that is not valid JSON, not an array, or holds an element that is not an object or a `duplicate-code` object without a string `message`, raises `ValueError`. An empty array gives no finding.
+A text that is not valid JSON, not an array, or holds an element that is not an object or a `duplicate-code` object without a string `message`, raises `ValueError`. A `duplicate-code` message without a `==<module>:[<start>:<end>]` line, with no non-blank code line after its `==` lines, or with a line that starts with `==` but does not match that form, also raises `ValueError`, whose text names the message. An empty array gives no finding.
 
 `dead_code_findings`: every non-blank line must fully match `<path>:<line>: <message> (<n>% confidence)`, optionally with `, <m> line` or `, <m> lines` before the closing parenthesis (vulture's output). The finding's `key` is `dead-code <path>: <message>`, `where` is `<path>:<line>`, `message` is `<message> (<n>% confidence)`. A non-blank line of another form raises `ValueError` naming its 1-based line number. Blank lines are skipped.
 
@@ -66,7 +66,7 @@ def main(argv: Sequence[str] | None = None) -> int: ...
 
 Arguments: the path of pylint's JSON, the path of vulture's text, `--baseline <path>` (required; without it argparse refuses with `SystemExit` code 2) and `--write-baseline`. `main` prints `report_lines` of the comparison, one per line, and returns 0 when nothing is new (gone keys alone return 0) and 1 when something is. With `--write-baseline` it writes the keys of every finding (similar code first, then dead code, each in input order, a key found twice written once) to the baseline path: the first line `# Accepted findings of make duplicates, one key per line.`, then one key per line, every line ending with a newline; it prints `duplicates: baseline of <n> findings written to <path>`, `<n>` the number of keys written, and returns 0. An input file that cannot be read, a pylint or vulture text that cannot be parsed, or a missing baseline without `--write-baseline`, prints `check-duplicates: <reason>` to standard error and returns 2. `argv` `None` reads the process's arguments.
 
-Tests: `tests/domain/test_duplicates.py` (criteria 1 to 9), `tests/entry/test_check_duplicates.py` (criteria 10 to 13), with texts written in the tests in the formats above.
+Tests: `tests/domain/test_duplicates.py` (criteria 1 to 9 and 14), `tests/entry/test_check_duplicates.py` (criteria 10 to 13), with texts written in the tests in the formats above.
 
 ## Acceptance criteria
 
@@ -83,8 +83,9 @@ Tests: `tests/domain/test_duplicates.py` (criteria 1 to 9), `tests/entry/test_ch
 11. `main` with `--write-baseline`, a pylint file of one finding with key `S` and a vulture file of three lines whose keys are `D`, `D` and `E` (the first two on different line numbers), writes exactly `# Accepted findings of make duplicates, one key per line.\nS\nD\nE\n` to the baseline path (missing before the call), prints `duplicates: baseline of 3 findings written to <path>` and returns 0; a second run without the option on the same inputs then returns 0.
 12. `main` with a missing input file, with an unparsable pylint file, with an unparsable vulture file, or with a missing baseline and no `--write-baseline`, prints one line starting `check-duplicates: ` to standard error and returns 2. Rows of one parametrized test.
 13. `main(None)` with the process's arguments set (monkeypatched `sys.argv`) behaves as `main` with those arguments. `main` without `--baseline` raises `SystemExit` with code 2 (argparse's refusal), with or without `--write-baseline`. Two test functions.
-14. `make check` stays green.
-15. docs: the project guide gets a section *The duplicates report*: what `make duplicates` runs, the two key forms, the baseline file `security/duplicates-baseline.txt` and `--write-baseline`, the `new`, `gone` and last lines and the exit statuses, and that this repository's pipeline runs it after the coder and writes its last line into the coder's journal entry, whatever its exit status; the decision log records why the keys carry no line numbers and why it is a record, not a check. Outside a `## Replaced from v1` section no v1 word of the document check is used (name v1's configuration as "v1's pipeline configuration for this repository", not by its file name), and `python -m factory.entry.check_documents` still prints `documents ok`.
+14. A `duplicate-code` message without a `==<module>:[<start>:<end>]` line (`Similar lines in 2 files\n    x = 1`), with no non-blank code line after its `==` lines (`Similar lines in 2 files\n==factory.a:[1:5]\n==factory.b:[9:13]\n`), or with a line that starts with `==` but does not match `==<module>:[<start>:<end>]` (`Similar lines in 2 files\n==factory.a\n    x = 1`) raises `ValueError` whose text names the message; a valid message is the accepted row. Four rows of one parametrized test.
+15. `make check` stays green.
+16. docs: the project guide gets a section *The duplicates report*: what `make duplicates` runs, the two key forms, the baseline file `security/duplicates-baseline.txt` and `--write-baseline`, the `new`, `gone` and last lines and the exit statuses, and that this repository's pipeline runs it after the coder and writes its last line into the coder's journal entry, whatever its exit status; the decision log records why the keys carry no line numbers and why it is a record, not a check. Outside a `## Replaced from v1` section no v1 word of the document check is used (name v1's configuration as "v1's pipeline configuration for this repository", not by its file name), and `python -m factory.entry.check_documents` still prints `documents ok`.
 
 ## Demo
 
@@ -118,3 +119,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    Everything else I checked is fine. That covers the Interface signatures, criteria 1 to 15 apart from the two points above, the Demo (both commands run, and the first Expect matches the Interface's rules), the architecture (a pure `factory.domain` module plus an `entry` command that only reads files) and the scope (F0012 item 1.2).
 3. human (pull request comment, 2026-10-17): (a) for both. A `duplicate-code` message without a `==<module>:[<start>:<end>]` line, with no non-blank code line after its `==` lines, or with a line that starts with `==` but does not match `==<module>:[<start>:<end>]` (for example `==factory.a`) raises `ValueError` naming the message, so `make duplicates` stops with `check-duplicates: <reason>` and exit status 2. Add one criterion for it, the three cases as rows of one parametrized test beside a valid message as the accepted row.
+4. intake: accepted. I carried in the human's answer (log entry 3, option (a) for both questions of entry 2). I wrote it into the story as the human's edit and did not improve anything else.
+   - Interface: in `similar_code_findings`, a `duplicate-code` message with no `==<module>:[<start>:<end>]` line, with no non-blank code line after the `==` lines, or with a `==` line of another form now raises `ValueError` naming the message. New criterion 14 covers it: three failing rows plus the valid message as the accepted row. `make check` is now criterion 15 and `docs:` is 16, so both closing criteria stay last. The Tests line now reads criteria 1 to 9 and 14 for the domain test. The Assignment keeps its meaning, so I did not rewrite it.
+   - Criteria: each is testable by one test function. Every rule has a criterion for its failing side:
+     - JSON and message errors: criterion 4 and the new 14.
+     - Vulture line errors: criterion 6.
+     - Unparsable input, a missing file and a missing baseline: criterion 12.
+     - A missing `--baseline`: criterion 13.
+   - Demo: both commands are runnable. The first Expect matches the Interface's rules for the key, the where, the message and the closing line. The second Expect is checkable.
+   - Architecture: the rules are pure functions in `factory.domain`, and the entry command only reads files and prints. Layers hold.
+   - Scope: the story is F0012 item 1.2 and is not in the feature's "Out of scope".
