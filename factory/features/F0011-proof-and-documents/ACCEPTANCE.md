@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 150
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0011-S0001, F0011-S0002, F0011-S0003, F0011-S0004, F0011-S0005]
+outcome: accepted
 ---
 # Acceptance of Proof and documents
 
@@ -275,3 +276,4 @@ The five stories cost 54 runs, 134.9 min and $16.67, or $3.33 per story on avera
    6 Decisions: FEATURE decisions 1–18 listed for review. Decisions 19–21, taken by the session for the human, are still to confirm. Log answers: S0001 entries 5 and 20, S0003 entry 5. Open for the human: wiring the check into `make check` or `stages.yml`; junit_family for the kill-to-rerun property.
    7 Slow checks: none beyond `make check` (green as found, 99.53 %). There is no mutants target. The document check prints `documents ok`.
    8 Cost: 54 runs, 134.9 min, $16.67. S0001 is 40 % of it ($6.68, 19 runs): a round lost to test helpers that contradicted built code, three review rounds tightening criteria 7 and 11, and v1's send-back cap loop. S0003 is next ($3.81, two questions).
+2. done (pull request merged); cost: 1 runs, 15.7 min, 52 turns, 147k tokens in (4276k more from cache), 38k out, $2.79
