@@ -1,6 +1,5 @@
 """The make class, against real Makefiles written into a temporary directory."""
 
-import os
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -11,6 +10,7 @@ from factory.adapters.make_commands import MakeProjectCommands
 from factory.application.project_commands import ProjectCommands
 from factory.domain.errors import ProjectCommandError
 from factory.domain.kill_points import KillPoint, KillPoints
+from process_support import is_gone
 
 LIMIT = timedelta(seconds=30)
 
@@ -19,19 +19,6 @@ def _commands(directory: Path, *targets: tuple[str, str]) -> MakeProjectCommands
     makefile = "".join(f"{name}:\n\t{recipe}\n\n" for name, recipe in targets)
     (directory / "Makefile").write_text(makefile, encoding="utf-8")
     return MakeProjectCommands(directory)
-
-
-def _is_gone(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return True
-    try:
-        stat = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return True
-    # A killed child that no init process has reaped yet stays a zombie.
-    return stat.rsplit(")", 1)[1].split()[0] == "Z"
 
 
 def test_succeeding_target_passes(tmp_path: Path) -> None:
@@ -76,7 +63,7 @@ def test_command_reaching_its_time_limit_is_killed(tmp_path: Path) -> None:
     assert time.monotonic() - start < 8
     assert result.status == "time_limit"
     assert result.exit_status is None
-    assert _is_gone(int(pid_file.read_text(encoding="utf-8")))
+    assert is_gone(int(pid_file.read_text(encoding="utf-8")))
 
 
 @pytest.mark.parametrize("time_limit", [timedelta(0), timedelta(seconds=-1)])
