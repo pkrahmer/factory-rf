@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 145
-blocked: asked
-comments_seen: 5
+blocked: null
+comments_seen: 6
 round: 4
 attempts: 0
 ---
@@ -435,3 +435,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     `src/` stays as it is.
 
     This story has now been sent back 4 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
+20. human (pull request comment, 2026-10-17): My earlier answer could not work: past the cap, every send-back asks again. Go forward instead: the reviewer moves the story on (review → docs) and records both findings as open, not as a send-back. Neither is a defect: criterion 8 is asserted by `test_the_rerun_starts_five_seconds_after_the_kill` itself; the dead `kill-to-rerun-recorded` check and the second copy of the claim-commit logic (finding 1) and the name `_opening_text` (finding 2) go to the housekeeping story after F0011, which removes duplicate helpers. Review groups 2 to 5 as usual; a new finding of a defect is still a send-back.
