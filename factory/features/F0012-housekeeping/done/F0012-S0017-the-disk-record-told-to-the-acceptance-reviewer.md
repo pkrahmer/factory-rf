@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 168
 blocked: null
 comments_seen: 0
@@ -111,3 +111,4 @@ Expect: two lines: `Disk now: disk acceptance: /work 1.0 GB free, 0.1 GB used` a
    Met its Expect line: the two lines match exactly. With no `disk_before`, the second line says `none`.
 
    Checked against the acceptance criteria: the output agrees with criterion 1. The two disk lines come at indices 3 and 4, after the three lines of today, and `none` is shown when there is no previous record. It contradicts no other criterion. Criteria 2 to 6 are about the service, the record log and the agent text, which this demo does not exercise. The tests the reviewer read cover them.
+8. done (pull request merged); cost: 6 runs, 4.4 min, 40 turns, 173k tokens in (631k more from cache), 14k out, $1.09
