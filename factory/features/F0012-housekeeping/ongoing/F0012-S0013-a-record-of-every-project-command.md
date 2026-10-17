@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 165
 blocked: null
 comments_seen: 0
 round: 0
@@ -107,3 +107,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures throughout (domain/command_records.py, application/files.py RecordLog, adapters/record_log_jsonl.py, RecordingProjectCommands, wiring). The types it names exist: CommitId, Duration, CheckStatus, CommandName, TargetTime, UtcDatetime, Clock and FactoryLog.
+   - Criteria: each is testable by one test function or one parametrized test. Rules and their failing sides: the model's refused values (1), a torn or invalid line skipped (3), an inner error propagating with nothing appended (6), an OSError on append logged without losing the result (7), an unresolvable HEAD giving None (8). The Interface's behaviours (read order, a missing file, folder creation, unchanged result, started_at from the clock) are in 2, 4 and 5.
+   - Demo: both blocks are runnable and each Expect line is checkable (`1 check 183.5`; the pytest summary with no failed, error or skipped count).
+   - Architecture: the interface in application, the JSONL adapter in adapters, the wiring only in entry, the DTO in domain, so the layers are respected. The test changes (decision 36 leave, tests/record_support.py) are named in the story.
+   - Scope: inside F0012 scope 1.4, and not in its Out of scope.
