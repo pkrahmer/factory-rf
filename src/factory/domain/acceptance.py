@@ -183,13 +183,15 @@ def _recorded_outcome(
 
 
 class AcceptanceFacts(BaseModel):
-    """What the acceptance reviewer is told: the archived stories, the next number, the cost."""
+    """What the acceptance reviewer is told: the stories, the next number, the cost, the disk."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     archived: list[WorkItemId]
     next_story: WorkItemId
     cost_line: str
+    disk_now: str | None = None
+    disk_before: str | None = None
 
     @field_validator("next_story")
     @classmethod
@@ -199,15 +201,28 @@ class AcceptanceFacts(BaseModel):
         return next_story
 
     def lines(self) -> list[str]:
-        """The three lines of the facts, as the reviewer's prompt holds them."""
-        return [
+        """The lines of the facts, as the reviewer's prompt holds them; two more with a disk."""
+        lines = [
             f"Archived stories: {', '.join(self.archived)}",
             f"Next free story number: {self.next_story}",
             f"Cost of the stories: {self.cost_line}",
         ]
+        if self.disk_now is None:
+            return lines
+        return [
+            *lines,
+            f"Disk now: {self.disk_now}",
+            f"Disk at the previous record: {self.disk_before or NONE_TEXT}",
+        ]
 
 
-def acceptance_facts(files: FeatureFiles, cost_line: str) -> AcceptanceFacts:
+def acceptance_facts(
+    files: FeatureFiles,
+    cost_line: str,
+    *,
+    disk_now: str | None = None,
+    disk_before: str | None = None,
+) -> AcceptanceFacts:
     """The facts of the feature's files; `ValueError` when story number 9999 is taken."""
     stories = story_file_ids([*files.backlog, *files.in_progress, *files.done])
     number = max((_story_number(story) for story in stories), default=0) + 1
@@ -217,6 +232,8 @@ def acceptance_facts(files: FeatureFiles, cost_line: str) -> AcceptanceFacts:
         archived=story_file_ids(files.done),
         next_story=f"{files.feature}-S{number:04d}",
         cost_line=cost_line,
+        disk_now=disk_now,
+        disk_before=disk_before,
     )
 
 
