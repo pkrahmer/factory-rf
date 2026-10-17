@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 156
 blocked: null
 comments_seen: 0
 round: 0
@@ -51,3 +51,9 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `factory.domain.times` with `in_utc` and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]` is concrete. I checked the source: the five named fields exist with `AwareDatetime` and a validator `_to_utc` (cost_records, hosting, stops, work_item) or `_in_utc` (git), each ending in `value.astimezone(UTC)`. No Interface comment states a behaviour that lacks a criterion.
+   - Criteria: each is testable by one function. 1 covers `in_utc` directly. 2 is a 10-row parametrized test with the aware side and the naive side (`ValidationError`), so the failing side is covered. 3 is an AST check through `modules()` in `tests/source_search.py`, which exists. 4 is `make check` and 5 is docs.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: `2026-10-12T12:00:00+00:00`, and `status 1` only.
+   - Architecture: a new pure domain module that imports only Pydantic and the standard library, so the layers are respected. The existing `astimezone` in `domain/board.py` is outside the five modules of criterion 3 and is not touched.
+   - Scope: this is F0012 item 1.2 (decision 18). It is within scope and not in "Out of scope". The docs criterion points at the existing section *The claim* in `docs/project-guide.md`, line 413, whose `started_at` sentence is the one to change.
