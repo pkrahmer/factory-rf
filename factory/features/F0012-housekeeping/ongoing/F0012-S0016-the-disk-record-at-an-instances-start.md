@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 167
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -136,3 +136,23 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/entry/test_run.py - ImportError while importing test module '/wor...
+4. coder: the implementation is done and committed in 54a999c, but `make check` is red because `make types` fails on a test I may not edit (R9).
+
+   Built:
+   - `src/factory/domain/disk.py`: `DiskOccasion`, `DiskUse`, `DiskRecord` and `disk_line`. `disk_line` reuses `gigabytes`; a `None` value is written as `unknown`.
+   - `src/factory/domain/settings.py`: `InstanceSettings.temporary_directory`, the last field. `read_settings` does not set it.
+   - `src/factory/application/boundaries.py`: `disk_records: RecordLog[DiskRecord] | None = None`.
+   - `src/factory/application/disk_records.py`: `DiskRecorder.record` and `DiskRecorder.last`. `record` writes the log line first, then appends; when the append raises `OSError` it logs `cannot write the disk record: <error>`, the same way `RecordingProjectCommands` handles a failed record.
+   - `src/factory/entry/wiring.py`: `JsonLinesRecordLog` at `records/disk.jsonl`, and `read_environment_settings` sets `temporary_directory` to `Path(tempfile.gettempdir())`.
+   - `src/factory/entry/run.py`: `run_instance` calls `DiskRecorder(boundaries).record("start")` after it builds the boundaries.
+
+   Check results: `make lint`, `make layers`, `make sast`, `make secrets` and `make licenses` are green. `make test` is green: all tests pass, coverage 99.5 %. `mypy --strict src` is clean. `make types` fails with 14 errors, all on one line, `tests/application/test_disk_recorder.py:163`:
+   `given = replace(recorded, **{missing: None})`
+   mypy checks the `**dict[str, None]` against every field of `Boundaries`, so each required field (git, hosting, clock, …) reports `arg-type`. The only fix in `src` would be to make every `Boundaries` field optional, which is clearly wrong. The test cannot pass `mypy --strict` as written.
+
+   Options:
+   (a) My choice: in `test_boundaries_without_disk_records_or_settings_record_nothing`, make each row a typed `Callable[[Boundaries], Boundaries]`, e.g. `pytest.param(lambda b: replace(b, disk=None), id="disk")`, and the same for `disk_records` and `settings`. The test calls it as `given = without(recorded)`. Same three rows and ids, and no `type: ignore`.
+   (b) Keep the string rows and select the replacement with an explicit `if`/`elif` on `missing`.
+   (c) Add `# type: ignore[arg-type]` on that line. CLAUDE.md rules this out for tests.
+
+   If you answer (a) or (b), I will end the next round with `tests` and name that change for the tester. No refactor commit yet; the diff is small, and I will review it once `make check` is green.
