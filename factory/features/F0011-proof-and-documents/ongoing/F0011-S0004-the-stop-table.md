@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 148
 blocked: null
 comments_seen: 0
@@ -171,3 +171,13 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the stop table and the duplicate read; `make check` green (coverage 99.55 %). Commit 49a4329.
+
+   - `src/factory/domain/stop_table.py`: `Destination`, `StopRow` (frozen, extra="forbid") and `STOP_TABLE`, the fourteen rows in the Interface's order. There are two model validators, each raising a `ValueError`: the reason is set exactly when the destination is `health_status`, and the limits are non-empty and each matches `^L\d+$`. Two private builders (`_health`, `_pull_request`) keep the rows short: every health_status row shares the one repository test name, and every pull_request row has no reason.
+   - `src/factory/application/work_items.py`: `read` tracks the ids it has already seen. `_snapshot` takes `duplicate=` and reads a later in-progress file of a seen id from origin/main through `_started_document`, as for a story without a branch. Before this, `_branch_document` raised `missing on branch`. `branch_commit` stays the resolved branch tip, so the dispatcher's error key (`n` = first 12 characters of origin/<branch>) and the duplicate post land on the first work item's pull request. The only file of an id that is missing on its branch still raises `WorkItemFormatError`.
+   - Rejected: dropping the duplicate's `branch_commit` (setting it to None). That would make the second snapshot look like a story that was never started, and the scenario's key and pull request depend on the branch tip.
+   - Every scenario in tests/test_stop_table.py (criteria 6 to 15) passed with no change under `src/` beyond the read change, so the other stops already reach their destinations.
+   - Refactor: I read the diff back and found nothing to rename, simplify or remove, so there is no refactor commit.
+   - Not touched: the docs criterion (18) belongs to the documenter.
+
+   `make check`: check: green
