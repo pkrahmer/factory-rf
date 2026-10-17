@@ -48,6 +48,15 @@ def _failed_detail(reason: EndReason, named: str, login_file: Path | None) -> st
     return present + (HINT if login_file is not None else "")
 
 
+def _probe_result(reason: EndReason) -> AgentRunResult:
+    duration = timedelta(seconds=5)
+    if reason == "completed":
+        return AgentRunResult(
+            end_reason=reason, duration=duration, decision="question", entry="probe"
+        )
+    return AgentRunResult(end_reason=reason, duration=duration)
+
+
 _ROWS = [
     pytest.param(
         reason,
@@ -76,10 +85,7 @@ def test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set(
     passed: bool,
     detail: str,
 ) -> None:
-    result = AgentRunResult(end_reason=reason, duration=timedelta(seconds=5))
-    if reason == "completed":
-        result = result.model_copy(update={"decision": "question", "entry": "probe"})
-    agent_runtime.queue(ScriptedRun(result=result))
+    agent_runtime.queue(ScriptedRun(result=_probe_result(reason)))
     probed = settings.model_copy(update={"agent_user": agent_user, "claude_login_file": login_file})
 
     item = agent_run_probe_item(boundaries, probed, ENVIRONMENT)
