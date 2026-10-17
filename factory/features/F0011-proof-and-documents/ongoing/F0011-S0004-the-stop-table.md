@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 148
 blocked: null
 comments_seen: 0
@@ -134,3 +134,40 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Demo: the three commands are runnable. Each `Expect:` line is checkable (fourteen lines with named first, seventh, eighth and last; `True`; the `passed` line).
    - Architecture: the table is data in `factory.domain`, with no I/O. It imports only `factory.domain.stops`. The tests use the existing helpers (`tests/proof_support.py`, `tests/source_search.py`, `FakeHosting.fail_next` and `pull_requests`).
    - Scope: stays within F0011's stop-table scope (L11, L19, L26, L30, L33, L55, L58, L64, L65). The producers of the machine stops stay out of scope. The F0006 code change is recorded as decision 19 in `FEATURE.md`.
+3. tester: Wrote red tests for criteria 1 to 16, using the Interface and the scenario list as written.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_stop_table.py::test_the_table_holds_the_fourteen_stops_in_order
+   - criterion 2: tests/domain/test_stop_table.py::test_every_repository_stop_reason_is_the_reason_of_exactly_one_row
+   - criterion 3: tests/domain/test_stop_table.py::test_the_table_covers_every_limit_of_v1_whose_stop_reached_only_a_log
+   - criterion 4: tests/domain/test_stop_table.py::test_a_row_breaking_a_rule_of_the_table_is_rejected (parametrized: health without reason, reason with pull_request, reason with none, empty limits, "X7") and ::test_the_first_row_of_the_table_is_accepted
+   - criterion 5: tests/domain/test_stop_table.py::test_a_built_row_refuses_the_assignment_of_a_field and ::test_a_row_with_an_unknown_key_or_value_is_rejected (parametrized: unknown key, destination "log", reason "v1_work_item_found", all built through `type[BaseModel]`)
+   - criterion 6: tests/test_stop_table.py::test_every_test_of_the_table_is_a_function_of_this_module (reads the module's top-level functions with `ast`)
+   - criterion 7: tests/test_stop_table.py::test_repository_stop_reaches_the_health_status_and_the_factory_log (parametrized over the seven health_status rows; uses the conftest `boundaries`, `clock` and `hosting` fixtures, and the log at tmp_path/state/factory.log)
+   - criterion 8: tests/test_stop_table.py::test_production_code_names_every_reason_of_a_repository_stop (parametrized over `RepositoryStopReason`)
+   - criterion 9: tests/test_stop_table.py::test_duplicate_is_a_counted_error_reported_once_on_the_pull_request
+   - criterion 10: tests/test_stop_table.py::test_failed_pull_request_lookup_is_a_counted_error_reported_once
+   - criterion 11: tests/test_stop_table.py::test_ask_without_pull_request_is_reported_once_on_a_draft_pull_request_opened_first
+   - criterion 12: tests/test_stop_table.py::test_handler_that_fails_every_time_is_reported_once_after_the_error_cap
+   - criterion 13: tests/test_stop_table.py::test_hand_over_that_fails_every_time_is_reported_once_after_the_error_cap
+   - criterion 14: tests/test_stop_table.py::test_rejected_push_is_a_counted_error_reported_once (installs an executable `hooks/update` in the bare remote that exits 1 for refs/heads/work-item/*)
+   - criterion 15: tests/test_stop_table.py::test_story_file_naming_a_later_stage_starts_at_intake_with_no_stop
+   - criterion 16: tests/application/test_work_items_duplicate.py::test_a_second_file_of_one_id_is_read_from_main_as_a_started_story and ::test_the_only_file_of_an_id_missing_on_its_branch_is_still_a_format_error
+
+   How the scenario tests are written:
+   - Error posts are counted over every pull request with a local helper `_error_posts`.
+   - For "three more ticks add no post", the test compares every factory post before and after those ticks.
+   - Duplicate and pull-request-lookup also compare the post's key with `PostKey(work_item, "error", n=<first 12 characters of origin/<branch>>)`, read after the third failing tick.
+   - The duplicate's second file is `<id>-other.md`, so its path sorts after `F0001-S0001-first.md`.
+   - Ask-without-pull-request builds the branch file from `initial_state("intake")` with `blocked="question"`, over `STORY` (which already has `## Journal`), with one `question` entry from speaker `intake` added by `append_entry`. It renders the file with the world's `FrontmatterWorkItemWriter` and pushes it with `human.push_file` to the story's in-progress path.
+
+   Files created: tests/domain/test_stop_table.py, tests/test_stop_table.py, tests/application/test_work_items_duplicate.py.
+
+   One `make test` run: collection stopped with 2 errors, in tests/domain/test_stop_table.py and tests/test_stop_table.py. Both import `factory.domain.stop_table`, which does not exist yet. Because collection was interrupted, tests/application/test_work_items_duplicate.py did not run. Its first test should fail against the current `_branch_document`, which raises "missing on branch". Its second test pins behaviour that already exists.
+
+   `make lint` is green after `ruff format`. I skipped the type check, as the stage says to.
+
+   Nothing is open: no criterion needed interpreting beyond what the scenario list states.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
