@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 179
 blocked: null
 comments_seen: 0
@@ -70,3 +70,15 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/application/test_stalls.py::test_the_stall_commit_carries_the_work_item_prefix[agent-commit]
+4. coder: all four factory commits on a work item's branch now take their subject from `commit_subject`. `make check` is green.
+      - `src/factory/application/claims.py`: the stage-start commit is `commit_subject(_work_item_id(path), f"{stage} starts as {instance}")`. The new private helper `_work_item_id(path)` holds the file-name parse that used to sit in `_own_branch`, and `_own_branch` now calls it. That keeps the parse in one place instead of two.
+      - `src/factory/application/stage.py`: `StageFinisher.finish` builds `commit_subject(started.work_item, f"{started.stage} ends: {move.stage}")` and passes it to `_commit_and_push`, which is unchanged.
+      - `src/factory/application/stalls.py`: `_commit_and_push` commits `commit_subject(context.work_item, f"{context.stage} stalled")`.
+      - `src/factory/application/acceptance.py`: `open` commits `commit_subject(work_item, "opens")`.
+      - Design: I imported `commit_subject` from `factory.application.handlers.recording` as the Interface says, with no import cycle. I rejected the alternative of applying the prefix inside `_commit_and_push` or in the `Git` wrapper: that would also change the subjects of the handlers and of the agents' commits, which the assignment keeps.
+      - Refactor: I read the diff (16 lines added, 6 removed) and nothing needed changing, so there is no refactor commit.
+      - Checks: commit "feat(application): prefix the factory's own commits with the work item id". Both demo commands print what the ticket expects: `7 passed, 1126 deselected`, and the grep prints only `status 1`. `make duplicates`: 0 new, 39 known, 0 gone.
+      - Open: the docs criterion (7) is the documenter's. I did not change the merge of `origin/main` on reopening, as the assignment asks.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
