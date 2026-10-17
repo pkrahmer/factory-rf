@@ -226,7 +226,9 @@ Rules of `run`:
 - `duration` is the time the command ran.
 - `kill_points` is accepted so that wiring builds every wrapper the same way; this wrapper reaches no kill point.
 
-`CheckResult` (`factory.domain.checks`) is frozen, forbids unknown keys, and has the fields `command`, `status`, `exit_status`, `duration`, `last_line` and `output_tail`. `status` and `exit_status` must agree (`status_of(exit_status)` is the one mapping), or validation fails. `passed` is true only for `"passed"`. The result is generic: it carries no layer names (R8), and no identifier in the three modules contains `layer`.
+`CheckResult` (`factory.domain.checks`) is frozen, forbids unknown keys, and has the fields `command`, `status`, `exit_status`, `duration`, `last_line`, `output_tail` and `targets`. `status` and `exit_status` must agree (`status_of(exit_status)` is the one mapping), or validation fails. `passed` is true only for `"passed"`. The result is generic: it carries no layer names (R8), and no identifier in the three modules contains `layer`.
+
+`targets` is a list of `TargetTime` (`target`, `seconds`), one for each line of the whole output (not only the tail) that is exactly `<target>: green (<seconds> s)`, in the order printed; `target_times(output)` reads them. A target printed twice gives two entries, and a project whose Makefile prints no such line gets `[]`. A red target prints no such line. This repository's `Makefile` prints that line for each target, so the factory knows no target names.
 
 A project declares its own layers and checks them with a project command of its own. To add the layers check, the project adds a make target (for example `layers`, which calls its tool through uv) to its Makefile and, where it belongs in the gate, makes `check` depend on it. The factory sees only that target's `CheckResult`: its status, `last_line` and `output_tail`.
 

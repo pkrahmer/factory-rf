@@ -1,9 +1,10 @@
 """The generic result of a project command, judged by its exit status alone."""
 
+import re
 from datetime import timedelta
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, NonNegativeFloat, StringConstraints, model_validator
 
 OUTPUT_TAIL_LINES = 30
 
@@ -13,12 +14,35 @@ COMMAND_NAME_PATTERN = r"^[a-z][a-z0-9-]*$"
 
 CommandName = Annotated[str, StringConstraints(pattern=COMMAND_NAME_PATTERN)]
 
+_TARGET_NAME = COMMAND_NAME_PATTERN.removeprefix("^").removesuffix("$")
+
+_TARGET_TIME_LINE = re.compile(rf"({_TARGET_NAME}): green \(([0-9]+(?:\.[0-9]+)?) s\)")
+
 
 def status_of(exit_status: int | None) -> CheckStatus:
     """The status an exit status means; `None` is a command ended by its time limit."""
     if exit_status is None:
         return "time_limit"
     return "passed" if exit_status == 0 else "failed"
+
+
+class TargetTime(BaseModel):
+    """One target of a project command that ended green, and the seconds it took."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    target: CommandName
+    seconds: NonNegativeFloat
+
+
+def target_times(output: str) -> list[TargetTime]:
+    """The `<target>: green (<seconds> s)` lines of `output`, in their order."""
+    times = []
+    for line in output.splitlines():
+        match = _TARGET_TIME_LINE.fullmatch(line)
+        if match:
+            times.append(TargetTime(target=match[1], seconds=float(match[2])))
+    return times
 
 
 class CheckResult(BaseModel):
@@ -32,6 +56,7 @@ class CheckResult(BaseModel):
     duration: timedelta
     last_line: str
     output_tail: str
+    targets: list[TargetTime] = []
 
     @model_validator(mode="after")
     def _status_follows_exit_status(self) -> Self:

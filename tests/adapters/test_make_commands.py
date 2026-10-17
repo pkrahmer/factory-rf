@@ -8,6 +8,7 @@ import pytest
 
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.application.project_commands import ProjectCommands
+from factory.domain.checks import TargetTime
 from factory.domain.errors import ProjectCommandError
 from factory.domain.kill_points import KillPoint, KillPoints
 from process_support import is_gone
@@ -206,3 +207,28 @@ def test_command_name_with_a_trailing_newline_is_refused_before_starting(tmp_pat
         commands.run("check\n", time_limit=LIMIT)
 
     assert not marker.exists()
+
+
+def test_targets_are_read_from_the_whole_output(tmp_path: Path) -> None:
+    commands = _commands(
+        tmp_path,
+        (
+            "check",
+            '@echo "lint: green (0.5 s)"; seq 1 40; '
+            'echo "test: green (2.0 s)"; echo "check: green"',
+        ),
+    )
+
+    result = commands.run("check", time_limit=LIMIT)
+
+    assert "lint: green (0.5 s)" not in result.output_tail.splitlines()
+    assert result.targets == [
+        TargetTime(target="lint", seconds=0.5),
+        TargetTime(target="test", seconds=2.0),
+    ]
+
+
+def test_target_printing_no_green_line_has_no_targets(tmp_path: Path) -> None:
+    commands = _commands(tmp_path, ("check", '@echo "check: green"'))
+
+    assert commands.run("check", time_limit=LIMIT).targets == []
