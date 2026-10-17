@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 188
 blocked: null
 comments_seen: 0
@@ -98,3 +98,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - Architecture and security: nothing changed in `src/`, and no suppression markers were added.
       - Quality: no findings.
       - Ticket hygiene: `Assignment` matches what was built. Criterion 7 (the docs criterion) is still open and goes to the documenter.
+6. documenter: changed `docs/operator-guide.md`, paragraph "The probe of the agent run". It now says that without `FACTORY_AGENT_USER` the detail names `the factory user` in place of the agent user (criterion 7). No other file changed.
+   - Cross-read: the operator guide's "The preflight's items" and the probe paragraph against the diff and the Interface table. The other details (agent-environment, hosting-service, agent-runtime-version) are already quoted or described and stay as they are. The diff is tests only; `src/` is unchanged, so no code finding.
+   - Not run: only documents changed, so I did not run `make check`. The factory runs it next.
+   - Stale but unrelated: nothing seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
