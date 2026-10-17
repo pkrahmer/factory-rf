@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 172
 blocked: null
 comments_seen: 0
@@ -48,3 +48,14 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
    - Demo: runnable with `uv run python -c`. Its Expect line gives two exact lines that the output can be compared with.
    - Architecture: only a file under `image/` changes, which is inside the coder's write paths. No layer is involved.
    - Scope: in the feature's scope, item 1.6 (S0022), with the tests and the docs inside the story. Nothing is in "Out of scope".
+3. tester: Wrote the tests for the per-instance compose project name in the new module `tests/test_compose_project.py`. It loads `image/compose.yml` with ruamel.yaml's safe loader, the same way `tests/test_compose.py` does. No existing test was changed.
+   - criterion 1: tests/test_compose_project.py::test_the_project_is_named_after_the_required_instance_without_a_default. It checks that `name` is exactly `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}`, that it starts with `factory-`, that it uses `:?` with a message and has no `:-` default, and that `name` is the file's first key, as the Interface says.
+   - criterion 2: tests/test_compose_project.py::test_the_project_name_refuses_with_the_same_message_as_the_service_environment. It checks that the `:?` message in `name` is the same text as the one for `FACTORY_INSTANCE` in the service's environment.
+   - criterion 3: no new test. The criterion is that the existing tests in tests/test_compose.py and tests/test_image_users.py keep passing, and they do on this run.
+   - criteria 4 and 5: `make check` and the docs, which the later stages handle.
+   Files created: tests/test_compose_project.py.
+   `make test`: both new tests fail as intended, because `name` is still `factory`. Every module imported; the tests read a file, so nothing was missing. `make lint` is green.
+   I did not have to interpret any criterion.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_compose_project.py::test_the_project_name_refuses_with_the_same_message_as_the_service_environment
