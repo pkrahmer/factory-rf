@@ -969,6 +969,8 @@ What it does, in one call:
 
 A commit that you pushed to the branch while the stage ran is on the remote, so it stays; the journal entry names the commit the discard went back to. The stage-start commit and its `started` entry stay in the history too.
 
+Recovery is proved by injection tests: each of the six kill points is killed against a real local bare remote and the factory restarted, and v1's thirteen fault-injection paths are each walked with one kill or stall (`uv run pytest tests/test_kill_points.py tests/test_fault_paths.py tests/test_fault_paths_7_to_13.py`). The cases and paths are listed in the project guide's sections *Kill points* and *Fault-injection paths*.
+
 If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. A claim of another instance name is handled only once its lease has expired (see "An expired lease").
 
 ### The crash cap
