@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 184
 blocked: null
 comments_seen: 0
@@ -58,3 +58,16 @@ Expect: `3`, the three messages the tests pin.
    - Demo: both commands can be run. The expectations can be checked against the output: `3 passed`, and a grep count of `3`. The grep count matches the three lines found.
    - Architecture: the tests sit in `tests/application/`. The stand-in derives from the `WorkItemReader` interface, as `CLAUDE.md` asks. It adds no new dependency, and git and the hosting service are not faked beyond the existing fake.
    - Scope: the story is inside F0013's scope (taken in from F0012's draft S0031, FEATURE decision 2). It touches nothing listed under Out of scope and changes no existing test (decision 12).
+3. tester: wrote the three no-state refusals as rows of one parametrized test.
+   - criterion 1: tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted[hand_over]
+   - criterion 2: tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted[merged]
+   - criterion 3: tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted[closed]
+   - criterion 4: covered by the existing tests of the three handlers' modules, which I did not change.
+   - criteria 5 and 6: the closing criteria, so no test.
+   How each row works: the `walk` fixture brings the acceptance to the event, as the Interface describes. The row asserts that `walk.evaluate()` returns the expected kind. It then builds the handler with `walk.definition` and `dataclasses.replace(boundaries, work_item_reader=StatelessReportReader(...))`. `StatelessReportReader` is defined in the module and derives from `factory.application.files.WorkItemReader`. Its `read` returns `WorkItemDocument(state=None, body=<the file's text>)` for `boundaries.checkout / report_of(FIRST)`, and it hands every other path and both parse methods to `FrontmatterWorkItemReader`. Each row asserts the `CannotHandle` kind and reason from the table. It also asserts that the remote's watched branch (the acceptance branch, or `main` for merged) holds the same commit as before, and that `hosting.list_comments(number)` is unchanged.
+   Files created: tests/application/test_acceptance_no_state_refusals.py.
+   Imports: every module the test runner loads already exists. No test is red, as expected: the story says the code already behaves this way, so the coder should change nothing in `src/`. `make test` and `make lint` are green. I did not run the type check, as the stage says.
+   Rejected: one test function per handler. The CLAUDE.md test rules want the sides of one rule as rows of one parametrized test.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.8 s)
