@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 147
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -140,3 +140,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    Refactor: nothing to refactor; the diff is seven data rows.
    Not touched: `tests/test_fault_path_names.py` still checks only the first six rows (the tester noted this too).
+5. human (pull request comment, 2026-10-17): (a). The tester narrows both selections to the work item's Markdown file: `tests/proof_support.py::work_item_file` and `tests/test_fault_paths_7_to_13.py::_booked` take the one `.md` file whose name starts with the id, so the `.costs.jsonl` sidecar is not counted; `src/` stays. The Interface's sentence for `work_item_file` reads "the one `.md` file … whose name starts with the work item's id".
