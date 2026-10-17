@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 185
 blocked: null
 comments_seen: 0
@@ -61,3 +61,16 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (27.8 s)
+4. coder: I made the change the Interface describes in `src/factory/entry/check_demos.py` (commit 80c8a2cd).
+      - `_BACKLOG` is now typed: `_BACKLOG: LifecycleFolder = "backlog"`.
+      - `_story_findings` now gets its path from `work_item_path(feature, _BACKLOG, story)`, and its comment on the path is unchanged.
+      - `LifecycleFolder` and `work_item_path` are imported from `factory.domain.paths`, and `FEATURES_DIRECTORY` is no longer imported.
+      - `_is_backlog_story` still compares with `_BACKLOG`. The literal `"backlog"` appears once in the module, which `grep` confirms (criterion 3).
+      - Design: I reused the domain helper rather than keeping the hand-built path. I considered a local helper and rejected it, because it would have been a second copy of `work_item_path`.
+      - Refactor pass: I read the three-line diff, and nothing needed changing. There is no separate refactor commit.
+      - Tests: none touched. `uv run python -m factory.entry.check_demos` prints `demos ok`.
+      - `make check`: check: green (coverage 99.50 %).
+      - Noticed and left alone: nothing.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
