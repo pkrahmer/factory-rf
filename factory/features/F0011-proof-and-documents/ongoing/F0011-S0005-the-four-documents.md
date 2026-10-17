@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 149
 blocked: null
 comments_seen: 2
@@ -185,3 +185,10 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
 
    No refactor pass yet; it follows once the check is green. Nothing else is open.
 5. human (pull request comment, 2026-10-17): (a), the first form: the tester exempts exactly `src/factory/domain/documents.py` and its compiled `.pyc` from `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode`, by name, with a comment saying why (the list of replaced phrases must name them); every other file under `src/` stays searched. This is the human's leave for that change to an earlier story's test (recorded as F0011 decision 21). `src/` keeps the constants as the Interface states.
+6. coder: tests. The human's answer (entry 5, option (a) in its first form) needs a test change. I may not make it.
+
+   - **The change.** In `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode`, exempt exactly `src/factory/domain/documents.py` and its compiled `.pyc` by name, with a comment saying why: the list of replaced phrases has to name them. Every other file under `src/` is still searched.
+   - **Current state.** The test still searches every file under `src/` (lines 282-285), so `make check` is red on its `[--follow]` and `[factory-last-line]` cases.
+   - **Committed so far.** The implementation is in 8813045: `src/factory/domain/documents.py` and `src/factory/entry/check_documents.py`. The constants stay in `src/`, as the Interface states.
+   - **Next.** Once the tester has made this change, the ticket comes back to me. I will check that `make check` is green, then do the refactor pass and hand on to review.
+   - **Assignment.** Not rewritten: the answer does not change what the task means.
