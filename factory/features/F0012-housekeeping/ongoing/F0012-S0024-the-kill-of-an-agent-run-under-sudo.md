@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 174
 blocked: null
 comments_seen: 0
@@ -89,3 +89,33 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/adapters/test_claude_runtime_sudo_time_limit.py::test_the_resume_under_sudo_is_limited_by_what_is_left_of_the_time_limit
+4. coder: Built the inner kill under `sudo` in `src/factory/adapters/claude_runtime.py` (commit 9f6c1b3).
+
+   What I built:
+   - Three new constants: `TIMEOUT_EXECUTABLE = "timeout"`, `SUDO_GRACE = timedelta(seconds=30)` and `KILL_STATUSES = frozenset({137, -9})`.
+   - `_process_request` now starts a request that has an `os_user` as `sudo -n -u <user> -- timeout --signal=KILL <ceil(seconds)>s env -i <assignments> <claude> ...`. The outer `ProcessRequest`'s `time_limit` is the call's limit plus `SUDO_GRACE`.
+   - `_limit_argument` rounds the limit up with `math.ceil`, so 1.5 s becomes `2s`.
+   - A request without an `os_user` is started and limited as before.
+   - `_killed_at_limit(request, process, time_limit)` is true when all three hold: the request has an `os_user`, the exit status is 137 or -9, and the duration is at least that call's own limit.
+   - When it is true, `_call` sets `timed_out=True` on the `ProcessResult` (with `model_copy`) before anything else reads it.
+
+   Main design decision: I mark the inner kill as `timed_out` in `_call`, so the existing paths treat it like the factory's own kill without any change of their own:
+   - `_end_reason` returns `time_limit`.
+   - `_result` drops the measures.
+   - `_sudo_refusal` raises on a `sudo:` line even when the reply parsed (criterion 4).
+   - The resume already passes `left` to `_call`, so its `timeout` argument and outer limit follow from it (criterion 6).
+
+   The alternative I rejected was passing the call's limit into `_end_reason`, `_result` and `_sudo_refusal` and checking for the kill in each of them. That would have meant three signatures changed and the same rule repeated three times.
+
+   Refactor: I read my diff and found nothing to change, so there is no refactor commit.
+
+   Checks:
+   - `make check` is green: lint, types, layers, sast, secrets, licenses and test.
+   - `make duplicates`: 0 new, 39 known, 0 gone.
+
+   Open, not touched:
+   - The docs criterion (9) is the documenter's.
+   - The real run under `sudo` is still to be observed at the first start, as the assignment says.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
