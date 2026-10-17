@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 173
 blocked: null
 comments_seen: 0
@@ -118,3 +118,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Criteria 1–14 each have a test that checks what the criterion says.
    - The coder's entry reports `make check` green.
    - The deviation from the Interface is justified and logged: the pipeline definition reader comes through `build_pipeline_definition_reader()` in the wiring, because `test_wiring.py` lets only the wiring import adapters.
+6. coder: coder (round 1): I changed no code. Both findings from the review are missing test rows. The code in `src/factory/entry/check_demos.py` already gives the expected finding for both cases: `_is_feature_file` needs exactly `parts[1] == "feature.md"`, and `_is_backlog_story` needs a name ending in `.md` directly under `backlog/`. Every other file under `features/` is reported as "not a feature file or a backlog story".
+      - Test change for the tester: in `tests/entry/test_check_demos.py::test_a_file_that_is_no_feature_file_or_backlog_story_is_a_finding`, add two rows, each expecting `demo/todo/<path>: not a feature file or a backlog story`:
+        - `features/F0001-x/backlog/notes.txt`, a file in `backlog/` that does not end in `.md`
+        - `features/F0001-x/notes.md`, a file directly in a feature folder that is not `feature.md`
+      - These rows cover the refused side of two Interface rules that criterion 8 does not name. The test was not wrong, only incomplete. The reviewer asked for a `tests` outcome naming these rows, so I did not ask a question first.
+      - Nothing else is open from round 1. `make check` was green at 8450e2d, and the tree is unchanged since then.
