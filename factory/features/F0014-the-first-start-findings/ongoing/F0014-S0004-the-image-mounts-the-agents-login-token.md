@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 197
 blocked: null
 comments_seen: 0
@@ -82,3 +82,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_claude_token_mount.py::test_the_login_lies_in_the_agent_home_outside_secrets_and_named_volumes
+4. coder: The image now mounts the agent's login token, and `make check` passes.
+      - `image/Dockerfile`: added `ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token` directly after `ENV FACTORY_AGENT_USER=agent` and before `USER factory`. The comment above it says this is the agent's login, a token from `claude setup-token` that Compose mounts, and that each agent run's shell reads it.
+      - `image/compose.yml`: added the bind mount as the fourth entry of `volumes`, after `claude-home:/home/agent/.claude` and before the hosting token's comment and mount, which stay last. Its keys, in order: `type: bind`, `source: ./secrets/claude-token`, `target: /home/agent/.claude-token`, `read_only: true`, `bind.create_host_path: false`. The comment above it says this is the agent's own login, which the agent must read, so it lies outside the token's folder, and that a missing host file makes Compose refuse to start instead of creating a folder in its place.
+      - Commit 526213e4.
+      - Design: a separate ENV line, not a new name added to the multi-name ENV block before `USER`. This follows the Interface's placement and keeps the variable next to `FACTORY_AGENT_USER`, which it belongs with.
+      - Checked, not changed: `.gitignore` already ignores `image/secrets/` (line 16).
+      - Refactor: none needed. The diff is two small additions.
+      - Open: criterion 9 (the docs) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
