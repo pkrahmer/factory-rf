@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 183
 blocked: null
 comments_seen: 0
@@ -76,3 +76,16 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: both commands are runnable. Each `Expect:` line is checkable: the printed `True` and the exact detail with `<tmp>` substituted, and the pytest summary line.
    - Architecture: the change stays in the application layer and reads only through the injected `stat`, so no new I/O or layer crossing. The wiring test in the entry layer stays unchanged.
    - Scope: this is FEATURE decision 10 (S0002 in Scope), and the replacement of the old tests has the human's leave (decision 11). The docs criterion is limited to the operator guide, the project guide and the decision log.
+3. tester: Replaced the three tests in `tests/application/test_token_file_item.py` with tests for the criteria, as FEATURE decision 11 allows, and updated the module docstring. Each test builds a `secrets` folder in `tmp_path` and the token file inside it. The `folder` fixture sets the folder back to 0700 at teardown so a 0500 folder can still be cleaned up.
+   - criterion 1: tests/application/test_token_file_item.py::test_the_folder_passes_only_without_a_bit_for_group_or_others (0700 and 0500 pass; 0740, 0720, 0710, 0704, 0702 and 0701 fail with the exact detail)
+   - criterion 2: tests/application/test_token_file_item.py::test_the_token_files_own_mode_does_not_count (0600, 0644, 0666, 0777)
+   - criterion 3: tests/application/test_token_file_item.py::test_a_folder_of_another_owner_fails
+   - criterion 4: tests/application/test_token_file_item.py::test_no_path_or_a_missing_token_file_fails (rows: no-path, missing)
+   - criterion 5: tests/application/test_token_file_item.py::test_the_first_fault_found_is_the_detail (rows: mode-before-missing-file, owner-before-mode, missing-folder)
+   - criterion 6: tests/application/test_token_file_item.py::test_the_item_reads_only_through_stat (the stub records the paths asked; the expected order is [path.parent, path])
+   - criterion 7: no new test. The existing tests in tests/entry/test_wiring_extras.py and tests/application/test_agent_user_item.py cover it, and I did not change them.
+   - criteria 8 and 9: the coder's `make check` and the docs stage.
+   Files changed: tests/application/test_token_file_item.py only. Every module imports, so there are no import errors. The tests fail because the code still checks the file: the item passes a folder with group or others bits, still checks the file's own mode, and calls `stat` with the path, not its parent. The rows that the current code already gets right pass. `make lint` is green. I also ran pytest once on this one module, beyond the single `make test` run the stage asks for, to check why the tests fail after fixing the lint errors (long lines and confusing test ids).
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/application/test_token_file_item.py::test_the_item_reads_only_through_stat
