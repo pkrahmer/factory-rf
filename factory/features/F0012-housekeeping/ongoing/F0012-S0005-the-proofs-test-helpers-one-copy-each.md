@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 157
 blocked: null
 comments_seen: 0
@@ -104,3 +104,13 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (26.8 s)
+4. coder: nothing to build. As the ticket says, this is a change of tests only. The tester already made the whole helper refactor under `tests/`: `state_at`, `rerun_seconds` and `branch_state` in `tests/proof_support.py`; `_opening_document`; `_rerun` calling `rerun`; and the removed copies in `tests/test_kill_points.py` and `tests/test_fault_paths_7_to_13.py`. They also deleted `tests/test_fault_path_names.py` and created `tests/test_proof_support.py`.
+
+   - Diff check: `git diff main...HEAD -- . ':!factory'` touches only those five test files. Nothing under `src/` changes, so I made no commit.
+   - Refactor step: there is no coder diff to refactor. The test files are outside my lane (R9), so I left them as they are.
+   - `make check`: green (`test: green (27.2 s)`, coverage 99.51 %, `check: green`).
+
+   Open: criterion 7, the project guide's *Fault-injection paths* and *The kill-point cases* sections, belongs to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
