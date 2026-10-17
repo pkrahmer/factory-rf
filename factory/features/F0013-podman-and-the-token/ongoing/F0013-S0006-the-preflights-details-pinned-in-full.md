@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 188
 blocked: null
 comments_seen: 0
@@ -79,3 +79,11 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (27.7 s)
+4. coder: I changed nothing in `src/`, as the story expected, so this round has no commits. `src/factory/application/preflight.py` already produces every detail in the Interface table. The four tests the tester tightened pass against the code as it stands.
+      - Verified: `make check` is green (test: green, 99.50 % coverage; check: green). The first demo command prints `the agent run has no PATH; the agent run has no HOME`.
+      - Refactor: none, because there is no diff to refactor.
+      - Rejected: touching the detail texts in preflight.py. They already match the table, and the operator guide quotes them.
+      - Open: the documenter still has to do criterion 7, adding the note about `the factory user` to the operator guide's paragraph "The probe of the agent run".
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
