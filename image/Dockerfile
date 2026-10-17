@@ -37,6 +37,9 @@ COPY image/entrypoint.sh ./entrypoint.sh
 RUN sed -i 's/\r$//' entrypoint.sh && chmod 0755 entrypoint.sh
 COPY image/git-credential-factory /usr/local/bin/git-credential-factory
 RUN sed -i 's/\r$//' /usr/local/bin/git-credential-factory && chmod 0755 /usr/local/bin/git-credential-factory
+# The agent's git trusts the checkout the factory owns; the factory's git does not read this file.
+COPY image/gitconfig /etc/gitconfig
+RUN sed -i 's/\r$//' /etc/gitconfig && chmod 0644 /etc/gitconfig
 # The token is a mounted file; only its path is set, in a folder only the factory's user can enter.
 ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token
 # The factory's user may become the agent's user, so no agent can read the token.

@@ -118,7 +118,8 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
 | The factory's restore after an agent-made directory | after the line above, `docker exec <container> sh -c 'cd /work/checkout && git clean -fd && git status --short'` | the directory is gone, no error |
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
-| WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | an authentication failure, no push |
+| The agent's git trusts the checkout | `docker exec -u agent <container> git -C /work/checkout status --short` | no `dubious ownership`; the status, or nothing on a clean checkout |
+| WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | no push; git fails with `could not read Username`, because there is no credential |
 | WE3.4: it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
 | The agent cannot write the checkout's `.git` | `docker exec -u agent <container> sh -c 'cd /work/checkout && stat -c "%a %U:%G %n" .git .git/config && find .git -perm /022 \| wc -l && git config --local factory.sealcheck agent; touch .git/agent-file; mv .git/hooks .git/hooks-moved'` | line by line: `2750 factory:factory-work .git`, `640 factory:factory-work .git/config`, `0`, `error: could not lock config file .git/config: Permission denied`, `touch: cannot touch '.git/agent-file': Permission denied`, `mv: cannot move '.git/hooks' to '.git/hooks-moved': Permission denied` |
 | A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `ps -eo user,pid,args \| grep claude` after the limit | no `claude` process of `agent`; see "A `time_limit` under `sudo`" above |
@@ -178,6 +179,7 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 | `/home/factory/.secrets` | `0700`, `factory:factory` | The folder where Compose mounts the token file. Only `factory` can enter it, so the agent cannot read the file whatever the file's own mode. |
 | `/work` | `2775`, `factory:factory-work` | Both users can write. |
 | `/work/checkout/.git` | `2750`, `factory:factory-work`; its files `0640` | Git's repository of the checkout. The factory alone writes it. The agent's git reads it (`git status`, `git diff`, `git log`) and cannot create, change, rename or remove anything in it. The work tree around it stays group-writable. |
+| `/etc/gitconfig` | `0644`, `root:root` | Git's system configuration, installed from `image/gitconfig`. The agent's git reads it; the factory's git wrapper does not (it sets `GIT_CONFIG_NOSYSTEM=1`). It names `/work/checkout` as a safe directory, so that the agent can run `git status`, `git diff` and `git log` in the checkout `factory` owns. The agent cannot change the file. |
 | `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
 
 ### The image on the cost records
