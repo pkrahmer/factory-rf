@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 158
 blocked: null
 comments_seen: 0
@@ -106,3 +106,22 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/adapters/test_pipeline_yaml_one_line_fault.py - ImportError while...
+4. coder: Made the YAML fault of the pipeline definition fit on one line (commit 4a502d2).
+
+      Built, in `src/factory/adapters/pipeline_yaml.py`:
+      - the public `yaml_fault(error: YAMLError) -> str`. If the error is a `MarkedYAMLError` with a non-empty `problem`, the fault is that problem plus `problem_mark` made 1-based as `(line l, column c)`. If there is no mark, it is the problem alone.
+      - Any other error falls back to the first non-blank line of `str(error)`, stripped, through a private `_first_line`. This covers ruamel's `ReaderError` for control characters and the case where the problem is empty.
+      - `RuamelPipelineDefinitionReader.parse` now raises `PipelineDefinitionInvalid(yaml_fault(error))`. No other fault of `parse` changed.
+
+      Main decision: the fault is built from ruamel's structured attributes (`problem`, `problem_mark`). I rejected cutting up `str(error)` in every case: that text puts context first and adds the "To suppress" hint, so the problem's line would differ from error to error. The string is used only when no `problem` exists, as the Interface says.
+
+      Refactor: I re-read the diff (one function, one helper, two changed lines). Nothing needed changing, so there is no refactor commit.
+
+      Checks:
+      - `make check` passed: lint, types, layers, sast, secrets, licenses and test all green.
+      - The Demo prints exactly the two expected lines.
+
+      Noticed but not touched: if a ruamel `problem` itself held a line break, it would pass through. No ruamel problem text does that today, and no test asks for it.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
