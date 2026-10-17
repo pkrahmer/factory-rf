@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
+from factory.application.handlers.recording import commit_subject
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
@@ -283,7 +284,8 @@ class StageFinisher:
             question = NewEntry(speaker=FACTORY, kind="question", text=move.question)
             document = append_entry(document, question)
         moved = self._moved(document, move, started.pull_request.number)
-        commit = self._commit_and_push(started, moved, f"{started.stage} ends: {move.stage}")
+        subject = commit_subject(started.work_item, f"{started.stage} ends: {move.stage}")
+        commit = self._commit_and_push(started, moved, subject)
         self._boundaries.hosting.set_labels(
             started.pull_request.number, labels_for(require_state(moved, _no_state()))
         )
