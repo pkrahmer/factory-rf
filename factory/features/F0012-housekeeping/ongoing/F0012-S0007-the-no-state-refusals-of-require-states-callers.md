@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 159
 blocked: null
 comments_seen: 0
@@ -71,3 +71,22 @@ Expect: a number of at least 5, one test function per call.
    - Demo: both commands are runnable. The expectations are checkable: `n passed` with n at least 6, and a `def test_` count of at least 5.
    - Architecture: the story only adds a test module under `tests/application/`, which mirrors the package. It uses the services' existing constructors and the fixtures of `tests/conftest.py`, with the fake hosting service and no mocks of the code under test.
    - Scope: within F0012 scope item 1.2, which takes in the parked draft F0008-S0007 (decision 5). It is not in "Out of scope". No test of another module changes.
+3. tester: wrote the refusal tests for the five calls in one new module, `tests/application/test_no_state_refusals.py`. No existing test module changed.
+   - criterion 1: tests/application/test_no_state_refusals.py::test_a_claim_of_a_document_without_a_state_is_refused_and_pushes_nothing
+   - criterion 2: tests/application/test_no_state_refusals.py::test_a_release_refuses_a_document_without_a_state_and_clears_a_claim (parametrized: `no-state` raises with the message; `claimed` returns a state with `claim is None`)
+   - criterion 3: tests/application/test_no_state_refusals.py::test_asking_the_crash_cap_question_of_a_document_without_a_state_is_refused_and_posts_nothing (the fake holds no pull request, so it holds no post either)
+   - criterion 4: tests/application/test_no_state_refusals.py::test_composing_a_task_for_a_document_without_a_state_is_refused_with_its_path
+   - criterion 5: tests/application/test_no_state_refusals.py::test_a_stall_of_a_document_without_a_state_is_refused_and_pushes_and_posts_nothing
+   - criteria 6 and 7: not test criteria.
+
+   Setup:
+   - The claim and stall tests share an `opened` fixture. It pushes the story to `main`, starts it, and pushes the work item's branch with a stateful document, as `test_stalls.py` does. Both tests compare the remote branch head before and after the call with `git_support.remote_commit`.
+   - The recovery test builds the `WorkItemSnapshot` directly with a stateless document. It reuses `crash_support.Rerun`, the stand-in rerun handler the crash-cap tests already use.
+   - The task test builds `TaskContext` and `AgentDefinition` the way `test_task.py` does.
+
+   Run result: unlike a usual tests stage, these tests are not red. The ticket says the code already behaves this way, and `make test` is green: all 6 cases pass and coverage is 99.51 %. So there is no module the test runner could not import, and nothing for the coder to fix in `src/`. `make lint` is green. I also ran `make types` because the code exists: green.
+
+   No criterion needed interpreting.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.4 s)
