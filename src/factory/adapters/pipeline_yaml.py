@@ -4,7 +4,7 @@ from typing import override
 
 from pydantic import ValidationError
 from ruamel.yaml import YAML
-from ruamel.yaml.error import YAMLError
+from ruamel.yaml.error import MarkedYAMLError, YAMLError
 
 from factory.adapters.validation_faults import all_faults
 from factory.application.files import PipelineDefinitionReader
@@ -27,13 +27,29 @@ class RuamelPipelineDefinitionReader(PipelineDefinitionReader):
         try:
             loaded: object = self._loader.load(text)
         except YAMLError as error:
-            raise PipelineDefinitionInvalid(f"not valid YAML: {error}") from error
+            raise PipelineDefinitionInvalid(yaml_fault(error)) from error
         if not isinstance(loaded, dict):
             raise PipelineDefinitionInvalid("the pipeline definition must be a mapping")
         try:
             return PipelineDefinition.model_validate(loaded)
         except ValidationError as error:
             raise PipelineDefinitionInvalid(_fault_of(error)) from error
+
+
+def yaml_fault(error: YAMLError) -> str:
+    """The one-line fault of ruamel.yaml's `error`: its problem and 1-based position."""
+    # The context lines and ruamel's hint to suppress the duplicate-key check stay out:
+    # the fault is one line of the factory log, and the factory wants that check.
+    if isinstance(error, MarkedYAMLError) and error.problem:
+        mark = error.problem_mark
+        if mark is None:
+            return f"not valid YAML: {error.problem}"
+        return f"not valid YAML: {error.problem} (line {mark.line + 1}, column {mark.column + 1})"
+    return f"not valid YAML: {_first_line(str(error))}"
+
+
+def _first_line(text: str) -> str:
+    return next((line.strip() for line in text.splitlines() if line.strip()), "")
 
 
 def _fault_of(error: ValidationError) -> str:
