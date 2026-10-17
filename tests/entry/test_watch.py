@@ -278,8 +278,19 @@ def test_no_tick_and_no_watch_run_writes_a_last_line_file(
     assert list(tmp_path.rglob("factory-last-line")) == []
 
 
+def _names_the_replaced_phrases(path: Path) -> bool:
+    # The document check's list of replaced phrases has to name them to reject them.
+    if path == SRC / "domain" / "documents.py":
+        return True
+    return path.parent == SRC / "domain" / "__pycache__" and path.name.startswith("documents.")
+
+
 @pytest.mark.parametrize("text", [b"--follow", b"factory-last-line"])
 def test_no_source_file_knows_the_follow_mode(text: bytes) -> None:
-    found = [path for path in SRC.rglob("*") if path.is_file() and text in path.read_bytes()]
+    found = [
+        path
+        for path in SRC.rglob("*")
+        if path.is_file() and not _names_the_replaced_phrases(path) and text in path.read_bytes()
+    ]
 
     assert found == []
