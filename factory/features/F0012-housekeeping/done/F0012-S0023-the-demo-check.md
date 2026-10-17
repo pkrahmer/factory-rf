@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 173
 blocked: null
 comments_seen: 2
@@ -209,3 +209,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
     Checked against the acceptance criteria: this repository has no `demo/` folder yet (`ls demo` reports that it does not exist). So command 1 is criterion 1 run on the real root: no finding, `demos ok`, exit 0. It is also criterion 14: the `--root` default is the current directory, and the root is the repository root. This fits the Assignment ("Until step 2 there is no demo, and the check passes"). Command 2 runs the tests for criteria 1–14, and all of them pass. The demo contradicts no criterion. I did not run `make check` (criterion 15) or `make documents` (part of criterion 16); the factory runs `make check` itself, and entry 14 reports both green.
 
     Open, from earlier entries and not a demo finding: in entry 12 the human deferred reusing `work_item_path` in `src/factory/entry/check_demos.py` to a later fix.
+16. done (pull request merged); cost: 13 runs, 11.8 min, 88 turns, 344k tokens in (1388k more from cache), 42k out, $2.59
