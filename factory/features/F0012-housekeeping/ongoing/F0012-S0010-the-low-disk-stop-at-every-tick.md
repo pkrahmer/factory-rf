@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 162
 blocked: null
 comments_seen: 0
@@ -122,3 +122,20 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
 
    `make check`: check: green
    `make duplicates`: duplicates: 2 new, 39 known, 0 gone
+5. reviewer: no findings.
+
+   I read the whole diff of `src/` and `tests/`, and the tick, `domain/disk.py` and `StopService.clear_stop` it relies on.
+
+   - Criteria: each of criteria 1 to 10 has a test that checks what it names.
+     - The limit is tested on both sides: exactly `min_free_gb * GIGABYTE` runs on (3), and one byte short stops (4, 6).
+     - "Before the fetch" (4) is a real test: a commit the human pushed after the clone is not at `origin/main` after the tick.
+     - The read order and the early stop on an `OSError` (7) are checked through `FakeDiskSpace.asked`. The row where the state directory is also short shows that the error wins.
+     - The test for a missing `disk` or `settings` (9) checks both that nothing is read and that the tick runs on.
+     - `make check` was green after the coder, per entry 4.
+   - Architecture: `Tick._check_disk` reaches the disk only through the `DiskSpace` interface and decides with `disk_low_detail` from the domain. The scope rule stays in the domain validator, now with a frozenset of machine reasons. `FakeDiskSpace` inherits `DiskSpace`. The layer direction holds.
+   - Security: no suppression markers. The `OSError` text in the detail is the operator's own machine fault, which is the stop's purpose.
+   - Quality:
+     - `_stop` gained a `scope` parameter instead of building a second copy of the stop.
+     - Calling `clear_stop` on every tick is safe: it does nothing and writes nothing when there is no `disk_low` stop, so the log gets no extra lines.
+     - The new `make duplicates` findings (`used_bytes` unused) come from F0012-S0009 and are kept for S0016/S0017, not added by this diff.
+   - Ticket: considered and accepted the tester's scope-line edit in `tests/entry/test_health.py`. It goes slightly past the letter of the leave (entry 3), but it is the consequence the leave needs: without it, the `disk_low` row the leave adds would fail the scope rule. The coder's log names the main decision and the two alternatives they rejected. `Assignment` matches what was built, and criterion 12 still describes what the documenter must write.
