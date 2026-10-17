@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 169
 blocked: null
 comments_seen: 2
@@ -148,3 +148,4 @@ Expect: the single line `status 1`.
    Met: the single line `status 1`. Three of the removed tests are gone, which matches criterion 5.
 
    Criteria cross-read: the demo contradicts none of them. I did not re-run criteria 6 (`make check`) and 7 (docs). They rest on the coder's, reviewer's and documenter's entries, and the factory runs `make check` itself after this stage.
+10. done (pull request merged); cost: 7 runs, 4.5 min, 44 turns, 198k tokens in (636k more from cache), 16k out, $1.17
