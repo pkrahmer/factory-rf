@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 173
 blocked: null
 comments_seen: 0
-round: 1
+round: 2
 attempts: 0
 ---
 # The demo check
@@ -139,3 +139,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: reviewer (round 1, after entries 6–8): groups 1 to 3 pass. Group 4 (quality) has one finding.
+      1. `src/factory/entry/check_story.py:_check`: the new branch `if folder == "backlog": return backlog_story_findings(...)` does exactly what the fallthrough `[*check_story_place(...), *_form_findings(reader, text, form, folder)]` already does when `folder == "backlog"`. Deleting the branch changes no behaviour, so it is redundant code. It also leaves the place-then-form composition written twice in one module (once in `backlog_story_findings`, once in `_check`). Fix: write one private helper, for example `_story_findings(reader, path, text, form, folder, *, feature_file_exists)`, that holds the composition. `backlog_story_findings` returns it with `folder="backlog"`, and `_check` calls it for every folder with no branch. That way demo stories and `factory-check-story` still share one code path, which is what the Interface is after. The alternative is to keep `_check` calling `backlog_story_findings` for backlog stories and drop the duplicated list from it. Either way, `tests/entry/test_check_story.py` must keep passing unchanged.
+      What holds:
+      - Group 1: criteria 1–14 each have a test that checks what the criterion says. The two rows added in entry 7 cover the refused side of the `feature.md` rule and the `.md` rule (the earlier findings 1 and 2). Both sides of the index rule are tested: `` `other/` `` and a bare `todo`. The coder's entry 8 reports `make check` green.
+      - Group 2: `check_demos` is in `factory.entry` and gets both readers from the wiring. `build_pipeline_definition_reader()` is a justified, logged deviation, because `test_wiring.py` lets only the wiring import adapters. No layer rule is broken.
+      - Group 3: no shell, no secrets, no suppression markers. `PipelineDefinitionInvalid` is the only error `RuamelPipelineDefinitionReader.parse` raises, so catching only that is complete.
+      I did not reach group 5 (ticket hygiene), because the role skill stops at the first failing group.
