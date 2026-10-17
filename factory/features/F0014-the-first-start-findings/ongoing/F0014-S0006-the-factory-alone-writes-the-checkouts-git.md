@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 192
 blocked: null
 comments_seen: 2
@@ -34,7 +34,7 @@ The tests use real repositories, and git's own modes under the entrypoint's umas
 
 `src/factory/application/git.py`, the `Git` interface, gains three abstract operations (twenty-two in all):
 
-- `seal() -> None`: take the group's and others' write permission from the repository folder and from every entry in it. Raises `RepositoryUnsealed` when the folder is missing, is a symbolic link, is not a directory or holds no regular file `HEAD`, when it or an entry in it belongs to another user, or when an entry cannot be read or changed.
+- `seal() -> None`: take the group's and others' write permission from the repository folder and from every entry in it. Raises `RepositoryUnsealed` when the folder is missing, is a symbolic link, is not a directory or holds no regular file `HEAD`, when it belongs to another user, or when an entry cannot be read or changed.
 - `check_seal() -> None`: raise `RepositoryUnsealed` unless the repository folder is a directory, not a symbolic link, that belongs to the factory's own user, that neither its group nor others may write, and that holds a regular file `HEAD`. Changes nothing.
 - `discard() -> None`: remove the working copy and its repository entirely. A missing working copy is no error; any other failure is a `GitError`.
 
@@ -44,7 +44,6 @@ The tests use real repositories, and git's own modes under the entrypoint's umas
   - Checks the folder and its `HEAD` with `os.lstat`, and reads the effective user with `os.geteuid()` at each call. The folder's own owner is checked before anything is changed.
   - Then walks the folder without following symbolic links and, for the folder and every entry whose mode has `0o022`, sets the mode to `stat.S_IMODE(mode) & ~0o022`. That keeps the setgid bit and the read and execute bits.
   - Leaves a symbolic link inside the folder alone, not following it, and does not check its owner.
-  - Refuses an entry of another user when it reaches it.
   - A folder it cannot list or an entry it cannot change raises `RepositoryUnsealed` naming it (the walk's `onerror` raises; `os.walk` would skip it otherwise).
 - `check_seal()`: `os.lstat` of the folder and of its `HEAD`.
 - `discard()`: `shutil.rmtree` of the working copy; an `OSError` other than a missing directory becomes `GitError("discard", None, <error>)`.
@@ -53,7 +52,7 @@ The tests use real repositories, and git's own modes under the entrypoint's umas
   - `<folder> is a symbolic link`
   - `<folder> is not a directory`
   - `<folder> holds no HEAD file`
-  - `<path> belongs to the user <uid>, not to <effective uid>`
+  - `<folder> belongs to the user <uid>, not to <effective uid>`
   - `<folder> is writable by its group or by others` (`check_seal()` only)
   - `<path>: <error>`
 - Every git command `GitCli` runs gets `GIT_CEILING_DIRECTORIES` = the working copy's parent, set beside `GIT_CONFIG_NOSYSTEM` among the entries no `GitOptions.environment` can lift. So git never looks for a repository above the working copy: a `.git` that is not a repository is an error, never a way to a repository an agent placed in the checkout's parent. Its comment says why.
@@ -116,8 +115,9 @@ Tests:
     - `.git` at `0o2775`, with the preparer built without a log: the same new clone, and no error
 13. `RepositoryWaiter.prepare` over a checkout whose `.git` fails `check_seal()` and whose work tree holds a folder at `0o555` that holds a file returns `False` and raises the stop `repository_unavailable` whose detail starts with `cannot prepare the checkout: discard failed`. Skipped for root, as `tests/application/test_tick.py` does; the test restores the mode afterwards.
 14. What must still hold: the existing tests of the preparer, the repository waiter, the scheduler, the tick and the git wrapper pass. In particular, a checkout with files and no `.git` is refused unchanged (`tests/application/test_scheduler.py`), an existing clone is kept without starting git, the tick's restore removes an agent-made folder, the hooks of a bare remote still run on a push to it, and the factory's git reads no system configuration.
-15. `make check` stays green.
-16. docs: The operator guide:
+15. `GitCli` built with `GitOptions(environment={"GIT_CEILING_DIRECTORIES": <other folder>})` still refuses the repository at the working copy's parent's `.git`, as in criterion 8: `status()` raises `GitError` and `resolve("HEAD")` does not return that repository's commit. Rows of one parametrized test: the entry set to the working copy's parent's parent, and set to the empty string.
+16. `make check` stays green.
+17. docs: The operator guide:
     - *Users and directories* gets a row for `/work/checkout/.git`: `2750`, `factory:factory-work`, its files `0640`. It is git's repository of the checkout; the factory alone writes it; the agent's git reads it (`git status`, `git diff`, `git log`) and cannot create, change, rename or remove anything in it. The work tree around it stays group-writable.
     - The morning observations in *The agent runs as a second user* get this row, made once F0014-S0002 is in the image (without its `safe.directory` the agent's git refuses the checkout before it tries to write) and after the instance's second iteration (right after a new clone, `FETCH_HEAD` stays group-writable until the next iteration seals it): `docker exec -u agent <container> sh -c 'cd /work/checkout && stat -c "%a %U:%G %n" .git .git/config && find .git -perm /022 | wc -l && git config --local factory.sealcheck agent; touch .git/agent-file; mv .git/hooks .git/hooks-moved'`. Expected, line by line: `2750 factory:factory-work .git`, `640 factory:factory-work .git/config`, `0`, `error: could not lock config file .git/config: Permission denied`, `touch: cannot touch '.git/agent-file': Permission denied`, `mv: cannot move '.git/hooks' to '.git/hooks-moved': Permission denied`.
     - The section *The checkout is recloned only when it is missing* becomes *The checkout is cloned again when it is missing or its `.git` is not the factory's alone*. It says that a missing checkout is cloned. A checkout whose `.git` is not the factory's alone (one cloned before this change, one an agent replaced, or one without `HEAD`) is removed on the next iteration and cloned again, with the line `cloning the checkout again: ...` in `/state/factory.log`. The instance's local state is lost, which the restore discards anyway. A folder with files and no `.git` is still refused. A checkout the factory cannot remove is the stop `repository_unavailable`. The cross-reference in *The low disk* takes the new title.
@@ -189,3 +189,11 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    Neither answer changes the Assignment. Under (a) for question 1, the new criterion goes before the two closing ones.
 3. human (pull request comment, 2026-10-17): 1: (a), add the criterion before the two closing ones. 2: (a), drop the entry-owner rule from the Interface; the folder's owner and the "cannot change" rule cover it.
+4. intake: accepted. The human's answers (log entry 3) are carried into the story. The Assignment's meaning is unchanged, so it stays as of log entry 1.
+   - From answer 1 (a): new criterion 15 before the two closing ones. A `GitCli` built with a `GIT_CEILING_DIRECTORIES` entry in `GitOptions.environment` still refuses the repository at the working copy's parent's `.git`. Rows: the entry set to the parent's parent, and the empty string. `make check` is now 16 and docs 17.
+   - From answer 2 (a): the entry-owner rule is dropped from the Interface. The `seal()` raises-list names only the folder's owner. The walk bullet "Refuses an entry of another user" is removed. The detail `<folder> belongs to the user <uid>, not to <effective uid>` now names the folder. The "cannot change" rule still covers an entry.
+   - Interface: concrete modules and signatures are named for wiring, errors, `Git`, `GitCli`, `CheckoutPreparer` and run.py. The detail strings are exact.
+   - Criteria: each is testable by one parametrized test. Each rule has its failing side: seal and check_seal refusals in 6 to 8, the unremovable discard in 9, a failing check in 12 and 13, and the ceiling override in 15.
+   - Demo: the commands are runnable. Each Expect line is checkable.
+   - Architecture: the changes sit in the right layers: the error in the domain, the interface and preparer in the application, `GitCli` in the adapters, the wiring in the entry layer.
+   - Scope: the story is within F0014's S0006 scope. Nothing in "Out of scope" is touched.
