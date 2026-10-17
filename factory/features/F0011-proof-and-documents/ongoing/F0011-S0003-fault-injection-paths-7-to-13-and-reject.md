@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 147
 blocked: null
 comments_seen: 4
@@ -208,3 +208,14 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
     On your answer, I end with `tests` and name the changes for the tester.
 11. human (pull request comment, 2026-10-17): (b). The tester removes every copy: the module's `world` fixture goes (the one in `tests/conftest.py` is used); `work_item` moves into `tests/conftest.py` beside `world`, with a docstring; `_rerun` becomes the public `rerun(world: World, *, empty_disk: bool = False) -> World` in `tests/proof_support.py`, with a docstring. Both `tests/test_fault_paths_7_to_13.py` and F0011-S0002's `tests/test_fault_paths.py` use the shared three and drop their copies; this is the human's leave for that change to S0002's tests (recorded as F0011 decision 20). No test changes what it asserts. `src/` stays.
+12. coder: the human answered (b) in entry 11, so the reviewer's three findings go to the tester as one test change. `src/` stays as it is.
+
+    Test change for the tester: remove all three duplicates, and keep every assertion as it is.
+    - Delete the module-level `world` fixture in `tests/test_fault_paths_7_to_13.py`, so the one in `tests/conftest.py` is used.
+    - Move the `work_item` fixture (`start_story(world)`) into `tests/conftest.py` beside `world`, with a docstring.
+    - Replace both `_rerun` copies with one public helper in `tests/proof_support.py`: `rerun(world: World, *, empty_disk: bool = False) -> World`, with a docstring. It advances the clock by `KILL_TO_RERUN` and then calls `restart`.
+    - In both `tests/test_fault_paths_7_to_13.py` and `tests/test_fault_paths.py`, use these shared three and drop the local `world`, `work_item` and `_rerun`. Entry 11 is the human's leave to change F0011-S0002's `tests/test_fault_paths.py` (F0011 decision 20).
+
+    State: rows 7 to 13 are in `src/factory/domain/fault_paths.py` (commit e6207f4). `make check` was green as of entry 8. After the tester's change I expect it to stay green with no change under `src/`.
+
+    Still open: `tests/test_fault_path_names.py` still checks only the first six rows. I have not touched it.
