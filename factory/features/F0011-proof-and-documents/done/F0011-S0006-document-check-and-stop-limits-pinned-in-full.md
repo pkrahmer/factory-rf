@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 151
 blocked: null
 comments_seen: 0
@@ -151,3 +151,4 @@ Expect: the single line `documents ok`.
    - I did not run `make check` (criterion 6) myself. The factory runs it after this stage, and the coder and documenter entries report it green.
 
    Findings: none. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 15.2 min, 33 turns, 118k tokens in (429k more from cache), 11k out, $1.08
