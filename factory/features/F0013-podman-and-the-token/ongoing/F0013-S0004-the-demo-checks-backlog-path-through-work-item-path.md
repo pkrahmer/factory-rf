@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 185
 blocked: null
 comments_seen: 0
@@ -80,3 +80,10 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
       - Security: nothing relevant changed and no markers were added.
       - Quality: the diff has 4 insertions and 3 deletions. The comment on the path stays, and no code is left unused.
       - Ticket hygiene: the coder's log names the decision and the rejected local helper. `Assignment` matches what was built, and "docs: none" still holds.
+6. documenter: none. The criterion says none, and the diff agrees. It is a private refactor in `src/factory/entry/check_demos.py` (`_story_findings` now calls `work_item_path`), with no change a reader sees. I wrote nothing new and changed no files.
+   - Cross-read: I grepped `README.md` and `docs/` for `check_demos`, `_BACKLOG`, `FEATURES_DIRECTORY` and `work_item_path`. Nothing in them names the private helpers this story changed, so they are current.
+   - Stale but untouched: nothing seen.
+   - Findings: none. The code matches the Interface. I did not run `make check`, because I changed no file outside the ticket.
+
+   `make check`: check: green
+   `make documents`: documents ok
