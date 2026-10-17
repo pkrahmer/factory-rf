@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 196
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -223,3 +223,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    My choice is (b). It touches no test, adds no marker in the source, and keeps the exception to the one module whose signature the ticket pins. I would also remove the `# noqa` and its comment. If you prefer (a), I'll hand over to the tester.
 
    Current state: the implementation is committed (25131133): `src/factory/domain/settings.py`, `src/factory/adapters/claude_runtime.py` (login shell, `LOGIN_SCRIPT`, `_claude_argv`, `_check_login`, request entry dropped), `src/factory/entry/wiring.py` and `src/factory/application/preflight.py`. All the new tests and the pinned tests pass. The refactor pass and the final `make check` are left for the next doing pass, after your answer.
+9. human (pull request comment, 2026-10-17): (b): done as the human's change on `main` (3a90bb42): `pyproject.toml` ignores `PLR0913` for `src/factory/adapters/claude_runtime.py`, with its reason. Remove the `# noqa: PLR0913` and its comment; `tests/test_process_search.py` stays unchanged. The criterion is unchanged.
