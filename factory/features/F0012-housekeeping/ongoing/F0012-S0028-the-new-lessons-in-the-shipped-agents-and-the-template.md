@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The lessons since F0010-S0017 in the shipped agents and the template
 
 ## Assignment (as of log entry 1)
