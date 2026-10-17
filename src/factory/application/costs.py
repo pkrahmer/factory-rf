@@ -91,6 +91,9 @@ def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
             **record.model_dump(),
             "status": "completed",
             "duration_seconds": result.duration.total_seconds(),
+            "model_seconds": None
+            if result.model_duration is None
+            else result.model_duration.total_seconds(),
             "end_reason": result.end_reason,
             "turns": result.turns,
             "tokens": result.tokens,

@@ -429,3 +429,85 @@ def test_budget_stop_with_a_negative_measure_died_and_is_not_resumed(tmp_path: P
     assert result.tokens is None
     assert result.cost_usd is None
     assert len(_calls(tmp_path)) == 1
+
+
+@pytest.mark.parametrize(
+    ("reply", "end_reason", "expected"),
+    [
+        (_reply(duration_api_ms=41500), "completed", timedelta(seconds=41.5)),
+        (_reply(duration_api_ms=0), "completed", timedelta(0)),
+        (_reply(), "completed", None),
+        (_reply(duration_api_ms=-1), "died", None),
+    ],
+    ids=["reported", "zero", "not reported", "negative"],
+)
+def test_model_duration_is_the_replys_api_time(
+    tmp_path: Path, reply: str, end_reason: str, expected: timedelta | None
+) -> None:
+    result = _runtime(tmp_path, [Step(stdout=reply)]).run(_request(tmp_path))
+
+    assert result.end_reason == end_reason
+    assert result.model_duration == expected
+
+
+@pytest.mark.parametrize(
+    "partial",
+    ["", _reply(duration_api_ms=41500)],
+    ids=["nothing printed", "a whole reply printed"],
+)
+def test_call_killed_by_the_time_limit_has_no_model_duration(tmp_path: Path, partial: str) -> None:
+    steps = [Step(stdout_before_wait=partial, wait_seconds=60, stdout=_reply())]
+    runtime = _runtime(tmp_path, steps)
+
+    result = runtime.run(_request(tmp_path, time_limit=timedelta(seconds=2)))
+
+    assert result.end_reason == "time_limit"
+    assert result.model_duration is None
+
+
+@pytest.mark.parametrize(
+    ("first", "second", "limit", "expected"),
+    [
+        (
+            Step(stdout=_budget_reply(duration_api_ms=30000)),
+            Step(stdout=_reply(duration_api_ms=5000)),
+            LIMIT,
+            timedelta(seconds=35),
+        ),
+        (
+            Step(stdout=_budget_reply()),
+            Step(stdout=_reply(duration_api_ms=5000)),
+            LIMIT,
+            timedelta(seconds=5),
+        ),
+        (
+            Step(stdout=_budget_reply(duration_api_ms=30000)),
+            Step(stdout=_reply()),
+            LIMIT,
+            timedelta(seconds=30),
+        ),
+        (Step(stdout=_budget_reply()), Step(stdout=_reply()), LIMIT, None),
+        (
+            Step(stdout=_budget_reply(duration_api_ms=30000)),
+            Step(stdout=_reply(duration_api_ms=5000), wait_seconds=60),
+            timedelta(seconds=5),
+            None,
+        ),
+    ],
+    ids=[
+        "both known",
+        "only the resume known",
+        "only the first known",
+        "neither known",
+        "resume ended by the time limit",
+    ],
+)
+def test_model_duration_of_a_resumed_run_adds_the_known_calls(
+    tmp_path: Path, first: Step, second: Step, limit: timedelta, expected: timedelta | None
+) -> None:
+    runtime = _runtime(tmp_path, [first, second])
+
+    result = runtime.run(_request(tmp_path, time_limit=limit))
+
+    assert len(_calls(tmp_path)) == 2
+    assert result.model_duration == expected

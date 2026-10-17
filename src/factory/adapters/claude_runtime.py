@@ -85,6 +85,7 @@ class _Reply(BaseModel):
     subtype: str
     is_error: StrictBool
     num_turns: NonNegativeInt | None = None
+    duration_api_ms: NonNegativeInt | None = None
     # A float as the JSON carries it; `Decimal(str(...))` keeps the digits it printed.
     total_cost_usd: NonNegativeFloat | None = None
     usage: _Usage | None = None
@@ -232,11 +233,14 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
         return AgentRunResult(end_reason=end_reason, duration=duration)
     output = reply.structured_output if end_reason == "completed" else None
     cost = None if reply.total_cost_usd is None else Decimal(str(reply.total_cost_usd))
+    api_ms = reply.duration_api_ms
+    model_duration = None if api_ms is None else timedelta(milliseconds=api_ms)
     return AgentRunResult(
         end_reason=end_reason,
         decision=None if output is None else output.decision,
         entry=None if output is None else output.entry,
         duration=duration,
+        model_duration=model_duration,
         turns=reply.num_turns,
         tokens=_tokens(reply.usage),
         cost_usd=cost,
@@ -244,7 +248,7 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
     )
 
 
-def _add[T: (int, Decimal)](first: T | None, second: T | None) -> T | None:
+def _add[T: (int, Decimal, timedelta)](first: T | None, second: T | None) -> T | None:
     if first is None:
         return second
     if second is None:
@@ -272,6 +276,7 @@ def _resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunRe
         return second.model_copy(update={"permission_denials": denials})
     return second.model_copy(
         update={
+            "model_duration": _add(first.model_duration, second.model_duration),
             "turns": _add(first.turns, second.turns),
             "cost_usd": _add(first.cost_usd, second.cost_usd),
             "tokens": _add_tokens(first.tokens, second.tokens),

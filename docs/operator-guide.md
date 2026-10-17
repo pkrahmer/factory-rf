@@ -688,7 +688,7 @@ Findings about the content follow the form check (`docs/project-guide.md`, "The 
 
 ## What a work item cost: `factory-bill`
 
-Every agent run writes a cost record beside its work item. `factory-bill` adds the records up and prints the bill. Run it from a checkout of your project:
+Every agent run writes a cost record beside its work item; it holds the run's duration, the time the model took, the turns, the tokens and the cost. `factory-bill` adds the records up and prints the bill. Run it from a checkout of your project:
 
 ```bash
 uv run factory-bill F0001-S0001
@@ -710,11 +710,11 @@ A work item with a file but no cost records has a bill of 0 runs and $0.00.
 ### The cost table
 
 ```
-| stage | runs | min | turns | in | cached | out | USD |
-| :-- | --: | --: | --: | --: | --: | --: | --: |
-| tests | 1 | 1.0 | 7 | 62 | 1000 | 300 | 0.35 |
-| doing | 2 | 2.5 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |
-| **total** | 3 | 3.5 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |
+| stage | runs | min | model min | turns | in | cached | out | USD |
+| :-- | --: | --: | --: | --: | --: | --: | --: | --: |
+| tests | 1 | 1.0 | 0.7 | 7 | 62 | 1000 | 300 | 0.35 |
+| doing | 2 | 2.5 | 1.8 | 5 | 10 | 500 | 100 | 1.20 + 1 unknown |
+| **total** | 3 | 3.5 | 2.5 | 12 | 72 | 1500 | 400 | 1.55 + 1 unknown |
 ```
 
 One row per stage, in the order the stage first ran; a stage that runs again (`doing`, `review`, `doing`) is one row. The last row is the total.
@@ -723,6 +723,7 @@ One row per stage, in the order the stage first ran; a stage that runs again (`d
 |---|---|
 | runs | agent runs, every one counted whatever its end: a run that died, ran past its time limit or spent its budget is in the bill |
 | min | the runs' duration in minutes, one decimal |
+| model min | the minutes the model took, from each run's `model_seconds`, one decimal; `min` less `model min` is the time of the tools and the factory; a run without `model_seconds` adds nothing |
 | turns | the turns the runtime reported |
 | in | input tokens plus cache-creation tokens |
 | cached | tokens read from the cache |
