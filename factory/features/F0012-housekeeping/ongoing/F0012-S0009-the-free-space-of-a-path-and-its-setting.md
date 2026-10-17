@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 161
 blocked: null
 comments_seen: 0
@@ -96,3 +96,19 @@ Expect: `5`.
    - Demo: both blocks are runnable `uv run python -c` commands, and each `Expect:` line gives output that can be compared exactly.
    - Architecture: the interface sits in application, the implementation in adapters, the pure text rules in domain, and the wiring in entry, so the layering holds. The interface is an ABC with the implementation inheriting it. The Interface also states the Tests and the docs criterion.
    - Scope: the story builds only the interface, the setting, the fault text and the wiring. It changes no behaviour, and the stop is left to S0010 and the disk record to S0016, matching FEATURE.md scope 1.4 and decision 20. Nothing in the story falls under Out of scope.
+3. tester: Wrote red tests for criteria 1–8, one test function per criterion. The rows are the cases the criteria and the Interface name.
+   - criterion 1: tests/domain/test_disk.py::test_gigabytes_are_rounded_down_to_one_decimal (5 rows: 0, 999_999_999, 1e9, 3_299_999_999, 812_345_678_901)
+   - criterion 2: tests/domain/test_disk.py::test_the_disk_low_detail_names_each_path_below_the_minimum (rows: exactly the minimum gives None, one byte below, both low in mapping order joined by `; `, one low and one at 6 GB)
+   - criterion 3: tests/adapters/test_disk_space.py::test_the_free_bytes_are_positive_and_within_the_total_or_missing_raises
+   - criterion 4: tests/adapters/test_disk_space.py::test_the_used_bytes_add_the_regular_files_only. Rows: plain files 3+5+7=15; adding a link to a 100-byte file, a link to a folder holding a 100-byte file, or an `os.mkfifo` pipe still gives 15; a missing path gives 0.
+   - criterion 5: tests/domain/test_settings_min_free.py::test_the_minimum_free_space_is_read_or_refused. Rows: unset, empty or blank gives 5; `1` gives 1; ` 12 ` gives 12; `0`, `-1`, `2.5`, `five` and `"٣"` each raise SettingsInvalid with that variable and fault.
+   - criterion 6: tests/domain/test_settings_min_free.py::test_the_settings_keep_a_minimum_free_space_of_at_least_one (rows: default 5, 1 accepted, 0 gives ValidationError; built through a variable typed `type[BaseModel]`)
+   - criterion 7: tests/entry/test_wiring_boundaries.py::test_the_built_boundaries_read_the_disk_and_boundaries_without_one_have_none. It uses the module's `settings` fixture and `FakeHostingService` as hosting. The second half rebuilds `Boundaries` from the built fields minus `disk` (via `dataclasses.fields`) and checks that `disk is None`.
+   - criterion 8: tests/application/test_disk_space_interface.py::test_disk_space_is_an_abstract_base_class_with_two_operations_and_one_implementation. It checks `issubclass(DiskSpace, ABC)`, that `__abstractmethods__` is exactly {free_bytes, used_bytes}, and that ShutilDiskSpace derives from DiskSpace.
+
+   New files: tests/domain/test_disk.py, tests/adapters/test_disk_space.py, tests/domain/test_settings_min_free.py, tests/application/test_disk_space_interface.py. Changed file: tests/entry/test_wiring_boundaries.py, which gains one function and imports of `fields`, `ShutilDiskSpace` and `Boundaries`. No existing test function changed.
+
+   `make test` fails as intended. These modules and names could not be imported: `factory.domain.disk`, `factory.adapters.disk_space` and `DiskSpace` from `factory.application.machine`. Because of that, all of test_wiring_boundaries.py fails to collect until the adapter exists. The settings tests fail because `min_free_gb` and the variable don't exist yet. `make lint` is green. I skipped the type check as the stage says.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_wiring_boundaries.py - ImportError while importing tes...

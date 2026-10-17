@@ -3,6 +3,7 @@
 import json
 import sys
 from collections.abc import Callable
+from dataclasses import fields
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -15,6 +16,7 @@ from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.clock import SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
+from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -23,6 +25,7 @@ from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.pygithub_hosting import PyGithubHostingService
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
+from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.errors import SettingsInvalid
 from factory.domain.git import GitIdentity
@@ -206,6 +209,20 @@ def test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing(
     assert isinstance(boundaries.health, JsonHealthStatusFile)
     assert not settings.state_directory.exists()
     assert not settings.checkout.exists()
+
+
+def test_the_built_boundaries_read_the_disk_and_boundaries_without_one_have_none(
+    settings: InstanceSettings,
+) -> None:
+    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
+    others = {
+        field.name: getattr(boundaries, field.name)
+        for field in fields(boundaries)
+        if field.name != "disk"
+    }
+
+    assert isinstance(boundaries.disk, ShutilDiskSpace)
+    assert Boundaries(**others).disk is None
 
 
 def test_the_built_git_runs_with_the_git_options_of_the_settings(
