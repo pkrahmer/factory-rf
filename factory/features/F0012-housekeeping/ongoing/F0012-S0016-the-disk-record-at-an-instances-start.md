@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 167
 blocked: null
 comments_seen: 2
@@ -220,3 +220,19 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
     `make check`: check: green
     `make documents`: documents ok
+11. demo: both commands ran from the repository root as written. Both met their `Expect:` lines, so there are no findings.
+
+    1. `disk_line` of a `start` record with `/work` and `/tmp`:
+    ```
+    disk start: /work 812.3 GB free, 0.7 GB used; /tmp unknown free, 4.3 GB used
+    ```
+    This matches the `Expect:` line exactly: `/work` in GB, and `/tmp`'s `None` free value written as `unknown`. Exit code 0.
+
+    2. pytest over `tests/domain/test_disk_records.py`, `tests/application/test_disk_recorder.py` and `tests/entry/test_run.py`:
+    ```
+    ..................................................                       [100%]
+    50 passed in 0.71s
+    ```
+    This met the `Expect:` line: the last line is `<n> passed in <t>s`, with no `failed`, `error` or `skipped` count. Exit code 0.
+
+    Checked against the acceptance criteria: the first command gives the format criterion 1 asks for, including the `unknown` case. The second command runs the tests for criteria 1 to 10, and all of them pass. Nothing in the demo contradicts any criterion. I did not run `make check` (criterion 11) or check the documents (criterion 12) myself, because the demo does not cover them. Entry 10 reports `make check` green and `documents ok`.
