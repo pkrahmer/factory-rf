@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 198
 blocked: null
 comments_seen: 0
@@ -61,3 +61,9 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Diff: `git diff main...HEAD -- . ':!factory'` is empty. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed, and the tester's and the coder's entries both say so (criterion 1).
+      - Criterion 2: the coder's entry records `make check` as `check: green` on the unchanged branch, and `make duplicates` reported 0 new findings.
+      - Criterion 3 is the docs stage's job. Its text names the row ("The mode of what an agent makes"), the expected value (`2775` for the directory, `664` for the file) and the reason (setgid `/work`, group `factory-work`). It also gives the whole Podman connection paragraph for *Podman: the commands*, including the unobserved `compose` case, so the documenter has nothing left to decide.
+      - Architecture, security and quality: no code changed, so none of these rules applies.
+      - Ticket hygiene: `Assignment` matches what was built, which is nothing yet. The log explains why the tester and the coder wrote nothing, and the docs criterion still says what the operator must know.
