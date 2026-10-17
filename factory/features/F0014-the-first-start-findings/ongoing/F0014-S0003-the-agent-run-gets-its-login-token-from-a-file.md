@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The agent run gets its login token from a file
 
 ## Assignment (as of log entry 1)
