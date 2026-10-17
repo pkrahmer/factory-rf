@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 160
 blocked: null
 comments_seen: 0
@@ -142,3 +142,4 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
    - Criterion 5 (docs): `docs/project-guide.md` has `## Mutation testing` right after `## The document check` (lines 1642 and 1652). `uv run python -m factory.entry.check_documents` printed `documents ok`.
 
    Nothing in the demo contradicts any criterion.
+8. done (pull request merged); cost: 6 runs, 2.9 min, 32 turns, 146k tokens in (354k more from cache), 9k out, $0.76
