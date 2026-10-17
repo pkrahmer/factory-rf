@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 173
 blocked: null
 comments_seen: 0
 round: 0
@@ -73,3 +73,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `check_demos` and `main` in `factory.entry.check_demos` have concrete signatures. `backlog_story_findings` and `finding_line` are added to `factory.entry.check_story`. The names it relies on exist: `check_story_place`, `check_story_form`, `FormFinding`, `WorkItemFormatError`, `parse_specification` and `build_work_item_reader`. I did not check `RuamelPipelineDefinitionReader` or the existing `check_story` module.
+   - Criteria: criteria 1 to 14 are each one test, and every Interface rule has both sides covered. No `demo/` and an empty `demo/` give no finding (1, 10). A missing index and an index that does not name the demo each give a finding (3). Missing parts, a missing pipeline file and a missing form each give a finding (4 to 6). Stray files give a finding (8). The skipped entries, `demo/notes.txt` and `demo/.cache/`, are in 10. Ordering is in 9 and 11, a reader fault in 12, and the default root in 13. Criteria 15 and 16 are the closing two.
+   - Demo: both commands are runnable. The first has an `Expect:` of `demos ok` and `status 0`. The second expects a last line of `<n> passed` with no failed, error or skipped count. Both can be checked against the output.
+   - Architecture: the new module is in `factory.entry`, a command and not wiring of tools. It reuses the domain checks and the reader that `wiring` builds, and adds no helper of its own because `check_story` supplies the shared ones. It stays within the layer rules.
+   - Scope: the story falls under FEATURE.md item 1.7, "the demo check and its test in make check (S0023)". The index README is left to the human's H6, as the feature says.
