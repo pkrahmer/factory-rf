@@ -145,11 +145,11 @@ def test_with_a_user_sudo_gets_the_user_env_i_the_environment_and_the_executable
 
     [call] = _sudo_calls(tmp_path / "sudo-bin")
     expected = {**GIVEN, **SWITCHES}
-    head = call.arguments[:6]
-    assignments = call.arguments[6 : 6 + len(expected)]
-    assert head == ["-n", "-u", "agent", "--", "env", "-i"]
+    head = call.arguments[:9]
+    assignments = call.arguments[9 : 9 + len(expected)]
+    assert head == ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
     assert sorted(assignments) == sorted(f"{name}={value}" for name, value in expected.items())
-    assert call.arguments[6 + len(expected)] == str(executable)
+    assert call.arguments[9 + len(expected)] == str(executable)
     assert _without_locale(call.environment) == {}
 
 

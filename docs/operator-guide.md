@@ -70,7 +70,7 @@ A run whose budget is spent is not lost: the factory resumes the same session on
 
 The image has two users: `factory` (uid 1000) runs the factory, and `agent` (uid 1001) runs every agent. `agent` owns nothing the factory keeps secret: it cannot read the token file (`0600`, owned by `factory`) and cannot write `/state`.
 
-With `FACTORY_AGENT_USER=agent` the runtime does not start `claude` itself. It runs `sudo -n -u agent -- env -i NAME=value ... claude ...`, in the run's working directory. `-n` makes `sudo` fail instead of asking for a password. `env -i` drops everything `sudo` would keep, so the agent sees exactly the run's allow-list environment (see "The hosting-service token") and the runtime's three switches, and nothing of the factory's environment or privileges. The image sets the variable and installs the `sudo` rule (next section).
+With `FACTORY_AGENT_USER=agent` the runtime does not start `claude` itself. It runs `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i NAME=value ... claude ...`, in the run's working directory. `-n` makes `sudo` fail instead of asking for a password. `timeout` is the time limit's kill (see "A `time_limit` under `sudo`" below). `env -i` drops everything `sudo` would keep, so the agent sees exactly the run's allow-list environment (see "The hosting-service token") and the runtime's three switches, and nothing of the factory's environment or privileges. The image sets the variable and installs the `sudo` rule (next section).
 
 **The one `sudo` rule.** `image/sudoers-factory-agent` is installed as `/etc/sudoers.d/factory-agent`, mode `0440`, and the build checks it with `visudo -cf`. Apart from comments it holds four lines:
 
@@ -114,9 +114,9 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
 | WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | an authentication failure, no push |
 | WE3.4: it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
-| A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `ps -eo user,pid,args \| grep claude` after the limit | see below |
+| A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `ps -eo user,pid,args \| grep claude` after the limit | no `claude` process of `agent`; see "A `time_limit` under `sudo`" above |
 
-A `time_limit` under `sudo` is not solved. The factory kills the process group of the call, and the leader of that group is `sudo`, owned by root, which the factory's user may not signal. So a run that reaches its `time_limit` may be recorded as timed out while the `claude` process under `agent` keeps running. Whether a `timeout` inside the `sudo` call or a kill through a `sudo` rule is the fix is an open decision. Until then check the `ps` line above after a timeout and kill the process by hand (`docker exec <container> sudo -n -u agent -- kill <pid>` if the rule allows it, else restart the container).
+**A `time_limit` under `sudo`.** The factory cannot signal `sudo`, which is owned by root, so it does not rely on killing the call's process group. The runtime puts `timeout --signal=KILL <limit>s` inside the `sudo` call, where `<limit>` is the call's time limit in whole seconds, rounded up. `timeout` runs as `agent`, so the agent's own user kills its own process tree at the limit. A call that ends with status 137 (or a death by `SIGKILL`) after at least its time limit is read as `time_limit`, like any other timed-out run: it is not resumed and shows its cost, tokens and turns as unknown. The same status before the limit is a death, as before. The factory's own kill of the call comes only after 30 more seconds, and fires only if the inner one did not. After a `time_limit`, `ps -eo user,pid,args | grep claude` must show no `claude` process of `agent`; if one is left, the inner kill did not work, so kill it by hand (`docker exec <container> sudo -n -u agent -- kill <pid>`) and report it. A `sudo:` line printed by a call that ended this way still stops the run with an error (above). A run without `FACTORY_AGENT_USER` has no `timeout` and is limited by the factory's own kill, with no extra 30 seconds.
 
 ### `factory-guard` on the agent run's `PATH`
 
@@ -472,8 +472,8 @@ The questions you can meet on a pull request, and how to answer each:
 | Question | `blocked` | Comment reads | A comment | Closing the pull request |
 | --- | --- | --- | --- | --- |
 | An agent's | `question` | `<role>: <the agent's words>` | answers it; the stage runs again | discards the story |
-| The form has findings | `question` | see below | answers it; the stage runs again | discards the story |
-| The round cap | `round_cap` | see below | answers it; the count of rounds starts over at 0 | discards the story |
+| The form has findings | `question` | no `claude` process of `agent`; see "A `time_limit` under `sudo`" above | answers it; the stage runs again | discards the story |
+| The round cap | `round_cap` | no `claude` process of `agent`; see "A `time_limit` under `sudo`" above | answers it; the count of rounds starts over at 0 | discards the story |
 | The attempts cap | `attempts_cap` | `factory: ` and the text below | the attempts go back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
 | The send-back | `send_back` | see "A close at the approval sends the story back" | answers it | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted (option 2 of the question). The send-back has already moved the story out of the approval, so a close cannot send it back again |
 | The crash cap | `crash_cap` | `factory: ` and the text below | the crash counter goes back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |

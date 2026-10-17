@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 174
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The kill of an agent run under sudo at its time limit
 
 ## Assignment (as of log entry 1)
@@ -44,3 +52,121 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted.
+   - Interface: names concrete module `src/factory/adapters/claude_runtime.py`, both constants with values, the exact argument vector of the `sudo` call, the rounding rule, the outer limit, the exit statuses (137, -9) and the resume. The test files and stand-ins it names are the ones in the repository's test conventions.
+   - Criteria: each is testable by one parametrized or single test function. Every behaviour in the Interface has a criterion: the argument vector and rounding (1), the end reason and no measures (2, 3), the `sudo:` line (4), the outer limit and the call without a user (5), the resume (6). The failing sides are covered: 137 or -9 before the limit is `died`, status 1 after the limit is `died`, and 137 without an `os_user` is `died` (3). The one earlier test that changes is named, with FEATURE decision 41 as the leave (7).
+   - Demo: both commands are runnable. The `Expect:` lines are checkable: the pytest summary line has no failed, error or skipped count, and the grep prints two exact lines.
+   - Architecture: the change sits wholly in `factory.adapters.claude_runtime`, the agent-runtime wrapper, and uses the existing `run_process` and `ProcessRequest`. No other layer is touched.
+   - Scope: within F0012 item 1.8, which is S0024's own scope. Nothing in "Out of scope" is touched.
+3. tester: Wrote the tests for criteria 1 to 7. The red tests are the coder's specification.
+
+   Which criterion maps to which test:
+   - criterion 1: tests/adapters/test_claude_runtime_sudo_time_limit.py::test_with_a_user_sudo_runs_the_agent_under_timeout_with_the_limit_rounded_up (rows `whole` 30 s → `30s`, `rounded-up` 1.5 s → `2s`). It uses the real `sudo` stand-in, the real `claude` stand-in and coreutils `timeout`.
+   - criterion 2: …::test_with_a_user_the_inner_kill_at_the_limit_is_a_time_limit_without_measures. The `claude` stand-in prints a reply and then waits 60 s; the time limit is 1 s. Expected: `time_limit`, no decision, entry, turns, tokens, cost or model time, and the call ends in under 31 s.
+   - criterion 3: …::test_a_kill_status_at_the_limit_under_sudo_is_a_time_limit_and_otherwise_a_death. Six rows: 137 or -9 at 30 s is `time_limit` with no measures; 137 or -9 at 29.9 s is `died`; status 1 at 30 s is `died`; 137 at 30 s without an `os_user` is `died`. It uses the `recorder` fixture, which puts a recorder in place of `claude_runtime.run_process` through monkeypatch.
+   - criterion 4: …::test_a_sudo_line_before_the_inner_kill_is_a_runtime_error. The `sudo` stand-in prints `sudo: unable to resolve host x`; the time limit is 1 s. Expected: `AgentRuntimeError` whose detail holds that line.
+   - criterion 5: …::test_the_outer_limit_adds_the_grace_only_under_sudo. Rows: with a user the outer limit is 60 s; without one it is 30 s and the arguments hold no `timeout`.
+   - criterion 6: …::test_the_resume_under_sudo_is_limited_by_what_is_left_of_the_time_limit. The first call returns a budget-stop reply. Expected for the resume: `timeout --signal=KILL 30s` in its arguments, and a time limit above 59 s and at most 60 s.
+   - criterion 7: the existing tests stay as they are. By the leave of FEATURE decision 41, I changed only the expected head in tests/adapters/test_claude_runtime_os_user.py::test_with_a_user_sudo_gets_the_user_env_i_the_environment_and_the_executable to `["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]`, with the slice offsets moved from 6 to 9.
+
+   Files:
+   - created tests/adapters/test_claude_runtime_sudo_time_limit.py; it imports `_request` and `_write_sudo` from test_claude_runtime_os_user.py, as the Interface allows
+   - edited tests/adapters/test_claude_runtime_os_user.py, the one test above only
+
+   Imports: every module imports. These tests fail with a wrong result, not a missing name:
+   - the os_user head test
+   - both rows of criterion 1
+   - the two `time_limit` rows of criterion 3
+   - the with-a-user row of criterion 5
+   - criterion 6
+
+   `make lint` is green.
+
+   Open points for the next stage:
+   - Criteria 2 and 4 already pass today, because the factory's own outer kill gives the same result at a 1 s limit. They guard the new path once `timeout` sits inside the `sudo` call, but they do not tell an inner kill from an outer one. Criterion 2's bound of 31 s is the one that would catch an inner kill that never fires.
+   - `SUDO_GRACE` and `TIMEOUT_EXECUTABLE` are not imported by the tests. Criterion 5 pins the 60 s outer limit as a literal, and the demo's grep checks the two constants.
+   - I ran `make test` twice instead of once: the first run had a lint fix still pending, and the second confirmed which tests fail.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/adapters/test_claude_runtime_sudo_time_limit.py::test_the_resume_under_sudo_is_limited_by_what_is_left_of_the_time_limit
+4. coder: Built the inner kill under `sudo` in `src/factory/adapters/claude_runtime.py` (commit 9f6c1b3).
+
+   What I built:
+   - Three new constants: `TIMEOUT_EXECUTABLE = "timeout"`, `SUDO_GRACE = timedelta(seconds=30)` and `KILL_STATUSES = frozenset({137, -9})`.
+   - `_process_request` now starts a request that has an `os_user` as `sudo -n -u <user> -- timeout --signal=KILL <ceil(seconds)>s env -i <assignments> <claude> ...`. The outer `ProcessRequest`'s `time_limit` is the call's limit plus `SUDO_GRACE`.
+   - `_limit_argument` rounds the limit up with `math.ceil`, so 1.5 s becomes `2s`.
+   - A request without an `os_user` is started and limited as before.
+   - `_killed_at_limit(request, process, time_limit)` is true when all three hold: the request has an `os_user`, the exit status is 137 or -9, and the duration is at least that call's own limit.
+   - When it is true, `_call` sets `timed_out=True` on the `ProcessResult` (with `model_copy`) before anything else reads it.
+
+   Main design decision: I mark the inner kill as `timed_out` in `_call`, so the existing paths treat it like the factory's own kill without any change of their own:
+   - `_end_reason` returns `time_limit`.
+   - `_result` drops the measures.
+   - `_sudo_refusal` raises on a `sudo:` line even when the reply parsed (criterion 4).
+   - The resume already passes `left` to `_call`, so its `timeout` argument and outer limit follow from it (criterion 6).
+
+   The alternative I rejected was passing the call's limit into `_end_reason`, `_result` and `_sudo_refusal` and checking for the kill in each of them. That would have meant three signatures changed and the same rule repeated three times.
+
+   Refactor: I read my diff and found nothing to change, so there is no refactor commit.
+
+   Checks:
+   - `make check` is green: lint, types, layers, sast, secrets, licenses and test.
+   - `make duplicates`: 0 new, 39 known, 0 gone.
+
+   Open, not touched:
+   - The docs criterion (9) is the documenter's.
+   - The real run under `sudo` is still to be observed at the first start, as the assignment says.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+
+   - Acceptance criteria: each of criteria 1 to 7 has a test in `tests/adapters/test_claude_runtime_sudo_time_limit.py` or in the existing suites, and each test checks what its criterion says.
+     - Criterion 1: both rounding rows (30 s and 1.5 s).
+     - Criterion 3: both sides of the 30 s duration boundary (30.0 s and 29.9 s), status 1, and no `os_user`.
+     - Criterion 5: with and without a user.
+     - Criterion 6: the resume's `timeout` argument and its outer limit, which must be above 59 s and at most 60 s.
+     - The one earlier test that changed is the head assertion in `tests/adapters/test_claude_runtime_os_user.py`, as FEATURE decision 41 allows.
+     - The coder's entry reports the factory's `make check` as green.
+     - The tester's open point still holds. At a 1 s limit, criteria 2 and 4 cannot tell the inner kill from the outer one. Only criterion 2's bound of under 31 s catches an inner kill that never fires. That is acceptable, and the real run is still to be observed at the first start, as the assignment says.
+   - Architecture: the change is only in `factory.adapters.claude_runtime`, which builds the argument list for the existing `run_process`. No new process call or layer import.
+   - Security: the argument list is built as a list, never a shell string. `ceil` of a positive time limit is always at least 1, so `timeout 0s` (no limit at all) cannot happen; `run` returns before the resume when nothing is left. No markers that silence a check.
+   - Quality: `_call` sets `timed_out` on the result once, so `_end_reason`, `_result` and `_sudo_refusal` stay unchanged. That is simpler than the alternative the coder rejected. The comments on `SUDO_GRACE` and `KILL_STATUSES` say why. `make duplicates` reports 0 new.
+     - Minor, not raised as a finding: the criterion 1 test reads `sudo-calls.jsonl` inline instead of importing `_sudo_calls` from the os_user test module. It is three lines and not a separate helper.
+   - Ticket hygiene: the log gives the main decision and what was rejected. `Assignment` matches what was built. Criterion 9 still says what the documenter must write.
+6. documenter: Docs for the inner `timeout` kill under `sudo`.
+
+   Files changed:
+   - docs/operator-guide.md: the `sudo` call in "The agent runs as a second user" now shows `timeout --signal=KILL <limit>s`. I replaced the "not solved" paragraph with "A `time_limit` under `sudo`". It covers the inner kill, status 137/-9 at or after the limit read as `time_limit`, the 30 s grace before the factory's own kill, and what to see in the morning (no `claude` process of `agent` after the limit). The morning table row points to it.
+   - docs/project-guide.md: the `claude -p` runtime's argument vector includes `timeout`. I added `TIMEOUT_EXECUTABLE`, `SUDO_GRACE`, `KILL_STATUSES`, the `timed_out` marking in `_call`, and the resume.
+   - docs/decisions.md: new entry for the human's answer to F0010 decision 30, with why the agent's own kill is used and what was rejected.
+
+   Cross-read and found current: README (it has no `sudo` text), the rest of the operator guide's `sudo:` rule paragraph (consistent with the diff), and the project guide's other runtime text. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only documents.
+
+   Findings: none. The code matches the Interface. The real run under `sudo` is still to be observed at the first start.
+
+   Stale text I saw but did not touch: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root, in order. Both met their `Expect:` lines. No findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_sudo_time_limit.py tests/adapters/test_claude_runtime_os_user.py`
+   ```
+   .........................                                                [100%]
+   25 passed in 5.26s
+   ```
+   Met: the last line reads `25 passed in 5.26s`, with no failed, error or skipped count.
+
+   2. `grep -n "TIMEOUT_EXECUTABLE = \|SUDO_GRACE = " src/factory/adapters/claude_runtime.py`
+   ```
+   54:TIMEOUT_EXECUTABLE = "timeout"
+   57:SUDO_GRACE = timedelta(seconds=30)
+   ```
+   Met: two lines, each constant with the value the Interface gives, after its line number.
+
+   Against the acceptance criteria:
+   - The test run covers criteria 1 to 6 and the os_user part of criterion 7. Nothing in the output contradicts any of them.
+   - The demo does not run the rest of criterion 7 (`test_claude_runtime.py` and `test_claude_runtime_resume.py`), criterion 8 (`make check`) or criterion 9 (docs). Nothing it shows contradicts them. The coder's entry reports `make check` green, and the documenter's entry reports `documents ok`.
+
+   Still open, as the assignment says: the real kill under `sudo` is to be observed at the first start (step 3).
