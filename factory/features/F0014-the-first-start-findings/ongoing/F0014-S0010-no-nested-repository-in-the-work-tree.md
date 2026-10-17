@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 194
 blocked: null
 comments_seen: 2
@@ -8,7 +8,7 @@ attempts: 0
 ---
 # No nested repository in the work tree
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 3)
 
 S0006 and S0009 keep the checkout's own `.git` the factory's alone, but the agent can still make a git repository anywhere in the work tree it may write, for example with `uv run ...`, which `claude/settings.json` allows. The pre-check of 2026-10-17 found the route with git 2.39.5, the image's version, and S0001's environment. The factory's own commit (`git add --all`) adds such a repository as a gitlink, with only a warning. From then on the factory's `git status` and `git diff` start a child `git status` inside it, and the child reads that repository's own configuration: its `core.fsmonitor` ran as `factory`, the user who can read the hosting token. Even a nested `.git` the agent makes itself may pass git's ownership check, since the agent can rename one of the factory's group-writable folders into place. `git clean -f -d`, the restore, keeps a nested repository (`-ff` would remove it), and `diff.ignoreSubmodules=all` did not stop the child.
 
@@ -86,20 +86,25 @@ Tests:
    - a file `other/.git` holding `gitdir: ` and a path outside the checkout: returns `["other/.git"]`, and the file is gone;
    - a symbolic link `link/.git` to a folder outside the checkout: returns `["link/.git"]`; the link is gone, its target and the target's files stay;
    - a repository at `a` and another at `a/b`: returns `["a/.git", "a/b/.git"]`, and both are gone;
-   - a folder `.github`, a file `x.git` and a folder `sub.git`: returns `[]`, and all three stay.
+   - a folder `.github`, a file `x.git` and a folder `sub.git`: returns `[]`, and all three stay;
+   - a repository made by `git init` at `.venv/lib/x`: returns `[".venv/lib/x/.git"]`, and it is gone;
+   - a folder `closed` at `0o000`: returns `[]` with no error, and the folder stays; skipped for root, as `tests/application/test_tick.py` does; the test restores the mode afterwards.
 4. A nested repository the factory cannot remove: a folder `locked` at `0o555` that holds a repository made by `git init` makes `remove_nested_repositories()` raise `RepositoryUnsealed` whose message holds the path of `locked/.git`. Skipped for root, as `tests/application/test_tick.py` does; the test restores the mode afterwards.
 5. `run_sealed` reports and removes, rows of one parametrized test:
    - a run that makes a repository at `notes/sub` and completes: the `SealedRun`'s `result` is the runtime's result, its `nested_repositories` is `["notes/sub/.git"]`, and `notes/sub/.git` is gone when `run_sealed` returns;
    - a run that makes none: `nested_repositories` is `[]`;
-   - a run that makes a repository at `notes/sub` and then raises `AgentRuntimeError`: that error propagates, and `notes/sub/.git` is gone.
-6. A stage whose agent makes a nested repository stalls. With a run that completes with an allowed decision and makes a repository at `notes/sub`, whose `core.fsmonitor` appends to the marker file: `launch` gives `nested_repositories` = `["notes/sub/.git"]`, and `notes/sub/.git` is gone. `AfterAgent.process` returns a `StallResult` with the reason `nested_repository` and one attempt more. The note posted on the pull request is `stall_note("nested_repository", 1, <attempts cap>, detail="notes/sub/.git")`, and the journal's last record is the factory's `stall`, whose text names `notes/sub/.git`. The marker is still empty after the stall's commit and push.
+   - a run that makes a repository at `notes/sub` and then raises `AgentRuntimeError`: that error propagates, and `notes/sub/.git` is gone;
+   - a run that makes a repository at `notes/sub` while `check_seal()` fails: `RepositoryUnsealed` propagates and `notes/sub/.git` stays, since no search runs;
+   - a run that raises `AgentRuntimeError` while the removal fails (the `locked` folder of criterion 4): `RepositoryUnsealed` propagates, not the run's error; skipped for root, the mode restored afterwards.
+6. A stage whose agent makes a nested repository stalls. With a run that completes with an allowed decision and makes a repository at `notes/sub`, whose `core.fsmonitor` appends to the marker file: `launch` gives `nested_repositories` = `["notes/sub/.git"]`, and `notes/sub/.git` is gone. `AfterAgent.process` returns a `StallResult` with the reason `nested_repository` and one attempt more. The note posted on the pull request is `stall_note("nested_repository", 1, <attempts cap>, detail="notes/sub/.git")`, and the journal's last record is the factory's `stall`, whose text names `notes/sub/.git`. The marker is still empty after the stall's commit and push. A second row: the branch check would also fail (the agent's commits leave the ticket's branch as the earlier tests of `tests/application/test_after_agent.py` make it fail), and the reason is still `nested_repository`.
 7. `stall_cause("nested_repository")` is `the agent left a git repository in the work tree, which the factory removed` (the changed row of `tests/domain/test_stall_texts.py`).
-8. The probe, rows of one parametrized test: a probe run that completes and makes a repository at `notes/sub` fails the item with exactly the detail `the probe run left a git repository in the work tree, which the factory removed: notes/sub/.git`, and `notes/sub/.git` is gone; a probe run that completes and makes none passes.
-9. `CheckoutPreparer.prepare` on an existing checkout that passes `check_seal()` and holds a repository at `notes/sub` keeps the checkout (a file the test put in the work tree is still there) and removes `notes/sub/.git`. The log holds exactly one line, `removed nested repositories: notes/sub/.git`. Built without a log, the preparer does the same without an error (rows of one parametrized test).
+8. The probe, rows of one parametrized test: a probe run that completes and makes a repository at `notes/sub` fails the item with exactly the detail `the probe run left a git repository in the work tree, which the factory removed: notes/sub/.git`, and `notes/sub/.git` is gone; a probe run that completes and makes none passes; a probe run that ends with a reason other than complete and makes a repository at `notes/sub` fails with the same exact nested-repository detail.
+9. `CheckoutPreparer.prepare` on an existing checkout that passes `check_seal()` and holds a repository at `notes/sub` keeps the checkout (a file the test put in the work tree is still there) and removes `notes/sub/.git`. The log holds exactly one line, `removed nested repositories: notes/sub/.git`. Built without a log, the preparer does the same without an error. A row for an existing checkout with nothing nested keeps the checkout and writes no `removed nested repositories` line (rows of one parametrized test).
 10. `CheckoutPreparer.prepare` on an existing checkout that passes `check_seal()` and holds the `locked` folder of criterion 4 writes the log line `cloning the checkout again: ` followed by the error's message and raises `GitError` whose message holds `discard`, since the whole checkout cannot be removed either. Skipped for root, as `tests/application/test_tick.py` does; the test restores the mode afterwards.
 11. What must still hold: the tests of the factory's git hooks (`tests/entry/test_git_hooks.py`), of the seal (`tests/adapters/test_git_cli_seal.py`, `tests/application/test_checkout_preparer_seal.py`, `tests/application/test_sealed_runs.py`), of the stage launch and its aftermath (`tests/application/test_stage_launch.py`, `tests/application/test_after_agent.py`), of the stalls and their texts, of the probe and of the tick pass.
-12. `make check` stays green.
-13. docs: The operator guide:
+12. `CheckoutPreparer.prepare` on a missing checkout clones it without a call to `remove_nested_repositories`.
+13. `make check` stays green.
+14. docs: The operator guide:
     - A paragraph beside S0006's *The checkout is cloned again when it is missing or its `.git` is not the factory's alone* says that after every agent run the factory removes any `.git` below the work tree's root (a folder, a file or a link) and stalls the stage with the reason `nested_repository` and the paths. At the start of every iteration it removes one an older checkout holds, with the line `removed nested repositories: ...` in `/state/factory.log`. One it cannot remove makes it clone the checkout again, and when that fails, the stop `repository_unavailable` follows. A project whose tools keep a git repository inside the work tree, even in an ignored folder, therefore stalls every stage: keep such clones outside `/work/checkout`. A probe run that leaves one fails the item `agent-run-probe` with the paths.
     - Where the guide lists the stall reasons, `nested_repository` is added.
 
@@ -158,3 +163,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       h. `AfterAgent.process`: the stall is "as its first step, before the branch check". Criterion 6 does not show the order. Option: add a row in which the branch check would also fail and the reason is still `nested_repository`.
    I would choose to add all eight as rows of the existing parametrized criteria (3, 5, 8, 9 and 6), and criterion f as a new criterion before the two closing ones.
 3. human (pull request comment, 2026-10-17): 1: yes, all eight as you propose: a, b, c, d, e, g and h as rows of the existing parametrized criteria (3, 5, 8, 9 and 6), and f as a new criterion before the two closing ones (a missing checkout is cloned without a call to `remove_nested_repositories`). For b, the `0o000` folder row is skipped when the tests run as root and its mode is restored afterwards.
+4. intake: accepted, with the human's answer (log entry 3) carried into the story; the Assignment heading now reads "as of log entry 3", its meaning unchanged.
+   - Carried in from entry 3, and nothing else: criterion 3 gained rows `.venv/lib/x` (a, `[".venv/lib/x/.git"]`) and an unlistable `0o000` folder (b, `[]`, skipped for root, mode restored). Criterion 5 gained a row where `check_seal()` fails and the nested `.git` stays (c), and a row where the run raises and the removal fails, so `RepositoryUnsealed` wins (d). Criterion 6 gained a row where the branch check would also fail (h). Criterion 8 gained a row where the probe run does not complete (e). Criterion 9 gained a row with nothing nested (g). A new criterion 12 says a missing checkout is cloned without a call to `remove_nested_repositories` (f). `make check` is now 13 and `docs:` is 14, still last.
+   - Interface: concrete modules, signatures and the nine-entry table; every behaviour stated there (paths relative, `/`-separated and sorted, the log line, the detail texts, the order in `run_sealed`) now has a criterion.
+   - Criteria: each is testable by one parametrized test function. Each rule has its failing side: unremovable folder (4, 10), removal failure and seal failure in `run_sealed` (5), non-nested lookalikes (3).
+   - Demo: three runnable commands, and each `Expect:` line can be checked against the output.
+   - Architecture: the walk and the removal sit in the `GitCli` wrapper behind the `Git` interface, the stall in `application`, the stall reason and its text in `domain`, and the wiring in `entry`. This fits the four layers.
+   - Scope: within F0014's scope, which lists S0010 and its modules. It touches nothing in "Out of scope". The five earlier tests it changes are covered by FEATURE decision 32.
