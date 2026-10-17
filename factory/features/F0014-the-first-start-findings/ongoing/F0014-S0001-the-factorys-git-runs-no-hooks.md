@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 191
 blocked: null
 comments_seen: 0
 round: 0
@@ -78,3 +78,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `git_environment` in `src/factory/entry/wiring.py` has its signature and a table of the seven entries with exact names and values. The comment's content is stated. The test module, its fixtures and the two changed tests of `test_wiring_boundaries.py` are named, with the stand-in `git` design given.
+   - Criteria: each is testable by one test function or one parametrized test. The behaviour in the Interface (the third pair, `/dev/null`) is covered by criteria 1 and 6. The passing side (no hook runs with `git_environment`) and the failing side (the hook runs with `GitOptions()`) are rows of the same test (criteria 2 to 5). Criterion 5 covers a `core.hooksPath` in the checkout's config. Criterion 7 covers a bare remote's `pre-receive` still rejecting, on both sides. Criterion 8 relies on existing pinned tests. Criterion 9 is `make check` and criterion 10 is `docs:`, the last two.
+   - Demo: all three blocks are runnable. Each `Expect:` line is checkable: the sorted dict, `plain True` and `factory False`, and a pytest tail with no failed, error or skipped count.
+   - Architecture: the change is in `factory.entry` wiring only. `GitCli` and the layers are untouched, and the story says why the setting stays out of `GitCli`.
+   - Scope: it is inside FEATURE scope bullet 1 and not in "Out of scope". The two earlier tests it changes are covered by decision 7's leave.
+   No questions.
