@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 154
 blocked: null
 comments_seen: 2
@@ -201,3 +201,29 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    Stale text outside this story: none seen.
 
    `make check`: check: green
+9. demo: both Demo commands ran from the repository root as written and both met their `Expect:` lines. I found no findings.
+
+   Command 1 (the domain functions on one similar block, one dead-code line and a baseline with one known key and one gone key):
+   ```
+   new similar-code factory.a, factory.b: return value.astimezone(UTC) at factory.a:[1:5], factory.b:[9:13]: Similar lines in 2 files
+   gone gone-key
+   duplicates: 1 new, 1 known, 1 gone
+   ```
+   Met: it printed exactly the three expected lines, in order, and exited with status 0.
+
+   Command 2 (`uv run pytest --no-header -p no:cacheprovider tests/domain/test_duplicates.py tests/entry/test_check_duplicates.py`):
+   ```
+   .........................................                                [100%]
+   41 passed in 0.05s
+   ```
+   Met: the last line is `41 passed in 0.05s`, with no failed, error or skipped count.
+
+   Checked against the acceptance criteria:
+   - Criteria 1 to 14: the demo contradicts none of them. Command 1 matches the Interface's rules for the key (modules sorted, first code line stripped), for `where` (message order) and for the closing line. Command 2 runs the tests that cover criteria 1 to 14.
+   - Criterion 15: the factory's gate checks this after the stage. The coder's and documenter's entries record `make check` green.
+   - Criterion 16: I also ran `uv run python -m factory.entry.check_documents`, which prints `documents ok`. The section *The duplicates report* exists in `docs/project-guide.md` and the decision exists in `docs/decisions.md`.
+
+   Open, not findings (from earlier entries):
+   - The Interface does not say what happens when writing the baseline fails (`OSError`).
+   - The `make duplicates` target and the pipeline step come with a later change (H3).
+   - The documenter added a sentence to the decision log that goes beyond the story, and asked the human to cut it if it is not what was meant.
