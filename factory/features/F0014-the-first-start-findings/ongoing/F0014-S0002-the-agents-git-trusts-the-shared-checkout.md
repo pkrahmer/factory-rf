@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 195
 blocked: null
 comments_seen: 0
@@ -102,3 +102,31 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran the three demo commands from the repository root. All three met their `Expect:` line. No findings.
+
+   1. `git config --file image/gitconfig --list`
+   ```
+   safe.directory=/work/checkout
+   ```
+   Met: exactly one line, `safe.directory=/work/checkout`.
+
+   2. `grep -n "/etc/gitconfig" image/Dockerfile`
+   ```
+   41:COPY image/gitconfig /etc/gitconfig
+   42:RUN sed -i 's/\r$//' /etc/gitconfig && chmod 0644 /etc/gitconfig
+   ```
+   Met: the `COPY` line and the `RUN` line that holds `chmod 0644 /etc/gitconfig` are both printed. The comment above them does not name the file, so grep does not print it; the expectation allows that.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_image_gitconfig.py tests/test_image.py tests/test_image_credentials.py tests/adapters/test_git_cli_reading.py`
+   ```
+   ........................................................................ [ 77%]
+   .....................                                                    [100%]
+   93 passed in 2.80s
+   ```
+   Met: `93 passed`, with no failed, error or skipped count.
+
+   Criteria cross-check:
+   - `image/gitconfig` (read with `cat -A`) has three `#` lines, then `[safe]`, then a tab-indented `directory = /work/checkout`, and nothing else (criteria 1–3).
+   - Dockerfile lines 39–43: the comment sits directly above the `COPY` (criterion 5). The `COPY` has no `--chown` and no `--chmod`, and the exact sed/chmod `RUN` follows it (criteria 4 and 6). Both come after the git-credential-factory `RUN` and before `ENV FACTORY_TOKEN_FILE=...`.
+   - Criterion 7: the earlier tests it names are in the 93 that passed.
+   - Criteria 8 and 9: the demo contradicts neither. I did not run `make check` myself; the factory runs it as the gate.
