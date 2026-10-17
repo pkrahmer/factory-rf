@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 175
 blocked: null
 comments_seen: 0
@@ -75,3 +75,11 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Criteria: criterion 1 is covered by `tests/test_agent_home_ownership.py::test_the_agent_home_is_the_factorys_with_the_sticky_bit_and_work_stays_shared`. Its rows check `/home/agent/.claude` (`3775`, `factory:factory-work`) and `/work` (`2775`, group `factory-work`), both read as the last value through `_path_settings`. Criterion 2 is covered by `test_the_installed_agents_and_settings_are_not_writable_by_group_or_others`. Before the entrypoint runs, the test makes the source copies group-writable (0775/0664). So a 0755/0644 result comes from the entrypoint, not from `cp` keeping the source mode, and the group/other write bit is asserted on all four rows. Criterion 3 is covered by the existing entrypoint and umask tests, which this diff leaves unchanged. Criterion 4 (the "changes the mode of nothing else" rule) is covered by `test_a_file_the_agent_made_in_the_home_is_left_as_it_was`. The coder's entry records `make check` green.
+   - Approved test change: in `tests/test_image.py`, only the `/home/agent/.claude` row was removed, as FEATURE decision 42 allows. The `/work` row stays.
+   - Image: `image/Dockerfile:24,27-28` matches the Interface. The agent's primary group is `factory-work` (line 20), so with the setgid bit it can still create its login files in the home.
+   - Entrypoint: `image/entrypoint.sh:26-29` applies the three modes after the copies and before the log line. Nothing else changed. `find -type f` was chosen over a glob, and the log gives the reason.
+   - Architecture, security: only `image/` and tests change. No silencing markers, no secrets, no new dependency.
+   - Judged and not raised: the `layout` fixture in the new module repeats the one in `tests/test_entrypoint.py`. Moving it to `tests/conftest.py` would mean editing an earlier story's test, which the Interface forbids. The entrypoint's header comment ("so either can remove the other's") is still true for `/work`. The coder flagged it for the documenter, and the Interface keeps everything else in the entrypoint unchanged.
+   - Open: the sticky bit's effect on renaming and deleting is not tested, because that needs a container (noted at intake). Docs criterion 6 is for the documenter.
