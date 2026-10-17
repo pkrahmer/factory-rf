@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 195
 blocked: null
 comments_seen: 0
@@ -130,3 +130,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Dockerfile lines 39–43: the comment sits directly above the `COPY` (criterion 5). The `COPY` has no `--chown` and no `--chmod`, and the exact sed/chmod `RUN` follows it (criteria 4 and 6). Both come after the git-credential-factory `RUN` and before `ENV FACTORY_TOKEN_FILE=...`.
    - Criterion 7: the earlier tests it names are in the 93 that passed.
    - Criteria 8 and 9: the demo contradicts neither. I did not run `make check` myself; the factory runs it as the gate.
+8. done (pull request merged); cost: 6 runs, 3.5 min, 37 turns, 115k tokens in (536k more from cache), 12k out, $0.97
