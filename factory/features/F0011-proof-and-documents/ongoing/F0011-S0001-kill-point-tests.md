@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 145
-blocked: question
-comments_seen: 2
+blocked: asked
+comments_seen: 3
 round: 3
 attempts: 0
 ---
