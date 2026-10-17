@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 191
 blocked: null
 comments_seen: 3
@@ -158,3 +158,20 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+8. reviewer: no findings.
+
+   What I read: the ticket, and `git diff main...HEAD -- . ':!factory'`. The `planning/`, `docs/runs/` and `pyproject.toml` hunks in that diff are the human's own commits (d577ef8f, ca366459, a5c2f55a), which came in through merge 7b8ba41f. They are not the coder's work and I did not review them.
+
+   1. Acceptance criteria:
+      - Criterion 1: `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks` expects exactly the seven entries, for both rows (the default helper and `/opt/other-helper`).
+      - Criteria 2–5: `test_the_factorys_git_runs_no_hook_of_the_checkout` has 8 rows, 4 operations × {factory, plain}. Each operation checks that it succeeded: the commit is HEAD, the branch is checked out, `push` returns `pushed` and the remote holds the commit, and the commit is made under a `core.hooksPath` set in the config. The plain rows show each hook is real.
+      - Criterion 5: the hooks folder is `tmp_path/elsewhere-hooks`, outside the checkout, as required.
+      - Criterion 6: the stand-in `git` on a monkeypatched PATH follows the Interface: `write_executable`, renamed to `git`, real git found with `shutil.which` before the PATH changes, then `os.execv`. It keeps the four old assertions and adds KEY_2/VALUE_2. If the stand-in were not used, the test would fail on the missing JSON file, so it really observes the built git.
+      - Criterion 7: one parametrized test, factory and plain rows. Each gets `rejected`, and the remote has no branch.
+      - Criterion 8: the existing tests are unchanged.
+      - Interface: the only changes to `test_wiring_boundaries.py` are the two the ticket allows, plus their imports.
+      - `make check` was green after the coder (entry 7). `make duplicates` reported 0 new.
+   2. Architecture: the only change is in `factory.entry.wiring.git_environment`. `GitCli`, `git_options` and the layers are untouched.
+   3. Security: no silencing markers and no secrets. The hook scripts quote the marker path with `shlex.quote`.
+   4. Quality: the comment in `src/factory/entry/wiring.py:142-144` says why the pair is there: the agent can write the hooks, this git runs as the token's user, and command-line configuration wins over the checkout's own. The value is `os.devnull`, as the Interface names it.
+   5. Ticket hygiene: entry 7 explains `os.devnull` and why the pair is not in `GitCli`. The Assignment matches what was built. Criterion 10 still describes the three documents the documenter must change.
