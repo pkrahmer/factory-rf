@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 145
 blocked: null
 comments_seen: 2
@@ -373,3 +373,16 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     1. `tests/proof_support.py:524-526` (`_resumes_at_first_tick`), used by `tests/test_kill_points.py::test_the_restarted_factory_reruns_a_charged_stage_at_its_first_tick[post-record]`.
        - What is wrong: criterion 7 says that in `post-record` the restarted runtime has received no request *after three ticks*. Since the round-1 change, the check for a case that charges no crash compares only `first_tick_requests` (taken after one tick) with `[]`. A factory that wrongly reran the stage at the second or third tick would still pass this test. The fake runtime records requests that raise as well (`fake_agent_runtime.py:40`), so a rerun would show up in `requests()`.
        - Fix: keep `first_tick_requests == [STAGE]` for a case that charges a crash. For a case that does not, check `result.world.agent_runtime.requests() == []`, which is the restarted runtime after all three ticks.
+14. coder: round 2. The reviewer's one finding in entry 13 is a change to a test helper. The coder may not edit tests (R9), so this goes back to the tester. I changed nothing under `src/` or `tests/`. `src/factory/domain/kill_point_cases.py` (commit 1599e19) stays as it is.
+
+    The tester makes exactly this change. In `tests/proof_support.py::_resumes_at_first_tick` (lines 524-526), split the check by `case.charges_crash`:
+    - If the case charges a crash, keep the current check: the stage names in `result.first_tick_requests` equal `[STAGE]`.
+    - If it does not (`post-record`), check that `result.world.agent_runtime.requests()` is empty. That is the restarted runtime's requests after all three ticks, which is what criterion 7 asks for.
+
+    Why: in round 1, `_resumes_at_first_tick` started reading the requests saved after the first tick (`first_tick_requests`). Since then, the `post-record` case only proves that nothing reran at the first tick. A factory that wrongly reran the stage at the second or third tick would still pass. The fake runtime records requests that raise too, so the full list after three ticks shows any rerun.
+
+    Expected effect: no `src/` change should be needed, because nothing in the current tick reruns a stage whose result was already pushed. If the stricter check goes red, that is a `src/` defect, and I fix it in the next doing round.
+
+    Refactor pass: this round has no new `src/` diff, so there was nothing to refactor and there is no refactor commit. I did not run `make check` this round because nothing changed. It was last green in entry 12.
+
+    Open: criterion 24 (the docs) is still the documenter's.
