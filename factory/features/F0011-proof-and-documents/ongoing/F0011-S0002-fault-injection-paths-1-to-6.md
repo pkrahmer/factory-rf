@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 146
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Fault-injection paths 1 to 6
 
 ## Assignment (as of log entry 1)
@@ -88,3 +96,88 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/fault_paths.py` gives `FaultPath` and `FAULT_PATHS` with exact fields and a six-row table. The new `drive_to` and `timed_out` helpers in `tests/proof_support.py` have signatures and behaviour spelled out. The existing helpers it relies on are all present (`start_story`, `leak_writes`, `completed`, `died`, `restart`, `pull_request_of`, `repeated_posts`, `KILL_TO_RERUN`, `check_story_form`, `Git.is_ancestor`). The five case ids it uses exist in `kill_point_cases.py`. The Interface states no conversion, default or ordering beyond the table, and criteria 8 to 11 test each of its rules.
+   - Criteria: criteria 1 to 7 are each one scripted scenario with concrete assertions, so one test function each. Criterion 8 pins the table, 9 pins the case ids, 10 pins the closed model (assignment, unknown key and wrong type), and 11 pins the name existence and the 90-character limit. The failing side of each rule is covered. Criteria 12 (`make check`) and 13 (`docs:`) are the last two.
+   - Demo: both blocks are runnable. Each `Expect:` line is checkable: `True True True` plus the test name, and a `passed` last line with no `failed` or `error`.
+   - Architecture: the new module is a pure domain DTO and the helpers sit in the tests. Nothing crosses a layer, and the story needs no new dependency.
+   - Scope: paths 1 to 6 are within the feature's "thirteen fault-injection paths" scope. Paths 7 to 13 are left to F0011-S0003. The baseline run and a real container kill, which are out of scope, are not touched.
+3. tester: wrote the tests for criteria 1 to 11 and the two helpers from the Interface.
+      - criterion 1: tests/test_fault_paths.py::test_intake_question_tick_killed_during_intake_run_reruns_free_and_asks_once
+      - criterion 2: tests/test_fault_paths.py::test_a_smoke_test_without_expect_is_caught_by_the_story_form. It is parametrized over two cases: `Expect:` kept gives no finding, and `Expect:` replaced by an empty line gives at least one. The story is `STORY.format(title="Example")`, which is the text `start_story` writes. It is checked against `git_support.STORY_FORM` with `folder="backlog"`.
+      - criterion 3: tests/test_fault_paths.py::test_intake_edge_case_question_killed_between_commit_and_push_reruns_intake_and_posts_once
+      - criterion 4: tests/test_fault_paths.py::test_tester_question_killed_between_post_and_record_posts_once
+      - criterion 5: tests/test_fault_paths.py::test_review_rework_after_reviewer_run_dies_charges_one_attempt_then_one_round
+      - criterion 6: tests/test_fault_paths.py::test_docs_finding_tick_killed_after_move_back_push_counts_round_once_and_next_stage_starts
+      - criterion 7: tests/test_fault_paths.py::test_smoke_test_finding_after_run_reaches_time_limit_charges_one_attempt_then_moves_back
+      - criterion 8: tests/domain/test_fault_paths.py::test_the_first_six_paths_are_the_six_rows_in_number_order
+      - criterion 9: tests/domain/test_fault_paths.py::test_every_path_arms_the_kill_point_of_a_known_case
+      - criterion 10: tests/domain/test_fault_paths.py::test_a_built_path_refuses_the_assignment_of_a_field and tests/domain/test_fault_paths.py::test_a_path_refuses_an_unknown_key_and_a_wrong_type. The second is parametrized over an unknown key and `number="one"`, built through `type[BaseModel]`, and also builds one valid row.
+      - criterion 11: tests/test_fault_path_names.py::test_every_path_test_is_a_function_of_the_path_tests and tests/test_fault_path_names.py::test_every_path_test_name_is_at_most_ninety_characters. The first reads the module-level function names of tests/test_fault_paths.py with `ast`.
+      - Files created: tests/domain/test_fault_paths.py, tests/test_fault_path_names.py, tests/test_fault_paths.py.
+      - Files changed: tests/proof_support.py.
+        - Added `drive_to` and `timed_out` as the Interface describes. `drive_to` pushes the Makefile `PASSING_MAKEFILE` only when `main` differs, and stops after 20 ticks with an AssertionError.
+        - Added a small public helper, `branch_cost_records`, which reads the work item's cost sidecar on `origin/<branch>` through the existing `_costs`.
+        - Made the private `_tick_until_killed` public as `tick_until_killed` and gave it a docstring. Path 3 needs "the first tick that posts raises", and this avoids writing a second copy.
+      - `make test`: tests/domain/test_fault_paths.py and tests/test_fault_path_names.py fail at collection because `factory.domain.fault_paths` does not exist yet. That is the only module the test runner could not import.
+      - tests/test_fault_paths.py does not import the new module. Its 8 cases (the six paths plus the two cases of criterion 2) already passed in a single exploratory pytest run on the current code. So the paths found no defect under `src/`, and the coder's work is `src/factory/domain/fault_paths.py`.
+      - `make lint` is green. I did not run the type check, as the stage skill says.
+      - Open: none.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built `src/factory/domain/fault_paths.py` (commit 9eef3f2). It holds `FaultPath`, a frozen model with `extra="forbid"` and the fields number, title, case and test, and `FAULT_PATHS`, the six rows of the Interface table in number order.
+      - Design: the rows are a plain module-level tuple of validated models, the same shape as `KILL_POINT_CASES`, so F0011-S0003 can append rows 7 to 13 directly. I rejected a validator that checks each `case` against `KILL_POINT_CASES`: the Interface makes this a property of the rows that the tests check (criteria 9 and 11), not a rule of the model, and the model has no other validation. A comment above the tuple says that the case names the kill point, and the path's own crash charge may differ from the case's.
+      - The path tests in tests/test_fault_paths.py already passed on the existing code, as the tester reported. The walks found no defect under `src/`, so nothing else changed.
+      - Refactor: I read the diff once and found nothing to change, so there is no refactor commit.
+      - `make check`: green, total coverage 99.55 %.
+      - Not touched: the docs criterion (13) is the documenter's work.
+
+   `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: I read every test in `tests/test_fault_paths.py`, `tests/domain/test_fault_paths.py` and `tests/test_fault_path_names.py` against its criterion, and each test checks what its criterion says.
+        - Criteria 1, 3 and 4: one kill each at the stated point, the clock advanced by `KILL_TO_RERUN`, then `restart`. The post count, state tuple, journal kinds, ancestor checks and runtime requests are asserted as stated.
+        - Criteria 5 and 7: the state is asserted after the stall tick and again after the move-back tick, and criterion 7 also checks that the cost sidecar has a record with `end_reason == "time_limit"` and `cost_usd is None`.
+        - Criterion 6: `AFTER_PUSH` is armed with `after=1`. The test asserts the round, the crash count, a single documenter `result` record and a single request to the restarted runtime.
+        - Criterion 2: one parametrized test with two rows, `Expect:` kept and `Expect:` blanked, so both sides of the rule are covered.
+        - Criterion 8 pins all six rows exactly, and criterion 9 checks the case ids against `KILL_POINT_CASES`.
+        - Criterion 10 covers all three rejections: frozen assignment through `setattr` with the field name in a variable, and an unknown key and `number="one"` as parametrized rows built through `type[BaseModel]`, next to a valid build.
+        - Criterion 11 reads the function names with `ast` and checks the 90-character limit. The limit is a property of the rows, not a model validation, so it has no refused side to test.
+        - The coder's entry reports `make check` green, with 99.55 % coverage.
+      - Helpers: `drive_to` and `timed_out` in `tests/proof_support.py` match the Interface. The Makefile is pushed only when `main` differs, and the queued run writes `tests/test_example.py` for `tests` and `src/example.py` for `doing`. The `approval` stop uses `handed_over`, and `timed_out` sets `end_reason="time_limit"`, no decision or entry, and 40 minutes. Renaming `_tick_until_killed` to `tick_until_killed` reuses the existing helper rather than adding a second copy, and `branch_cost_records` reuses `_costs`.
+      - Architecture: `src/factory/domain/fault_paths.py` is a pure domain DTO with no I/O. It has the same frozen, closed, module-level tuple shape as `KILL_POINT_CASES`.
+      - Security: nothing in the diff calls processes, builds SQL or handles secrets, and no suppression markers were added.
+      - Quality: the module and class docstrings are present. The comment above `FAULT_PATHS` explains why the case and the crash charge may differ, and there is no dead code.
+      - Ticket hygiene: the coder's entry records the main decision and the alternative it rejected (no validator against `KILL_POINT_CASES`). `Assignment` matches what was built, and criterion 13 still tells the documenter what to write.
+6. documenter: wrote the documentation for criterion 13. `make check` is green (99.55 % coverage).
+   - `docs/project-guide.md`: new section *Fault-injection paths*, placed after *The kill-point cases*. It holds the table of paths 1 to 6 (number, title, case, test), the sentence that the case names the kill point and the crash charge may differ (path 5 as the example), the note that no path is mapped to a removing item, the four further run-1 paths and where each went, and a run command. It also says paths 4 and 6 use the scripted stall and that path 1 has a second half (the story form check).
+   - `docs/decisions.md`: new entry "Each fault-injection path is walked with one kill, by judgment". It records the alternative I rejected, a kill at every step.
+   - Cross-read: the *Kill points* and *The kill-point cases* sections against the diff. They are current. The diff renames `_tick_until_killed` to `tick_until_killed` in `tests/proof_support.py`, and the guide never named it.
+   - README and operator guide are untouched, as the criterion says.
+   - I did not run the new test command in the guide, but `make check` ran the same tests and was green.
+   - Findings: none. The code matches the Interface. Nothing stale seen and left alone.
+
+   `make check`: check: green
+7. demo: ran both commands under `## Demo` from the repository root, as written and in order. Both met their `Expect:` line, and there are no findings.
+
+   Command 1 (checks the `FAULT_PATHS` rows against `KILL_POINT_CASES` and prints the fourth row's test name):
+   ```
+   True True True
+   test_review_rework_after_reviewer_run_dies_charges_one_attempt_then_one_round
+   ```
+   Met: the output is `True True True`, then the expected test name. Exit code 0.
+
+   Command 2 (`uv run pytest --no-header -p no:cacheprovider tests/test_fault_paths.py tests/domain/test_fault_paths.py`):
+   ```
+   .............                                                            [100%]
+   13 passed in 10.24s
+   ```
+   Met: the last line reports `passed` and neither `failed` nor `error`. Exit code 0.
+
+   Criteria cross-check: nothing in the demo contradicts any acceptance criterion.
+   - The demo shows criteria 8 and 9 directly: the six rows are in number order and every case id exists in `KILL_POINT_CASES`.
+   - The tests for criteria 1 to 7 and 10 are in the passing set.
+   - For criterion 13 I made a quick spot check: `docs/project-guide.md` has the section *Fault-injection paths*, and `docs/decisions.md` has the entry "Each fault-injection path is walked with one kill, by judgment". The branch diff against main shows no change to `README.md` or `docs/operator-guide.md`.
+   - I did not run `make check` (criterion 12): the factory runs it after this stage. The coder and the documenter both report it green.
+
+   Open: none.
