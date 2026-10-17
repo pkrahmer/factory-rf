@@ -17,7 +17,7 @@ from factory.entry.wiring import build_pipeline_definition_reader, build_work_it
 
 _PROGRAM = "check-demos"
 _DEMOS = "demo"
-_INDEX = "README.md"
+_README = "README.md"
 _PROJECT = "project"
 _FEATURES = "features"
 _BACKLOG = "backlog"
@@ -38,13 +38,13 @@ def _demo_folders(demos: Path) -> list[Path]:
 def _index_findings(index: str | None, name: str) -> list[str]:
     if index is None or any(f"`{name}/`" in line for line in index.splitlines()):
         return []
-    return [f"{_DEMOS}/{_INDEX}: names no demo '{name}'"]
+    return [f"{_DEMOS}/{_README}: names no demo '{name}'"]
 
 
 def _part_findings(demo: Path, label: str) -> list[str]:
     findings: list[str] = []
-    if not (demo / "README.md").is_file():
-        findings.append(f"{label}: missing README.md")
+    if not (demo / _README).is_file():
+        findings.append(f"{label}: missing {_README}")
     for folder in (_PROJECT, _FEATURES):
         if not (demo / folder).is_dir():
             findings.append(f"{label}: missing {folder}/")
@@ -127,9 +127,9 @@ def check_demos(root: Path) -> list[str]:
     demos = root / _DEMOS
     if not demos.is_dir():
         return []
-    index_path = demos / _INDEX
+    index_path = demos / _README
     index = _read(index_path) if index_path.is_file() else None
-    findings = [] if index is not None else [f"{_DEMOS}/{_INDEX}: missing"]
+    findings = [] if index is not None else [f"{_DEMOS}/{_README}: missing"]
     pipeline_reader = build_pipeline_definition_reader()
     story_reader = build_work_item_reader()
     for demo in _demo_folders(demos):
