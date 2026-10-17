@@ -1,13 +1,15 @@
 """The git wrapper: the one class that runs the git command-line tool."""
 
 import os
+import shutil
+import stat
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.git import Git
-from factory.domain.errors import FetchFailed, GitError, NothingToCommit
+from factory.domain.errors import FetchFailed, GitError, NothingToCommit, RepositoryUnsealed
 from factory.domain.git import (
     ChangedPath,
     ChangeKind,
@@ -37,6 +39,8 @@ FATAL = 128
 # One log record is id, parents, author, committer timestamp and message, each ended by NUL.
 LOG_FORMAT = "%H%x00%P%x00%an%x00%ct%x00%B"
 LOG_FIELDS = 5
+# The write permission of the group and of others, which the git folder must not carry.
+SHARED_WRITE = 0o022
 DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
 UNREACHABLE_MARKERS = (
     "Could not read from remote repository",
@@ -126,6 +130,20 @@ def _status_header(entries: list[str], name: str, placeholder: str) -> str | Non
 
 def _sorted_changes(changes: dict[str, ChangeKind]) -> list[ChangedPath]:
     return [ChangedPath(path=path, change=changes[path]) for path in sorted(changes)]
+
+
+def _raise_unsealed(error: OSError) -> None:
+    # `os.walk` skips a folder it cannot list unless its `onerror` raises.
+    raise RepositoryUnsealed(f"{error.filename}: {error}") from error
+
+
+def _close(path: Path) -> None:
+    try:
+        mode = path.lstat().st_mode
+        if not stat.S_ISLNK(mode) and mode & SHARED_WRITE:
+            path.chmod(stat.S_IMODE(mode) & ~SHARED_WRITE)
+    except OSError as error:
+        raise RepositoryUnsealed(f"{path}: {error}") from error
 
 
 def _is_rejected(porcelain: str) -> bool:
@@ -336,6 +354,30 @@ class GitCli(Git):
         (self._directory / destination).parent.mkdir(parents=True, exist_ok=True)
         self._run(["mv", "--", source, destination])
 
+    def seal(self) -> None:
+        """Take the group's and others' write bits from `.git` and every entry in it."""
+        folder = self._check_git_folder()
+        for parent, folders, files in os.walk(folder, onerror=_raise_unsealed):
+            if Path(parent) == folder:
+                _close(folder)
+            for name in [*folders, *files]:
+                _close(Path(parent) / name)
+
+    def check_seal(self) -> None:
+        """Raise `RepositoryUnsealed` unless `.git` is the factory's alone; changes nothing."""
+        folder = self._check_git_folder()
+        if folder.lstat().st_mode & SHARED_WRITE:
+            raise RepositoryUnsealed(f"{folder} is writable by its group or by others")
+
+    def discard(self) -> None:
+        """Remove the working copy with its `.git`; a missing one is no error."""
+        if not os.path.lexists(self._directory):
+            return
+        try:
+            shutil.rmtree(self._directory)
+        except OSError as error:
+            raise GitError("discard", None, str(error)) from error
+
     # The helpers below take arguments their public caller has already checked.
 
     def _resolve_or_raise(self, ref: str, command: str) -> CommitId:
@@ -382,6 +424,24 @@ class GitCli(Git):
         listing = self._run(["ls-files", "--others", "--exclude-standard", "-z"]).stdout
         return [path for path in listing.split("\0") if path]
 
+    def _check_git_folder(self) -> Path:
+        folder = self._directory / ".git"
+        try:
+            mode = folder.lstat().st_mode
+        except FileNotFoundError:
+            raise RepositoryUnsealed(f"{folder} does not exist") from None
+        if stat.S_ISLNK(mode):
+            raise RepositoryUnsealed(f"{folder} is a symbolic link")
+        if not stat.S_ISDIR(mode):
+            raise RepositoryUnsealed(f"{folder} is not a directory")
+        owner, effective = folder.lstat().st_uid, os.geteuid()
+        if owner != effective:
+            raise RepositoryUnsealed(f"{folder} belongs to the user {owner}, not to {effective}")
+        head = folder / "HEAD"
+        if not os.path.lexists(head) or not stat.S_ISREG(head.lstat().st_mode):
+            raise RepositoryUnsealed(f"{folder} holds no HEAD file")
+        return folder
+
     def _reach(self, point: KillPoint) -> None:
         if self._options.kill_points is not None:
             self._options.kill_points.reach(point)
@@ -389,6 +449,8 @@ class GitCli(Git):
     def _environment(self) -> dict[str, str]:
         # The identity, the isolation and the locale come last, so that no extra environment can
         # lift them; the C locale keeps the English messages the push outcomes are read from.
+        # The ceiling keeps git from looking above the working copy: a `.git` that is not a
+        # repository is an error, never a way to one an agent placed in the checkout's parent.
         return {
             **os.environ,
             **self._options.environment,
@@ -397,6 +459,7 @@ class GitCli(Git):
             "GIT_COMMITTER_NAME": self._identity.name,
             "GIT_COMMITTER_EMAIL": self._identity.email,
             "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CEILING_DIRECTORIES": str(self._directory.absolute().parent),
             "GIT_CONFIG_GLOBAL": os.devnull,
             "LC_ALL": "C",
         }

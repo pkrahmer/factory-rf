@@ -1,5 +1,6 @@
 """The loop of one factory instance, its pauses, and the preparation of its checkout."""
 
+import os
 from collections.abc import Callable
 from datetime import timedelta
 
@@ -7,7 +8,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
-from factory.domain.errors import GitError
+from factory.domain.errors import GitError, RepositoryUnsealed
 from factory.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop, RepositoryStopReason
@@ -72,18 +73,33 @@ class Scheduler:
 
 
 class CheckoutPreparer:
-    """Clones the instance's checkout when it is missing and leaves an existing one alone."""
+    """Clones the instance's checkout when it is missing or untrusted, and seals its git folder."""
 
-    def __init__(self, git: Git, settings: InstanceSettings) -> None:
-        """Bind the working copy of the checkout and the settings that name its repository."""
+    def __init__(self, git: Git, settings: InstanceSettings, log: FactoryLog | None = None) -> None:
+        """Bind the working copy, the settings that name its repository and the log, if any."""
         self._git = git
         self._settings = settings
+        self._log = log
 
     def prepare(self) -> bool:
-        """Clone the repository unless the checkout already holds a clone; always `True`."""
-        if not (self._settings.checkout / ".git").exists():
+        """Clone unless the checkout holds a sealed clone, then seal the clone; always `True`."""
+        if not os.path.lexists(self._settings.checkout / ".git"):
             self._git.clone(self._settings.repository_url)
+        else:
+            self._keep_or_clone_again()
+        self._git.seal()
         return True
+
+    def _keep_or_clone_again(self) -> None:
+        # An agent may have replaced `.git` since the last check; it cannot close a folder of
+        # the factory's, so a `.git` that is not closed is never repaired, only cloned again.
+        try:
+            self._git.check_seal()
+        except RepositoryUnsealed as error:
+            if self._log is not None:
+                self._log.line(f"cloning the checkout again: {error}")
+            self._git.discard()
+            self._git.clone(self._settings.repository_url)
 
 
 class RepositoryWaiter:
