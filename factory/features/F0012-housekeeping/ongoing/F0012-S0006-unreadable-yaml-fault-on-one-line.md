@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 158
 blocked: null
 comments_seen: 2
@@ -159,3 +159,15 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
    Test change for the tester:
    - In `tests/adapters/test_pipeline_yaml_one_line_fault.py`, add a row for that text and fault to `test_a_yaml_error_is_refused_with_its_problem_and_position`.
    - Add the same text to the texts of `test_a_yaml_fault_holds_no_line_break`.
+9. tester: tester (test change approved by the human in entry 7, named by the coder in entry 8): I made exactly the named change in `tests/adapters/test_pipeline_yaml_one_line_fault.py`. Nothing else changed.
+   - Added a module constant `BLOCK_SCALAR_REPEATED_KEY = "a: 1\na: |\n  x\n  y\n"`.
+   - criterion 10: `test_a_yaml_error_is_refused_with_its_problem_and_position[block-scalar-repeated-key]` is a new row. It expects exactly `not valid YAML: found duplicate key "a" with value "x\\ny\\n" (original value: "1") (line 2, column 1)`, where each escaped `\n` is two characters.
+   - criterion 10 (no line break): `test_a_yaml_fault_holds_no_line_break[block-scalar-repeated-key]`, the same text added to that test's rows.
+   - Line-length limits made me split both `ids` lists over several lines. The ids are the same.
+
+   Why: the Interface rule (a line break inside ruamel's `problem` is written as `\n` / `\r`) had no test for a problem that actually holds a line break.
+
+   `make test` is green: test: green (25.0 s), coverage 99.51 %. The new rows pass because the coder's escaping fix (ee70afa) is already on the branch. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (24.5 s)

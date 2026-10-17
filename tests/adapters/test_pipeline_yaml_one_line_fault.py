@@ -12,6 +12,7 @@ UNCLOSED_LIST = PIPELINE_YAML + "x: [\n"
 MAPPING_IN_A_VALUE = PIPELINE_YAML.replace("crash_cap: 2", "crash_cap: 2: 3")
 PYTHON_TAG = PIPELINE_YAML + "x: !!python/object/apply:os.getcwd []\n"
 CONTROL_CHARACTER = PIPELINE_YAML + 'x: "\x07"\n'
+BLOCK_SCALAR_REPEATED_KEY = "a: 1\na: |\n  x\n  y\n"
 
 REPEATED_KEY_FAULT = (
     'not valid YAML: found duplicate key "done" with value "{}" (original value: "{}")'
@@ -38,8 +39,19 @@ def _fault(text: str) -> str:
             CONTROL_CHARACTER,
             "not valid YAML: unacceptable character #x0007: control characters are not allowed",
         ),
+        (
+            BLOCK_SCALAR_REPEATED_KEY,
+            'not valid YAML: found duplicate key "a" with value "x\\ny\\n" (original value: "1")'
+            " (line 2, column 1)",
+        ),
     ],
-    ids=["repeated-key", "unclosed-list", "mapping-in-a-value", "control-character"],
+    ids=[
+        "repeated-key",
+        "unclosed-list",
+        "mapping-in-a-value",
+        "control-character",
+        "block-scalar-repeated-key",
+    ],
 )
 def test_a_yaml_error_is_refused_with_its_problem_and_position(text: str, fault: str) -> None:
     assert _fault(text) == fault
@@ -54,8 +66,22 @@ def test_a_python_tag_is_refused_with_its_problem_and_position() -> None:
 
 @pytest.mark.parametrize(
     "text",
-    [REPEATED_KEY, UNCLOSED_LIST, MAPPING_IN_A_VALUE, PYTHON_TAG, CONTROL_CHARACTER],
-    ids=["repeated-key", "unclosed-list", "mapping-in-a-value", "python-tag", "control-character"],
+    [
+        REPEATED_KEY,
+        UNCLOSED_LIST,
+        MAPPING_IN_A_VALUE,
+        PYTHON_TAG,
+        CONTROL_CHARACTER,
+        BLOCK_SCALAR_REPEATED_KEY,
+    ],
+    ids=[
+        "repeated-key",
+        "unclosed-list",
+        "mapping-in-a-value",
+        "python-tag",
+        "control-character",
+        "block-scalar-repeated-key",
+    ],
 )
 def test_a_yaml_fault_holds_no_line_break(text: str) -> None:
     fault = _fault(text)
