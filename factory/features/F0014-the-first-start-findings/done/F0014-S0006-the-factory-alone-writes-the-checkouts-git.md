@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 192
 blocked: null
 comments_seen: 4
@@ -378,3 +378,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     - I did not check the docs criterion (17) in this demo.
 
     No findings.
+14. done (pull request merged); cost: 10 runs, 14.1 min, 103 turns, 386k tokens in (2637k more from cache), 58k out, $3.18
