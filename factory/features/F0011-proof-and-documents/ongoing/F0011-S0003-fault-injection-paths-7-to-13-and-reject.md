@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 147
 blocked: null
 comments_seen: 0
 round: 0
@@ -77,3 +77,13 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: names `src/factory/domain/fault_paths.py` (exists, from F0011-S0002) and one helper, `work_item_file(world, work_item) -> str`, with its behaviour stated. The seven rows are given with number, title, case and test. The helpers the criteria use (`drive_to`, `completed`, `died`, `restart`, `leak_writes`, `pull_request_of`, `repeated_posts`, `start_story`, `MARKER`, `KILL_TO_RERUN`) exist in `tests/proof_support.py`.
+   - Criteria: each of 1 to 8 is one scenario test named in the table. Each gives the exact ticks, kills, advances and assertions, so no further decision is left. Each rule has its failing side:
+     - The round cap is tested on both sides: no `round_cap` post after the third send-back, one after the fourth.
+     - The attempts cap is tested on both sides: `retrying` appears in the stall post of the first tick and not in that of the second.
+     - The reject revert is tested twice: the journal and stage in criterion 3, and `main` clean in criterion 4.
+     - Criterion 11 gives the 90-character limit on the test names, and criterion 10 the unique-name rule.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: `13 True True` and the named test line for the first, and `passed` with no `failed` or `error` for the second.
+   - Architecture: tests plus appended domain data rows in `factory.domain`, with no I/O. The `test_retrying_wording` constraint is respected.
+   - Scope: matches the feature's scope (the thirteen paths, one kill or stall each, `reject` walked). The first six rows stay as they are, and the docs criterion touches only the project guide and the decision log.
