@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 157
 blocked: null
 comments_seen: 0
@@ -114,3 +114,15 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+
+   - Criterion 1: `tests/test_kill_points.py::test_the_rerun_starts_five_seconds_after_the_kill` records `rerun_seconds(result)`, asserts 5.0, and asserts `kill-to-rerun-recorded` gives `[]`. It goes through `_checked`, which calls `violations(result, case_by_id(case_id), (condition,))`. The local `_rerun_seconds` and the `branch_name` import it no longer needs are gone.
+   - Criterion 2: `tests/test_proof_support.py::test_the_kill_to_rerun_check_holds_only_for_the_recorded_five_seconds` has the four rows the criterion names, built with `dataclasses.replace` on module-scoped `run_case` results. The `AssertionError` side is its own test, `test_the_rerun_seconds_of_a_result_without_a_kill_time_raise`. `_kill_to_rerun_recorded` in `tests/proof_support.py` matches the Interface: `True` when the case charges no crash, `False` without `killed_at`, otherwise it compares `rerun_seconds` with `KILL_TO_RERUN`.
+   - Criterion 3: `test_the_state_helpers_read_the_branch_or_return_none` is one parametrized test with three rows: ticked story, no branch, no file. In the ticked row, `assert held is not None` stops a None == None comparison from passing by accident.
+   - Criterion 4: `test_each_proof_helper_has_one_copy` uses `ast.walk` over the three modules, checks that `_rerun` calls `rerun` and not `restart` or `advance`, and checks that `tests/test_fault_path_names.py` is gone. That module only checked paths 1 to 6, so deleting it loses nothing, as the Assignment says. `_rerun` now calls the public `rerun`, which advances by `KILL_TO_RERUN` and restarts, so behaviour is unchanged.
+   - Criterion 5: per the tester's and coder's entries, the existing fault-path and kill-point tests pass unchanged. The coder's entry records `make check` green (99.51 % coverage) and `make duplicates` at 0 new.
+   - Architecture and security: the diff is tests only and nothing under `src/` changes. It adds no suppression marker, baseline entry or secret.
+   - Quality: `state_at`, `branch_state` and `rerun_seconds` have docstrings that describe their behaviour, and no copies of them remain. One small difference I did not count as a finding: `branch_state` returns `None` when the branch exists but lacks the file, where the old `_branch_state` asserted. Criterion 3 defines it through `state_at`, so this follows the story, and its only caller still fails after `ACCEPTANCE_TICKS`.
+   - Ticket hygiene: the tester's entry explains why the tester did the whole refactor (everything is under `tests/`). The Assignment matches what was built.
+
+   Open: criterion 7, the project guide's *Fault-injection paths* and *The kill-point cases*, is the documenter's.
