@@ -1649,6 +1649,14 @@ This repository's pipeline runs the report after the coder and writes its last l
 
 v1's pipeline configuration for this repository runs it as a check of the docs stage through `make documents`, so a missing row or a v1 word is found where the four documents are written, before the human sees the pull request; red holds the work item at the docs stage. `make check` does not run it (the decision log, *The four documents are checked by a command*, and its 2026-10-17 entry for the docs stage). A story that adds a row to `STOP_TABLE`, `KILL_POINT_CASES` or `FAULT_PATHS`, or changes one of the four documents, runs the check and ends with `documents ok`.
 
+## Mutation testing
+
+`make mutants FEATURE=<id>` (for example `FEATURE=F0012`) runs mutmut over the modules under `src/factory` that the commits of that feature changed. It finds them by the feature's id in the commit subjects on `origin/main`. It is not part of `make check`: it is slow, and the feature acceptance runs it. On v1's acceptance branch `acceptance/<id>-<slug>` the id is read from the branch name, so plain `make mutants` works there.
+
+The acceptance reads the survivors with `uv run mutmut results` and `uv run mutmut show <name>`. The target lists only the mutants it checked, not the thousands of other modules' mutants that mutmut leaves as not checked.
+
+Two ends are not a run. Without `FEATURE` the target prints `mutants: set FEATURE, as in make mutants FEATURE=F0012` and exits 2. A feature with no changed module prints `mutants: no module under src/factory changed by <id>` and exits 0. Which subjects it reads, and why only one feature's modules, is in the decision log (*Mutation testing is limited to one feature's modules*).
+
 ## Replaced from v1
 
 The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words):

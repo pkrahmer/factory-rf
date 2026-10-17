@@ -15,6 +15,7 @@ from document_texts import (
 from factory.domain.documents import (
     DECISION_LOG,
     DOCUMENT_PATHS,
+    GLOSSARY_FORBIDDEN,
     OPERATOR_GUIDE,
     OPERATOR_GUIDE_SECTIONS,
     PROJECT_GUIDE,
@@ -211,6 +212,37 @@ def test_every_fault_path_without_a_row_naming_its_test_is_a_finding(path: Fault
     ]
 
 
+def test_the_v1_words_are_the_eighteen_in_their_order() -> None:
+    assert GLOSSARY_FORBIDDEN == (
+        "ticket",
+        "tickets",
+        "lane",
+        "lanes",
+        "stage table",
+        "stages.yml",
+        "promote",
+        "promoted",
+        "acceptor",
+        "demonstration",
+        "control surface",
+        "hardening",
+        "memo",
+        "lease_minutes",
+        "max_attempts",
+        "max_rounds",
+        "drafts/",
+        "ongoing/",
+    )
+
+
+def test_the_operator_guide_sections_are_the_three_in_their_order() -> None:
+    assert OPERATOR_GUIDE_SECTIONS == ("Install", "Configuration", "The stops")
+
+
+def test_the_project_guide_sections_are_the_two_in_their_order() -> None:
+    assert PROJECT_GUIDE_SECTIONS == ("Kill points", "Fault-injection paths")
+
+
 def test_the_replaced_phrases_are_the_nine_in_their_order() -> None:
     assert REPLACED_PHRASES == (
         "--follow",
@@ -252,6 +284,13 @@ def test_a_replaced_phrase_is_a_finding_for_its_document(
 )
 def test_a_v1_word_standing_alone_is_a_finding(line: str, entry: str) -> None:
     texts = _with(operator=operator_guide(suffix=line))
+
+    assert check_documents(texts) == [_finding(OPERATOR_GUIDE, f"uses the v1 word '{entry}'")]
+
+
+@pytest.mark.parametrize("entry", GLOSSARY_FORBIDDEN, ids=GLOSSARY_FORBIDDEN)
+def test_every_v1_word_alone_on_its_line_is_one_finding(entry: str) -> None:
+    texts = _with(operator=operator_guide(suffix=f"It reads {entry} here."))
 
     assert check_documents(texts) == [_finding(OPERATOR_GUIDE, f"uses the v1 word '{entry}'")]
 
