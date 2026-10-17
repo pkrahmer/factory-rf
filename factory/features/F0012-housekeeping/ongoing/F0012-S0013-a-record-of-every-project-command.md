@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 165
 blocked: null
 comments_seen: 0
@@ -162,3 +162,19 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root. Both met their Expect lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   1. Append a `CommandRecord` through `JsonLinesRecordLog` into `records/project-commands.jsonl` in a temporary folder, then read it back:
+      ```
+      1 check 183.5
+      ```
+      Exit status 0. It met `Expect: 1 check 183.5`. This also shows the `records/` folder being created on the first `append` (criterion 2), and the record reads back with its command and its duration in seconds.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/application/test_recording_project_commands.py tests/adapters/test_record_log_jsonl.py`:
+      ```
+      ..........                                                               [100%]
+      10 passed in 0.16s
+      ```
+      Exit status 0. It met the Expect line: the last line reads `<n> passed in <t>s`, with no failed, error or skipped count.
+
+   Against the criteria: the demo covers criteria 2–8 through these tests and the round trip. It does not exercise criteria 1 and 9 (the model's refused values, and the wiring through `build_boundaries`). Their tests are in other modules that the demo does not run. Criterion 10 is the factory's own check, and the coder, reviewer and documenter entries all record `make check` as green.
