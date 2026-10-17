@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 153
 blocked: null
 comments_seen: 1
@@ -192,3 +192,4 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    - Criterion 9: the documenter covered it in entries 6 and 8, and nothing in the demo goes against it.
 
    Open: none.
+10. done (pull request merged); cost: 7 runs, 5.1 min, 39 turns, 150k tokens in (495k more from cache), 14k out, $1.29
