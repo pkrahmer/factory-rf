@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 172
 blocked: null
 comments_seen: 0
@@ -59,3 +59,12 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_compose_project.py::test_the_project_name_refuses_with_the_same_message_as_the_service_environment
+4. coder: In `image/compose.yml`, `name: factory` is now `name: factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}`. Nothing else in the file changed. This is commit da2bcaa.
+      - Design: I reused the `:?` message of the service's `FACTORY_INSTANCE` word for word, so compose refuses an unset instance with the same text in both places. I did not add a comment in the file: the header comment stays the only one, and the reason for the change goes into the decision log at the docs stage.
+      - Rejected: a default such as `:-default`. It would let two unnamed instances, or v1.1 beside v1, share a project again.
+      - Refactor: nothing to change in a one-line diff.
+      - `make check` is green. Both tests in `tests/test_compose_project.py` pass, and so do `tests/test_compose.py` and `tests/test_image_users.py`.
+      - Open: criterion 5 (the operator guide's container section and the decision log) is left to the docs stage.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
