@@ -23,7 +23,7 @@ from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, Front
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.tick import Tick
-from factory.domain.agent_runs import AgentRunResult
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import CostRecord
 from factory.domain.git import CommitId, GitOptions
 from factory.domain.hosting import PostKind, PullRequestComment, PullRequestView
@@ -128,6 +128,7 @@ class CaseResult:
     killed_point: KillPoint | None
     killed_at: datetime | None
     stage_start: CommitId | None
+    first_tick_requests: tuple[AgentRunRequest, ...] = ()
 
 
 def _assemble(
@@ -379,8 +380,10 @@ def _rerun(
     restarted = restart(world, empty_disk=empty_disk)
     if queue:
         restarted.agent_runtime.queue(_question())
-    run_ticks(restarted, 3)
-    return CaseResult(restarted, work_item, kill.point, kill.at, kill.stage_start)
+    run_ticks(restarted)
+    first_tick = tuple(restarted.agent_runtime.requests())
+    run_ticks(restarted, 2)
+    return CaseResult(restarted, work_item, kill.point, kill.at, kill.stage_start, first_tick)
 
 
 def _agent_run_tick(world: World, *, empty_disk: bool = False) -> CaseResult:
@@ -519,7 +522,7 @@ def _branch(result: CaseResult) -> str:
 
 
 def _resumes_at_first_tick(result: CaseResult, case: KillPointCase) -> bool:
-    stages = [request.agent.name for request in result.world.agent_runtime.requests()]
+    stages = [request.agent.name for request in result.first_tick_requests]
     return stages == ([STAGE] if case.charges_crash else [])
 
 

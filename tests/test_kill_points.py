@@ -118,7 +118,7 @@ def test_the_interrupted_step_is_journalled_once(result: CaseResult, case_id: st
     assert _checked("no-repeated-step")(result, case_id) == []
 
 
-@_over(CRASHES)
+@_over(ALL)
 def test_no_write_of_the_interrupted_run_reaches_the_remote(
     result: CaseResult, case_id: str
 ) -> None:
