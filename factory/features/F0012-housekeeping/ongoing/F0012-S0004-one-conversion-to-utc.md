@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 156
 blocked: null
 comments_seen: 0
@@ -77,3 +77,10 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: criterion 1 is tested by `tests/domain/test_times.py::test_in_utc_keeps_the_instant_in_utc`, which checks both the instant and `tzinfo is UTC`. Criterion 2 is tested by `test_time_fields_hold_utc_and_refuse_a_naive_time`. It has ten rows, five fields times the aware and naive sides, and the naive side expects `ValidationError`. Each model is built from valid typed values, so no `type: ignore` is needed. Criterion 3 is tested by `test_only_the_times_module_converts_to_utc`. It uses `modules()` from `tests/source_search.py` and checks that the five modules contain no `astimezone` attribute and that `factory.domain.times` does. The coder's entry records `make check: check: green` and `duplicates: 0 new`.
+      - Interface: `src/factory/domain/times.py` matches it: `in_utc` and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]`. The five named fields have the new type. All five `_to_utc`/`_in_utc` validators are gone, and so are their imports that nothing else used. `field_validator` stays where other validators still need it (cost_records, stops, work_item), and `datetime` stays in hosting for `from_body`. No other field changed.
+      - Architecture: the new domain module imports only the standard library and Pydantic, so the layers are respected. No new dependency.
+      - Security: no suppression markers, secrets or new input boundaries.
+      - Quality: the five duplicated validators become one helper. The module and the public function have docstrings, and nothing is dead.
+      - Ticket hygiene: the coder's entry gives the main decision (an annotated type rather than a shared base) and the reason for it. The Assignment matches what was built. Docs criterion 5 still describes what the documenter has to write in the project guide's *The claim* section.
