@@ -13,6 +13,7 @@ from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
+from factory.application.sealed_runs import run_sealed
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.application.undo import UndoReport, UndoService
@@ -84,8 +85,8 @@ class StageLauncher:
         Nothing reaches the remote but the claim, and no agent runs before it is pushed. The
         run's cost record is begun before it and completed after it, in the work tree only.
         `ValueError` for a conflicted work item or a stage without a role, before anything is
-        read or pushed; `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError`
-        propagate. A run that ends early is a result, not an error.
+        read or pushed; `PushFailed`, `AgentDefinitionMissing`, `AgentRuntimeError` and
+        `RepositoryUnsealed` propagate. A run that ends early is a result, not an error.
         """
         stage = self._launchable_stage(prepared)
         agent = self._composer.agent(stage)
@@ -103,7 +104,7 @@ class StageLauncher:
         )
         request = self._composer.compose(context, agent)
         begun = self._costs.begin(started, _role_of(self._definition, stage))
-        result = self._boundaries.agent_runtime.run(request)
+        result = run_sealed(self._boundaries, request)
         cost = self._costs.complete(begun, result)
         return LaunchedStage(started=started, request=request, result=result, cost=cost)
 
