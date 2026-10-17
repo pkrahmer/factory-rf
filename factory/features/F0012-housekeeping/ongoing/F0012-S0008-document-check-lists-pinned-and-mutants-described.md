@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 160
 blocked: null
 comments_seen: 0
@@ -81,3 +81,11 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (26.7 s)
+4. coder: No code change and no commit. The Assignment expects no production change: criteria 1 to 3 pin `GLOSSARY_FORBIDDEN`, `OPERATOR_GUIDE_SECTIONS` and `PROJECT_GUIDE_SECTIONS` and the v1-word rule in `src/factory/domain/documents.py`, which are already built. The tester's new functions in `tests/domain/test_documents.py` pass against the code as it is, so I left `src/factory/domain/documents.py` untouched.
+      - Checked: I ran `make check` on the branch as committed and it ended with `check: green` (test: green, 28.3 s, coverage 99.51 %).
+      - Refactor: there was no diff of mine to refactor, so I did none.
+      - Rejected: I did not write the docs criterion 5 myself (the *Mutation testing* section in `docs/project-guide.md` and the decision-log entry). Per CLAUDE.md, the documenter stage writes those files and the coder does not.
+      - Open: criterion 5 is still to do, for the docs stage.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
