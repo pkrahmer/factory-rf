@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 198
 blocked: null
 comments_seen: 0
@@ -75,3 +75,26 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their Expect lines, and no criterion is contradicted.
+
+   1. `grep -o '`2775` for the directory\|podman-machine-default\|podman system connection list\|--identity' docs/operator-guide.md | sort -u`
+   ```
+   --identity
+   `2775` for the directory
+   podman system connection list
+   podman-machine-default
+   ```
+   Met: four lines, one for each term.
+
+   2. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met.
+
+   Criteria check:
+   - Criterion 1 holds. `git diff --stat main...HEAD` lists only `docs/operator-guide.md` (4 +-) and the ticket. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed.
+   - Criterion 2: the coder and the documenter both recorded `check: green`. The factory runs the gate again after this stage.
+   - Criterion 3 holds. Line 134 of the guide (row "The mode of what an agent makes") expects "`2775` for the directory, `664` for the file" and gives the setgid/`factory-work` reason for the 2026-10-17 first start. Line 345, in *Podman: the commands*, has the Windows connection paragraph with the error text, `podman system connection list`, the `--url`/`--identity` form with the `ps` example, and the unobserved `compose` caveat. The document check prints `documents ok`.
+
+   No findings.
