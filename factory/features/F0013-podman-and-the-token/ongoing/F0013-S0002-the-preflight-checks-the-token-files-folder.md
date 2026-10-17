@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 183
 blocked: null
 comments_seen: 0
 round: 0
@@ -70,3 +70,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `token_file_item` in `factory.application.preflight` has its full signature. The fault table gives the order, the exact detail strings and the formats of `<folder>`, `<n>` and `<mode>`. It also pins the `stat` call sequence (parent first, then the path only when the folder passes).
+   - Criteria: each is testable by one parametrized test function. Every rule has both sides. Folder mode: passing 0700/0500 and six failing single-bit modes (criterion 1). Owner: criterion 3 for the failing side, the passing side covered by the other criteria. Missing file and `None`: criterion 4. Order of faults: criterion 5. The file's own mode and owner not counting: criteria 2 and 6. The four-digit octal format of the mode is checked through the detail string in criterion 1.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: the printed `True` and the exact detail with `<tmp>` substituted, and the pytest summary line.
+   - Architecture: the change stays in the application layer and reads only through the injected `stat`, so no new I/O or layer crossing. The wiring test in the entry layer stays unchanged.
+   - Scope: this is FEATURE decision 10 (S0002 in Scope), and the replacement of the old tests has the human's leave (decision 11). The docs criterion is limited to the operator guide, the project guide and the decision log.
