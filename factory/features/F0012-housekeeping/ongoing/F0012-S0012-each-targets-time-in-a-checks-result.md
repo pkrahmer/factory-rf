@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 164
 blocked: null
 comments_seen: 0
@@ -112,3 +112,19 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both commands from the repository root, exactly as written. Both met their `Expect:` lines and nothing contradicts any acceptance criterion.
+
+   1. `uv run python -c "from factory.domain.checks import target_times …"` exited with 0:
+   ```
+   lint 0.1
+   secrets 22.6
+   ```
+   Met: the expectation was two lines, `lint 0.1` and `secrets 22.6`. The parser skipped `something else` and `check: green`, which agrees with criteria 1 and 2.
+
+   2. `make lint | tail -1` exited with 0:
+   ```
+   lint: green (0.0 s)
+   ```
+   Met: the expectation was one line of the form `lint: green (<n>.<d> s)`. This also shows the line that criterion 6 says this repository's `Makefile` prints for each target.
+
+   Findings: none. Open: nothing.
