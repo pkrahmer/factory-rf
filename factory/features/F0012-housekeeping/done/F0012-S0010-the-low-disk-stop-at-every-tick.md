@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 162
 blocked: null
 comments_seen: 0
@@ -182,3 +182,4 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
    - Criterion 12: the docs part is consistent with `documents ok`.
 
    Nothing in the demo contradicts a criterion. Criterion 11 (`make check`) is not part of the demo, and I did not run it; the factory runs the check after this stage. Nothing is open.
+8. done (pull request merged); cost: 6 runs, 5.2 min, 48 turns, 214k tokens in (923k more from cache), 22k out, $1.44
