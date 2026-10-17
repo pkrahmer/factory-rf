@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 167
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -156,3 +156,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    (c) Add `# type: ignore[arg-type]` on that line. CLAUDE.md rules this out for tests.
 
    If you answer (a) or (b), I will end the next round with `tests` and name that change for the tester. No refactor commit yet; the diff is small, and I will review it once `make check` is green.
+5. human (pull request comment, 2026-10-17): (a). Each row a typed `Callable[[Boundaries], Boundaries]` built with `dataclasses.replace` for one field, same three rows and ids, no `type: ignore` (CLAUDE.md, Tests). Name the change for the tester as you propose.
