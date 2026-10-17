@@ -17,11 +17,13 @@ RUN groupadd --gid 1000 factory \
  && groupadd --gid 1002 factory-work \
  && useradd --uid 1000 --gid factory-work --create-home --shell /bin/sh factory \
  && useradd --uid 1001 --gid factory-work --create-home --shell /bin/sh agent \
- && mkdir -p /work /state/runs /home/agent/.claude \
+ && mkdir -p /work /state/runs /home/agent/.claude /home/factory/.secrets \
  && chown factory:factory /state \
+ && chown factory:factory /home/factory/.secrets \
  && chown factory:factory-work /work /state/runs \
  && chown factory:factory-work /home/agent/.claude \
  && chmod 0755 /state \
+ && chmod 0700 /home/factory/.secrets \
  && chmod 2750 /state/runs \
  && chmod 2775 /work \
  && chmod 3775 /home/agent/.claude
@@ -35,8 +37,8 @@ COPY image/entrypoint.sh ./entrypoint.sh
 RUN sed -i 's/\r$//' entrypoint.sh && chmod 0755 entrypoint.sh
 COPY image/git-credential-factory /usr/local/bin/git-credential-factory
 RUN sed -i 's/\r$//' /usr/local/bin/git-credential-factory && chmod 0755 /usr/local/bin/git-credential-factory
-# The token is a mounted secret; only its path is set, and only the factory's user can read it.
-ENV FACTORY_TOKEN_FILE=/run/secrets/hosting-token
+# The token is a mounted file; only its path is set, in a folder only the factory's user can enter.
+ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token
 # The factory's user may become the agent's user, so no agent can read the token.
 COPY image/sudoers-factory-agent /etc/sudoers.d/factory-agent
 RUN sed -i 's/\r$//' /etc/sudoers.d/factory-agent && chmod 0440 /etc/sudoers.d/factory-agent && visudo -cf /etc/sudoers.d/factory-agent

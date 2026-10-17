@@ -1,4 +1,4 @@
-"""The image and its compose file: the token arrives as a mounted secret, never as a setting."""
+"""The image and its compose file: the token arrives as a mounted file, never as a setting."""
 
 from pathlib import Path
 
@@ -11,7 +11,7 @@ ROOT = Path(__file__).parent.parent
 COMPOSE = ROOT / "image" / "compose.yml"
 SECRET_WORDS = ("TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
 HELPER_COPY = "COPY image/git-credential-factory /usr/local/bin/git-credential-factory"
-FILE_SETTING = "ENV FACTORY_TOKEN_FILE=/run/secrets/hosting-token"
+FILE_SETTING = "ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token"
 
 
 def _declared_names(instructions: list[str]) -> list[str]:
@@ -51,7 +51,7 @@ def test_the_dockerfile_installs_the_helper_and_sets_nothing_secret() -> None:
     assert "credential.helper" not in text
 
 
-def test_the_compose_file_mounts_the_token_as_a_secret_and_sets_nothing_secret(
+def test_the_compose_file_has_no_secret_and_sets_nothing_secret(
     compose: dict[str, object],
 ) -> None:
     services = compose["services"]
@@ -61,16 +61,8 @@ def test_the_compose_file_mounts_the_token_as_a_secret_and_sets_nothing_secret(
     environment = service.get("environment", {})
     assert isinstance(environment, dict)
 
-    assert compose["secrets"] == {"hosting_token": {"file": "./secrets/hosting-token"}}
-    assert service["secrets"] == [
-        {
-            "source": "hosting_token",
-            "target": "hosting-token",
-            "uid": "1000",
-            "gid": "1002",
-            "mode": 400,
-        }
-    ]
+    assert "secrets" not in compose
+    assert "secrets" not in service
     secret_names = [
         name for name in environment if any(word in name.upper() for word in SECRET_WORDS)
     ]

@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 182
+blocked: null
+comments_seen: 4
+round: 0
+attempts: 0
+---
 # The token in a folder only the factory can enter
 
 ## Assignment (as of log entry 1)
@@ -40,7 +48,7 @@ Tests: a new module `tests/test_token_folder.py`, reading the Dockerfile with `_
 
 1. The Dockerfile creates `/home/factory/.secrets` with `mkdir -p`, and that folder's last `chown` is `factory:factory` and its last `chmod` is `0700`.
 2. The Dockerfile sets `ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token` before `USER factory`, and `FACTORY_TOKEN_FILE` is still the only `ENV` or `ARG` whose name holds `TOKEN`, `SECRET`, `PASSWORD` or `CREDENTIAL` (the changed test of `tests/test_image_credentials.py`).
-3. The last entry of the compose service's `volumes`, as ruamel.yaml's safe loader reads it, has the keys `type`, `source`, `target`, `read_only` and `bind` in that order, with `type: bind`, `source: ./secrets/hosting-token`, `read_only: true` and `bind: {create_host_path: false}`; its `target` is exactly the value of the Dockerfile's `ENV FACTORY_TOKEN_FILE`, and the target's folder (its parent) is the folder of criterion 1.
+3. The last entry of the compose service's `volumes`, as ruamel.yaml's safe loader reads it, has the keys `type`, `source`, `target`, `read_only` and `bind` in that order. It is a bind mount whose source is the host file `./secrets/hosting-token`; it is read-only; and its bind options set `create_host_path` to false. Its `target` is exactly the value of the Dockerfile's `ENV FACTORY_TOKEN_FILE`, and the target's folder (its parent) is the folder of criterion 1.
 4. The owner of the token's folder is the user `factory`, whose `useradd --uid` (1000) differs from the agent's (1001), and the agent's uid is not 0; no `useradd` gives `agent` the group `factory`.
 5. The compose file has no top-level `secrets` and the service has none (the changed test of `tests/test_image_credentials.py`), and the service's `volumes` are the three named volumes followed by the bind mount (the changed test of `tests/test_compose.py`).
 6. What must still hold: the credential helper is still copied before `USER factory`, the compose project's name and the health check are as before (the tests of `tests/test_image_credentials.py`, `tests/test_compose_project.py` and `tests/test_compose.py` pass), and the agent home and `/work` keep their owners and modes (`tests/test_agent_home_ownership.py`).
@@ -74,3 +82,140 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted.
+   - Interface: names concrete files and lines (`image/Dockerfile` mkdir/chown/chmod and the ENV line, `image/compose.yml` bind entry with key order, `image/entrypoint.sh` header comment), and the test modules and helpers to reuse (`_path_settings`, `dockerfile_instructions`, `_uid_of`). The changes to the three earlier test modules are named exactly and carry the human's leave (FEATURE decision 9).
+   - Criteria: each is testable by one test function. Criterion 1 covers mkdir, last chown and last chmod. Criterion 2 covers the ENV before `USER factory` and the only-credential-name rule. Criterion 3 covers the bind entry, its key order and target, and `create_host_path: false`, which is the refusing side for a missing host file. Criterion 4 covers the owner uid, the uid difference, the agent not being 0, and no `useradd` giving agent the group `factory`. Criterion 5 covers the absence of `secrets` and the volume list. Criterion 6 covers what must still hold. Criteria 7 and 9 are comment and docs criteria for the reviewer and documenter. The Interface states no limit or validation whose failing side lacks a criterion.
+   - Demo: all three commands are runnable (a Python one-liner on the compose file, a grep, a pytest run). Each `Expect:` line is checkable against the output.
+   - Architecture: the files are all under `image/`, tests and docs. This touches no layer of `src/factory`, and the write paths are in order per FEATURE.
+   - Scope: inside FEATURE's Scope (the token, and the stale entrypoint comment, decision 8). The preflight item is left to S0002, and the image pins and Podman restart are out of scope. No finding from the format check.
+3. tester: red tests for the token folder, plus the changes to three earlier test modules allowed by FEATURE decision 9.
+   - criterion 1: tests/test_token_folder.py::test_the_image_makes_the_token_folder_for_the_factory_user_alone (the `mkdir -p` includes `/home/factory/.secrets`; that folder's last chown is `factory:factory` and its last chmod is `0700`, both read with `_path_settings`)
+   - criterion 2: tests/test_token_folder.py::test_the_token_setting_points_into_the_folder_before_the_user_changes, and tests/test_image_credentials.py::test_the_dockerfile_installs_the_helper_and_sets_nothing_secret (`FILE_SETTING` changed to the new path)
+   - criterion 3: tests/test_token_folder.py::test_the_token_is_bind_mounted_read_only_at_the_setting_in_the_folder (the last volume entry's keys in order and its values; `target` equals the Dockerfile's ENV value and its parent is the folder)
+   - criterion 4: tests/test_token_folder.py::test_the_folder_belongs_to_the_factory_user_whom_the_agent_is_not (the folder's owner is `factory`; the uids are 1000 and 1001, they differ, and the agent's is not 0; agent has exactly one useradd, and none of its `--gid/-g/--groups/-G` values is `factory`)
+   - criterion 5: tests/test_image_credentials.py::test_the_compose_file_has_no_secret_and_sets_nothing_secret (renamed; asserts `"secrets" not in compose` and not in the service) and tests/test_compose.py::test_the_three_volumes_are_mounted_and_declared (the bind mount added as the fourth expected entry)
+   - criterion 6: covered by the existing tests in tests/test_image_credentials.py, tests/test_compose_project.py, tests/test_compose.py and tests/test_agent_home_ownership.py. No new test.
+   - criteria 7 and 9 are left to the reviewer and the documenter. Criterion 8 is the gate.
+
+   Files: created tests/test_token_folder.py. Changed tests/test_image_credentials.py (FILE_SETTING, the renamed test, the module docstring now says "mounted file"). Changed tests/test_image_users.py (removed the token-secret test, the COMPOSE constant and the YAML import; `_uid_of` stays; docstring trimmed). Changed tests/test_compose.py (the fourth volume entry). These are the earlier-test edits the Interface names, and no others.
+
+   The new module defines its own `COMPOSE` path, because the constant in test_image_users.py is removed. It reuses `_commands` and `_path_settings` from tests/test_image.py, `dockerfile_instructions` and `DOCKERFILE` from tests/dockerfile_support.py, and `_uid_of` from tests/test_image_users.py. I renamed one constant to `FILE_ENV` because ruff's S105 flagged the name `TOKEN_SETTING`.
+
+   `make test` result: 7 tests fail, all with wrong-result assertions or a KeyError for the missing folder setting. Every module imports, and there are no collection errors. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_token_folder.py::test_the_token_setting_points_into_the_folder_before_the_user_changes
+4. coder: the implementation is committed (0978b427), but `make check` is red. The cause is the story's own text, not the code.
+
+   Built:
+   - `image/Dockerfile`: `/home/factory/.secrets` is added to the `mkdir -p`, with `chown factory:factory` and `chmod 0700` next to those of `/state`. `ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token` keeps its place before `USER factory`, and its comment now says only the factory's user can enter the folder.
+   - `image/compose.yml`: both `secrets:` blocks and the old comment are gone. The read-only bind mount is the fourth volume entry, keys in the Interface's order, with a comment explaining that Compose ignores a file secret's owner and mode outside Swarm.
+   - `image/entrypoint.sh`: the header comment now ends "remove the other's files in /work".
+
+   Checks: lint, types, layers, sast, licenses and test are green, and the 7 red tests now pass. The failure is `make secrets`. detect-secrets flags a "Secret Keyword" at line 51 of this ticket file, which is acceptance criterion 3. I narrowed the match to the text from `secrets/hosting-token`, `read_only: true` and `bind: {create_host_path: false}`; its `target` is…; shorter pieces of that text pass. The image and test files pass the hook on their own. The tester ran only `make lint`, so this didn't show before. I did not touch the criterion: it is not `## Assignment`, and a `pragma: allowlist secret` or a baseline entry needs your leave under CLAUDE.md.
+
+   Options:
+   (a) Reword criterion 3 so it no longer matches, without changing what it means. For example, give the values as prose: "the source is `./secrets/hosting-token`, it is read-only, and `create_host_path` is false". I would rewrite only that sentence and check it with the hook.
+   (b) Add `<!-- pragma: allowlist secret -->` at the end of line 51.
+   (c) Add a `.secrets.baseline` entry for the ticket file.
+
+   I would choose (a): it changes no meaning and leaves no marker or baseline entry once the ticket moves to `done/`. Say which, and I will apply it, run `make check` and send the story to review.
+
+   Refactor: I read the diff; it is three small config changes and a comment, with nothing to tidy.
+5. human (pull request comment, 2026-10-17): (a). Reword only criterion 3's sentence as prose, with the same meaning (source `./secrets/hosting-token`, read-only, `create_host_path` false, the target, the key order), check it with the hook, then run `make check` and go on to review.
+6. coder: I reworded criterion 3 as you asked in entry 5, but `make secrets` is still red because my own log entry 4 quotes the old text.
+
+   - **The reword:** criterion 3 now gives the values as prose: the bind mount's source is the host file `./secrets/hosting-token`, it is read-only, its bind options set `create_host_path` to false, and the target and key order are unchanged. Running `detect-secrets scan` on the ticket no longer flags line 51. The change is in the working tree for the factory's commit.
+   - **What is still red:** `make secrets` now fails on line 115 with a "Secret Keyword". That line is my log entry 4, which quotes the fragment that matched (`secrets/hosting-token`, `read_only: true` and `bind: {create_host_path: false}`; …). The log is append-only and belongs to the factory, so I can't change it.
+   - **The implementation:** it is committed in 0978b427. `make secrets` is the only failing target; lint, types, layers, sast, licenses and test were green in my last run.
+
+   Options:
+   (a) You edit log entry 4 in a commit of your own and replace the quoted fragment with "the criterion's values", so nothing in it matches. Nothing goes into the baseline and no marker is added.
+   (b) You give leave for a `.secrets.baseline` entry for this file. detect-secrets matches baseline entries by file path, so the entry stops covering the file once the ticket moves to `done/`. Then `make secrets` on `main` would fail again.
+   (c) You add `pragma: allowlist secret` to line 115 yourself.
+
+   I would choose (a). Once that commit is in, I will run `make check` and send the story to review.
+7. human (pull request comment, 2026-10-17): Neither (a) nor (c): the factory's log stays as it is. I added a `.secrets.baseline` entry for the quoted fragment on `main`, for this file's `ongoing/` and `done/` paths (so `main` stays green after the archive); the factory merges `main` into this branch at the next stage start. Run `make check` and go on to review.
+8. coder: `make check` is green now. The baseline entry from entry 7 is on this branch through the merge of `main` (81351a7b). No code changed in this run.
+
+   - **Built (0978b427, unchanged):**
+     - `image/Dockerfile`: `/home/factory/.secrets` is added to the `mkdir -p`, with `chown factory:factory` and `chmod 0700` next to those of `/state`. `ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token` keeps its place before `USER factory`, and its comment says only the factory's user can enter the folder.
+     - `image/compose.yml`: both `secrets:` blocks and their comment are gone. The read-only bind mount is the fourth volume entry, keys in the Interface's order, with a comment on why: Compose ignores a file secret's owner and mode outside Swarm, so the folder keeps the agent out.
+     - `image/entrypoint.sh`: the header comment now names `/work` as where either user can remove the other's files.
+     - Criterion 3 of the ticket is reworded as prose, as the human asked in entry 5. That change was committed by the factory with entry 6.
+   - **Main decision:** the folder is made in the image's existing user-and-folder `RUN`, next to `/state`. I rejected a separate `RUN` layer, which would add a layer for one folder and split the ownership setup across two places.
+   - **Checks:** the full `make check` passes. Every target is green, `secrets` included, and coverage is 99.50 %.
+   - **Refactor:** I read the diff again. It is three small config changes and a comment, with nothing to tidy.
+   - **Left for later:** the preflight item `token-file` still checks the file's own owner and mode, as the Assignment says. Moving that check is S0002's work. Criterion 9 (the docs) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: no findings.
+
+   - Criteria 1–5: tests/test_token_folder.py, tests/test_image_credentials.py and tests/test_compose.py test each criterion they are named after. The checks: the `mkdir -p` includes the folder; the last chown is `factory:factory` and the last chmod is `0700`, read with `_path_settings`, which keeps the last value; the ENV comes before `USER factory`; `FACTORY_TOKEN_FILE` is the only credential-named ENV/ARG; the bind entry's key order and values match; its target equals the ENV value and its parent is the folder; the uids are 1000 and 1001, and the agent's is not 0; the agent has exactly one useradd, and none of its group options names `factory`; and there are no `secrets` keys. `create_host_path: false` covers the refused side (a missing host file). Criterion 6 rests on the existing modules, which are present and unchanged apart from the edits the Interface permits. The coder's entry 8 reports `make check: green`.
+   - Earlier tests: the edits to tests/test_image_credentials.py, tests/test_image_users.py and tests/test_compose.py are exactly the ones the Interface names under FEATURE decision 9. `_uid_of` stays, and the removed `COMPOSE` constant and YAML import were used only by the removed test.
+   - Criterion 7: the comments say what the criterion asks for. image/entrypoint.sh:4-5 now names `/work`. image/Dockerfile:40 says the folder is one only the factory's user can enter. image/compose.yml:24-25 says that Compose ignores a file secret's owner and mode outside Swarm, so the folder, not the file, keeps the agent out.
+   - Scope: the Dockerfile changes only the mkdir, chown, chmod and ENV lines. compose.yml loses both `secrets` blocks and their comment and gains the fourth volume entry, and nothing else changes.
+   - Architecture: nothing under src/ changed, so no layer rule is affected.
+   - Security: no secret in code. The diff's `.secrets.baseline` entry and the planning/lessons-for-the-skills.md row come from the human's commit 81b26834 on main, brought in by the merge 81351a7b at the human's instruction (entry 7). They are not the coder's change and are not a finding.
+   - Hygiene: entry 8 gives the main decision (the existing RUN rather than a separate layer). The Assignment matches what was built, and criterion 9 still describes what the documenter must write.
+10. documenter: wrote criterion 9; no findings, the code matches the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - *The hosting-service token* is rewritten. The host file is still `image/secrets/hosting-token`, and Compose mounts it read-only at `/home/factory/.secrets/hosting-token`. The folder is `factory:factory`, `0700`, made in the image. The section says why the compose secret was dropped, and that a missing host file makes Compose refuse to start. It gives the host permissions for Linux with Docker, rootless Podman (`chmod`, then `podman unshare chown`), and Windows and macOS.
+      - The morning observations in both sections use the new path and the `Permission denied` and `drwx------`/uid 1000 checks.
+      - *Left for v2* now names git's hooks in the shared checkout's `.git`.
+      - *The agent runs as a second user* no longer says the token file is `0600`. It says the agent cannot enter its folder.
+      - *Users and directories* has a row for `/home/factory/.secrets`.
+      - The `FACTORY_TOKEN_FILE` row says the image sets the new path.
+    - `docs/project-guide.md`: the credential-helper sentence says "the mounted file".
+    - `docs/decisions.md`: a new entry records the folder, the bind mount, the probe on both runtimes, the hooks route left for v2, and what was rejected (a compose secret with an absolute target, a `chown`/`chmod` in the entrypoint, Swarm). It marks the earlier claim about the mounted secret and the default path `/run/secrets/hosting-token` as superseded.
+
+    Checks:
+    - `python -m factory.entry.check_documents` prints `documents ok`.
+    - I ran no `make check`, because I changed only docs.
+    - I ran no example commands: the Docker and Podman commands need a running container.
+
+    Cross-read:
+    - I read the rest of `docs/operator-guide.md` and `docs/project-guide.md`, and the README, against the diff. Nothing else named the old path or the secret.
+
+    Stale but not touched:
+    - `docs/operator-guide.md` still has the `agent-user` preflight item saying the factory's user "can read the token file", which is still true.
+    - The `token-file` preflight text still describes the file's own owner and mode, as the criterion says: S0002 changes it.
+
+    `make check`: check: green
+    `make documents`: documents ok
+11. demo: all three commands met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+    1. The compose file's last volume entry and the secrets check:
+    ```
+    {'type': 'bind', 'source': './secrets/hosting-token', 'target': '/home/factory/.secrets/hosting-token', 'read_only': True, 'bind': {'create_host_path': False}}
+    False False
+    ```
+    Met: the two lines are exactly the ones expected.
+
+    2. `grep -n "/home/factory/.secrets" image/Dockerfile`:
+    ```
+    20: && mkdir -p /work /state/runs /home/agent/.claude /home/factory/.secrets \
+    22: && chown factory:factory /home/factory/.secrets \
+    26: && chmod 0700 /home/factory/.secrets \
+    41:ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token
+    ```
+    Met: the output has the `mkdir -p`, the `chown factory:factory`, the `chmod 0700` and the ENV line.
+
+    3. The pytest run over the five modules:
+    ```
+    .................                                                        [100%]
+    17 passed in 0.04s
+    ```
+    Met: 17 passed, with no failed, error or skipped count.
+
+    Read against the criteria:
+    - Criterion 1: `image/Dockerfile:20-26` makes the folder in the same `RUN` as the users, with `chown factory:factory` and `chmod 0700`.
+    - Criterion 2: the ENV on line 41 comes before `USER factory`.
+    - Criteria 3 and 5: the bind mount's target equals the ENV value, and its parent is the folder. `image/compose.yml` has no `secrets` blocks. The three named volumes come first, then the bind mount, and the name, build, restart policy, health check and environment are unchanged.
+    - Criterion 4: the uids are 1000 and 1001, and no `useradd` gives the agent the group `factory`.
+    - Criterion 7: the comments say what the criterion asks for. `image/entrypoint.sh:4-5` names `/work`; the comment above the ENV says only the factory's user can enter the folder; the comment above the bind mount gives the Swarm reason.
+
+    Open: the preflight item `token-file` still checks the file's own owner and mode. Moving that check to the folder is S0002's work.

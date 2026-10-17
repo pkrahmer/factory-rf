@@ -22,7 +22,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank. |
 | `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
-| `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
+| `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; the image sets it to `/home/factory/.secrets/hosting-token`. |
 | `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
 
@@ -68,7 +68,7 @@ A run whose budget is spent is not lost: the factory resumes the same session on
 
 ### The agent runs as a second user
 
-The image has two users: `factory` (uid 1000) runs the factory, and `agent` (uid 1001) runs every agent. `agent` owns nothing the factory keeps secret: it cannot read the token file (`0600`, owned by `factory`) and cannot write `/state`.
+The image has two users: `factory` (uid 1000) runs the factory, and `agent` (uid 1001) runs every agent. `agent` owns nothing the factory keeps secret: it cannot enter the folder of the token file (`/home/factory/.secrets`, `0700`, owned by `factory`) and cannot write `/state`.
 
 With `FACTORY_AGENT_USER=agent` the runtime does not start `claude` itself. It runs `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i NAME=value ... claude ...`, in the run's working directory. `-n` makes `sudo` fail instead of asking for a password. `timeout` is the time limit's kill (see "A `time_limit` under `sudo`" below). `env -i` drops everything `sudo` would keep, so the agent sees exactly the run's allow-list environment (see "The hosting-service token") and the runtime's three switches, and nothing of the factory's environment or privileges. The image sets the variable and installs the `sudo` rule (next section).
 
@@ -107,7 +107,8 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | Observation | Command | Expected |
 |---|---|---|
 | WE3.1: the agent runs as `agent` | `docker exec <container> sudo -n -u agent -- id -un` | `agent` |
-| WE3.3: it cannot read the token file | `docker exec -u agent <container> cat "$FACTORY_TOKEN_FILE"` (use the path in the variable) | `Permission denied` |
+| WE3.3: it cannot read the token file | `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` | `Permission denied` for both |
+| The token's folder is the factory's | `docker exec <container> ls -lnd /home/factory/.secrets` | `drwx------` and uid 1000 |
 | WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
 | The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `775` for the directory, `664` for the file |
 | The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
@@ -167,6 +168,7 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 |---|---|---|
 | `/state` | `0755`, `factory:factory` | The agent can read the health file, the log and the stamp, and cannot write them. |
 | `/state/runs` | `2750`, `factory:factory-work` | The files of an agent's run: the agent can read them and cannot write them. |
+| `/home/factory/.secrets` | `0700`, `factory:factory` | The folder where Compose mounts the token file. Only `factory` can enter it, so the agent cannot read the file whatever the file's own mode. |
 | `/work` | `2775`, `factory:factory-work` | Both users can write. |
 | `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
 
@@ -192,12 +194,15 @@ The compose project is named `factory-<instance>`, after `FACTORY_INSTANCE`. The
 
 ### The hosting-service token
 
-The token lives in one file, `secrets/hosting-token`, beside `image/compose.yml` (`image/secrets/`; git ignores the directory). Compose mounts it into the container as the secret `hosting_token` at `/run/secrets/hosting-token`, and the image sets `FACTORY_TOKEN_FILE` to that path. Make the host file owned by uid 1000 (the user `factory`) and readable by it alone, because Docker Compose without swarm may keep the host file's owner and mode and ignore the `uid`, `gid` and `mode` the compose file gives the secret:
+The token lives in one file on the host, `secrets/hosting-token`, beside `image/compose.yml` (`image/secrets/hosting-token`; git ignores the directory). Compose mounts it read-only at `/home/factory/.secrets/hosting-token`, and the image sets `FACTORY_TOKEN_FILE` to that path. The folder `/home/factory/.secrets` is made in the image, `factory:factory`, mode `0700`: only the factory's user can enter it, so the agent (uid 1001) cannot read the file whatever the file's own mode.
 
-```bash
-chown 1000 image/secrets/hosting-token
-chmod 0400 image/secrets/hosting-token
-```
+The folder does the work because the file cannot. The token used to be a compose secret with `uid`, `gid` and `mode`, but Compose ignores those three keys outside Swarm mode: the file is a plain bind mount with the host file's owner and mode, which on Windows shows as `-rwxrwxrwx`, owner 0, under Docker Desktop and under Podman alike. A probe of 2026-10-17 read the token as the agent through that file. A missing host file makes Compose refuse to start; it does not create a folder in its place (`create_host_path: false`).
+
+The host file's permissions still matter: anyone on the host who can read it has the token. Set them by host:
+
+- Linux with Docker: `chown 1000 image/secrets/hosting-token` and `chmod 0400 image/secrets/hosting-token`.
+- Linux with rootless Podman: `chmod 0400 image/secrets/hosting-token` first, then `podman unshare chown 1000 image/secrets/hosting-token`. The host user maps to root in the container, so it no longer owns the file after the `chown`.
+- Windows and macOS: keep the repository in a folder of your own user account that other accounts cannot read.
 
 Only two things read the file: the factory process, once, to hand the token to PyGithub, and git's credential helper, `/usr/local/bin/git-credential-factory`. The helper answers git's `get` with the user name `x-access-token` and the file's content as the password. If `FACTORY_TOKEN_FILE` is unset or the file cannot be read, it prints nothing and exits 1, so a process that cannot read the file gets no credential. For `store`, `erase` and any other operation it prints nothing and exits 0. The factory's git reaches the helper only through the environment the factory gives it; the image sets no `credential.helper`, stores no `.git-credentials` and has no token, secret or password in an `ENV`, an `ARG` or the compose `environment`, so the agent's git has no credential.
 
@@ -207,10 +212,10 @@ The preflight item `token-file` (see "The preflight's items") checks that the fi
 
 **Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs Docker and the image's second operating-system user. Check by hand once after a build, inside the container:
 
-- `ls -ln /run/secrets/hosting-token` shows uid 1000 and mode `-r--------`. If it does not, the compose `uid` and `mode` were ignored; apply the `chown` and `chmod` above on the host.
-- As an agent (a run that tries it, or `su` to another user), `cat /run/secrets/hosting-token` and `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
+- `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` are refused with `Permission denied`, and `ls -lnd /home/factory/.secrets` shows `drwx------` and uid 1000.
+- As an agent (a run that tries it, or `su` to another user), `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
 
-**Left for v2.** The project commands (`make check`, `lint`, `test` and the preflight's `lint`) run code that agents wrote, as the factory's user, who can read the token file. A test can print the token into the output tail the factory writes into the journal. The human decided on 2026-10-14 not to build a guard against this now; see `docs/decisions.md`.
+**Left for v2.** The project commands (`make check`, `lint`, `test` and the preflight's `lint`) run code that agents wrote, as the factory's user, who can read the token file. A test can print the token into the output tail the factory writes into the journal. Git's hooks in the shared checkout's `.git` are the same route: the agent can write them and the factory's git runs them as the factory's user. The folder closes the agent's direct read, not code the factory's user runs for it. The human decided on 2026-10-14 not to build a guard against this now; see `docs/decisions.md`.
 
 ### The entrypoint
 

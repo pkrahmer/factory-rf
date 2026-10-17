@@ -63,5 +63,12 @@ def test_the_three_volumes_are_mounted_and_declared() -> None:
         "work:/work",
         "state:/state",
         "claude-home:/home/agent/.claude",
+        {
+            "type": "bind",
+            "source": "./secrets/hosting-token",
+            "target": "/home/factory/.secrets/hosting-token",
+            "read_only": True,
+            "bind": {"create_host_path": False},
+        },
     ]
     assert set(loaded["volumes"]) == {"work", "state", "claude-home"}

@@ -1,14 +1,11 @@
-"""The image's second user: the one `sudo` rule, its defaults, and the uids of both users."""
+"""The image's second user: the one `sudo` rule and its defaults."""
 
 import re
 from pathlib import Path
 
-from ruamel.yaml import YAML
-
 from dockerfile_support import dockerfile_instructions
 
 ROOT = Path(__file__).parent.parent
-COMPOSE = ROOT / "image" / "compose.yml"
 SUDOERS = ROOT / "image" / "sudoers-factory-agent"
 ENTRYPOINT = ROOT / "image" / "entrypoint.sh"
 SUDOERS_TARGET = "/etc/sudoers.d/factory-agent"
@@ -90,16 +87,3 @@ def test_the_sudoers_umask_equals_the_entrypoints_umask() -> None:
     assert len(sudoers) == 1
     assert len(entrypoint) == 1
     assert int(sudoers[0], 8) == int(entrypoint[0], 8) == 0o002
-
-
-def test_the_token_secret_belongs_to_the_factory_user_and_not_to_the_agent() -> None:
-    loaded = YAML(typ="safe").load(COMPOSE.read_text(encoding="utf-8"))
-    secrets = loaded["services"]["factory"]["secrets"]
-    token = [secret for secret in secrets if secret["target"] == "hosting-token"]
-    factory_uid = _uid_of("factory")
-    agent_uid = _uid_of("agent")
-
-    assert len(token) == 1
-    assert int(token[0]["uid"]) == factory_uid
-    assert factory_uid != agent_uid
-    assert agent_uid != 0
