@@ -7,7 +7,7 @@ from factory.domain.story_form import FormFinding
 def test_the_round_cap_question_names_the_rounds_and_the_cap() -> None:
     assert round_cap_question(4, 3) == (
         "This work item has now been sent back 4 times, more than 3."
-        " What should happen? Answer with a comment;"
+        " What should happen? Answer with a comment, which starts the count of rounds over;"
         " close the pull request to discard the work item."
     )
 

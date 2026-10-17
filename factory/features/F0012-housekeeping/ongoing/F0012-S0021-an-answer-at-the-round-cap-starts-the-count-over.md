@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 171
 blocked: null
 comments_seen: 0
@@ -58,3 +58,13 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
    - Demo: one runnable `uv run python -c` command. Its `Expect:` line gives both exact output lines, so it can be checked.
    - Architecture: both changes are in `factory.domain`, pure and with no I/O. The tests go in the mirrored `tests/domain/` and at the `tests/` root. No new dependency or module.
    - Scope: this is item 1.5 of FEATURE.md, as decisions 26 and 47 confirm. The two existing tests it changes have the human's leave (decision 40) and are named in the Interface.
+3. tester: red on purpose; this is the coder's specification.
+   - criterion 1: tests/domain/test_answers_round_cap.py::test_unblock_resets_the_round_only_at_the_round_cap. Rows: round_cap (round 4 → 0), question and send_back (round 4 kept). Every row also checks that attempts and crashes stay 2 and nothing else changes.
+   - criterion 2: tests/domain/test_question_texts.py::test_the_round_cap_question_names_the_rounds_and_the_cap. Its expected text is now the Interface's text for 4 and 3, as the Interface allows (FEATURE decision 40).
+   - criterion 3: tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over. It drives the story to review and sends it back 4 times, the way the fault-path test does but without the kill, and checks blocked round_cap at review with round 4 and one round_cap post. Then a human comment through world.hosting.add_human_comment and one tick: unblocked with round 0. Then one reviewer run that decides doing and one more tick: stage doing with round 1, and still exactly one round_cap post.
+   - criterion 4: the existing tests in tests/domain/test_answers.py (test_unblock_at_the_attempts_cap_resets_the_attempts_only, test_unblock_at_the_crash_cap_resets_the_crashes_only, test_unblock_of_a_state_that_waits_for_nothing_returns_an_equal_state) are unchanged. In test_unblock_clears_the_wait_and_changes_nothing_else I removed only the round_cap row; the question and send_back rows stay (decision 40).
+   - Created: tests/domain/test_answers_round_cap.py, tests/test_round_cap_answer.py. Changed (with the human's leave): tests/domain/test_answers.py, tests/domain/test_question_texts.py.
+   - Every module imports, so there are no collection errors. `make test` has 3 failures, the three tests above (the round_cap row, the question text, the end-to-end test), because the current code keeps round and the old question text. I did not rerun to check exactly which assertion the end-to-end test fails on. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over
