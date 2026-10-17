@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 193
 blocked: null
 comments_seen: 2
@@ -180,3 +180,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     - Criteria 6 (`make check`) and 7 (docs): the demo does not exercise them, and nothing in its output contradicts them. Entries 8 and 10 report `check: green` and `documents ok`. The factory runs `make check` itself after this stage.
 
     Nothing is open.
+12. done (pull request merged); cost: 9 runs, 7.2 min, 64 turns, 241k tokens in (1128k more from cache), 27k out, $1.74
