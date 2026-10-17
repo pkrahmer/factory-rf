@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 161
 blocked: null
 comments_seen: 0
@@ -146,3 +146,19 @@ Expect: `5`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands ran from the repository root and met their `Expect:` lines. No findings.
+
+   Command 1 (free space, `gigabytes`, `disk_low_detail`):
+   ```
+   True 3.2
+   /work has 4.9 GB free, less than the 5 GB FACTORY_MIN_FREE_GB asks for
+   ```
+   Met: the expected two lines match exactly. `/state` at 9 GB is left out of the fault, as criterion 2 requires for a path with enough room.
+
+   Command 2 (`read_settings` without `FACTORY_MIN_FREE_GB`):
+   ```
+   5
+   ```
+   Met: the default is 5, as criterion 5 says.
+
+   Against the acceptance criteria: the output agrees with criteria 1 (3_299_999_999 rounds down to 3.2), 2 (one byte below the minimum gives the fault text, a path above it is not named), 3 (`free_bytes` of an existing path is positive) and 5 (unset gives 5). Nothing in the demo contradicts criteria 4 and 6–10. The commands did not exercise those, and the log records their tests and docs.
