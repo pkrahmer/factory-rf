@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 183
 blocked: null
 comments_seen: 0
@@ -114,3 +114,20 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both commands from the repository root exactly as written. Both met their `Expect:` lines, and nothing in the demo contradicts any acceptance criterion. No findings.
+
+   Command 1 (the item on a real folder: mode 0700 with a token file of mode 0777, then the folder at mode 0750):
+   ```
+   True
+   <tmp>/secrets/hosting-token: the folder <tmp>/secrets has mode 0750; make it 0700
+   ```
+   Met: the two lines match the expectation exactly, and the exit status was 0. This agrees with criterion 1 (a 0750 folder fails with the exact four-digit mode detail) and criterion 2 (a file of mode 0777 does not count when its folder is 0700).
+
+   Command 2 (`uv run pytest --no-header -p no:cacheprovider tests/application/test_token_file_item.py tests/application/test_agent_user_item.py`):
+   ```
+   ..........................                                               [100%]
+   26 passed in 0.05s
+   ```
+   Met: the last line is `26 passed in 0.05s`, with no failed, error or skipped count. That covers criteria 1–6 and the `agent-user` part of criterion 7.
+
+   Not covered by the demo: the commands do not run `tests/entry/test_wiring_extras.py` (the wiring part of criterion 7), `make check` (criterion 8) or the docs (criterion 9). Earlier entries cover them: the coder and documenter recorded `make check` green, and the documenter recorded `documents ok`. The demo shows nothing against them.
