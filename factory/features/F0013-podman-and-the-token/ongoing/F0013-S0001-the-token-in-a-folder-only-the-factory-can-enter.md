@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 182
 blocked: null
 comments_seen: 4
@@ -186,3 +186,36 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
     `make check`: check: green
     `make documents`: documents ok
+11. demo: all three commands met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+    1. The compose file's last volume entry and the secrets check:
+    ```
+    {'type': 'bind', 'source': './secrets/hosting-token', 'target': '/home/factory/.secrets/hosting-token', 'read_only': True, 'bind': {'create_host_path': False}}
+    False False
+    ```
+    Met: the two lines are exactly the ones expected.
+
+    2. `grep -n "/home/factory/.secrets" image/Dockerfile`:
+    ```
+    20: && mkdir -p /work /state/runs /home/agent/.claude /home/factory/.secrets \
+    22: && chown factory:factory /home/factory/.secrets \
+    26: && chmod 0700 /home/factory/.secrets \
+    41:ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token
+    ```
+    Met: the output has the `mkdir -p`, the `chown factory:factory`, the `chmod 0700` and the ENV line.
+
+    3. The pytest run over the five modules:
+    ```
+    .................                                                        [100%]
+    17 passed in 0.04s
+    ```
+    Met: 17 passed, with no failed, error or skipped count.
+
+    Read against the criteria:
+    - Criterion 1: `image/Dockerfile:20-26` makes the folder in the same `RUN` as the users, with `chown factory:factory` and `chmod 0700`.
+    - Criterion 2: the ENV on line 41 comes before `USER factory`.
+    - Criteria 3 and 5: the bind mount's target equals the ENV value, and its parent is the folder. `image/compose.yml` has no `secrets` blocks. The three named volumes come first, then the bind mount, and the name, build, restart policy, health check and environment are unchanged.
+    - Criterion 4: the uids are 1000 and 1001, and no `useradd` gives the agent the group `factory`.
+    - Criterion 7: the comments say what the criterion asks for. `image/entrypoint.sh:4-5` names `/work`; the comment above the ENV says only the factory's user can enter the folder; the comment above the bind mount gives the Swarm reason.
+
+    Open: the preflight item `token-file` still checks the file's own owner and mode. Moving that check to the folder is S0002's work.
