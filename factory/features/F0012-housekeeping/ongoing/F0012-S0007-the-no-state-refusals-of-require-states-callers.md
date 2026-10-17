@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 159
 blocked: null
 comments_seen: 0
@@ -98,3 +98,15 @@ Expect: a number of at least 5, one test function per call.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+   - Scope: outside `factory/`, the only change the story made is the new module `tests/application/test_no_state_refusals.py`. Nothing changed in `src/`, as the Assignment expected. The other files in the diff (`docs/runs/2026-10-12-overnight/night-log.md`, `planning/overnight/restructure-after-f0011.md`, `planning/overnight/briefs/draft-F0012-S0028-S0029.md`) come from the human's own commits 9e7b43a and fec8d9d, which reached the branch with main. Those are the human's files and not under review.
+   - Criteria 1 to 5: each has one test, and each test checks what the Interface states.
+     - claim: the `ValueError` message, and the remote branch head is the same before and after (`remote_commit`).
+     - release: one parametrized test, with the `no-state` row raising the message and the `claimed` row returning `claim is None`.
+     - ask_crash_cap: `CannotHandle` with `kind == "crash"` and the reason built from `snapshot.id`. The fake holds no pull request, so it holds no post either.
+     - compose: `WorkItemFormatError` with the `fault` and `path == context.path`.
+     - stall: called with `stage_start=None`, `cost=None` and a pull request given; checks the message, the unchanged branch head and `factory_posts == []`.
+   - The Interface has no other limit or refused side to test. The coder's entry says `make check` is green and that `make duplicates` reports 0 new findings.
+   - Architecture and security: nothing in `src/` changed. The test uses the real git remote fixtures and the fake hosting service, mocks nothing, and writes only under `tmp_path`.
+   - Quality: the module docstring is present. `_definition` follows the pattern each sibling test module uses. The `opened` fixture is shared by the claim and stall tests.
+   - Ticket hygiene: the coder's entry records the decision to leave the code as it is and what was rejected (building each exception only after the state check). The Assignment matches what was done. Docs criterion 7 ("none") still holds.
