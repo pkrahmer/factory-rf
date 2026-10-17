@@ -130,7 +130,7 @@ The write-path guard is the command `factory-guard`, installed with the factory 
 
 ### What the container cannot see
 
-Under Docker Desktop's WSL 2 backend the container has no disk limit, so `df` inside it shows the virtual disk (about 1 TB), not the host drive. A check of free space inside the container therefore fires only on a Linux host or when the container has a real limit. Under Docker Desktop the host drive is watched from outside, and Docker's disk image belongs on a drive with room.
+Under Docker Desktop's WSL 2 backend and under Podman's machine on Windows the container has no disk limit, so `df` inside it shows the machine's virtual disk (about 1 TB), not the host drive. A check of free space inside the container therefore fires only on a Linux host or when the container has a real limit. Under either runtime the host drive is watched from outside, and Docker's disk image belongs on a drive with room.
 
 When the disk image has grown and the host drive is full, the space comes back in two steps. Run `fstrim -v /mnt/docker-desktop-disk` in the `docker-desktop` distribution. Then stop Docker and run `compact vdisk` in `diskpart`.
 
@@ -245,7 +245,7 @@ preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12
 
 So `docker compose -f image/compose.yml ps` shows the container as unhealthy while any repository or machine stop stands, and `docker compose -f image/compose.yml exec factory python -m factory.entry.health` names the stops. The container becomes healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status.
 
-`restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. A real running container has not been observed yet; the morning observation is `docker compose ps` over a container with a stop standing.
+`restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. A real running container has not been observed yet; the morning observation is `docker compose ps` over a container with a stop standing. Under Podman a machine or host restart does not bring the container back: see "Podman: the restart" under "Container runtimes".
 
 ### The stops you will see here
 
@@ -299,6 +299,36 @@ Deleting `preflight-stamp.json` is safe: a missing or damaged stamp reads as no 
 ### The wait for a repository that is not ready
 
 Before each tick the instance checks that `origin/main` exists and holds `factory/pipeline.yml`. When it does, nothing is fetched here (the tick fetches) and any `repository_unavailable` stop is cleared. When it does not, the instance fetches once, looks again, and if the fault stays it raises the stop and skips the tick; the loop pauses as for any idle iteration and tries again. The stop is written once per detail: the same fault on the next iteration adds no second line, a different fault adds a new one. Push the missing branch or file and the next iteration clears the stop.
+
+## Container runtimes
+
+### The runtimes
+
+The image and the compose file run under Docker Desktop and under rootless Podman with the docker-compose v2 binary as its Compose provider (probe of 2026-10-17, Podman 5.8.3 on Windows). Rancher Desktop with its moby engine is expected to work like Docker but is untested, because the probe did not run it. A Mac is not probed.
+
+For a team, the setup is one shared Linux host (Docker Engine, or rootless Podman with the restart service below) that runs every instance, each its own compose project, rather than a runtime on every laptop.
+
+### Podman: the commands
+
+Every `docker` command of this guide works with `podman` in its place: `podman build`, `podman exec`, `podman compose -f image/compose.yml up -d`. Inside the container the users, groups, modes and the token's folder are the image's. On the machine the named volumes belong to sub-ids that are invisible inside.
+
+### Podman: the Compose provider
+
+`podman compose` hands the compose file to an external provider. Use the docker-compose v2 binary (standalone, Apache 2.0), named with `PODMAN_COMPOSE_PROVIDER` or with `compose_providers` in `containers.conf`. `podman-compose` 1.5.0 cannot build this compose file on Windows: it fails with `no Containerfile or Dockerfile specified or found in context directory`, from `context: ..` with `dockerfile: image/Dockerfile`.
+
+### Podman: the restart
+
+`restart: unless-stopped` stays in the compose file. It brings the container back after a crash and after `podman restart`, but not after the Podman machine or the host restarts. Docker Desktop restarts it by itself once it runs (its "start when you sign in" setting).
+
+On Windows, under Podman, nothing restarts the factory after a machine or host restart (tested on 2026-10-17). `systemctl --user enable podman-restart.service` in the WSL machine fails with `Failed to enable unit: Access denied`, and an `unless-stopped` container stayed `Exited` after `podman machine stop` and `podman machine start`. The operator runs `podman machine start` and then `podman compose -f image/compose.yml up -d`, by hand or as a scheduled task at logon.
+
+Until then the container stays `Exited (0)`: no tick runs, nothing is claimed or pushed, and the health check does not run, so nothing shows unhealthy. A lease the instance held expires. Once started, the factory goes on as after any restart (see "A restart during a stage").
+
+On a Linux host, `podman-restart.service` (it starts the containers matching `should-start-on-boot=true`) with `loginctl enable-linger` is the documented way. This was not tested here. The observation left to the first start on such a host: with the service enabled and linger on, a restart of the host brings the container back `Up` in `podman ps -a`. It is not observed yet.
+
+### Podman: the disk
+
+The disk record and the stop `disk_low` see the Podman machine's virtual disk, not the host drive, as under Docker Desktop. "What the container cannot see" names both runtimes.
 
 ## The factory log and the health status file
 

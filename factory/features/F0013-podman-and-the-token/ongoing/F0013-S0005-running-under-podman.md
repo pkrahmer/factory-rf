@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 186
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Running under Podman
 
 ## Assignment (as of log entry 1)
@@ -35,3 +43,68 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: "None" is right for a documentation-only story. It names the two documents the documenter changes (`docs/operator-guide.md`, `docs/decisions.md`). No code behaviour is stated, so no Interface comment lacks a criterion.
+   - Criteria: criterion 1 (nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes) can be checked against the diff. The docs criterion names the section, its position, the five sub-topics and the decision-log content, and gives the exact strings to look for. No code rule states a limit or a rejected input, so there is no failing side to test. The tester has nothing to test (the Assignment says so) and ends with an entry saying that.
+   - Demo: both commands can be run. The grep with `-o` and `sort -u` prints five lines if the five terms are present, and the BRE parentheses in `Exited (0)` are literal. `check_documents` is expected to print `documents ok`. Each Expect line can be checked against the output.
+   - Architecture: no layer or interface is touched, and the story changes documents only.
+   - Scope: the story is inside FEATURE decisions 3 to 5, 13 and 15 (faults 2, 3 and 4). It leaves out the items listed under "Out of scope": the image pins, a Mac and SELinux, `podman-compose` as a provider, and a test of the restart.
+3. tester: no test written, as the Assignment and criterion 1 require. This story only changes documentation, and its Interface is "None". Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes.
+   - criterion 1: nothing to test here. The tester changed no files, and the coder should change none either.
+   - criterion 2 (`make check` stays green): the factory checks this. `make lint` is green, and the working tree is clean.
+   - criterion 3 (docs): the documenter's job, checked by the Demo's grep and by `check_documents`. It has no pytest test.
+   - Files created: none. Modules the test runner could not import: none, since no new tests exist. I did not run `make test` for red tests, because there are none to see fail.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (28.1 s)
+4. coder: no code changed, as the Assignment and criterion 1 require. This story only changes documentation, and its Interface is "None". Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes, and I made no commit.
+      - criterion 1: met. The working tree was clean and stayed clean.
+      - criterion 2: `make check` was green on the branch as it stands (`check: green`, coverage 99.50 %).
+      - criterion 3 (docs): left to the documenter. The *Container runtimes* section in `docs/operator-guide.md`, the pointer from *The health check and the restart policy*, and the entry in `docs/decisions.md` are its job, and the Demo checks them.
+      - Refactor: there is no diff, so nothing to refactor.
+      - Noticed and left alone: nothing.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch holds only the factory's four stage commits (ae5b0c62..96bd76dc), and the working tree is clean.
+      - Criterion 1: met, because the diff is empty. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed. The tester (entry 3) and the coder (entry 4) each wrote an entry saying so. Criterion 1 also covers the untested restart on a Linux host, so a test is not missing.
+      - Criterion 2: the coder's entry records `check: green` (coverage 99.50 %) and `duplicates: 0 new`. No code changed, so there is no new finding to read.
+      - The Interface is "None", so there is no rule whose failing side would need a test. Architecture, security and quality: nothing to review, because no code changed.
+      - Ticket hygiene: the Assignment matches what was built, which is nothing yet; the documentation is the next stage's work. The docs criterion names the *Container runtimes* section, where it goes, its five sub-topics, the pointer from *The health check and the restart policy*, the content of the decision-log entry and the `check_documents` gate. That is enough for the documenter to write from it, and the Demo's grep checks it.
+6. documenter: no findings. The diff outside factory/docs/README is empty, as criterion 1 says.
+   Files changed:
+   - `docs/operator-guide.md`: new section *Container runtimes*, placed before *The factory log and the health status file*, so it follows the compose/entrypoint/health-check section. It has the runtimes and the team setup, the Podman commands, the Compose provider, the restart and the disk. The restart part states what was tested on Windows and marks the Linux-host service as untested, with the morning observation.
+   - `docs/operator-guide.md`, *The health check and the restart policy*: added a pointer to the Podman restart.
+   - `docs/operator-guide.md`, *What the container cannot see*: now names Podman's machine on Windows as well as Docker Desktop.
+   - `docs/decisions.md`: new entry with the runtimes, the provider, the Buildah check, the Windows restart, the untested Linux restart and Rancher Desktop as untested.
+   Checks run: the Demo's grep prints all five terms. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because only docs changed (the factory runs it after this stage).
+   Cross-read: the rest of the operator guide (the disk record and `disk_low` text, "A restart during a stage") and the hosting-service token section. Both match the story.
+   Stale but not touched: the disk record text under "The disk record" says "Docker's disk image" and `docker system df`. It is true for Docker, and the Podman equivalent is left to the first Podman run.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: both commands met their Expect lines. No findings.
+
+   1. `grep -o "podman-restart.service\|docker-compose v2\|Rancher Desktop\|Exited (0)\|should-start-on-boot" docs/operator-guide.md | sort -u`
+   ```
+   Exited (0)
+   Rancher Desktop
+   docker-compose v2
+   podman-restart.service
+   should-start-on-boot
+   ```
+   Met: five lines, one for each term.
+
+   2. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met (exit 0).
+
+   Criteria read against the branch (`git diff main...HEAD`):
+   - Criterion 1: the diff outside the ticket touches only `docs/operator-guide.md` and `docs/decisions.md`. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed. Entries 3 and 4 say so.
+   - Criterion 2: entries 4 and 6 record `check: green`. The demo did not run `make check` again, because the factory runs it.
+   - Criterion 3: `## Container runtimes` begins at line 303 of `docs/operator-guide.md`. It is the first level-2 section after *The container: compose, entrypoint and health check* (line 179). It has the five sub-sections (runtimes and team host, commands, Compose provider, restart, disk), each with the content the criterion lists. The restart sub-section says the Windows restart was tested and the Linux restart was not, and gives the observation left for later. *The health check and the restart policy* points to "Podman: the restart". *What the container cannot see* names both runtimes. The new entry in `docs/decisions.md` covers the runtimes, the provider, the Buildah check, the Windows restart, the untested Linux restart service and Rancher Desktop as untested. No other document changed.
+
+   Open: the restart under Podman on a Linux host stays to be observed at the first start on such a host, as criterion 1 says.
