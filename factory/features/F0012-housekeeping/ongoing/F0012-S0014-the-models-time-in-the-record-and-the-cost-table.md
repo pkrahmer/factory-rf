@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 166
 blocked: null
 comments_seen: 0
@@ -166,3 +166,14 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (27.2 s)
+8. coder: coder (round 1): This round's only finding is closed, and I removed the duplicate helper the reviewer flagged. `make check` is green.
+
+   - Finding 1 (entry 5), the missing `0` row for `_Reply.duration_api_ms`: the tester added it in entry 7 (`tests/adapters/test_claude_runtime_resume.py::test_model_duration_is_the_replys_api_time`, id `zero`). It passes against the code from commit 13f070d without any code change.
+   - The reviewer's note for group 4, `_seconds` in `src/factory/application/costs.py` repeating `_seconds` in `src/factory/adapters/process.py`: fixed in commit 15382be (`refactor(costs)`). I removed the private helper from `costs.py` and moved its one use, a None-or-`total_seconds()` conversion, into `_completed`. I also dropped the `timedelta` import that only the helper needed. Behaviour is unchanged.
+   - Alternative I rejected: a shared helper in `factory.domain` that both `costs.py` and `process.py` would use. It would have meant editing `process.py`, which is outside this ticket, and a helper is not worth it for a single use.
+   - Noticed, not touched: `make duplicates` still reports the two vulture hits on `used_bytes` (`src/factory/adapters/disk_space.py:19`, `src/factory/application/machine.py:48`) from entry 4. Neither file is part of this ticket. The docs criterion is the documenter's.
+
+   `make check`: check: green
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 2 new, 39 known, 0 gone
