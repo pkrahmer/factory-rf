@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 184
 blocked: null
 comments_seen: 0
 round: 0
@@ -52,3 +52,9 @@ Expect: `3`, the three messages the tests pin.
 ## Log (append only)
 
 1. 2026-10-17 human: created from F0012's proposed draft S0031 (feature acceptance of 2026-10-17).
+2. intake: accepted. Nothing in the story was changed.
+   - Interface: it names no new code, only three existing handlers. I checked `acceptance.py`: lines 219, 292 and 353 build `CannotHandle` with the exact kinds and reasons in the table, and `_HAND_OVER`, `_MERGED` and `_CLOSED` hold `hand_over`, `merged` and `closed`. The stand-in reader and the `walk` fixture sequence are specified concretely.
+   - Criteria: criteria 1 to 3 are each one test. Each gives the exception type, kind and reason, and the unchanged remote ref and no new comment. Each criterion covers the refusing side of the no-state rule. Criterion 4 (a report with a state still passes) is covered by the existing tests of the three handlers' modules. Criteria 5 and 6 are the closing two.
+   - Demo: both commands can be run. The expectations can be checked against the output: `3 passed`, and a grep count of `3`. The grep count matches the three lines found.
+   - Architecture: the tests sit in `tests/application/`. The stand-in derives from the `WorkItemReader` interface, as `CLAUDE.md` asks. It adds no new dependency, and git and the hosting service are not faked beyond the existing fake.
+   - Scope: the story is inside F0013's scope (taken in from F0012's draft S0031, FEATURE decision 2). It touches nothing listed under Out of scope and changes no existing test (decision 12).
