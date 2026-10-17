@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 153
 blocked: null
 comments_seen: 1
@@ -171,3 +171,24 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    - Stale but unrelated: none seen.
 
    `make check`: check: green
+9. demo: I ran both demo commands from the repository root exactly as written. Both met their `Expect:` lines, and I have no findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/test_git_support.py`
+   ```
+   ............                                                             [100%]
+   12 passed in 1.11s
+   ```
+   Met. The last line reads `12 passed in 1.11s`, with no `failed`, `error` or `skipped` count.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/adapters/test_git_cli_writing.py tests/test_kill_points.py 2>&1 | tail -1`
+   ```
+   81 passed in 46.33s
+   ```
+   Met. The one line reports `passed`, with no `failed` or `error`. These two modules use the `remote` and `world` fixtures, which now copy the session's remote. All of their tests pass unchanged.
+
+   Acceptance criteria re-read:
+   - Criteria 1 to 7 are the 12 tests in `tests/test_git_support.py`. They passed, and the demo contradicts none of them.
+   - Criterion 8: the demo does not touch `make check`; the factory runs it as the gate.
+   - Criterion 9: the documenter covered it in entries 6 and 8, and nothing in the demo goes against it.
+
+   Open: none.
