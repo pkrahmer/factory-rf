@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 172
 blocked: null
 comments_seen: 0
@@ -99,3 +99,4 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
    - Criterion 3: the volumes `work`, `state` and `claude-home` are unchanged. The diff against origin/main changes only line 2 of `image/compose.yml`.
    - Criterion 5: the diff touches only `docs/operator-guide.md` and `docs/decisions.md` among the documents, as the criterion requires.
    - No criterion is contradicted. I did not run `make check` myself; the factory runs it as the stage's check.
+8. done (pull request merged); cost: 6 runs, 2.7 min, 31 turns, 131k tokens in (301k more from cache), 8k out, $0.69
