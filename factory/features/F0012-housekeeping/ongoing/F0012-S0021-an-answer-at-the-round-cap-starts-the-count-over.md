@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 171
 blocked: null
 comments_seen: 2
@@ -85,3 +85,14 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (27.6 s)
+8. coder: review. All tests pass now that the tester has made the change from entry 7. `make check` passes (check: green, coverage 99.51 %).
+      - Built (commit ee88826):
+        - `src/factory/domain/answers.py` `unblock`: it sets `round=0` for a `round_cap` wait, the same way `attempts_cap` resets `attempts` and `crash_cap` resets `crashes`. The other waits keep `round`. The docstring sentence on `round` now says this.
+        - `src/factory/domain/post_texts.py` `round_cap_question`: it returns the Interface's text ("Answer with a comment, which starts the count of rounds over; …").
+      - Main decision: the reset is one more line in the existing branch-per-cap update dict inside `unblock`. I rejected a separate table that maps each cap to its counter: with three entries, that adds indirection and changes nothing.
+      - Rejected earlier (entries 4 and 5): posting the round cap question in the same tick as the block. The human kept the record-then-post design.
+      - Refactor step: I read the diff `git diff main...HEAD -- src` (5 lines). Nothing needs changing, so there is no refactor commit.
+      - Open: criterion 6 (the operator guide, the project guide and the decision log) is for the documenter stage. I changed no documents.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
