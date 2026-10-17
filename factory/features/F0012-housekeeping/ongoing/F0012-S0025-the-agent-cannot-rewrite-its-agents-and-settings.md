@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 175
 blocked: null
 comments_seen: 0
 round: 0
@@ -45,3 +45,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete files and values. `image/Dockerfile` has the `chown factory:factory-work` and `chmod 3775` for `/home/agent/.claude`, and `/work` stays `2775`. `image/entrypoint.sh` has the modes `0755` for `agents/` and `0644` for each agent file and `settings.json`. The new test module `tests/test_agent_home_ownership.py` names the helpers it reuses (`_path_settings`, `dockerfile_instructions`, `Layout`). The removed row of `tests/test_image.py` is named and covered by FEATURE decision 42.
+   - Criteria: each can be tested by one test function. 1 is the Dockerfile's last chown and chmod. 2 is the modes after the entrypoint runs, including not writable by group or others. 3 is the existing entrypoint and umask tests. 4 is a stand-in `.credentials.json` at `0600` that is unchanged. Every Interface rule has a criterion. The "changes the mode of nothing else in the home" rule is covered by 4, and the failing side of the modes by 2's "none writable by group or others". The sticky bit's effect on rename and delete is not a criterion. It is the Dockerfile's `3775` read by 1 and cannot be run without a container.
+   - Demo: the `grep` commands and the pytest command are runnable. Each `Expect:` line is checkable against the output: the named `chown`, `chmod 3775` and `0755`/`0644` lines, and a final `<n> passed` line with no failed, error or skipped count.
+   - Architecture: the change stays in `image/`, inside the coder's write paths, and adds no new dependency. The docs criterion touches only the operator guide and the decision log.
+   - Scope: this is item 1.10 of FEATURE.md, listed as S0025 and decided in decisions 13, 28, 42 and 47. It is not in "Out of scope". The other writable files in the home stay open, as decision 47 says.
