@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 181
 blocked: null
 comments_seen: 1
 round: 0
 attempts: 1
 stories: [F0012-S0001, F0012-S0002, F0012-S0003, F0012-S0004, F0012-S0005, F0012-S0006, F0012-S0007, F0012-S0008, F0012-S0009, F0012-S0010, F0012-S0011, F0012-S0012, F0012-S0013, F0012-S0014, F0012-S0016, F0012-S0017, F0012-S0018, F0012-S0019, F0012-S0021, F0012-S0022, F0012-S0023, F0012-S0024, F0012-S0025, F0012-S0026, F0012-S0027, F0012-S0028, F0012-S0029, F0012-S0030]
+outcome: accepted
 ---
 # Acceptance of Housekeeping
 
@@ -239,3 +240,4 @@ The acceptance itself has cost one stalled run of 60 minutes so far, spent on `m
       - The acceptance also cost one stalled 60-minute run, spent on mutants.
 
    Open: `/tmp/f12demo/demo.sh` and four small files in `/tmp` from this run are left; the sandbox refused their removal.
+3. done (pull request merged); cost: 1 runs, 14.9 min, 39 turns, 143k tokens in (2009k more from cache), 24k out, $1.60
