@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 176
 blocked: null
 comments_seen: 0
@@ -69,3 +69,17 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/entry/test_run_health_file.py - ImportError while importing test ...
+4. coder: a missing health file now reads as not healthy, and `factory-run` writes an empty health status when it starts. Commit 66c8189e.
+      - `src/factory/entry/wiring.py`: new `health_file(state_directory) -> Path` returns `<dir>/health.json`. `health_store` now builds its path with it.
+      - `src/factory/entry/run.py`: `run_instance` first calls `_write_an_empty_health_status_when_there_is_none`, before `read_hosting_token`. It writes `HealthStatus()` through `health_store` only when `health_file` does not exist, so an existing file keeps its stops. An `OSError` from the write propagates; when the state directory is a regular file the error comes from the write, so nothing is cloned. The docstring now names the `OSError`.
+      - `src/factory/entry/health.py`, `main`: when no `store` is given and the file is missing, it prints `no health status: <path> is missing` and returns `_STOPPED` (1). With a given store it reads the store as before. A damaged file still reads as healthy, because the store's reader is unchanged.
+      - Main decision: the check for a missing file sits in `main`, which knows whether a store was given. I rejected making the store's `read` report a missing file, for two reasons. The given-store path has to stay as it is (criterion 2). And `_stop_the_machine` in run.py relies on `read()` of a missing file returning an empty status.
+      - Refactor: I read the diff once afterwards and found nothing to change, so there is no refactor commit.
+      - Demo: its output is `no health status: <tmp>/health.json is missing`, then `1`, as the ticket expects.
+      - Not touched: the docs (criterion 8) are the documenter's work.
+      - Open point for review: no test drives `factory-run` to a status-2 exit and checks the health file. When the settings are invalid, `main` never reaches `run_instance`, so the file is written only by `_stop_the_machine`, as before.
+
+      `make check`: check: green
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
