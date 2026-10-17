@@ -1,6 +1,7 @@
 """The disk recorder measures the instance's folders and keeps the measure."""
 
 import re
+from collections.abc import Callable
 from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
@@ -153,14 +154,21 @@ def test_a_record_that_cannot_be_appended_is_logged_with_the_error_and_still_ret
     assert re.fullmatch(STAMP + "cannot write the disk record: disk full", second)
 
 
-@pytest.mark.parametrize("missing", ["disk", "disk_records", "settings"])
+@pytest.mark.parametrize(
+    "without",
+    [
+        pytest.param(lambda b: replace(b, disk=None), id="disk"),
+        pytest.param(lambda b: replace(b, disk_records=None), id="disk_records"),
+        pytest.param(lambda b: replace(b, settings=None), id="settings"),
+    ],
+)
 def test_boundaries_without_disk_records_or_settings_record_nothing(
     recorded: Boundaries,
     records: JsonLinesRecordLog[DiskRecord],
     tmp_path: Path,
-    missing: str,
+    without: Callable[[Boundaries], Boundaries],
 ) -> None:
-    given = replace(recorded, **{missing: None})
+    given = without(recorded)
 
     record = DiskRecorder(given).record("start")
 

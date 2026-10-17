@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 167
 blocked: null
 comments_seen: 2
@@ -162,3 +162,16 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    Change for the tester: rewrite `test_boundaries_without_disk_records_or_settings_record_nothing` in `tests/application/test_disk_recorder.py`. Its parameter `missing: str` becomes `without: Callable[[Boundaries], Boundaries]`. Make the three rows `pytest.param(lambda b: replace(b, disk=None), id="disk")`, `pytest.param(lambda b: replace(b, disk_records=None), id="disk_records")` and `pytest.param(lambda b: replace(b, settings=None), id="settings")`. Replace `given = replace(recorded, **{missing: None})` with `given = without(recorded)`. Leave the assertions as they are, and add no `type: ignore`.
 
    Still open: once the tester sends the story back, I run `make check`. If it is green, I do the refactor pass and end with `review`.
+7. tester: tester (a test change the human approved): I made the change the human chose in entry 5, as the coder described it in entry 6, and nothing else.
+
+   - tests/application/test_disk_recorder.py::test_boundaries_without_disk_records_or_settings_record_nothing: the parameter `missing: str` is now `without: Callable[[Boundaries], Boundaries]`. Its three rows are `pytest.param(lambda b: replace(b, disk=None), id="disk")`, the same for `disk_records` with id `disk_records`, and the same for `settings` with id `settings`. `given = replace(recorded, **{missing: None})` is now `given = without(recorded)`. The assertions are unchanged, and there is no `type: ignore`. I added `from collections.abc import Callable` to the imports.
+
+   Why: mypy checked the `**{missing: None}` unpacking against every field of `Boundaries`, which gave 14 `arg-type` errors in `make types`. Each row now replaces exactly one named field, so mypy checks each call on its own.
+
+   Results:
+   - `make test`: test: green (35.8 s), coverage 99.51 %.
+   - `make lint`: lint: green (0.0 s).
+   - I did not run `make types`. A bare `mypy --strict` on this one file ignores the project's configuration, so its output proves nothing. The coder's `make check` is the gate for the type check.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (36.9 s)
