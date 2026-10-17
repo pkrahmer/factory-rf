@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 164
 blocked: null
 comments_seen: 0
@@ -128,3 +128,4 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
    Met: the expectation was one line of the form `lint: green (<n>.<d> s)`. This also shows the line that criterion 6 says this repository's `Makefile` prints for each target.
 
    Findings: none. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 3.5 min, 32 turns, 147k tokens in (361k more from cache), 12k out, $0.88
