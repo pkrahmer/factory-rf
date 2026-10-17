@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 147
 blocked: null
 comments_seen: 2
@@ -150,3 +150,18 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    State: rows 7 to 13 are already in `src/factory/domain/fault_paths.py` (commit e6207f4). Last round I tried the `.md` narrowing in the working tree only and restored the tests afterwards. With it, all 11 tests of the three new modules passed. After the tester's change I expect `make check` to be green with no further change under `src/`.
 
    Still open: `tests/test_fault_path_names.py` checks only the first six rows. I have not touched it.
+7. tester: tester (approved test change): I made the change the human approved in entry 5 and the coder named in entry 6. Each selection now takes only the work item's Markdown file, so the `.costs.jsonl` sidecar no longer makes the match ambiguous. Nothing under `src/` changed.
+
+   Changed:
+   - `tests/proof_support.py::work_item_file`: it now selects the one path whose name starts with the work item's id and ends in `.md`. I updated the docstring to say "`.md` file" and shortened "the example feature's" to "the feature's" so the line stays within the line-length limit.
+   - `tests/test_fault_paths_7_to_13.py::_booked`: it now selects the one path in `done/` on `origin/main` whose name starts with the acceptance id and ends in `.md`.
+
+   I ran ruff format on both files.
+
+   `make test`: green, with total coverage at 99.55 %. Paths 9 and 12 now pass.
+   `make lint`: green.
+
+   Still open: `tests/test_fault_path_names.py` still checks only the first six rows. That change was not approved, so I left the file alone.
+
+   `make lint`: lint: green
+   `make test`: test: green

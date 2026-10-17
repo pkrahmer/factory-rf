@@ -233,7 +233,9 @@ def _booked(world: World) -> WorkItemState | None:
     git = world.boundaries.git
     git.fetch()
     done = git.list_files("origin/main", f"{FEATURE}/done")
-    [path] = [path for path in done if Path(path).name.startswith(ACCEPTANCE)]
+    [path] = [
+        path for path in done if Path(path).name.startswith(ACCEPTANCE) and path.endswith(".md")
+    ]
     text = git.show_file("origin/main", path)
     assert text is not None
     return world.boundaries.work_item_reader.parse(text).state

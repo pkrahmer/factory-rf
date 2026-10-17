@@ -492,11 +492,13 @@ def head_state(world: World, work_item: WorkItemId) -> WorkItemState:
 
 
 def work_item_file(world: World, work_item: WorkItemId) -> str:
-    """The path of the work item's file in the example feature's `in-progress/` on its branch."""
+    """The path of the work item's `.md` file in the feature's `in-progress/` on its branch."""
     git = world.boundaries.git
     git.fetch()
     listed = git.list_files(f"origin/{branch_name(work_item)}", f"{FEATURE}/in-progress")
-    [path] = [path for path in listed if Path(path).name.startswith(work_item)]
+    [path] = [
+        path for path in listed if Path(path).name.startswith(work_item) and path.endswith(".md")
+    ]
     return path
 
 
