@@ -12,7 +12,7 @@ The restructure comes last: it is layout only, the todo run neither needs nor te
    3. Mutation testing with mutmut: a `make mutants` target outside `make check`, limited to the modules a feature changed (a `FILES` variable), which v1's acceptance stage already runs when the target exists; until now every acceptance made a hand pass of 12 to 28 mutants.
    4. What the todo run must measure: the low-disk machine stop, no temporary files left, the project-command and model-versus-tool records, the disk record.
    5. One test of the DTOs' own configuration; an answer at the send-back cap that can grant one more round.
-2. The first start on the real machine: the human pins the image (the base image digest and the Debian versions are placeholders), builds it, logs in once as `agent`; fixes found there go in before the todo run, because its pass rule allows no fix during the run.
+2. The first start on the real machine (after the compose project name below is made per instance): the human pins the image (the base image digest and the Debian versions are placeholders), builds it, logs in once as `agent`; fixes found there go in before the todo run, because its pass rule allows no fix during the run.
 3. The todo run (run 4's eight stories and three acceptances in v1.1's form): the baseline v2 is measured against.
 4. A project's own skills and agents (the sections below): after the todo run, because run 4 used neither and the baseline stays at v1's scope; before the restructure.
 5. The restructure: the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`; then `make check` and one short story run in the todo project to show nothing changed.
@@ -156,6 +156,18 @@ Today a project's pipeline definition names its roles, their write paths and whi
 - The operator guide says how to replace a role's agent and how to add a role with its own agent; the decision log records "replaces, never extends".
 - Proved in a test project: a project agent for `coder` is the text the run gets, and without it the shipped one is.
 - Close to v2's archetypes (a kind of project with its own agents and rules); built small in v1.1, revisited there.
+
+## The demo, shipped with v1.1 (the human's word, 2026-10-17)
+
+v1 ships `demo/` (the to-do service: `project/` with its `CLAUDE.md`, `Makefile` with `mutants`, `pyproject.toml` and lock file; `features/` with the three features and eight stories; a `README.md` with the prompt for the session that plays the human). v1.1 ships its own `demo/` in the same shape, in v1.1's forms and words: it is the input of the todo run (step 3), so rewriting run 4's stories by hand lands there instead of in a separate repository. A test in `make check` runs v1.1's own story check over `demo/` (and the pipeline definition's loader over its `factory/pipeline.yml`), so the demo stays valid as v1.1 changes.
+
+## Renaming the repositories (the human's plan, 2026-10-17)
+
+The human will rename `pkrahmer/factory` to `factory-v1` and `factory-rf` to `factory`. Searched on 2026-10-17:
+
+- The code never names `factory-rf` (the package is `factory`; the `rf"…"` hits are Python raw f-strings). Four lines of text do: the titles of `README.md` and `CLAUDE.md`, the project guide's first sentence, and one sentence of `docs/decisions.md`. Two name v1 as `pkrahmer/factory` and become `factory-v1`: `CLAUDE.md`'s first sentence and the project guide's "The texts come from v1 (pkrahmer/factory at `f8bc9d2`)". The template's "Built by the factory (github.com/pkrahmer/factory)" (and `tests/test_claude_files.py::TEMPLATE_RULES_LINES`) stays right after the rename. History (`factory/features/`, `planning/`, `docs/runs/`) keeps its names.
+- Do it after v1's last story on this repository, as one human commit; GitHub's redirect from the old name of `pkrahmer/factory` ends once `factory-rf` takes that name, so every clone's remote, v1's `REPOS` setting and v1.1's `FACTORY_REPOSITORY_URL` are set again by hand.
+- Before the first start of v1.1 (step 2), and independent of the rename: v1.1's `image/compose.yml` says `name: factory`, with the service `factory` and the volumes `work` and `claude-home`; v1's `compose.yml` in the folder `factory` has the same project name, service and volume names. `docker compose -f image/compose.yml up` would replace v1's running container and mount v1's `factory_work` and `factory_claude-home` volumes (v1's checkout and v1's own `claude` login) into v1.1. Fix: v1.1's project name per instance, `name: factory-${FACTORY_INSTANCE:?…}`, so each instance gets its own container and volumes, and a second instance on one machine cannot collide either; renaming the folder `factory` to `factory-v1` also changes v1's project name and so its volumes, unless v1's compose file gets `name: factory` first.
 
 ## For the human, outside the build (collected 2026-10-16)
 
