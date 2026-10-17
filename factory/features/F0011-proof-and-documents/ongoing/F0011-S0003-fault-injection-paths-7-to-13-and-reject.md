@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 147
 blocked: null
 comments_seen: 2
@@ -165,3 +165,14 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: `make check` is green, with total coverage at 99.55 %. The tester's change from entry 7 fixed both failing selections. Each now takes only the `.md` file, so the cost sidecar no longer makes them ambiguous. This round needed no new code under `src/`.
+
+   Built: in `src/factory/domain/fault_paths.py`, seven rows (paths 7 to 13) added to `FAULT_PATHS` after the first six, with number, title, case and test as the Interface table gives them (commit e6207f4). The first six rows are unchanged.
+
+   Design: the paths are behaviour paths whose mechanisms v1.1 already has. So all eleven tests of the three new modules pass on the existing code, with no defect to fix under `src/`. I rejected changing `src/` so that no cost sidecar sits beside the work item. That would contradict the recorded cost-record design, and the human chose (a) in entry 5.
+
+   Refactor: nothing to change. The diff under `src/` is seven data rows.
+
+   Noticed, not touched: `tests/test_fault_path_names.py` (from F0011-S0002) still checks only the first six rows. It is not my test. Criterion 13 (the project guide's rows 7 to 13 and the decision-log entry) is for the docs stage.
+
+   `make check`: check: green
