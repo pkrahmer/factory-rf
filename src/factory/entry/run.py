@@ -16,10 +16,11 @@ from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import STATE_DIRECTORY, InstanceSettings
-from factory.domain.stops import RepositoryStop
+from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
     build_boundaries,
     build_tick,
+    health_file,
     health_store,
     machine_log,
     read_environment_settings,
@@ -94,8 +95,10 @@ def run_instance(
 ) -> None:
     """Run the instance of `settings` until `should_stop`; `hosting` replaces PyGithub.
 
-    Raises `SettingsInvalid` when the token file cannot be read.
+    Raises `SettingsInvalid` when the token file cannot be read, and `OSError` when the
+    health file cannot be written.
     """
+    _write_an_empty_health_status_when_there_is_none(settings.state_directory)
     token = read_hosting_token(settings.token_file)
     boundaries = build_boundaries(settings, token, hosting=hosting)
     DiskRecorder(boundaries).record("start")
@@ -110,6 +113,13 @@ def run_instance(
         should_stop=should_stop,
         log=boundaries.log,
     ).run()
+
+
+def _write_an_empty_health_status_when_there_is_none(state_directory: Path) -> None:
+    # The health check reads a missing file as not healthy; written before anything can fail,
+    # it tells a started instance from one that never ran. An existing file keeps its stops.
+    if not health_file(state_directory).exists():
+        health_store(state_directory).write(HealthStatus())
 
 
 def main(
