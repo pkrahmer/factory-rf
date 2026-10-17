@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 169
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -67,3 +67,4 @@ Expect: the single line `status 1`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: 1. The Interface says the rule's function "returns a fault naming the model and the missing setting" for a model that is not closed. Criterion 1 only requires "a fault" for the five failing stand-ins. Nothing tests what the fault says, so two coders could read it two ways and both pass. Options: (a) reword criterion 1 so each failing row also checks that the fault contains the stand-in's name and the missing setting (`frozen`, `extra`, or both for a stand-in with no `model_config`); (b) drop "naming the model and the missing setting" from the Interface and keep "a fault". I would choose (a), since the fault is what tells a reader which model to fix. The rest of the story is fine: the criteria are testable, the Demo is runnable and its counts add up (6 + 90 + 1 + 6 = 103, at least 100), the architecture and scope check out, and the six exceptions match FEATURE decision 25.
