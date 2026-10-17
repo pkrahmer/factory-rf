@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 182
 blocked: null
 comments_seen: 4
@@ -159,3 +159,30 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Architecture: nothing under src/ changed, so no layer rule is affected.
    - Security: no secret in code. The diff's `.secrets.baseline` entry and the planning/lessons-for-the-skills.md row come from the human's commit 81b26834 on main, brought in by the merge 81351a7b at the human's instruction (entry 7). They are not the coder's change and are not a finding.
    - Hygiene: entry 8 gives the main decision (the existing RUN rather than a separate layer). The Assignment matches what was built, and criterion 9 still describes what the documenter must write.
+10. documenter: wrote criterion 9; no findings, the code matches the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - *The hosting-service token* is rewritten. The host file is still `image/secrets/hosting-token`, and Compose mounts it read-only at `/home/factory/.secrets/hosting-token`. The folder is `factory:factory`, `0700`, made in the image. The section says why the compose secret was dropped, and that a missing host file makes Compose refuse to start. It gives the host permissions for Linux with Docker, rootless Podman (`chmod`, then `podman unshare chown`), and Windows and macOS.
+      - The morning observations in both sections use the new path and the `Permission denied` and `drwx------`/uid 1000 checks.
+      - *Left for v2* now names git's hooks in the shared checkout's `.git`.
+      - *The agent runs as a second user* no longer says the token file is `0600`. It says the agent cannot enter its folder.
+      - *Users and directories* has a row for `/home/factory/.secrets`.
+      - The `FACTORY_TOKEN_FILE` row says the image sets the new path.
+    - `docs/project-guide.md`: the credential-helper sentence says "the mounted file".
+    - `docs/decisions.md`: a new entry records the folder, the bind mount, the probe on both runtimes, the hooks route left for v2, and what was rejected (a compose secret with an absolute target, a `chown`/`chmod` in the entrypoint, Swarm). It marks the earlier claim about the mounted secret and the default path `/run/secrets/hosting-token` as superseded.
+
+    Checks:
+    - `python -m factory.entry.check_documents` prints `documents ok`.
+    - I ran no `make check`, because I changed only docs.
+    - I ran no example commands: the Docker and Podman commands need a running container.
+
+    Cross-read:
+    - I read the rest of `docs/operator-guide.md` and `docs/project-guide.md`, and the README, against the diff. Nothing else named the old path or the secret.
+
+    Stale but not touched:
+    - `docs/operator-guide.md` still has the `agent-user` preflight item saying the factory's user "can read the token file", which is still true.
+    - The `token-file` preflight text still describes the file's own owner and mode, as the criterion says: S0002 changes it.
+
+    `make check`: check: green
+    `make documents`: documents ok
