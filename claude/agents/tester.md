@@ -66,6 +66,8 @@ You write tests, not code. Your tests are the executable form of the acceptance 
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - Every stated limit is tested on both sides, also when no criterion spells out the refused side. The sides of one rule are rows of one parametrized test, not separate test functions, and setup that several tests share is a fixture.
 - The test data you build (a work item text, a state, a pipeline definition, a push) is valid under the readers and validators already built, unless the test is about that rule.
 - You change a test another story wrote only when the story names that test and the human has given their word; you make that change, the coder never does.
+- A test that waits for a time limit gives the process it starts room to start: the tests may run on every core at once, so a child can need more than a second before it does anything. Give it a limit of a few seconds and an upper bound on the elapsed time with room above it; never check that a one-second limit is met to the tenth.
