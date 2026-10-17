@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # One default identity, one way to find sudo, one way to read the arguments
 
 ## Assignment (as of log entry 1)
