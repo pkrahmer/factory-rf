@@ -16,15 +16,28 @@ _FIRST_LESSON = (
     "matches its own command line, so the wait never ends."
 )
 
+_SECOND_LESSON = (
+    "- Give a project command that can take minutes, such as `make check`, the shell tool's "
+    "largest timeout (600000 ms), so that the tool does not move it to the background."
+)
+
 _TEMPORARY_DIRECTORY_LESSON = (
     "- Make every file you need outside the repository in a temporary directory that removes "
     "itself: `tempfile.TemporaryDirectory()` in Python, or `d=$(mktemp -d)` followed by "
     "`trap 'rm -rf \"$d\"' EXIT` in the shell. Leave nothing behind in `/tmp` when you end."
 )
 
+_TIME_LIMIT_LESSON = (
+    "- A test that waits for a time limit gives the process it starts room to start: the tests "
+    "may run on every core at once, so a child can need more than a second before it does "
+    "anything. Give it a limit of a few seconds and an upper bound on the elapsed time with "
+    "room above it; never check that a one-second limit is met to the tenth."
+)
+
 LESSONS = {
     "intake": [
         _FIRST_LESSON,
+        _SECOND_LESSON,
         "- Every clause of an Interface rule has its own criterion, on both sides: an ordering, "
         'the second branch of an "or", a "when longer than", the value for every kind an enum '
         "names, an exact value beyond its first part. A clause without one is a question.",
@@ -35,6 +48,7 @@ LESSONS = {
     ],
     "tester": [
         _FIRST_LESSON,
+        _SECOND_LESSON,
         "- Every stated limit is tested on both sides, also when no criterion spells out the "
         "refused side. The sides of one rule are rows of one parametrized test, not separate "
         "test functions, and setup that several tests share is a fixture.",
@@ -43,9 +57,11 @@ LESSONS = {
         "rule.",
         "- You change a test another story wrote only when the story names that test and the "
         "human has given their word; you make that change, the coder never does.",
+        _TIME_LIMIT_LESSON,
     ],
     "coder": [
         _FIRST_LESSON,
+        _SECOND_LESSON,
         "- Before you write a helper, search the code for one that does the same, and reuse or "
         "extend it; the reviewer counts a second copy of an existing helper as a finding.",
         "- You never change a test, not even one the story names as changed with the human's "
@@ -53,19 +69,26 @@ LESSONS = {
     ],
     "reviewer": [
         _FIRST_LESSON,
+        _SECOND_LESSON,
         "- Count a second copy of an existing helper as a finding, and name the helper it copies.",
         "- Count as a finding a stated limit tested on one side only, and the sides of one rule "
         "written as separate test functions instead of rows of one parametrized test.",
     ],
     "documenter": [
         _FIRST_LESSON,
+        _SECOND_LESSON,
         "- The project guide is an index plus one file for each domain, each well under the "
         "2,000 lines the file tool reads by default; split a file before it grows past that.",
         _TEMPORARY_DIRECTORY_LESSON,
+        "- When every file you changed is a document (`README.md` or a file under `docs/`), end "
+        "without running `make check`, in place of step 3 of the stage: the factory runs the "
+        "stage's checks right after you, and that run decides. When you changed any other file, "
+        "run it as step 3 says.",
     ],
-    "smoke-tester": [_FIRST_LESSON, _TEMPORARY_DIRECTORY_LESSON],
+    "smoke-tester": [_FIRST_LESSON, _SECOND_LESSON, _TEMPORARY_DIRECTORY_LESSON],
     "acceptance-reviewer": [
         _FIRST_LESSON,
+        _SECOND_LESSON,
         _TEMPORARY_DIRECTORY_LESSON,
         "- When `make test` writes a JUnit report (the `--junit-xml` file its `Makefile` names), "
         "read the time of each test from it, and name the slowest tests in the slow checks and "

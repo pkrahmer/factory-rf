@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 178
 blocked: null
 comments_seen: 0
@@ -90,3 +90,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: all three blocks are runnable (`grep -c`, `uv run pytest`). Each `Expect:` line gives exact counts or a last-line form that can be checked against the output.
    - Architecture: the change touches only `claude/agents/*.md` and `template/CLAUDE.md`, which are shipped text inside the coder's write paths. No layer or code is involved.
    - Scope: the story is inside F0012's "What v1.1 ships to new projects" item. The mutation-testing row is explicitly left to S0029, and S0011's bullets are assumed already merged. FEATURE decision 48 covers the human's leave to change the two tests.
+3. tester: Changed the two existing tests the story names, as FEATURE decision 48 allows. No new test functions: criteria 1 to 4 are checked by tests that already exist.
+   - criterion 1: tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets (parametrized over the seven agents). Added a new constant `_SECOND_LESSON` holding the timeout bullet word for word from the Interface. It is now second in all seven `LESSONS` lists, including smoke-tester's one-line list.
+   - criterion 2: the same test. Added a new constant `_TIME_LIMIT_LESSON`, now the last entry of `tester`. The documents-only bullet is now the last entry of `documenter`. The list lengths now match the Interface's table: intake 5, tester 6, coder 4, reviewer 4, documenter 5, smoke-tester 3, acceptance-reviewer 4.
+   - criterion 3: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text. Added the time-limit bullet to `TEMPLATE_RULES_LINES` after the `- Fake commit ids` line, so it is the last bullet of *Tests*.
+   - criterion 4: the other tests of tests/test_claude_agent_texts.py, tests/test_claude_files.py and tests/adapters/test_shipped_agents_effect.py. They are unchanged, and in this run they were not among the failures.
+   - criteria 5 and 6: `make check` and the docs stage; no tests here.
+   Files changed: tests/test_claude_agent_texts.py, tests/test_claude_files.py. No files created. No import failures: the two changed modules import fine, and the only failures are wrong results. In the `make test` run, these failed: the lessons test for documenter, smoke-tester and acceptance-reviewer (the last lines shown), and the template test. That is red for the right reason. `make lint` is green. I checked by evaluation that the three bullet strings match the Interface word for word. S0011's bullets were already in the agents and in `LESSONS`, so nothing else needed changing.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[acceptance-reviewer]
