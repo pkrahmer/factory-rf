@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 192
 blocked: null
 comments_seen: 4
@@ -345,3 +345,36 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make documents`: documents ok
+13. demo: Demo run from the repository root: all three commands, exactly as written and in order. Every command exited 0 and met its `Expect:` line.
+
+    1. `git_environment()['GIT_CONFIG_VALUE_1']`
+    ```
+    0640
+    ```
+    Met: one line, `0640`.
+
+    2. Clone under umask `0o002` with `git_environment()`, then fetch and `seal()`
+    ```
+    0o750 0o640
+    0
+    0o664
+    ```
+    Met: `.git` is `0o750` and `.git/config` is `0o640`. No entry under `.git` (symbolic links excepted) is writable by its group or by others. The work-tree file `a.txt` stays group-writable at `0o664`.
+
+    3. The pytest selection (the mode, seal and preparer tests, wiring boundaries, the git interface, interfaces, scheduler and repository waiter)
+    ```
+    ........................................................................ [ 55%]
+    .........................................................                [100%]
+    129 passed in 1.73s
+    ```
+    Met: `129 passed`, with no failed, error or skipped count. The root-only skips in criteria 6, 9 and 13 did not trigger, so those tests ran.
+
+    Judgement against the acceptance criteria:
+    - The demo agrees with criterion 1 (`0640`).
+    - It agrees with criteria 2 and 3: git's own mode for the config is `0o640` and the work tree stays group-writable.
+    - It agrees with criterion 4: after `seal()`, nothing under `.git` is writable by its group or by others.
+    - Criteria 5 to 15 are covered by the tests that passed. The demo contradicts none of them.
+    - I did not run `make check` (criterion 16). The factory runs it as the gate after this stage.
+    - I did not check the docs criterion (17) in this demo.
+
+    No findings.
