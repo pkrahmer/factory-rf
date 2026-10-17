@@ -1,9 +1,9 @@
 ---
 stage: review
 pr: 145
-blocked: null
+blocked: question
 comments_seen: 4
-round: 3
+round: 4
 attempts: 0
 ---
 # Kill-point tests
@@ -425,3 +425,13 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
     This story has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
 18. human (pull request comment, 2026-10-17): Continue: one more round. The tester makes exactly the reviewer's two changes in round 2 and nothing else. (1) One public helper `rerun_seconds(result) -> float | None` in `tests/proof_support.py`, built on `_claim_commits` and `_state_at`, used by `_kill_to_rerun_recorded` and by `test_the_rerun_starts_five_seconds_after_the_kill`, which keeps its `record_property` call and its assertion of 5.0; `_rerun_seconds` in `tests/test_kill_points.py` goes. (2) `_opening_text` is renamed `_opening_document`. `src/` stays as it is.
+19. reviewer: round 3. The two group-4 findings from entry 17 are still open. Entry 18 has the human's answer: one more round, in which the tester makes exactly these two changes and nothing else. Neither change is on the branch: `git diff 04ba05b..HEAD -- tests src` is empty. Both fixes are test changes, so the coder ends with `tests` and names them as entry 18 gives them (R9).
+
+    Groups 1 to 3 pass as entry 17 reported, and nothing under `tests/` or `src/` has changed since then. The changes to `CLAUDE.md`, `planning/` and `docs/runs/` come from the human's own commits, so I did not review them.
+
+    1. `tests/test_kill_points.py:84-104` (`_rerun_seconds`). What is wrong: it is still a second copy of the claim-commit logic in `tests/proof_support.py` (`_kill_to_rerun_recorded` at line 531, `_claim_commits`, `_state_at`). It hardcodes the in-progress path and walks `main` too. Because of it, no test reaches the `kill-to-rerun-recorded` check. Fix (entry 18): add one public helper `rerun_seconds(result) -> float | None` to `tests/proof_support.py`, built on `_claim_commits` and `_state_at`. `_kill_to_rerun_recorded` and `test_the_rerun_starts_five_seconds_after_the_kill` both use it. The test keeps its `record_property("kill_to_rerun_seconds", ...)` call and its assertion of 5.0, and `_rerun_seconds` is removed.
+    2. `tests/proof_support.py:236` and `:268` (`_opening_text`). What is wrong: the name says text, but the function returns a `WorkItemDocument`. Fix (entry 18): rename it `_opening_document` and update the call at line 268.
+
+    `src/` stays as it is.
+
+    This story has now been sent back 4 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
