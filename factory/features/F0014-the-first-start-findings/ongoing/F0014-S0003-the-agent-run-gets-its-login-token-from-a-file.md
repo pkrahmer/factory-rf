@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 196
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -182,3 +182,24 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/entry/test_wiring_login.py - ImportError while importing test mod...
+4. coder: Question: one test row cannot pass against the ticket. In `tests/application/test_agent_run_probe_login.py::test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set[completed-login-file]`, line 79 builds `AgentRunResult(end_reason="completed", duration=...)` and only afterwards adds the decision and entry with `model_copy`. The validator in `src/factory/domain/agent_runs.py:149` refuses a `completed` result that has no decision ("a completed run needs a decision"), so the test fails with a `ValidationError` before it reaches the probe. The ticket says `agent_runs.py` does not change.
+
+   Options:
+   (a) The tester builds the `completed` result with `decision="question", entry="probe"` in the constructor, for example `AgentRunResult(end_reason=reason, duration=..., **({"decision": "question", "entry": "probe"} if reason == "completed" else {}))`, or with a small helper. My choice: no code change and no change to what the test means.
+   (b) Loosen the domain validator. I reject this: it contradicts the ticket and weakens a rule earlier stories rely on.
+
+   State: the implementation is committed (25131133). Every other new test passes, as do the pinned tests for criterion 15. `make lint`, `make types` and `make layers` are green; `make test` is red on this one row only.
+   - `src/factory/domain/settings.py`: `CLAUDE_LOGIN_FILE_VARIABLE`, and `InstanceSettings.claude_login_file` read through `_optional_path`.
+   - `src/factory/adapters/claude_runtime.py`:
+     - New constants `LOGIN_VARIABLE`, `SHELL_EXECUTABLE`, `LOGIN_PREFIX` and `LOGIN_SCRIPT`. `LOGIN_SCRIPT` is a POSIX sh script. It checks that the file exists, then that it is a regular file `cat` can read, then counts the bytes left after `LC_ALL=C tr -d '!-~ \t\r\n'`, then strips whitespace and either exports or unsets the variable before `exec "$@"`. It runs under `env -i` with no PATH, because dash falls back to its built-in default path.
+     - New keyword `login_file`.
+     - `_claude_argv` puts the shell in front of `claude` for the first call and for a resumed one.
+     - `LOGIN_VARIABLE` is always dropped from the request's environment.
+     - `_check_login` raises `AgentRuntimeError` after the `sudo` check when stdout is not a reply and stderr has a `factory-login:` line.
+     - `version()` is unchanged.
+   - `src/factory/entry/wiring.py`: passes `login_file=settings.claude_login_file`.
+   - `src/factory/application/preflight.py`: adds the login-file hint to the detail of a run that did not complete.
+
+   Rejected: leaving out the separate check for a file that cannot be read and letting the ASCII count catch it. That would report a folder as plain text, since `tr` sees no bytes. A dangling symlink counts as a missing file (`test -e`), matching the ticket's wording.
+
+   For review: the ticket pins a constructor signature that exceeds ruff's PLR0913 limit (6 > 5). I added `# noqa: PLR0913` with a reason comment on `ClaudeCodeRuntime.__init__`. A ruff `noqa` is not on the "not without asking" list, but the reviewer may want it noted. The refactor pass is still to do after the answer.
