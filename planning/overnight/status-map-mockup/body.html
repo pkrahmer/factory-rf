@@ -1,0 +1,234 @@
+<header>
+  <h1>Factory Status Map</h1>
+  <button class="factory-btn" id="factoryBtn" aria-pressed="true">factory-rf · v1</button>
+  <span class="meta" id="meta"></span>
+  <div class="legend">
+    <span><i style="background:hsl(160 40% 50%)"></i>agent run</span>
+    <span><i style="background:repeating-linear-gradient(135deg,var(--wait) 0 3px,transparent 3px 6px)"></i>waiting for the human</span>
+    <span><i style="outline:2px solid var(--stall);outline-offset:-1px"></i>stalled</span>
+    <span><i style="background:var(--wait);border-radius:50%;width:8px;height:8px"></i>question</span>
+    <span>a step left is a send-back</span>
+  </div>
+</header>
+<main>
+  <section class="pane" aria-label="Stages over time"><h2>Work and stages · time runs down</h2>
+    <div class="mapwrap" id="mapwrap"><div class="map" id="map"><div class="heads" id="heads"></div><div class="body" id="mbody"></div></div></div></section>
+  <section class="pane detail-pane" aria-label="Selection"><h2 id="dtitle">Factory</h2><div class="scroll"><div class="detail" id="detail"></div></div></section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const T0 = Date.parse(D.start), T1 = Date.parse(D.end) + 5 * 60e3, PX = 2.4 / 60e3; // 2.4 px per minute
+const COLW = 96, LEFT = 250;
+const stages = D.stages, sidx = Object.fromEntries(stages.map((s, i) => [s.id, i]));
+const y = t => 12 + (Date.parse(t) - T0) * PX;
+const fmt = t => new Date(t).toISOString().slice(11, 16) + 'Z';
+const mins = s => (s / 60).toFixed(1);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const items = D.items.map((d, i) => { d.hue = (i * 47) % 360; return d; });
+const lastOf = (arr, f) => { for (let i = arr.length - 1; i >= 0; i--) if (f(arr[i])) return arr[i]; };
+
+function status(d) {
+  const last = d.segments[d.segments.length - 1] || {};
+  if (d.events.some(e => e.kind === 'booked')) return ['done', 'b-done'];
+  if (last.outcome === 'running') return ['running', 'b-run'];
+  if (last.outcome === 'stalled') return ['stalled', 'b-stall'];
+  if (last.outcome === 'accept' || last.outcome === 'question') return ['waiting', 'b-wait'];
+  return ['open', 'b-run'];
+}
+
+// Waits for the human: from the demo stage's end to the merge, and from a question to its answer.
+items.forEach(d => {
+  d.waits = [];
+  const m = d.events.find(e => e.kind === 'merged');
+  const a = lastOf(d.segments, s => s.outcome === 'accept');
+  if (a && m) d.waits.push({ stage: 'accept', start: a.end, end: m.t });
+  d.events.filter(e => e.kind === 'question').forEach(q => {
+    const ans = d.events.find(e => e.kind === 'answer' && e.t > q.t);
+    const s = lastOf(d.segments, s => s.end && s.end <= q.t);
+    if (s) d.waits.push({ stage: s.stage, start: q.t, end: ans ? ans.t : D.end, q: true });
+  });
+});
+
+const total = items.reduce((a, d) => a + d.cost, 0);
+document.getElementById('meta').textContent =
+  `${D.feature} · ${fmt(D.start)}–${fmt(D.end)} · ${items.length - 1} stories and one acceptance · $${total.toFixed(2)} agent cost`;
+
+const heads = document.getElementById('heads'), mbody = document.getElementById('mbody'), map = document.getElementById('map');
+const W = LEFT + COLW * stages.length, H = y(new Date(T1).toISOString()) + 20;
+map.style.width = W + 'px';
+heads.style.gridTemplateColumns = `${LEFT}px repeat(${stages.length},${COLW}px)`;
+mbody.style.height = H + 'px';
+heads.innerHTML = `<div class="gutterhead"><button class="feat-btn" data-feature="1"><span class="dot" style="background:var(--accent)"></span><span>F0012 Housekeeping</span><span class="badge b-run">accepting</span></button></div>` + stages.map(s =>
+  `<button class="stagehead" data-stage="${s.id}">${s.id}<small>${s.role || (s.id === 'done' ? 'merged' : 'human')}</small></button>`).join('');
+
+let html = '', paths = '';
+for (let t = Math.ceil(T0 / 36e5) * 36e5; t < T1; t += 36e5)
+  html += `<div class="tick" style="top:${y(new Date(t).toISOString())}px">${new Date(t).toISOString().slice(11, 16)}</div>`;
+stages.forEach((s, i) => { html += `<div class="col" style="left:${LEFT + i * COLW}px;width:${COLW}px"></div>`; });
+
+items.forEach((d, k) => {
+  const col = `hsl(${d.hue} var(--seg-s) var(--seg-l))`, lane = (k % 3) * 10, pts = [];
+  const add = (s, cls) => {
+    const i = sidx[s.stage];
+    if (i === undefined) return;
+    const top = y(s.start), bot = s.end ? y(s.end) : H - 20, x = LEFT + i * COLW + 16 + lane;
+    html += `<div class="seg ${cls}" tabindex="0" data-item="${d.id}" title="${esc(d.id)} · ${s.stage}" style="left:${x}px;width:${COLW - 40}px;top:${top}px;height:${Math.max(3, bot - top)}px;background:${col}"></div>`;
+    return [x + (COLW - 40) / 2, top, bot];
+  };
+  d.segments.forEach(s => {
+    const p = add(s, s.outcome === 'stalled' ? 'stalled' : s.outcome === 'running' ? 'running' : '');
+    if (p) pts.push(p);
+  });
+  d.waits.forEach(w => {
+    const p = add(w, 'wait');
+    if (!p) return;
+    if (w.q) html += `<div class="qmark" style="left:${p[0]}px;top:${p[1]}px"></div>`;
+    else pts.push(p);
+  });
+  const b = d.events.find(e => e.kind === 'booked');
+  if (b) {
+    const bx = LEFT + sidx.done * COLW + COLW / 2, by = y(b.t);
+    pts.push([bx, by, by]);
+    html += `<div class="seg" data-item="${d.id}" tabindex="0" title="${esc(d.id)} merged" style="left:${bx - 5}px;width:10px;top:${by - 5}px;height:10px;border-radius:50%;background:${col}"></div>`;
+  }
+  pts.sort((p, q) => p[1] - q[1]);
+  let dp = '';
+  for (let j = 1; j < pts.length; j++) {
+    const [x0, , b0] = pts[j - 1], [x1, t1] = pts[j], m = (b0 + t1) / 2;
+    dp += `M${x0},${b0} C${x0},${m} ${x1},${m} ${x1},${t1} `;
+  }
+  if (dp) paths += `<path data-item="${d.id}" d="${dp}" fill="none" stroke="${col}" stroke-width="1.5"/>`;
+});
+mbody.innerHTML = html + `<svg class="links" width="${W}" height="${H}">${paths}</svg>`;
+
+const stories = items.filter(d => d.id !== 'F0012-ACCEPTANCE'), acc = items.find(d => d.id === 'F0012-ACCEPTANCE');
+let gutter = `<div class="gutter" style="position:absolute;left:0;top:0;width:${LEFT}px;height:${H}px">`, lastY = -99;
+[...stories, ...(acc ? [acc] : [])].forEach(d => {
+  if (!d.segments.length) return;
+  const [st, c] = status(d), label = d.id === 'F0012-ACCEPTANCE' ? 'A' : d.id.slice(6, 11);
+  const top = Math.max(y(d.segments[0].start) - 10, lastY + 21); lastY = top;
+  gutter += `<button class="label" data-item="${d.id}" style="top:${top}px" title="${esc(d.title)}"><span class="dot" style="background:hsl(${d.hue} var(--seg-s) var(--seg-l))"></span><span class="name"><span class="fid">${label}</span> ${esc(d.title)}</span><span class="badge ${c}">${st}</span></button>`;
+});
+mbody.insertAdjacentHTML('afterbegin', gutter + '</div>');
+const detail = document.getElementById('detail'), dtitle = document.getElementById('dtitle');
+const sendBacks = d => d.segments.filter(s => s.outcome && sidx[s.outcome] !== undefined && sidx[s.outcome] < sidx[s.stage]).length;
+
+// The story file: chapters are its "## " sections (outside code fences); the log's entries are
+// "N. speaker: text" at column 0 with indented continuation lines (v1's form). v1.1 keeps speaker
+// and kind as records in the front matter, and with `at` and `stage` the grouping needs no parsing.
+const SPEAKER_STAGE = { intake: 'ready', tester: 'tests', coder: 'doing', reviewer: 'review', documenter: 'docs', demo: 'demo', acceptor: 'feature' };
+function splitStory(text) {
+  const body = text.replace(/^---\n[\s\S]*?\n---\n/, '');
+  const chapters = [], lines = body.split('\n');
+  let cur = null, fence = false;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) fence = !fence;
+    const h = !fence && /^## (.+)$/.exec(line);
+    if (h) { cur = { title: h[1], lines: [] }; chapters.push(cur); }
+    else if (cur) cur.lines.push(line);
+  }
+  const logIdx = chapters.findIndex(c => /^Log\b|^Journal\b/.test(c.title));
+  const log = logIdx >= 0 ? chapters.splice(logIdx, 1)[0] : { lines: [] };
+  const journal = [];
+  for (const line of log.lines) {
+    const m = /^(\d+)\. ([a-z]+)\b(.*)$/.exec(line);
+    if (m) journal.push({ n: +m[1], speaker: m[2], text: (m[2] + m[3]).trim() });
+    else if (journal.length) journal[journal.length - 1].text += '\n' + line.replace(/^ {3}/, '');
+  }
+  journal.forEach(e => { e.text = e.text.replace(/\s+$/, ''); });
+  return {
+    chapters: chapters.map(c => {
+      const b = c.lines.join('\n').trim();
+      const crit = (b.match(/^\d+\. /gm) || []).length;
+      return { title: c.title, body: b, count: crit ? ` · ${crit}` : '' };
+    }),
+    journal,
+  };
+}
+function stageVisits(d, journal) {
+  const visits = [], used = new Set();
+  for (const e of journal) {
+    const stage = SPEAKER_STAGE[e.speaker] || (e.speaker === 'human' ? 'answer' : e.speaker === 'done' ? 'done' : e.speaker);
+    const last = visits[visits.length - 1];
+    if (last && last.speaker === e.speaker && last.stage === stage) { last.entries.push(e); continue; }
+    let seg = null;
+    const i = d.segments.findIndex((s, k) => !used.has(k) && s.stage === stage);
+    if (i >= 0 && SPEAKER_STAGE[e.speaker]) { used.add(i); seg = d.segments[i]; }
+    visits.push({ stage, speaker: e.speaker, seg, entries: [e] });
+  }
+  return visits;
+}
+function renderText(t) {
+  // The story's Markdown, rendered and sanitized (agents wrote it); plain text if the libraries did not load.
+  if (window.marked && window.DOMPurify)
+    return `<div class="md">${DOMPurify.sanitize(marked.parse(t, { gfm: true, breaks: false }))}</div>`;
+  return `<div class="txt">${esc(t)}</div>`;
+}
+
+function select(kind, id) {
+  document.querySelectorAll('[aria-current]').forEach(e => e.removeAttribute('aria-current'));
+  document.getElementById('factoryBtn').setAttribute('aria-pressed', String(kind === 'factory'));
+  mbody.classList.toggle('dim', kind === 'item');
+  document.querySelectorAll('.seg,.links path').forEach(e => e.classList.toggle('on', kind === 'item' && e.dataset.item === id));
+  if (kind === 'item') {
+    const d = items.find(x => x.id === id);
+    document.querySelector(`.label[data-item="${id}"]`)?.setAttribute('aria-current', 'true');
+    dtitle.textContent = d.id === 'F0012-ACCEPTANCE' ? 'Acceptance' : 'Story';
+    const { chapters, journal } = splitStory(d.text);
+    const visits = stageVisits(d, journal);
+    const chapterHtml = chapters.map((c, i) =>
+      `<details class="chap"${i === 0 ? ' open' : ''}><summary>${esc(c.title)}<span class="hint">${c.count}</span></summary>${renderText(c.body)}</details>`).join('');
+    const visitHtml = visits.map(v => {
+      const time = v.seg ? `${fmt(v.seg.start)} · ${v.seg.seconds != null ? mins(v.seg.seconds) + ' min' : 'running'}${v.seg.cost != null ? ' · $' + v.seg.cost.toFixed(2) : ''}` : '';
+      const out = v.seg && v.seg.outcome ? `→ ${esc(v.seg.outcome)}` : '';
+      const cls = v.seg?.outcome === 'stalled' ? ' stall' : v.seg?.outcome === 'question' ? ' ask' : (v.seg && sidx[v.seg.outcome] < sidx[v.stage]) ? ' back' : '';
+      return `<details class="visit${cls}"><summary><span class="vstage">${esc(v.stage)}</span><span class="vwho">${esc(v.speaker)}</span><span class="vtime">${time}</span><span class="vout">${out}</span></summary>${v.entries.map(e => `<div class="entry"><span class="enum">${e.n}</span>${renderText(e.text)}</div>`).join('')}</details>`;
+    }).join('');
+    detail.innerHTML = `<h3>${esc(d.title)}</h3>
+      <dl class="kv"><dt>Id</dt><dd>${d.id}</dd><dt>State</dt><dd>${esc(d.state)}</dd>
+      ${d.pr ? `<dt>Pull request</dt><dd><a href="https://github.com/pkrahmer/factory-rf/pull/${d.pr}" target="_blank" rel="noopener">#${d.pr}</a></dd>` : ''}
+      <dt>Agent cost</dt><dd>$${d.cost.toFixed(2)} over ${d.segments.length} runs</dd><dt>Send-backs</dt><dd>${sendBacks(d)}</dd></dl>
+      <div class="part"><h4>The story</h4>${chapterHtml}</div>
+      <div class="part"><h4>The journal, by stage visit</h4>${visitHtml || '<p class="hint">No journal yet.</p>'}</div>`;
+    document.querySelector(`.seg[data-item="${id}"]`)?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+  } else if (kind === 'stage') {
+    const s = stages.find(x => x.id === id);
+    document.querySelector(`.stagehead[data-stage="${id}"]`).setAttribute('aria-current', 'true');
+    dtitle.textContent = 'Stage';
+    const runs = items.flatMap(d => d.segments.filter(x => x.stage === id));
+    const sec = runs.reduce((a, x) => a + (x.seconds || 0), 0), cost = runs.reduce((a, x) => a + (x.cost || 0), 0);
+    detail.innerHTML = `<h3>${id}${s.role ? ' · ' + s.role : ''}</h3>
+      <dl class="kv"><dt>Runs</dt><dd>${runs.length}</dd><dt>Agent minutes</dt><dd>${mins(sec)}</dd><dt>Cost</dt><dd>$${cost.toFixed(2)}</dd>
+      ${s.lane ? `<dt>Write paths</dt><dd>${esc(s.lane)}</dd>` : ''}</dl>
+      <p class="hint">From factory/stages.yml</p><pre>${esc(s.config) || '(no block)'}</pre>
+      ${s.agent ? `<p class="hint">claude/agents/${s.role}.md</p><pre>${esc(s.agent)}</pre>` : ''}`;
+  } else if (kind === 'feature') {
+    document.querySelector('.feat-btn').setAttribute('aria-current', 'true');
+    dtitle.textContent = 'Feature';
+    detail.innerHTML = `<h3>F0012 Housekeeping</h3>
+      <dl class="kv"><dt>Stories</dt><dd>${stories.length}</dd><dt>Done</dt><dd>${stories.filter(d => status(d)[0] === 'done').length}</dd>
+      <dt>Agent cost</dt><dd>$${total.toFixed(2)}</dd><dt>Send-backs</dt><dd>${items.reduce((a, d) => a + sendBacks(d), 0)}</dd>
+      <dt>Questions</dt><dd>${items.reduce((a, d) => a + d.events.filter(e => e.kind === 'question').length, 0)}</dd></dl>
+      <p class="hint">Select a story on the left or its path on the map for its full text.</p>`;
+  } else {
+    dtitle.textContent = 'Factory log';
+    detail.innerHTML = `<p class="hint">v1's tick log for this feature, newest first. Select a stage, a story or the feature for its text; Escape or a click on the empty map comes back here.</p><pre>${esc(D.log.slice().reverse().join('\n'))}</pre>`;
+  }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-item],[data-stage],[data-feature],#factoryBtn');
+  if (t?.dataset.item) select('item', t.dataset.item);
+  else if (t?.dataset.stage) select('stage', t.dataset.stage);
+  else if (t?.dataset.feature) select('feature');
+  else if (t?.id === 'factoryBtn' || e.target.closest('#mbody')) select('factory');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.classList?.contains('seg')) select('item', e.target.dataset.item);
+  if (e.key === 'Escape') select('factory');
+});
+select('factory');
+</script>

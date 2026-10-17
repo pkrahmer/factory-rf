@@ -1,0 +1,124 @@
+<title>Factory Status Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three panes (work tree | stage-by-time map | selection text), the map is the instrument. */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1d2320; --muted:#5f6a64; --line:#d9ddd9; --grid:#e8ebe8;
+  --accent:#2f6f5e; --wait:#b7791f; --stall:#b42318; --ok:#2f6f5e; --run:#1f5fae; --sel:#1d2320;
+  --seg-l:46%; --seg-s:42%;
+  --f-ui:"Instrument Sans", "Segoe UI", system-ui, sans-serif; --f-mono:"JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151917; --panel:#1c211f; --ink:#e4e8e5; --muted:#9aa59f; --line:#2f3633; --grid:#232926;
+  --accent:#6fbfa6; --wait:#e0a84f; --stall:#f07a6a; --ok:#6fbfa6; --run:#7aa8e6; --sel:#e4e8e5; --seg-l:62%; --seg-s:40%; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151917; --panel:#1c211f; --ink:#e4e8e5; --muted:#9aa59f; --line:#2f3633; --grid:#232926;
+  --accent:#6fbfa6; --wait:#e0a84f; --stall:#f07a6a; --ok:#6fbfa6; --run:#7aa8e6; --sel:#e4e8e5; --seg-l:62%; --seg-s:40%; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+header h1{font-size:18px;font-weight:600;margin:0;text-wrap:balance}
+.factory-btn{font:inherit;font-weight:600;background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:3px 10px;cursor:pointer}
+.factory-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.meta{color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:12px}
+.legend i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:10px}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:0;min-width:0;display:flex;flex-direction:column}
+.pane h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;padding:10px 12px 6px;font-weight:600}
+.scroll{overflow:auto;min-height:0;flex:1}
+/* tree */
+.tree{list-style:none;margin:0;padding:0 6px 10px}
+.tree button{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:4px 6px;border-radius:5px;cursor:pointer}
+.tree button:hover{background:var(--grid)}
+.tree button:focus-visible,.stagehead:focus-visible,.seg:focus-visible,.factory-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tree button[aria-current="true"]{background:var(--grid);box-shadow:inset 2px 0 0 var(--sel)}
+.tree .fid{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.tree .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree .feat{font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:9px;border:1px solid currentColor}
+.b-done{color:var(--ok)} .b-run{color:var(--run)} .b-stall{color:var(--stall)} .b-wait{color:var(--wait)}
+.dot{width:8px;height:8px;border-radius:50%}
+/* map: the work gutter (stories at their start time) scrolls with the stages */
+.gutter{position:sticky;left:0;z-index:2;background:var(--panel);border-right:1px solid var(--line)}
+.heads .gutterhead{position:sticky;left:0;z-index:4;background:var(--panel);border-right:1px solid var(--line);display:flex;align-items:center;padding:0 6px}
+.label{all:unset;box-sizing:border-box;position:absolute;left:40px;right:4px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;height:20px;padding:0 4px;border-radius:4px;cursor:pointer;font-size:12px}
+.label:hover{background:var(--grid)} .label[aria-current="true"]{background:var(--grid);box-shadow:inset 2px 0 0 var(--sel)}
+.label:focus-visible{outline:2px solid var(--accent)}
+.label .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .label .fid{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.feat-btn{all:unset;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;width:100%;font-weight:600;font-size:12px;padding:4px;border-radius:4px}
+.feat-btn[aria-current="true"]{background:var(--grid)} .feat-btn:focus-visible{outline:2px solid var(--accent)}
+/* map */
+.mapwrap{overflow:auto;flex:1;min-height:0;position:relative}
+.map{position:relative}
+.heads{position:sticky;top:0;z-index:3;display:grid;background:var(--panel);border-bottom:1px solid var(--line)}
+.stagehead{all:unset;cursor:pointer;text-align:center;padding:8px 2px;font-weight:600;font-size:12px;border-left:1px solid var(--grid)}
+.stagehead small{display:block;font-weight:400;color:var(--muted);font-family:var(--f-mono);font-size:10px}
+.stagehead[aria-current="true"]{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
+.body{position:relative}
+.col{position:absolute;top:0;bottom:0;border-left:1px solid var(--grid)}
+.tick{position:absolute;left:0;right:0;z-index:3;pointer-events:none;border-top:1px dashed var(--grid);font-family:var(--f-mono);font-size:10px;color:var(--muted);padding-left:4px;font-variant-numeric:tabular-nums}
+.seg{position:absolute;border-radius:3px;cursor:pointer;min-height:3px}
+.seg.wait{background:repeating-linear-gradient(135deg,var(--wait) 0 3px,transparent 3px 6px)!important;opacity:.8}
+.seg.stalled{outline:2px solid var(--stall);outline-offset:-1px}
+.seg.running{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.seg.running{animation:none}}
+svg.links{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.dim .seg:not(.on){opacity:.18} .dim svg path:not(.on){opacity:.12}
+.qmark{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--wait);border:2px solid var(--panel);transform:translate(-50%,-50%);pointer-events:none}
+/* details */
+.detail{padding:4px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.detail h3{margin:0;font-size:16px;text-wrap:balance}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;font-variant-numeric:tabular-nums}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;margin:0;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;max-width:100%;box-sizing:border-box}
+table.runs{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums}
+table.runs td,table.runs th{border-bottom:1px solid var(--grid);padding:3px 4px;text-align:left}
+table.runs th{color:var(--muted);font-weight:500}
+a{color:var(--accent)}
+.hint{color:var(--muted);font-size:12px}
+@media (max-width:900px){
+  body{height:auto} main{grid-template-columns:1fr;grid-auto-rows:auto}
+  .mapwrap{max-height:75vh} .pane.detail-pane .scroll{max-height:none}
+}
+
+/* the selection: the story in chapters, the journal in stage visits */
+.part{display:flex;flex-direction:column;gap:4px}
+.part h4{margin:6px 0 2px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+details.chap,details.visit{border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+details>summary{cursor:pointer;padding:6px 10px;list-style:none;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"B8";color:var(--muted);font-size:10px;transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){details>summary::before{transition:none}}
+details.chap>summary{font-weight:600}
+details[open]>:not(summary){margin:0 10px 8px}
+.txt{white-space:pre-wrap;word-break:break-word;font-size:12.5px;line-height:1.5}
+.txt code,.entry code{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);padding:0 3px;border-radius:3px}
+.vstage{font-family:var(--f-mono);font-size:12px;font-weight:600;min-width:52px}
+.vwho{color:var(--muted);font-size:12px}
+.vtime{font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted);margin-left:auto}
+.vout{font-family:var(--f-mono);font-size:11px}
+details.visit{border-left:3px solid var(--ok)}
+details.visit.back{border-left-color:var(--wait)} details.visit.ask{border-left-color:var(--run)} details.visit.stall{border-left-color:var(--stall)}
+.entry{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;padding-top:4px;border-top:1px dashed var(--grid)}
+.entry:first-of-type{border-top:0}
+.enum{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-align:right}
+
+/* rendered Markdown of the story and its journal */
+.md{font-size:12.5px;line-height:1.55;overflow-wrap:anywhere;min-width:0}
+.md>:first-child{margin-top:0} .md>:last-child{margin-bottom:0}
+.md p,.md ul,.md ol{margin:0 0 .55em} .md ul,.md ol{padding-left:1.3em} .md li{margin:.15em 0}
+.md h1,.md h2,.md h3,.md h4{font-size:12.5px;margin:.8em 0 .3em;text-wrap:balance}
+.md code{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);padding:0 3px;border-radius:3px}
+.md pre{margin:.4em 0 .6em;overflow-x:auto;white-space:pre} .md pre code{background:none;padding:0}
+.md table{border-collapse:collapse;font-size:11.5px;display:block;overflow-x:auto;max-width:100%;margin:.4em 0 .6em}
+.md th,.md td{border:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
+.md th{background:var(--bg);font-weight:600}
+.md blockquote{margin:.4em 0;padding-left:10px;border-left:3px solid var(--line);color:var(--muted)}
+.md a{color:var(--accent)} .md strong{font-weight:600}
+</style>
