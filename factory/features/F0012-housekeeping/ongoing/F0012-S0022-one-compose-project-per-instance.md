@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 172
 blocked: null
 comments_seen: 0
@@ -68,3 +68,9 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+   - Acceptance criteria: criterion 1 is tested by `tests/test_compose_project.py::test_the_project_is_named_after_the_required_instance_without_a_default`. It checks the exact string, the `factory-` prefix, the `:?` with a message, that there is no `:-` default, and that `name` is the first key. The exact-string check also rules out every other value, so the refused side (a default, or no `:?`) is covered. Criterion 2 is tested by `test_the_project_name_refuses_with_the_same_message_as_the_service_environment`, which compares the `:?` message in `name` with the one in the service's `FACTORY_INSTANCE`. Criterion 3: `tests/test_compose.py` and `tests/test_image_users.py` are unchanged, and none of them pins the old `name: factory`. Criterion 4: the coder's entry reports `check: green` and `duplicates: 0 new`. Criterion 5 belongs to the docs stage.
+   - Architecture: the only change outside tests is one line in `image/compose.yml` (`name:`). The rest of the file is untouched, as the Interface asks. No `src/` code and no layers are involved.
+   - Security: no secrets and no suppression markers. The `:?` form makes compose refuse to start when `FACTORY_INSTANCE` is unset, with no default.
+   - Quality: the new module loads the compose file the same way the other per-module compose tests do (`COMPOSE` constant, safe-loader fixture), which matches the existing convention and the Interface. Names are clear and there is no dead code.
+   - Ticket hygiene: the coder's entry explains the main decision (the same `:?` message reused word for word) and what was rejected (a `:-` default). `Assignment` matches what was built, and the docs criterion still says what the operator guide and the decision log must cover.
