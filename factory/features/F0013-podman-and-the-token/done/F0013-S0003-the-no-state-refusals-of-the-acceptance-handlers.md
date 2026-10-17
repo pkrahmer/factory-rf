@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 184
 blocked: null
 comments_seen: 0
@@ -118,3 +118,4 @@ Expect: `3`, the three messages the tests pin.
    - Criterion 6 (docs: none): consistent with the demo.
 
    Nothing contradicts a criterion. No findings.
+8. done (pull request merged); cost: 6 runs, 3.1 min, 32 turns, 135k tokens in (372k more from cache), 9k out, $0.80
