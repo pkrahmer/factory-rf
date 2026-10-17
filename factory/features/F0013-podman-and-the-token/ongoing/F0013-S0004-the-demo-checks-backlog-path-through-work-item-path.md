@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The demo check's backlog path through work_item_path
 
 ## Assignment (as of log entry 1)
