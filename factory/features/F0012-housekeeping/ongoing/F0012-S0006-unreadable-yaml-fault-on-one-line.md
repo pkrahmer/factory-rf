@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 158
 blocked: null
 comments_seen: 2
@@ -171,3 +171,17 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (24.5 s)
+10. coder: coder (round 1): The tester's new rows for criterion 10 (entry 9) pass against the code already on the branch. This round needed no code change and has no new commit.
+    - Built, in earlier rounds, in `src/factory/adapters/pipeline_yaml.py`:
+      - `yaml_fault` (4a502d2): ruamel's `problem` plus the 1-based `problem_mark`, or the problem alone when there is no mark; otherwise the first non-blank line of `str(error)` through `_first_line`.
+      - the escaping of `\n`/`\r` inside the problem through `_escaped_line_breaks` (ee70afa), which fixes review finding 1.
+      - `RuamelPipelineDefinitionReader.parse` raises `PipelineDefinitionInvalid(yaml_fault(error))`.
+    - Main decision: build the fault from ruamel's structured attributes instead of cutting up `str(error)`, and escape line breaks inside the problem instead of collapsing whitespace. Collapsing would lose where a value broke, and different values would read the same.
+    - Review finding 2 is settled by the human's answer (a) in entry 7: criterion 10 is in the ticket and the tester added its rows in entry 9.
+    - Refactor: I re-read `git diff main...HEAD -- src`. It is one public function and two small private helpers, with nothing unclear or duplicated, so there is no refactor commit.
+    - Noticed, not touched: nothing.
+
+    `make check`: check: green (test: green (24.4 s), coverage 99.51 %)
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
