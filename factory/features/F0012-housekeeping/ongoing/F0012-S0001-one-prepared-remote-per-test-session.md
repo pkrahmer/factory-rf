@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 153
 blocked: null
 comments_seen: 0
@@ -108,3 +108,18 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (32.5 s)
+4. coder: I confirmed `make check` and changed nothing. As the Assignment and the tester's entry expected, the story is test support only. The tester's work holds all of it:
+   - `copy_remote` in `tests/git_support.py`;
+   - the `remote_template`, `remote` and `world` fixtures in `tests/conftest.py`;
+   - `build_world(root, *, template=None)` in `tests/proof_support.py`;
+   - the new tests in `tests/test_git_support.py`.
+
+   Nothing under `src/` needs to change for any criterion, so I made no commit.
+
+   Refactor step: `git diff main...HEAD -- . ':!factory' ':!tests'` is empty, so there is nothing of mine to clean up. The coder does not edit the test helpers.
+
+   `make check`: check: green (test: green (34.6 s), coverage 99.53 %).
+
+   Open: criterion 9 (the project guide's paragraphs on the `remote` and `world` fixtures) is for the documenter.
+
+   `make check`: check: green
