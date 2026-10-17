@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 145
 blocked: null
 comments_seen: 2
@@ -397,3 +397,17 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
     `make lint`: lint: green
     `make test`: test: green
+16. coder: round 2. The one finding from entry 13 is fixed. It was a test change, and the tester made it in entry 15 (commit 04ba05b). This round I changed nothing under `src/` or `tests/`. `src/factory/domain/kill_point_cases.py` (commit 1599e19) is unchanged.
+
+    - Finding (criterion 7, `post-record`): `tests/proof_support.py::_resumes_at_first_tick` now splits on `case.charges_crash`.
+      - For a case that charges no crash, it checks that the restarted runtime has no requests after all three ticks.
+      - For a case that charges a crash, it still checks `first_tick_requests == [STAGE]`.
+      - The stricter check passes against the current `src/`. So the current tick does not rerun a stage whose result was already pushed, and no `src/` change is needed.
+
+    Refactor pass: nothing new in `src/` this round, so there was nothing to refactor and there is no refactor commit.
+
+    Open: criterion 24 (the project guide's `## Kill points` table and the `docs/decisions.md` entry) is still the documenter's job.
+
+    `make check`: check: green (lint, types, layers, sast, secrets, licenses and test all green; coverage 99.55 %)
+
+    `make check`: check: green
