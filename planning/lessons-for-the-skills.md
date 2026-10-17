@@ -34,3 +34,4 @@ The rules `factory-rf`'s `CLAUDE.md` gained while v1 built v1.1, sorted by where
 | Fake commit ids and other hex test values are low-entropy (`"a" * 40`), so detect-secrets stays green without a baseline entry | Python (any stack with detect-secrets) | template `CLAUDE.md` | 2026-10-13, F0001-S0011 |
 | `human.push_file` pushes only changed text (an unchanged file makes an empty commit) | project | `factory-rf`'s `CLAUDE.md` | 2026-10-14 |
 | A pipeline definition written in a test passes every load-time rule unless the test is about that rule | project | `factory-rf`'s `CLAUDE.md` | 2026-10-14 |
+| The linters exclude the human's planning folder (`extend-exclude` in `[tool.ruff]`), so a script kept there never blocks a stage | project | `factory-rf`'s `pyproject.toml` | 2026-10-18, F0014-S0001 (the tester stalled on two scripts in `planning/`) |
