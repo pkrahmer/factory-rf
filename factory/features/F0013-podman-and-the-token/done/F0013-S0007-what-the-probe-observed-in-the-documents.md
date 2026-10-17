@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 189
 blocked: null
 comments_seen: 0
@@ -109,3 +109,4 @@ Expect: `documents ok`.
      - No other document changed, and the document check still prints `documents ok`.
 
    The demo contradicts no criterion. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 1.9 min, 27 turns, 105k tokens in (233k more from cache), 6k out, $0.55
