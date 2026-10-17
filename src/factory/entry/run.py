@@ -8,6 +8,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from types import FrameType
 
+from factory.application.disk_records import DiskRecorder
 from factory.application.hosting import HostingService
 from factory.application.machine import Clock
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
@@ -97,6 +98,7 @@ def run_instance(
     """
     token = read_hosting_token(settings.token_file)
     boundaries = build_boundaries(settings, token, hosting=hosting)
+    DiskRecorder(boundaries).record("start")
     # One tick for the whole run: its status lives in memory and counts across ticks.
     tick = build_tick(boundaries, settings)
     preparer = CheckoutPreparer(boundaries.git, settings)

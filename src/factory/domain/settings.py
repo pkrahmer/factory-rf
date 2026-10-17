@@ -53,6 +53,7 @@ class InstanceSettings(BaseModel):
     pinned_agent_version: str | None = None
     agent_user: Name | None = None
     min_free_gb: PositiveInt = DEFAULT_MIN_FREE_GB
+    temporary_directory: Path | None = None
 
 
 def read_settings(
