@@ -1,8 +1,8 @@
 ---
 stage: ready
 pr: 154
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -117,3 +117,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    2. The `==` lines have no failing side. What does a line that starts with `==` but does not match `==<module>:[<start>:<end>]` do? An example is `==factory.a`. Does it raise `ValueError` like (a) above, or does it count as code? I would choose raising, with a row in the same criterion.
 
    Everything else I checked is fine. That covers the Interface signatures, criteria 1 to 15 apart from the two points above, the Demo (both commands run, and the first Expect matches the Interface's rules), the architecture (a pure `factory.domain` module plus an `entry` command that only reads files) and the scope (F0012 item 1.2).
+3. human (pull request comment, 2026-10-17): (a) for both. A `duplicate-code` message without a `==<module>:[<start>:<end>]` line, with no non-blank code line after its `==` lines, or with a line that starts with `==` but does not match `==<module>:[<start>:<end>]` (for example `==factory.a`) raises `ValueError` naming the message, so `make duplicates` stops with `check-duplicates: <reason>` and exit status 2. Add one criterion for it, the three cases as rows of one parametrized test beside a valid message as the accepted row.
