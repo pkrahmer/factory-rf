@@ -21,6 +21,14 @@ services:
       - work:/work
       - state:/state
       - claude-home:/home/agent/.claude
+      # The agent's own login, which the agent must read, so it lies outside the token's folder;
+      # a missing host file makes Compose refuse to start instead of creating a folder in its place.
+      - type: bind
+        source: ./secrets/claude-token
+        target: /home/agent/.claude-token
+        read_only: true
+        bind:
+          create_host_path: false
       # Compose ignores a file secret's owner and mode outside Swarm, so the folder, made in the
       # image for the factory's user alone, not the file, keeps the agent out.
       - type: bind
