@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.adapters.claude_guard import GuardVerdict, judge, read_guard_settings
 from factory.domain.agent_runs import GuardSettings
@@ -200,18 +199,3 @@ def test_an_unreadable_settings_file_is_refused_naming_the_file_and_the_fault(
     assert caught.value.fault
     assert str(path) in str(caught.value)
     assert caught.value.fault in str(caught.value)
-
-
-def test_a_verdict_is_frozen() -> None:
-    verdict = GuardVerdict(allowed=True)
-    field = "allowed"
-
-    with pytest.raises(ValidationError):
-        setattr(verdict, field, False)
-
-
-def test_a_verdict_forbids_an_unknown_field() -> None:
-    model: type[BaseModel] = GuardVerdict
-
-    with pytest.raises(ValidationError):
-        model(allowed=True, extra="x")

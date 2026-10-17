@@ -3,12 +3,11 @@
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
-from factory.application.opening import PreparedWorkItem, WorkItemOpening
+from factory.application.opening import WorkItemOpening
 from factory.domain.errors import HostingServiceError, WorkItemFormatError
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
@@ -341,30 +340,3 @@ def test_ensuring_the_pull_request_changes_no_file(
 
     assert checkout.status().changes == []
     assert (boundaries.checkout / PATH).read_bytes() == before
-
-
-def _prepared() -> PreparedWorkItem:
-    return PreparedWorkItem(
-        work_item=WORK_ITEM,
-        branch=BRANCH,
-        path=PATH,
-        document=_document(),
-        branch_existed=False,
-        merge_conflict=False,
-    )
-
-
-def test_prepared_work_item_is_frozen() -> None:
-    prepared = _prepared()
-    field = "branch"
-
-    with pytest.raises(ValidationError):
-        setattr(prepared, field, "other")
-
-
-def test_prepared_work_item_forbids_unknown_keys() -> None:
-    model: type[BaseModel] = PreparedWorkItem
-    values = _prepared().model_dump()
-
-    with pytest.raises(ValidationError):
-        model(**values, unknown=1)

@@ -668,21 +668,6 @@ def test_the_tick_keeps_its_status_across_ticks_and_a_restart_counts_from_one(
     assert restarted.status.errors[0].count == 1
 
 
-def test_tick_outcome_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = TickOutcome
-
-    with pytest.raises(ValidationError):
-        model(stopped=None, other=1)
-
-
-def test_tick_outcome_refuses_an_assignment() -> None:
-    outcome = TickOutcome(stopped="fetch_failed")
-    field = "stopped"
-
-    with pytest.raises(ValidationError):
-        setattr(outcome, field, None)
-
-
 @pytest.mark.parametrize(
     ("field", "value", "accepted"),
     [

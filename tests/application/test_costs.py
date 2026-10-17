@@ -7,18 +7,15 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.costs import CostRun
 from factory.application.files import CostRecordReader
 from factory.application.git import Git
 from factory.application.opening import WorkItemOpening
 from factory.application.stage import LaunchedStage, StageLauncher, StageReport, StageRunner
-from factory.application.stalls import StallContext
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, TokenCounts
 from factory.domain.cost_records import CostRecord
 from factory.domain.git import CommitId
@@ -565,29 +562,3 @@ def test_an_agent_inside_its_write_paths_is_not_told_of_the_sidecar_undo(
     record = _records_at(boundaries, report.commit)[-1]
     assert record.run == runtime.started_run()
     assert record.status == "completed"
-
-
-def test_cost_runs_and_stall_contexts_are_frozen_and_forbid_unknown_keys() -> None:
-    record = CostRecord(
-        run="a" * 32,
-        work_item=WORK_ITEM,
-        stage="tests",
-        role="tester",
-        attempt=0,
-        status="started",
-        started_at=datetime(2026, 10, 12, 12, 0, tzinfo=UTC),
-    )
-    run = CostRun(path=SIDECAR, run=record.run, records=[record])
-    context = StallContext(
-        work_item=WORK_ITEM, stage="tests", branch=BRANCH, path=PATH, stage_start=None, cost=run
-    )
-    run_model: type[BaseModel] = CostRun
-    context_model: type[BaseModel] = StallContext
-    run_field = "run"
-
-    with pytest.raises(ValidationError):
-        setattr(run, run_field, "c" * 32)
-    with pytest.raises(ValidationError):
-        run_model(**dict(run), unknown=1)
-    with pytest.raises(ValidationError):
-        context_model(**dict(context), unknown=1)

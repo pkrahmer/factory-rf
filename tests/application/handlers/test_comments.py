@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -294,17 +294,6 @@ def test_a_kill_before_the_push_leaves_the_remote_and_the_next_copy_records_once
     recorded = _remote_document(boundaries, checkout, work_item)
     assert _state_of(recorded).comments_read == ids
     assert _comment_records(recorded) == 2
-
-
-def test_a_copy_result_is_frozen_and_forbids_unknown_keys() -> None:
-    result = CopyResult(recorded=[1], commit="a" * 40)
-    model: type[BaseModel] = CopyResult
-    field = "recorded"
-
-    with pytest.raises(ValidationError):
-        model(recorded=[1], commit="a" * 40, extra="unknown")
-    with pytest.raises(ValidationError):
-        setattr(result, field, [2])
 
 
 @pytest.mark.parametrize(

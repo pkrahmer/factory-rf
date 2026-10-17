@@ -876,12 +876,3 @@ def test_a_stage_report_refuses_values_its_types_refuse(field: str, value: objec
 
     with pytest.raises(ValidationError):
         model(**{**_report_fields(), field: value})
-
-
-def test_a_stage_report_is_frozen() -> None:
-    model: type[BaseModel] = StageReport
-    report = model(**_report_fields())
-    rule_field = "rule"
-
-    with pytest.raises(ValidationError):
-        setattr(report, rule_field, 5)

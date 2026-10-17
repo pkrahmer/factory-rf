@@ -1,8 +1,5 @@
 """The board reader counts the story files on origin/main and reads the work items in progress."""
 
-import pytest
-from pydantic import BaseModel, ValidationError
-
 from factory.adapters.clock import ManualClock
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.board import BoardReader, BoardView
@@ -92,18 +89,3 @@ def test_each_story_in_progress_is_a_row_with_its_state_from_its_branch(
         ("F0001-S0002", "Second story", "in-progress", "intake", None, None),
     ]
     assert [row.running_since for row in view.rows] == [clock.now(), None]
-
-
-def test_a_board_view_refuses_an_unknown_key() -> None:
-    model: type[BaseModel] = BoardView
-
-    with pytest.raises(ValidationError):
-        model(features=[], rows=[], unknown=1)
-
-
-def test_a_board_view_refuses_an_assignment() -> None:
-    view = BoardView(features=[], rows=[])
-    field = "rows"
-
-    with pytest.raises(ValidationError):
-        setattr(view, field, [])
