@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 162
 blocked: null
 comments_seen: 0
 round: 0
@@ -66,3 +66,9 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures: `domain/stops.py` (`RepositoryStopReason` gains `disk_low`, scope rule), `domain/stop_table.py` (the full `disk-low` row, fifteen rows), `application/tick.py` `Tick.run` (first step, no-op when `disk` or `settings` is `None`, read order, the three outcomes), the test module and the shared `FakeDiskSpace` in `tests/disk_support.py`. The human's leave for the four earlier tests is spelled out (FEATURE decision 34).
+   - Criteria: each is testable by one test function. Every Interface behaviour has a criterion: scope rule (1), the row (2), the clear (8), the order of paths and the details (6), the no-op without `disk` or `settings` (9). Each rule has its failing side: exact threshold passes (3) and one byte short stops before the fetch (4); the stop's health status and log line (5); an unreadable path, with no later path read (7); a refused `repository` scope for `disk_low` (1). Criterion 10 is the existing all-reasons test.
+   - Demo: both blocks are runnable. `STOP_TABLE[7]` is the eighth row, and the Expect line `15 disk-low health_status L64 disk_low` is checkable. The pytest and `documents ok` expectations are checkable against the output.
+   - Architecture: the reason and scope rule are in domain, the check is in the application's `Tick` through the `DiskSpace` interface (from S0009), and the tests use a fake that derives from the interface. This fits the layering and CLAUDE.md.
+   - Scope: within F0012 item 1.4 (low-disk stop, decision 20). Nothing in "Out of scope" is touched. The docs criterion (12) lists the guide, decision-log and document-check updates.
