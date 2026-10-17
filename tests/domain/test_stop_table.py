@@ -128,14 +128,12 @@ def test_the_table_covers_every_limit_of_v1_whose_stop_reached_only_a_log() -> N
         {"destination": "pull_request"},
         {"destination": "none"},
         {"limits": ()},
-        {"limits": ("X7",)},
     ],
     ids=[
         "health-without-reason",
         "pull-request-with-reason",
         "none-with-reason",
         "no-limits",
-        "X7",
     ],
 )
 def test_a_row_breaking_a_rule_of_the_table_is_rejected(changes: dict[str, object]) -> None:
@@ -143,6 +141,44 @@ def test_a_row_breaking_a_rule_of_the_table_is_rejected(changes: dict[str, objec
 
     with pytest.raises(ValidationError):
         model(**{**FIRST_ROW, **changes})
+
+
+@pytest.mark.parametrize(
+    ("limit", "accepted"),
+    [
+        ("L7", True),
+        ("L65", True),
+        ("L7\n", False),
+        ("L7 ", False),
+        ("L7x", False),
+        ("L", False),
+        ("l7", False),
+        ("XL7", False),
+        ("X7", False),
+        ("L\u0663", False),
+    ],
+    ids=[
+        "L7",
+        "L65",
+        "trailing-newline",
+        "trailing-space",
+        "trailing-letter",
+        "no-digits",
+        "lowercase",
+        "prefix",
+        "X7",
+        "non-ascii-digit",
+    ],
+)
+def test_a_limit_is_the_whole_text_l_and_ascii_digits(limit: str, accepted: bool) -> None:
+    model: type[BaseModel] = StopRow
+    fields = {**FIRST_ROW, "limits": (limit,)}
+
+    if accepted:
+        assert isinstance(model(**fields), StopRow)
+    else:
+        with pytest.raises(ValidationError):
+            model(**fields)
 
 
 def test_the_first_row_of_the_table_is_accepted() -> None:

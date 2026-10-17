@@ -24,6 +24,9 @@ from factory.domain.documents import (
     DocumentFinding,
     check_documents,
 )
+from factory.domain.fault_paths import FAULT_PATHS, FaultPath
+from factory.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
+from factory.domain.stop_table import STOP_TABLE, StopRow
 
 FENCE = "```"
 PATH_7_FINDING = f"fault-injection path 7 has no table row naming '{PATH_7_TEST}'"
@@ -115,19 +118,27 @@ def test_a_required_heading_only_inside_a_code_fence_does_not_count(
 @pytest.mark.parametrize(
     "replacement",
     [
-        "",
         f"{FENCE}\n| `fetch-failed` | health status and factory log |\n{FENCE}",
         "| fetch-failed | health status and factory log |",
         "`fetch-failed` goes to the health status and the factory log.",
         "  | `fetch-failed` | health status and factory log |",
     ],
-    ids=["absent", "fenced", "no-backticks", "prose", "indented"],
+    ids=["fenced", "no-backticks", "prose", "indented"],
 )
 def test_a_stop_without_its_table_row_is_a_finding(replacement: str) -> None:
     texts = _with(operator=operator_guide(without_stop="fetch-failed", suffix=replacement))
 
     assert check_documents(texts) == [
         _finding(OPERATOR_GUIDE, "stop 'fetch-failed' has no table row with its destination")
+    ]
+
+
+@pytest.mark.parametrize("row", STOP_TABLE, ids=lambda row: row.id)
+def test_every_stop_without_its_table_row_is_a_finding(row: StopRow) -> None:
+    texts = _with(operator=operator_guide(without_stop=row.id))
+
+    assert check_documents(texts) == [
+        _finding(OPERATOR_GUIDE, f"stop '{row.id}' has no table row with its destination")
     ]
 
 
@@ -157,8 +168,8 @@ def test_a_stop_row_needs_its_destination_in_words_in_any_case(
 
 @pytest.mark.parametrize(
     "replacement",
-    ["", "| commit-push | tick |", "`commit-push` dies in the tick."],
-    ids=["absent", "no-backticks", "prose"],
+    ["| commit-push | tick |", "`commit-push` dies in the tick."],
+    ids=["no-backticks", "prose"],
 )
 def test_a_kill_point_case_without_its_table_row_is_a_finding(replacement: str) -> None:
     texts = _with(project=project_guide(without_case="commit-push", suffix=replacement))
@@ -168,15 +179,50 @@ def test_a_kill_point_case_without_its_table_row_is_a_finding(replacement: str) 
     ]
 
 
+@pytest.mark.parametrize("case", KILL_POINT_CASES, ids=lambda case: case.id)
+def test_every_kill_point_case_without_its_table_row_is_a_finding(case: KillPointCase) -> None:
+    texts = _with(project=project_guide(without_case=case.id))
+
+    assert check_documents(texts) == [
+        _finding(PROJECT_GUIDE, f"kill point case '{case.id}' has no table row")
+    ]
+
+
 @pytest.mark.parametrize(
     "replacement",
-    ["", f"| 7 | {PATH_7_TEST} |", f"Path 7 is walked by `{PATH_7_TEST}`."],
-    ids=["absent", "no-backticks", "prose"],
+    [f"| 7 | {PATH_7_TEST} |", f"Path 7 is walked by `{PATH_7_TEST}`."],
+    ids=["no-backticks", "prose"],
 )
 def test_a_fault_path_without_a_row_naming_its_test_is_a_finding(replacement: str) -> None:
     texts = _with(project=project_guide(without_path=7, suffix=replacement))
 
     assert check_documents(texts) == [_finding(PROJECT_GUIDE, PATH_7_FINDING)]
+
+
+@pytest.mark.parametrize("path", FAULT_PATHS, ids=lambda path: str(path.number))
+def test_every_fault_path_without_a_row_naming_its_test_is_a_finding(path: FaultPath) -> None:
+    texts = _with(project=project_guide(without_path=path.number))
+
+    assert check_documents(texts) == [
+        _finding(
+            PROJECT_GUIDE,
+            f"fault-injection path {path.number} has no table row naming '{path.test}'",
+        )
+    ]
+
+
+def test_the_replaced_phrases_are_the_nine_in_their_order() -> None:
+    assert REPLACED_PHRASES == (
+        "--follow",
+        "factory-last-line",
+        "tasks/.gitkeep",
+        "factory-tick.lock",
+        "factory-run.json",
+        "recover_dirty_tree",
+        "lease plus ten minutes",
+        "local branch first",
+        "run record",
+    )
 
 
 @pytest.mark.parametrize(

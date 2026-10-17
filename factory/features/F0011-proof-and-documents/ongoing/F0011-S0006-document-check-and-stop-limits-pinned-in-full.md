@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 151
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The document check and the stop table's limits, pinned in full
 
 <!-- proposed by feature acceptance of 2026-10-17; refine before promoting -->
@@ -67,3 +75,79 @@ Expect: the single line `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures. `StopRow` in `src/factory/domain/stop_table.py` changes to `_LIMIT.fullmatch` with the pattern `L[0-9]+`, raised as a `ValueError` in the model validator. `documents.py` is unchanged, and its constant and finding texts are given exactly. Every behaviour stated in an Interface comment has a criterion: criterion 1 pins the phrase order, criteria 2 to 4 pin the finding texts, and criterion 5 pins the limit rule.
+   - Criteria: each is testable by one parametrized test function. The limit rule has both sides: `L7` and `L65` are accepted, and eight refused rows cover the newline, the space, the letter, a bare `L`, lowercase, a prefix, `X7` and the Arabic-Indic digit. The counts are 6 cases, 13 paths and 14 stop rows. The tests over the constants take their rows from the constants, so the counts follow whatever the constants hold.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output: three named lines, a final `passed` line with no failed, error or skipped count, and `documents ok`.
+   - Architecture: the change sits in `factory.domain`, which is pure, and adds no dependency or layer crossing. The tests go in `tests/domain/`, which mirrors the package. They reuse `tests/document_texts.py` and `FIRST_ROW`, with no new helper.
+   - Scope: the story is within F0011's scope (the stop table and the document check) and touches nothing under Out of scope. The edits to earlier stories' tests (moving the `X7` row, removing three `absent` rows) are covered by FEATURE decision 22 and named exactly in the Interface. The docs criterion changes only the project guide.
+3. tester: Wrote the tests for criteria 1 to 5. Each table test is parametrized over its constant, with ids taken from the row.
+   - criterion 1: tests/domain/test_documents.py::test_the_replaced_phrases_are_the_nine_in_their_order
+   - criterion 2: tests/domain/test_documents.py::test_every_kill_point_case_without_its_table_row_is_a_finding (one row per `KILL_POINT_CASES` case, id `case.id`)
+   - criterion 3: tests/domain/test_documents.py::test_every_fault_path_without_a_row_naming_its_test_is_a_finding (one row per `FAULT_PATHS` path, id `str(path.number)`)
+   - criterion 4: tests/domain/test_documents.py::test_every_stop_without_its_table_row_is_a_finding (one row per `STOP_TABLE` row, id `row.id`)
+   - criterion 5: tests/domain/test_stop_table.py::test_a_limit_is_the_whole_text_l_and_ascii_digits (ten rows: `L7` and `L65` accepted; `"L7\n"`, `"L7 "`, `L7x`, `L`, `l7`, `XL7`, `X7` and `"L٣"` rejected). Each row is built from `FIRST_ROW` with its `limits` replaced, through `model: type[BaseModel] = StopRow`.
+   - criteria 6 and 7: no test (`make check`, docs).
+
+   Changes to earlier tests, as FEATURE decision 22 and the Interface allow, and nothing else: I removed the `X7` row and its id from `test_a_row_breaking_a_rule_of_the_table_is_rejected` (it is now a row of the limit test). I removed the `absent` row (`""`) and its id from `test_a_stop_without_its_table_row_is_a_finding`, `test_a_kill_point_case_without_its_table_row_is_a_finding` and `test_a_fault_path_without_a_row_naming_its_test_is_a_finding`. Their other rows are unchanged.
+
+   Files changed: tests/domain/test_documents.py (adds imports of `FAULT_PATHS`/`FaultPath`, `KILL_POINT_CASES`/`KillPointCase` and `STOP_TABLE`/`StopRow`) and tests/domain/test_stop_table.py. No new helper and no new file. The texts come from `operator_guide(without_stop=...)` and `project_guide(without_case=..., without_path=...)` through the module's `_with` and `_finding`.
+
+   Result of `make test`: every module imported. The only failures are the two rows the assignment expected: `test_a_limit_is_the_whole_text_l_and_ascii_digits[trailing-newline]` and `[non-ascii-digit]`. Today's `re.match` with `^L\d+$` accepts both; the coder's fix is `_LIMIT.fullmatch` with `L[0-9]+`. Criteria 1 to 4 pass on today's code, as the assignment says they should. My first `make test` run stopped at a collection error: I had put a new function between an existing parametrize decorator and its function. I fixed that and ran it again; the result above is from that run. `make lint` is green.
+
+   Rejected: in the limit test, checking the accepted rows' `.limits` would have needed a `type: ignore`, which the project's test rules forbid. The accepted rows check `isinstance(model(**fields), StopRow)` instead. Open: nothing.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_stop_table.py::test_a_limit_is_the_whole_text_l_and_ascii_digits[non-ascii-digit]
+4. coder: Changed the limit rule in `src/factory/domain/stop_table.py` so that `StopRow` refuses any limit that is not, as a whole, `L` followed by ASCII digits. `_LIMIT` is now `re.compile(r"L[0-9]+")`, and `_limits_name_v1_limits` calls `_LIMIT.fullmatch(limit)` where it used to call `match` with `^L\d+$`. Commit: cae63fc.
+      - Design: I used `fullmatch` instead of keeping the anchors and switching to `\Z`. With `fullmatch` the whole-string rule lives in the call, as `MakeProjectCommands` already does. Writing `[0-9]` instead of `\d` refuses non-ASCII digits such as `"L٣"`. I rejected `re.ASCII` with `\d`: it says the same thing less directly.
+      - Result: both rows that failed before the change, `[trailing-newline]` and `[non-ascii-digit]`, now pass. `make check` is green.
+      - Refactor: the diff is two lines with nothing to clean up, so there is no refactor commit.
+      - Open: criterion 7 (the project guide paragraph on `STOP_TABLE` and `StopRow`) is the documenter's job; I did not write it. I noticed nothing else.
+
+   `make check`: check: green
+5. reviewer: no findings.
+   - Criteria: each of criteria 1 to 5 has its test, as the tester's entry lists them. Criteria 2 to 4 are parametrized over `KILL_POINT_CASES`, `FAULT_PATHS` and `STOP_TABLE` themselves, with ids `case.id`, `str(path.number)` and `row.id`. Their texts come from `project_guide(...)` and `operator_guide(...)` in `tests/document_texts.py`, which drop exactly the named row, and each test asserts the exact one-finding list. Criterion 1 compares against the literal nine-phrase tuple, so removing a phrase now fails a test. Criterion 5 is one parametrized test with all ten rows (two accepted, eight refused, including `"L7\n"` and `"L٣"`), each built from `FIRST_ROW` with `limits` replaced, through `model: type[BaseModel] = StopRow`. The edits to earlier tests are exactly the ones FEATURE decision 22 allows: the `X7` row moved into the new limit test, and the `absent` row was removed from three tests. The coder's entry reports `make check` green.
+   - Code: `src/factory/domain/stop_table.py` now uses `re.compile(r"L[0-9]+")` with `_LIMIT.fullmatch`, as the Interface specifies, and nothing else in the module changed. Architecture and security are unaffected: the change is a pure domain change with no new dependency and no suppression marker.
+   - Other changes in the diff range: the `docs/runs/...night-log.md` and `planning/overnight/restructure-after-f0011.md` changes are the human's own commits (1a7bc24, 54e348b), brought in by the merge of main. They are not the ticket's work and were not reviewed.
+   - Ticket: `Assignment` matches what was built, and criterion 7 still says what the documenter must add to the project guide.
+6. documenter: wrote the criterion 7 paragraph.
+   - `docs/project-guide.md`: one paragraph added to *Stops, the clock and the factory log*. It covers `STOP_TABLE` and `StopRow` in `factory.domain.stop_table`: one row per stop with limits, destination, reason and test; a reason exactly when the destination is the health status; each limit the whole text `L` plus ASCII digits (`L7` yes; `L7x`, `L7 `, a trailing newline and a non-ASCII digit no).
+   - Cross-read against the diff and found current: the project guide's document-check section, the operator guide's line on `STOP_TABLE` ids, and decisions.md entries for S0004 and S0005. No other document needed a change.
+   - Ran `python -m factory.entry.check_documents`: it prints `documents ok`. `make check` is green.
+   - Stale but unrelated: nothing seen.
+   - Findings for the coder: none. The code matches the Interface.
+
+   `make check`: check: green
+7. demo: I ran all three commands in order from the repository root. Each one met its `Expect:` line, and the demo contradicts no criterion.
+
+   1. `StopRow` limit probe (`L7`, `L7\n`, `L7x`):
+   ```
+   'L7' accepted
+   'L7\n' rejected
+   'L7x' rejected
+   ```
+   Met: the three lines are as expected, and the command exited with 0.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/domain/test_documents.py tests/domain/test_stop_table.py` (tail):
+   ```
+   ........................................................................ [ 43%]
+   ........................................................................ [ 86%]
+   ......................                                                   [100%]
+   166 passed in 0.23s
+   ```
+   Met: the last line is `<n> passed in <t>s`, with no failed, error or skipped count.
+
+   3. `uv run python -m factory.entry.check_documents`:
+   ```
+   documents ok
+   ```
+   Met: one line, and the command exited with 0.
+
+   Criteria cross-check:
+   - Selecting the criterion 1–5 tests (the nine-phrase test, the three `every_*` table tests and the limit test) collects 44 tests, and all 44 pass. That is 1 + 6 + 13 + 14 + 10, which matches the row counts in criteria 1 to 5.
+   - `src/factory/domain/stop_table.py:12` holds `re.compile(r"L[0-9]+")`, and `src/factory/domain/stop_table.py:38` uses `_LIMIT.fullmatch`, as the Interface states.
+   - `docs/project-guide.md:990` holds the criterion 7 paragraph on `STOP_TABLE` and `StopRow`. Command 3 confirms that `documents ok` still holds.
+   - I did not run `make check` (criterion 6) myself. The factory runs it after this stage, and the coder and documenter entries report it green.
+
+   Findings: none. Open: nothing.
