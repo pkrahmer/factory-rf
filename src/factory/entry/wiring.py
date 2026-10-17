@@ -20,6 +20,7 @@ from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
+from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.acceptance import (
     AcceptanceClosed,
@@ -53,10 +54,12 @@ from factory.application.preflight import (
     token_file_item,
     tool_item,
 )
+from factory.application.project_commands import RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import scrub_environment
+from factory.domain.command_records import CommandRecord
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
@@ -109,6 +112,7 @@ CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
 _LOG_FILE_NAME = "factory.log"
 _HEALTH_FILE_NAME = "health.json"
 _PREFLIGHT_STAMP_FILE_NAME = "preflight-stamp.json"
+_COMMAND_RECORDS_PATH = Path("records", "project-commands.jsonl")
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -207,15 +211,23 @@ def build_boundaries(
         hosting = pygithub_service(repository_name(settings.repository_url), token)
     state = settings.state_directory
     clock = SystemClock()
+    git = GitCli(settings.checkout, git_options(settings))
+    log = machine_log(state, clock)
     return Boundaries(
-        git=GitCli(settings.checkout, git_options(settings)),
+        git=git,
         hosting=hosting,
         agent_runtime=ClaudeCodeRuntime(
             settings.claude_executable,
             state / RUNS_DIRECTORY_NAME,
             sudo_executable=which("sudo") or SUDO_EXECUTABLE,
         ),
-        project_commands=MakeProjectCommands(settings.checkout),
+        project_commands=RecordingProjectCommands(
+            MakeProjectCommands(settings.checkout),
+            git,
+            JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
+            clock,
+            log,
+        ),
         work_item_reader=build_work_item_reader(),
         work_item_writer=FrontmatterWorkItemWriter(),
         cost_reader=JsonLinesCostRecordReader(),
@@ -223,7 +235,7 @@ def build_boundaries(
         pipeline_reader=RuamelPipelineDefinitionReader(),
         agent_definitions=FrontmatterAgentDefinitionReader(settings.agent_home),
         clock=clock,
-        log=machine_log(state, clock),
+        log=log,
         health=health_store(state),
         checkout=settings.checkout,
         settings=settings,

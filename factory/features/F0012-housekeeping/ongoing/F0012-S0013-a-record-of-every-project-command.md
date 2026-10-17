@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 165
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A record of every project command
 
 ## Assignment (as of log entry 1)
@@ -99,3 +107,74 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures throughout (domain/command_records.py, application/files.py RecordLog, adapters/record_log_jsonl.py, RecordingProjectCommands, wiring). The types it names exist: CommitId, Duration, CheckStatus, CommandName, TargetTime, UtcDatetime, Clock and FactoryLog.
+   - Criteria: each is testable by one test function or one parametrized test. Rules and their failing sides: the model's refused values (1), a torn or invalid line skipped (3), an inner error propagating with nothing appended (6), an OSError on append logged without losing the result (7), an unresolvable HEAD giving None (8). The Interface's behaviours (read order, a missing file, folder creation, unchanged result, started_at from the clock) are in 2, 4 and 5.
+   - Demo: both blocks are runnable and each Expect line is checkable (`1 check 183.5`; the pytest summary with no failed, error or skipped count).
+   - Architecture: the interface in application, the JSONL adapter in adapters, the wiring only in entry, the DTO in domain, so the layers are respected. The test changes (decision 36 leave, tests/record_support.py) are named in the story.
+   - Scope: inside F0012 scope 1.4, and not in its Out of scope.
+3. tester: Wrote red tests for criteria 1–9.
+   - criterion 1: tests/domain/test_command_records.py::test_a_command_record_accepts_valid_values_and_refuses_the_others. One parametrized test. Accepted rows: the criterion's case with duration 0, and a passed record whose commit is "a"*40. Refused rows: a commit of 39 characters, of 41, uppercase, and non-hex; command "Check"; duration -1; duration inf; status "red"; a naive started_at.
+   - criterion 2: tests/adapters/test_record_log_jsonl.py::test_appended_records_read_back_equal_and_in_order_and_the_folder_is_created
+   - criterion 3: tests/adapters/test_record_log_jsonl.py::test_lines_that_do_not_validate_are_skipped. The file has five lines: valid, valid, `{"command":` in the middle, valid, `not json` last.
+   - criterion 4: tests/application/test_recording_project_commands.py::test_a_run_returns_the_inner_result_and_records_it
+   - criterion 5: tests/application/test_recording_project_commands.py::test_every_run_is_recorded_in_order_with_its_status. Three rows, each running three results (exit 0, 2 and None) in a different order.
+   - criterion 6: tests/application/test_recording_project_commands.py::test_an_inner_error_propagates_and_records_nothing. Two rows: ProjectCommandError and ValueError.
+   - criterion 7: tests/application/test_recording_project_commands.py::test_a_record_that_cannot_be_written_is_logged_and_the_result_still_returned
+   - criterion 8: tests/application/test_recording_project_commands.py::test_a_head_that_cannot_be_resolved_records_no_commit. The fake is `UnresolvableGit`, defined in the test: a GitCli subclass whose `resolve` raises GitError.
+   - criterion 9: tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory. It clones the remote into settings.checkout, writes a Makefile with a `lint` target and checks for one record (lint, HEAD of the built git, passed).
+
+   Files created: tests/domain/test_command_records.py, tests/adapters/test_record_log_jsonl.py, tests/application/test_recording_project_commands.py, tests/entry/test_wiring_command_records.py, and the shared helper tests/record_support.py (`UnwritableRecordLog[R]`).
+
+   File changed by the human's leave (FEATURE decision 36): tests/entry/test_wiring_boundaries.py. `test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing` now expects `RecordingProjectCommands`, and the import of MakeProjectCommands that is no longer used is gone. Nothing else in that file changed.
+
+   The recorder's inner commands are `RecordingCommands`, imported from `application.test_preflight_run`.
+
+   make test: collection errors only, because these imports fail: factory.domain.command_records, factory.adapters.record_log_jsonl, `RecordLog` from factory.application.files and `RecordingProjectCommands` from factory.application.project_commands. make lint: green. The type check was not run, as this stage's skill says.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_wiring_command_records.py - ImportError while importin...
+4. coder: Built the project command recorder; `make check` is green (99.5 % coverage) and the tests are untouched.
+      - `src/factory/domain/command_records.py`: the new `CommandRecord`, built from the existing types `CommandName`, `CommitId`, `UtcDatetime`, `Duration`, `CheckStatus` and `TargetTime`.
+      - `src/factory/application/files.py`: the new generic interface `RecordLog[R: BaseModel]` with `append` and `read`. Both docstrings are split over two lines to stay within the line length.
+      - `src/factory/adapters/record_log_jsonl.py`: the new `JsonLinesRecordLog`. `append` creates the folder and writes `model_dump_json()` plus `\n` in one write to the file opened for appending. `read` gives `[]` without a file, skips blank lines and skips a line that raises `ValidationError`.
+      - `src/factory/application/project_commands.py`: the new `RecordingProjectCommands`. It reads `HEAD` before the run (a `GitError` gives `None`) and the clock's `started_at`, then runs `inner.run`. Errors from the inner run propagate before anything is recorded. An `OSError` on append becomes the factory log line `cannot write the record of <command>: <error>`, and the result is returned unchanged either way.
+      - `src/factory/entry/wiring.py`: `build_boundaries` now builds one `GitCli` and one log and shares them, with the clock, between the boundaries and the recorder. The record file is `<state>/records/project-commands.jsonl`, held in the constant `_COMMAND_RECORDS_PATH`.
+      - Main decision: the record takes `command` from the caller's argument, not from `result.command`, as the Interface says. The two are equal for every real implementation. I rejected a dedicated reader and writer pair like the cost records have: the Interface asks for one generic append-only log that the disk record can use again.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: `make duplicates` reports `duplicates: 2 new, 39 known, 0 gone`. Both new findings are an unused `used_bytes` in `adapters/disk_space.py` and `application/machine.py`, which this ticket did not change. `RecordLog.read` is not listed as dead code, although the Assignment expected it to be. Line 34 of `record_log_jsonl.py`, the blank-line skip, is the one line no test covers.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 2 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1–9 each have the test the tester's entry names, and each test checks its criterion. Criterion 1 covers both sides of every limit: `Duration` is accepted at 0 and refused at -1 and at inf; `CommitId` is accepted as `"a"*40` and refused with 39 or 41 characters, in uppercase and with non-hex characters; `CommandName` is accepted as `check` and refused as `Check`; `CheckStatus` refuses `red`; a `started_at` with an offset is accepted and a naive one refused. The failing sides of the Interface's rules are all tested: a torn or invalid line is skipped (3), an inner error propagates with nothing appended (6), an `OSError` on `append` is logged and the result still returned (7), and a `GitError` from `resolve` gives `commit=None` (8). The coder's entry says `make check` was green. The only change to an earlier story's test is the `isinstance` line in `tests/entry/test_wiring_boundaries.py`, by the human's leave (FEATURE decision 36), plus the import that became unused.
+      - Architecture: `CommandRecord` is in domain. `RecordLog` is an `abc.ABC` in `application/files.py` whose abstract methods have docstring-only bodies. `RecordingProjectCommands` in application depends only on application interfaces. `JsonLinesRecordLog` in adapters inherits its interface. Wiring happens only in `entry/wiring.py`, which shares one `GitCli`, clock and log between the boundaries and the recorder. No `dict[str, Any]` crosses a boundary and no tool is called outside a wrapper.
+      - Security: no secrets, no suppression markers, no shell or string-built commands; the record path comes from the settings.
+      - Quality: names and docstrings fit the project's conventions, and the comments explain why (one write per line; telemetry must not lose a result). `CommandRecord` reuses the existing types (`CommandName`, `CommitId`, `UtcDatetime`, `Duration`, `CheckStatus`, `TargetTime`) rather than redefining them. Considered and not raised: the blank-line skip in `JsonLinesRecordLog._parse` (`src/factory/adapters/record_log_jsonl.py:34`) has no test and changes nothing, because `model_validate_json` raises `ValidationError` for a blank line anyway. It follows the Interface's "each non-blank line" literally. The 2 new `make duplicates` findings (`used_bytes` in `adapters/disk_space.py` and `application/machine.py`) are in files this diff does not touch.
+      - Ticket hygiene: the coder's entry gives the main decision (`command` comes from the caller's argument) and the rejected alternative (a separate reader and writer pair like the cost records). `Assignment` matches what was built, and criterion 11 still describes what the documenter must write.
+6. documenter: Documented the project command records (criterion 11). Only documents changed, so I did not run `make check`; the factory runs it next.
+   - `docs/operator-guide.md`: new part *The records* in the factory log and health status section. It covers `records/project-commands.jsonl`, a table of the fields, that the file is telemetry the operator may delete, what happens when a line cannot be written or is torn, and a one-line `python3 -c` count of `check` runs per commit. I ran the one-liner on a sample file with the path changed and it printed the count. It uses `/state/...` as written.
+   - `docs/project-guide.md`: *Project commands* now names `RecordingProjectCommands`, `CommandRecord`, `RecordLog` and `JsonLinesRecordLog`, with the behaviour and error rules and the wiring path.
+   - `docs/decisions.md`: new entry on why the records are telemetry in the state directory and not committed. It also notes the caller's `command` and the single generic log, and lists what was rejected.
+   - Cross-read against the diff: the rest of both guides' project-commands and wiring text is still true. `python -m factory.entry.check_documents` prints `documents ok`.
+   - No findings: the code matches the Interface. I saw no stale text outside this story.
+   - One claim I did not check in code: the operator guide says the stage checks, the preflight probe and the check of `main` all go through the recorder. This relies on `build_boundaries` handing out the one `RecordingProjectCommands` to all of them.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root. Both met their Expect lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   1. Append a `CommandRecord` through `JsonLinesRecordLog` into `records/project-commands.jsonl` in a temporary folder, then read it back:
+      ```
+      1 check 183.5
+      ```
+      Exit status 0. It met `Expect: 1 check 183.5`. This also shows the `records/` folder being created on the first `append` (criterion 2), and the record reads back with its command and its duration in seconds.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/application/test_recording_project_commands.py tests/adapters/test_record_log_jsonl.py`:
+      ```
+      ..........                                                               [100%]
+      10 passed in 0.16s
+      ```
+      Exit status 0. It met the Expect line: the last line reads `<n> passed in <t>s`, with no failed, error or skipped count.
+
+   Against the criteria: the demo covers criteria 2–8 through these tests and the round trip. It does not exercise criteria 1 and 9 (the model's refused values, and the wiring through `build_boundaries`). Their tests are in other modules that the demo does not run. Criterion 10 is the factory's own check, and the coder, reviewer and documenter entries all record `make check` as green.
