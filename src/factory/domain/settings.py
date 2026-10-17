@@ -6,8 +6,11 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
 from factory.domain.errors import SettingsInvalid
-from factory.domain.git import GitIdentity
+from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.domain.identifiers import Name
+
+# The default identity is still read from here; its one definition is in the git module.
+__all__ = ["DEFAULT_GIT_IDENTITY", "InstanceSettings", "read_setting_file", "read_settings"]
 
 CHECKOUT_PATH = Path("/work/checkout")
 STATE_DIRECTORY = Path("/state")
@@ -15,7 +18,6 @@ REPOSITORY_URL_VARIABLE = "FACTORY_REPOSITORY_URL"
 INSTANCE_VARIABLE = "FACTORY_INSTANCE"
 GIT_USER_NAME_VARIABLE = "GIT_USER_NAME"
 GIT_USER_EMAIL_VARIABLE = "GIT_USER_EMAIL"
-DEFAULT_GIT_IDENTITY = GitIdentity(name="factory", email="factory@noreply.invalid")
 IMAGE_ID_FILE = Path("/opt/factory/image-id")
 IMAGE_ID_FILE_VARIABLE = "FACTORY_IMAGE_ID_FILE"
 AGENT_HOME_DEFAULT = Path("/home/agent/.claude")

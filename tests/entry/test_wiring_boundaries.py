@@ -331,3 +331,19 @@ def test_build_boundaries_without_hosting_hands_pygithub_the_repository(
 
     assert isinstance(boundaries.hosting, PyGithubHostingService)
     assert repositories == [("owner/project",)]
+
+
+@pytest.mark.parametrize(
+    ("found", "expected"),
+    [("/opt/tools/sudo", "/opt/tools/sudo"), (None, "/usr/bin/sudo")],
+)
+def test_the_built_agent_runtime_starts_the_sudo_on_the_path_or_usr_bin_sudo(
+    settings: InstanceSettings, found: str | None, expected: str
+) -> None:
+    def which(name: str) -> str | None:
+        return found if name == "sudo" else None
+
+    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService(), which=which)
+
+    assert isinstance(boundaries.agent_runtime, ClaudeCodeRuntime)
+    assert boundaries.agent_runtime.sudo_executable == expected

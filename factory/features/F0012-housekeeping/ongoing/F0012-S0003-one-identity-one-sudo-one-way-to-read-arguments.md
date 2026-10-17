@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 155
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # One default identity, one way to find sudo, one way to read the arguments
 
 ## Assignment (as of log entry 1)
@@ -56,3 +64,90 @@ Expect: the single line `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.git.DEFAULT_GIT_IDENTITY` and its explicit re-export in `factory.domain.settings`, `ClaudeCodeRuntime.sudo_executable`, `build_boundaries(..., which=shutil.which)`, the three `main` functions calling `parser.parse_args(argv)`). The tests are named by file.
+   - Criteria: each can be tested by one test function. Criteria 1 to 3 pin the identity (value, identity of the object, a single literal in `src`). Criterion 4 covers the unset and the partly overridden identity. Criterion 5 covers the `which` found and not found sides, as two rows. Criterion 6 covers the success rows and the refusal rows, with exit code 2. The Interface comment on the `sudo` fallback to `/usr/bin/sudo` has criterion 5. The docs criterion 8 lists what each document must say.
+   - Demo: all three commands run. Each `Expect:` line can be checked: the printed values and the one grep line, `status 1` for the absent argv expression, and `documents ok`.
+   - Architecture: the constant sits in `factory.domain`, the `which` injection is in `factory.entry.wiring`, and the runtime only gets a property. No layer rule is touched.
+   - Scope: within F0012 items 1.2 and 1.9, taken from decisions 3, 12, 16 and 17 of FEATURE.md. It does not touch any "Out of scope" item.
+3. tester: Wrote the tests for criteria 1 to 6. They follow the Interface's test plan, and no existing test changed.
+   - criterion 1: tests/domain/test_default_git_identity.py::test_the_default_identity_is_factory_at_noreply_invalid
+   - criterion 2: tests/domain/test_default_git_identity.py::test_git_options_and_settings_share_the_one_default_identity
+   - criterion 3: tests/domain/test_default_git_identity.py::test_the_default_email_is_written_once_in_src_in_the_git_domain_module (uses `modules()` and `string_literals()` of tests/source_search.py; the list of holding modules must be exactly `["factory.domain.git"]`)
+   - criterion 4: tests/domain/test_default_git_identity.py::test_read_settings_defaults_the_identity_and_overrides_each_half_alone
+   - criterion 5: tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_starts_the_sudo_on_the_path_or_usr_bin_sudo (two rows: found `/opt/tools/sudo`, and `None` → `/usr/bin/sudo`; uses the module's `settings` fixture and `FakeHostingService` as `hosting`)
+   - criterion 6: tests/entry/test_entry_arguments.py::test_main_without_arguments_reads_the_process_arguments (four rows: check_documents `--root` with clean documents → 0; health `--state-directory` with an empty `HealthStatus` written through `health_store` → 0; check_documents `--colour` and watch `--follow` → SystemExit code 2. `sys.argv` is monkeypatched to the program name plus its arguments.)
+
+   Files created: tests/domain/test_default_git_identity.py and tests/entry/test_entry_arguments.py. Appended one test to tests/entry/test_wiring_boundaries.py.
+
+   Result of `make test`:
+   - tests/domain/test_default_git_identity.py fails at collection with an ImportError: `DEFAULT_GIT_IDENTITY` cannot yet be imported from `factory.domain.git`.
+   - Both rows of the sudo test fail because `build_boundaries` has no `which` keyword yet and `ClaudeCodeRuntime` has no `sudo_executable` property.
+   - The criterion 6 test already passes on today's code, as the ticket expects. I confirmed this with one extra run of that module alone, beyond the single `make test` run the stage asks for.
+
+   `make lint` is green. Two lint fixes on the way:
+   - I reversed the equality in criterion 1's assertion (SIM300).
+   - I put the program name into each command-line builder, so the parametrized test has fewer positional arguments (PLR0917).
+
+   Nothing needed interpreting, and nothing is open.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/domain/test_default_git_identity.py - ImportError while importing...
+4. coder: I removed the three copies without changing behaviour. `make check` is green and all three Demo commands print what they should. Everything is in one commit on the branch.
+      - Identity: `DEFAULT_GIT_IDENTITY` is now defined in `src/factory/domain/git.py`, next to `GitIdentity`, and `GitOptions.identity` defaults to it. `src/factory/domain/settings.py` imports it and re-exports it.
+      - sudo: `ClaudeCodeRuntime.sudo_executable` is a new read-only property in `src/factory/adapters/claude_runtime.py`. `build_boundaries` in `src/factory/entry/wiring.py` takes a keyword `which`, defaulting to `shutil.which`, and gives the runtime `which("sudo") or SUDO_EXECUTABLE`.
+      - Arguments: `check_documents.main`, `health.main` and `watch.main` now call `parser.parse_args(argv)`. I removed the `import sys` from `check_documents` and `health`, which no longer use it.
+      - Main decision: the Interface asks for the re-export to be written `from factory.domain.git import DEFAULT_GIT_IDENTITY as DEFAULT_GIT_IDENTITY`. ruff refuses that line (PLC0414, an alias that does not rename). I re-export through an `__all__` in `settings.py` instead, listing `DEFAULT_GIT_IDENTITY`, `InstanceSettings`, `read_setting_file` and `read_settings`, with a one-line comment saying why. `git_cli.py` and `wiring.py` already do the same. The `__all__` only decides which imported names are re-exported; the names `settings.py` defines itself stay importable, and mypy confirms it. I rejected a `# noqa: PLC0414`: `CLAUDE.md` does not allow lint markers outside `process.py`. I also rejected `DEFAULT_GIT_IDENTITY = git.DEFAULT_GIT_IDENTITY`: it would look like a second definition.
+      - Refactor: I read the diff and found nothing to clean up, so there is no separate refactor commit. My one work commit is labelled `refactor(domain,entry)` because the ticket changes no behaviour.
+      - Open: the docs part of criterion 8 (project guide, decision log) is left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria 1 to 4: `tests/domain/test_default_git_identity.py` checks four things against `src/factory/domain/git.py:41` and `src/factory/domain/settings.py:9-13`: the value, that `GitOptions` and `settings` share the same object, that the email literal appears only once (`holders == ["factory.domain.git"]`, through `source_search`), and the default plus the override of one half (`GIT_USER_NAME=Ann`).
+      - Criterion 5: the parametrized test in `tests/entry/test_wiring_boundaries.py` covers both cases, `which` finding `/opt/tools/sudo` and `which` returning `None` (falls back to `/usr/bin/sudo`). The test reads the new `ClaudeCodeRuntime.sudo_executable` property (`src/factory/adapters/claude_runtime.py:330`), and `build_boundaries` passes `which("sudo") or SUDO_EXECUTABLE` (`src/factory/entry/wiring.py:215`). In production, `build_boundaries` and the `tool:sudo` item of `build_tick` both default to `shutil.which`, so the runtime starts the `sudo` that the preflight checks.
+      - Criterion 6: `tests/entry/test_entry_arguments.py` has the four rows of one parametrized test. Two run `main()` with a monkeypatched `sys.argv` and expect 0; two expect `SystemExit` 2. `watch.main` parses its arguments before it needs the boundaries, so the `--follow` row really tests the refusal.
+      - Interface rules: the one rule with a refused side, the `/usr/bin/sudo` fallback, is tested. No other limits are stated.
+      - Gate: the coder's entry has `check: green` and `duplicates: 0 new`.
+      - Architecture: `wiring` (entry) imports `SUDO_EXECUTABLE` from adapters, which is allowed. The domain constant does no I/O. No layer rule is affected.
+      - Security: no lint or security markers added, no strings built for a shell, no secrets.
+      - Quality: the unused `import sys` in `check_documents` and `health` is removed. The docstrings fit what the code does.
+      - One deviation from the Interface: the explicit re-export in `settings.py` uses `__all__` instead of `import ... as ...`, because ruff's PLC0414 refuses the `as` form. The log gives the reason and the rejected alternatives. `src/factory/adapters/git_cli.py:29` already uses the same pattern, and criterion 2's guarantee holds. I did not count this as a finding.
+      - Open: the docs part of criterion 8 (project guide sections, the decision-log entry of 2026-10-17, the `GitOptions` table) is for the documenter.
+6. documenter: the docs criterion is written. `python -m factory.entry.check_documents` prints `documents ok`. I changed only documents, so I did not run `make check`; the factory's check after this stage is the gate.
+   - `docs/project-guide.md`, *The document check*: says v1's pipeline configuration for this repository runs the check as a check of the docs stage through `make documents`, and that red holds the work item at the docs stage. It also says `make check` does not run it, and points to the decision log for the reason. The old "F0011, decision 13" reference is gone.
+   - `docs/project-guide.md`, the `GitOptions` table: the `identity` default is now `DEFAULT_GIT_IDENTITY` in `factory.domain.git`. `factory.domain.settings` re-exports the same object.
+   - `docs/project-guide.md`, *The `claude -p` runtime*: names the new `ClaudeCodeRuntime.sudo_executable` property. It says `build_boundaries` gives the runtime the `sudo` on the `PATH` that the preflight's `tool:sudo` item finds, and `/usr/bin/sudo` only when there is none.
+   - `docs/decisions.md`: a new entry of 2026-10-17 (F0012-S0003).
+     - It supersedes the F0011-S0005 entry for the docs stage.
+     - It records `DEFAULT_GIT_IDENTITY` as the one default, re-exported through `__all__` because ruff refuses the `import ... as` form.
+     - It records the `sudo` lookup and the `argparse` change.
+     - The "Known duplicate" sentence in the 2026-10-16 identity entry now points to it as settled.
+   - Cross-read and found current: README, `docs/operator-guide.md` (the `sudo` and `tool:sudo` text already says the `PATH`), and the rest of `docs/project-guide.md`.
+   - Stale but unrelated: nothing seen.
+   - No findings for the coder. The only deviation, `__all__` instead of `import ... as`, is reasoned in the log and now in the decision log.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: all three commands met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+   Command 1 (the default identity, and where its email literal appears in `src/factory`):
+   ```
+   True True name='factory' email='factory@noreply.invalid'
+   src/factory/domain/git.py:41:DEFAULT_GIT_IDENTITY = GitIdentity(name="factory", email="factory@noreply.invalid")
+   ```
+   Met: it prints `True True name='factory' email='factory@noreply.invalid'`, and the grep finds exactly one line, in `src/factory/domain/git.py` (criteria 1 to 3).
+
+   Command 2 (the old argv expression in the three entry modules):
+   ```
+   status 1
+   ```
+   Met: the single line `status 1`. The expression is gone from `check_documents`, `health` and `watch`.
+
+   Command 3 (`uv run python -m factory.entry.check_documents`):
+   ```
+   documents ok
+   ```
+   Met: the single line `documents ok` (the last clause of criterion 8).
+
+   Criteria 4 to 7 and the rest of criterion 8 have no demo command. Nothing in the output contradicts them. The log has the tests for criteria 4 to 6 passing, `check: green` from the coder and the documenter, and `documents ok` from `make documents`.

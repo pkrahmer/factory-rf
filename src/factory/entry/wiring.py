@@ -9,7 +9,7 @@ from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_guard import judge, read_guard_settings
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
 from factory.adapters.clock import SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
@@ -192,9 +192,16 @@ def health_store(state_directory: Path) -> HealthStatusStore:
 
 
 def build_boundaries(
-    settings: InstanceSettings, token: str, *, hosting: HostingService | None = None
+    settings: InstanceSettings,
+    token: str,
+    *,
+    hosting: HostingService | None = None,
+    which: Callable[[str], str | None] = shutil.which,
 ) -> Boundaries:
-    """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub."""
+    """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
+
+    The agent runtime starts the `sudo` that `which` finds, the one the preflight checks.
+    """
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
     state = settings.state_directory
@@ -202,7 +209,11 @@ def build_boundaries(
     return Boundaries(
         git=GitCli(settings.checkout, git_options(settings)),
         hosting=hosting,
-        agent_runtime=ClaudeCodeRuntime(settings.claude_executable, state / RUNS_DIRECTORY_NAME),
+        agent_runtime=ClaudeCodeRuntime(
+            settings.claude_executable,
+            state / RUNS_DIRECTORY_NAME,
+            sudo_executable=which("sudo") or SUDO_EXECUTABLE,
+        ),
         project_commands=MakeProjectCommands(settings.checkout),
         work_item_reader=build_work_item_reader(),
         work_item_writer=FrontmatterWorkItemWriter(),

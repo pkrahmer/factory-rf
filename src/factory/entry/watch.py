@@ -70,7 +70,7 @@ def main(
     when either is missing.
     """
     parser = argparse.ArgumentParser(prog=_PROGRAM)
-    parser.parse_args(sys.argv[1:] if argv is None else argv)
+    parser.parse_args(argv)
     out_stream = sys.stdout if out is None else out
     err_stream = sys.stderr if err is None else err
     if boundaries is None or instance is None:
