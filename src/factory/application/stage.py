@@ -59,6 +59,7 @@ class LaunchedStage(BaseModel):
     request: AgentRunRequest
     result: AgentRunResult
     cost: CostRun
+    nested_repositories: list[str] = []
 
 
 class StageLauncher:
@@ -104,9 +105,15 @@ class StageLauncher:
         )
         request = self._composer.compose(context, agent)
         begun = self._costs.begin(started, _role_of(self._definition, stage))
-        result = run_sealed(self._boundaries, request)
-        cost = self._costs.complete(begun, result)
-        return LaunchedStage(started=started, request=request, result=result, cost=cost)
+        sealed = run_sealed(self._boundaries, request)
+        cost = self._costs.complete(begun, sealed.result)
+        return LaunchedStage(
+            started=started,
+            request=request,
+            result=sealed.result,
+            cost=cost,
+            nested_repositories=sealed.nested_repositories,
+        )
 
     def _launchable_stage(self, prepared: PreparedWorkItem) -> str:
         if prepared.merge_conflict:
@@ -163,18 +170,17 @@ class AfterAgent:
         self._costs = CostRecorder(boundaries)
 
     def process(self, launched: LaunchedStage) -> AgentAftermath | StallResult:
-        """Test the branch and the result, undo, build the entry and check the form again.
+        """Test the work tree, the branch and the result, undo, build the entry, check the form.
 
-        Stops at the first step that cannot be kept and stalls it, one attempt counted. The
+        Stops at the first step that cannot be kept and stalls it, one attempt counted: first a
+        git repository the agent left in the work tree, which the run already removed. The
         entry is not appended to the returned document.
         """
         started = launched.started
-        if self._boundaries.git.status().branch != started.branch:
-            return self._stall(launched, "left_branch")
         result = launched.result
-        reason = stall_reason_of(result)
-        if reason is not None:
-            return self._stall(launched, reason, _first_denial(result))
+        early = self._early_stall(launched)
+        if early is not None:
+            return self._stall(launched, *early)
         decision = result.decision
         allowed = launched.request.allowed_decisions
         if decision is None or decision not in allowed:
@@ -203,6 +209,18 @@ class AfterAgent:
             form_findings=findings,
             cost=launched.cost,
         )
+
+    def _early_stall(self, launched: LaunchedStage) -> tuple[StallReason, str] | None:
+        # A nested repository goes first: it is gone already, and the stall must name it
+        # whatever else the agent did.
+        if launched.nested_repositories:
+            return "nested_repository", ", ".join(launched.nested_repositories)
+        if self._boundaries.git.status().branch != launched.started.branch:
+            return "left_branch", ""
+        reason = stall_reason_of(launched.result)
+        if reason is not None:
+            return reason, _first_denial(launched.result)
+        return None
 
     def _entry(
         self, started: StartedStage, decision: str, text: str, undo: UndoReport

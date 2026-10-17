@@ -93,13 +93,22 @@ class CheckoutPreparer:
     def _keep_or_clone_again(self) -> None:
         # An agent may have replaced `.git` since the last check; it cannot close a folder of
         # the factory's, so a `.git` that is not closed is never repaired, only cloned again.
+        # A nested repository left by an older checkout or a failed removal must not meet a git
+        # command; one that cannot be removed counts as an untrusted checkout.
         try:
             self._git.check_seal()
+            removed = self._git.remove_nested_repositories()
         except RepositoryUnsealed as error:
-            if self._log is not None:
-                self._log.line(f"cloning the checkout again: {error}")
+            self._write_log(f"cloning the checkout again: {error}")
             self._git.discard()
             self._git.clone(self._settings.repository_url)
+            return
+        if removed:
+            self._write_log(f"removed nested repositories: {', '.join(removed)}")
+
+    def _write_log(self, line: str) -> None:
+        if self._log is not None:
+            self._log.line(line)
 
 
 class RepositoryWaiter:

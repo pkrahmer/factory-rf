@@ -179,9 +179,16 @@ def agent_run_probe_item(
     try:
         installed = boundaries.agent_definitions.read(PROBE_AGENT)
         agent = installed.model_copy(update={"budget_usd": PROBE_BUDGET_USD})
-        result = run_sealed(boundaries, _probe_request(boundaries, settings, agent, environment))
+        sealed = run_sealed(boundaries, _probe_request(boundaries, settings, agent, environment))
     except (AgentDefinitionError, AgentRuntimeError) as error:
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=str(error))
+    if sealed.nested_repositories:
+        detail = (
+            "the probe run left a git repository in the work tree, which the factory removed: "
+            + ", ".join(sealed.nested_repositories)
+        )
+        return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
+    result = sealed.result
     if result.end_reason != "completed":
         detail = (
             f"the probe run ended {result.end_reason}; "
