@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 185
 blocked: null
 comments_seen: 0
@@ -74,3 +74,9 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria: there are no new or changed tests, as the Interface asks. `work_item_path` in `src/factory/domain/paths.py:25` returns `f"{FEATURES_DIRECTORY}/{feature_directory}/{folder}/{file_name}"`. That is the same string the old line built by hand, so the existing tests in `tests/test_demos.py` and `tests/entry/test_check_demos.py` still pin criteria 1 and 2. I did not run `make check` myself; the coder's entry reports it green. Criterion 3 holds in the diff. `src/factory/entry/check_demos.py:71` calls `work_item_path(feature, _BACKLOG, story)`. The quoted literal `"backlog"` appears only at `:24` (`_BACKLOG: LifecycleFolder = "backlog"`). `FEATURES_DIRECTORY` is no longer imported. The demo's grep returns exactly the three expected lines.
+      - Architecture: the entry layer imports from `factory.domain.paths`, which is allowed. The change reuses the existing helper and adds no second copy.
+      - Security: nothing relevant changed and no markers were added.
+      - Quality: the diff has 4 insertions and 3 deletions. The comment on the path stays, and no code is left unused.
+      - Ticket hygiene: the coder's log names the decision and the rejected local helper. `Assignment` matches what was built, and "docs: none" still holds.
