@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 198
 blocked: null
 comments_seen: 0
@@ -52,3 +52,12 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (30.3 s)
+4. coder: nothing implemented. This story is documentation only, and nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed (criterion 1). I made no commit.
+   - Criterion 1: kept, because I wrote nothing. The working tree is clean.
+   - Criterion 2: I ran `make check` on the branch as it stands, and it ended with `check: green` (`test: green (30.0 s)`, coverage 99.46 %).
+   - Criterion 3 is the documenter's: the `2775`/`664` row in *The agent runs as a second user* and the Podman connection paragraph in *Podman: the commands*, both in `docs/operator-guide.md`. The coder does not write docs.
+   - Refactor: no diff, so nothing to refactor.
+   - Open: the documenter writes criterion 3's text.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
