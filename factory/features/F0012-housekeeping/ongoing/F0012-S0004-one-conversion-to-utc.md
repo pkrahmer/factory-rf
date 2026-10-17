@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 156
 blocked: null
 comments_seen: 0
@@ -84,3 +84,13 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
       - Security: no suppression markers, secrets or new input boundaries.
       - Quality: the five duplicated validators become one helper. The module and the public function have docstrings, and nothing is dead.
       - Ticket hygiene: the coder's entry gives the main decision (an annotated type rather than a shared base) and the reason for it. The Assignment matches what was built. Docs criterion 5 still describes what the documenter has to write in the project guide's *The claim* section.
+6. documenter: changed only `docs/project-guide.md`.
+   - Line 415 (*The claim*): after "`started_at` ... is stored in UTC", it now says that `UtcDatetime` in `factory.domain.times` is the one way a model converts a time, and that every new time field takes that type and no validator of its own. This is the docs criterion.
+   - Line 984 (`RepositoryStop`): "`at` is converted to UTC by a validator" was stale, because the validator is gone. It now says `at` is typed `UtcDatetime`. This is a small extra edit in the same file. The other "stored in UTC" places (lines 88, 139, 829 and the rest) are still true and I left them.
+   - Cross-read against the diff and found current: README, `docs/operator-guide.md` and `docs/decisions.md`. They name no validator or `_to_utc`.
+   - `python -m factory.entry.check_documents` prints `documents ok`.
+   - I did not run `make check`, because I changed no file outside the docs; the factory runs it next.
+   - No findings, and nothing stale left untouched.
+
+   `make check`: check: green
+   `make documents`: documents ok
