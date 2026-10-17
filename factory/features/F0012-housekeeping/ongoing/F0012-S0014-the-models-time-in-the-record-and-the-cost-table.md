@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 166
 blocked: null
 comments_seen: 0
 round: 0
@@ -89,3 +89,9 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules, fields and signatures (`AgentRunResult.model_duration`, `_Reply.duration_api_ms`, `CostRecord.model_seconds`, `Bill.model_duration`, `cost_table` header and alignment row), the field order, and the exact test files and the pinned lines the tester may change. The Interface adds no behaviour that has no criterion.
+   - Criteria: each is testable by one test function. Rules have both sides. A missing field gives `None` and `-1` gives `died` (1). A time-limit kill gives `None` (2). Resume sums, the one-known cases, both unknown, and the time-limit resume (3). A started record is refused, and a completed one accepts `None`, 0 and 41.5 while -1 and nan are refused (4). The writer and an older line without the key (6). Known and `None` sums and an empty bill (7). Half-up rounding at 0.25 and 0.24 (10). `cost_line` unchanged (11). I recomputed the numbers of criteria 8 and 9 (minutes, model minutes, totals) and they agree.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable text, and I checked the third's arithmetic (3.0 min, 1.0 model min, 2 unknown).
+   - Architecture: the changes sit in the layer each belongs to. The reply is parsed in the adapter, the DTO fields are in the domain, and the copy into the record is in application `costs.py`. No new dependency or package.
+   - Scope: this is F0012's item 1.4, "the model's time of every agent run". FEATURE decisions 22, 37 and 38 cover the story, including the leave to change the two earlier tests. Nothing in "Out of scope" is touched.
