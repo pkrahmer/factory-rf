@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
+from factory.application.disk_records import DiskRecorder
 from factory.application.dispatcher import Handler
 from factory.application.handlers.comments import CommentCopier
 from factory.application.handlers.recording import (
@@ -32,6 +33,7 @@ from factory.domain.acceptance import (
 from factory.domain.archive import destination_path
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
+from factory.domain.disk import disk_line
 from factory.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
 from factory.domain.events import Event
 from factory.domain.git import CommitId
@@ -134,7 +136,19 @@ class AcceptanceService:
             parsed = parse_work_item_file_name(file_name)
             if parsed is not None and not is_acceptance(parsed.id):
                 records.extend(self._records(work_item_path(directory, "done", file_name)))
-        return acceptance_facts(files, cost_line(bill(records)))
+        disk_now, disk_before = self._disk_lines()
+        return acceptance_facts(
+            files, cost_line(bill(records)), disk_now=disk_now, disk_before=disk_before
+        )
+
+    def _disk_lines(self) -> tuple[str | None, str | None]:
+        recorder = DiskRecorder(self._boundaries)
+        # Read before recording, or the record of now would be its own previous one.
+        previous = recorder.last()
+        now = recorder.record("acceptance")
+        if now is None:
+            return None, None
+        return disk_line(now), None if previous is None else disk_line(previous)
 
     def _acceptance(self, feature: FeatureId) -> FeatureAcceptance:
         for acceptance in self._reader.read():
