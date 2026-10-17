@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 148
 blocked: null
 comments_seen: 0
@@ -211,3 +211,44 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - `docs/project-guide.md` line 988 cites the operator guide section "Stops of one work item". That section is now "The stops of one work item" under "The stops".
 
    `make check`: check: green
+7. demo: I ran all three commands from the repository root. Each one met its `Expect:` line, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   Command 1 (print `STOP_TABLE`):
+   ```
+   fetch-failed health_status L26,L58 fetch_failed
+   checkout-restore-failed health_status L64 checkout_restore_failed
+   pipeline-definition-invalid health_status L64 pipeline_definition_invalid
+   agent-definition-invalid health_status L30 agent_definition_invalid
+   repository-unavailable health_status L64 repository_unavailable
+   main-branch-failing health_status L65 main_branch_failing
+   preflight-failed health_status L55 preflight_failed
+   duplicate pull_request L19 -
+   pull-request-lookup pull_request L19 -
+   ask-without-pull-request pull_request L19,L26 -
+   handler-error pull_request L26 -
+   hand-over-error pull_request L33 -
+   push-rejected pull_request L58 -
+   later-stage-in-backlog-file none L11 -
+   ```
+   Met: there are fourteen lines, and the first, seventh, eighth and last lines are exactly as expected.
+
+   Command 2 (the table's reasons against `RepositoryStopReason`):
+   ```
+   True
+   ```
+   Met.
+
+   Command 3 (pytest on `tests/test_stop_table.py` and `tests/domain/test_stop_table.py`):
+   ```
+   ...................................                                      [100%]
+   35 passed in 10.84s
+   ```
+   Met: the last line reports `passed`, with no `failed` and no `error`.
+
+   Criteria check:
+   - Criterion 1: every row's id, destination, limits and reason matches the Interface table, in the same order.
+   - Criterion 2: command 2 shows the table's reasons match `RepositoryStopReason` exactly.
+   - Criterion 3: the limits listed cover L11, L19, L26, L30, L33, L55, L58, L64 and L65.
+   - Criteria 6 to 15: they are tested by the suite, which passed.
+
+   The demo does not exercise criteria 16 to 18 directly, and nothing it shows contradicts them. The earlier entries report `make check` green.
