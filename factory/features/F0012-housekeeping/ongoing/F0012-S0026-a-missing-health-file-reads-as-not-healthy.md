@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A missing health file reads as not healthy
 
 ## Assignment (as of log entry 1)
