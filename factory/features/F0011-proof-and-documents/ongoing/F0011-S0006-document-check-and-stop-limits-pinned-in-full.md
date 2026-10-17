@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 151
 blocked: null
 comments_seen: 0
@@ -111,3 +111,11 @@ Expect: the single line `documents ok`.
    - Code: `src/factory/domain/stop_table.py` now uses `re.compile(r"L[0-9]+")` with `_LIMIT.fullmatch`, as the Interface specifies, and nothing else in the module changed. Architecture and security are unaffected: the change is a pure domain change with no new dependency and no suppression marker.
    - Other changes in the diff range: the `docs/runs/...night-log.md` and `planning/overnight/restructure-after-f0011.md` changes are the human's own commits (1a7bc24, 54e348b), brought in by the merge of main. They are not the ticket's work and were not reviewed.
    - Ticket: `Assignment` matches what was built, and criterion 7 still says what the documenter must add to the project guide.
+6. documenter: wrote the criterion 7 paragraph.
+   - `docs/project-guide.md`: one paragraph added to *Stops, the clock and the factory log*. It covers `STOP_TABLE` and `StopRow` in `factory.domain.stop_table`: one row per stop with limits, destination, reason and test; a reason exactly when the destination is the health status; each limit the whole text `L` plus ASCII digits (`L7` yes; `L7x`, `L7 `, a trailing newline and a non-ASCII digit no).
+   - Cross-read against the diff and found current: the project guide's document-check section, the operator guide's line on `STOP_TABLE` ids, and decisions.md entries for S0004 and S0005. No other document needed a change.
+   - Ran `python -m factory.entry.check_documents`: it prints `documents ok`. `make check` is green.
+   - Stale but unrelated: nothing seen.
+   - Findings for the coder: none. The code matches the Interface.
+
+   `make check`: check: green
