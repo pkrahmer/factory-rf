@@ -17,7 +17,7 @@ The restructure comes last: it is layout only, the todo run neither needs nor te
 4. A project's own skills and agents (the sections below): after the todo run, because run 4 used neither and the baseline stays at v1's scope; before the restructure.
 5. The restructure: the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`; then `make check` and one short story run in the todo project to show nothing changed.
 
-The development dependencies to grant: pytest-xdist (1.1), mutmut (1.3), and pylint and vulture only if `make duplicates` becomes a lasting report instead of the one ad hoc pass of 1.2.
+The development dependencies: granted by the human on 2026-10-17, pytest-xdist (1.1), and pylint and vulture for a lasting `make duplicates` report (1.2: a make target over `src/factory` against a baseline of today's findings, a non-blocking `records:` entry on the review stage in `factory/stages.yml`, the human's change between two stories, its findings read by the reviewer and the acceptance reviewer). Still to grant: mutmut (1.3).
 
 ## The decision
 
