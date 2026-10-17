@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 172
 blocked: null
 comments_seen: 0
@@ -84,3 +84,18 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: Demo ran from the repository root. It met its Expect line, and I found nothing wrong.
+
+   Command 1 (`uv run python -c "…load image/compose.yml, print name and sorted volumes…"`), exit 0:
+   ```
+   factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}
+   ['claude-home', 'state', 'work']
+   ```
+   Met the Expect line: both lines match exactly.
+
+   Checked against the acceptance criteria:
+   - Criterion 1: `name` is exactly the required string. It starts with `factory-`, uses `:?` with a message and has no `:-` default.
+   - Criterion 2: the `:?` message of `name` (compose.yml line 2) matches the message of the service's `FACTORY_INSTANCE` (line 19) word for word.
+   - Criterion 3: the volumes `work`, `state` and `claude-home` are unchanged. The diff against origin/main changes only line 2 of `image/compose.yml`.
+   - Criterion 5: the diff touches only `docs/operator-guide.md` and `docs/decisions.md` among the documents, as the criterion requires.
+   - No criterion is contradicted. I did not run `make check` myself; the factory runs it as the stage's check.
