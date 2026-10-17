@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 182
 blocked: null
 comments_seen: 4
@@ -219,3 +219,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
     - Criterion 7: the comments say what the criterion asks for. `image/entrypoint.sh:4-5` names `/work`; the comment above the ENV says only the factory's user can enter the folder; the comment above the bind mount gives the Swarm reason.
 
     Open: the preflight item `token-file` still checks the file's own owner and mode. Moving that check to the folder is S0002's work.
+12. done (pull request merged); cost: 8 runs, 6.3 min, 60 turns, 214k tokens in (1105k more from cache), 23k out, $1.50
