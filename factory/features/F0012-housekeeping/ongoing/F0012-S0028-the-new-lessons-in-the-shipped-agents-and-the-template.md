@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 178
 blocked: null
 comments_seen: 0
@@ -130,3 +130,41 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran the three Demo blocks from the repository root, in order. All three met their `Expect:` lines and I found nothing wrong.
+
+   1. `grep -c "the shell tool's largest timeout" claude/agents/*.md`
+   ```
+   claude/agents/acceptance-reviewer.md:1
+   claude/agents/coder.md:1
+   claude/agents/documenter.md:1
+   claude/agents/intake.md:1
+   claude/agents/reviewer.md:1
+   claude/agents/smoke-tester.md:1
+   claude/agents/tester.md:1
+   ```
+   Met: seven lines, one for each agent, each ending in `:1`.
+
+   2. `grep -c "room to start" claude/agents/tester.md template/CLAUDE.md claude/agents/coder.md`, then `grep -c "every file you changed is a document" claude/agents/documenter.md claude/agents/tester.md`
+   ```
+   claude/agents/tester.md:1
+   template/CLAUDE.md:1
+   claude/agents/coder.md:0
+   claude/agents/documenter.md:1
+   claude/agents/tester.md:0
+   ```
+   Met: these are exactly the counts the Expect line asks for.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_agent_texts.py tests/test_claude_files.py`
+   ```
+   ........................................................................ [ 63%]
+   ..........................................                               [100%]
+   114 passed in 0.08s
+   ```
+   Met: the last line is `114 passed`, with no failed, error or skipped count.
+
+   Checked against the criteria:
+   - Criteria 1 to 3: the passing tests compare the whole `LESSONS` lists and the whole template text.
+   - Criterion 6: `uv run python -m factory.entry.check_documents` prints `documents ok`. The `## Lessons` bullet and the template bullet in `docs/project-guide.md` say what criterion 6 asks for.
+   - The working tree was clean when I started.
+
+   Not a finding, but worth fixing in a later story: one sentence in the project guide says `acceptance-reviewer` "ends with" the temporary-directory lesson, but its last bullet is the JUnit lesson. The documenter noted this wording was there before this story, and no criterion covers it.
