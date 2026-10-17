@@ -2,9 +2,9 @@
 stage: docs
 pr: 153
 blocked: null
-comments_seen: 0
+comments_seen: 1
 round: 0
-attempts: 0
+attempts: 1
 ---
 # One prepared remote per test session
 
@@ -141,3 +141,25 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
       - Considered and not raised: the criterion 4 test decides whether to create the root by checking the row's string `"missing/two-deep"` instead of a row parameter. It reads clearly enough and is not wrong.
       - Ticket hygiene: the Assignment matches what was built, and the tester's entry explains the rejected parametrization of criterion 7.
       - Open for the documenter: criterion 9, the project guide's paragraphs on the `remote` fixture (*The git wrapper*) and the `world` fixture (*Kill points*, *The kill-point cases*).
+6. documenter: criterion 9 done, no findings.
+   - Changed `docs/project-guide.md`, section *The git wrapper*: the `remote` fixture paragraph now says `make_remote` builds the remote once per session (once per worker, as `remote_template`). Each test gets a copy of the whole folder (seed and bare repository) from `copy_remote(template, root)`, which runs no git process. A test that needs a remote of its own layout builds it with `make_remote`.
+   - Changed `docs/project-guide.md`, section *Kill points*, *The kill-point cases*: the `world` fixture sentence now says it returns `build_world(tmp_path, template=remote_template)`, the world on a copy of that remote. It also says `build_world(root)` without a template makes its own remote.
+   - Ran `python -m factory.entry.check_documents`: it prints `documents ok`. I ran no `make check`, since only a document changed.
+   - Cross-read: the diff touches only `tests/`, with nothing under `src/`. A grep of `docs/` and the README for `make_remote`, `remote` fixture and `world` fixture found no other mention. README and `docs/operator-guide.md` do not describe test fixtures, so they stay current.
+   - Stale but unrelated: none seen.
+7. stage docs stalled: `make check` is red after the stage:
+   src/factory/domain/board.py                        55      0      4      1    98%   72->70
+   src/factory/entry/check_documents.py               26      1      8      1    94%   37
+   src/factory/entry/check_story.py                   80      1     18      1    98%   131
+   src/factory/entry/guard.py                         37      1     10      1    96%   56
+   src/factory/entry/health.py                        28      1      6      1    94%   42
+   src/factory/entry/run.py                           65      1      2      1    97%   158
+   src/factory/entry/watch.py                         52      1      6      2    95%   76->83, 87
+   -------------------------------------------------------------------------------------------
+   TOTAL                                            6584     18   1292     19    99%
+
+   93 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.53%
+   =========================== short test summary info ============================
+   FAILED tests/adapters/test_make_commands.py::test_command_reaching_its_time_limit_is_killed
+   make: *** [Makefile:74: test] Error 1; partial work committed
