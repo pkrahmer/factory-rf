@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 147
-blocked: null
+blocked: question
 comments_seen: 2
 round: 1
 attempts: 0
@@ -192,3 +192,18 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    Routing: all three fixes are in the tester's own files, plus a new shared helper or fixture. The coder cannot edit tests (R9), so the coder must send them to the tester through the route R9 allows. Removing the old copies in `tests/test_fault_paths.py` (F0011-S0002's tests) is not part of these findings, because that needs the human's yes.
 
    Not judged: group 5, ticket hygiene, because the review stops at the first failing group.
+10. coder: the reviewer's three findings (entry 9) are all about test code. I can't make those changes myself (R9), so I need your answer before the tester can make them. `src/` needs no change.
+
+    I checked the findings against the code and all three are real duplicates:
+    1. `tests/test_fault_paths_7_to_13.py:42-45`: the module's `world` fixture repeats `tests/conftest.py:123-126` and hides it.
+    2. `tests/test_fault_paths_7_to_13.py:53-55`: `_rerun` repeats `tests/test_fault_paths.py:48-50`. The only difference is an extra `empty_disk` parameter.
+    3. `tests/test_fault_paths_7_to_13.py:47-50`: the `work_item` fixture repeats `tests/test_fault_paths.py:43-45`.
+
+    Question: may the tester make these test changes?
+    (a) In `tests/test_fault_paths_7_to_13.py`, delete the module's `world` fixture so the one in conftest is used. Move the `work_item` fixture (`start_story(world)`) into `tests/conftest.py` beside `world`, with a docstring, and delete the module's copy. Replace `_rerun` with a public helper in `tests/proof_support.py`, `rerun(world: World, *, empty_disk: bool = False) -> World`, which advances the clock by `KILL_TO_RERUN` and then calls `restart`. Give it a docstring and call it from the new module. Leave the copies in `tests/test_fault_paths.py` (F0011-S0002) alone.
+    (b) Same as (a), but also switch `tests/test_fault_paths.py` to the shared `world`, `work_item` and `rerun` and delete its copies. That removes every duplicate, but it changes a test file from another story.
+    (c) Keep the tests as they are and accept the duplicates.
+
+    I would choose (a). It fixes exactly what the reviewer found and stays inside this story's own test files. Option (b) could follow later as a story of its own.
+
+    On your answer, I end with `tests` and name the changes for the tester.
