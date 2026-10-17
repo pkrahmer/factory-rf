@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 145
 blocked: null
 comments_seen: 2
@@ -148,7 +148,7 @@ Conditions (the names in `CRASH_CONDITIONS` and `STALL_CONDITIONS`; `violations`
 - `resumes-at-first-tick`, `kill-to-rerun-recorded`, `no-repeated-post`, `no-repeated-step`, `no-interrupted-write-in-history`, `stage-start-kept`, `no-discarded-cost-record`, `counters`: the crash list, criteria 7 to 14.
 - `attempt-charged`, `outside-writes-undone`, `state-restored`, `inside-writes-kept`, `cost-record-kept`: the stall list, criteria 17 to 21.
 
-Tests: `tests/domain/test_kill_point_cases.py` (criteria 1 to 4); `tests/test_kill_points.py` (criteria 5 to 22), which parametrizes the crash criteria over the crash cases (criteria 9 and 10 over all six cases) and the stall criteria over `agent-run-dies`, and runs each case once per module through the module-scoped fixture over `run_case`; the helpers are in `tests/proof_support.py`.
+Tests: `tests/domain/test_kill_point_cases.py` (criteria 1 to 4); `tests/test_kill_points.py` (criteria 5 to 22), which parametrizes the crash criteria over the crash cases (criteria 9, 10 and 11 over all six cases) and the stall criteria over `agent-run-dies`, and runs each case once per module through the module-scoped fixture over `run_case`; the helpers are in `tests/proof_support.py`.
 
 ## Acceptance criteria
 
@@ -343,3 +343,17 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
     `make lint`: lint: green
     `make test`: test: green
+12. coder: round 1. The two findings from entry 9 are handled. Both were test changes, and the tester made them in entry 11 (commit 8469746). I didn't edit any tests or anything under `src/` this round. `src/factory/domain/kill_point_cases.py` (commit 1599e19) stays as it was.
+
+    - Finding 1 (criterion 7, "first tick"): `_rerun` now saves `CaseResult.first_tick_requests` after the first tick, and `_resumes_at_first_tick` checks that saved copy. No `src/` change was needed: the restarted factory reruns the stage at its first tick.
+    - Finding 2 (criterion 11 over `agent-run-dies`): `test_no_write_of_the_interrupted_run_reaches_the_remote` now runs over all six cases. It passes against the current `src/`.
+
+    Ticket text: the Interface's Tests sentence (line 151) said "criteria 9 and 10 over all six cases", which contradicted criterion 11. I changed it to "criteria 9, 10 and 11 over all six cases", as entry 10 proposed. The Assignment and the criteria are unchanged. That edit is left in the working tree for the factory's commit.
+
+    Refactor pass: there is no new `src/` diff this round, so I have nothing to refactor and no refactor commit.
+
+    Open: criterion 24 (the docs) is still for the documenter.
+
+    `make check`: check: green (coverage 99.55 %)
+
+    `make check`: check: green
