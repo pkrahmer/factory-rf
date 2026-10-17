@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 176
 blocked: null
 comments_seen: 0
@@ -83,3 +83,10 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria 1–6: each has a test in `tests/entry/test_health_missing.py` or `tests/entry/test_run_health_file.py`, and each test checks what its criterion says. Criterion 1 is one parametrized test with three rows: missing, empty and damaged. Criterion 4 covers both sides: a missing file gets written, and an existing stop is kept (`should_stop` is true, so no tick runs). Criterion 5 tests the order: with no token file, `SettingsInvalid` is raised and the health file still exists. Criterion 6 checks for `OSError` and that nothing is cloned. The Interface's `health_file` has its own test. The two F0010 tests changed exactly as the Interface describes (FEATURE decision 43), and no other earlier test changed. The coder's entry has `make check` green and `make duplicates` at 0 new.
+      - Architecture: the change stays in `factory.entry`. `run.py` and `health.py` reach the file only through `wiring.health_file` and `health_store`, and `health_store` now builds its path with `health_file`, so the path is defined once. `replace_text` creates the state directory when it is missing, so the first write also works on a fresh volume.
+      - Security: no suppression markers, no strings built into commands, and the missing-file message prints only the path the operator gave.
+      - Quality: the docstrings of `main` and `run_instance` describe the new behaviour, including the `OSError`. The comment on `_write_an_empty_health_status_when_there_is_none` says why the write is there. No dead code.
+      - Ticket: the log gives the main decision: the missing-file check is in `main`, not in the store's `read`, because criterion 2 and `_stop_the_machine` both rely on how `read` works today. `Assignment` matches what was built, and the docs criterion (8) is still accurate.
+      - Coder's open point: when `factory-run` exits with status 2 on invalid settings, it never writes the file. That is not a gap: with no file, `factory-health` now reports not healthy, which is the fix for F0010 open point 6.
