@@ -341,3 +341,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - The human answered (baseline): the baseline run compares cost and agent minutes of the stories first-pass in both runs; start-to-archive minutes are recorded, not compared. Written into the plan's step 10 and the demo's README (edit D).
 - The staging folder goes into `demo/` as the human's commit after F0012's acceptance, when S0023's check exists.
 | 2026-10-17 16:05 | F0012-S0017 merged (#168; 6 runs, 4.4 agent minutes, $1.09, first pass; no other story's test changed). S0018 started; H7 follows it. |
+| 2026-10-17 16:16 | F0012-S0018 merged (#169; 7 runs, 4.5 agent minutes, $1.17; one intake question answered (a): the fault names the model and the missing setting; its 25 removed tests are exactly those it lists, decision 39). H7 committed (CLAUDE.md Tests: the configuration test; a lessons row). Project guide 1,698 lines. S0019 started. |
