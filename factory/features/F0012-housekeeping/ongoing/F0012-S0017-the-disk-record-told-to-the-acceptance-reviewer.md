@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 168
 blocked: null
 comments_seen: 0
@@ -72,3 +72,13 @@ Expect: two lines: `Disk now: disk acceptance: /work 1.0 GB free, 0.1 GB used` a
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/application/test_acceptance_facts_disk.py::test_the_facts_record_the_disk_at_acceptance_and_name_the_record_before
+4. coder: the acceptance reviewer's facts now include the disk record. `make check` is green and `make duplicates` reports 0 new, 39 known, 0 gone. Commit 6c2ff0f.
+   - `src/factory/domain/acceptance.py`: `AcceptanceFacts` has two new last fields, `disk_now` and `disk_before`, both defaulting to `None`. `lines()` returns the three lines of today. When `disk_now` is set it adds `Disk now: …` and `Disk at the previous record: …`, using the existing `NONE_TEXT` ("none") when `disk_before` is `None`. `acceptance_facts` takes the two values as keyword-only arguments and passes them on.
+   - `src/factory/application/acceptance.py`: `AcceptanceService.facts` gets the two values from a private `_disk_lines()`. That method calls `DiskRecorder.last()` first and `record("acceptance")` after it, so the new record is not counted as its own previous one. When there is no disk, record log or settings, `record` returns `None` and both values are `None`.
+   - `claude/agents/acceptance-reviewer.md`: check 7 ends with the sentence from the Interface. Nothing else in the file changed.
+   - Main design decision: the lines are built in the application with the existing `disk_line`, so the domain only holds strings, as the Interface asks. I rejected passing `DiskRecord` objects into `AcceptanceFacts`: that would put formatting in the facts and depart from the Interface.
+   - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+   - Open: criterion 8 (operator guide and project guide) is the documenter's and I did not touch it.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
