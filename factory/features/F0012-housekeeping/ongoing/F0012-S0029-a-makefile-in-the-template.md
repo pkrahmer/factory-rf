@@ -2,9 +2,9 @@
 stage: tests
 pr: 180
 blocked: null
-comments_seen: 0
+comments_seen: 1
 round: 0
-attempts: 0
+attempts: 1
 ---
 # A Makefile in the template
 
@@ -187,3 +187,17 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: all three commands are runnable. The `mutants` run with no FEATURE on a ticket branch gives status 2 and the stated line. `lint` runs for real over this repository, which `make lint` already keeps clean. The pytest line is checkable. Every Expect line says something the output can be checked against.
    - Architecture: the change only adds a file under `template/` (inside the coder's write paths) and a tests module at the `tests/` root, where a module outside the layers belongs. No `src/factory` module changes, so the layering is not touched. Layers stay a project placeholder, as CLAUDE.md R8 requires.
    - Scope: this is the "What v1.1 ships to new projects" item of FEATURE.md's Scope. Its dependency on S0030 is stated in the story and in FEATURE decision 51. `documents` and the baseline comparison are left out, with reasons in decisions 50 and 53. None of it falls under Out of scope.
+3. stage tests stalled: Stuck: the write guard refuses every write by the tester. Creating `tests/test_template_makefile.py` with the Write tool failed with `PreToolUse:Write hook error: [factory-guard tester]: guard: no lane configured for 'tester' in factory/stages.yml`. That is a problem in the pipeline's configuration, not a path outside my lane. Fixing it means changing `factory/stages.yml`, which is the human's file (R15). I did not use shell writes to get around the guard.
+
+   Where I stopped:
+   - **Done before the guard error:** I edited `tests/test_claude_files.py` with a shell script, exactly as the Interface allows (FEATURE decision 49), for criteria 1 and 11:
+     - `TEMPLATE_RULES_LINES` now has the two *Checks* bullets in place of the one. I checked that the joined strings equal the Interface's two bullet lines exactly.
+     - The test is renamed to `test_template_holds_only_the_rules_file_the_makefile_and_the_pipeline_definition`. It now expects `["CLAUDE.md", "Makefile", "factory", "factory/pipeline.yml"]` and checks that `template/Makefile` is a file.
+     - This change is still in the working tree. I tried to revert it after the error, but `git checkout` was denied. If the guard decides it was outside my lane, the factory may undo it.
+   - **Not written:** `tests/test_template_makefile.py` (criteria 2–10) was fully drafted but not saved. The plan for it:
+     - Text tests read `template/Makefile`: the `.PHONY` list and no `documents` target, the prerequisites and one recipe line of `check`, the `SOURCE`/`LAYERS` placeholders, and a 13-row test of the tool names in the header.
+     - Behaviour tests copy the Makefile to `tmp_path/project` and run `make` through `run_process`. Stderr is merged, `MAKEFLAGS`, `MFLAGS`, `MAKELEVEL`, `FEATURE`, `SOURCE` and `LAYERS` are removed from the environment, and `tmp_path/bin` comes first on `PATH`. That folder holds the `claude_stand_in`, renamed to `uv`.
+     - Planned rows: 6 targets × pass/fail, two tests for `make test`, 5 rows for secrets, 4 for duplicates, 4 for mutants. Git repositories are built with `run_git`, `write_files` and `commit_all`, and `origin/main` is set with `update-ref`.
+   - **Not run:** `make test` and `make lint`.
+
+   Open for the human: give the `tester` role a lane in `factory/stages.yml` (it should include `tests/*` and the story file), then run the tests stage again.; denied: Write: /work/factory-rf/tests/test_template_makefile.py; partial work committed
