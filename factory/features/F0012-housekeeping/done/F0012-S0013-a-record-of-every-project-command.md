@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 165
 blocked: null
 comments_seen: 0
@@ -178,3 +178,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       Exit status 0. It met the Expect line: the last line reads `<n> passed in <t>s`, with no failed, error or skipped count.
 
    Against the criteria: the demo covers criteria 2–8 through these tests and the round trip. It does not exercise criteria 1 and 9 (the model's refused values, and the wiring through `build_boundaries`). Their tests are in other modules that the demo does not run. Criterion 10 is the factory's own check, and the coder, reviewer and documenter entries all record `make check` as green.
+8. done (pull request merged); cost: 6 runs, 5.8 min, 49 turns, 211k tokens in (995k more from cache), 26k out, $1.54
