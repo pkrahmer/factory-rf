@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 154
 blocked: null
 comments_seen: 2
@@ -186,3 +186,18 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Ticket hygiene: the log gives the main decision and what was rejected, the Assignment matches what was built, and criterion 16 still describes what the documenter has to write.
 
    Open items, not findings: the Interface does not specify what happens when writing the baseline fails (`OSError`); the coder flagged this. A `==` line that comes after the code is read as code, which follows the Interface's "first non-blank line after the `==` lines".
+8. documenter: I wrote the documentation criterion 16 asks for. I found no findings for the coder. I did not run `make check`, because I changed only documents (the factory runs it next). `python -m factory.entry.check_documents` prints `documents ok`. The first Demo command also runs and prints the three expected lines.
+
+   Files changed:
+   - `docs/project-guide.md`: new section *The duplicates report*, placed before *The document check*. It covers what `make duplicates` runs, the two key forms with examples, the refusal of out-of-form tool output, the baseline file `security/duplicates-baseline.txt` and `--write-baseline`, the `new`, `gone` and last lines, the exit statuses 0, 1 and 2, and that the pipeline writes the last line into the coder's journal entry whatever the status.
+   - `docs/decisions.md`: new decision, *The duplicates report keys findings without line numbers, and it is a record, not a check*. It gives the reasons for the keys and for the record, and the rejected alternatives.
+
+   State of the target: the section says the `make duplicates` target and the pipeline step belong to a later change of the housekeeping feature. Neither exists yet (the Makefile has no `duplicates` target and `security/` holds only `semgrep`), and the baseline file isn't committed. That is the criterion's wording and I did not change it.
+
+   One sentence in the decision log goes beyond the story. It says a new finding is a question for the reviewer, and that a gate would be bypassed by a growing baseline. This is my reading of "a record, not a check". Cut it if it is not what you meant.
+
+   Cross-read and found current: `README.md`, `docs/operator-guide.md`, and the rest of `docs/project-guide.md` and `docs/decisions.md`. None of them mention the new modules, and no name or behaviour changed.
+
+   Stale text outside this story: none seen.
+
+   `make check`: check: green
