@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 167
 blocked: null
 comments_seen: 0
 round: 0
@@ -107,3 +107,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`domain/disk.py` DiskUse/DiskRecord/disk_line, `InstanceSettings.temporary_directory`, `Boundaries.disk_records`, new `application/disk_records.py` DiskRecorder, wiring and run_instance). The helpers it relies on exist: `gigabytes` in `domain/disk.py`, `FakeDiskSpace`, `UnwritableRecordLog`, `RecordLog`, `JsonLinesRecordLog`.
+   - Criteria: each is testable by one test function. The disk_line format and its unknown case (1), the validation rows (2), the folder order and fake values (3), the temporary-directory row (4), OSError on either value (5), the append failure (6), the missing-boundary rows (7), `last` (8), `run_instance` (9) and the settings (10) each have one. Every Interface rule has a criterion for its failing side: the invalid occasion, naive `at` and -1 values (2), the absent temporary directory (4), the OSError cases (5, 6), the missing boundaries (7), the empty log (8).
+   - Demo: both commands are runnable. Each `Expect:` line can be checked against the output; the first is the exact line, the second is the pytest summary.
+   - Architecture: the domain model is pure. The recorder sits in application behind `Boundaries`. The concrete JsonLinesRecordLog and `tempfile.gettempdir()` are wired only in entry. This matches the four layers.
+   - Scope: it is inside F0012 item 1.4 (S0016) and outside "Out of scope" (host-side numbers are left to the session). The test edits to earlier stories are covered by FEATURE decision 46. The expected dead-code finding for `last` is stated in the Assignment.
