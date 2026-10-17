@@ -13,7 +13,7 @@ from factory.application.files import (
 )
 from factory.application.git import Git
 from factory.application.hosting import HostingService
-from factory.application.machine import Clock, FactoryLog, HealthStatusStore
+from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore
 from factory.application.project_commands import ProjectCommands
 from factory.domain.settings import InstanceSettings
 
@@ -37,5 +37,6 @@ class Boundaries:
     log: FactoryLog
     health: HealthStatusStore
     checkout: Path
-    # Last and optional, so that every construction written before it stays valid.
+    # Last and optional, so that every construction written before them stays valid.
     settings: InstanceSettings | None = None
+    disk: DiskSpace | None = None

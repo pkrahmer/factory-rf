@@ -1,7 +1,8 @@
-"""The interfaces to the machine: its clock, the factory log and the health status store."""
+"""The interfaces to the machine: its clock, the factory log, the health status store and disks."""
 
 from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
 
 from factory.domain.stops import HealthStatus
 
@@ -32,3 +33,21 @@ class HealthStatusStore(ABC):
     @abstractmethod
     def write(self, status: HealthStatus) -> None:
         """Replace the stored status with `status`; a failed write raises `OSError`."""
+
+
+class DiskSpace(ABC):
+    """Tells how much room the file systems have and how much a folder takes."""
+
+    @abstractmethod
+    def free_bytes(self, path: Path) -> int:
+        """The bytes an unprivileged user may still write on the file system of `path`.
+
+        Raises `OSError` when it cannot be read.
+        """
+
+    @abstractmethod
+    def used_bytes(self, path: Path) -> int:
+        """The sizes of the regular files under `path`; 0 for a missing path.
+
+        Symbolic links and other non-regular files are skipped.
+        """

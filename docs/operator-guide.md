@@ -24,6 +24,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.289`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
 | `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
+| `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. What it guards comes with the low-disk stop. |
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
@@ -124,6 +125,12 @@ The write-path guard is the command `factory-guard`, installed with the factory 
 ## The machine's image
 
 `image/Dockerfile` builds the machine the factory runs on. Nothing in it floats (R29): the base image is named with its digest, Claude Code, `uv` and the eight Debian tools have exact versions, and the factory's own dependencies are installed by `uv sync --frozen --no-dev` from `uv.lock` alone (the build backend, `hatchling`, is pinned in `pyproject.toml`). `tests/test_image.py` checks this statically; it reports any reference that floats, such as a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, or a download piped into a shell.
+
+### What the container cannot see
+
+Under Docker Desktop's WSL 2 backend the container has no disk limit, so `df` inside it shows the virtual disk (about 1 TB), not the host drive. A check of free space inside the container therefore fires only on a Linux host or when the container has a real limit. Under Docker Desktop the host drive is watched from outside, and Docker's disk image belongs on a drive with room.
+
+When the disk image has grown and the host drive is full, the space comes back in two steps. Run `fstrim -v /mnt/docker-desktop-disk` in the `docker-desktop` distribution. Then stop Docker and run `compact vdisk` in `diskpart`.
 
 ### Build it
 

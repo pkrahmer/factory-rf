@@ -12,6 +12,7 @@ from factory.adapters.claude_guard import judge, read_guard_settings
 from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
 from factory.adapters.clock import SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
+from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
@@ -226,6 +227,7 @@ def build_boundaries(
         health=health_store(state),
         checkout=settings.checkout,
         settings=settings,
+        disk=ShutilDiskSpace(),
     )
 
 
