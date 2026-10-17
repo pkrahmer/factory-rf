@@ -1,9 +1,9 @@
 ---
 stage: review
 pr: 173
-blocked: null
+blocked: question
 comments_seen: 0
-round: 2
+round: 3
 attempts: 0
 ---
 # The demo check
@@ -159,3 +159,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. reviewer: reviewer (round 2, after entry 10): groups 1 to 3 pass. Group 4 (quality) has one finding.
+       1. `src/factory/entry/check_demos.py:70` (`_story_findings`) assembles the project path by hand as `f"{FEATURES_DIRECTORY}/{feature}/{_BACKLOG}/{story}"`, with its own `_BACKLOG = "backlog"` constant at line 23. `factory.domain.paths.work_item_path(feature_directory, folder, file_name)` already builds exactly this path, and `"backlog"` is already a `LifecycleFolder` value. CLAUDE.md counts a second copy of an existing helper as a finding. Fix: call `work_item_path(feature, "backlog", story)`. Keep `_BACKLOG` only for the folder-name test in `_is_backlog_story`, or type it as `LifecycleFolder` so that both uses share the domain's literal. Behaviour does not change, and no test changes.
+       What holds:
+       - Entry 9's finding is fixed. `check_story.py:_story_findings` is now the one place that composes place findings and then form findings. `backlog_story_findings` and `_check` both call it, and the redundant `backlog` branch is gone. The public signatures are as the Interface states.
+       - The `_Story` model avoids a `noqa` for PLR0913. It is private, frozen and forbids extra keys, which is acceptable.
+       - Group 1: the tests are unchanged since round 1's review (the last test commit is 25890db). The coder's entry 10 reports `make check` green at 4b9cbcf.
+       - Groups 2 and 3: nothing has changed since entry 9.
+       I did not reach group 5 (ticket hygiene).
+
+    This story has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
