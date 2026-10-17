@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 171
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -75,3 +75,4 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
    - Checked: in a scratch copy (deleted, never committed) I added one `world.tick.run()` between the fourth `completed("doing", "Finding.")` tick and `capped = head_state(...)`. With that one line the test passes against this implementation.
    - Options: (a) the tester adds that one `world.tick.run()` after the fourth send-back tick, before `capped` and `caps_asked` are read. (b) Change the stage so it posts the round cap question in the same tick as the block. That reverses the record-then-post design that the fault paths depend on, and it is beyond this story's scope. I would choose (a). If you answer (a), I will end with `tests` and name that change.
    - Refactor step: not reached. The diff is 5 lines and needs none.
+5. human (pull request comment, 2026-10-17): (a). The tester adds one `world.tick.run()` after the fourth send-back tick, before `capped` and `caps_asked` are read, as the fault-path test does; the record-then-post design stays.
