@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 149
 blocked: null
 comments_seen: 2
@@ -199,3 +199,15 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
 
    `make lint`: lint: green
    `make test`: test: green
+8. coder: review. The tester's change from entry 7 made `make check` green with no change to the code from 8813045. Coverage is 99.53 %; the one uncovered line is the `__main__` guard of `check_documents.py`, which the subprocess test runs outside coverage.
+      - **Built (8813045).** `src/factory/domain/documents.py` holds the constants, the closed `DocumentFinding` and `check_documents`. It has one private helper per rule (`_missing_sections`, `_operator_guide_rows`, `_project_guide_rows`, `_wording`), and `_messages` calls them in the rule order the Interface gives. `src/factory/entry/check_documents.py` holds `main` with `--root`, defaulting to the current directory. It reads each document as UTF-8 and treats a file that does not exist as `None`.
+      - **Main decision.** I reused the existing helpers in `factory.domain.sections` instead of writing a second fence-aware scanner:
+        - `sections` finds the headings and the exempt section's line span.
+        - `lines_outside_blocks` and `split_lines` find the table rows.
+        - The v1-word boundary is one regex with a lookbehind and an optional lookahead over `[\w-]`. The lookahead is added only when the entry ends in a letter, so `drafts/` matches in `drafts/F0001-x.md`.
+      - **Rejected.** A Markdown parser library: it would be a new dependency, and `sections` already skips code fences the way the Interface defines them. Building the two follow-mode phrases at runtime to get past the earlier source search: the human chose the test exemption instead (entry 5, F0011 decision 21).
+      - **Refactor pass.** I read `git diff main...HEAD` over the code and changed nothing. The two guide branches in `_messages` look alike, but each lists its own rules in order; merging them would hide that order. No duplicate helpers and no dead code.
+      - **Noticed, not touched.** The branch diff against `main` also shows `docs/runs/2026-10-12-overnight/night-log.md`, from the human's commit 6bed325. It is not mine.
+      - **Open.** The four documents themselves are the documenter's work (criterion 25). The real files are not yet expected to print `documents ok`.
+
+   `make check`: check: green
