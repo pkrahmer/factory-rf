@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 184
 blocked: null
 comments_seen: 0
@@ -82,3 +82,10 @@ Expect: `3`, the three messages the tests pin.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Scope: one new file, `tests/application/test_acceptance_no_state_refusals.py`. Nothing changed in `src/`.
+   - Criteria 1 to 3: there is one parametrized test with a row per criterion (hand_over, merged, closed). Each row checks the type, kind and reason from the Interface table exactly. It also reads the remote ref before and after, using `branch_name(FIRST)`, which is the acceptance branch for `F0002-A0001`, or `MAIN_BRANCH` for merged. And it checks that `hosting.list_comments(number)` did not change. Each row also asserts the event kind before building the handler, so a guard that failed for another reason cannot pass as the refusal. The mutant `no_state = None` at `acceptance.py:219`, `:292` and `:353` would raise something other than `CannotHandle` with that exact reason, so each row kills it. Criterion 4 is covered by the existing handler modules, which are unchanged. The coder's entry reports `make check: green`.
+   - Fixtures: the test uses the `walk` fixture as the Interface prescribes and copies no fixture from the handler modules.
+   - Architecture: `StatelessReportReader` derives from `factory.application.files.WorkItemReader`. It hands `parse`, `parse_specification` and every other path's `read` to `FrontmatterWorkItemReader`. Git is not faked, and there are no new dependencies or suppression markers.
+   - Quality: the names fit, there is no dead code, and `make duplicates` reports 0 new.
+   - Ticket hygiene: the Assignment matches what was built. The log gives the reason for the parametrized form and what was rejected. Docs criterion "none" is right, since behaviour does not change.
