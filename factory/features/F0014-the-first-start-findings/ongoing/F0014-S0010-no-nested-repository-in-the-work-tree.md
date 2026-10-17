@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 194
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -198,3 +198,23 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks[/opt/other-helper-/opt/other-helper]
+6. coder: Built the whole Interface in commit 0013e710. `make check` is green except for one assertion in a test, which I can't make pass without changing the marker every factory post carries.
+
+   Built:
+   - `src/factory/entry/wiring.py`: `git_environment` now has the fourth pair, `core.fsmonitor=false`, with its comment.
+   - `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`: added `remove_nested_repositories`. It walks the tree with `os.walk(followlinks=False)`, leaves out the root's own `.git` and does not enter a nested `.git`. It removes a folder with `rmtree` and anything else with `unlink`. An `OSError` becomes `RepositoryUnsealed("<abs path>: <error>")`.
+   - `src/factory/application/sealed_runs.py`: added `SealedRun`. In `run_sealed`'s `finally`, `check_seal()` runs and then the removal.
+   - `src/factory/application/stage.py`: `LaunchedStage.nested_repositories` is filled by `launch`. `AfterAgent.process` stalls on `nested_repository` first. The early checks (nested repository, branch, end reason) moved into `_early_stall` to stay within ruff's return-count limit.
+   - `src/factory/domain/decisions.py` and `src/factory/domain/post_texts.py`: added the stall reason and its sentence.
+   - `src/factory/application/preflight.py`: the probe fails with the nested-repository detail before it looks at the end reason.
+   - `src/factory/application/scheduler.py`: `CheckoutPreparer` runs `check_seal()` then `remove_nested_repositories()`. A `RepositoryUnsealed` from either clones the checkout again. A removal is logged as `removed nested repositories: ...`.
+
+   The question:
+   `tests/application/test_nested_repositories.py::test_a_stage_whose_agent_leaves_a_nested_repository_stalls[on-branch]` asserts `_note(hosting, stalled) == stall_note("nested_repository", 1, cap, detail=NESTED)`. Every post the factory makes carries the trailing marker lines `<!-- factory -->` and `<!-- factory key=<item>:stall:<n> -->`. That is the existing posting behaviour, and the hosting-service client posts "with the marker". So `post.body` is the note followed by the marker, and equality can never hold. The diff shows the expected note exactly, then the marker. Other tests check notes with `in`, for example `tests/application/test_stalls.py:444` (`stall_note(...) in post.body`) and the `test_after_agent.py` notes.
+
+   Options:
+   (a) The tester changes that one assertion to `stall_note(...) in _note(hosting, stalled)`, or to `startswith`. This keeps criterion 6's meaning.
+   (b) Posts carry no marker. This changes existing behaviour across the factory and breaks other tests.
+   I would choose (a). With your answer I end with `tests`, naming that assertion and that change.
+
+   Refactor: I read my diff and found nothing more to change. `make duplicates` has not been run yet.
