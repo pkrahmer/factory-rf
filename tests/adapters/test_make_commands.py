@@ -69,9 +69,11 @@ def test_command_reaching_its_time_limit_is_killed(tmp_path: Path) -> None:
     commands = _commands(tmp_path, ("slow", f"@sleep 60 & echo $$! > {pid_file}; wait"))
     start = time.monotonic()
 
-    result = commands.run("slow", time_limit=timedelta(seconds=1))
+    # Three seconds, not one: under `make test`'s parallel workers the shell may need more than a
+    # second to write the pid file, and a kill before that leaves no pid to check.
+    result = commands.run("slow", time_limit=timedelta(seconds=3))
 
-    assert time.monotonic() - start < 6
+    assert time.monotonic() - start < 8
     assert result.status == "time_limit"
     assert result.exit_status is None
     assert _is_gone(int(pid_file.read_text(encoding="utf-8")))

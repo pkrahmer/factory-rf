@@ -112,9 +112,11 @@ def test_grandchild_is_killed_with_the_child_at_the_time_limit(tmp_path: Path) -
         "time.sleep(60)"
     )
 
+    # Three seconds, not one: under `make test`'s parallel workers the child may need more than a
+    # second to start its grandchild and write the pid file, and a kill before that leaves no pid.
     run_process(
         ProcessRequest(
-            argv=_python(code, str(pid_file)), cwd=tmp_path, time_limit=timedelta(seconds=1)
+            argv=_python(code, str(pid_file)), cwd=tmp_path, time_limit=timedelta(seconds=3)
         )
     )
 
