@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 182
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -105,3 +105,20 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_token_folder.py::test_the_token_setting_points_into_the_folder_before_the_user_changes
+4. coder: the implementation is committed (0978b427), but `make check` is red. The cause is the story's own text, not the code.
+
+   Built:
+   - `image/Dockerfile`: `/home/factory/.secrets` is added to the `mkdir -p`, with `chown factory:factory` and `chmod 0700` next to those of `/state`. `ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token` keeps its place before `USER factory`, and its comment now says only the factory's user can enter the folder.
+   - `image/compose.yml`: both `secrets:` blocks and the old comment are gone. The read-only bind mount is the fourth volume entry, keys in the Interface's order, with a comment explaining that Compose ignores a file secret's owner and mode outside Swarm.
+   - `image/entrypoint.sh`: the header comment now ends "remove the other's files in /work".
+
+   Checks: lint, types, layers, sast, licenses and test are green, and the 7 red tests now pass. The failure is `make secrets`. detect-secrets flags a "Secret Keyword" at line 51 of this ticket file, which is acceptance criterion 3. I narrowed the match to the text from `secrets/hosting-token`, `read_only: true` and `bind: {create_host_path: false}`; its `target` is…; shorter pieces of that text pass. The image and test files pass the hook on their own. The tester ran only `make lint`, so this didn't show before. I did not touch the criterion: it is not `## Assignment`, and a `pragma: allowlist secret` or a baseline entry needs your leave under CLAUDE.md.
+
+   Options:
+   (a) Reword criterion 3 so it no longer matches, without changing what it means. For example, give the values as prose: "the source is `./secrets/hosting-token`, it is read-only, and `create_host_path` is false". I would rewrite only that sentence and check it with the hook.
+   (b) Add `<!-- pragma: allowlist secret -->` at the end of line 51.
+   (c) Add a `.secrets.baseline` entry for the ticket file.
+
+   I would choose (a): it changes no meaning and leaves no marker or baseline entry once the ticket moves to `done/`. Say which, and I will apply it, run `make check` and send the story to review.
+
+   Refactor: I read the diff; it is three small config changes and a comment, with nothing to tidy.
