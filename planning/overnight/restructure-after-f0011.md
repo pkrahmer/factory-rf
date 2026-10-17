@@ -82,6 +82,8 @@ The modules F0008 to F0011 add are placed by the same rule when the story is dra
 - Measured over 794 agent runs (22.7 h of agent wall time, `session-logs/metrics/README.md`): `make check` inside agent runs is 446 calls, 7.7 h, 34 %, 62 s on average; `make test` 1.1 h, 5 %. Not counted: the factory's own `check` after the doing and docs stages and the session's approval check per story.
 - Levers to weigh in this housekeeping story: run the tests in parallel (pytest-xdist, a development dependency for the human to grant); skip a `make check` on a commit whose result is already known (the coder's, the documenter's and the factory's runs on the same commit); let agents run the story's own tests while they work and the full check once at the end; and record the duration of every project command in v1.1's own records.
 - Timed on 2026-10-16 with `pytest --durations`: no single test is slow (the slowest take 1 to 2 s, on purpose, to test time limits), so the time is the full suite with coverage, run several times per story, plus the model itself.
+- Each target timed once on 2026-10-17 in v1's container (main at a2cde4b, 2,148 tests, 20 cores, warm caches): `lint` 0.1 s, `types` 0.4 s, `layers` 0.2 s, `sast` 2.6 s, `secrets` 22.6 s, `licenses` 0.3 s, `test` 177.4 s. So `test` is 88 % of `make check` and `secrets` 11 %. Without coverage the tests take 148 s of test time on one core (99.8 s in the calls, 48.4 s in the fixtures' setup, mostly real git remotes and clones per test).
+- The levers in that order: pytest-xdist over the 20 cores (the 148 s of test time spread out; a development dependency for the human to grant); a session-scoped template remote that each test copies instead of building one (the 48 s of setup); `make secrets` over the files changed against `main` instead of every tracked file (22.6 s). Measure again after each.
 
 ## Further findings to weigh (collected 2026-10-16, before the session's context was compacted)
 
@@ -103,6 +105,16 @@ Drive C: ran full a second time on 2026-10-16 at about 21:45 UTC: Docker's disk 
 - The factory's own temporary files: every clone, check and walk the factory makes in a temporary directory is removed when it ends, and the examples in the documents and the acceptance demos use `tempfile.TemporaryDirectory()` (or the state directory), not `mkdtemp()` without a removal.
 
 - A watch at the end of every major change (the human's word, 2026-10-17): disk use must not grow without bound. At each feature acceptance and at the start and end of the end-to-end run, record the host drive's free space, the size of Docker's disk image, `docker system df`, and the container's `df` and the size of its `/tmp` and work directory. The acceptance reviewer compares them with the last record and reports a growth that the change does not explain; the end-to-end run passes only if its growth stays within a stated bound (to be set from the first records). Until v1.1 records this itself, the session writes the numbers into the night log at each acceptance.
+
+## Telemetry in v1.1 (the human's word, 2026-10-17)
+
+The human asked whether more telemetry helps; the session measured the split of `make check` once by hand (above) instead of changing every agent's `make check` output, and v1.1 gets the records itself:
+
+- Every project command the factory runs is a record: command, target, commit, duration, exit status. Where the command is `make check`, the record holds each target's duration (the `Makefile` prints `<target>: green (<seconds> s)`), and pytest writes a junit report with a time per test, which the acceptance reviewer reads.
+- The agent runtime reads `claude`'s streamed events and records, per run, the seconds spent in the model and in tools (and in which command), next to the cost; the board and the cost table show the split per stage.
+- The count of `make check` runs on one commit, so that the lever "skip a check whose result for that commit is known" can be measured.
+- The disk record of the watch above.
+- Not: a generic tracing system, or sampling `docker stats`.
 
 ## For the human, outside the build (collected 2026-10-16)
 
