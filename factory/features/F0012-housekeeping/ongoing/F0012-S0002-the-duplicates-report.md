@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 154
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -109,3 +109,11 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: 1. `similar_code_findings` leaves one input undefined. What does a `duplicate-code` message do when it has no `==<module>:[<start>:<end>]` line, or when no non-blank code line follows the `==` lines? The key needs "the first non-blank line after the `==` lines", and `where` is built from the `==` lines. Two coders would read this two ways and both would pass the tests.
+      - Options: (a) raise `ValueError`, the way a message that is not a string does; (b) accept it, with an empty `where` or an empty first code line in the key.
+      - I would choose (a). A message in pylint's format always has both parts, and a `ValueError` makes `make duplicates` stop with `check-duplicates: <reason>` and exit status 2 instead of hiding a format change.
+      - Whichever you pick, it needs a criterion with a row for each case: no `==` line, and no code line after the `==` lines. This failing side is what step 3 of intake asks for.
+
+   2. The `==` lines have no failing side. What does a line that starts with `==` but does not match `==<module>:[<start>:<end>]` do? An example is `==factory.a`. Does it raise `ValueError` like (a) above, or does it count as code? I would choose raising, with a row in the same criterion.
+
+   Everything else I checked is fine. That covers the Interface signatures, criteria 1 to 15 apart from the two points above, the Demo (both commands run, and the first Expect matches the Interface's rules), the architecture (a pure `factory.domain` module plus an `entry` command that only reads files) and the scope (F0012 item 1.2).
