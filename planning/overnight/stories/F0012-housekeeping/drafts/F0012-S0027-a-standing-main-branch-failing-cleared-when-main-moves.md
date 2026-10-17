@@ -12,10 +12,10 @@ Tests: `tests/application/test_preflight_stale_main_stop.py`, with the `rig` and
 
 ## Acceptance criteria
 
-1. After the human pushes a fix to `main`, a preflight whose machine's items fail returns `preflight_failed`, and the health status holds `preflight_failed` and no `main_branch_failing`; the factory log gains `stop cleared main_branch_failing`.
-2. When `main` has not moved, the same preflight returns `preflight_failed` and the health status holds both stops, `main_branch_failing` with its earlier detail.
-3. When the stamp has no `main_failed` (a green `main` probed before), the machine's failure leaves the health status with `preflight_failed` only, and nothing is cleared.
-4. A `git` whose `resolve` raises `GitError` (a fake written in the test) leaves `main_branch_failing` in force and the result `preflight_failed`.
+1. After `main` has moved on from the failing commit (the human's fix pushed) or is gone (the preflight's git a clone of an empty remote, as `test_without_an_origin_main_no_lint_runs_and_the_preflight_passes` builds it), a preflight whose machine's items fail returns `preflight_failed`, the health status holds `preflight_failed` and no `main_branch_failing`, the factory log gains `stop cleared main_branch_failing`, and the stamp is as it was. Two rows of one parametrized test.
+2. When `main` has not moved, the same preflight returns `preflight_failed`, the health status holds both stops, `main_branch_failing` with its earlier detail, and the stamp is as it was.
+3. When the stamp has no `main_failed` (a green `main` probed before) and a `main_branch_failing` stands (written into the health status as `Rig.raise_standing` does), the machine's failure returns `preflight_failed` and leaves both stops in force.
+4. When git cannot resolve `origin/main` (the checkout removed, as `test_a_git_error_while_probing_is_a_machine_stop_and_leaves_the_stamp` removes it), the machine's failure leaves `main_branch_failing` in force and the result `preflight_failed`.
 5. When the machine's items pass again on the fixed `main`, the preflight probes it once: green clears nothing more and returns `None`; red raises `main_branch_failing` for the new commit. Two rows of one parametrized test.
 6. Every test of `tests/application/test_preflight_run.py` and `tests/application/test_tick_preflight.py` still passes.
 7. `make check` stays green.

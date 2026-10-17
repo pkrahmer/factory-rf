@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-The disk filled twice in two days. Part of it was what agents and the session left in `/tmp`: about 150 clones with their `.venv`, 153 folders of `tempfile.mkdtemp()` examples, and 8.4 GB of pytest's own folders (the human's change H1 lets pytest keep only those of failed tests). The factory's own code makes no temporary file that it does not remove (FEATURE decision 24). What is left are the agents that run scripts outside the repository: the smoke tester, the acceptance reviewer and the documenter (who runs the examples it writes). Each of v1.1's shipped agents gets one more lesson in its `## Lessons` section: make such files in a temporary directory that removes itself, and leave nothing in `/tmp`. The acceptance reviewer gets a second lesson: the JUnit report that `make test` now writes (H1) holds the time of every test; it reads it for its slow checks and its cost check, which is where the human's telemetry asks for it ("Telemetry in v1.1"). The agent texts are under `claude/agents/`, in the coder's write paths. The test that pins each agent's lessons changes by the human's leave (FEATURE decision 35).
+The disk filled twice in two days. Part of it was what agents and the session left in `/tmp`: about 150 clones with their `.venv`, 153 folders of `tempfile.mkdtemp()` examples, and 8.4 GB of pytest's own folders (the human's change H1 lets pytest keep only those of failed tests). The factory's own code makes no temporary file that it does not remove (FEATURE decision 24). What is left are the agents that run scripts outside the repository: the smoke tester, the acceptance reviewer and the documenter (who runs the examples it writes). Each of these three gets one more lesson at the end of its `## Lessons` section: make such files in a temporary directory that removes itself, and leave nothing in `/tmp`. The acceptance reviewer gets a second lesson: the JUnit report that `make test` now writes (H1) holds the time of every test; it reads it for its slow checks and its cost check, which is where the human's telemetry asks for it ("Telemetry in v1.1"). The agent texts are under `claude/agents/`, in the coder's write paths. The test that pins each agent's lessons changes by the human's leave (FEATURE decision 35).
 
 ## Interface
 
@@ -15,7 +15,7 @@ The bodies of `claude/agents/smoke-tester.md`, `claude/agents/acceptance-reviewe
 and `claude/agents/acceptance-reviewer.md` adds, after it, the bullet
 
 ```text
-- When `make test` writes a JUnit report, read the time of each test from it, and name the slowest tests in the slow checks and in the cost.
+- When `make test` writes a JUnit report (the `--junit-xml` file its `Makefile` names), read the time of each test from it, and name the slowest tests in the slow checks and in the cost.
 ```
 
 Nothing else in the three files changes, and the other four agents do not change.

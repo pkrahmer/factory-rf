@@ -21,8 +21,9 @@ Tests: `tests/entry/test_health_missing.py` and `tests/entry/test_run_health_fil
 3. The module run as a process (`python -m factory.entry.health --state-directory <folder without the file>`) exits with status 1.
 4. `run_instance` on a state directory without a health file leaves one that reads `HealthStatus()` (when no stop was raised meanwhile); on a state directory whose health file holds a stop, the stop is still in force after the instance has started (before any tick clears it).
 5. `run_instance` writes the file before it reads the token file: with a missing token file it raises `SettingsInvalid` and the health file exists.
-6. `make check` stays green.
-7. docs: the operator guide's sections *The health status file* and *The health check and the restart policy* say that `factory-run` writes an empty status when it starts and that a missing file is not healthy (`no health status: ... is missing`), which Docker counts only after the start period; the README's commands outside the image say what `factory-health` prints there now; the decision log records the answer to F0010's open point 6. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
+6. `run_instance` on a state directory whose path is a regular file raises `OSError` (the health file cannot be written, for a root user too) and does not clone the checkout.
+7. `make check` stays green.
+8. docs: the operator guide's sections *The health status file* and *The health check and the restart policy* say that `factory-run` writes an empty status when it starts and that a missing file is not healthy (`no health status: ... is missing`), which Docker counts only after the start period; the README's commands outside the image say what `factory-health` prints there now; the decision log records the answer to F0010's open point 6. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
 
 ## Demo
 

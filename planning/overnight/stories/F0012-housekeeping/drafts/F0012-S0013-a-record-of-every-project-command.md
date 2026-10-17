@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-`make check` inside agent runs took 34 % of the agents' time while v1 built v1.1, and the factory's own runs of it after each stage were not counted at all. The human's word ("Telemetry in v1.1") is that every project command the factory runs is a record: command, commit, duration, exit status, and for `make check` each target's time (F0012-S0012). The records also let the count of `make check` runs on one commit be measured, the lever "skip a check whose result for that commit is known" (FEATURE decision 22). This story wraps the project commands in a recorder that appends one JSON line per run to `records/project-commands.jsonl` in the state directory, through a small interface for append-only record files that F0012-S0016 uses again for the disk record. The records are telemetry beside the factory log, not a work item's state, so they are not committed (FEATURE decision 21). The wiring test that names the project commands' class changes by the human's leave (FEATURE decision 36).
+`make check` inside agent runs took 34 % of the agents' time while v1 built v1.1, and the factory's own runs of it after each stage were not counted at all. The human's word ("Telemetry in v1.1") is that every project command the factory runs is a record: command, commit, duration, exit status, and for `make check` each target's time (F0012-S0012). The records also let the count of `make check` runs on one commit be measured, the lever "skip a check whose result for that commit is known" (FEATURE decision 22). This story wraps the project commands in a recorder that appends one JSON line per run to `records/project-commands.jsonl` in the state directory, through a small interface for append-only record files that F0012-S0016 uses again for the disk record. The records are telemetry beside the factory log, not a work item's state, so they are not committed (FEATURE decision 21). `read` has no caller in `src/factory` until F0012-S0016's disk record uses it, so the duplicates record after the coder lists it as new dead code until then; that is expected, not a finding. The wiring test that names the project commands' class changes by the human's leave (FEATURE decision 36).
 
 ## Interface
 
@@ -16,11 +16,13 @@ class CommandRecord(BaseModel):
     command: CommandName
     commit: CommitId | None
     started_at: UtcDatetime
-    duration_seconds: NonNegativeFloat
+    duration_seconds: Duration
     status: CheckStatus
     exit_status: int | None
     targets: list[TargetTime] = []
 ```
+
+`Duration` is `factory.domain.cost_records.Duration`: a float of at least 0, finite.
 
 `src/factory/application/files.py` gains:
 
@@ -56,21 +58,21 @@ class RecordingProjectCommands(ProjectCommands):
 
 `src/factory/entry/wiring.py`: `build_boundaries` builds `project_commands=RecordingProjectCommands(MakeProjectCommands(settings.checkout), <its GitCli>, JsonLinesRecordLog(<state directory>/records/project-commands.jsonl, CommandRecord), <its clock>, <its log>)`, the same `GitCli`, clock and log it puts into the boundaries.
 
-Tests: `tests/domain/test_command_records.py`, `tests/adapters/test_record_log_jsonl.py`, `tests/application/test_recording_project_commands.py` (with a fake `ProjectCommands` written in the test, the `checkout` fixture as `git`, a `JsonLinesRecordLog` in `tmp_path`, the `clock` fixture and a `TimestampedFactoryLog` in `tmp_path`), `tests/entry/test_wiring_command_records.py`. By the human's leave (FEATURE decision 36), and no other change to an earlier story's test: `test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing` in `tests/entry/test_wiring_boundaries.py` expects `RecordingProjectCommands` for `project_commands`.
+Tests: `tests/domain/test_command_records.py`, `tests/adapters/test_record_log_jsonl.py`, `tests/application/test_recording_project_commands.py` and `tests/entry/test_wiring_command_records.py`. The recorder's inner project commands are `RecordingCommands` of `tests/application/test_preflight_run.py`, imported as `tests/application/test_interfaces.py` imports from `tests/application/test_git_interface.py`, with an `answer` that returns the given result or raises; `git` is the `checkout` fixture, the record log a `JsonLinesRecordLog` in `tmp_path`, the clock the `clock` fixture and the log a `TimestampedFactoryLog` in `tmp_path`; criterion 8's `git` is a fake written in the test whose `resolve` raises `GitError`. A new shared helper module `tests/record_support.py` holds `UnwritableRecordLog`, a `RecordLog` whose `append` raises the `OSError` it was given and whose `read` is `[]`; F0012-S0016 imports it. By the human's leave (FEATURE decision 36), and no other change to an earlier story's test: `test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing` in `tests/entry/test_wiring_boundaries.py` expects `RecordingProjectCommands` for `project_commands`.
 
 ## Acceptance criteria
 
-1. A `CommandRecord` with `commit=None`, `exit_status=None` and `status="time_limit"` is accepted; one whose `commit` is not 40 lowercase hexadecimal characters, whose `duration_seconds` is `-1`, or whose `status` is `"red"` (outside `CheckStatus`) is refused with `pydantic.ValidationError`. Rows of one parametrized test.
+1. A `CommandRecord` with `commit=None`, `exit_status=None`, `status="time_limit"` and `duration_seconds=0` is accepted; one whose `commit` is not 40 lowercase hexadecimal characters, whose `command` is `"Check"`, whose `duration_seconds` is `-1` or `float("inf")`, whose `status` is `"red"` (outside `CheckStatus`), or whose `started_at` has no offset, is refused with `pydantic.ValidationError`. Rows of one parametrized test.
 2. `JsonLinesRecordLog` appends records as lines and `read` gives them back equal and in order; a missing file reads `[]`; its folder is created on the first `append`.
 3. A file whose middle line is `{"command":` and whose last line is `not json` reads as the valid lines only.
 4. `RecordingProjectCommands.run("check", time_limit=...)` returns the inner result unchanged and appends one record with the command, the commit `HEAD` of the checkout, `started_at` equal to the clock's reading, the result's duration in seconds, its status, exit status and targets.
 5. Three runs append three records in order; a red run (exit status 2) and a run ended by its time limit (`exit_status None`, `time_limit`) are recorded as such. Rows of one parametrized test.
-6. An inner `ProjectCommandError` propagates and nothing is appended.
-7. A record log whose `append` raises `OSError("disk full")` leaves the result returned and one factory log line `cannot write the record of check: disk full`.
+6. An inner `ProjectCommandError` and an inner `ValueError` (as `MakeProjectCommands` raises for a time limit of 0) each propagate from `run`, and nothing is appended. Two rows of one parametrized test.
+7. With an `UnwritableRecordLog` whose `append` raises `OSError("disk full")`, the result is still returned and the factory log gains one line `cannot write the record of check: disk full`.
 8. A checkout whose `HEAD` cannot be resolved (a `git` whose `resolve` raises `GitError`, a fake written in the test) records `commit=None`.
 9. `build_boundaries` gives `project_commands` that is a `RecordingProjectCommands`; a run of `lint` through it in the built checkout appends one record to `<state directory>/records/project-commands.jsonl`.
 10. `make check` stays green.
-11. docs: the operator guide's section on the factory log and the health status file gets a part *The records* that names `records/project-commands.jsonl` in the state directory, its fields, that it is telemetry the operator may delete, and how to count the `check` runs of one commit (one `jq` line); the project guide's section *Project commands* names `RecordingProjectCommands`, `RecordLog` and `JsonLinesRecordLog`; the decision log records why the records are not committed. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
+11. docs: the operator guide's section on the factory log and the health status file gets a part *The records* that names `records/project-commands.jsonl` in the state directory, its fields, that it is telemetry the operator may delete, and how to count the `check` runs of one commit (one `python3 -c` line that reads the file with the `json` module; neither image has `jq`); the project guide's section *Project commands* names `RecordingProjectCommands`, `RecordLog` and `JsonLinesRecordLog`; the decision log records why the records are not committed. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
 
 ## Demo
 

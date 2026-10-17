@@ -28,7 +28,7 @@ No new or changed names. The behaviour pinned is that of five existing public ca
 | `TaskComposer(boundaries, definition, environment).compose(context, agent)` (`src/factory/application/task.py`), `context.document` without a state | `WorkItemFormatError` with `fault == "the document has no state"` and `path == context.path` |
 | `StallService(boundaries, instance, definition).stall(context, reason)` (`src/factory/application/stalls.py`), with `context.document` without a state, `stage_start=None`, `cost=None` and `pull_request` given | `ValueError` with the message `the work item has no state to stall` |
 
-None of the five commits, pushes, posts or starts an agent run before it raises.
+Before it raises, `claim` leaves the remote's work item branch at the commit it had; `ask_crash_cap` posts nothing and opens no pull request; `stall` leaves the remote's work item branch at the commit it had and posts nothing.
 
 Tests: one new module, `tests/application/test_no_state_refusals.py`. It builds each service as its own test module does: `tests/application/test_claims.py` for `ClaimService`, `tests/application/test_recovery_cap.py` for `RecoveryHandler`, `tests/application/test_task.py` for `TaskComposer`, and `tests/application/test_stalls.py` for `StallService`, using the fixtures of `tests/conftest.py`. No existing test module changes.
 

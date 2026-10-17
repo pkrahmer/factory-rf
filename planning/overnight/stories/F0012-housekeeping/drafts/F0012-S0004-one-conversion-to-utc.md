@@ -15,14 +15,14 @@ def in_utc(value: datetime) -> datetime:
 UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]
 ```
 
-The fields `CostRecord.started_at` (`factory.domain.cost_records`), `CommitInfo.committed_at` (`factory.domain.git`), `PullRequestComment.created_at` (`factory.domain.hosting`), `RepositoryStop.at` (`factory.domain.stops`) and `Claim.started_at` (`factory.domain.work_item`) are typed `UtcDatetime`, and their validators `_to_utc` and `_in_utc` are removed. No other field changes; the JSON and front-matter texts these models are written to do not change.
+The fields `CostRecord.started_at` (`factory.domain.cost_records`), `CommitInfo.committed_at` (`factory.domain.git`), `PullRequestComment.created_at` (`factory.domain.hosting`), `RepositoryStop.at` (`factory.domain.stops`) and `Claim.started_at` (`factory.domain.work_item`) are typed `UtcDatetime`, and their validators `_to_utc` and `_in_utc` are removed. No other field changes, and the texts these models are written to do not change: the existing tests of `tests/adapters/test_cost_records_jsonl.py` and `tests/adapters/test_work_item_markdown.py` pin them and still pass.
 
 Tests: `tests/domain/test_times.py`. Each model is built from valid values (as its own test module builds it) with the time field set; no existing test changes.
 
 ## Acceptance criteria
 
 1. `in_utc(datetime(2026, 10, 12, 14, 0, tzinfo=timezone(timedelta(hours=2))))` is `datetime(2026, 10, 12, 12, 0, tzinfo=UTC)`, and its `tzinfo` is `UTC`.
-2. For each of the five fields, a model built with `2026-10-12T14:00:00+02:00` holds `datetime(2026, 10, 12, 12, 0, tzinfo=UTC)` in that field, with `tzinfo` `UTC`; and a model built with the naive `datetime(2026, 10, 12, 12, 0)` is refused with `pydantic.ValidationError`. Ten rows of one parametrized test (five fields, two sides).
+2. For each of the five fields, a model built with the aware time `datetime(2026, 10, 12, 14, 0, tzinfo=timezone(timedelta(hours=2)))` holds `datetime(2026, 10, 12, 12, 0, tzinfo=UTC)` in that field, with `tzinfo` `UTC`; and a model built with the naive `datetime(2026, 10, 12, 12, 0)` is refused with `pydantic.ValidationError`. Ten rows of one parametrized test (five fields, two sides); each model is built from valid values of its own types, so the test passes `mypy --strict`.
 3. No module among `factory.domain.cost_records`, `factory.domain.git`, `factory.domain.hosting`, `factory.domain.stops` and `factory.domain.work_item` calls `astimezone` (an `ast.Attribute` named `astimezone` in the module, read with `modules()` of `tests/source_search.py`), and `factory.domain.times` does.
 4. `make check` stays green.
 5. docs: the project guide's paragraph on the state's `Claim` (section *The data of a work item*, *The claim*), which says that `started_at` is stored in UTC, names `UtcDatetime` in `factory.domain.times` as the one way a model converts a time, to be used by every new time field; the other places that say a time is stored in UTC stay as they are. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.

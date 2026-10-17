@@ -2,7 +2,7 @@
 
 ## Assignment (as of log entry 1)
 
-The session measured the split of `make check` by hand on 2026-10-17 (`test` 177 s, `secrets` 23 s, the rest under 3 s). The human's word ("Telemetry in v1.1") is that v1.1 records it itself: since the human's change H1, every target of this repository's `Makefile` ends with the line `<target>: green (<seconds> s)`. This story reads those lines out of the whole output of a project command into its result, so that F0012-S0013 can record them. A target that is red prints no such line, and a project whose `Makefile` prints none gets an empty list; the factory knows no target names.
+The session measured the split of `make check` by hand on 2026-10-17 (`test` 177 s, `secrets` 23 s, the rest under 3 s). The human's word ("Telemetry in v1.1") is that v1.1 records it itself: since the human's change H1, every target of this repository's `Makefile` ends with the line `<target>: green (<seconds> s)`. This story reads those lines out of the whole output of a project command into its result, so that F0012-S0013 can record them. A target that is red prints no such line, and a project whose `Makefile` prints none gets an empty list; the factory knows no target names. The test that pins the result's fields gains the new one by the human's leave (FEATURE decision 45).
 
 ## Interface
 
@@ -21,14 +21,14 @@ def target_times(output: str) -> list[TargetTime]:
     """The `<target>: green (<seconds> s)` lines of `output`, in their order."""
 ```
 
-- A line counts when it matches the whole pattern `[a-z][a-z0-9-]*: green \(([0-9]+(\.[0-9]+)?) s\)`, ASCII digits only, with nothing before or after it on the line (a trailing `\r` is not part of the line). Any other line is skipped, `check: green` among them.
+- A line counts when it matches the whole pattern `<name>: green \(([0-9]+(\.[0-9]+)?) s\)`, where `<name>` is `COMMAND_NAME_PATTERN` without its anchors (`[a-z][a-z0-9-]*`), built from that constant rather than written again; ASCII digits only, with nothing before or after it on the line (a trailing `\r` is not part of the line). Any other line is skipped, `check: green` among them.
 - A target that occurs twice gives two entries.
 
 `CheckResult` gains `targets: list[TargetTime] = []`, the last field.
 
 `src/factory/adapters/make_commands.py`: `MakeProjectCommands.run` sets `targets=target_times(<the whole output>)`, not only the tail.
 
-Tests: `tests/domain/test_target_times.py` (criteria 1 to 3), `tests/adapters/test_make_commands_targets.py` (criterion 4, with a `Makefile` written into `tmp_path` and the real `make`, as `tests/adapters/test_make_commands.py` does). No existing test changes.
+Tests: `tests/domain/test_target_times.py` (criteria 1 to 3), and for criterion 4 new test functions in `tests/adapters/test_make_commands.py`, which writes a `Makefile` into `tmp_path` through its `_commands` helper and runs the real `make`. By the human's leave (FEATURE decision 45), and no other change to an earlier story's test: `test_fields_are_exactly_the_generic_six` in `tests/domain/test_checks.py` becomes `test_fields_are_exactly_the_generic_seven`, its set gaining `targets`.
 
 ## Acceptance criteria
 
@@ -37,7 +37,7 @@ Tests: `tests/domain/test_target_times.py` (criteria 1 to 3), `tests/adapters/te
 3. A target printed twice gives two entries in order; an empty output gives `[]`.
 4. `MakeProjectCommands.run("check", ...)` on a `Makefile` whose `check` target prints `lint: green (0.5 s)`, then forty lines of other output, then `test: green (2.0 s)` and `check: green` gives a result whose `targets` are those two entries, though the first is outside `output_tail`; a target that prints no such line gives `targets == []`.
 5. `make check` stays green.
-6. docs: the project guide's section *Project commands* says that a result carries the targets that printed `<target>: green (<seconds> s)`, read from the whole output, and that this repository's `Makefile` prints that line for each target. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
+6. docs: the project guide's section *Project commands* names `targets` among `CheckResult`'s fields, and says that a result carries the targets that printed `<target>: green (<seconds> s)`, read from the whole output, and that this repository's `Makefile` prints that line for each target. No other document changes, and `python -m factory.entry.check_documents` still prints `documents ok`.
 
 ## Demo
 

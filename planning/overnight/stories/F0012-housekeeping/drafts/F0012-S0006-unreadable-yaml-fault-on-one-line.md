@@ -4,16 +4,23 @@
 
 ## Assignment (as of log entry 1)
 
-When `factory/pipeline.yml` on `main` is not valid YAML, the stop `pipeline_definition_invalid` carries ruamel.yaml's own error text as its detail, and that text spans four to seven lines. `TimestampedFactoryLog` stamps each line, so the factory log gets one `stop repository pipeline_definition_invalid: not valid YAML: while constructing a mapping` line followed by several stamped lines without the `stop` prefix: `in "<unicode string>", line 5, column 3`, the actual problem (`found duplicate key "done" ...`), an empty line, and for a repeated key, ruamel's hint `To suppress this check see: https://yaml.dev/...`. An operator who greps the log for `stop repository` sees only the context line and misses the problem. The hint is also wrong advice, because the factory refuses a repeated key on purpose (F0003 decision 11). This story makes the fault one line: ruamel's problem and its 1-based position, with no context lines and no hint. The fault is the same in the health status, the log and `PipelineDefinitionInvalid`. This keeps kept thing 7 and the Goal's "a reported stop that names the fault". F0003's first acceptance found the issue (4.1). F0003's FEATURE.md decision 20 kept it out of F0003-S0008, and no story took it up, so F0003's second acceptance proposed it; the human folded it into this feature (FEATURE decision 5).
+When `factory/pipeline.yml` on `main` is not valid YAML, the stop `pipeline_definition_invalid` carries ruamel.yaml's own error text as its detail, and that text spans four to seven lines. `TimestampedFactoryLog` stamps each line, so the factory log gets one `stop repository pipeline_definition_invalid: not valid YAML: while constructing a mapping` line followed by several stamped lines without the `stop` prefix: `in "<unicode string>", line 5, column 3`, the actual problem (`found duplicate key "done" ...`), an empty line, and for a repeated key, ruamel's hint `To suppress this check see: https://yaml.dev/...`. An operator who greps the log for `stop repository` sees only the context line and misses the problem. The hint is also wrong advice, because the factory refuses a repeated key on purpose (F0003 decision 11). This story makes the fault one line: ruamel's problem and its 1-based position, with no context lines and no hint. The fault is the same in the health status, the log and `PipelineDefinitionInvalid`. This keeps F0003's kept thing 7 and its Goal's "a reported stop that names the fault". F0003's first acceptance found the issue (4.1). F0003's FEATURE.md decision 20 kept it out of F0003-S0008, and no story took it up, so F0003's second acceptance proposed it; the human folded it into this feature (FEATURE decision 5).
 
 ## Interface
 
 `src/factory/adapters/pipeline_yaml.py`, `RuamelPipelineDefinitionReader.parse` (changes S0004's YAML fault only)
 
-When ruamel.yaml's safe loader raises a `YAMLError`, `parse` raises `PipelineDefinitionInvalid(fault)` with:
+A new public function in the same module states the rule, and `parse` uses it:
+
+```python
+def yaml_fault(error: YAMLError) -> str:
+    """The one-line fault of ruamel.yaml's `error`: its problem and 1-based position."""
+```
+
+When ruamel.yaml's safe loader raises a `YAMLError`, `parse` raises `PipelineDefinitionInvalid(yaml_fault(error))`. `yaml_fault` gives:
 
 - `not valid YAML: <problem> (line <l>, column <c>)` when the error is a `ruamel.yaml.error.MarkedYAMLError` with a non-empty `problem` and a `problem_mark`. `<l>` is `problem_mark.line + 1` and `<c>` is `problem_mark.column + 1`.
-- `not valid YAML: <problem>` when it has a non-empty `problem` but no `problem_mark`.
+- `not valid YAML: <problem>` when it is a `MarkedYAMLError` with a non-empty `problem` but no `problem_mark`.
 - otherwise `not valid YAML: <the first non-blank line of str(error), stripped>`.
 
 Rules:
@@ -22,7 +29,7 @@ Rules:
 - `context`, `context_mark`, `note` and ruamel's warning text (`To suppress this check see: ...`) are not part of the fault.
 - Every other fault of `parse` (a text that is not a mapping, the field faults, the rules) is unchanged.
 
-Tests: a new file `tests/adapters/test_pipeline_yaml_one_line_fault.py`, through `RuamelPipelineDefinitionReader`, with the texts built from `PIPELINE_YAML` in `tests/git_support.py` (26 lines). One case in a new file `tests/application/test_pipeline_loading_yaml_fault.py`, with the fixtures of `tests/conftest.py` that F0003-S0006's tests use (`boundaries`, `human`, `checkout`, `agent_home`, `install_agents`). The existing tests `test_a_text_that_is_not_yaml_is_refused` and `test_a_repeated_key_is_refused_naming_it` still pass unchanged, and no existing test changes.
+Tests: a new file `tests/adapters/test_pipeline_yaml_one_line_fault.py`, through `RuamelPipelineDefinitionReader`, with the texts built from `PIPELINE_YAML` in `tests/git_support.py` (26 lines). Criterion 8 calls `yaml_fault` directly. One case in a new file `tests/application/test_pipeline_loading_yaml_fault.py`, with the fixtures of `tests/conftest.py` that F0003-S0006's tests use (`boundaries`, `human`, `checkout`, `agent_home`) and `install_agents` of `tests/git_support.py`. The existing tests `test_a_text_that_is_not_yaml_is_refused` and `test_a_repeated_key_is_refused_naming_it` still pass unchanged, and no existing test changes.
 
 ## Acceptance criteria
 
@@ -33,9 +40,10 @@ Tests: a new file `tests/adapters/test_pipeline_yaml_one_line_fault.py`, through
 5. A text that holds a control character, `PIPELINE_YAML + 'x: "\x07"\n'`, which ruamel refuses without a `problem`, is refused with exactly the fault `not valid YAML: unacceptable character #x0007: control characters are not allowed`.
 6. For each text of criteria 1 to 5, the fault contains no `\n` and no `\r`. For the text of criterion 1, the fault does not contain `To suppress` and does not contain `<unicode string>`.
 7. `PIPELINE_YAML` itself still parses, and a text that is valid YAML but not a mapping (`"- a\n"`) is still refused with `the pipeline definition must be a mapping`.
-8. Loaded through `PipelineLoader.load` at `origin/main`, the text of criterion 1 is one reported stop. `load` raises `PipelineDefinitionInvalid`. The health status holds one stop `pipeline_definition_invalid` whose `detail` is the fault of criterion 1. The factory log file gains exactly one line, and that line ends with `stop repository pipeline_definition_invalid: ` followed by that fault.
-9. `make check` stays green.
-10. docs: `docs/project-guide.md`, "Faults" under "The pipeline definition", gives the YAML fault as `not valid YAML: <problem> (line <l>, column <c>)`, on one line and 1-based, and no longer says that ruamel's text can span several lines. `docs/operator-guide.md`'s row for faults of the text in "The stop `pipeline_definition_invalid`" shows the same form with an example (the repeated key). `docs/decisions.md` records that the YAML fault is reduced to ruamel's problem and position: one stop, one log line, and no suppression hint for a check the factory wants.
+8. `yaml_fault(MarkedYAMLError(context="while x", problem="found y"))` is `not valid YAML: found y`; `yaml_fault(MarkedYAMLError(context="while x", problem="", problem_mark=FileMark("<s>", 0, 4, 2)))` is `not valid YAML: while x` (an empty problem falls to the first line of the text); `yaml_fault(YAMLError("plain\nsecond"))` is `not valid YAML: plain`. Rows of one parametrized test, the errors built by hand (`ruamel.yaml.error`).
+9. Loaded through `PipelineLoader.load` at `origin/main`, the text of criterion 1 is one reported stop. `load` raises `PipelineDefinitionInvalid`. The health status holds one stop `pipeline_definition_invalid` whose `detail` is the fault of criterion 1. The factory log file gains exactly one line, and that line ends with `stop repository pipeline_definition_invalid: ` followed by that fault.
+10. `make check` stays green.
+11. docs: `docs/project-guide.md`, "Faults" under "The pipeline definition", gives the YAML fault as `not valid YAML: <problem> (line <l>, column <c>)`, on one line and 1-based, and no longer says that ruamel's text can span several lines. `docs/operator-guide.md`'s row for faults of the text in "The stop `pipeline_definition_invalid`" shows the same form with an example (the repeated key). `docs/decisions.md` records that the YAML fault is reduced to ruamel's problem and position: one stop, one log line, and no suppression hint for a check the factory wants.
 
 ## Demo
 
@@ -55,10 +63,10 @@ for broken in [TEXT + '  done: {}\n', TEXT.replace('next: [done]', 'next: [done'
         RuamelPipelineDefinitionReader().parse(broken)
         print('accepted')
     except PipelineDefinitionInvalid as error:
-        print(repr(error.fault))
+        print(error.fault)
 "
 ```
-Expect: two lines and no `accepted`. The first is `'not valid YAML: found duplicate key "done" with value "{}" (original value: "{}") (line 7, column 3)'`. The second starts with `'not valid YAML: ` and ends with `(line <l>, column <c>)'`. Neither line contains `\n`.
+Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate key "done" with value "{}" (original value: "{}") (line 7, column 3)` and `not valid YAML: did not find expected ',' or ']' (line 5, column 35)`.
 
 ## Log (append only)
 
