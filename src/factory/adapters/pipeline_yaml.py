@@ -41,15 +41,21 @@ def yaml_fault(error: YAMLError) -> str:
     # The context lines and ruamel's hint to suppress the duplicate-key check stay out:
     # the fault is one line of the factory log, and the factory wants that check.
     if isinstance(error, MarkedYAMLError) and error.problem:
+        # A duplicate-key problem quotes the values, and a block scalar brings its line breaks.
+        problem = _escaped_line_breaks(error.problem)
         mark = error.problem_mark
         if mark is None:
-            return f"not valid YAML: {error.problem}"
-        return f"not valid YAML: {error.problem} (line {mark.line + 1}, column {mark.column + 1})"
+            return f"not valid YAML: {problem}"
+        return f"not valid YAML: {problem} (line {mark.line + 1}, column {mark.column + 1})"
     return f"not valid YAML: {_first_line(str(error))}"
 
 
 def _first_line(text: str) -> str:
     return next((line.strip() for line in text.splitlines() if line.strip()), "")
+
+
+def _escaped_line_breaks(text: str) -> str:
+    return text.replace("\r", "\\r").replace("\n", "\\n")
 
 
 def _fault_of(error: ValidationError) -> str:
