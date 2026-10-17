@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 163
 blocked: null
 comments_seen: 0
 round: 0
@@ -54,3 +54,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names three concrete files under `claude/agents/` (each has a `## Lessons` section, checked) with the exact bullet texts, their order, and the `LESSONS` change in `tests/test_claude_agent_texts.py`; no behaviour is left unstated.
+   - Criteria: 1 to 3 are each testable by the existing `LESSONS` test and the named modules; 2 covers the agents that must not change. The Interface has no limit or rejection rule, so no failing side is missing. Criterion 5 is checkable by grep (`mkdtemp` is now in `docs/project-guide.md` once, in README and operator guide zero) and by `check_documents`.
+   - Demo: both blocks are runnable grep/pytest commands, and each `Expect:` line gives exact counts or a last-line form that can be checked.
+   - Architecture: only agent texts (coder's write path `claude/*`) and docs change. No layer is touched.
+   - Scope: inside F0012 scope item 1.4 ("no temporary files left", S0011) and FEATURE decisions 24 and 35; nothing in Out of scope.
