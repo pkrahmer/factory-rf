@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 156
 blocked: null
 comments_seen: 0
@@ -67,3 +67,13 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/domain/test_times.py - ImportError while importing test module '/...
+4. coder: Built the single UTC conversion in commit cc4636c.
+      - New `src/factory/domain/times.py` holds `in_utc(value)`, which returns `value.astimezone(UTC)`, and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]`. It imports only the standard library and Pydantic.
+      - Five fields are now typed `UtcDatetime`: `CostRecord.started_at` (`domain/cost_records.py`), `CommitInfo.committed_at` (`domain/git.py`), `PullRequestComment.created_at` (`domain/hosting.py`), `RepositoryStop.at` (`domain/stops.py`) and `Claim.started_at` (`domain/work_item.py`). Their `_to_utc`/`_in_utc` validators are gone, and so are the imports that only those validators used (`UTC`, `datetime`, `AwareDatetime`, `field_validator` where nothing else uses them).
+      - Design: I used the annotated type from the Interface with an `AfterValidator`, so `AwareDatetime` still refuses a naive time before the conversion runs. I rejected a shared base model or mixin with the validator, because the five models have different bases (`_Frozen`, `BaseModel`) and a field-level type composes without inheritance.
+      - Refactor: I read the diff. It is a pure removal plus one small module, so there was nothing to clean up and there is no refactor commit.
+      - Checks: `make check` is green, with coverage at 99.51 %. I ran the demo: the first command prints `2026-10-12T12:00:00+00:00` and the grep prints only `status 1`.
+      - Noticed, not touched: `domain/board.py` still calls `astimezone`. It is outside this story's five modules, as intake noted. The docs criterion (project guide, *The claim*) is left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
