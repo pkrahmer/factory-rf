@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 161
 blocked: null
 comments_seen: 0
@@ -112,3 +112,19 @@ Expect: `5`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/entry/test_wiring_boundaries.py - ImportError while importing tes...
+4. coder: Built the disk-space interface, its standard-library implementation, the `FACTORY_MIN_FREE_GB` setting, the low-disk fault text and the wiring. Behaviour is unchanged. `make check` is green and the tests are untouched.
+      - `src/factory/application/machine.py`: `DiskSpace(ABC)` with `free_bytes` and `used_bytes`. Each docstring is wrapped over two lines to fit the line length.
+      - `src/factory/adapters/disk_space.py` (new): `ShutilDiskSpace(DiskSpace)`. `free_bytes` is `shutil.disk_usage(path).free`. `used_bytes` uses `os.walk(followlinks=False)` and calls `lstat` on each entry, adding the size only when `S_ISREG` holds. Links and named pipes are therefore never followed or opened. `os.walk` yields nothing for a missing path, so that gives 0.
+      - `src/factory/application/boundaries.py`: `disk: DiskSpace | None = None` is added after `settings`. The existing "last and optional" comment now covers both fields.
+      - `src/factory/domain/settings.py`: adds `MIN_FREE_SPACE_VARIABLE`, `DEFAULT_MIN_FREE_GB`, `InstanceSettings.min_free_gb: PositiveInt` and `_min_free_gb`. `_min_free_gb` requires `isascii() and isdigit()`, because `isdigit` alone accepts Arabic-Indic digits.
+      - `src/factory/domain/disk.py` (new): `GIGABYTE`, plus `gigabytes` and `disk_low_detail`. `gigabytes` rounds down using integer tenths (`byte_count * 10 // GIGABYTE`). `disk_low_detail` takes the variable name from `MIN_FREE_SPACE_VARIABLE`.
+      - `src/factory/entry/wiring.py`: `build_boundaries` sets `disk=ShutilDiskSpace()`.
+      - Commits: ee2d3f4 (feat) and c166bb7 (refactor, the comment wording only). Reading my own diff found nothing else to change.
+      - Main decision: `gigabytes` uses integer arithmetic rather than float formatting. I rejected `f"{x / GIGABYTE:.1f}"` because it rounds to nearest (999_999_999 would give `1.0`), and `math.floor` on a float can be off at the boundaries.
+      - Rejected: `Path.rglob` with `is_file()` for `used_bytes`. `is_file()` follows symbolic links, so linked files would be counted.
+      - Both demo blocks print the expected output.
+      - Noticed but not touched: `make duplicates` reports 7 new dead-code findings (`free_bytes`, `used_bytes`, `Boundaries.disk`, `disk_low_detail`, `min_free_gb`). These are expected until the low-disk stop (S0010) and the disk record (S0016) use them. `used_bytes` lets a `FileNotFoundError` from a file removed during the walk propagate; neither the Interface nor any criterion says what should happen in that case.
+      - Open: the docs criterion (10) is for the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 7 new, 39 known, 0 gone
