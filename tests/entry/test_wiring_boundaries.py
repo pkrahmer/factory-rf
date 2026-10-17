@@ -1,7 +1,8 @@
 """The production wiring of one instance: its settings and token turned into its boundaries."""
 
 import json
-import sys
+import os
+import shutil
 from collections.abc import Callable
 from dataclasses import fields
 from datetime import timedelta
@@ -38,7 +39,7 @@ from factory.entry.wiring import (
     read_hosting_token,
     repository_name,
 )
-from git_support import clone, install_agents
+from git_support import clone, install_agents, write_executable
 
 GITHUB_URL = "https://github.com/owner/project.git"
 LOCAL_URL = "/srv/project.git"
@@ -148,17 +149,19 @@ def test_a_hosting_token_that_cannot_be_read_is_refused(tmp_path: Path, case: st
         ("/opt/other-helper", "/opt/other-helper"),
     ],
 )
-def test_git_environment_gives_the_credential_helper_and_the_shared_group(
+def test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks(
     helper: str | None, expected_helper: str
 ) -> None:
     environment = git_environment() if helper is None else git_environment(helper)
 
     assert environment == {
-        "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_COUNT": "3",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": expected_helper,
         "GIT_CONFIG_KEY_1": "core.sharedRepository",
         "GIT_CONFIG_VALUE_1": "group",
+        "GIT_CONFIG_KEY_2": "core.hooksPath",
+        "GIT_CONFIG_VALUE_2": "/dev/null",
     }
 
 
@@ -226,17 +229,22 @@ def test_the_built_boundaries_read_the_disk_and_boundaries_without_one_have_none
 
 
 def test_the_built_git_runs_with_the_git_options_of_the_settings(
-    tmp_path: Path, remote: Path, settings: InstanceSettings
+    tmp_path: Path, remote: Path, settings: InstanceSettings, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     checkout = clone(remote, settings.checkout)
-    seen = tmp_path / "hook-environment.json"
-    hook = checkout / ".git" / "hooks" / "pre-commit"
-    hook.write_text(
-        f"#!{sys.executable}\nimport json, os\n"
-        f"open({str(seen)!r}, 'w', encoding='utf-8').write(json.dumps(dict(os.environ)))\n",
-        encoding="utf-8",
+    seen = tmp_path / "git-environment.json"
+    real_git = shutil.which("git")
+    assert real_git is not None
+    folder = tmp_path / "stand-in-bin"
+    folder.mkdir()
+    stand_in = write_executable(
+        folder,
+        "import json, os, sys\n"
+        f"open({str(seen)!r}, 'w', encoding='utf-8').write(json.dumps(dict(os.environ)))\n"
+        f"os.execv({real_git!r}, [{real_git!r}, *sys.argv[1:]])",
     )
-    hook.chmod(0o755)
+    stand_in.rename(folder / "git")
+    monkeypatch.setenv("PATH", f"{folder}{os.pathsep}{os.environ['PATH']}")
     (checkout / "note.md").write_text("A note.\n", encoding="utf-8")
     identity = GitIdentity(name="Ann", email="ann@example.invalid")
     boundaries = build_boundaries(
@@ -252,6 +260,8 @@ def test_the_built_git_runs_with_the_git_options_of_the_settings(
     assert environment["GIT_CONFIG_KEY_0"] == "credential.helper"
     assert environment["GIT_CONFIG_VALUE_0"] == "/usr/local/bin/git-credential-factory"
     assert environment["GIT_CONFIG_VALUE_1"] == "group"
+    assert environment["GIT_CONFIG_KEY_2"] == "core.hooksPath"
+    assert environment["GIT_CONFIG_VALUE_2"] == "/dev/null"
 
 
 def test_the_built_project_commands_run_in_the_checkout(settings: InstanceSettings) -> None:

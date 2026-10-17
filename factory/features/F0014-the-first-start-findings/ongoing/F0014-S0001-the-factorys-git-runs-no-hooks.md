@@ -2,9 +2,9 @@
 stage: tests
 pr: 191
 blocked: null
-comments_seen: 0
+comments_seen: 1
 round: 0
-attempts: 0
+attempts: 1
 ---
 # The factory's git runs no hooks
 
@@ -85,3 +85,20 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Architecture: the change is in `factory.entry` wiring only. `GitCli` and the layers are untouched, and the story says why the setting stays out of `GitCli`.
    - Scope: it is inside FEATURE scope bullet 1 and not in "Out of scope". The two earlier tests it changes are covered by decision 7's leave.
    No questions.
+3. stage tests stalled: Tests written; stopped because `make lint` is red outside my lane. All 18 ruff findings are in `planning/overnight/landlock_probe.py` (tracked, committed in 65be4c2a "Plan: 5a the write guard by Landlock..."; e.g. SIM115, D103, S603, PLW1510, S607). `planning/` is the human's; I cannot fix or exclude it. `ruff check tests/entry` and `ruff format --check tests/entry` are green for my files. Needed from the human: fix the probe or keep `planning/` out of `make lint`, then rerun this stage (the tests below can stay as they are).
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks (renamed from ..._and_the_shared_group; expects the seven entries, both rows)
+   - criterion 2: tests/entry/test_git_hooks.py::test_the_factorys_git_runs_no_hook_of_the_checkout[factory-pre-commit / plain-pre-commit]
+   - criterion 3: same test, rows [factory-post-checkout / plain-post-checkout] (checkout `work` from `origin/main`)
+   - criterion 4: same test, rows [factory-pre-push / plain-pre-push] (`push` returns `pushed`, remote holds the commit)
+   - criterion 5: same test, rows [factory-configured-hooks-path / plain-configured-hooks-path] (`git config core.hooksPath <tmp_path/elsewhere-hooks>`)
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings (now a stand-in `git` from `write_executable`, renamed to `git`, first on a monkeypatched PATH; it dumps os.environ as JSON and calls os.execv on the real git found by shutil.which before the PATH changes; four old assertions plus KEY_2/VALUE_2)
+   - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
+   - criterion 8: existing tests, unchanged.
+
+   Hooks are `#!/bin/sh` scripts that `touch` a marker at `tmp_path/hook-ran`, outside the checkout. The factory side uses `GitOptions(environment=git_environment())`; the plain side uses `GitOptions()`.
+
+   Files: created tests/entry/test_git_hooks.py; changed tests/entry/test_wiring_boundaries.py (only the two tests the ticket allows; dropped the unused `sys` import and added `os`, `shutil`, `write_executable`).
+
+   Red on purpose (one of my commands ran `make test` twice by mistake): the four `factory-*` rows of the hook test (the hook still runs), both rows of the renamed environment test and the built-git test (no third pair yet). The `plain-*` rows and both pre-receive rows already pass. No module failed to import.; partial work committed
