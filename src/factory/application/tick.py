@@ -1,6 +1,7 @@
-"""The tick: fetch, load, restore, preflight, clean up stale branches, evaluate and dispatch."""
+"""The tick: check the disk, fetch, load, restore, preflight, clean up, evaluate, dispatch."""
 
 from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import NoReturn
 
 from pydantic import BaseModel, ConfigDict
@@ -13,6 +14,7 @@ from factory.application.recovery import delete_stale_branches
 from factory.application.stops import StopService
 from factory.application.watcher import Watcher
 from factory.application.work_items import RemoteWorkItems
+from factory.domain.disk import disk_low_detail
 from factory.domain.errors import (
     AgentDefinitionInvalid,
     FetchFailed,
@@ -23,7 +25,7 @@ from factory.domain.events import Event, EventKind
 from factory.domain.identifiers import Name, branch_name, work_item_of_branch
 from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import RepositoryStop, RepositoryStopReason
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 from factory.domain.tick_status import TickStatus
 
 HandlerFactory = Callable[[PipelineDefinition], Mapping[EventKind, Handler]]
@@ -87,12 +89,15 @@ class Tick:
         return self._status
 
     def run(self) -> TickOutcome:
-        """Fetch, load, restore, preflight, clean up, evaluate and dispatch; a stop ends the tick.
+        """Check the disk, fetch, load, restore, preflight, clean up, evaluate and dispatch.
+
+        A stop ends the tick.
 
         Raises `WorkItemFormatError`, `ValueError` from the evaluation, and `GitError`
         outside the fetch and the restore: no stop exists for them.
         """
         try:
+            self._check_disk()
             self._fetch()
             definition = self._load()
             self._restore()
@@ -107,6 +112,26 @@ class Tick:
         outcome = dispatcher.dispatch(event)
         self._status = dispatcher.status
         return TickOutcome(event=event, dispatch=outcome)
+
+    def _check_disk(self) -> None:
+        # Before the fetch, so that no write of the tick meets a full disk and hangs.
+        disk = self._boundaries.disk
+        settings = self._boundaries.settings
+        if disk is None or settings is None:
+            return
+        free: dict[Path, int] = {}
+        for path in (settings.checkout.parent, settings.state_directory):
+            try:
+                free[path] = disk.free_bytes(path)
+            except OSError as error:
+                # An unknown free space is no proof of room.
+                self._stop(
+                    "disk_low", f"cannot read the free space of {path}: {error}", scope="machine"
+                )
+        detail = disk_low_detail(free, settings.min_free_gb)
+        if detail is not None:
+            self._stop("disk_low", detail, scope="machine")
+        self._stops.clear_stop("disk_low")
 
     def _fetch(self) -> None:
         try:
@@ -161,9 +186,11 @@ class Tick:
         started = [story.id for story in stories]
         return sorted({work_item for work_item in [*on_remote, *started] if work_item is not None})
 
-    def _stop(self, reason: RepositoryStopReason, detail: str) -> NoReturn:
+    def _stop(
+        self, reason: RepositoryStopReason, detail: str, scope: StopScope = "repository"
+    ) -> NoReturn:
         stop = RepositoryStop(
-            scope="repository", reason=reason, detail=detail, at=self._boundaries.clock.now()
+            scope=scope, reason=reason, detail=detail, at=self._boundaries.clock.now()
         )
         self._stops.raise_stop(stop)
         raise _Stopped(reason)
