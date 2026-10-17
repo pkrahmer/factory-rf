@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 173
 blocked: null
 comments_seen: 0
@@ -100,3 +100,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/test_demos.py - ImportError while importing test module '/work/fa...
+4. coder: the demo check is built and `make check` is green. All tests in tests/entry/test_check_demos.py and tests/test_demos.py pass, and tests/entry/test_check_story.py passes without changes.
+      - `src/factory/entry/check_demos.py` (new): `check_demos(root)` and `main(argv)`, with `--root` defaulting to the current directory. The checks run in the order the Interface gives: no `demo/`, a missing index, then each demo folder in name order. Loose files and hidden folders are skipped. For each demo it checks that the index names it, its three parts, `project/factory/pipeline.yml` and `project/factory/story-form.md`. Then it reads every file under `features/` in path order. Each backlog story is checked at `factory/features/<feature>/backlog/<story>.md`, and any other file is "not a feature file or a backlog story". The paths come from the constants in `factory.domain.paths`.
+      - `src/factory/entry/check_story.py`: adds `backlog_story_findings` (the place findings, then the form findings of the text read as a specification; a `WorkItemFormatError` becomes one finding) and `finding_line`. `factory-check-story` now uses both for backlog stories. Started stories go through the same path as before.
+      - `src/factory/entry/wiring.py`: adds `build_pipeline_definition_reader()`. The Interface names `RuamelPipelineDefinitionReader().parse`, but `tests/entry/test_wiring.py` allows only the wiring to import adapters in the entry layer. So `check_demos` gets the reader from the wiring, the same way it gets `build_work_item_reader()`. The reader and its behaviour are unchanged.
+      - Main decision: check_demos holds no story logic of its own. Story findings come from the story check's `backlog_story_findings` and `finding_line`, so a demo story and `factory-check-story` give the same findings. I rejected calling `check_story_place`/`check_story_form` directly from check_demos, because that would be a second copy of `_form_findings`.
+      - Refactor (8450e2d): the demo check now uses one constant for `README.md`. It had both an `_INDEX` constant and a bare literal for the same name.
+      - Noticed: `uv run python -m factory.entry.check_demos` prints `demos ok` because the repository has no `demo/` yet. `make duplicates`: 0 new, 39 known, 0 gone. Docs (criterion 16) are left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
