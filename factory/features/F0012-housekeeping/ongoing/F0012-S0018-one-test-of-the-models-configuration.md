@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 169
 blocked: null
 comments_seen: 2
@@ -131,3 +131,20 @@ Expect: the single line `status 1`.
 
    `make check`: check: green
    `make documents`: documents ok
+9. demo: I ran both Demo commands from the repository root, exactly as written. Both met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/test_model_configuration.py`
+   ```
+   ........................................................................ [ 66%]
+   .....................................                                    [100%]
+   109 passed in 0.05s
+   ```
+   Met: the last line is `109 passed`, at least 100, with no `failed`, `error` or `skipped` count. The 109 breaks down as 6 rule rows (criterion 1), 1 collection test (criterion 3), 6 exception rows (criterion 4) and 96 rows for criterion 2. 96 + 6 = 102 collected models, so the collection's model count is above 90, as criterion 3 requires. The ticket says there are 96 models in all, not 102; it doesn't change the result.
+
+   2. `grep -rn "def test_a_verdict_is_frozen\|def test_stage_start_is_frozen\|def test_tick_outcome_refuses_an_assignment" tests; echo "status $?"`
+   ```
+   status 1
+   ```
+   Met: the single line `status 1`. Three of the removed tests are gone, which matches criterion 5.
+
+   Criteria cross-read: the demo contradicts none of them. I did not re-run criteria 6 (`make check`) and 7 (docs). They rest on the coder's, reviewer's and documenter's entries, and the factory runs `make check` itself after this stage.
