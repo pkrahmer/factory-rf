@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 173
 blocked: null
 comments_seen: 0
@@ -146,3 +146,16 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - Group 2: `check_demos` is in `factory.entry` and gets both readers from the wiring. `build_pipeline_definition_reader()` is a justified, logged deviation, because `test_wiring.py` lets only the wiring import adapters. No layer rule is broken.
       - Group 3: no shell, no secrets, no suppression markers. `PipelineDefinitionInvalid` is the only error `RuamelPipelineDefinitionReader.parse` raises, so catching only that is complete.
       I did not reach group 5 (ticket hygiene), because the role skill stops at the first failing group.
+10. coder: coder (round 2): fixed the one finding from entry 9. `src/factory/entry/check_story.py` now builds the place-then-form findings in one place only.
+       - New private `_story_findings(reader, story, form)` returns the place findings and then the form findings. Its input `_Story` is a small private frozen model with `path`, `text`, `folder` and `feature_file_exists`, next to the existing `_Read`.
+       - `backlog_story_findings` calls it with `folder="backlog"`, and its public signature is unchanged.
+       - `_check` calls it for every folder. The redundant `if folder == "backlog"` branch is gone.
+       - Main decision: I took the reviewer's first option, so demo stories and `factory-check-story` share one code path. A plain 6-argument helper broke ruff's PLR0913 limit, and `src` has no suppressions, so I put the arguments in a model instead of adding a `noqa`. I rejected the reviewer's second option (calling `backlog_story_findings` from `_check`): started stories would still need their own place-then-form list.
+       - Commits: cea1e90 is the helper. Its own `make check` was red (lint, PLR0913) because my pipe hid the exit status, and it was committed anyway. 4b9cbcf fixes it with the `_Story` model. `make check` is green at 4b9cbcf.
+       - Behaviour is unchanged and no tests were touched. `tests/entry/test_check_story.py` and `tests/entry/test_check_demos.py` pass.
+       - Still open: the documents for criterion 16, which belong to the documenter.
+
+       `make check`: check: green
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
