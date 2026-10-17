@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 179
 blocked: null
 comments_seen: 0
@@ -88,3 +88,12 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
    - Security: nothing relevant changed. No markers were added and no strings reach a shell.
    - Quality: the new `_work_item_id` in `claims.py` takes the file-name parse out of `_own_branch` and is used by both, so the parse is not duplicated. Names are clear and there is no dead code.
    - Hygiene: the coder's entry names the main decision and the rejected alternative (adding the prefix in `_commit_and_push` or in the `Git` wrapper). `Assignment` matches what was built. Criterion 7 still describes what the documenter must write.
+6. documenter: written for criterion 7 (documents only, so no `make check` run by me). `uv run python -m factory.entry.check_documents` prints `documents ok`.
+   - `docs/project-guide.md`, *Recording the human's act*: replaced "Nothing parses commit subjects" with the rule that every factory commit on a work item's branch begins `work item <id>: `. It lists the five kinds of commit, names the merge of `origin/main` into a reopened branch as the one exception, and says a project's `make mutants` reads the prefix.
+   - `docs/project-guide.md`, *The claim service* step 4: the start subject is now `work item <id>: <stage> starts as <instance>`.
+   - `docs/decisions.md`: one new entry, "The factory's own commits on a work item's branch carry its id" (F0012 decision 51). It gives the reason and the rejected alternative.
+   - Cross-read against the diff: the stall and stage-end paragraphs of `docs/project-guide.md` and the stall text of `docs/operator-guide.md` name no commit subject. README names none either. All are current.
+   - Findings: none. The code matches the Interface. Nothing stale seen that is unrelated to this story.
+
+   `make check`: check: green
+   `make documents`: documents ok
