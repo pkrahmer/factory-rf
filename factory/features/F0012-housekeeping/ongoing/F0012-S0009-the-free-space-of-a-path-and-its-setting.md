@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 161
 blocked: null
 comments_seen: 0
@@ -136,3 +136,13 @@ Expect: `5`.
       - Quality: I searched `src/factory` and found no existing helper for the same parsing, size walk or GB formatting. The `@override` methods without docstrings follow the existing adapters' style (`adapters/clock.py`). The comments explain why. The 7 new `make duplicates` dead-code findings are the parts S0010 and S0016 will use, as the coder's entry says.
       - Ticket hygiene: the log gives the main decision (integer tenths rather than float formatting) and what was rejected (`rglob` with `is_file`, which follows links). `Assignment` matches what was built, and criterion 10 still describes the docs to write.
       - Open, not a finding: if a file is removed during the walk, `used_bytes` passes on its `FileNotFoundError`. The Interface does not cover this; S0016, which calls `used_bytes`, may need to decide it.
+6. documenter: Wrote the docs for criterion 10. I ran no `make check`, because only documents changed. `python -m factory.entry.check_documents` prints `documents ok`.
+   - `docs/operator-guide.md`, settings table: new row `FACTORY_MIN_FREE_GB`. It is optional, in whole gigabytes of 10^9 bytes, at least 1, default 5, and unset or blank gives the default. Bad values are refused with the variable named. The row says what it guards "comes with the low-disk stop".
+   - `docs/operator-guide.md`, new subsection "What the container cannot see" at the start of *The machine's image*. Under Docker Desktop's WSL 2 backend there is no disk limit, so `df` inside the container shows the virtual disk (about 1 TB). A free-space check inside the container therefore fires only on a Linux host or with a real limit. The host drive is watched from outside, and Docker's disk image belongs on a drive with room. To get the space back: `fstrim -v /mnt/docker-desktop-disk` in the `docker-desktop` distribution, then `compact vdisk` in `diskpart` with Docker stopped.
+   - `docs/project-guide.md`, where the machine's interfaces are listed: `DiskSpace` (`free_bytes`, `used_bytes`) and `ShutilDiskSpace` in `factory.adapters.disk_space`. It also says `Boundaries.disk` is optional and set by `build_boundaries`.
+   - Cross-read against the diff and found current: README, the operator guide's description of `read_settings` and of the boundaries, and the project guide's `build_boundaries` paragraph. That paragraph lists what is built and now has `disk` missing, but it is not a full list, so I left it. The `boundaries` test-fixture paragraph is unaffected, because `disk` is optional.
+   - No findings for the coder. The code matches the Interface and every public name has its docstring.
+   - Not touched: `used_bytes` lets a `FileNotFoundError` through when a file disappears during the walk. This is already open in the log, for S0016 to decide.
+
+   `make check`: check: green
+   `make documents`: documents ok
