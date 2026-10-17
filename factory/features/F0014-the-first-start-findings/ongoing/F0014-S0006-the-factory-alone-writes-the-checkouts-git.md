@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 192
 blocked: null
 comments_seen: 4
@@ -257,3 +257,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    **Open:** criterion 3's two rows, above. Not touched: nothing else noticed.
 7. human (pull request comment, 2026-10-17): (a): `cloned` takes `group_umask` as a parameter, so it always runs under `0002`; the module's `pytestmark` stays. The criterion is unchanged.
+8. coder: The human's answer (log entry 7, option (a)) needs a change to a test, so I am handing the story back to the tester. I did not touch the test and did not change any code.
+
+   The change: in `tests/entry/test_git_repository_modes.py`, the `cloned` fixture (line 19) takes `group_umask` as a parameter, so its signature becomes `def cloned(tmp_path: Path, remote: Path, group_umask: None) -> GitCli:`. The clone then always runs under umask `0002`. The module's `pytestmark = pytest.mark.usefixtures("group_umask")` stays, and nothing else in the test changes.
+
+   This fixes the order problem behind criterion 3. Today `cloned` runs before `group_umask`, so the clone runs under the shell's umask `0022`. That is why the `work-tree-file` and `work-tree-folder` rows of `test_a_clone_closes_the_git_folder_to_the_group_and_leaves_the_work_tree_writable` fail. With the change, they should pass against the code already committed (cacf17ea feat, 085a3783 refactor). I checked those modes by hand in my last entry: `0o664` for the file and `0o775` for the folder.
+
+   Open: once the tester has made the change, the story comes back to doing to confirm that `make check` is green. Every other check was green after my last entry; only these two rows failed.
