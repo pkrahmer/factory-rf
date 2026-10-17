@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 189
 blocked: null
 comments_seen: 0
@@ -83,3 +83,29 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands ran from the repository root and both met their `Expect:` lines. No findings.
+
+   1. `grep -c "not yet observed\|not been observed\|Replace the placeholders" README.md docs/operator-guide.md`
+   ```
+   README.md:0
+   docs/operator-guide.md:0
+   ```
+   Met: two lines, `README.md:0`, and the guide's count of 0 is below 4.
+
+   2. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met.
+
+   Criteria checked against `git diff main...HEAD`:
+   - Criterion 1 holds. Besides the ticket, the diff touches only `README.md` (1 line) and `docs/operator-guide.md` (4 lines). Nothing changes under `src/`, `image/`, `template/`, `claude/` or `tests/`, and the tester's and coder's entries both say so.
+   - Criterion 2: the coder's and documenter's entries record `check: green`, and the factory runs `make check` again after this stage. I did not run it here.
+   - Criterion 3:
+     - README and the guide's introduction now say the image was built and started once under rootless Podman (the probe of 2026-10-17, without the pins) up to the stop `repository_unavailable`. They also say a run against a real repository with a token is not observed yet.
+     - *Build it* gives 42 s under Podman 5.8.3 without the pins, and keeps a build with the pins as the morning observation.
+     - *The health check and the restart policy* says the probe saw the health check run under Podman: `starting`, then the stop's text, exit 1. It keeps `docker compose ps` over a container with a stop standing as the morning observation.
+     - The heading is now *Update the pins*, and its text is unchanged (only the heading line is in the diff).
+     - No other document changed, and the document check still prints `documents ok`.
+
+   The demo contradicts no criterion. Open: nothing.
