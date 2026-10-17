@@ -1,5 +1,5 @@
 ---
-stage: ready
+stage: tests
 pr: 169
 blocked: null
 comments_seen: 2
@@ -44,7 +44,7 @@ Twenty-five tests. `tests/application/test_boundaries.py::test_boundaries_refuse
 
 ## Acceptance criteria
 
-1. The rule returns `None` for a stand-in model (defined in the test) with `frozen=True, extra="forbid"`, and a fault for stand-ins with `frozen=True` only, with `extra="forbid"` only, with `frozen=True, extra="ignore"`, with `frozen=False, extra="forbid"` and with no `model_config`. Six rows of one parametrized test.
+1. The rule returns `None` for a stand-in model (defined in the test) with `frozen=True, extra="forbid"`, and a fault for stand-ins with `frozen=True` only, with `extra="forbid"` only, with `frozen=True, extra="ignore"`, with `frozen=False, extra="forbid"` and with no `model_config`. Six rows of one parametrized test. Each failing row also checks that the fault contains the stand-in's name and the missing setting (`frozen`, `extra`, or both for the stand-in with no `model_config`).
 2. Every model collected from `src/factory`, outside the exceptions, is closed: one parametrized test over the collected models, each row's id its dotted name.
 3. The collection finds more than 90 models, among them `factory.domain.work_item.WorkItemState`, `factory.application.stage.StartedStage` and `factory.adapters.claude_runtime._Reply`, and no class that is not a `BaseModel` (`factory.application.boundaries.Boundaries` is not among them).
 4. Each name of the exceptions is a collected model whose `model_config` has `extra == "ignore"`. One row per exception.
@@ -69,3 +69,9 @@ Expect: the single line `status 1`.
 1. 2026-10-17 human: created.
 2. intake: 1. The Interface says the rule's function "returns a fault naming the model and the missing setting" for a model that is not closed. Criterion 1 only requires "a fault" for the five failing stand-ins. Nothing tests what the fault says, so two coders could read it two ways and both pass. Options: (a) reword criterion 1 so each failing row also checks that the fault contains the stand-in's name and the missing setting (`frozen`, `extra`, or both for a stand-in with no `model_config`); (b) drop "naming the model and the missing setting" from the Interface and keep "a fault". I would choose (a), since the fault is what tells a reader which model to fix. The rest of the story is fine: the criteria are testable, the Demo is runnable and its counts add up (6 + 90 + 1 + 6 = 103, at least 100), the architecture and scope check out, and the six exceptions match FEATURE decision 25.
 3. human (pull request comment, 2026-10-17): (a). Each failing row of criterion 1 also checks that the fault contains the stand-in's name and the missing setting (`frozen`, `extra`, or both for a stand-in with no `model_config`).
+4. intake: accepted. Carried in from log entry 3 (the human's answer (a)): criterion 1 now also says each failing row checks that the fault contains the stand-in's name and the missing setting (`frozen`, `extra`, or both for the stand-in with no `model_config`). That is the human's edit, not mine. The Assignment's meaning did not change, so I left it as it was.
+   - Interface: names the new module `tests/test_model_configuration.py`, how models are collected (`pkgutil.walk_packages` over `factory.__path__`, defined in the module, private ones included), the rule's function and its return value, the six exceptions by dotted name, and the 25 tests to remove by module and function name. The fault wording is now covered by criterion 1.
+   - Criteria: each one fits one test function, or one parametrized test with a row per case, with no further decisions. Criterion 1 covers the passing side and all five failing sides. Criterion 2 covers every collected model, and criterion 4 covers each exception with `extra == "ignore"`. Criterion 3 gives a count above 90 and names three models, plus `Boundaries` as excluded. Criterion 5 is a search for the removed function names plus the other tests of those modules still passing.
+   - Demo: both commands run as written. The first expects at least 100 passed, and 6 + 90 + 1 + 6 = 103 meets that. The second is a grep that should exit 1 and print `status 1`. Both `Expect:` lines can be checked against the output.
+   - Architecture: this is a test-only change under `tests/` at the root, which is where CLAUDE.md puts a module outside the layers. Pydantic models and `Boundaries` (a dataclass) are separated correctly.
+   - Scope: it is inside FEATURE 1.5 and decisions 25 and 39. The six exceptions match decision 25. Only the tests of `tests/adapters` and `tests/application` are removed here, and S0019 handles `tests/domain`.
