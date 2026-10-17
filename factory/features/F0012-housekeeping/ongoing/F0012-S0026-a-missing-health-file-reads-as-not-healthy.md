@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 176
 blocked: null
 comments_seen: 0
 round: 0
@@ -48,3 +48,9 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures: `wiring.health_file(state_directory) -> Path` (`<dir>/health.json`; `_HEALTH_FILE_NAME` and `health_store` exist in wiring.py), `run.run_instance` (exists, run.py:88), `health.main` with its `store` keyword (exists, health.py:22). The messages, exit status and the order of the write before the token read are stated exactly.
+   - Criteria: each is testable by one function or one parametrized test. Rules with both sides: missing file → not healthy against an empty file and a damaged file → healthy (1); a given store read against the missing file (2); an existing health file kept with its stop against a missing one written (4); the write before the token read (5); the unwritable state directory raises `OSError` and no clone (6). The process exit status is criterion 3.
+   - Demo: runnable as written; its `Expect:` line (two lines, the path with the temporary folder masked, then `1`) can be checked against the output.
+   - Architecture: the change stays in `factory.entry`, which wires, and uses the existing store behind its interface. No new dependency or layer change.
+   - Scope: within F0012 scope item 1.10 and decisions 29 and 43. The two earlier tests that change are named, with the human's leave.
