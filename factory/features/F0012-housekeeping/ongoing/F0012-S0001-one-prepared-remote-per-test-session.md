@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 153
 blocked: null
 comments_seen: 0
@@ -123,3 +123,21 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    Open: criterion 9 (the project guide's paragraphs on the `remote` and `world` fixtures) is for the documenter.
 
    `make check`: check: green
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1 to 7 maps to a test in `tests/test_git_support.py` that checks what the criterion says.
+        - Criterion 1 checks the return path, that the copy is bare, that its `main` equals the template's, and that `seed/` exists.
+        - Criterion 2 compares a clone's files with `REMOTE_FILES`, skipping `.git`.
+        - Criterion 3 checks independence both ways, against a template the test makes itself.
+        - Criterion 4 is one parametrized test with four rows: a missing root two levels deep, an empty root, a root holding `remote.git`, and a root holding `seed`. The refused rows check that the folder already there keeps only its marker and that the other folder is not created.
+        - Criterion 5 sets `PATH` to an empty folder inside `monkeypatch.context()` and checks `main` after `PATH` is restored.
+        - Criterion 6 checks the fixture's path, that it is outside the template, and its commit.
+        - Criterion 7 has one test for each side of `template`.
+        - The coder's entry reports `make check` green.
+      - Behaviour: `copy_remote` (`tests/git_support.py:126`) refuses with `FileExistsError` before it creates anything, so a refused root gets nothing new. It copies with `shutil.copytree(..., symlinks=True)` only, so no git process runs.
+      - Session template: the copied `seed` has no remote configured, because `make_remote` pushes to an explicit path. So a copy points at nothing in the session template, and no test writes to `remote_template` itself (it is read only in `tests/conftest.py` and in the criterion 6 test).
+      - Architecture: nothing under `src/` changes, and git is not faked. The new fixture is in `tests/conftest.py` and the new test module sits at the `tests/` root, as CLAUDE.md asks for a module outside the layers.
+      - Security: none of the four changed files adds a secret, a suppression marker or a string-built command.
+      - Quality: the names say what things are and the docstrings are present.
+      - Considered and not raised: the criterion 4 test decides whether to create the root by checking the row's string `"missing/two-deep"` instead of a row parameter. It reads clearly enough and is not wrong.
+      - Ticket hygiene: the Assignment matches what was built, and the tester's entry explains the rejected parametrization of criterion 7.
+      - Open for the documenter: criterion 9, the project guide's paragraphs on the `remote` fixture (*The git wrapper*) and the `world` fixture (*Kill points*, *The kill-point cases*).
