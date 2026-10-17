@@ -37,6 +37,6 @@ class Boundaries:
     log: FactoryLog
     health: HealthStatusStore
     checkout: Path
-    # Last and optional, so that every construction written before it stays valid.
+    # Last and optional, so that every construction written before them stays valid.
     settings: InstanceSettings | None = None
     disk: DiskSpace | None = None
