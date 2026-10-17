@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 176
 blocked: null
 comments_seen: 0
@@ -111,3 +111,4 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
      This meets `Expect:`: the two expected lines, in order. The pipeline exited with 0 because the exit status is `sed`'s; the `1` that `main` returned is printed.
    - I checked the output against the acceptance criteria. It matches criterion 1's missing-file row: the message is exact, and the folder is followed by `/health.json`. It contradicts none of the other criteria. The demo does not exercise criteria 2 to 6, which the tests in `tests/entry/test_health_missing.py` and `tests/entry/test_run_health_file.py` cover. It does not exercise criteria 7 and 8 either: the earlier entries record `make check` green and `make documents` ok.
    - Open: nothing.
+8. done (pull request merged); cost: 6 runs, 4.2 min, 42 turns, 169k tokens in (632k more from cache), 16k out, $1.10
