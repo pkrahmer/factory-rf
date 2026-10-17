@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 175
 blocked: null
 comments_seen: 0
@@ -96,3 +96,38 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: ran both Demo commands from the repository root. Both met their `Expect:` lines, and nothing contradicts a criterion.
+
+   Command 1:
+   ```
+   $ grep -n "/home/agent/.claude" image/Dockerfile
+   21: && mkdir -p /work /state/runs /home/agent/.claude \
+   24: && chown factory:factory-work /home/agent/.claude \
+   28: && chmod 3775 /home/agent/.claude
+   52:    FACTORY_CLAUDE_HOME=/home/agent/.claude
+   $ grep -n "chmod" image/entrypoint.sh
+   27:chmod 0755 "$home/agents"
+   28:find "$home/agents" -type f -exec chmod 0644 {} +
+   29:chmod 0644 "$home/settings.json"
+   33:chmod 2750 "$state/runs"
+   ```
+   Met. The Dockerfile has `chown factory:factory-work` and `chmod 3775` for `/home/agent/.claude`. The entrypoint sets `0755` on `agents/` and `0644` on the agent files and on `settings.json`. Line 33 (`/state/runs`) was already there before this story.
+
+   Command 2:
+   ```
+   $ uv run pytest --no-header -p no:cacheprovider tests/test_agent_home_ownership.py tests/test_image.py tests/test_entrypoint.py
+   ........................................................................ [ 93%]
+   .....                                                                    [100%]
+   77 passed in 0.20s
+   ```
+   Met. The last line is `77 passed`, with no failed, error or skipped count.
+
+   Criteria cross-check:
+   - 1: `image/Dockerfile:23,27` keeps `/work` at `factory:factory-work` and `2775`, as required.
+   - 2: the entrypoint changes only the agents folder and `settings.json`, so nothing else in the home is touched (criteria 2 and 4).
+   - 3: covered by the existing entrypoint tests, which pass in the run above.
+   - 6: `uv run python -m factory.entry.check_documents` prints `documents ok`. The diff against `origin/main` changes only `docs/operator-guide.md` and `docs/decisions.md`, with the row, the rewritten sentence, the note about old volumes, the morning-observation line and the decision entry.
+   - 5: I did not run `make check` myself. The factory runs it as the gate.
+
+   Findings: none.
+   Open: the sticky bit's effect and the morning-observation command need a container. Neither was run here (already noted at intake and by the documenter).
