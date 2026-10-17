@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 166
 blocked: null
 comments_seen: 0
@@ -227,3 +227,31 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
 
     `make check`: check: green
     `make documents`: documents ok
+11. demo: demo (round 1): I ran the three demo commands from the repository root, exactly as written. All three met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion. No findings.
+
+    1. Builds an `AgentRunResult` with `model_duration` and checks where `model_seconds` sits among `CostRecord`'s fields:
+    ```
+    41.5 True
+    ```
+    Met `Expect: 41.5 True`: the model time reads back as 41.5 seconds, and `model_seconds` comes right after `duration_seconds` (criteria 4 and 6, Interface field order).
+
+    2. `uv run pytest --no-header -p no:cacheprovider tests/adapters/test_claude_runtime_resume.py tests/adapters/test_cost_records_jsonl.py tests/application/test_costs_model_seconds.py`, last lines:
+    ```
+    ........................................................................ [ 90%]
+    ........                                                                 [100%]
+    80 passed in 16.72s
+    ```
+    Met: the last line is `<n> passed in <t>s`, with no failed, error or skipped count.
+
+    3. The cost table of two `doing` records: 120 s with 60 s of model time, and 60 s with no model time:
+    ```
+    | stage | runs | min | model min | turns | in | cached | out | USD |
+    | :-- | --: | --: | --: | --: | --: | --: | --: | --: |
+    | doing | 2 | 3.0 | 1.0 | 0 | 0 | 0 | 0 | 0.00 + 2 unknown |
+    | **total** | 2 | 3.0 | 1.0 | 0 | 0 | 0 | 0 | 0.00 + 2 unknown |
+    ```
+    Met: exactly the four lines expected. The header and alignment row are the Interface's. The record with no model time adds nothing to `model min` (Assignment, criterion 7), and `min` keeps the whole duration.
+
+    Checked against the criteria once more: the demo is consistent with criteria 1 to 11. Criterion 12 (`make check`) is the factory's gate after this stage. Criterion 13 (docs) was handled by the documenter in entry 10; the demo does not exercise it.
+
+    Open, not part of this ticket: the two vulture hits on `used_bytes` (`src/factory/adapters/disk_space.py:19`, `src/factory/application/machine.py:48`) that earlier entries noted.
