@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 172
 blocked: null
 comments_seen: 0
@@ -74,3 +74,13 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
    - Security: no secrets and no suppression markers. The `:?` form makes compose refuse to start when `FACTORY_INSTANCE` is unset, with no default.
    - Quality: the new module loads the compose file the same way the other per-module compose tests do (`COMPOSE` constant, safe-loader fixture), which matches the existing convention and the Interface. Names are clear and there is no dead code.
    - Ticket hygiene: the coder's entry explains the main decision (the same `:?` message reused word for word) and what was rejected (a `:-` default). `Assignment` matches what was built, and the docs criterion still says what the operator guide and the decision log must cover.
+6. documenter: Docs for the per-instance compose project name.
+   - `docs/operator-guide.md`, section "The container: compose, entrypoint and health check": the project is named `factory-<instance>`. The volumes are `factory-<instance>_work`, `_state` and `_claude-home`. Two instances on one machine, and v1 beside v1.1, get their own container and volumes. Renaming an instance means new, empty volumes, and the old ones stay until removed.
+   - `docs/decisions.md`: new entry "The compose project is named after the instance". It records the per-instance name, the collision with v1's project and volumes that it prevents, the cost (a rename gives new volumes), and the rejected `:-` default.
+   - Cross-read against the diff and found current: the README and `docs/project-guide.md`. Neither names the compose project or the volumes' full names.
+   - `python -m factory.entry.check_documents` prints `documents ok`.
+   - I did not run `make check`, because I changed only documents.
+   - No findings: the code matches the Interface. I saw nothing stale and unrelated.
+
+   `make check`: check: green
+   `make documents`: documents ok

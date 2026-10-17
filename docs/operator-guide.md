@@ -186,7 +186,7 @@ FACTORY_REPOSITORY_URL=https://github.com/you/project.git FACTORY_INSTANCE=main 
 | `FACTORY_INSTANCE` | Required. This instance's name. Compose refuses to start when it is unset. |
 | `FACTORY_IMAGE` | Optional. Only a label for the build (default `unlabelled`); it is not the image's identity. |
 
-The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container.
+The compose project is named `factory-<instance>`, after `FACTORY_INSTANCE`. The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container, and are named `factory-<instance>_work`, `factory-<instance>_state` and `factory-<instance>_claude-home`. Two instances on one machine, and v1 beside v1.1, therefore get their own container and volumes and never replace or mount each other's. Renaming an instance changes the project name, so the renamed instance starts with new, empty volumes (a new checkout, a new state directory, a new `claude` login); the old volumes stay until you remove them.
 
 ### The hosting-service token
 
