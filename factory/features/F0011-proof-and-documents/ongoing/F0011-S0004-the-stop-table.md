@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 148
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The stop table
 
 ## Assignment (as of log entry 1)
@@ -120,3 +128,127 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/stop_table.py` names `StopRow`, `Destination`, `STOP_TABLE` with concrete fields and validator rules; the fourteen rows are spelled out, and the 7 reason values match `RepositoryStopReason` in `domain/stops.py`. The one code change (`RemoteWorkItems.read`) names its module and the behaviour.
+   - Criteria: 1 to 18 are each testable by one function. Every Interface rule has both sides: reason set exactly when `health_status` (criterion 4 covers missing and surplus reasons), non-empty limits and `^L\d+$` (empty and `"X7"` rejected, first row accepted), closed model (criterion 5). The read change has both sides in criterion 16 (duplicate read from main; missing file still raises). Error caps are checked at the second and third ticks, plus three more ticks with no repeat.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable (fourteen lines with named first, seventh, eighth and last; `True`; the `passed` line).
+   - Architecture: the table is data in `factory.domain`, with no I/O. It imports only `factory.domain.stops`. The tests use the existing helpers (`tests/proof_support.py`, `tests/source_search.py`, `FakeHosting.fail_next` and `pull_requests`).
+   - Scope: stays within F0011's stop-table scope (L11, L19, L26, L30, L33, L55, L58, L64, L65). The producers of the machine stops stay out of scope. The F0006 code change is recorded as decision 19 in `FEATURE.md`.
+3. tester: Wrote red tests for criteria 1 to 16, using the Interface and the scenario list as written.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_stop_table.py::test_the_table_holds_the_fourteen_stops_in_order
+   - criterion 2: tests/domain/test_stop_table.py::test_every_repository_stop_reason_is_the_reason_of_exactly_one_row
+   - criterion 3: tests/domain/test_stop_table.py::test_the_table_covers_every_limit_of_v1_whose_stop_reached_only_a_log
+   - criterion 4: tests/domain/test_stop_table.py::test_a_row_breaking_a_rule_of_the_table_is_rejected (parametrized: health without reason, reason with pull_request, reason with none, empty limits, "X7") and ::test_the_first_row_of_the_table_is_accepted
+   - criterion 5: tests/domain/test_stop_table.py::test_a_built_row_refuses_the_assignment_of_a_field and ::test_a_row_with_an_unknown_key_or_value_is_rejected (parametrized: unknown key, destination "log", reason "v1_work_item_found", all built through `type[BaseModel]`)
+   - criterion 6: tests/test_stop_table.py::test_every_test_of_the_table_is_a_function_of_this_module (reads the module's top-level functions with `ast`)
+   - criterion 7: tests/test_stop_table.py::test_repository_stop_reaches_the_health_status_and_the_factory_log (parametrized over the seven health_status rows; uses the conftest `boundaries`, `clock` and `hosting` fixtures, and the log at tmp_path/state/factory.log)
+   - criterion 8: tests/test_stop_table.py::test_production_code_names_every_reason_of_a_repository_stop (parametrized over `RepositoryStopReason`)
+   - criterion 9: tests/test_stop_table.py::test_duplicate_is_a_counted_error_reported_once_on_the_pull_request
+   - criterion 10: tests/test_stop_table.py::test_failed_pull_request_lookup_is_a_counted_error_reported_once
+   - criterion 11: tests/test_stop_table.py::test_ask_without_pull_request_is_reported_once_on_a_draft_pull_request_opened_first
+   - criterion 12: tests/test_stop_table.py::test_handler_that_fails_every_time_is_reported_once_after_the_error_cap
+   - criterion 13: tests/test_stop_table.py::test_hand_over_that_fails_every_time_is_reported_once_after_the_error_cap
+   - criterion 14: tests/test_stop_table.py::test_rejected_push_is_a_counted_error_reported_once (installs an executable `hooks/update` in the bare remote that exits 1 for refs/heads/work-item/*)
+   - criterion 15: tests/test_stop_table.py::test_story_file_naming_a_later_stage_starts_at_intake_with_no_stop
+   - criterion 16: tests/application/test_work_items_duplicate.py::test_a_second_file_of_one_id_is_read_from_main_as_a_started_story and ::test_the_only_file_of_an_id_missing_on_its_branch_is_still_a_format_error
+
+   How the scenario tests are written:
+   - Error posts are counted over every pull request with a local helper `_error_posts`.
+   - For "three more ticks add no post", the test compares every factory post before and after those ticks.
+   - Duplicate and pull-request-lookup also compare the post's key with `PostKey(work_item, "error", n=<first 12 characters of origin/<branch>>)`, read after the third failing tick.
+   - The duplicate's second file is `<id>-other.md`, so its path sorts after `F0001-S0001-first.md`.
+   - Ask-without-pull-request builds the branch file from `initial_state("intake")` with `blocked="question"`, over `STORY` (which already has `## Journal`), with one `question` entry from speaker `intake` added by `append_entry`. It renders the file with the world's `FrontmatterWorkItemWriter` and pushes it with `human.push_file` to the story's in-progress path.
+
+   Files created: tests/domain/test_stop_table.py, tests/test_stop_table.py, tests/application/test_work_items_duplicate.py.
+
+   One `make test` run: collection stopped with 2 errors, in tests/domain/test_stop_table.py and tests/test_stop_table.py. Both import `factory.domain.stop_table`, which does not exist yet. Because collection was interrupted, tests/application/test_work_items_duplicate.py did not run. Its first test should fail against the current `_branch_document`, which raises "missing on branch". Its second test pins behaviour that already exists.
+
+   `make lint` is green after `ruff format`. I skipped the type check, as the stage says to.
+
+   Nothing is open: no criterion needed interpreting beyond what the scenario list states.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: Built the stop table and the duplicate read; `make check` green (coverage 99.55 %). Commit 49a4329.
+
+   - `src/factory/domain/stop_table.py`: `Destination`, `StopRow` (frozen, extra="forbid") and `STOP_TABLE`, the fourteen rows in the Interface's order. There are two model validators, each raising a `ValueError`: the reason is set exactly when the destination is `health_status`, and the limits are non-empty and each matches `^L\d+$`. Two private builders (`_health`, `_pull_request`) keep the rows short: every health_status row shares the one repository test name, and every pull_request row has no reason.
+   - `src/factory/application/work_items.py`: `read` tracks the ids it has already seen. `_snapshot` takes `duplicate=` and reads a later in-progress file of a seen id from origin/main through `_started_document`, as for a story without a branch. Before this, `_branch_document` raised `missing on branch`. `branch_commit` stays the resolved branch tip, so the dispatcher's error key (`n` = first 12 characters of origin/<branch>) and the duplicate post land on the first work item's pull request. The only file of an id that is missing on its branch still raises `WorkItemFormatError`.
+   - Rejected: dropping the duplicate's `branch_commit` (setting it to None). That would make the second snapshot look like a story that was never started, and the scenario's key and pull request depend on the branch tip.
+   - Every scenario in tests/test_stop_table.py (criteria 6 to 15) passed with no change under `src/` beyond the read change, so the other stops already reach their destinations.
+   - Refactor: I read the diff back and found nothing to rename, simplify or remove, so there is no refactor commit.
+   - Not touched: the docs criterion (18) belongs to the documenter.
+
+   `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: every criterion from 1 to 16 has a test, and each test checks what its criterion says. Criteria 1 to 5 are in `tests/domain/test_stop_table.py`, 6 to 15 in `tests/test_stop_table.py` and 16 in `tests/application/test_work_items_duplicate.py`.
+     - Both sides of each Interface rule are rows of one parametrized test: reason against destination (all three wrong cases), empty limits, `"X7"`, the accepted first row, frozen assignment, an unknown key, `destination="log"` and `reason="v1_work_item_found"`.
+     - Criterion 16 also covers the failing side: the only file of an id missing on its branch still raises `WorkItemFormatError`.
+     - The coder's entry reports `make check` green at commit 49a4329.
+   - Architecture: `src/factory/domain/stop_table.py` is pure data and validators, and imports only pydantic, `re` and `factory.domain.stops`. The change in `src/factory/application/work_items.py` stays in its layer and adds no tool call.
+   - Security: no secrets, no suppression markers. The only shell text is the test's `hooks/update` script, written to the bare remote under `tmp_path`.
+   - Quality: names are clear and the private row builders carry no docstrings. The new comment in `_snapshot` says why the duplicate is read from main. No existing helper is duplicated.
+   - Ticket hygiene: the coder's entry explains the main decision (read a later file of a seen id from main and keep the branch tip as `branch_commit`) and the rejected alternative (`branch_commit=None`). The Assignment matches what was built. Criterion 18 still describes what the documenter has to write.
+6. documenter: wrote criterion 18; `make check` green.
+
+   Files changed:
+   - `docs/operator-guide.md`: the two sections "Stops of the repository or the machine" and "Stops of one work item" are replaced by "The stops".
+     - It opens with the destinations and says that every stop line in the factory log is time-stamped.
+     - It has one table with fourteen rows, one per row of `STOP_TABLE`, in the same order. The destinations read `health status and factory log`, `pull request` or `no stop`, and each row says what the operator does.
+     - The `preflight-failed` row states that when the state directory cannot be written, `factory-run` still ends with status 2 and writes no stop. The settings fault reaches standard error as two lines without a stamp.
+     - Each row links to the section that already holds the detail instead of repeating the destination. I kept the old mechanics text as the subsections "The stops of the repository or the machine" and "The stops of one work item".
+     - I added one bullet for the duplicate read from `origin/main`.
+     - Two references now name "The stops of one work item" and "Stops that cannot be done".
+   - `docs/decisions.md`: a new entry records that the producers of the machine stops are proved by F0006 and F0010, and that a story file naming a later stage is removed by the start rule, not stopped. It also records the duplicate read from `origin/main`.
+
+   Cross-read against the diff and found current: README, "The stops of the tick", "The stops you will see here", "The factory log and the health status file", "An event that keeps failing", and the pipeline-definition and agent-definition stop sections. I did not run any command from the guide.
+
+   No findings: the code matches the Interface and the criteria.
+
+   Stale but not touched, because criterion 18 leaves the project guide alone:
+   - `docs/project-guide.md` line 988 cites the operator guide section "Stops of one work item". That section is now "The stops of one work item" under "The stops".
+
+   `make check`: check: green
+7. demo: I ran all three commands from the repository root. Each one met its `Expect:` line, and nothing in the output contradicts an acceptance criterion. No findings.
+
+   Command 1 (print `STOP_TABLE`):
+   ```
+   fetch-failed health_status L26,L58 fetch_failed
+   checkout-restore-failed health_status L64 checkout_restore_failed
+   pipeline-definition-invalid health_status L64 pipeline_definition_invalid
+   agent-definition-invalid health_status L30 agent_definition_invalid
+   repository-unavailable health_status L64 repository_unavailable
+   main-branch-failing health_status L65 main_branch_failing
+   preflight-failed health_status L55 preflight_failed
+   duplicate pull_request L19 -
+   pull-request-lookup pull_request L19 -
+   ask-without-pull-request pull_request L19,L26 -
+   handler-error pull_request L26 -
+   hand-over-error pull_request L33 -
+   push-rejected pull_request L58 -
+   later-stage-in-backlog-file none L11 -
+   ```
+   Met: there are fourteen lines, and the first, seventh, eighth and last lines are exactly as expected.
+
+   Command 2 (the table's reasons against `RepositoryStopReason`):
+   ```
+   True
+   ```
+   Met.
+
+   Command 3 (pytest on `tests/test_stop_table.py` and `tests/domain/test_stop_table.py`):
+   ```
+   ...................................                                      [100%]
+   35 passed in 10.84s
+   ```
+   Met: the last line reports `passed`, with no `failed` and no `error`.
+
+   Criteria check:
+   - Criterion 1: every row's id, destination, limits and reason matches the Interface table, in the same order.
+   - Criterion 2: command 2 shows the table's reasons match `RepositoryStopReason` exactly.
+   - Criterion 3: the limits listed cover L11, L19, L26, L30, L33, L55, L58, L64 and L65.
+   - Criteria 6 to 15: they are tested by the suite, which passed.
+
+   The demo does not exercise criteria 16 to 18 directly, and nothing it shows contradicts them. The earlier entries report `make check` green.
