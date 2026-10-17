@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 164
 blocked: null
 comments_seen: 0
@@ -105,3 +105,10 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
       - `make duplicates` (3 new): one is vulture's `checks.py: unused variable 'targets'`. This is a false positive: it is a Pydantic field that S0013 will read. The other two (`disk_space.py` and `machine.py` `used_bytes`) are in files this diff does not touch.
       - Considered, not a finding: `splitlines` also splits on a `\r` in the middle of a line (and on `\x85` and similar characters), so `foo\rlint: green (1 s)` would count. The Interface does not define this case, and the coder's entry names it.
       - Ticket hygiene: the log gives the main decision (a per-line `fullmatch` rather than a `MULTILINE` `finditer`) and the rejected alternative. `Assignment` matches what was built. Criterion 6 still describes what the project guide must say.
+6. documenter: changed `docs/project-guide.md`, section *Project commands*, as criterion 6 asks. The `CheckResult` field list now includes `targets`. A new paragraph says `targets` is a list of `TargetTime` (`target`, `seconds`) read by `target_times` from the whole output, not only the tail. It covers the exact line `<target>: green (<seconds> s)`, the order printed, two entries for a target printed twice, and `[]` when the Makefile prints no such line. It also says a red target prints none, and that this repository's `Makefile` prints the line for each target.
+   - Checks: `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only docs. The factory runs it next.
+   - Cross-read: `README.md`, `docs/operator-guide.md` and `docs/decisions.md` against the diff. None mentions `CheckResult`'s fields or the target lines, so I left them as they were. The code matches the Interface, so there are no findings for the coder.
+   - Stale but unrelated: nothing seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
