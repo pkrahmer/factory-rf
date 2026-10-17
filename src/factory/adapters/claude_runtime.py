@@ -327,6 +327,11 @@ class ClaudeCodeRuntime(AgentRuntime):
         self._kill_points = kill_points
         self._version_time_limit = version_time_limit
 
+    @property
+    def sudo_executable(self) -> str:
+        """The executable that starts a request as its operating-system user."""
+        return self._sudo_executable
+
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON it prints into a result.
 

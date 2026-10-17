@@ -1,7 +1,6 @@
 """The documents command: the findings of the four documents under a root, one per line."""
 
 import argparse
-import sys
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -22,7 +21,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Print `documents ok` and return 0, or print one line per finding and return 1."""
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.add_argument("--root", type=Path, default=Path.cwd())
-    arguments = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    arguments = parser.parse_args(argv)
     root: Path = arguments.root
     findings = check_documents({path: _read(root / path) for path in DOCUMENT_PATHS})
     if not findings:

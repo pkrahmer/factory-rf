@@ -1,7 +1,6 @@
 """The container's health check: the stops in force as lines, and an exit status."""
 
 import argparse
-import sys
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -27,7 +26,7 @@ def main(argv: Sequence[str] | None = None, *, store: HealthStatusStore | None =
     """
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.add_argument("--state-directory", type=Path, default=STATE_DIRECTORY)
-    arguments = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    arguments = parser.parse_args(argv)
     state_directory: Path = arguments.state_directory
     status = (health_store(state_directory) if store is None else store).read()
     if status.healthy:

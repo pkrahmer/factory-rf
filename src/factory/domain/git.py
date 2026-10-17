@@ -38,12 +38,15 @@ class GitIdentity(BaseModel):
     email: Annotated[str, Field(min_length=1)]
 
 
+DEFAULT_GIT_IDENTITY = GitIdentity(name="factory", email="factory@noreply.invalid")
+
+
 class GitOptions(BaseModel):
     """The settings of a git wrapper: identity, environment, kill points, executable, limit."""
 
     model_config = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=True)
 
-    identity: GitIdentity = GitIdentity(name="factory", email="factory@noreply.invalid")
+    identity: GitIdentity = DEFAULT_GIT_IDENTITY
     environment: dict[str, str] = {}
     kill_points: KillPoints | None = None
     executable: str = "git"
