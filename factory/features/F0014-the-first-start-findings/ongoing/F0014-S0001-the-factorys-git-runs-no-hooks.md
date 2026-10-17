@@ -1,7 +1,7 @@
 ---
 stage: tests
 pr: 191
-blocked: null
+blocked: question
 comments_seen: 1
 round: 0
 attempts: 1
@@ -102,3 +102,21 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    Files: created tests/entry/test_git_hooks.py; changed tests/entry/test_wiring_boundaries.py (only the two tests the ticket allows; dropped the unused `sys` import and added `os`, `shutil`, `write_executable`).
 
    Red on purpose (one of my commands ran `make test` twice by mistake): the four `factory-*` rows of the hook test (the hook still runs), both rows of the renamed environment test and the built-git test (no third pair yet). The `plain-*` rows and both pre-receive rows already pass. No module failed to import.; partial work committed
+4. tester: Rerun of the tests stage. The tests from entry 3 are still committed and have not changed (`tests/entry/test_git_hooks.py`, and the two allowed changes in `tests/entry/test_wiring_boundaries.py`). `make test` is red on purpose: the four `factory-*` rows of `test_the_factorys_git_runs_no_hook_of_the_checkout` fail, and so do both rows of `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks` and `test_the_built_git_runs_with_the_git_options_of_the_settings`. The `plain-*` rows and both pre-receive rows pass. No module failed to import.
+
+   `make lint` is still red, and none of the findings are in my lane. There are 27 ruff findings: 18 in `planning/overnight/landlock_probe.py`, as before, and 9 in `planning/overnight/status-map-mockup/assemble.py`, a new file from the human's commit b375ccdb (SIM115, E702 and others). `uv run ruff check tests/entry` and `uv run ruff format --check tests/entry` are both green. `planning/` belongs to the human and is outside every write path, so I cannot fix these files or exclude them. While lint is red the factory holds the ticket here.
+
+   Question: how should `make lint` get green?
+   (a) The human fixes or removes the two scripts in `planning/overnight/`.
+   (b) The human keeps `planning/` out of ruff, for example with `extend-exclude = ["planning"]` in `pyproject.toml`.
+   I would choose (b). `planning/` is the human's scratch space and is not project code, so (b) also stops the next script there from blocking the pipeline. After either fix, rerun this stage; the tests can stay as they are.
+
+   Criterion → test (the same as entry 3):
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks
+   - criterion 2: tests/entry/test_git_hooks.py::test_the_factorys_git_runs_no_hook_of_the_checkout[factory-pre-commit / plain-pre-commit]
+   - criterion 3: same test, rows [factory-post-checkout / plain-post-checkout]
+   - criterion 4: same test, rows [factory-pre-push / plain-pre-push]
+   - criterion 5: same test, rows [factory-configured-hooks-path / plain-configured-hooks-path]
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
+   - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
+   - criterion 8: existing tests, unchanged.
