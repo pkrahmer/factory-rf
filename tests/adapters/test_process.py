@@ -1,6 +1,5 @@
 """The process wrapper, against real Python child processes."""
 
-import os
 import sys
 import time
 from datetime import timedelta
@@ -10,23 +9,11 @@ import pytest
 from pydantic import ValidationError
 
 from factory.adapters.process import ProcessRequest, run_process
+from process_support import is_gone
 
 
 def _python(code: str, *args: str) -> list[str]:
     return [sys.executable, "-c", code, *args]
-
-
-def _is_gone(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return True
-    try:
-        stat = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return True
-    # A killed child that no init process has reaped yet stays a zombie.
-    return stat.rsplit(")", 1)[1].split()[0] == "Z"
 
 
 def test_output_and_exit_status_come_back(tmp_path: Path) -> None:
@@ -120,7 +107,7 @@ def test_grandchild_is_killed_with_the_child_at_the_time_limit(tmp_path: Path) -
         )
     )
 
-    assert _is_gone(int(pid_file.read_text(encoding="utf-8")))
+    assert is_gone(int(pid_file.read_text(encoding="utf-8")))
 
 
 def test_child_within_the_time_limit_keeps_its_exit_status(tmp_path: Path) -> None:
