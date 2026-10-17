@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 145
 blocked: null
 comments_seen: 2
-round: 1
+round: 2
 attempts: 0
 ---
 # Kill-point tests
@@ -357,3 +357,19 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     `make check`: check: green (coverage 99.55 %)
 
     `make check`: check: green
+13. reviewer: round 1. One finding, in group 1 (acceptance criteria). The fix for it is a test change, and the coder may not edit tests (R9), so the coder should end with `tests` and name this change.
+
+    The two findings from entry 9 are fixed. The tester made both changes in 8469746, and I checked them against the code:
+    - `_rerun` (`tests/proof_support.py:383-385`) saves `first_tick_requests` after the first tick.
+    - `test_no_write_of_the_interrupted_run_reaches_the_remote` is parametrized `@_over(ALL)`.
+
+    `src/factory/domain/kill_point_cases.py` still matches the Interface: the six rows in order, both validators, frozen and closed. These criteria have tests that check what they claim to:
+    - 1–6, 8–15 and 17–22.
+    - 16 against the fixture's `crash_cap: 2`.
+    - 22 against the fixture's `attempts_cap: 2`.
+
+    I stopped at group 1, so groups 2 to 5 are not reviewed. The diff's changes to `CLAUDE.md`, `planning/` and `docs/runs/` come from the human's own commits, so I did not review them.
+
+    1. `tests/proof_support.py:524-526` (`_resumes_at_first_tick`), used by `tests/test_kill_points.py::test_the_restarted_factory_reruns_a_charged_stage_at_its_first_tick[post-record]`.
+       - What is wrong: criterion 7 says that in `post-record` the restarted runtime has received no request *after three ticks*. Since the round-1 change, the check for a case that charges no crash compares only `first_tick_requests` (taken after one tick) with `[]`. A factory that wrongly reran the stage at the second or third tick would still pass this test. The fake runtime records requests that raise as well (`fake_agent_runtime.py:40`), so a rerun would show up in `requests()`.
+       - Fix: keep `first_tick_requests == [STAGE]` for a case that charges a crash. For a case that does not, check `result.world.agent_runtime.requests() == []`, which is the restarted runtime after all three ticks.
