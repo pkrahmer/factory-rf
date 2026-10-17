@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 156
 blocked: null
 comments_seen: 0
@@ -117,3 +117,4 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
    One note, not a finding: the documenter also changed line 984 of the project guide (`RepositoryStop.at`). It used to say "converted to UTC by a validator", and that validator no longer exists, so the edit keeps the sentence true. It is in the same file, and it does not touch the "stored in UTC" sentences that criterion 5 says must stay as they are.
 
    Findings: none.
+8. done (pull request merged); cost: 6 runs, 3.1 min, 38 turns, 102k tokens in (570k more from cache), 11k out, $0.97
