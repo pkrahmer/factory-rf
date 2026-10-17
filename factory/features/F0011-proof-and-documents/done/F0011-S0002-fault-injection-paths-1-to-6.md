@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 146
 blocked: null
 comments_seen: 0
@@ -181,3 +181,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - I did not run `make check` (criterion 12): the factory runs it after this stage. The coder and the documenter both report it green.
 
    Open: none.
+8. done (pull request merged); cost: 6 runs, 12.2 min, 46 turns, 151k tokens in (1010k more from cache), 24k out, $1.64
