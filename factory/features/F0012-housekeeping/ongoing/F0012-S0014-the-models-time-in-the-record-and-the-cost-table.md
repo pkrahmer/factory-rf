@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 166
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The model's time in an agent run's record and in the cost table
@@ -146,3 +146,10 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
 
    `make check`: check: green
    `make duplicates`: duplicates: 2 new, 39 known, 0 gone
+5. reviewer: one finding in group 1 (acceptance criteria). I stopped there, as the checklist says.
+
+   1. `tests/adapters/test_claude_runtime_resume.py::test_model_duration_is_the_replys_api_time`: the Interface types `_Reply.duration_api_ms` as `NonNegativeInt`, so its limit has two sides. The test covers -1 (refused, `died`) but not 0 (accepted). CLAUDE.md *Tests* says a `NonNegativeInt` field gets a test with -1 and one with 0, and the reviewer counts an untested side as a finding. Fix: add a row `(_reply(duration_api_ms=0), "completed", timedelta(0))` to that parametrized test. The tester has to make this change, because the coder does not edit tests (R9). So the coder should end with `tests` and name this row.
+
+   Not reviewed because of the stop rule: groups 2 to 5. One thing for the next round: `_seconds` in `src/factory/application/costs.py:88` repeats `_seconds` in `src/factory/adapters/process.py:43` word for word. The application layer cannot import the adapter's copy, so check this under group 4 (CLAUDE.md: a second copy of an existing helper is a finding).
+
+   Everything else in group 1 holds. Criteria 1 to 11 each have a test named after them that tests what the criterion says. The changes to the pinned tests stay within FEATURE decisions 37 and 38. `CostRecord.model_seconds` is tested on both sides (0 and -1, plus nan). The coder's entry says `make check` was green.
