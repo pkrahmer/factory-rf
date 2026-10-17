@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 146
 blocked: null
 comments_seen: 0
@@ -126,3 +126,11 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
    `make lint`: lint: green
    `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+4. coder: built `src/factory/domain/fault_paths.py` (commit 9eef3f2). It holds `FaultPath`, a frozen model with `extra="forbid"` and the fields number, title, case and test, and `FAULT_PATHS`, the six rows of the Interface table in number order.
+      - Design: the rows are a plain module-level tuple of validated models, the same shape as `KILL_POINT_CASES`, so F0011-S0003 can append rows 7 to 13 directly. I rejected a validator that checks each `case` against `KILL_POINT_CASES`: the Interface makes this a property of the rows that the tests check (criteria 9 and 11), not a rule of the model, and the model has no other validation. A comment above the tuple says that the case names the kill point, and the path's own crash charge may differ from the case's.
+      - The path tests in tests/test_fault_paths.py already passed on the existing code, as the tester reported. The walks found no defect under `src/`, so nothing else changed.
+      - Refactor: I read the diff once and found nothing to change, so there is no refactor commit.
+      - `make check`: green, total coverage 99.55 %.
+      - Not touched: the docs criterion (13) is the documenter's work.
+
+   `make check`: check: green
