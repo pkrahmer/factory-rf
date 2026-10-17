@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 171
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -68,3 +68,10 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over
+4. coder: question. The implementation is done and committed (ee88826), but `tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over` cannot pass against the factory as it is built. All other tests are green.
+
+   - Built: `src/factory/domain/answers.py` `unblock` now sets `round=0` for a `round_cap` wait, and its docstring sentence on `round` is updated. `src/factory/domain/post_texts.py` `round_cap_question` returns the Interface's text. Criteria 1, 2 and 4 pass.
+   - The contradiction: the tick that decides the fourth send-back records the question in the journal and blocks the item `round_cap`. The ask handler posts that question on the next tick (record first, post once; see `src/factory/application/handlers/questions.py`). The fault-path test it copies allows for this by running more ticks after the blocking tick. The new test reads `posts(world, work_item, "round_cap")` and adds the human comment right after the blocking tick, so it sees no post: it fails at `assert len(caps_asked) == 1` (0 == 1). Even past that assert, the comment would come before the post, and `_ending_the_wait` (`src/factory/application/handlers/comments.py`) rightly ignores a comment written before the question was posted.
+   - Checked: in a scratch copy (deleted, never committed) I added one `world.tick.run()` between the fourth `completed("doing", "Finding.")` tick and `capped = head_state(...)`. With that one line the test passes against this implementation.
+   - Options: (a) the tester adds that one `world.tick.run()` after the fourth send-back tick, before `capped` and `caps_asked` are read. (b) Change the stage so it posts the round cap question in the same tick as the block. That reverses the record-then-post design that the fault paths depend on, and it is beyond this story's scope. I would choose (a). If you answer (a), I will end with `tests` and name that change.
+   - Refactor step: not reached. The diff is 5 lines and needs none.
