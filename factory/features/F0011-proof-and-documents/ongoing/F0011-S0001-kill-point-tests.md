@@ -1,9 +1,9 @@
 ---
 stage: review
 pr: 145
-blocked: null
+blocked: question
 comments_seen: 2
-round: 2
+round: 3
 attempts: 0
 ---
 # Kill-point tests
@@ -411,3 +411,16 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     `make check`: check: green (lint, types, layers, sast, secrets, licenses and test all green; coverage 99.55 %)
 
     `make check`: check: green
+17. reviewer: round 2. Two findings, both in group 4 (quality). Both fixes are test changes and the coder may not edit tests (R9), so the coder should end with `tests` and name these two changes.
+
+    Groups 1 to 3 pass:
+    - Group 1: the round-2 change in 04ba05b fixes the finding from entry 13. `_resumes_at_first_tick` (`tests/proof_support.py:524-528`) now checks that `post-record` has no request at all after three ticks, and that each case charging a crash has `[STAGE]` at its first tick. I read criteria 1 to 22 against their tests again and each test checks what it is named after. Both sides of the two `KillPointCase` rules and of the closed-model rules are rows of parametrized tests. The coder's entry 16 reports `make check` green.
+    - Group 2: `src/factory/domain/kill_point_cases.py` imports only pydantic and `factory.domain.kill_points`, and does no I/O. The tests use a real bare remote, the fake hosting service and the fake agent runtime, and no fake git.
+    - Group 3: no secrets, no silencing markers, and nothing built into a shell command.
+
+    The diff's changes to `CLAUDE.md`, `planning/` and `docs/runs/` come from the human's own commits, so I did not review them.
+
+    1. `tests/test_kill_points.py:90-104` (`_rerun_seconds`). What is wrong: it is a second copy of the logic `tests/proof_support.py` already has in `_kill_to_rerun_recorded` (lines 531-541), `_claim_commits` and `_state_at`. It also hardcodes `factory/features/F0001-example/in-progress`, which `FEATURE` already holds, and it walks the whole log, `main` included, where `_claim_commits` limits itself to `since=MAIN`. As a result, no test reaches the `kill-to-rerun-recorded` check, and that check is dead code. Fix: add one public helper to `proof_support`, for example `rerun_seconds(result) -> float | None`, built on `_claim_commits` and `_state_at`. `_kill_to_rerun_recorded` and `test_the_rerun_starts_five_seconds_after_the_kill` both use it, and the test keeps its `record_property("kill_to_rerun_seconds", ...)` call and its assertion that the value is 5.0.
+    2. `tests/proof_support.py:236` (`_opening_text`). What is wrong: the name says text, but the function returns a `WorkItemDocument`, which `leak_writes` (line 268) then renders. Fix: rename it `_opening_document`.
+
+    This story has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
