@@ -567,6 +567,41 @@ def test_a_rework_moves_to_the_decisions_stage_without_running_a_check(
     assert state.attempts == _started_state(aftermath).attempts
 
 
+@pytest.mark.parametrize(
+    ("stage", "decision", "subject"),
+    [
+        ("tests", "doing", "work item F0001-S0001: tests ends: doing"),
+        ("docs", "doing", "work item F0001-S0001: docs ends: doing"),
+        ("tests", QUESTION, "work item F0001-S0001: tests ends: tests"),
+    ],
+    ids=["forward", "sent-back", "question"],
+)
+def test_the_commit_of_a_stage_end_carries_the_work_item_prefix(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
+    stage: str,
+    decision: str,
+    subject: str,
+) -> None:
+    aftermath = _aftermath(
+        boundaries,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        tmp_path=tmp_path,
+        run=ScriptedRun(result=_completed(decision)),
+        state=WorkItemState(stage=stage, journal=[CREATED]),
+    )
+
+    report = _finish(boundaries, aftermath)
+
+    assert boundaries.git.log(report.commit)[0].subject == subject
+
+
 def test_a_forward_decision_with_findings_after_the_run_asks_the_findings_question(
     boundaries: Boundaries,
     *,

@@ -384,6 +384,29 @@ def test_the_agents_own_commit_stays_below_the_one_stall_commit(
     assert boundaries.git.show_file(agent_commit, INSIDE) == AGENT_TEXT
 
 
+@pytest.mark.parametrize(
+    "agent_subject", [None, "the agent's own commit"], ids=["no-agent-commit", "agent-commit"]
+)
+def test_the_stall_commit_carries_the_work_item_prefix(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    agent_subject: str | None,
+) -> None:
+    started = _started(boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime)
+    if agent_subject is not None:
+        boundaries.git.commit(agent_subject)
+
+    result = _stall(boundaries, _context(started, pull_request=started.pull_request))
+
+    commits = boundaries.git.log(result.commit)
+    assert commits[0].subject == "work item F0001-S0001: tests stalled"
+    if agent_subject is not None:
+        assert commits[1].subject == agent_subject
+
+
 def test_a_rejected_push_raises_and_posts_no_note(
     boundaries: Boundaries,
     *,

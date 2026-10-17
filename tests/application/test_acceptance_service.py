@@ -96,6 +96,16 @@ def test_opening_pushes_the_report_head_on_the_acceptance_branch(
     assert boundaries.git.show_file(f"origin/{BRANCH}", REPORT) == rendered
 
 
+def test_the_opening_commit_carries_the_work_item_prefix(
+    boundaries: Boundaries, definition: PipelineDefinition, human: HumanClone
+) -> None:
+    _push_todo(human)
+
+    opened = _service(boundaries, definition).open("F0002")
+
+    assert boundaries.git.log(opened.commit)[0].subject == "work item F0002-A0001: opens"
+
+
 @pytest.mark.parametrize("in_progress_folder", [False, True], ids=["no-folder", "folder"])
 def test_opening_adds_one_commit_with_only_the_report_and_no_pull_request(
     boundaries: Boundaries,

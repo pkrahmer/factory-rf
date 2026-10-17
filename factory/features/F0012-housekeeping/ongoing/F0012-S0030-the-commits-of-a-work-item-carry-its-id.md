@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 179
 blocked: null
 comments_seen: 0
@@ -59,3 +59,14 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
    - Demo: both commands are runnable. The expected count of 7 matches the criteria: 3 + 2 + 1 for the new tests, plus 1 for the existing start test. The grep currently matches three lines (`acceptance.py:121`, `claims.py:64`, `stalls.py:129`) and should print only `status 1` after the change. Each `Expect:` line is checkable.
    - Architecture: the change stays inside `factory.application`, and the import runs between sibling modules within a layer with no cycle. The Interface adds no new interface, DTO or dependency.
    - Scope: it is within F0012 (the "What v1.1 writes into its commits" scope line, FEATURE decisions 51 to 53) and not in Out of scope. The test changes are covered by the human's leave in decision 52.
+3. tester: the subject tests are written, and the 9 tests that cover the new prefix fail on purpose. Each of them compares a commit subject, and the code does not add the prefix yet. Nothing else in `make test` failed. `make lint` is green.
+   - criterion 1: in `tests/application/test_claims.py`, the three subject assertions now expect `commit_subject(WORK_ITEM, f"{STAGE} starts as {INSTANCE}")`. `commit_subject` is imported from `factory.application.handlers.recording`. The three tests are `test_stage_start_commit_is_one_commit_on_the_previous_head_with_its_subject`, `test_a_rejected_push_raises_push_failed_and_leaves_the_remote_without_claim` and `test_a_kill_before_push_is_not_caught_and_leaves_the_remote_without_claim`.
+   - criterion 2: `tests/application/test_stage_finish.py::test_the_commit_of_a_stage_end_carries_the_work_item_prefix`, with three rows: `forward` (tests → doing), `sent-back` (docs → doing) and `question` (tests, QUESTION → `tests ends: tests`). It uses the module's `_aftermath` and `_finish` helpers and reads `boundaries.git.log(report.commit)[0].subject`.
+   - criterion 3: `tests/application/test_stalls.py::test_the_stall_commit_carries_the_work_item_prefix`, with two rows. `no-agent-commit` is a died run with writes inside the write paths. `agent-commit` adds a commit by the agent before the stall: the stall commit has the prefix and the agent's commit below it keeps its own subject.
+   - criterion 4: `tests/application/test_acceptance_service.py::test_the_opening_commit_carries_the_work_item_prefix`, on `opened.commit` from `AcceptanceService.open("F0002")`.
+   - criterion 5: no new test. The existing tests of the handler and acceptance subjects are unchanged and still pass. Per the Interface, the new tests compare against literal text, not against `commit_subject`, so a change to the helper itself makes them fail.
+   - criteria 6 and 7: these are the coder's and the documenter's, so there are no tests for them.
+   Files: three new test functions in the three modules above, and the change in `test_claims.py`. No new files. Every module imported fine. The failures are subject mismatches only, not import errors. I chose not to test the merge of `origin/main` on reopening: the assignment leaves that merge as it is.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/application/test_stalls.py::test_the_stall_commit_carries_the_work_item_prefix[agent-commit]
