@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 191
 blocked: null
 comments_seen: 3
@@ -175,3 +175,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    3. Security: no silencing markers and no secrets. The hook scripts quote the marker path with `shlex.quote`.
    4. Quality: the comment in `src/factory/entry/wiring.py:142-144` says why the pair is there: the agent can write the hooks, this git runs as the token's user, and command-line configuration wins over the checkout's own. The value is `os.devnull`, as the Interface names it.
    5. Ticket hygiene: entry 7 explains `os.devnull` and why the pair is not in `GitCli`. The Assignment matches what was built. Criterion 10 still describes the three documents the documenter must change.
+9. documenter: Docs stage, round 0. I changed three files, all for the docs criterion.
+   - `docs/operator-guide.md`: in "Left for v2" under the hosting-service token, git's hooks are no longer named as a route. The paragraph now says the factory's git sets `core.hooksPath` to `/dev/null` through its own environment. That wins over a `core.hooksPath` in the checkout's `.git/config`, so a hook in `.git/hooks` never runs as the factory's user. The project commands stay as the route left for v2.
+   - `docs/project-guide.md`: the sentence on `git_environment` now says seven entries, `GIT_CONFIG_COUNT=3`, and the third pair `core.hooksPath` = the null device.
+   - `docs/decisions.md`: I added the entry "The factory's git runs no hooks". It covers the first start confirming the route, the human's answer, why the command-line pairs win over the checkout's configuration, why a bare remote's hooks still run, and what I rejected. The open point on hooks in "The token is a bind mount into a folder only the factory can enter" is now marked closed by it.
+
+   I ran `python -m factory.entry.check_documents`; it printed `documents ok`. I did not run `make check`, because I changed only documents and the factory runs it after this stage.
+
+   Cross-read: the `src/factory/entry/wiring.py` diff matches the Interface, and `README.md` has no stale mention (I grepped for the old count and for hooks). I found nothing stale and nothing unrelated to note. I have no findings for the coder.
+
+   `make check`: check: green
+   `make documents`: documents ok
