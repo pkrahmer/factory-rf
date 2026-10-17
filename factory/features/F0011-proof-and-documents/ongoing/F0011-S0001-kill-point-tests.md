@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 145
 blocked: null
 comments_seen: 2
@@ -386,3 +386,14 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     Refactor pass: this round has no new `src/` diff, so there was nothing to refactor and there is no refactor commit. I did not run `make check` this round because nothing changed. It was last green in entry 12.
 
     Open: criterion 24 (the docs) is still the documenter's.
+15. tester: round 2. I made the one test change from the reviewer's entry 13, as the coder named it in entry 14. Nothing else changed: no other test and nothing under `src/`.
+
+    - `tests/proof_support.py::_resumes_at_first_tick` now splits its check on `case.charges_crash`.
+      - A case that does not charge a crash (`post-record`) must have `result.world.agent_runtime.requests() == []`. That list is the restarted runtime's requests after all three ticks, which is what criterion 7 asks for.
+      - A case that charges a crash keeps the old check: the stage names in `result.first_tick_requests` must equal `[STAGE]`.
+    - Why: in round 1 the `post-record` case only proved that nothing reran at the first tick. A factory that wrongly reran the stage at the second or third tick would still have passed. The fake runtime records requests that raise as well, so the full list shows any rerun.
+
+    The stricter check passes against the current `src/`, so no `src/` change is needed. `make test` is green (coverage 99.55 %) and `make lint` is green.
+
+    `make lint`: lint: green
+    `make test`: test: green

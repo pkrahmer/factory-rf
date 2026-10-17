@@ -522,8 +522,10 @@ def _branch(result: CaseResult) -> str:
 
 
 def _resumes_at_first_tick(result: CaseResult, case: KillPointCase) -> bool:
+    if not case.charges_crash:
+        return result.world.agent_runtime.requests() == []
     stages = [request.agent.name for request in result.first_tick_requests]
-    return stages == ([STAGE] if case.charges_crash else [])
+    return stages == [STAGE]
 
 
 def _kill_to_rerun_recorded(result: CaseResult, case: KillPointCase) -> bool:
