@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 151
 blocked: null
 comments_seen: 0
 round: 0
@@ -75,3 +75,9 @@ Expect: the single line `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures. `StopRow` in `src/factory/domain/stop_table.py` changes to `_LIMIT.fullmatch` with the pattern `L[0-9]+`, raised as a `ValueError` in the model validator. `documents.py` is unchanged, and its constant and finding texts are given exactly. Every behaviour stated in an Interface comment has a criterion: criterion 1 pins the phrase order, criteria 2 to 4 pin the finding texts, and criterion 5 pins the limit rule.
+   - Criteria: each is testable by one parametrized test function. The limit rule has both sides: `L7` and `L65` are accepted, and eight refused rows cover the newline, the space, the letter, a bare `L`, lowercase, a prefix, `X7` and the Arabic-Indic digit. The counts are 6 cases, 13 paths and 14 stop rows. The tests over the constants take their rows from the constants, so the counts follow whatever the constants hold.
+   - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output: three named lines, a final `passed` line with no failed, error or skipped count, and `documents ok`.
+   - Architecture: the change sits in `factory.domain`, which is pure, and adds no dependency or layer crossing. The tests go in `tests/domain/`, which mirrors the package. They reuse `tests/document_texts.py` and `FIRST_ROW`, with no new helper.
+   - Scope: the story is within F0011's scope (the stop table and the document check) and touches nothing under Out of scope. The edits to earlier stories' tests (moving the `X7` row, removing three `absent` rows) are covered by FEATURE decision 22 and named exactly in the Interface. The docs criterion changes only the project guide.
