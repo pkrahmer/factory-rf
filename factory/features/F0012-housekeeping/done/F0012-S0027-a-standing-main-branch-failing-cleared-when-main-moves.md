@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 177
 blocked: null
 comments_seen: 0
@@ -105,3 +105,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Criterion 7: I did not run `make check` again. The coder's entry records `check: green`, and the factory runs the check itself after this stage.
 
    Nothing in the demo contradicts a criterion.
+8. done (pull request merged); cost: 6 runs, 4.1 min, 37 turns, 166k tokens in (531k more from cache), 15k out, $1.04
