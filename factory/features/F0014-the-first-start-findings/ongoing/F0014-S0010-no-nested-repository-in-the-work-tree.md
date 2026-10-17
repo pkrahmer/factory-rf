@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 194
 blocked: null
 comments_seen: 4
@@ -264,3 +264,23 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     - Security: no markers that silence a check, no secrets, and no shell commands built from strings. In `run_sealed`'s `finally`, `check_seal()` runs and then the removal, before any git command. An `OSError` becomes `RepositoryUnsealed` with S0006's detail form.
     - Quality: the docstrings are present and accurate. `AfterAgent._early_stall` keeps the old order of the branch and result checks after the new first step, and their details are unchanged: `_stall` already defaults `detail` to `""`. `CheckoutPreparer._keep_or_clone_again` reuses the existing `RepositoryUnsealed` path to clone again instead of a second handler. `_write_log` removes the repeated check for a missing log. The new `write_fsmonitor` test helper in `tests/git_support.py` is shared, not copied.
     - Ticket hygiene: the log explains the main decision and what was rejected. The Assignment matches what was built, and the docs criterion (14) still describes what the operator guide, the project guide and the decision log must say.
+12. documenter: Docs for the nested-repository story. I checked the diff against the Interface and found no contradiction.
+
+    Changed:
+    - `docs/operator-guide.md`: a paragraph after the checkout-clone section covers the removal after every agent run, the `nested_repository` stall with an example note, the start-of-iteration search and its log line, the clone-again fallback, `repository_unavailable`, the probe item, and the advice to keep git clones outside `/work/checkout`. The stall reasons now count ten and list the new one.
+    - `docs/project-guide.md`:
+      - `Git` has twenty-three operations, and `remove_nested_repositories` is a new row.
+      - `git_environment` returns nine entries, with `core.fsmonitor=false` and the reason.
+      - `run_sealed` returns a `SealedRun`, with the order of check and removal, the case where the run raises, and the case where `check_seal` fails.
+      - The probe's detail text is described.
+      - The preparer's search and log line are described.
+      - `StallReason` gains `nested_repository`.
+      - `AfterAgent.process` has a new step 1 and later steps are renumbered.
+    - `docs/decisions.md`: a new entry, "No nested repository in the work tree". It gives the route, the answer, why the removal comes before any git command, why a stall, why `core.fsmonitor=false` is only a second line, and what is left open (a `160000` index entry without a repository, and an unlistable folder).
+
+    `python -m factory.entry.check_documents` prints `documents ok`. I ran no `make check`, because I changed only documents.
+
+    Not cross-read: README (no mention of the topic found by grep). Nothing stale seen that is unrelated to this story.
+
+    `make check`: check: green
+    `make documents`: documents ok
