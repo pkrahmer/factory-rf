@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 169
 blocked: null
 comments_seen: 2
@@ -104,3 +104,7 @@ Expect: the single line `status 1`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (25.4 s)
+6. coder: I built nothing, because there was nothing to build. As the Assignment and the tester's entry say, all models outside the six exceptions already declare `frozen=True` and `extra="forbid"`, so `tests/test_model_configuration.py` passes against today's code without any change under `src/`. I ran `make check` on the branch as committed (tester's tests included) and it ended `check: green` (`test: green (25.4 s)`, coverage 99.51%). I made no commits. The refactor step had nothing to do: my own diff (`git diff main...HEAD -- . ':!factory' ':!tests'`) is empty. The rejected alternative was editing the tester's module (for example its lint-only shape), which is not mine to touch. Not touched, as the tester already noted: the `_agents` fixture in `tests/application/test_tick.py` was unreferenced before this change too. Open for the docs stage: criterion 7 (a *The models' configuration* section in the project guide after *Errors*, and a decision log entry recording the rule and its six exceptions).
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
