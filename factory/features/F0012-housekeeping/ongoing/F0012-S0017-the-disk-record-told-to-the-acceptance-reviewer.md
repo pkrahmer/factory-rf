@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The disk record told to the acceptance reviewer
 
 ## Assignment (as of log entry 1)
