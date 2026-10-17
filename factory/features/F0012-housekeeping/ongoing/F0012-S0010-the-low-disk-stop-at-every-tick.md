@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 162
 blocked: null
 comments_seen: 0
@@ -72,3 +72,34 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
    - Demo: both blocks are runnable. `STOP_TABLE[7]` is the eighth row, and the Expect line `15 disk-low health_status L64 disk_low` is checkable. The pytest and `documents ok` expectations are checkable against the output.
    - Architecture: the reason and scope rule are in domain, the check is in the application's `Tick` through the `DiskSpace` interface (from S0009), and the tests use a fake that derives from the interface. This fits the layering and CLAUDE.md.
    - Scope: within F0012 item 1.4 (low-disk stop, decision 20). Nothing in "Out of scope" is touched. The docs criterion (12) lists the guide, decision-log and document-check updates.
+3. tester: Tests written. They are red on purpose: `make test` fails in `tests/application/test_tick_disk.py`, where the tick does not check the disk yet. All modules import, because `FakeDiskSpace` builds on the existing `DiskSpace` from `factory.application.machine`. `make lint` is green. I skipped the type check as the stage says: until `disk_low` joins `RepositoryStopReason` and `TickOutcome.stopped`, it flags the new literal.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_stops.py::test_each_reason_is_accepted_with_its_scope and ::test_each_reason_is_rejected_with_the_other_scope (`SCOPES` gains `("disk_low", "machine")`)
+   - criterion 2: tests/domain/test_stop_table.py::test_the_table_holds_the_fifteen_stops_in_order (renamed; `ROWS` gains `disk-low` after `preflight-failed`) and the existing ::test_every_repository_stop_reason_is_the_reason_of_exactly_one_row
+   - criterion 3: tests/application/test_tick_disk.py::test_exactly_the_minimum_free_on_both_paths_lets_the_tick_run_on
+   - criterion 4: tests/application/test_tick_disk.py::test_a_short_work_directory_stops_the_tick_before_the_fetch
+   - criterion 5: tests/application/test_tick_disk.py::test_the_low_disk_stop_reaches_the_health_status_and_the_factory_log
+   - criterion 6: tests/application/test_tick_disk.py::test_the_detail_names_the_short_paths_the_work_directory_first (rows state-short, both-short)
+   - criterion 7: tests/application/test_tick_disk.py::test_an_unreadable_free_space_stops_the_tick_with_the_error (rows state-unreadable, work-unreadable, work-unreadable-state-short; checks the detail and `asked`)
+   - criterion 8: tests/application/test_tick_disk.py::test_a_tick_with_enough_room_clears_the_low_disk_stop
+   - criterion 9: tests/application/test_tick_disk.py::test_a_tick_without_a_disk_or_settings_reads_nothing_and_runs_on (rows without-settings, without-disk)
+   - criterion 10: the existing tests/test_stop_table.py::test_production_code_names_every_reason_of_a_repository_stop, which runs over `get_args(RepositoryStopReason)` and so picks up `disk_low` once it is added
+   - criterion 11 (`make check`) and criterion 12 (docs) are not tester work.
+
+   Files:
+   - Created `tests/disk_support.py`: `FakeDiskSpace(DiskSpace)`. You give it a byte count or an `OSError` per path, in the mutable dicts `free` and `used`. A path you did not give raises `KeyError`. Every path asked, for either operation, goes into `asked` in order.
+   - Created `tests/application/test_tick_disk.py`. Settings use `min_free_gb=2`, the checkout at `tmp_path/checkout` (so the work directory is `tmp_path`) and the state directory at `tmp_path/state`. The handlers are `{"idle": IdleHandler()}`, and the agents are installed by an autouse fixture.
+
+   Changes to earlier stories' tests, under FEATURE decision 34:
+   - `tests/domain/test_stop_table.py`: the new `ROWS` entry and the rename.
+   - `tests/domain/test_stops.py`: the new `SCOPES` row.
+   - `tests/test_stop_table.py`: the scope line in test_repository_stop_reaches_the_health_status_and_the_factory_log now gives `machine` to `preflight_failed` and `disk_low`.
+   - `tests/entry/test_health.py`: `disk_low` joins the reasons of test_every_stop_reason_makes_the_check_fail_until_it_is_cleared.
+
+   One change in that last test went slightly past the letter of the leave. Its scope line also had to give `disk_low` the scope `machine`, the same edit as in `tests/test_stop_table.py`; otherwise the new row would fail on the scope rule.
+
+   Nothing is open.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared[disk_low]
