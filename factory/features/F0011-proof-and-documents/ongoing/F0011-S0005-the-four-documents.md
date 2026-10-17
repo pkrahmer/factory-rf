@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 149
 blocked: null
 comments_seen: 2
@@ -219,3 +219,23 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
       - Security: no secrets, no suppression markers, no shell or string-built commands. The `tests/entry/test_watch.py` exemption is exactly the one the human approved in entry 5: it skips `documents.py` and its `.pyc` by name, with the reason in a comment, and still searches every other file under `src/`.
       - Quality: names and docstrings fit and there is no dead code. One redundancy, too small to send the ticket back: `sys.argv[1:] if argv is None else argv` in `main` repeats what argparse already does.
       - Hygiene: Assignment matches the build, and criterion 25 still tells the documenter what to write. The `docs/runs/.../night-log.md` line in the diff comes from the human's commit 6bed325 and is not under review.
+10. documenter: the four documents now pass the check. `uv run python -m factory.entry.check_documents` prints `documents ok`, and `make check` is green.
+
+    Files changed:
+    - `README.md`: removed the "no `--follow`" clause from the commands paragraph. Added a paragraph that names `uv run python -m factory.entry.check_documents` beside the six console commands and says it is no console script and that `make check` does not run it. Added a closing `## Replaced from v1` section with the no-`--follow` statement.
+    - `docs/operator-guide.md`:
+      - Added `## Install`. It holds the decision 008 sentence, moved from "When the process refuses to start", plus `uv sync` and `make check`.
+      - Renamed `## The instance's settings` to `## Configuration`. Done tickets and the F0010 feature file still use the old name as history, and I did not touch them.
+      - Added a closing `## Replaced from v1` section. It holds the `--follow` / `factory-last-line` statement, v1's leftover files in `.git/`, and this repository's own v1 `factory/` tree with the `factory-check-story` consequence. These three statements moved there from the watch, tick and story-check sections.
+    - `docs/project-guide.md`:
+      - Reworded the v1 words and phrases in the `list_stories` description, the `factory-watch` command-line description, the tick and the stage start.
+      - Moved the v1 to v1.1 rename table of the shipped agents into a closing `## Replaced from v1` section. "The seven agents" now points to it.
+    - `docs/decisions.md`: added one entry. It records that the check is a command and not part of `make check`, that the log and every `## Replaced from v1` section are exempt, that WE6.3 is observed across the stories, and the human's test exemption (F0011 decision 21) with the alternatives rejected.
+
+    Cross-read and found current: the operator guide's *The stops* table and the project guide's *Kill points* and *Fault-injection paths* tables. The check confirms every row of `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS` is present. The rest of the three guides had no replaced phrase or v1 word.
+
+    Not touched: nothing stale found outside what the check flags. The `docs/runs/` line in the branch diff is the human's.
+
+    No findings for the coder.
+
+    `make check`: check: green

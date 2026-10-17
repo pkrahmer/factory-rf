@@ -2,7 +2,13 @@
 
 The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` runtime, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item, the pipeline definition with its reader, rules and loader, the agent definition reader, the claim of a stage with its lease, the write paths with the guard and the undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls, checks and reports, and v1's decision rules with the factory's own questions), the cost records with the bill, and the reading of the remote: the evaluation that picks the next event, the tick with its stops, the dispatcher with its handlers, and `factory-watch`. The handlers start a stage and answer the human's acts on the pull request: comments are copied into the journal, questions are recorded and then posted, a merge archives the story, a close discards it or sends it back (for an acceptance, a close books it refused), an illegal stage change is moved back, and the pull request is handed over at the approval. After a crash, a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch. `factory-run` (also `python -m factory.entry.run`) now runs one instance: it reads the settings, prepares the checkout and makes one tick per iteration until `SIGTERM` or `SIGINT`; the repository waiter, the container's health check and the entrypoint are built (see "The container: compose, entrypoint and health check"); the preflight with its machine checks runs in every tick, and a real container is not yet observed. The commands are `factory-run`, `factory-check-story`, `factory-bill` and `factory-watch` (you run them) and `factory-guard` (the agent runtime runs it). `factory-health` (also `python -m factory.entry.health`) prints the stops in force. The sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
 
-## The instance's settings
+## Install
+
+Install v1.1 only on a repository v1 has not worked in, or whose v1 work items are archived or discarded (decision 008 of factory-v2): v1.1 starts fresh, and nothing detects a v1 work item.
+
+Install the factory with `uv sync`, then check the installation with `make check`; it ends with the line `check: green`. The machine's image (see "The machine's image") is the usual way to run an instance: it carries the factory, the agent runtime and the pinned tools. Then set the instance's environment as described under "Configuration".
+
+## Configuration
 
 One factory instance runs one project (R2) and is told what it needs through environment variables. `factory.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in the order of the table. `factory-run` calls it first; `factory-watch` reads the same environment.
 
@@ -36,8 +42,6 @@ A URL whose user information holds a colon, that is a user name followed by a pa
 ## When the process refuses to start
 
 `factory-run` ends with status 2, never with a traceback, when the environment is invalid (any fault in the table above, including a missing or empty image identity file), when the token file cannot be read, and when the repository URL has no owner and no name. It writes one time-stamped line to the factory log and standard output, `settings invalid: <variable>: <fault>`, and a `preflight_failed` stop with scope `machine` to `health.json`, so the container's health check fails and the fault is visible without opening the log. The stop is added to the stops already in the file; an older `preflight_failed` stop is replaced and no other stop is dropped. When the state directory cannot be written (a `state` volume mounted read-only or with the wrong owner), `factory-run` still ends with status 2: the time-stamped line reaches standard output, two lines go to standard error, `factory-run: settings invalid: <variable>: <fault>` and `factory-run: cannot write the machine stop: <error type>: <message>`, and no stop is written. Check the `state` volume's owner and mode. Correct the variable or the file and start the instance again.
-
-Install v1.1 only on a repository v1 has not worked in, or whose v1 work items are archived or discarded (decision 008 of factory-v2): v1.1 starts fresh, and nothing detects a v1 work item.
 
 ## The loop and its pauses
 
@@ -506,8 +510,6 @@ A work item file that cannot be read is not a stop. The tick ends with the error
 
 The tick runs the preflight (see "The preflight's items" and "The stamp and the probe of the main branch") after the fetch, the load and the restore, and before the cleanup of stale branches and before anything is evaluated. So the probe sees the `origin/main` the tick has just fetched: a fix you pushed is probed on the next tick, and a commit that broke `lint` stops that same tick. A tick the preflight stops (`main_branch_failing` or `preflight_failed`) does nothing else: no stale branch is deleted, no work item is read, no agent is started and no pull request is touched. The tick returns the reason as its outcome, and the stop is in the log and in `health.json`. An invalid pipeline definition ends the tick earlier, before the restore and the preflight, so it does not raise `preflight_failed`.
 
-v1's leftover files in `.git/` (`factory-run.json`, `factory-tick.lock`, `factory-tick.json`) are neither read nor written; they change nothing and can be deleted.
-
 ## The pipeline definition
 
 `factory/pipeline.yml` is the project's configuration: its stages, the roles that work in them and the limits. The factory reads it only as it stands on `origin/main`, so a change takes effect when it is merged. This definition loads:
@@ -602,8 +604,6 @@ The image ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `document
 ## Checking a story before it starts
 
 `factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout must be laid out the v1.1 way: `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in `backlog`, `in-progress` or `done`.
-
-This repository's own `factory/` tree is v1's (`drafts/`, `ongoing/`, `FEATURE.md`, `TICKET.md`), so the command does not apply to it: run here it prints `cannot read factory/story-form.md: ...` and exits 2. That holds until this repository moves to v1.1's layout.
 
 In a project laid out the v1.1 way (the paths are placeholders):
 
@@ -720,7 +720,6 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 - A feature row counts the story files in `backlog`, `in-progress` and `done`; `.gitkeep`, `feature.md` and files that are not work item names do not count, and a feature with no story file has no row. The title is the first `# ` title of the feature's `feature.md` on `origin/main`, else the directory's name. `acceptance` is the feature's acceptance status (`incomplete`, `due`, `in_flight`, `merged_unrecorded`, `accepted` or `refused`; see "When a feature acceptance is due"), or `-` when the pipeline definition has no `acceptance_stage`.
 - A work item row exists for each story in `in-progress/` and for each running acceptance (one that is opened, waiting with a question or at its approval, or merged and not yet booked), with its title (the first `# ` title of the body, else the id), its stage, what it waits for (`blocked`), the instance holding its claim, since when (`running_since`, the claim's start in UTC) and its pull request. An absent value is `-`. The rows are in id order, so an acceptance's row comes after its feature's stories and before the stories of a later feature. An acceptance's title is `Acceptance of <feature title>`, its folder `in-progress`, and its state is the one on its branch.
 - Exit status: 0 after printing; 1 when the pipeline definition on `origin/main` is invalid or an agent file is refused (the fault goes to standard error as `factory-watch: <fault>`, or `factory-watch: agent <name>: <fault>` for an agent file; standard output stays empty, no stop is raised); 2 for an unknown option, and when the environment is invalid or the token file cannot be read: then `factory-watch: settings invalid: <variable>: <fault>` goes to standard error (never a traceback) and standard output stays empty. `factory-watch` reads the same environment as `factory-run` (see the table above) and builds its boundaries the same way, so it looks at the instance the container runs. A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
-- v1's `--follow` mode and its `factory-last-line` file are gone: `--follow` is an unknown option, and nothing writes that file. A file of that name left by v1 is not read and can be deleted.
 
 ## When a feature acceptance is due
 
@@ -1011,3 +1010,11 @@ An instance claims a stage by pushing the stage-start commit; the claim records 
 - Your own claim is recognised whatever its age. After a restart with the same instance name, the instance reruns its stage at once and does not wait for the lease.
 - Another instance's claim is waited for until its lease has run out (the age reaches `lease_duration`); then it counts as expired and the factory handles it as above.
 - Instances need a synchronised clock (NTP). Expiry compares the start time recorded by the claiming instance with the checking instance's own clock, so a clock that is off by minutes makes a lease end early or late.
+
+## Replaced from v1
+
+What v1 did and v1.1 does not, so that a file or an option you remember is not mistaken for a live one.
+
+- `factory-watch` has no `--follow` mode and nothing writes the file `factory-last-line`: `--follow` is an unknown option. A file of that name left by v1 is not read and can be deleted.
+- v1's leftover files in `.git/` (`factory-run.json`, `factory-tick.lock`, `factory-tick.json`) are neither read nor written; they change nothing and can be deleted.
+- This repository's own `factory/` tree is v1's (`drafts/`, `ongoing/`, `FEATURE.md`, `TICKET.md`), so `factory-check-story` does not apply to it: run here it prints `cannot read factory/story-form.md: ...` and exits 2. That holds until this repository moves to v1.1's layout.

@@ -486,7 +486,7 @@ prints `{'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes
 
 `RemoteWorkItems(git, reader)` (`factory.application.work_items`) reads only remote-tracking refs through `Git.list_files`, `resolve` and `show_file`; never a local branch and never the work tree. It does not fetch: the caller does, first.
 
-- `list_stories(folder)` lists the story files of one lifecycle folder on `origin/main`, in `work_item_order`, then path. A story file is a path for which `folder_of` is not `None`, whose file name's feature id equals its directory's, and whose id is not an acceptance. Anything else (`.gitkeep`, `feature.md`, deeper files, `ongoing/`, `drafts/`) is ignored.
+- `list_stories(folder)` lists the story files of one lifecycle folder on `origin/main`, in `work_item_order`, then path. A story file is a path for which `folder_of` is not `None`, whose file name's feature id equals its directory's, and whose id is not an acceptance. Anything else (`.gitkeep`, `feature.md`, deeper files, v1's folders) is ignored.
 - `read(definition)` returns one snapshot per story file in `in-progress/`, in the same order; two files with one id give two snapshots. `backlog/` and `done/` are never read.
 - With a branch, the document is `reader.parse` of the story file at `origin/work-item/<id>`, even when that branch is an ancestor of `origin/main` (see `docs/decisions.md`). A stale local branch of the same name has no influence.
 - Without a branch, the story has just been started by the human's move into `in-progress/`: its document is `initial_state(definition.first_stage())` with the body and `ignored_keys` of `parse_specification` on `origin/main`. State fields in that file (`stage`, `attempts`, ...) are not applied; they are listed in `ignored_keys`.
@@ -555,7 +555,7 @@ Otherwise it is a `StageChange`; `correction` is true only when `C`'s journal is
 
 ### The watcher's command line
 
-`factory.entry.watch` (`factory-watch`, see the operator guide) shows the event of one evaluation and the board. `run_watch(boundaries, instance, out, err)` resolves `origin/main` (`GitError` when it does not), loads the definition with `PipelineLoader(boundaries).load(<that commit>)` (a commit id, not the ref, so no stop is raised or cleared), evaluates once with `Watcher` and writes `render_event(event)`, a blank line and `render_board(...)`. It returns 0, or 1 with `factory-watch: <fault>` on `err` for `PipelineDefinitionInvalid`. It fetches and writes nothing. `main(argv, *, boundaries, instance, out, err)` parses `argv` first with an `ArgumentParser(prog="factory-watch")` without options, so `--follow` or any other option is `SystemExit(2)`; with no boundaries or no instance it takes both from `boundaries_from_environment(os.environ)` (the readers of `factory-run`) and runs as the settings' instance; a `SettingsInvalid` is written as `factory-watch: settings invalid: <variable>: <fault>` on `err`, nothing goes to `out`, and `main` returns 2.
+`factory.entry.watch` (`factory-watch`, see the operator guide) shows the event of one evaluation and the board. `run_watch(boundaries, instance, out, err)` resolves `origin/main` (`GitError` when it does not), loads the definition with `PipelineLoader(boundaries).load(<that commit>)` (a commit id, not the ref, so no stop is raised or cleared), evaluates once with `Watcher` and writes `render_event(event)`, a blank line and `render_board(...)`. It returns 0, or 1 with `factory-watch: <fault>` on `err` for `PipelineDefinitionInvalid`. It fetches and writes nothing. `main(argv, *, boundaries, instance, out, err)` parses `argv` first with an `ArgumentParser(prog="factory-watch")` without options, so any option is `SystemExit(2)`; with no boundaries or no instance it takes both from `boundaries_from_environment(os.environ)` (the readers of `factory-run`) and runs as the settings' instance; a `SettingsInvalid` is written as `factory-watch: settings invalid: <variable>: <fault>` on `err`, nothing goes to `out`, and `main` returns 2.
 
 The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, `feature_rows`, `render_board`, all pure) and `BoardReader(boundaries).read(definition)` in `factory.application.board`, which returns a `BoardView`. The reader takes the story files of the three folders from `RemoteWorkItems.list_stories`, the feature titles from `Git.show_file("origin/main", ".../feature.md")` and the rows from `running_work_items(...)` (`factory.application.acceptance_reading`): the snapshots of `RemoteWorkItems.read` and of `AcceptanceReader.snapshots()`, sorted by `(work_item_order(id), path)`, each mapped by `work_item_row`. `Watcher.evaluate` calls the same function, so board and watcher order work items alike. A report that `snapshots()` cannot read raises `WorkItemFormatError` from `read`. It reads the remote-tracking refs a second time next to the `Watcher`; it does not share the watcher's snapshots, so `Watcher.evaluate` still returns one event. `read` ends with `AcceptanceReader(boundaries, definition).fill_board(rows)`, which sets `FeatureRow.acceptance` (it stays `None` without an `acceptance_stage`).
 
@@ -573,7 +573,7 @@ The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, 
 
 **The stale branch.** `delete_stale_branches(boundaries) -> list[str]` deletes the remote branches that a kill or a refused deletion left behind for a story that is already in `backlog/` or `done/`. It lists the stories of `origin/main` with `RemoteWorkItems.list_stories` for `backlog`, `done` and `in-progress`; the stale ids are those of the first two that no `in-progress` story file shares (a shared id is the `duplicate` case, which the evaluation reports). For each branch of `Git.remote_branches()` whose `work_item_of_branch` is a stale id, in the order of the names, it calls `Git.delete_remote_branch`. Outcome `"pushed"` writes `deleted stale branch <name>: its story is back in the backlog` (`its story is done` for `done/`, also for an id with story files in both `backlog/` and `done/`) and adds the name to the result; any other outcome writes `could not delete stale branch <name>: <outcome>` and goes on, to be tried on the next tick. It reads only `origin/main` and the remote-tracking branches, makes no hosting call, and does not catch `GitError`. Because of it, a story started again after a discard that was killed starts with an empty bill.
 
-`run` returns `TickOutcome(stopped=..., event=..., dispatch=...)`: `stopped` is set and the others are `None` when the tick ended at a stop. `WorkItemFormatError`, `ValueError` from the evaluation and a `GitError` outside the fetch and the restore are not caught; no stop exists for them. The tick reads and writes no run record and no lock. `IdleHandler` does nothing and is the handler of `idle`.
+`run` returns `TickOutcome(stopped=..., event=..., dispatch=...)`: `stopped` is set and the others are `None` when the tick ended at a stop. `WorkItemFormatError`, `ValueError` from the evaluation and a `GitError` outside the fetch and the restore are not caught; no stop exists for them. The tick keeps no local record of a run and no lock. `IdleHandler` does nothing and is the handler of `idle`.
 
 Because the checkout is rebuilt every tick and no local state is read, a rejected push leaves no trace: the next tick judges the remote. The dispatcher's count of errors per event and remote state is the only memory, and it is in the `TickStatus`. A push to the work item's branch changes the remote state and so retries a capped event. `HandlerFactory` is `Callable[[PipelineDefinition], Mapping[EventKind, Handler]]`; the production factory is `handler_factory` (see "The handlers of the events").
 
@@ -1270,34 +1270,16 @@ prints `['coder']` and then a line that starts with `tools | invalid tools:`.
 | `smoke-tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash |
 | `acceptance-reviewer` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write |
 
-Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. After them the body carries v1's texts, renamed with the table below, under these `## ` sections and no other `## ` heading, in this order:
+Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. After them the body carries v1's texts, renamed with the table under "Replaced from v1", under these `## ` sections and no other `## ` heading, in this order:
 
-- `## Rules`: v1's pipeline rules, in every body. The agent ends with a decision, one of the `Allowed decisions` its prompt lists (`question` is always among them), and with a journal entry. The factory commits, pushes and moves the work item; the agent never pushes, checks out, switches, merges, pulls or calls `gh`. v1's rules on tickets, the stage table, commit subjects and the pipeline files are rewritten to what the prompt, the pipeline definition and the write paths say, or dropped where the factory does them in code.
+- `## Rules`: v1's pipeline rules, in every body. The agent ends with a decision, one of the `Allowed decisions` its prompt lists (`question` is always among them), and with a journal entry. The factory commits, pushes and moves the work item; the agent never pushes, checks out, switches, merges, pulls or calls `gh`. v1's rules on the work item, the pipeline definition, commit subjects and the pipeline files are rewritten to what the prompt, the pipeline definition and the write paths say, or dropped where the factory does them in code.
 - `## Role`: v1's role skill. `intake` and `smoke-tester` have none, because v1 had none for them.
 - `## Stage`: v1's stage skill for the agent's stage.
 - `## Lessons`: v1.1's own part, after v1's texts, and always last. It holds the lessons of v1.1's build for the role, one bullet each: the first bullet (run make targets in the foreground) is in every body; `intake`, `tester`, `coder`, `reviewer` and `documenter` have more.
 
 The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions (questionnaire 1, Q29). The words are renamed, the sentences are not rewritten in other words:
 
-| v1 | v1.1 |
-|---|---|
-| ticket | work item |
-| log | journal |
-| `drafts/` | `backlog/` |
-| `ongoing/` | `in-progress/` |
-| promote | start |
-| `stages.yml`, stage table | the pipeline definition (`factory/pipeline.yml`) |
-| lane | write paths |
-| gate, the stage `accept` | approval |
-| demo (the stage and the agent) | smoke test |
-| acceptor | acceptance reviewer |
-| outcome (of an agent) | decision |
-| verdict | recommendation |
-| `max_rounds` | `round_cap` |
-| `stuck` | `question` |
-| `Assignment`, `## Assignment` | `Description`, `## Description` |
-| `## Log (append only)` | `## Journal` |
-| `## Demo`, Demo (the story's section) | `## Smoke test`, smoke test |
+(the table of renamed words is under "Replaced from v1")
 
 `stuck` does not exist in v1.1: an agent that cannot finish asks. The `acceptance-reviewer` body names the report sections `## Recommendation` and `## Proposed stories` inline (F0009 reads them; at the start of a line they would be headings), the recommendations `accepted`, `accepted with stories` and `not accepted`, and tells the agent to write proposed stories into the feature's `backlog/`.
 
@@ -1425,7 +1407,7 @@ Tests: `tests/application/test_opening.py`.
 
 **No agent run precedes the pushed claim.** When `run` is called, `origin/<branch>` already holds the stage-start commit with the claim and the journal record (`factory`, `started`); when step 4 fails, no run starts. The stage-start commit is the last commit before the run: for a branch that existed it is one commit above the old head (the merge of `main` in `prepare` comes before it), for a new work item it is also the opening commit.
 
-The stage-start commit does not change `pull_request`: it is `None` for a new work item and otherwise the number already recorded. The number of the pull request found or created in step 6 is in `StartedStage.pull_request` and in the prompt; the stage's next commit records it. No local run record is written; the claim's `started_at` says when the stage began.
+The stage-start commit does not change `pull_request`: it is `None` for a new work item and otherwise the number already recorded. The number of the pull request found or created in step 6 is in `StartedStage.pull_request` and in the prompt; the stage's next commit records it. No local record of the run is written; the claim's `started_at` says when the stage began.
 
 `launch` returns a frozen `LaunchedStage`: `started` (a `StartedStage` with the work item, stage, branch, path, `stage_start`, `document`, `pull_request` and the form `findings` taken before the run), `request` and `result`. A run that dies, reaches its `time_limit` or its budget is a result. `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError` propagate unchanged; after an `AgentRuntimeError` the claim stays pushed.
 
@@ -1621,3 +1603,27 @@ A path that fails is a defect to fix under `src/`, never a test to bend. Run the
 ```bash
 uv run pytest tests/test_fault_paths.py tests/test_fault_paths_7_to_13.py tests/test_fault_paths_table.py tests/domain/test_fault_paths.py tests/domain/test_fault_paths_all_rows.py tests/test_fault_path_names.py
 ```
+
+## Replaced from v1
+
+The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words):
+
+| v1 | v1.1 |
+|---|---|
+| ticket | work item |
+| log | journal |
+| `drafts/` | `backlog/` |
+| `ongoing/` | `in-progress/` |
+| promote | start |
+| `stages.yml`, stage table | the pipeline definition (`factory/pipeline.yml`) |
+| lane | write paths |
+| gate, the stage `accept` | approval |
+| demo (the stage and the agent) | smoke test |
+| acceptor | acceptance reviewer |
+| outcome (of an agent) | decision |
+| verdict | recommendation |
+| `max_rounds` | `round_cap` |
+| `stuck` | `question` |
+| `Assignment`, `## Assignment` | `Description`, `## Description` |
+| `## Log (append only)` | `## Journal` |
+| `## Demo`, Demo (the story's section) | `## Smoke test`, smoke test |
