@@ -203,9 +203,14 @@ def machine_log(state_directory: Path, clock: Clock | None = None) -> FactoryLog
     )
 
 
+def health_file(state_directory: Path) -> Path:
+    """Return the path of the health file in `state_directory`."""
+    return state_directory / _HEALTH_FILE_NAME
+
+
 def health_store(state_directory: Path) -> HealthStatusStore:
     """Return the health status file in `state_directory`."""
-    return JsonHealthStatusFile(state_directory / _HEALTH_FILE_NAME)
+    return JsonHealthStatusFile(health_file(state_directory))
 
 
 def build_boundaries(
