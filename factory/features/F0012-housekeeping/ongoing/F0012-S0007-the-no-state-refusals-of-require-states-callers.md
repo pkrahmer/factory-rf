@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 159
 blocked: null
 comments_seen: 0
@@ -110,3 +110,11 @@ Expect: a number of at least 5, one test function per call.
    - Architecture and security: nothing in `src/` changed. The test uses the real git remote fixtures and the fake hosting service, mocks nothing, and writes only under `tmp_path`.
    - Quality: the module docstring is present. `_definition` follows the pattern each sibling test module uses. The `opened` fixture is shared by the claim and stall tests.
    - Ticket hygiene: the coder's entry records the decision to leave the code as it is and what was rejected (building each exception only after the state check). The Assignment matches what was done. Docs criterion 7 ("none") still holds.
+6. documenter: wrote nothing. Criterion 7 says `none`, and the diff outside `factory/` is only the new test module `tests/application/test_no_state_refusals.py`; `src/` is unchanged.
+   - Cross-read: `docs/project-guide.md` (line 470, `require_state` and the caller building its own exception, and line 429 on the journal's `_state_of`) matches the code and the five refusals the tests pin. I found it current.
+   - README and the other docs don't mention these calls, so the diff leaves them current.
+   - Stale but untouched: nothing.
+   - Findings: none. I didn't run `make check`, because I changed no file outside README and docs; the factory's check after this stage is the gate.
+
+   `make check`: check: green
+   `make documents`: documents ok
