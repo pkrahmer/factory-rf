@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 164
 blocked: null
 comments_seen: 0
 round: 0
@@ -66,3 +66,9 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names `factory.domain.checks` (`TargetTime`, `target_times`, `CheckResult.targets` as last field) and `MakeProjectCommands.run` in `adapters/make_commands.py`. `COMMAND_NAME_PATTERN` and `CommandName` already exist in `checks.py`, so building the pattern from the constant is possible. The pattern, the digits rule, the `\r` rule and the duplicate-target rule are each stated precisely.
+   - Criteria: 1 to 4 are each testable by one function (2 as one parametrized table). Every rule has both sides: the matching lines in 1 and 3, the rejected lines in 2 (`check: green`, indentation, trailing space, missing space, negative, `1.`, uppercase, `red`, Arabic-Indic digit), and the whole-output read plus the no-line case in 4. Every behaviour in the Interface comments is covered. The change to `test_fields_are_exactly_the_generic_six` is authorised by FEATURE decision 45.
+   - Demo: both blocks are runnable. Each `Expect:` line can be checked against the output: `lint 0.1` and `secrets 22.6`, and a `lint: green (<n>.<d> s)` line.
+   - Architecture: pure parsing sits in domain, the adapter only calls it, and no layer rule is broken.
+   - Scope: this is item 1.4 of FEATURE.md (S0012). It is not under Out of scope, and S0013 is left to record the result.
