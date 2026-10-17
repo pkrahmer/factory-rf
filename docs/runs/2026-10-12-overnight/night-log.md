@@ -331,3 +331,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 2026-10-17 14:23 | F0012-S0010 merged (#162; 6 runs, 5.2 agent minutes, $1.44, first pass; its four changes to other stories' tests are decision 34's, the scope line in test_health.py the consequence of its disk_low row). Project guide 1,683 lines. S0011 started. |
 | 2026-10-17 14:31 | F0012-S0011 merged (#163; 6 runs, 3.1 agent minutes, $0.71, first pass; LESSONS changed as decision 35 allows). S0012 started. |
 | 2026-10-17 14:39 | F0012-S0012 merged (#164; 6 runs, 3.5 agent minutes, $0.88, first pass; the rename in test_checks.py is decision 45's, test_make_commands.py only gained tests). S0013 started. |
+| 2026-10-17 14:50 | F0012-S0013 merged (#165; 6 runs, 5.8 agent minutes, $1.54, first pass; the change in test_wiring_boundaries.py is decision 36's). S0014 started. |
