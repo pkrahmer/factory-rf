@@ -1,15 +1,14 @@
-# The factory's machine. Every reference is pinned (docs/decisions.md): the
-# digest and the Debian package versions are placeholders to replace before
-# the first build.
-ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:0000000000000000000000000000000000000000000000000000000000000000
+# The factory's machine. Every reference is pinned (docs/decisions.md): the digest and the
+# Debian package versions were read from the official image on 2026-10-17 (Debian 12.15).
+ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
 FROM ${BASE_IMAGE}
-ARG CLAUDE_CODE_VERSION=2.1.289
+ARG CLAUDE_CODE_VERSION=2.1.296
 ARG UV_VERSION=0.9.2
 # Only a label: the image's identity is generated below.
 ARG FACTORY_IMAGE=unlabelled
 LABEL factory.image="${FACTORY_IMAGE}"
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git=0~unpinned make=0~unpinned curl=0~unpinned ca-certificates=0~unpinned procps=0~unpinned sudo=0~unpinned nodejs=0~unpinned npm=0~unpinned \
+ && apt-get install -y --no-install-recommends git=1:2.39.5-0+deb12u3 make=4.3-4.1 curl=7.88.1-10+deb12u15 ca-certificates=20250419~deb12u1 procps=2:4.0.2-3 sudo=1.9.13p3-1+deb12u4 nodejs=18.20.4+dfsg-1~deb12u3 npm=9.2.0~ds1-1 \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv==${UV_VERSION}
 RUN npm install --global --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}

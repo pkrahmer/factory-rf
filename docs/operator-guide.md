@@ -21,7 +21,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`. |
 | `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank. |
 | `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
-| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.289`). The image sets it; a missing or blank value is read as not pinned. |
+| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
 | `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
@@ -147,7 +147,7 @@ A real build is not yet observed: v1's container has no Docker. The Dockerfile a
 
 ### Replace the placeholders before the first build
 
-The digest of `BASE_IMAGE` (64 zeros) and the eight Debian package versions (`0~unpinned`: `git`, `make`, `curl`, `ca-certificates`, `procps`, `sudo`, `nodejs`, `npm`) cannot be looked up without a network, so the file carries placeholders of the right form. The build fails on them until you replace them.
+The digest of `BASE_IMAGE` and the eight Debian package versions (`git`, `make`, `curl`, `ca-certificates`, `procps`, `sudo`, `nodejs`, `npm`) were read from the official `python:3.12-slim-bookworm` image on 2026-10-17 (Debian 12.15). Debian's mirrors keep only a package's current version, so a pinned version that a security or point update replaces stops building: then read the new versions with `apt-cache policy <package>` in the new base image and update the digest and the pins together.
 
 To update any pin, edit its line and run `uv run pytest tests/test_image.py`:
 
@@ -157,7 +157,7 @@ To update any pin, edit its line and run `uv run pytest tests/test_image.py`:
 
 ### Claude Code
 
-Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, at the pinned version `2.1.289`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is also in the container's environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it. A maintenance feature after v1.1 updates the pin (questionnaire 1, Q21); until then it changes only when you edit the Dockerfile.
+Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, at the pinned version `2.1.296`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is also in the container's environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it. A maintenance feature after v1.1 updates the pin (questionnaire 1, Q21); until then it changes only when you edit the Dockerfile.
 
 ### Users and directories
 
