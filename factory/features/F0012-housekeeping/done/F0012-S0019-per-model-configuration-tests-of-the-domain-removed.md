@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 170
 blocked: null
 comments_seen: 0
@@ -152,3 +152,4 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
    - Criterion 5 (docs: none): nothing to show.
 
    Nothing in the demo contradicts any criterion.
+8. done (pull request merged); cost: 6 runs, 4.6 min, 37 turns, 158k tokens in (503k more from cache), 12k out, $0.97
