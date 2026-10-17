@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 162
 blocked: null
 comments_seen: 0
@@ -139,3 +139,23 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
      - Calling `clear_stop` on every tick is safe: it does nothing and writes nothing when there is no `disk_low` stop, so the log gets no extra lines.
      - The new `make duplicates` findings (`used_bytes` unused) come from F0012-S0009 and are kept for S0016/S0017, not added by this diff.
    - Ticket: considered and accepted the tester's scope-line edit in `tests/entry/test_health.py`. It goes slightly past the letter of the leave (entry 3), but it is the consequence the leave needs: without it, the `disk_low` row the leave adds would fail the scope rule. The coder's log names the main decision and the two alternatives they rejected. `Assignment` matches what was built, and criterion 12 still describes what the documenter must write.
+6. documenter: wrote the documentation for the low-disk stop. `uv run python -m factory.entry.check_documents` prints `documents ok`. I changed documents only, so I did not run `make check`.
+
+   Files changed:
+   - `docs/operator-guide.md`:
+     - The `FACTORY_MIN_FREE_GB` row now says what it guards.
+     - *The stops* table has a `disk-low` row.
+     - *The health status file* gives `disk_low` the scope `machine` and lists it among the reasons.
+     - *The stops of the tick* says the free space is read first, before the fetch, and the machine stop `disk_low` joins the stops that end a tick.
+     - A new section, *The low disk*, covers the threshold (exactly the minimum is enough), the detail, the unreadable case, the clear, what to do, the first clone coming before the first check, and the `iteration failed` line on a full disk.
+   - `docs/project-guide.md`: *The tick* gains step 0, the disk check, with its read order, the no-op without `disk` or `settings`, `disk_low_detail`, and the `scope` parameter of `_stop`. The step list in the intro line now begins with the disk check.
+   - `docs/decisions.md`: a new entry records why the check comes before the fetch, why it is one check per tick and not a preflight item, why an unreadable free space stops too, the first clone coming before the first check, the `OSError` on a full disk, and the rejected alternatives.
+
+   Cross-read and found current: README.md and the rest of the operator guide.
+
+   Findings for the coder: none. The code matches the Interface.
+
+   Stale but unrelated, not touched: the project guide section *The handlers of the events* and the operator guide intro are unrelated to this story, so I left them as they are.
+
+   `make check`: check: green
+   `make documents`: documents ok

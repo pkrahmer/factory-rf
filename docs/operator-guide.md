@@ -24,7 +24,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.289`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default. |
 | `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
-| `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. What it guards comes with the low-disk stop. |
+| `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
@@ -305,8 +305,8 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 `health.json` in the state directory holds the stops in force for the repository or the machine, as one JSON object: `{"stops": [{"scope": ..., "reason": ..., "detail": ..., "at": ...}]}`. The container's health check reads it (see "The container: compose, entrypoint and health check"); an empty `stops` list is healthy.
 
-- One stop per reason. `scope` is `machine` for `preflight_failed` and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
-- The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing` and `preflight_failed`.
+- One stop per reason. `scope` is `machine` for `preflight_failed` and `disk_low`, and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
+- The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing`, `preflight_failed` and `disk_low`.
 - A file that is missing, cannot be read, is not JSON or is not a valid status reads as healthy (no stops). Do not repair it by hand: the next stop that is raised replaces the whole file, and a fault that lasts is raised again.
 - A write goes to a temporary file in the same directory and replaces `health.json` in one step, so a reader never sees half a file. If `health.json` is a directory, the write fails with an `OSError` and leaves nothing behind.
 
@@ -323,6 +323,7 @@ Every stop the factory raises has one destination. A stop of the repository or t
 | `repository-unavailable` | health status and factory log | The entrypoint or the tick waits for a repository that is empty or has no pipeline definition. Push `main` with `factory/pipeline.yml`; see "The wait for a repository that is not ready". |
 | `main-branch-failing` | health status and factory log | `lint` fails on the main branch. Push a fix to `main`; see "The stamp and the probe of the main branch". |
 | `preflight-failed` | health status and factory log | A preflight item fails, or the settings are invalid. Fix what the detail names; see "The preflight's items" and "When the process refuses to start". When the state directory cannot be written, `factory-run` still ends with status 2 but writes no stop: the settings fault reaches standard error as two lines without a stamp. Check the `state` volume. |
+| `disk-low` | health status and factory log | The work or the state directory has less free space than `FACTORY_MIN_FREE_GB` asks for, or its free space cannot be read. Make room on the file system the detail names, and nothing more: the next tick clears the stop. |
 | `duplicate` | pull request | Two work items have one id. Keep one file and rename or delete the other; see "Stops that cannot be done". |
 | `pull-request-lookup` | pull request | The one pull request lookup fails. Fix the cause named after the colon; see "Stops that cannot be done". |
 | `ask-without-pull-request` | pull request | A question is recorded for a work item that has no pull request. Open one for the branch or push a commit to it; see "Stops that cannot be done". |
@@ -500,7 +501,7 @@ The tick ends there and nothing else happens: no stage is started and no event i
 
 ## The stops of the tick
 
-A tick works from the remote alone: the checkout is disposable. It fetches first, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, and only then looks at the work items. Four repository stops end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
+A tick works from the remote alone: the checkout is disposable. It reads the free space first, before the fetch (see "The low disk" below), then fetches, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, and only then looks at the work items. Four repository stops, and the machine stop `disk_low`, end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
 
 | Stop | Meaning | What to do |
 |---|---|---|
@@ -512,6 +513,12 @@ A tick works from the remote alone: the checkout is disposable. It fetches first
 The restore throws away every uncommitted change and every untracked file in the checkout (ignored paths stay) and deletes the local branches of the work items, so that a stage starts from the remote's branch. When it throws changes away it writes one line to the log, `discarded uncommitted changes: <path>, <path>`. Do not keep work in the factory's checkout.
 
 A work item file that cannot be read is not a stop. The tick ends with the error, naming the file's path, and does so on every tick until a human repairs the file (on its branch, or on `main` for a started story without a branch) or moves the story out of `in-progress/` on `main`. Closing the pull request changes nothing: the tick reads every story in `in-progress/` before it looks at any pull request. A work item in a stage that the pipeline definition lacks fails the same way.
+
+### The low disk
+
+At the start of every tick, before the fetch, the factory reads the free space of the work directory (the checkout's parent) and of the state directory. When either has less than `FACTORY_MIN_FREE_GB` (exactly the minimum is enough), it raises the machine stop `disk_low` and ends the tick; nothing is fetched or written after it. The detail names each short directory with its free space, the work directory first. A free space that cannot be read is the same stop, with the detail `cannot read the free space of <path>: <error>`, and no later path is read. The first tick that finds enough room clears the stop. The preflight runs inside the tick, so this one check covers it.
+
+What you do: make room on the file system the detail names. A checkout that is missing is cloned before the first check, by the iteration's preparation (see "The checkout is recloned only when it is missing"), so a clone onto a full disk fails as `repository_unavailable` first. On a full disk the stop's own writes (`health.json`, the factory log) can fail with an `OSError`; the iteration then ends with the `iteration failed` line (see "The loop and its pauses") and the next one tries again.
 
 ### The preflight in the tick
 
