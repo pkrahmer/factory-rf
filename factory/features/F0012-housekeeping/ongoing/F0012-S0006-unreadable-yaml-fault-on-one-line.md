@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 158
 blocked: null
 comments_seen: 0
 round: 0
@@ -79,3 +79,9 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names `src/factory/adapters/pipeline_yaml.py`, `RuamelPipelineDefinitionReader.parse` and the new `yaml_fault(error: YAMLError) -> str`, with its three branches (problem and mark, problem without mark, first non-blank line), the no-line-break rule and what is excluded. The test files and their fixtures are named.
+   - Criteria: each is testable by one test function. 1 to 5 give exact faults for the five kinds of YAML error (4 pins start and end). 6 covers the no-line-break and no-hint rules. 7 covers the unchanged side, with PIPELINE_YAML still parsing and a non-mapping still refused. 8 covers all three `yaml_fault` branches with hand-built errors, including the empty-problem fallback. 9 covers the single stop, status detail and log line through `PipelineLoader.load`. 10 and 11 are the closing `make check` and docs criteria. Every rule the Interface states has a criterion, and the refused-input side is the subject of the story.
+   - Demo: runnable with `uv run python -c`, two broken texts. The Expect line gives the exact two output lines and the absence of `accepted`.
+   - Architecture: the change sits in the adapters layer, in the module that already wraps ruamel.yaml. The error type is the domain's `PipelineDefinitionInvalid`, and no layer import is added.
+   - Scope: within F0012's item 1.2, which takes in the parked draft F0003-S0011 (FEATURE.md's parked-drafts table). Nothing in Out of scope is touched.
