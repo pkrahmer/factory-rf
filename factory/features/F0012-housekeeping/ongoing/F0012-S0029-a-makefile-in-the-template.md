@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 180
 blocked: null
 comments_seen: 1
@@ -276,3 +276,23 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    One thing to know about the diff, not a finding against this story:
    - The diff also shows `image/Dockerfile` and `docs/operator-guide.md` (the Claude Code pin `2.1.296`, the base image digest and the Debian package pins). Those changes come from the human's own commit b642dd31 on this branch, not from the coder.
    - The documenter should know that the operator guide already changed on this branch before adding criterion 13's sentence about the template.
+7. documenter: criterion 13 written. I ran `python -m factory.entry.check_documents`, which prints `documents ok`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide.md`, *The template*: it now says `template/` holds three files. A new bullet on `template/Makefile` covers:
+     - the contract's three targets and the other targets of `check`;
+     - the one shell per recipe, the `<target>: green (<seconds> s)` last line, the JUnit report and the changed-files `secrets`;
+     - `duplicates` with no baseline, and `mutants` by feature id from the commit subjects (`work item <id>: ...`, or `<id>: ...` after a squash merge) and from an acceptance's branch;
+     - no `documents` target;
+     - the `SOURCE` and `LAYERS` placeholders, and the header that names the development dependencies.
+   - `docs/operator-guide.md`: the paragraph on the shipped agents and the template now names the `Makefile` beside the pipeline definition and the `CLAUDE.md`, and says that `SOURCE` and `LAYERS` are filled in.
+   - `docs/decisions.md`: a new entry on why `documents` is left out and why `duplicates` has no baseline in the template. Both are `factory-rf`'s own modules (F0012 decisions 50 and 53).
+
+   Cross-read and found current: the other parts of the project guide's template section (the pipeline definition, the no-forms paragraph) and `template/CLAUDE.md` against the diff. The Makefile text matches the Interface and the code is consistent with it.
+
+   Not touched: the diff shows `image/Dockerfile` pin changes from the human's commit b642dd31. They are unrelated to this story, and the operator guide's pins were already updated in that commit.
+
+   No findings.
+
+   `make check`: check: green
+   `make documents`: documents ok

@@ -1311,7 +1311,7 @@ To change what an agent is told, edit its file under `claude/agents/`; there is 
 
 ### The template
 
-`template/` is what a new project starts from, laid out as the project's tree. It holds two files and nothing else:
+`template/` is what a new project starts from, laid out as the project's tree. It holds three files and nothing else:
 
 - `template/factory/pipeline.yml`, the starting pipeline definition. Its roles are the seven agents above. The stages run `intake`, `tests`, `doing`, `review`, `docs`, `smoke-test`, then `approval`; `acceptance` is the acceptance stage. Copy it to `factory/pipeline.yml` and adjust it.
 
@@ -1346,6 +1346,7 @@ To change what an agent is told, edit its file under `claude/agents/`; there is 
 
   The coder's write path is `src/*` only; a project that keeps code elsewhere changes it.
 - `template/CLAUDE.md`, the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks, and it carries the Python lessons of v1.1's build (the `mypy --strict` traps in tests, low-entropy hexadecimal test values, and the time-limit lesson: a test that waits for a time limit gives the process it starts room to start).
+- `template/Makefile`, the project commands of a Python project with a src layout, in the pattern of `factory-rf`'s own. Its targets are the contract's three, `check`, `lint` and `test`, and the other targets `check` runs: `types`, `layers`, `sast`, `secrets` and `licenses`. Every recipe runs in one shell and ends with `<target>: green (<seconds> s)`; `make test` runs on every core and writes a JUnit report; `make secrets` scans the files changed against `origin/main`. `duplicates` is a report outside `check`: it writes similar code and dead code to `.reports/` and counts them, and compares them with no baseline. `mutants` is run by the feature acceptance: `make mutants FEATURE=<feature id>` runs mutmut over the modules that the feature's story commits on `origin/main` changed, found by the subjects `work item <id>: ...` (or `<id>: ...` after a squash merge), and `FEATURE` is taken from an acceptance's branch `work-item/<feature id>-A<number>`. There is no `documents` target. A project fills in two placeholders, `SOURCE` (its package folder) and `LAYERS` (its layers command), and the file's header names the development dependencies the targets need.
 
 The template ships no forms. The story and feature forms (`factory/story-form.md`, `factory/feature-form.md`) are the human's to add to a project made from it. Until `factory/story-form.md` exists, `StoryFormChecker` (see *The story form check*) stops every stage.
 
