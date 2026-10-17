@@ -65,8 +65,10 @@ PROBE_PROMPT = "Probe: end with the decision question and the entry probe."
 PROBE_BUDGET_USD = Decimal("0.10")
 PROBE_RUN_TIME_LIMIT = timedelta(minutes=2)
 
-# Any bit for group or others lets a second user read the hosting-service token.
+# Any bit for group or others on the token's folder lets a second user reach the
+# hosting-service token, whatever the file's own mode.
 _GROUP_AND_OTHERS = 0o077
+_MISSING_FILE_FAULT = "the token file does not exist"
 
 
 def tool_item(name: str, which: Callable[[str], str | None]) -> PreflightItem:
@@ -80,7 +82,10 @@ def tool_item(name: str, which: Callable[[str], str | None]) -> PreflightItem:
 def token_file_item(
     path: Path | None, *, uid: int, stat: Callable[[Path], os.stat_result]
 ) -> PreflightItem:
-    """Check that the token file exists, belongs to `uid` and is readable by its owner alone."""
+    """Check that the token file exists in a folder that `uid` alone may enter.
+
+    The file's own owner and mode do not count: a bind mount shows the host's.
+    """
     fault = _token_file_fault(path, uid, stat)
     if fault is None:
         return PreflightItem(name=_HOSTING_FILE_ITEM, passed=True)
@@ -92,15 +97,30 @@ def _token_file_fault(
 ) -> str | None:
     if path is None:
         return "no token file is set"
+    # The folder comes first: a file in a folder the factory's user cannot enter
+    # would raise PermissionError, not name the folder.
+    folder_fault = _token_folder_fault(path.parent, uid, stat)
+    if folder_fault is not None:
+        return folder_fault
     try:
-        facts = stat(path)
+        stat(path)
     except FileNotFoundError:
-        return "the token file does not exist"
+        return _MISSING_FILE_FAULT
+    return None
+
+
+def _token_folder_fault(
+    folder: Path, uid: int, stat: Callable[[Path], os.stat_result]
+) -> str | None:
+    try:
+        facts = stat(folder)
+    except FileNotFoundError:
+        return _MISSING_FILE_FAULT
     if facts.st_uid != uid:
-        return f"the token file belongs to uid {facts.st_uid}, not to {uid}"
+        return f"the folder {folder} belongs to uid {facts.st_uid}, not to {uid}"
     mode = stat_module.S_IMODE(facts.st_mode)
     if mode & _GROUP_AND_OTHERS:
-        return f"the token file has mode {mode:04o}; make it 0600 or 0400"
+        return f"the folder {folder} has mode {mode:04o}; make it 0700"
     return None
 
 
