@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 149
 blocked: null
 comments_seen: 0
 round: 0
@@ -132,3 +132,9 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted.
+   - Interface: names `src/factory/domain/documents.py` and `src/factory/entry/check_documents.py` with typed signatures, the constants, the closed `DocumentFinding` model, and every rule's message and finding order. The helpers it names (`factory.domain.sections.sections` and `code_blocks`) exist. The ids it uses (`fetch-failed`, `duplicate`, `later-stage-in-backlog-file`, `commit-push`, and path 7's test name) match `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS` in the source.
+   - Criteria: criteria 1 to 23 are each testable by one test function. Each rule has its failing side: missing, empty, absent section, code-fenced heading, absent row, unbackticked id, non-`|` line, indented row, the destination words, the exemption boundaries, the word-boundary cases, and the decision log. Every behaviour stated in the Interface comments has a criterion (the order of findings, UTF-8, the default root). Criterion 25 is the documenter's docs criterion and has no test.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable. The first demo's README text `x` correctly gives no finding.
+   - Architecture: the pure function is in `domain` and the command is in `entry`. It imports only downward and calls no tool.
+   - Scope: it is within F0011's scope (the four documents, WE6.1, WE6.2, WE6.4, WE6.5, R17). It does not wire into `make check` or add a console script, as FEATURE.md's out of scope requires. WE6.3 is left out as the feature states.
