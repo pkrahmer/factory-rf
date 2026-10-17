@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 195
 blocked: null
 comments_seen: 0
@@ -65,3 +65,16 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: all three commands are runnable. Each Expect line is checkable against the output (one exact line, the named lines, `<n> passed` with no failed/error/skipped).
    - Architecture: the change is image files only, with a test module at the `tests/` root, which suits a module outside the layers. No layer is touched.
    - Scope: within the feature's S0002 scope (`image/gitconfig`, `image/Dockerfile`). Nothing is in "Out of scope". The real `git status` as agent is left to step 4, as the feature says. No test of an earlier story changes, so no leave is needed.
+3. tester: Wrote the red tests for the image's git system configuration.
+   - criterion 1: tests/test_image_gitconfig.py::test_the_configuration_holds_only_the_checkout_as_safe_directory (real git through `run_git(ROOT, "config", "--file", <absolute path>, "--list")`)
+   - criterion 2: tests/test_image_gitconfig.py::test_the_safe_directory_is_the_settings_checkout_path (against `factory.domain.settings.CHECKOUT_PATH`)
+   - criterion 3: tests/test_image_gitconfig.py::test_the_file_says_why_and_holds_only_the_safe_section
+   - criterion 4: tests/test_image_gitconfig.py::test_the_image_copies_the_configuration_as_root_after_the_credential_helper (exactly one COPY naming gitconfig, with no --chown and no --chmod; the next instruction is the exact sed/chmod RUN; the RUN holding the git-credential-factory chmod comes before the COPY and before `ENV FACTORY_TOKEN_FILE=...`)
+   - criterion 5: tests/test_image_gitconfig.py::test_a_comment_stands_directly_above_the_copy (raw Dockerfile text)
+   - criterion 6: tests/test_image_gitconfig.py::test_the_configuration_is_readable_by_all_and_owned_by_root (`_path_settings` chmod is 0644; no chown key for /etc/gitconfig)
+   - criterion 7: no new test. The criterion names the existing tests that must keep passing: tests/adapters/test_git_cli_reading.py::test_system_configuration_is_ignored, tests/test_image.py and tests/test_image_credentials.py. They are unchanged.
+   - criteria 8 and 9: `make check` and docs, nothing to test here.
+   Files created: tests/test_image_gitconfig.py. There was no import failure, because the module imports only existing test helpers and `factory.domain.settings`. The tests are red because `image/gitconfig` does not exist yet (git config --file fails, read_text fails) and the Dockerfile does not have the COPY/RUN lines yet. `make lint` is green. I named the token-file ENV constant `FILE_SETTING`, because ruff's S105 flagged a name containing TOKEN. No interpretation was needed.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_image_gitconfig.py::test_the_configuration_is_readable_by_all_and_owned_by_root
