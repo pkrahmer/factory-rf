@@ -1241,15 +1241,16 @@ import tempfile
 from pathlib import Path
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.domain.errors import AgentDefinitionInvalid
-home = Path(tempfile.mkdtemp())
-(home / 'agents').mkdir()
-(home / 'agents' / 'coder.md').write_text('---\nmodel: sonnet\ntools: Read\nbudget_usd: 1\n---\nGo.\n')
-reader = FrontmatterAgentDefinitionReader(home)
-print(reader.names())
-try:
-    reader.read('coder')
-except AgentDefinitionInvalid as error:
-    print(error.key, '|', error.fault)
+with tempfile.TemporaryDirectory() as folder:
+    home = Path(folder)
+    (home / 'agents').mkdir()
+    (home / 'agents' / 'coder.md').write_text('---\nmodel: sonnet\ntools: Read\nbudget_usd: 1\n---\nGo.\n')
+    reader = FrontmatterAgentDefinitionReader(home)
+    print(reader.names())
+    try:
+        reader.read('coder')
+    except AgentDefinitionInvalid as error:
+        print(error.key, '|', error.fault)
 "
 ```
 
@@ -1278,7 +1279,7 @@ Each body starts with two paragraphs: the role's boundary as one sentence, a bla
 - `## Rules`: v1's pipeline rules, in every body. The agent ends with a decision, one of the `Allowed decisions` its prompt lists (`question` is always among them), and with a journal entry. The factory commits, pushes and moves the work item; the agent never pushes, checks out, switches, merges, pulls or calls `gh`. v1's rules on the work item, the pipeline definition, commit subjects and the pipeline files are rewritten to what the prompt, the pipeline definition and the write paths say, or dropped where the factory does them in code.
 - `## Role`: v1's role skill. `intake` and `smoke-tester` have none, because v1 had none for them.
 - `## Stage`: v1's stage skill for the agent's stage.
-- `## Lessons`: v1.1's own part, after v1's texts, and always last. It holds the lessons of v1.1's build for the role, one bullet each: the first bullet (run make targets in the foreground) is in every body; `intake`, `tester`, `coder`, `reviewer` and `documenter` have more.
+- `## Lessons`: v1.1's own part, after v1's texts, and always last. It holds the lessons of v1.1's build for the role, one bullet each: the first bullet (run make targets in the foreground) is in every body; `intake`, `tester`, `coder`, `reviewer` and `documenter` have more. Two lessons belong to the agents that run scripts outside the repository. `smoke-tester`, `acceptance-reviewer` and `documenter` end with the temporary-directory lesson: make every such file in a self-removing temporary directory (`tempfile.TemporaryDirectory()`, or `mktemp -d` with a `trap` in the shell) and leave nothing in `/tmp`. `acceptance-reviewer` ends with one more: when `make test` writes a JUnit report, read each test's time from it and name the slowest tests in the slow checks and in the cost. No other agent carries either.
 
 The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions (questionnaire 1, Q29). The words are renamed, the sentences are not rewritten in other words:
 

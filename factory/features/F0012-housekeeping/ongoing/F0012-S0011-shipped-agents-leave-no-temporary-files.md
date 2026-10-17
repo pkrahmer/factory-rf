@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 163
 blocked: null
 comments_seen: 0
@@ -86,3 +86,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - Architecture and security: no code under `src/` changed, and no marker or baseline entry was added.
       - Duplicates: `make duplicates` reports 2 new findings, but `src/factory` is not in this diff, so this story did not cause them.
       - Criterion 5 (docs) is still open for the docs stage. It still describes what the reader needs: the project guide names the two lessons and which agents carry them, and `mkdtemp` is replaced in *The agent definition reader* example.
+6. documenter: Changed only `docs/project-guide.md`; no code, so I did not run `make check`. The factory runs it next.
+   - *The agent definition reader* example now uses `tempfile.TemporaryDirectory()` in a `with` block instead of `tempfile.mkdtemp()`. I ran it and it prints `['coder']`, then `tools | invalid tools: Input should be a valid list`, as the text says.
+   - *The shipped agents, settings and template*, in the `## Lessons` bullet: it now names the temporary-directory lesson (carried by `smoke-tester`, `acceptance-reviewer` and `documenter`) and the JUnit-report lesson (carried by `acceptance-reviewer` only). It says no other agent carries either.
+   - `mkdtemp` occurs 0 times in README, the operator guide, the project guide and `docs/decisions.md`. `uv run python -m factory.entry.check_documents` prints `documents ok`.
+   - Cross-read against the diff: the claims about the `## Lessons` bullets and `tests/test_claude_agent_texts.py` in the shipped-agents section are now current. README and the operator guide don't mention agent lessons, and I left them unchanged.
+   - Findings: none. The three agent texts match the Interface.
+   - Stale text I saw but did not touch: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
