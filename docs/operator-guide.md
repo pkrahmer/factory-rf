@@ -208,7 +208,14 @@ Only two things read the file: the factory process, once, to hand the token to P
 
 An agent run's environment is an allow list of six names: `PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM` and `TZ`. The factory builds `PATH` and `HOME` itself and takes the other four from its own environment when it has them. Everything else the factory process holds (`FACTORY_TOKEN_FILE`, `GH_TOKEN`, `GITHUB_TOKEN`, `GIT_ASKPASS`, `SSH_AUTH_SOCK`, any variable of yours) is dropped at the source and never reaches an agent. The factory's own pushes and posts are not affected.
 
-The preflight item `token-file` (see "The preflight's items") checks that the file exists, belongs to the factory's user and has no permission bit for group or others. Its detail is `<path>: <fault>`, with the fault `no token file is set`, `the token file does not exist`, `the token file belongs to uid <n>, not to <m>` or `the token file has mode <mode>; make it 0600 or 0400`. Fix it with the `chown` and `chmod` above, or set `FACTORY_TOKEN_FILE`, and start the instance again.
+The preflight item `token-file` (see "The preflight's items") checks that the token file exists and that its folder belongs to the factory's user and has no permission bit for group or others. The file's own owner and mode do not count, because a bind mount shows the host's. Its detail is `<path>: <fault>`, with the fault:
+
+- `no token file is set`: `FACTORY_TOKEN_FILE` is unset. Set it (the image does) and start the instance again.
+- `the token file does not exist`: the folder or the file is missing. Put the token in the host file `secrets/hosting-token` that Compose mounts, or correct the path `FACTORY_TOKEN_FILE` names.
+- `the folder <folder> belongs to uid <n>, not to <m>`: the folder is not the factory's user's. Use the image's `/home/factory/.secrets`, or `chown` your folder to that user.
+- `the folder <folder> has mode <mode>; make it 0700`: `chmod 0700` the folder, or use the image's.
+
+The folder is checked first, so a folder the factory's user does not own is reported even when it cannot enter it.
 
 **Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs Docker and the image's second operating-system user. Check by hand once after a build, inside the container:
 
@@ -262,7 +269,7 @@ The preflight is a list of seven items, and of up to twelve with the machine's e
 | `hosting-service` | a read-only call (the open pull request of `main`) is answered | The detail holds the operation and the service's message. Check the token (`FACTORY_TOKEN_FILE`) and the network. |
 | `agents` | at least one agent file is in `FACTORY_CLAUDE_HOME` (`<it>/agents/<role>.md`) | The detail names the directory, whether it is empty, missing or unreadable. Install the agents into `FACTORY_CLAUDE_HOME`. |
 | `agent-runtime-version` | the first word of `claude --version` equals `FACTORY_CLAUDE_VERSION` | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without `FACTORY_CLAUDE_VERSION` it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set`; when `claude --version` cannot run, it holds the runtime's error. |
-| `token-file` | `FACTORY_TOKEN_FILE` names a file that exists, belongs to the factory's user and has no permission bit for group or others | The detail is `<path>: <fault>`; see "The hosting-service token" for the fix. |
+| `token-file` | `FACTORY_TOKEN_FILE` names a file that exists, in a folder that belongs to the factory's user and has no permission bit for group or others (the file's own mode does not count) | The detail is `<path>: <fault>`; see "The hosting-service token" for the four faults and the fix. |
 | `agent-user` | `FACTORY_AGENT_USER` is set, or no token file exists | Set `FACTORY_AGENT_USER`, or remove the token file; see "The agent runs as a second user". |
 | `tool:sudo` | `sudo` is on the `PATH`; the item exists only when `FACTORY_AGENT_USER` is set | As for the other tools. |
 | `agent-environment` | the `PATH` of the agent run's environment holds the command `factory-guard`, and its `HOME` is an existing directory | The detail names each fault: `the agent run has no PATH`, `factory-guard is not on the agent run's PATH <path>`, `the agent run has no HOME` or `the agent run's HOME <dir> is no directory`. Install `factory-guard` in the same environment as the factory, since Claude Code treats a hook that cannot start as not blocking and the guard would let every write through. Create the agent user's home (the parent of `FACTORY_CLAUDE_HOME`). |

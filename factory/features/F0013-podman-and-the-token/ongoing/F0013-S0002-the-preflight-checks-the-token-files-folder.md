@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 183
 blocked: null
 comments_seen: 0
@@ -105,3 +105,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - Security: no suppression markers, and the fault texts expose only the configured path, its owner uid and its mode.
       - Quality: `_token_file_fault` runs the checks in order and `_token_folder_fault` checks the folder. The comments explain why. The renamed `_MISSING_FILE_FAULT` constant avoids a `noqa`. The public docstring says what the item checks now. `make duplicates` reported 0 new findings.
       - Ticket hygiene: the log gives the design split and the version that was rejected. `Assignment` matches the code. Criterion 9 still describes what the documenter has to write.
+6. documenter: wrote criterion 9; no findings. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only documents.
+   - `docs/operator-guide.md`: the `token-file` paragraph in *The hosting-service token* now says what the item checks (the file exists; its folder belongs to the factory's user and has no bit for group or others; the file's own mode does not count). It lists the four faults, each with its fix. Its row in *The preflight's items* says the same.
+   - `docs/project-guide.md`: the `token_file_item` sentence now describes the folder check and the `stat` order (`path.parent`, then `path` only when the folder passes).
+   - `docs/decisions.md`: added the entry "The preflight checks the token's folder, not the file", with why and what was rejected. I removed the sentence in the F0013-S0001 entry that said the next story would move the check, since it is now done.
+   - Cross-read and found current: README; the other parts of the operator guide on the token folder, `agent-user` and the morning observation; the project guide's wiring sections. The code matches the Interface.
+   - Stale and unrelated, left alone: nothing seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
