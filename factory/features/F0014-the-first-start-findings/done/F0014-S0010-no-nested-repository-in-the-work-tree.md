@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 194
 blocked: null
 comments_seen: 4
@@ -308,3 +308,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     Met its `Expect:` line: `140 passed`, with no `failed`, `error` or `skipped` count.
 
     Checked against the acceptance criteria: nothing in the demo contradicts any of them. Command 1 covers criterion 1 and command 2 covers rows of criterion 3. Command 3 runs the test modules for criteria 2–8 and the earlier-story modules named in criteria 7 and 11. It does not include the preparer's tests (criteria 9, 10 and 12), so those are left to the factory's `make check`. No findings.
+14. done (pull request merged); cost: 10 runs, 14.8 min, 117 turns, 408k tokens in (3261k more from cache), 57k out, $3.85
