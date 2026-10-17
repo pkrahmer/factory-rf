@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 169
 blocked: null
 comments_seen: 2
@@ -119,3 +119,15 @@ Expect: the single line `status 1`.
    - Criterion 6: the coder's entry reports `make check` green (coverage 99.51 %), and `make duplicates` reports 0 new findings.
    - Architecture and security: a test-only change, with the new module at the `tests/` root as `CLAUDE.md` says for a module outside the layers. No silencing markers, no secrets, no strings run as shell commands.
    - Ticket hygiene: the Assignment matches what was built. Criterion 7 (project guide section *The models' configuration* after *Errors*, and a decision log entry for the rule and its six exceptions) is still open for the documenter.
+8. documenter: wrote the criterion-7 documentation.
+   - `docs/project-guide.md`: new section *The models' configuration* after *Errors*. It says every model is frozen and forbids unknown keys, that `tests/test_model_configuration.py` checks all of them at once (so a new model needs no test of its own for that), and that a tool-output model declares `extra="ignore"` and joins the test's `EXCEPTIONS` by dotted name. It names the six.
+   - `docs/decisions.md`: new entry recording the rule, the six exceptions and the rejected alternatives (a test per model, a base class).
+
+   `python -m factory.entry.check_documents` prints `documents ok`. I ran no `make check`, since I changed only documents.
+
+   Cross-read and found current: README, `docs/operator-guide.md`, and the other statements in the project guide that say a model is frozen and forbids unknown keys. The diff is tests only, so no name or behaviour in the docs changed.
+
+   No findings for the coder. Nothing stale seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
