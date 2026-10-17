@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 189
 blocked: null
 comments_seen: 0
@@ -55,3 +55,13 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (28.1 s)
+4. coder: nothing implemented and no commit, because criterion 1 says so. This story only changes documents, its Interface is "None", and the tester added no test.
+      - criterion 1: I left `src/`, `image/`, `template/`, `claude/` and `tests/` untouched. `git status` showed a clean working tree when I finished.
+      - criterion 2: I ran `make check` on the branch and it ended with `check: green` (test: green, coverage 99.50 %).
+      - criterion 3 (docs) belongs to the documenter. It needs: README.md and the operator guide's introduction, *Build it*, *The health check and the restart policy*, and the heading *Replace the placeholders before the first build* renamed to *Update the pins*.
+      Refactor: no diff, so nothing to clean up.
+      Rejected: making the documentation edits myself. The coder does not write `README.md` or `docs/` (CLAUDE.md, Docs).
+      Open: nothing for the reviewer in code. The documenter does criterion 3.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
