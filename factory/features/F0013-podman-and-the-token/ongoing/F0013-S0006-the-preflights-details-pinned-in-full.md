@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 188
 blocked: null
 comments_seen: 0
 round: 0
@@ -61,3 +61,10 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 feature acceptance of F0013: proposed.
+2. intake: accepted
+   - Interface: no new names. The table gives the exact detail text for each of the four items, with placeholders for the values. It also names the four tests to strengthen and the human's leave for that (FEATURE.md decision 16).
+   - Criteria: each one is testable by one parametrized test. Criterion 1 covers the four single faults and the PATH+HOME pair. Criterion 2 covers four end reasons, each with and without an agent user. Criteria 3 and 4 pin the exact hosting-service and runtime-version details. Criterion 5 covers the passing side: the existing passing tests stay green. Every rule in the table has a case for the faulty side and the passing side.
+   - Demo: both commands are runnable. Each Expect line is checkable: an exact string, and a pytest summary line with no failed, error or skipped count.
+   - Architecture: the story touches only application-layer tests and one operator-guide paragraph. It needs no change in src and crosses no layer.
+   - Scope: it is within the feature acceptance's follow-up on the survivors of F0013's mutants. It is not listed under the feature's Out of scope.
+   Caveat: I did not read preflight.py or the four tests. The story itself says the code already behaves as the criteria state.
