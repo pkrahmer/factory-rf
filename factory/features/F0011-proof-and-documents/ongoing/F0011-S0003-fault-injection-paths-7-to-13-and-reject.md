@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 147
 blocked: null
 comments_seen: 4
@@ -253,3 +253,27 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     `make check`: check: green
 
     `make check`: check: green
+15. reviewer: no findings.
+
+    - Group 1, criteria. Criteria 1 to 11 each have a test, and each test checks what its criterion says:
+      - The round cap is tested on both sides: `round == 3` with no `round_cap` post after the third send-back, and the kill at `AFTER_POST` on the fourth.
+      - The attempts cap is tested on both sides: `retrying` is in the first stall post and not in the second, and there is no `attempts_cap` post until the third tick.
+      - Path 9 covers both halves: `move_back`, stage `tests` and one `correction` post; then `status().changes` empty right after the kill and `origin/main` unchanged.
+      - Paths 10 to 13 follow their criteria, tick for tick and assertion for assertion.
+      - Criterion 9: all thirteen rows in number order.
+      - Criterion 10: each name is in exactly one of the two modules.
+      - Criterion 11: at most 90 characters, a property of the rows, as the Interface states.
+      - The coder's entry 14 reports `make check` green.
+    - Group 2, architecture. The diff under `src/` is the seven data rows in `src/factory/domain/fault_paths.py` (pure domain data, no I/O). They match the Interface table, and the first six rows are unchanged.
+    - Group 3, security. Nothing to report: no markers, no secrets, no string-built commands. The `CLAUDE.md` and `docs/runs/` changes on the branch are the human's own commits.
+    - Group 4, quality. The three duplicates from entry 9 are gone, as the human chose in entry 11 (option (b)):
+      - `world` and `work_item` are defined only in `tests/conftest.py`.
+      - `rerun` is one public helper with a docstring in `tests/proof_support.py`.
+      - Neither path module keeps a local copy.
+      - `work_item_file` matches the Interface's revised sentence (the `.md` file only), and `_booked` uses the same `.md` narrowing.
+    - Group 5, ticket hygiene. The log explains the main decisions and what was rejected: the `.md` narrowing over removing the cost sidecar (entry 5), and the full dedup with leave to change S0002's tests (entry 11). `Assignment` matches what was built. Criterion 13 still says what the documenter must add: rows 7 to 13 in *Fault-injection paths* and the decision-log entry.
+
+    Noticed, not findings:
+    - `tests/test_fault_paths_7_to_13.py::_branch_state` repeats the three lines of `show_file`-then-parse that `tests/proof_support.py::_state_at` (private) does. It is small enough that I let it stand.
+    - `tests/proof_support.py::_rerun` could call the new `rerun` (coder, entry 14), and `tests/test_fault_path_names.py` still checks only the first six rows. Neither file is in this diff.
+    - For the documenter: `docs/project-guide.md:1586` names `start_story`, `run_ticks` and `restart` as the steps of a scenario. It could also name the shared `work_item` fixture and `rerun`, so the next fault-path test reuses them instead of copying them.
