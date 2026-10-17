@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 189
 blocked: null
 comments_seen: 0
@@ -71,3 +71,15 @@ Expect: `documents ok`.
       - 2. Architecture, 3. Security, 4. Quality: no code changed, so nothing to judge.
       - 5. Ticket hygiene: the log gives the main decision (documentation only, no test and no code) and what was rejected (a grep test under `tests/`, and the coder writing the documents). The Assignment matches what was built, which is nothing outside the ticket. The docs criterion names each sentence and heading the documenter changes: README and the guide's introduction, *Build it*, *The health check and the restart policy*, and the heading becoming *Update the pins*. It also says that `documents ok` must still print.
       Open: the documenter writes criterion 3. The Demo grep then expects `README.md:0` and a count below 4 for `docs/operator-guide.md`.
+6. documenter: wrote criterion 3; documents only, so I did not run `make check` (the factory runs it).
+   Files changed:
+   - `README.md`: "a real container is not yet observed" now says the image was built and started once under rootless Podman (probe of 2026-10-17, without the pins) up to the stop `repository_unavailable`, and that a run against a real repository with a token is not observed yet.
+   - `docs/operator-guide.md`, introduction: the same replacement.
+   - `docs/operator-guide.md`, *Build it*: the probe's build took 42 s under Podman 5.8.3 without the pins. A build with the pins of `image/Dockerfile` stays the morning observation. I dropped the "v1's container has no Docker" sentence because it is no longer true.
+   - `docs/operator-guide.md`, *The health check and the restart policy*: the probe saw the health check run under Podman, report `starting`, then the stop's text, exit 1. `docker compose ps` over a container with a stop standing stays the morning observation.
+   - `docs/operator-guide.md`: the heading *Replace the placeholders before the first build* is now *Update the pins*, and its text is unchanged. Nothing else in the repository linked to the old heading.
+   Checks: the Demo grep gives `README.md:0` and `docs/operator-guide.md:0`, which meets "lower than 4". `uv run python -m factory.entry.check_documents` prints `documents ok`.
+   Cross-read: the *Container runtimes* section and the remaining "Morning observation" paragraphs (the second user and sudo rule, the agent run, the Linux `podman-restart.service`) are current and still open, so I left them. The code contradicts nothing. No findings, and no unrelated stale prose seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
