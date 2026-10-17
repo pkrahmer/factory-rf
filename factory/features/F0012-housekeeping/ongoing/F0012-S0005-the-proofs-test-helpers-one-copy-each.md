@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 157
 blocked: null
 comments_seen: 0
@@ -126,3 +126,12 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    - Ticket hygiene: the tester's entry explains why the tester did the whole refactor (everything is under `tests/`). The Assignment matches what was built.
 
    Open: criterion 7, the project guide's *Fault-injection paths* and *The kill-point cases*, is the documenter's.
+6. documenter: changed only `docs/project-guide.md`, for criterion 7.
+   - *Fault-injection paths*: the pytest command no longer names `tests/test_fault_path_names.py`. A short paragraph after it says that `rerun_seconds` and `branch_state` of `tests/proof_support.py` are the proof's helpers for the time from kill to rerun and for a work item's state on its branch (`None` when there is no branch).
+   - *The kill-point cases*: the `CRASH_CONDITIONS` list now names the rerun's claim five seconds after the kill.
+   - `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed no file outside `docs/`; the factory runs it next.
+   - Cross-read: the rest of the project guide's proof sections, the README and the operator guide name none of the changed helpers, so they are current.
+   - Nothing stale seen that is unrelated to this story. No findings for the coder.
+
+   `make check`: check: green
+   `make documents`: documents ok
