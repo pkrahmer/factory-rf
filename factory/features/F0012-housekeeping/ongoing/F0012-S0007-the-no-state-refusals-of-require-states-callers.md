@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 159
 blocked: null
 comments_seen: 0
 round: 0
@@ -65,3 +65,9 @@ Expect: a number of at least 5, one test function per call.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: no new names; five existing public calls with concrete module paths, signatures, exceptions and messages. I checked the messages against `src/factory/application` (claims.py 76 and 111, recovery.py 57, task.py 140, stalls.py 137): they match.
+   - Criteria: criteria 1 to 5 each name one call, the exception, its fields or message, and the side effects (branch unchanged, no post, no pull request). Each is testable by one test function. Criterion 2 covers both sides of `release` (no state refused, claimed state cleared) in one parametrized test. Every refusal in the Interface has its criterion, and the Interface has no passing side to add.
+   - Demo: both commands are runnable. The expectations are checkable: `n passed` with n at least 6, and a `def test_` count of at least 5.
+   - Architecture: the story only adds a test module under `tests/application/`, which mirrors the package. It uses the services' existing constructors and the fixtures of `tests/conftest.py`, with the fake hosting service and no mocks of the code under test.
+   - Scope: within F0012 scope item 1.2, which takes in the parked draft F0008-S0007 (decision 5). It is not in "Out of scope". No test of another module changes.
