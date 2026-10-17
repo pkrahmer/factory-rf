@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 157
 blocked: null
 comments_seen: 0
@@ -135,3 +135,19 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their `Expect:` lines; no findings.
+
+   1. `ls tests/test_fault_path_names.py; grep -n "def _rerun_seconds\|def _branch_state\|def _state_at\|def _opening_text" tests/proof_support.py tests/test_kill_points.py tests/test_fault_paths_7_to_13.py; echo "status $?"`
+   ```
+   ls: cannot access 'tests/test_fault_path_names.py': No such file or directory
+   status 1
+   ```
+   Met: `ls` reports that the file does not exist, grep finds none of the four old helper definitions, and the output ends with `status 1`.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/test_kill_points.py tests/test_proof_support.py tests/test_fault_paths_table.py 2>&1 | tail -1`
+   ```
+   67 passed in 20.38s
+   ```
+   Met: one line that says `passed`, with no `failed` or `error`.
+
+   Against the criteria: command 1 covers the absence parts of criterion 4. Command 2 runs the tests for criteria 1–3 and part of criterion 5 (`test_fault_paths.py` and `test_fault_paths_7_to_13.py` were not in the demo; the earlier entries record them green under `make check`). The demo contradicts no criterion. I did not rerun `make check`, because the factory runs it as the gate.
