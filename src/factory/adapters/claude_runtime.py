@@ -323,9 +323,9 @@ def _resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunRe
     )
 
 
-def _sudo_line(stderr: str) -> str | None:
+def _line_starting(stderr: str, prefix: str) -> str | None:
     for line in stderr.splitlines():
-        if line.startswith(SUDO_PREFIX):
+        if line.startswith(prefix):
             return line
     return None
 
@@ -333,10 +333,10 @@ def _sudo_line(stderr: str) -> str | None:
 def _login_refusal(process: ProcessResult) -> str | None:
     if _parse_reply(process.stdout) is not None:
         return None
-    for line in process.stderr.splitlines():
-        if line.startswith(LOGIN_PREFIX):
-            return line.removeprefix(LOGIN_PREFIX).strip()
-    return None
+    line = _line_starting(process.stderr, LOGIN_PREFIX)
+    if line is None:
+        return None
+    return line.removeprefix(LOGIN_PREFIX).strip()
 
 
 def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
@@ -344,7 +344,7 @@ def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | Non
         return None
     if _parse_reply(process.stdout) is not None and not process.timed_out:
         return None
-    return _sudo_line(process.stderr)
+    return _line_starting(process.stderr, SUDO_PREFIX)
 
 
 def _killed_at_limit(
