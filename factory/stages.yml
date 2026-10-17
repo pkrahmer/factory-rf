@@ -33,6 +33,7 @@ stages:
     agent: coder
     next: [review, tests]   # tests: the human approved a test change; the tester makes it
     checks: [check]
+    records: [duplicates]   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
   review:
     agent: reviewer
     next: [docs, doing]
@@ -41,7 +42,7 @@ stages:
     agent: documenter # writes what the reader needs, cross-reads the rest for staleness
     next: [demo, doing]
     max_rounds: 2
-    checks: [check]
+    checks: [check, documents]   # the four documents pass the document check (F0012, 1.9)
   demo:
     agent: demo       # runs the demo; the dispatcher then marks the pull request ready
     next: [accept, doing]

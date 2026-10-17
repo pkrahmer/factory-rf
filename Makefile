@@ -3,7 +3,7 @@
 # its own (the type check is skipped there, because the modules under test do not exist yet).
 # What each target runs is the repository's business; this file is a Python example. `types` and
 # `layers` are in `check`, not in `lint`: the tests stage runs `lint` only.
-.PHONY: check lint types layers sast secrets licenses test
+.PHONY: check lint types layers sast secrets licenses test duplicates documents
 .SILENT:
 
 # One shell per recipe, stopped by its first failing line, so that a recipe can time itself.
@@ -75,3 +75,15 @@ test:
 	mkdir -p .reports
 	uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist load 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered
 	$(green)
+
+# Similar code (pylint's duplicate-code) and dead code (vulture) in src/factory, against the
+# accepted findings in security/duplicates-baseline.txt; a record, never a check.
+duplicates:
+	mkdir -p .reports
+	uv run pylint --disable=all --enable=duplicate-code --output-format=json --exit-zero src/factory > .reports/similar-code.json
+	uv run vulture src/factory --min-confidence 60 --ignore-decorators "@field_validator,@model_validator" --ignore-names model_config > .reports/dead-code.txt || [ $$? -eq 3 ]
+	uv run python -m factory.entry.check_duplicates --baseline security/duplicates-baseline.txt .reports/similar-code.json .reports/dead-code.txt
+
+# The four documents against the document check: a check of the docs stage, not of `check`.
+documents:
+	uv run python -m factory.entry.check_documents
