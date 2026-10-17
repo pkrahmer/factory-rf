@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 146
 blocked: null
 comments_seen: 0
@@ -102,3 +102,27 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Demo: both blocks are runnable. Each `Expect:` line is checkable: `True True True` plus the test name, and a `passed` last line with no `failed` or `error`.
    - Architecture: the new module is a pure domain DTO and the helpers sit in the tests. Nothing crosses a layer, and the story needs no new dependency.
    - Scope: paths 1 to 6 are within the feature's "thirteen fault-injection paths" scope. Paths 7 to 13 are left to F0011-S0003. The baseline run and a real container kill, which are out of scope, are not touched.
+3. tester: wrote the tests for criteria 1 to 11 and the two helpers from the Interface.
+      - criterion 1: tests/test_fault_paths.py::test_intake_question_tick_killed_during_intake_run_reruns_free_and_asks_once
+      - criterion 2: tests/test_fault_paths.py::test_a_smoke_test_without_expect_is_caught_by_the_story_form. It is parametrized over two cases: `Expect:` kept gives no finding, and `Expect:` replaced by an empty line gives at least one. The story is `STORY.format(title="Example")`, which is the text `start_story` writes. It is checked against `git_support.STORY_FORM` with `folder="backlog"`.
+      - criterion 3: tests/test_fault_paths.py::test_intake_edge_case_question_killed_between_commit_and_push_reruns_intake_and_posts_once
+      - criterion 4: tests/test_fault_paths.py::test_tester_question_killed_between_post_and_record_posts_once
+      - criterion 5: tests/test_fault_paths.py::test_review_rework_after_reviewer_run_dies_charges_one_attempt_then_one_round
+      - criterion 6: tests/test_fault_paths.py::test_docs_finding_tick_killed_after_move_back_push_counts_round_once_and_next_stage_starts
+      - criterion 7: tests/test_fault_paths.py::test_smoke_test_finding_after_run_reaches_time_limit_charges_one_attempt_then_moves_back
+      - criterion 8: tests/domain/test_fault_paths.py::test_the_first_six_paths_are_the_six_rows_in_number_order
+      - criterion 9: tests/domain/test_fault_paths.py::test_every_path_arms_the_kill_point_of_a_known_case
+      - criterion 10: tests/domain/test_fault_paths.py::test_a_built_path_refuses_the_assignment_of_a_field and tests/domain/test_fault_paths.py::test_a_path_refuses_an_unknown_key_and_a_wrong_type. The second is parametrized over an unknown key and `number="one"`, built through `type[BaseModel]`, and also builds one valid row.
+      - criterion 11: tests/test_fault_path_names.py::test_every_path_test_is_a_function_of_the_path_tests and tests/test_fault_path_names.py::test_every_path_test_name_is_at_most_ninety_characters. The first reads the module-level function names of tests/test_fault_paths.py with `ast`.
+      - Files created: tests/domain/test_fault_paths.py, tests/test_fault_path_names.py, tests/test_fault_paths.py.
+      - Files changed: tests/proof_support.py.
+        - Added `drive_to` and `timed_out` as the Interface describes. `drive_to` pushes the Makefile `PASSING_MAKEFILE` only when `main` differs, and stops after 20 ticks with an AssertionError.
+        - Added a small public helper, `branch_cost_records`, which reads the work item's cost sidecar on `origin/<branch>` through the existing `_costs`.
+        - Made the private `_tick_until_killed` public as `tick_until_killed` and gave it a docstring. Path 3 needs "the first tick that posts raises", and this avoids writing a second copy.
+      - `make test`: tests/domain/test_fault_paths.py and tests/test_fault_path_names.py fail at collection because `factory.domain.fault_paths` does not exist yet. That is the only module the test runner could not import.
+      - tests/test_fault_paths.py does not import the new module. Its 8 cases (the six paths plus the two cases of criterion 2) already passed in a single exploratory pytest run on the current code. So the paths found no defect under `src/`, and the coder's work is `src/factory/domain/fault_paths.py`.
+      - `make lint` is green. I did not run the type check, as the stage skill says.
+      - Open: none.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!

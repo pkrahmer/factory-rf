@@ -100,6 +100,10 @@ Expect: nothing.
 
 ## Journal
 """
+PASSING_MAKEFILE: Final[str] = "check:\n\ttrue\nlint:\n\ttrue\ntest:\n\ttrue\n"
+PASSING_TEST = "def test_example() -> None:\n    assert True\n"
+SOURCE = "EXAMPLE = 1\n"
+DRIVE_LIMIT = 20
 _STORY_NUMBER = re.compile(r"F0001-S(\d{4})")
 
 
@@ -293,6 +297,12 @@ def died(*, writes: dict[str, str] | None = None, kill: bool = False) -> Scripte
     return ScriptedRun(writes=writes or {}, result=result, kill=kill)
 
 
+def timed_out(*, writes: dict[str, str] | None = None) -> ScriptedRun:
+    """A run that reaches its time limit after 40 minutes, without decision or entry."""
+    result = AgentRunResult(end_reason="time_limit", duration=timedelta(minutes=40))
+    return ScriptedRun(writes=writes or {}, result=result)
+
+
 def _question(*, writes: dict[str, str] | None = None, kill: bool = False) -> ScriptedRun:
     return completed("question", QUESTION, writes=writes, kill=kill)
 
@@ -345,7 +355,8 @@ def _state_at(world: World, ref: str, path: str) -> WorkItemState | None:
     return world.boundaries.work_item_reader.parse(text).state
 
 
-def _tick_until_killed(world: World, limit: int = 3) -> KillPoint:
+def tick_until_killed(world: World, limit: int = 3) -> KillPoint:
+    """Run ticks until one raises `InjectedKill`, at most `limit`; return the point it names."""
     for _ in range(limit):
         try:
             world.tick.run()
@@ -362,7 +373,7 @@ class _Kill:
 
 
 def _kill(world: World, work_item: WorkItemId) -> _Kill:
-    point = _tick_until_killed(world)
+    point = tick_until_killed(world)
     world.boundaries.git.fetch()
     starts = _claim_commits(world, work_item, f"origin/{branch_name(work_item)}")
     return _Kill(point=point, at=world.clock.now(), stage_start=starts[0] if starts else None)
@@ -440,6 +451,38 @@ def run_case(case: KillPointCase, root: Path) -> CaseResult:
     return SCENARIOS[case.id](build_world(root))
 
 
+def _drive_run(stage: str, next_stage: str) -> ScriptedRun:
+    writes = {"tests": {"tests/test_example.py": PASSING_TEST}, "doing": {"src/example.py": SOURCE}}
+    return completed(next_stage, writes=writes.get(stage))
+
+
+def _current(world: World, work_item: WorkItemId) -> WorkItemState:
+    world.boundaries.git.fetch()
+    if world.boundaries.git.resolve(f"origin/{branch_name(work_item)}") is None:
+        return initial_state(STAGE)
+    return head_state(world, work_item)
+
+
+def drive_to(world: World, work_item: WorkItemId, stage: str) -> None:
+    """Tick the started `work_item` through each stage's first move until it waits at `stage`."""
+    git = world.boundaries.git
+    git.fetch()
+    if git.show_file("origin/main", "Makefile") != PASSING_MAKEFILE:
+        world.human.push_file("main", "Makefile", PASSING_MAKEFILE)
+    definition = world.boundaries.pipeline_reader.parse(PIPELINE_YAML)
+    for _ in range(DRIVE_LIMIT):
+        state = _current(world, work_item)
+        if stage == "approval" and state.handed_over == "approval":
+            return
+        if stage != "approval" and state.stage == stage and state.claim is None:
+            return
+        role_stage = definition.stages[state.stage]
+        if role_stage.next and state.stage != "approval":
+            world.agent_runtime.queue(_drive_run(state.stage, role_stage.next[0]))
+        world.tick.run()
+    raise AssertionError(f"{work_item} did not reach {stage} in {DRIVE_LIMIT} ticks")
+
+
 def head_state(world: World, work_item: WorkItemId) -> WorkItemState:
     """The work item's state on `origin/<branch>`."""
     world.boundaries.git.fetch()
@@ -515,6 +558,12 @@ def _stall_commit(world: World, work_item: WorkItemId) -> CommitId | None:
         if state is not None and any(record.kind == "stall" for record in state.journal):
             adding = info.commit
     return adding
+
+
+def branch_cost_records(world: World, work_item: WorkItemId) -> list[CostRecord]:
+    """The cost records of the work item's sidecar on `origin/<branch>`."""
+    world.boundaries.git.fetch()
+    return _costs(world, work_item, f"origin/{branch_name(work_item)}")
 
 
 def _branch(result: CaseResult) -> str:
