@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 165
 blocked: null
 comments_seen: 0
@@ -152,3 +152,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
       - Security: no secrets, no suppression markers, no shell or string-built commands; the record path comes from the settings.
       - Quality: names and docstrings fit the project's conventions, and the comments explain why (one write per line; telemetry must not lose a result). `CommandRecord` reuses the existing types (`CommandName`, `CommitId`, `UtcDatetime`, `Duration`, `CheckStatus`, `TargetTime`) rather than redefining them. Considered and not raised: the blank-line skip in `JsonLinesRecordLog._parse` (`src/factory/adapters/record_log_jsonl.py:34`) has no test and changes nothing, because `model_validate_json` raises `ValidationError` for a blank line anyway. It follows the Interface's "each non-blank line" literally. The 2 new `make duplicates` findings (`used_bytes` in `adapters/disk_space.py` and `application/machine.py`) are in files this diff does not touch.
       - Ticket hygiene: the coder's entry gives the main decision (`command` comes from the caller's argument) and the rejected alternative (a separate reader and writer pair like the cost records). `Assignment` matches what was built, and criterion 11 still describes what the documenter must write.
+6. documenter: Documented the project command records (criterion 11). Only documents changed, so I did not run `make check`; the factory runs it next.
+   - `docs/operator-guide.md`: new part *The records* in the factory log and health status section. It covers `records/project-commands.jsonl`, a table of the fields, that the file is telemetry the operator may delete, what happens when a line cannot be written or is torn, and a one-line `python3 -c` count of `check` runs per commit. I ran the one-liner on a sample file with the path changed and it printed the count. It uses `/state/...` as written.
+   - `docs/project-guide.md`: *Project commands* now names `RecordingProjectCommands`, `CommandRecord`, `RecordLog` and `JsonLinesRecordLog`, with the behaviour and error rules and the wiring path.
+   - `docs/decisions.md`: new entry on why the records are telemetry in the state directory and not committed. It also notes the caller's `command` and the single generic log, and lists what was rejected.
+   - Cross-read against the diff: the rest of both guides' project-commands and wiring text is still true. `python -m factory.entry.check_documents` prints `documents ok`.
+   - No findings: the code matches the Interface. I saw no stale text outside this story.
+   - One claim I did not check in code: the operator guide says the stage checks, the preflight probe and the check of `main` all go through the recorder. This relies on `build_boundaries` handing out the one `RecordingProjectCommands` to all of them.
+
+   `make check`: check: green
+   `make documents`: documents ok

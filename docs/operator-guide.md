@@ -310,6 +310,30 @@ Missing parent directories are created. If the file cannot be written, the line 
 - A file that is missing, cannot be read, is not JSON or is not a valid status reads as healthy (no stops). Do not repair it by hand: the next stop that is raised replaces the whole file, and a fault that lasts is raised again.
 - A write goes to a temporary file in the same directory and replaces `health.json` in one step, so a reader never sees half a file. If `health.json` is a directory, the write fails with an `OSError` and leaves nothing behind.
 
+### The records
+
+`records/project-commands.jsonl` in the state directory (`/state/records/project-commands.jsonl`) holds one JSON line for every project command the factory runs (`check`, `lint`, `test` and the rest), whoever asked for it: the stage checks after an agent, the preflight's probe and the check of `main`. The folder is created on the first run. A line has these fields:
+
+| Field | Meaning |
+|---|---|
+| `command` | The make target, for example `check`. |
+| `commit` | The 40-character commit of the checkout's `HEAD` when the command started; `null` when it cannot be read. |
+| `started_at` | When the command started, UTC with an offset. |
+| `duration_seconds` | How long it ran, in seconds. |
+| `status` | `passed`, `failed` or `time_limit`. |
+| `exit_status` | The exit status; `null` for `time_limit`. |
+| `targets` | For each target that ended green, `{"target": ..., "seconds": ...}`, in the order printed (for `check`, the time of each of its targets). |
+
+The records are telemetry beside the factory log, not a work item's state: they are not committed and nothing reads them to decide anything. You may delete the file at any time; the next run starts a new one. A command that raises an error (a missing `make`, a time limit of 0) leaves no record. When a line cannot be written, the factory log gets `cannot write the record of <command>: <error>` and the run goes on. A line cut off by a kill is skipped when the file is read.
+
+To count the `check` runs of each commit, with the most-run commits first:
+
+```bash
+python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in map(json.loads, open('/state/records/project-commands.jsonl')) if r['command']=='check').most_common())"
+```
+
+A commit that appears more than once was checked more than once.
+
 ## The stops
 
 Every stop the factory raises has one destination. A stop of the repository or the machine goes to the health status and to a line of the factory log. A stop of one work item goes once on that work item's pull request. One case, a backlog story that names a later stage in its own file, has no stop. Every line about a stop in the factory log is time-stamped (see "The factory log").
