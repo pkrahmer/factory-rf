@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 173
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 3
 attempts: 0
 ---
@@ -169,3 +169,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
        I did not reach group 5 (ticket hygiene).
 
     This story has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
+12. human (pull request comment, 2026-10-17): Go forward: the story passes review as it is. The second assembly of the backlog path in `check_demos.py` (instead of `work_item_path(feature, "backlog", story)`) is left for now and recorded as a FEATURE decision for a later fix; behaviour does not change.
