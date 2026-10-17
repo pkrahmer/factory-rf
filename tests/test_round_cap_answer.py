@@ -22,6 +22,7 @@ def test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over(
         world.tick.run()
     world.agent_runtime.queue(completed("doing", "Finding."))
     world.tick.run()
+    world.tick.run()
     capped = head_state(world, work_item)
     caps_asked = posts(world, work_item, "round_cap")
 

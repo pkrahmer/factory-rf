@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 171
 blocked: null
 comments_seen: 2
@@ -79,3 +79,9 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
 6. coder: tests. The human chose (a) in entry 5, so the test needs one change: in `tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over`, add one `world.tick.run()` after the fourth send-back tick (line 24, after `world.agent_runtime.queue(completed("doing", "Finding."))` and its `world.tick.run()`) and before `capped` and `caps_asked` are read (line 25). That extra tick posts the round cap question that the blocking tick recorded.
       - The implementation is already committed (ee88826): `src/factory/domain/answers.py` `unblock` sets `round=0` for a `round_cap` wait, and `src/factory/domain/post_texts.py` `round_cap_question` returns the Interface's text. When I tried this change in a scratch copy in entry 4, the test passed against this implementation. No code changed in this run.
       - Once the tester has made the change, the ticket comes back here for the refactor step and `review`. The diff is 5 lines and probably needs no refactor.
+7. tester: approved test change made, as the human chose (a) in entry 5 and the coder named in entry 6.
+      - Changed: `tests/test_round_cap_answer.py::test_an_answer_at_the_round_cap_starts_the_count_of_rounds_over`. Added one `world.tick.run()` after the fourth send-back tick and before `capped` and `caps_asked` are read. The blocking tick only records the round cap question; this extra tick posts it, the way the fault-path test does. That way the question is posted before the human comment, and `len(caps_asked) == 1` holds. Nothing else in the test changed, and no other file changed.
+      - `make test`: green against the coder's commit ee88826 (test: green (28.2 s), coverage 99.51 %).
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.6 s)
