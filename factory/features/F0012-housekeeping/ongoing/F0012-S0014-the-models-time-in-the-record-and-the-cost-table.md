@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 166
 blocked: null
 comments_seen: 0
@@ -177,3 +177,28 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
 
    `make check`: check: green
    `make duplicates`: duplicates: 2 new, 39 known, 0 gone
+9. reviewer: reviewer (round 1): no findings. The diff passes all five checklist groups.
+
+   - Acceptance criteria:
+     - Each of criteria 1 to 11 has a parametrized test or a single test named after it, and each tests what its criterion says.
+     - Last round's finding is closed. `tests/adapters/test_claude_runtime_resume.py::test_model_duration_is_the_replys_api_time` now has the row `zero` beside `negative`, so `_Reply.duration_api_ms` is tested on both sides of its `NonNegativeInt` limit.
+     - `CostRecord.model_seconds` is tested on both sides: 0 and -1, plus nan and a started record.
+     - The resume rows cover the sum, each case where only one call is known, both unknown, and a resume the time limit ended.
+     - The changes to the pinned tests stay within FEATURE decisions 37 and 38: `COMPLETED_LINE`, `STARTED_LINE` and `_completed()` in `tests/adapters/test_cost_records_jsonl.py`, and the expected table in `tests/domain/test_bills.py`.
+     - The reader test for an older line is in a new module, `tests/adapters/test_cost_records_jsonl_model_seconds.py`, so no other change touches an earlier story's tests.
+     - The coder's entry 8 reports `make check` green.
+   - Architecture:
+     - The reply is parsed in `adapters/claude_runtime.py`, the new fields are in `domain` (`agent_runs.py`, `cost_records.py`, `bills.py`), and the record is copied in `application/costs.py`.
+     - No new import crosses a layer, and nothing is new in the dependencies.
+   - Security: nothing new at a boundary beyond the Pydantic-validated `_Reply` field. No suppression markers, no secrets.
+   - Quality:
+     - Extending `_add` with `timedelta` reuses the existing rule that sums the known values, instead of adding a second copy.
+     - `_known_duration` and `_minutes(timedelta)` each now serve both columns.
+     - The duplicate `_seconds` I noted in round 1 was removed in commit 15382be.
+     - The docstrings of `Bill`, `AgentRunResult` and `CostRecord` still describe the classes, including the unknown-is-`None` rule.
+   - Ticket hygiene:
+     - The log gives the main decision (reusing `_add`) and the alternatives rejected (a separate adder, a shared domain helper).
+     - `Assignment` and the Interface match what was built. The writer `cost_records_jsonl.py` needed no change, because `model_dump` already writes keys in field order.
+     - The docs criterion (13) still describes what the documenter must write.
+
+   Open, not part of this ticket: `make duplicates` reports 2 new vulture hits on `used_bytes` in `src/factory/adapters/disk_space.py:19` and `src/factory/application/machine.py:48`. Both files are outside this diff.
