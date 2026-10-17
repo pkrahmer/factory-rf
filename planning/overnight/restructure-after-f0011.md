@@ -119,6 +119,16 @@ The human asked whether more telemetry helps; the session measured the split of 
 - The disk record of the watch above.
 - Not: a generic tracing system, or sampling `docker stats`.
 
+## A project's own skills (the human's word, 2026-10-17)
+
+Today no agent of v1.1 can load a skill: Claude Code finds a project's `.claude/skills/` (the agent runs in the project's checkout and v1.1 does not turn the project's settings off), but each shipped agent in `claude/agents/` passes its tools to `claude -p` explicitly, and none lists `Skill`. v1 delivered its own rules as skills; F0010-S0017 folded them into the agent files (F0010 decision 36), and no story kept the tool, so a project lost a way v1 had to bring its own know-how. In v1.1, as a small story after the housekeeping story (or in it):
+
+- `Skill` joins the tools of the agents that work on the project (tester, coder, reviewer, documenter; the intake, the smoke tester and the acceptance reviewer to be decided in the story), and `tests/test_claude_files.py` follows.
+- Each agent file says that its own rules come first where a project skill contradicts them (for example a skill that runs `make check` in the background).
+- `.claude/*` stays a protected path: the project's skills are the human's files, like `CLAUDE.md`, and no stage writes them.
+- The operator guide says that a project may bring skills under `.claude/skills/`, that the agents load them where they apply, and that the factory does not check what they say.
+- Prove it once: an agent run in a test project with one skill, and the skill's effect seen in the run (the morning observation of the real machine can hold it).
+
 ## For the human, outside the build (collected 2026-10-16)
 
 - The machine: drive C: ran full on 2026-10-15 and again on 2026-10-16 (the root cause of three Docker hangs and the corrupt checkout). The disk image `docker_data.vhdx` is 340 GB on C: while Docker uses about 50 GB (`docker system df` on 2026-10-17): compact it (quit Docker Desktop, `wsl --shutdown`, then in an administrator PowerShell `Optimize-VHD -Path $env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx -Mode Full`), set a virtual disk limit, and move it to D: (Settings → Resources → Advanced). Update Docker Desktop (4.38.0) and WSL (`wsl --update`). Windows Update's active hours or a pause while a run goes; Docker Desktop's "Start when you sign in".
