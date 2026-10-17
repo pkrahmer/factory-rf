@@ -350,3 +350,8 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 2026-10-17 17:34 | F0012-S0025 merged (#175; 6 runs, 4.5 agent minutes, $1.02, first pass; the change in test_image.py is decision 42's). The human's word: Podman support becomes F0013, built by v1 right after F0012, drafted from a probe (plan step 1b). S0026 started. |
 | 2026-10-17 17:49 | F0012-S0026 merged (#176; 6 runs, 4.2 agent minutes, $1.10, first pass; the change in test_health.py is decision 43's). Podman CLI being installed on the human's word (winget RedHat.Podman) for the F0013 probe. S0027 started. |
 | 2026-10-17 17:57 | F0012-S0027 merged (#177; 6 runs, 4.1 agent minutes, $1.04, first pass; no other story's test changed). Podman CLI installed. S0028 started (then S0030, S0029). |
+
+## 2026-10-17 18:10, the Podman probe (F0013's input)
+
+- Podman 5.8.3 installed on the human's word, rootless machine started; v1.1's image built and run under it on a throwaway instance. Record: `planning/overnight/podman-probe-2026-10-17.md`. Works: build, users, volume ownership, sudo, the agent home, healthcheck. Faults: (1) the agent can read the hosting token on both runtimes (compose ignores a file secret's uid/gid/mode outside Swarm); (2) Podman restarts nothing after a machine restart; (3) podman-compose cannot build our compose file on Windows, the docker-compose v2 provider can.
+- **For the morning**: how to keep the token from the agent (fault 1); whether to delete the probe's container, volumes and image in the Podman machine.
