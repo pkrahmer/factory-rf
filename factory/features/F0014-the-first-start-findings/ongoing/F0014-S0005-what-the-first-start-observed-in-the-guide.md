@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 198
 blocked: null
 comments_seen: 0
@@ -67,3 +67,11 @@ Expect: `documents ok`.
       - Criterion 3 is the docs stage's job. Its text names the row ("The mode of what an agent makes"), the expected value (`2775` for the directory, `664` for the file) and the reason (setgid `/work`, group `factory-work`). It also gives the whole Podman connection paragraph for *Podman: the commands*, including the unobserved `compose` case, so the documenter has nothing left to decide.
       - Architecture, security and quality: no code changed, so none of these rules applies.
       - Ticket hygiene: `Assignment` matches what was built, which is nothing yet. The log explains why the tester and the coder wrote nothing, and the docs criterion still says what the operator must know.
+6. documenter: changed only `docs/operator-guide.md`.
+   - Row "The mode of what an agent makes" (*The agent runs as a second user*): expects `2775` for the directory, `664` for the file, with the reason (setgid `/work`, group `factory-work`, seen at the first start of 2026-10-17 under Docker Desktop and Podman).
+   - *Podman: the commands*: new paragraph on the Podman machine's connection not being seen from a Windows shell (`connection "podman-machine-default" not found`), `podman system connection list`, `--url`/`--identity` with an example, and the unobserved `podman compose` case.
+   - `uv run python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check` because I changed only docs. I could not run the Podman example, because there is no Podman here. Its text is the criterion's.
+   - Cross-read: the rest of the guide against an empty code diff, found current. Nothing stale seen. No findings.
+
+   `make check`: check: green
+   `make documents`: documents ok
