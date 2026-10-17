@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 180
 blocked: null
 comments_seen: 1
@@ -233,3 +233,22 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/test_template_makefile.py::test_mutants_runs_mutmut_over_the_modules_the_feature_changed[no-repository]
+5. coder: Added the template's Makefile and its Checks text. Commit a0f3004f.
+
+   What I built:
+   - `template/Makefile` (new): the Interface's text, copied verbatim out of the ticket's `make` block. The copy kept the tab-indented recipe lines (49 lines with a leading tab, none indented with spaces).
+   - `template/CLAUDE.md`: the one *Checks* bullet is replaced by the Interface's two bullets. Nothing else in the file changed.
+
+   Main decision: I copied both texts out of the ticket with a script instead of retyping them, so they match the Interface byte for byte. Retyping was rejected because a stray space instead of a tab, or a changed character, would break the exact-text tests. I wrote no new code under `src/factory`.
+
+   Verification:
+   - `tests/test_template_makefile.py` and `tests/test_claude_files.py`: all pass.
+   - The demo works: `make -f template/Makefile mutants` prints `mutants: set FEATURE, as in make mutants FEATURE=F0001` and status 2, and `make -f template/Makefile lint` ends `lint: green (0.0 s)`.
+   - `make check`: `check: green`.
+
+   Refactor: none needed. The diff is two template files whose text the Interface fixes exactly.
+
+   Open: criterion 13 (the project guide, the operator guide and the decision log) is for the docs stage. I noticed nothing else outside the ticket.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
