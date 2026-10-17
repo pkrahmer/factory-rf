@@ -58,6 +58,7 @@ STOP_TABLE: tuple[StopRow, ...] = (
     _health("repository-unavailable", ("L64",), "repository_unavailable"),
     _health("main-branch-failing", ("L65",), "main_branch_failing"),
     _health("preflight-failed", ("L55",), "preflight_failed"),
+    _health("disk-low", ("L64",), "disk_low"),
     _pull_request(
         "duplicate",
         ("L19",),

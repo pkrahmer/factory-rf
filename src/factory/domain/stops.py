@@ -22,10 +22,11 @@ RepositoryStopReason = Literal[
     "repository_unavailable",
     "main_branch_failing",
     "preflight_failed",
+    "disk_low",
 ]
 StopScope = Literal["repository", "machine"]
 
-_MACHINE_REASON: RepositoryStopReason = "preflight_failed"
+_MACHINE_REASONS: frozenset[RepositoryStopReason] = frozenset({"preflight_failed", "disk_low"})
 
 
 class RepositoryStop(BaseModel):
@@ -47,7 +48,7 @@ class RepositoryStop(BaseModel):
 
     @model_validator(mode="after")
     def _scope_matches_reason(self) -> Self:
-        expected: StopScope = "machine" if self.reason == _MACHINE_REASON else "repository"
+        expected: StopScope = "machine" if self.reason in _MACHINE_REASONS else "repository"
         if self.scope != expected:
             raise ValueError(f"a stop for {self.reason} has the scope {expected}")
         return self

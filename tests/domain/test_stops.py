@@ -17,7 +17,8 @@ REPOSITORY_REASONS = [
     "main_branch_failing",
 ]
 SCOPES = [(reason, "repository") for reason in REPOSITORY_REASONS] + [
-    ("preflight_failed", "machine")
+    ("preflight_failed", "machine"),
+    ("disk_low", "machine"),
 ]
 OTHER_SCOPE = {"repository": "machine", "machine": "repository"}
 

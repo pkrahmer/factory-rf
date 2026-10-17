@@ -86,7 +86,7 @@ def test_repository_stop_reaches_the_health_status_and_the_factory_log(
     row: StopRow,
 ) -> None:
     assert row.reason is not None
-    scope = "machine" if row.reason == "preflight_failed" else "repository"
+    scope = "machine" if row.reason in ("preflight_failed", "disk_low") else "repository"
     stop = RepositoryStop(scope=scope, reason=row.reason, detail="the fault", at=clock.now())
 
     StopService(boundaries).raise_stop(stop)

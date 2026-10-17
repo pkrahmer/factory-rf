@@ -49,6 +49,7 @@ ROWS = [
     ),
     ("main-branch-failing", ("L65",), "health_status", "main_branch_failing", REPOSITORY_TEST),
     ("preflight-failed", ("L55",), "health_status", "preflight_failed", REPOSITORY_TEST),
+    ("disk-low", ("L64",), "health_status", "disk_low", REPOSITORY_TEST),
     (
         "duplicate",
         ("L19",),
@@ -102,7 +103,7 @@ ROWS = [
 V1_LIMITS = {"L11", "L19", "L26", "L30", "L33", "L55", "L58", "L64", "L65"}
 
 
-def test_the_table_holds_the_fourteen_stops_in_order() -> None:
+def test_the_table_holds_the_fifteen_stops_in_order() -> None:
     rows = [(row.id, row.limits, row.destination, row.reason, row.test) for row in STOP_TABLE]
 
     assert rows == ROWS
