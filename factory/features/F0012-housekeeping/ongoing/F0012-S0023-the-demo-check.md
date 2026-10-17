@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 173
 blocked: null
 comments_seen: 2
@@ -190,3 +190,22 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
     `make check`: check: green
     `make documents`: documents ok
+15. demo: demo (round 3): I ran both demo commands from the repository root, in order and exactly as written. Both met their `Expect:` lines. There are no findings.
+
+    1. `uv run python -m factory.entry.check_demos; echo "status $?"`
+    ```
+    demos ok
+    status 0
+    ```
+    Met: the two lines are `demos ok` and `status 0`.
+
+    2. `uv run pytest --no-header -p no:cacheprovider tests/entry/test_check_demos.py tests/test_demos.py`
+    ```
+    .......................                                                  [100%]
+    23 passed in 0.08s
+    ```
+    Met: the last line is `23 passed in 0.08s`, with no `failed`, `error` or `skipped` count.
+
+    Checked against the acceptance criteria: this repository has no `demo/` folder yet (`ls demo` reports that it does not exist). So command 1 is criterion 1 run on the real root: no finding, `demos ok`, exit 0. It is also criterion 14: the `--root` default is the current directory, and the root is the repository root. This fits the Assignment ("Until step 2 there is no demo, and the check passes"). Command 2 runs the tests for criteria 1–14, and all of them pass. The demo contradicts no criterion. I did not run `make check` (criterion 15) or `make documents` (part of criterion 16); the factory runs `make check` itself, and entry 14 reports both green.
+
+    Open, from earlier entries and not a demo finding: in entry 12 the human deferred reusing `work_item_path` in `src/factory/entry/check_demos.py` to a later fix.
