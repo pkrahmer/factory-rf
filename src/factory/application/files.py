@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from factory.domain.cost_records import CostRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
@@ -67,3 +69,21 @@ class PipelineDefinitionReader(ABC):
     @abstractmethod
     def parse(self, text: str) -> PipelineDefinition:
         """The definition of a text, its left-out keys at their defaults and all faults named."""
+
+
+class RecordLog[R: BaseModel](ABC):
+    """An append-only file of records, one JSON object per line."""
+
+    @abstractmethod
+    def append(self, record: R) -> None:
+        """Add `record` as the last line, creating the file and its folder.
+
+        Raises `OSError` when it cannot.
+        """
+
+    @abstractmethod
+    def read(self) -> list[R]:
+        """The records in file order; `[]` without a file.
+
+        A line that does not validate is skipped.
+        """
