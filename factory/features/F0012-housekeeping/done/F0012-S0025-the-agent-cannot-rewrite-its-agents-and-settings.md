@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 175
 blocked: null
 comments_seen: 0
@@ -131,3 +131,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    Findings: none.
    Open: the sticky bit's effect and the morning-observation command need a container. Neither was run here (already noted at intake and by the documenter).
+8. done (pull request merged); cost: 6 runs, 4.5 min, 39 turns, 166k tokens in (491k more from cache), 15k out, $1.02
