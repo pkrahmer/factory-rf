@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 193
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -81,3 +81,21 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/application/test_sealed_runs.py - ImportError while importing tes...
+4. coder: Implemented and committed (62639596); `make check` is red only in `make types`, because of the new test `tests/application/test_dispatcher_unsealed.py`, which I may not edit.
+
+   Built:
+   - `src/factory/application/sealed_runs.py`: `run_sealed(boundaries, request)` calls `git.seal()`, then `agent_runtime.run(request)` in a `try`, and `git.check_seal()` in its `finally`. So a `RepositoryUnsealed` after the run wins, with the run's error as its `__context__`, and a failed seal starts no run.
+   - `src/factory/application/stage.py`: `StageLauncher.launch` runs the agent through `run_sealed`. Its docstring now lists `RepositoryUnsealed` among what propagates.
+   - `src/factory/application/preflight.py`: `agent_run_probe_item` runs the probe through `run_sealed` and still catches only `AgentDefinitionError` and `AgentRuntimeError`.
+   - `src/factory/application/dispatcher.py`: `dispatch` re-raises `RepositoryUnsealed` before its `except Exception`, without counting it. `Handler.handle`'s docstring says so.
+
+   Check status: `make lint`, `layers`, `sast`, `secrets`, `licenses` and `test` are all green; every test passes, including the new ones. `make types` fails on one line:
+   `tests/application/test_dispatcher_unsealed.py:43: error: Incompatible types in assignment (expression has type "Literal['raised']", variable has type "Literal['handled', 'error', 'reported', 'capped']")`
+   In the `try` branch, mypy infers `outcome` as `DispatchOutcome` from `dispatcher.dispatch(event)`. The `except` branch then assigns `"raised"`, which is not one of those values.
+
+   Options:
+   (a) The tester annotates the variable as `outcome: str` before the `try` (for example `outcome: str = ""`, or annotate the first assignment). This is a one-line test change, and the code stays as it is.
+   (b) I widen `Dispatcher.dispatch`'s return type to `str`, or add `"raised"` to `DispatchOutcome`. Either one weakens the code's type to fit a test, and `dispatch` never returns "raised".
+   I would choose (a). If you agree, the next doing run ends with `tests`, naming that change.
+
+   Refactor: I read the diff once. It is small and has no duplication, so I changed nothing.
