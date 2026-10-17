@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 156
 blocked: null
 comments_seen: 0
@@ -57,3 +57,13 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
    - Demo: both commands are runnable. Each `Expect:` line is checkable: `2026-10-12T12:00:00+00:00`, and `status 1` only.
    - Architecture: a new pure domain module that imports only Pydantic and the standard library, so the layers are respected. The existing `astimezone` in `domain/board.py` is outside the five modules of criterion 3 and is not touched.
    - Scope: this is F0012 item 1.2 (decision 18). It is within scope and not in "Out of scope". The docs criterion points at the existing section *The claim* in `docs/project-guide.md`, line 413, whose `started_at` sentence is the one to change.
+3. tester: Wrote the tests for the one UTC conversion in `tests/domain/test_times.py` (new file).
+   - criterion 1: tests/domain/test_times.py::test_in_utc_keeps_the_instant_in_utc
+   - criterion 2: tests/domain/test_times.py::test_time_fields_hold_utc_and_refuse_a_naive_time. It is one parametrized test with ten rows: `CostRecord.started_at`, `CommitInfo.committed_at`, `PullRequestComment.created_at`, `RepositoryStop.at` and `Claim.started_at`, each with an aware side and a naive side. Each row builds its model from valid values as that model's own test module does, through a typed builder `Callable[[datetime], datetime]`.
+   - criterion 3: tests/domain/test_times.py::test_only_the_times_module_converts_to_utc. It uses `modules()` from `tests/source_search.py`, imported as `source_search` like the existing tests do. It looks for an `ast.Attribute` named `astimezone`, which must be absent from the five model modules and present in `factory.domain.times`.
+   - criteria 4 and 5: `make check` and the docs, not tests.
+
+   `make test` ran once and failed with a collection ImportError on `tests/domain/test_times.py`, as intended: `factory.domain.times` does not exist yet. The rest of the suite passed, with coverage at 99.51 %. On that run the file also had a wrong import of `tests.source_search`. I changed it afterwards to `from source_search import modules`, the existing convention, and did not run `make test` again, as the stage says. So I have not seen the corrected file run. `make lint` is green. I did not run the type check (skipped in this stage). Module the test runner could not import: `factory.domain.times`. No existing test was changed.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/domain/test_times.py - ImportError while importing test module '/...
