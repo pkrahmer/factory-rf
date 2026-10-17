@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 182
-blocked: null
+blocked: question
 comments_seen: 2
 round: 0
 attempts: 0
@@ -48,7 +48,7 @@ Tests: a new module `tests/test_token_folder.py`, reading the Dockerfile with `_
 
 1. The Dockerfile creates `/home/factory/.secrets` with `mkdir -p`, and that folder's last `chown` is `factory:factory` and its last `chmod` is `0700`.
 2. The Dockerfile sets `ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token` before `USER factory`, and `FACTORY_TOKEN_FILE` is still the only `ENV` or `ARG` whose name holds `TOKEN`, `SECRET`, `PASSWORD` or `CREDENTIAL` (the changed test of `tests/test_image_credentials.py`).
-3. The last entry of the compose service's `volumes`, as ruamel.yaml's safe loader reads it, has the keys `type`, `source`, `target`, `read_only` and `bind` in that order, with `type: bind`, `source: ./secrets/hosting-token`, `read_only: true` and `bind: {create_host_path: false}`; its `target` is exactly the value of the Dockerfile's `ENV FACTORY_TOKEN_FILE`, and the target's folder (its parent) is the folder of criterion 1.
+3. The last entry of the compose service's `volumes`, as ruamel.yaml's safe loader reads it, has the keys `type`, `source`, `target`, `read_only` and `bind` in that order. It is a bind mount whose source is the host file `./secrets/hosting-token`; it is read-only; and its bind options set `create_host_path` to false. Its `target` is exactly the value of the Dockerfile's `ENV FACTORY_TOKEN_FILE`, and the target's folder (its parent) is the folder of criterion 1.
 4. The owner of the token's folder is the user `factory`, whose `useradd --uid` (1000) differs from the agent's (1001), and the agent's uid is not 0; no `useradd` gives `agent` the group `factory`.
 5. The compose file has no top-level `secrets` and the service has none (the changed test of `tests/test_image_credentials.py`), and the service's `volumes` are the three named volumes followed by the bind mount (the changed test of `tests/test_compose.py`).
 6. What must still hold: the credential helper is still copied before `USER factory`, the compose project's name and the health check are as before (the tests of `tests/test_image_credentials.py`, `tests/test_compose_project.py` and `tests/test_compose.py` pass), and the agent home and `/work` keep their owners and modes (`tests/test_agent_home_ownership.py`).
@@ -123,3 +123,15 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    Refactor: I read the diff; it is three small config changes and a comment, with nothing to tidy.
 5. human (pull request comment, 2026-10-17): (a). Reword only criterion 3's sentence as prose, with the same meaning (source `./secrets/hosting-token`, read-only, `create_host_path` false, the target, the key order), check it with the hook, then run `make check` and go on to review.
+6. coder: I reworded criterion 3 as you asked in entry 5, but `make secrets` is still red because my own log entry 4 quotes the old text.
+
+   - **The reword:** criterion 3 now gives the values as prose: the bind mount's source is the host file `./secrets/hosting-token`, it is read-only, its bind options set `create_host_path` to false, and the target and key order are unchanged. Running `detect-secrets scan` on the ticket no longer flags line 51. The change is in the working tree for the factory's commit.
+   - **What is still red:** `make secrets` now fails on line 115 with a "Secret Keyword". That line is my log entry 4, which quotes the fragment that matched (`secrets/hosting-token`, `read_only: true` and `bind: {create_host_path: false}`; …). The log is append-only and belongs to the factory, so I can't change it.
+   - **The implementation:** it is committed in 0978b427. `make secrets` is the only failing target; lint, types, layers, sast, licenses and test were green in my last run.
+
+   Options:
+   (a) You edit log entry 4 in a commit of your own and replace the quoted fragment with "the criterion's values", so nothing in it matches. Nothing goes into the baseline and no marker is added.
+   (b) You give leave for a `.secrets.baseline` entry for this file. detect-secrets matches baseline entries by file path, so the entry stops covering the file once the ticket moves to `done/`. Then `make secrets` on `main` would fail again.
+   (c) You add `pragma: allowlist secret` to line 115 yourself.
+
+   I would choose (a). Once that commit is in, I will run `make check` and send the story to review.
