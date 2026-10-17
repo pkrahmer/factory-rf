@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 196
 blocked: null
 comments_seen: 4
@@ -287,3 +287,37 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make documents`: documents ok
+15. demo: Demo run from the repository root: all four commands ran as written, in order. No findings.
+
+    1. Settings read the login file:
+    ```
+    /home/agent/.claude-token
+    None
+    ```
+    Met its Expect line: two lines, the path and then `None`.
+
+    2. Allow list:
+    ```
+    ['HOME', 'LANG', 'LC_ALL', 'PATH', 'TERM', 'TZ'] False
+    ```
+    Met its Expect line.
+
+    3. The login shell (`LOGIN_SCRIPT` run through `SHELL_EXECUTABLE`) on five files:
+    ```
+    plain stand-in-login -
+    missing - -
+    blank - -
+    utf-16 - factory-login: not ASCII text
+    folder - factory-login: cannot be read
+    ```
+    Met its Expect line: all five lines match.
+
+    4. The story's tests and the tests that must still hold:
+    ```
+    ........................................................................ [ 98%]
+    .                                                                        [100%]
+    73 passed in 5.34s
+    ```
+    Met its Expect line: `73 passed`, with no failed, error or skipped count.
+
+    Checked against the acceptance criteria: nothing in the demo contradicts any of them. Commands 1 to 3 back criteria 1, 9 and 11. Command 4 runs the tests for criteria 1–15. For criterion 17 I spot-checked the docs: `FACTORY_CLAUDE_LOGIN_FILE` appears in `docs/operator-guide.md` (3 times) and `docs/project-guide.md` (once), `docs/decisions.md:464` has the entry "The agent's login is a token from a file", and `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check` (criterion 16), because the factory runs it as the gate.
