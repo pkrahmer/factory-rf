@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 160
 blocked: null
 comments_seen: 0
@@ -109,3 +109,36 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran the three commands under `## Demo` from the repository root, in order. Each met its `Expect:` line, and there are no findings.
+
+   1. The constants:
+   ```
+   18 ongoing/
+   ('Install', 'Configuration', 'The stops')
+   ('Kill points', 'Fault-injection paths')
+   ```
+   Met: the output is the three expected lines.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/domain/test_documents.py`:
+   ```
+   ........................................................................ [ 43%]
+   ........................................................................ [ 87%]
+   .....................                                                    [100%]
+   165 passed in 0.19s
+   ```
+   Met: the last line is `<n> passed in <t>s`, with no failed, error or skipped count.
+
+   3. `make mutants 2>/dev/null; echo "status $?"`:
+   ```
+   mutants: set FEATURE, as in make mutants FEATURE=F0012
+   status 2
+   ```
+   Met: the two expected lines.
+
+   Criteria re-read against the demo:
+   - Criteria 1 and 2: command 1 shows the length of the tuple, its last entry and both section tuples. The full order is pinned by the tests that passed in command 2.
+   - Criterion 3: its 18 rows are in the 165 passing tests.
+   - Criterion 4: not re-run here. The factory runs `make check` after this stage.
+   - Criterion 5 (docs): `docs/project-guide.md` has `## Mutation testing` right after `## The document check` (lines 1642 and 1652). `uv run python -m factory.entry.check_documents` printed `documents ok`.
+
+   Nothing in the demo contradicts any criterion.
