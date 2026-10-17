@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 198
 blocked: null
 comments_seen: 0
@@ -43,3 +43,12 @@ Expect: `documents ok`.
    - Demo: the grep and `check_documents` commands are runnable. Each Expect line is checkable: four terms (`2775` for the directory, `podman-machine-default`, `podman system connection list`, `--identity`) and `documents ok`.
    - Architecture: no layer is touched, so no architecture rule applies.
    - Scope: it is within F0014's scope, which lists S0005 as documentation only with the `2775` fix and the Podman connection on Windows. The login's place is left to S0004, as the feature says.
+3. tester: no tests written; nothing under `tests/` (or `src/`, `image/`, `template/`, `claude/`) changed, as criterion 1 asks.
+   - Criterion 1 (nothing under src/image/template/claude/tests changes): kept by writing nothing; the working tree is clean.
+   - Criterion 2 (`make check` stays green): the factory's gate. I ran `make lint` and it is green.
+   - Criterion 3 (docs: the `2775`/`664` row and the Podman connection paragraph in `docs/operator-guide.md`): this is the documenter's text. The document check (`python -m factory.entry.check_documents`) and the demo's grep cover it. A pytest test on the guide's wording would change `tests/`, which criterion 1 forbids.
+   - Files created: none. Modules the test runner could not import: none, since there are no new tests. I did not run `make test` because there are no new red tests to confirm.
+   - Open: nothing for the coder to implement. The coder ends with an entry saying nothing changed, and the documenter writes criterion 3.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (30.3 s)
