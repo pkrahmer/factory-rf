@@ -129,6 +129,17 @@ Today no agent of v1.1 can load a skill: Claude Code finds a project's `.claude/
 - The operator guide says that a project may bring skills under `.claude/skills/`, that the agents load them where they apply, and that the factory does not check what they say.
 - Prove it once: an agent run in a test project with one skill, and the skill's effect seen in the run (the morning observation of the real machine can hold it).
 
+## A project's own agents (the human's word, 2026-10-17)
+
+Today a project's pipeline definition names its roles, their write paths and which role works each stage, but the agent file of a role is always `<agent_home>/agents/<role>.md`, filled from v1.1's `claude/agents/` (`FrontmatterAgentDefinitionReader`). A project of a very different kind cannot bring its own coder in its repository; the operator can only replace the file in the instance's agent home, outside the project's history and lost with the volume. In v1.1, in the same small story as the project's skills:
+
+- For each role the factory reads `factory/agents/<role>.md` from the project's `origin/main` first (like the pipeline definition, so a branch never changes its own agent), and the shipped agent only when the project has none. A project agent replaces the shipped one whole; it does not extend it.
+- `factory/agents/*` becomes a protected path: the human's files, which no stage writes.
+- The preflight and every tick check a project agent as they check a shipped one (the applied keys, the budget, the tools, the refusals); a faulty file stops with its reason.
+- The operator guide says how to replace a role's agent and how to add a role with its own agent; the decision log records "replaces, never extends".
+- Proved in a test project: a project agent for `coder` is the text the run gets, and without it the shipped one is.
+- Close to v2's archetypes (a kind of project with its own agents and rules); built small in v1.1, revisited there.
+
 ## For the human, outside the build (collected 2026-10-16)
 
 - The machine: drive C: ran full on 2026-10-15 and again on 2026-10-16 (the root cause of three Docker hangs and the corrupt checkout). The disk image `docker_data.vhdx` is 340 GB on C: while Docker uses about 50 GB (`docker system df` on 2026-10-17): compact it (quit Docker Desktop, `wsl --shutdown`, then in an administrator PowerShell `Optimize-VHD -Path $env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx -Mode Full`), set a virtual disk limit, and move it to D: (Settings → Resources → Advanced). Update Docker Desktop (4.38.0) and WSL (`wsl --update`). Windows Update's active hours or a pause while a run goes; Docker Desktop's "Start when you sign in".
