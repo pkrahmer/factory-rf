@@ -32,6 +32,7 @@ dev = [
     "bandit==1.9.4",
     "detect-secrets==1.5.0",
     "pip-licenses==5.5.5",
+    "pytest-xdist==3.8.0",
 ]
 
 [build-system]
@@ -91,6 +92,10 @@ layers = ["factory.entry", "factory.adapters", "factory.application", "factory.d
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
+# The kill-to-rerun seconds reach the JUnit report only in the xunit1 family (F0011 acceptance).
+junit_family = "xunit1"
+# Only the folders of failed tests stay in /tmp (the disk filled up on 2026-10-16).
+tmp_path_retention_policy = "failed"
 
 [tool.coverage.run]
 source = ["src/factory"]
