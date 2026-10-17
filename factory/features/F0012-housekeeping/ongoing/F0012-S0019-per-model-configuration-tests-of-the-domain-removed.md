@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 170
 blocked: null
 comments_seen: 0
 round: 0
@@ -87,3 +87,9 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted. The factory's format check passed, so I did not repeat it.
+   - Interface: the story names no `src/` change. It lists 27 and 22 test functions by module and function name, and says what stays when a test checks more than Pydantic's configuration. I spot-checked 8 of the names across both groups and each exists in the named module under `tests/domain`. I did not check the other 41.
+   - Criteria: each is checkable. Criterion 1 is a search for the function names. Criterion 2 is the pytest run. Criterion 3 is `make lint` plus a search for unused helpers. Criterion 4 is `make check`. The story states no rule with a failing side. It only removes tests that `tests/test_model_configuration.py` replaces.
+   - Demo: the three commands run as written. Each has an `Expect:` line that the output can be checked against: `status 1` twice, and a `<n> passed` line.
+   - Architecture: nothing under `src/` changes. The story removes only tests and the helpers and imports that only those tests used.
+   - Scope: it is housekeeping story 1.5 of F0012, and FEATURE decisions 25 and 39 grant it. It is not in the feature's "Out of scope".
