@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 147
 blocked: null
 comments_seen: 4
@@ -219,3 +219,16 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     State: rows 7 to 13 are in `src/factory/domain/fault_paths.py` (commit e6207f4). `make check` was green as of entry 8. After the tester's change I expect it to stay green with no change under `src/`.
 
     Still open: `tests/test_fault_path_names.py` still checks only the first six rows. I have not touched it.
+13. tester: I made the test change from entries 11 and 12 (the human's option (b)). I removed every copy of the duplicated fixture and helper. No assertion changed, and nothing under `src/` changed.
+
+    - `tests/proof_support.py`: added the public helper `rerun(world: World, *, empty_disk: bool = False) -> World`, with a docstring. It advances the clock by `KILL_TO_RERUN`, then calls `restart(world, empty_disk=empty_disk)`.
+    - `tests/conftest.py`: added the `work_item` fixture beside `world`, with a docstring. It returns `start_story(world)`. Its imports now include `WorkItemId` and `start_story`.
+    - `tests/test_fault_paths_7_to_13.py`: deleted the module's own `world` and `work_item` fixtures and `_rerun`. Its calls now use `rerun`, and I dropped the imports that became unused (`KILL_TO_RERUN`, `build_world`).
+    - `tests/test_fault_paths.py` (F0011-S0002's tests, changed with the human's leave in entry 11): same change. Deleted the local `world` and `work_item` fixtures and `_rerun`, switched the calls to `rerun`, and dropped the unused imports (`Path`, `KILL_TO_RERUN`, `build_world`, `start_story`).
+
+    `make lint`: green. `make test`: green, total coverage 99.55 %.
+
+    Still open, as before: `tests/test_fault_path_names.py` still checks only the first six rows. I did not touch it because no change to it was approved.
+
+    `make lint`: lint: green
+    `make test`: test: green

@@ -12,10 +12,8 @@ from factory.domain.work_item import WorkItemState
 from git_support import remote_commit
 from proof_support import (
     FEATURE,
-    KILL_TO_RERUN,
     LEAK_PATH,
     World,
-    build_world,
     completed,
     died,
     drive_to,
@@ -26,7 +24,7 @@ from proof_support import (
     posts,
     pull_request_of,
     repeated_posts,
-    restart,
+    rerun,
     run_ticks,
     start_story,
     tick_until_killed,
@@ -38,21 +36,6 @@ ACCEPTANCE = "F0001-A0001"
 RECOMMENDATION = "Recommendation: accepted."
 ACCEPTANCE_TICKS = 6
 STAGE_TICKS = 4
-
-
-@pytest.fixture
-def world(tmp_path: Path) -> World:
-    return build_world(tmp_path)
-
-
-@pytest.fixture
-def work_item(world: World) -> WorkItemId:
-    return start_story(world)
-
-
-def _rerun(world: World, *, empty_disk: bool = False) -> World:
-    world.clock.advance(KILL_TO_RERUN)
-    return restart(world, empty_disk=empty_disk)
 
 
 def _number(world: World, work_item: WorkItemId) -> int:
@@ -91,7 +74,7 @@ def test_round_cap_question_killed_between_post_and_record_posts_once_and_waits(
     caps_before = posts(world, work_item, "round_cap")
     world.agent_runtime.queue(completed("doing", "Finding."))
     point = tick_until_killed(world, limit=6)
-    restarted = _rerun(world)
+    restarted = rerun(world)
     run_ticks(restarted, 3)
 
     state = head_state(restarted, work_item)
@@ -167,7 +150,7 @@ def test_reject_killed_before_push_reverts_once_and_leaves_main_clean(
     with pytest.raises(InjectedKill):
         world.tick.run()
     changes = world.boundaries.git.status().changes
-    restarted = _rerun(world)
+    restarted = rerun(world)
     restarted.agent_runtime.queue(completed("question", "Which test?"))
     run_ticks(restarted, 3)
 
@@ -188,7 +171,7 @@ def test_two_items_in_progress_tick_killed_after_claim_push_reruns_lower_id_and_
     world.kill_points.arm(KillPoint.AFTER_PUSH, after=0)
     with pytest.raises(InjectedKill):
         world.tick.run()
-    restarted = _rerun(world)
+    restarted = rerun(world)
     restarted.agent_runtime.queue(completed("question", TITLE_QUESTION))
     run_ticks(restarted, 3)
 
@@ -209,7 +192,7 @@ def test_close_at_approval_tick_killed_after_close_recorded_reopens_once_and_ask
     world.kill_points.arm(KillPoint.AFTER_PUSH, after=0)
     with pytest.raises(InjectedKill):
         world.tick.run()
-    restarted = _rerun(world)
+    restarted = rerun(world)
     run_ticks(restarted, 3)
 
     kinds = [record.kind for record in head_journal(restarted, work_item)]
@@ -252,7 +235,7 @@ def test_acceptance_container_lost_in_review_reruns_once_and_books_result(
     world.agent_runtime.queue(completed("approval", RECOMMENDATION, kill=True))
     with pytest.raises(InjectedKill):
         world.tick.run()
-    restarted = _rerun(world, empty_disk=True)
+    restarted = rerun(world, empty_disk=True)
     restarted.agent_runtime.queue(completed("approval", RECOMMENDATION))
     run_ticks(restarted, 3)
     requests = len(restarted.agent_runtime.requests())
@@ -290,7 +273,7 @@ def test_test_change_approved_tick_killed_during_tester_run_reruns_tests_without
     world.agent_runtime.queue(completed("doing", "Changed test T.", writes=leaked, kill=True))
     with pytest.raises(InjectedKill):
         world.tick.run()
-    restarted = _rerun(world)
+    restarted = rerun(world)
     restarted.agent_runtime.queue(completed("doing", "Changed test T."))
     restarted.tick.run()
 

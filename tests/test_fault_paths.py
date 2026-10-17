@@ -1,7 +1,5 @@
 """The fault-injection paths: each behaviour path walked with one kill or one stall added."""
 
-from pathlib import Path
-
 import pytest
 
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
@@ -10,11 +8,9 @@ from factory.domain.kill_points import InjectedKill, KillPoint
 from factory.domain.story_form import check_story_form
 from git_support import STORY_FORM
 from proof_support import (
-    KILL_TO_RERUN,
     STORY,
     World,
     branch_cost_records,
-    build_world,
     completed,
     died,
     drive_to,
@@ -23,9 +19,8 @@ from proof_support import (
     leak_writes,
     posts,
     repeated_posts,
-    restart,
+    rerun,
     run_ticks,
-    start_story,
     tick_until_killed,
     timed_out,
 )
@@ -33,21 +28,6 @@ from proof_support import (
 TITLE_QUESTION = "Which format does the title take?"
 LIMITS_QUESTION = "Which of the two limits is meant?"
 ORDER_QUESTION = "Test and interface disagree on the order. Which wins?"
-
-
-@pytest.fixture
-def world(tmp_path: Path) -> World:
-    return build_world(tmp_path)
-
-
-@pytest.fixture
-def work_item(world: World) -> WorkItemId:
-    return start_story(world)
-
-
-def _rerun(world: World) -> World:
-    world.clock.advance(KILL_TO_RERUN)
-    return restart(world)
 
 
 def test_intake_question_tick_killed_during_intake_run_reruns_free_and_asks_once(
@@ -58,7 +38,7 @@ def test_intake_question_tick_killed_during_intake_run_reruns_free_and_asks_once
     world.agent_runtime.queue(completed("question", TITLE_QUESTION, writes=leaked, kill=True))
     with pytest.raises(InjectedKill):
         world.tick.run()
-    restarted = _rerun(world)
+    restarted = rerun(world)
     restarted.agent_runtime.queue(completed("question", TITLE_QUESTION))
     run_ticks(restarted, 3)
 
@@ -109,7 +89,7 @@ def test_intake_edge_case_question_killed_between_commit_and_push_reruns_intake_
         world.tick.run()
     unpushed = world.boundaries.git.resolve("HEAD")
     assert unpushed is not None
-    restarted = _rerun(world)
+    restarted = rerun(world)
     restarted.agent_runtime.queue(completed("question", LIMITS_QUESTION))
     run_ticks(restarted, 3)
 
@@ -135,7 +115,7 @@ def test_tester_question_killed_between_post_and_record_posts_once(
     world.kill_points.arm(KillPoint.AFTER_POST)
     world.agent_runtime.queue(completed("question", ORDER_QUESTION))
     assert tick_until_killed(world) == KillPoint.AFTER_POST
-    restarted = _rerun(world)
+    restarted = rerun(world)
     run_ticks(restarted, 3)
 
     state = head_state(restarted, work_item)
@@ -169,7 +149,7 @@ def test_docs_finding_tick_killed_after_move_back_push_counts_round_once_and_nex
     world.agent_runtime.queue(completed("doing", "Finding: the README example fails."))
     with pytest.raises(InjectedKill):
         world.tick.run()
-    restarted = _rerun(world)
+    restarted = rerun(world)
     restarted.agent_runtime.queue(completed("review", "Fixed."))
     restarted.tick.run()
 

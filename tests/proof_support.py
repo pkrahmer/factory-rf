@@ -334,6 +334,12 @@ def restart(world: World, *, empty_disk: bool = False) -> World:
     )
 
 
+def rerun(world: World, *, empty_disk: bool = False) -> World:
+    """Advance the clock by `KILL_TO_RERUN` and start the instance again."""
+    world.clock.advance(KILL_TO_RERUN)
+    return restart(world, empty_disk=empty_disk)
+
+
 def _claim_commits(world: World, work_item: WorkItemId, ref: str) -> list[CommitId]:
     """The commits of `ref` off `origin/main` whose state carries a claim, newest first."""
     git = world.boundaries.git
