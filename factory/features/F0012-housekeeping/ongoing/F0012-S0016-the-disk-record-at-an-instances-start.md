@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 167
 blocked: null
 comments_seen: 2
@@ -157,3 +157,8 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    If you answer (a) or (b), I will end the next round with `tests` and name that change for the tester. No refactor commit yet; the diff is small, and I will review it once `make check` is green.
 5. human (pull request comment, 2026-10-17): (a). Each row a typed `Callable[[Boundaries], Boundaries]` built with `dataclasses.replace` for one field, same three rows and ids, no `type: ignore` (CLAUDE.md, Tests). Name the change for the tester as you propose.
+6. coder: the human chose (a), so this goes back to the tester for one test change. I changed nothing this round. The implementation from 54a999c stays as it is. `make types` still fails only on `tests/application/test_disk_recorder.py:163`.
+
+   Change for the tester: rewrite `test_boundaries_without_disk_records_or_settings_record_nothing` in `tests/application/test_disk_recorder.py`. Its parameter `missing: str` becomes `without: Callable[[Boundaries], Boundaries]`. Make the three rows `pytest.param(lambda b: replace(b, disk=None), id="disk")`, `pytest.param(lambda b: replace(b, disk_records=None), id="disk_records")` and `pytest.param(lambda b: replace(b, settings=None), id="settings")`. Replace `given = replace(recorded, **{missing: None})` with `given = without(recorded)`. Leave the assertions as they are, and add no `type: ignore`.
+
+   Still open: once the tester sends the story back, I run `make check`. If it is green, I do the refactor pass and end with `review`.
