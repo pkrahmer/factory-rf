@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 179
 blocked: null
 comments_seen: 0
 round: 0
@@ -53,3 +53,9 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures. `commit_subject` in `factory.application.handlers.recording` is reused, not copied. The table gives the four call sites. I checked them against `src/factory`: `claims.py:64`, `stage.py:357` (the message passed to `_commit_and_push`), `stalls.py:129` and `acceptance.py:121` are the only `Git.commit` calls outside `recording.py`. `acceptance.py` already imports the helper. The only behaviour the Interface states is the subject prefix, and criteria 1 to 4 test it.
+   - Criteria: each is testable by a test function or parametrized rows. Criterion 1 is the three changed assertions in `test_claims.py`. Criterion 2 has three rows (forward, sent back, question). Criterion 3 has two rows, one with an agent's own commit that keeps its subject. Criterion 4 is one test. Criterion 5 pins the helper and the unchanged handler subjects. The rule has no failing side in the usual sense (no input is rejected). The merge of `origin/main` into a reopened branch is deliberately left alone, and FEATURE decision 53 records that.
+   - Demo: both commands are runnable. The expected count of 7 matches the criteria: 3 + 2 + 1 for the new tests, plus 1 for the existing start test. The grep currently matches three lines (`acceptance.py:121`, `claims.py:64`, `stalls.py:129`) and should print only `status 1` after the change. Each `Expect:` line is checkable.
+   - Architecture: the change stays inside `factory.application`, and the import runs between sibling modules within a layer with no cycle. The Interface adds no new interface, DTO or dependency.
+   - Scope: it is within F0012 (the "What v1.1 writes into its commits" scope line, FEATURE decisions 51 to 53) and not in Out of scope. The test changes are covered by the human's leave in decision 52.
