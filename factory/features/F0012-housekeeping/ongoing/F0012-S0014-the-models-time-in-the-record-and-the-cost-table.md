@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 166
 blocked: null
 comments_seen: 0
@@ -122,3 +122,27 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/domain/test_bills_model_time.py::test_the_cost_table_has_a_model_minutes_column
+4. coder: Each run's model time now goes into its result and its cost record, and the cost table has a new `model min` column. I did not edit any test. `make check` is green and the work is one commit, `ticket F0012-S0014: feat(costs): …`.
+
+   - `src/factory/domain/agent_runs.py`: `AgentRunResult` has a new field `model_duration: timedelta | None = None`, placed after `duration`.
+   - `src/factory/adapters/claude_runtime.py`:
+     - `_Reply` reads `duration_api_ms: NonNegativeInt | None`. A negative value makes the reply unparsable, so the run ends as `died`.
+     - `_result` turns the value into a timedelta. A killed call still returns early with no measures, so its model time stays `None`.
+     - `_resumed_result` adds both calls' times with the existing `_add`, which now also accepts `timedelta`. That gives the sum, or the one known value, or `None`. A resume that the time limit ended still keeps the second call's result unchanged, so it is `None`.
+   - `src/factory/domain/cost_records.py`: `CostRecord` has a new field `model_seconds: Duration | None`, placed after `duration_seconds`. `_measures_only_when_completed` refuses it in a started record.
+   - `src/factory/application/costs.py`: `_completed` copies the run's model time in seconds, or `None`, through a small `_seconds` helper.
+   - `src/factory/adapters/cost_records_jsonl.py`: no change. `model_dump` already writes the keys in field order, and the field's default `None` lets an older line without the key still read.
+   - `src/factory/domain/bills.py`:
+     - `Bill` has a new last field, `model_duration` (default `timedelta(0)`). `_record_bill` and `_add` sum it.
+     - A new `_known_duration` treats an unknown value as zero and now serves both `duration` and `model_duration`.
+     - `_minutes` now takes a timedelta rather than a `Bill`, so the `min` and `model min` columns share the same half-up rounding.
+     - The header and alignment rows gain the column. `cost_line` prints the same text as before.
+
+   Main decision: I reused `_add` by adding `timedelta` to its allowed types instead of writing a separate adder for durations. The rejected alternative would have been a second copy of the same "known one or sum" rule.
+
+   Refactor: I read the diff as a reviewer would and found nothing to change. The two small cleanups (`_minutes` taking a timedelta, `_known_duration` replacing an inline conditional) were already in the feature commit.
+
+   Noticed, not touched: `make duplicates` reports `2 new, 39 known, 0 gone`. Both new findings are vulture dead-code hits for `used_bytes`, in `src/factory/adapters/disk_space.py:19` and `src/factory/application/machine.py:48`. Neither file is part of this ticket, and nothing new comes from this ticket's code. The docs criterion is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 2 new, 39 known, 0 gone
