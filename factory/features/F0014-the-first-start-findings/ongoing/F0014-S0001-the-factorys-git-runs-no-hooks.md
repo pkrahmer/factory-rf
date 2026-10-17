@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 191
 blocked: null
 comments_seen: 3
@@ -121,3 +121,28 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
    - criterion 8: existing tests, unchanged.
 5. human (pull request comment, 2026-10-17): Both: the two scripts in `planning/overnight/` are now `.txt` files (ca366459), and `pyproject.toml` leaves `planning` out of ruff (option b). `make lint` is green on `main`. Rerun the stage; the tests stay as they are.
+6. tester: I reran the tests stage after the human's fix in entry 5. The branch now has main's fix: commit a5c2f55a takes `planning/` out of ruff, and it came in through merge 7b8ba41f. `make lint` is green. The tests from entry 3 are the same as before. I changed no test in this run.
+
+   I ran `make test` once and it is red only where it should be. These tests fail:
+   - the four `factory-*` rows of `test_the_factorys_git_runs_no_hook_of_the_checkout`, because the hooks still run;
+   - both rows of `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks`, because the third pair is missing;
+   - `test_the_built_git_runs_with_the_git_options_of_the_settings`.
+
+   No other test fails. Every module imported.
+
+   Which test checks each criterion:
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks
+   - criterion 2: tests/entry/test_git_hooks.py::test_the_factorys_git_runs_no_hook_of_the_checkout[factory-pre-commit / plain-pre-commit]
+   - criterion 3: the same test, rows [factory-post-checkout / plain-post-checkout]
+   - criterion 4: the same test, rows [factory-pre-push / plain-pre-push]
+   - criterion 5: the same test, rows [factory-configured-hooks-path / plain-configured-hooks-path]
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
+   - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
+   - criterion 8: the existing tests, unchanged.
+
+   Files: I created tests/entry/test_git_hooks.py in an earlier run and changed tests/entry/test_wiring_boundaries.py, only in the two tests the ticket allows. Neither changed in this run.
+
+   Next step for the coder: add the third pair (`core.hooksPath` = `os.devnull`) to `git_environment` in `src/factory/entry/wiring.py`, with its comment.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
