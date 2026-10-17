@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 165
 blocked: null
 comments_seen: 0
@@ -146,3 +146,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 2 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1–9 each have the test the tester's entry names, and each test checks its criterion. Criterion 1 covers both sides of every limit: `Duration` is accepted at 0 and refused at -1 and at inf; `CommitId` is accepted as `"a"*40` and refused with 39 or 41 characters, in uppercase and with non-hex characters; `CommandName` is accepted as `check` and refused as `Check`; `CheckStatus` refuses `red`; a `started_at` with an offset is accepted and a naive one refused. The failing sides of the Interface's rules are all tested: a torn or invalid line is skipped (3), an inner error propagates with nothing appended (6), an `OSError` on `append` is logged and the result still returned (7), and a `GitError` from `resolve` gives `commit=None` (8). The coder's entry says `make check` was green. The only change to an earlier story's test is the `isinstance` line in `tests/entry/test_wiring_boundaries.py`, by the human's leave (FEATURE decision 36), plus the import that became unused.
+      - Architecture: `CommandRecord` is in domain. `RecordLog` is an `abc.ABC` in `application/files.py` whose abstract methods have docstring-only bodies. `RecordingProjectCommands` in application depends only on application interfaces. `JsonLinesRecordLog` in adapters inherits its interface. Wiring happens only in `entry/wiring.py`, which shares one `GitCli`, clock and log between the boundaries and the recorder. No `dict[str, Any]` crosses a boundary and no tool is called outside a wrapper.
+      - Security: no secrets, no suppression markers, no shell or string-built commands; the record path comes from the settings.
+      - Quality: names and docstrings fit the project's conventions, and the comments explain why (one write per line; telemetry must not lose a result). `CommandRecord` reuses the existing types (`CommandName`, `CommitId`, `UtcDatetime`, `Duration`, `CheckStatus`, `TargetTime`) rather than redefining them. Considered and not raised: the blank-line skip in `JsonLinesRecordLog._parse` (`src/factory/adapters/record_log_jsonl.py:34`) has no test and changes nothing, because `model_validate_json` raises `ValidationError` for a blank line anyway. It follows the Interface's "each non-blank line" literally. The 2 new `make duplicates` findings (`used_bytes` in `adapters/disk_space.py` and `application/machine.py`) are in files this diff does not touch.
+      - Ticket hygiene: the coder's entry gives the main decision (`command` comes from the caller's argument) and the rejected alternative (a separate reader and writer pair like the cost records). `Assignment` matches what was built, and criterion 11 still describes what the documenter must write.
