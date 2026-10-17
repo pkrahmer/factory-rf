@@ -60,6 +60,7 @@ ignore = ["PLR2004", "N818", "D105", "D107"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S603", "S607", "PLR0913", "D"]  # asserts and fixtures are the point of tests
+"src/factory/adapters/claude_runtime.py" = ["PLR0913"]  # F0014-S0003 pins the runtime's six-argument constructor; no noqa in the source
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
