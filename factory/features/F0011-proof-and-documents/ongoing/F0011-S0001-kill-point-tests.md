@@ -1,8 +1,8 @@
 ---
 stage: review
 pr: 145
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 3
 attempts: 0
 ---
@@ -424,3 +424,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     2. `tests/proof_support.py:236` (`_opening_text`). What is wrong: the name says text, but the function returns a `WorkItemDocument`, which `leak_writes` (line 268) then renders. Fix: rename it `_opening_document`.
 
     This story has now been sent back 3 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
+18. human (pull request comment, 2026-10-17): Continue: one more round. The tester makes exactly the reviewer's two changes in round 2 and nothing else. (1) One public helper `rerun_seconds(result) -> float | None` in `tests/proof_support.py`, built on `_claim_commits` and `_state_at`, used by `_kill_to_rerun_recorded` and by `test_the_rerun_starts_five_seconds_after_the_kill`, which keeps its `record_property` call and its assertion of 5.0; `_rerun_seconds` in `tests/test_kill_points.py` goes. (2) `_opening_text` is renamed `_opening_document`. `src/` stays as it is.
