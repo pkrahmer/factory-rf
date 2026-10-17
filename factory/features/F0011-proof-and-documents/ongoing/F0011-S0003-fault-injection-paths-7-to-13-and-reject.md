@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 147
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 1
 attempts: 0
 ---
@@ -207,3 +207,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     I would choose (a). It fixes exactly what the reviewer found and stays inside this story's own test files. Option (b) could follow later as a story of its own.
 
     On your answer, I end with `tests` and name the changes for the tester.
+11. human (pull request comment, 2026-10-17): (b). The tester removes every copy: the module's `world` fixture goes (the one in `tests/conftest.py` is used); `work_item` moves into `tests/conftest.py` beside `world`, with a docstring; `_rerun` becomes the public `rerun(world: World, *, empty_disk: bool = False) -> World` in `tests/proof_support.py`, with a docstring. Both `tests/test_fault_paths_7_to_13.py` and F0011-S0002's `tests/test_fault_paths.py` use the shared three and drop their copies; this is the human's leave for that change to S0002's tests (recorded as F0011 decision 20). No test changes what it asserts. `src/` stays.
