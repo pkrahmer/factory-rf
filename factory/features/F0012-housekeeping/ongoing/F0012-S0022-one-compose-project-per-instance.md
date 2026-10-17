@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 172
 blocked: null
 comments_seen: 0
 round: 0
@@ -42,3 +42,9 @@ Expect: two lines: `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this ins
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: one concrete change, `name:` in `image/compose.yml` (line 2, now `factory`), to `factory-${FACTORY_INSTANCE:?set FACTORY_INSTANCE to this instance's name}`. The service's environment at line 19 has exactly that `:?` message, so criterion 2 can be tested. The test module `tests/test_compose_project.py` is named, and the loader is the one `tests/test_compose.py` uses.
+   - Criteria: each one is testable by a single test function. 1 covers the exact string, the `factory-` prefix, the `:?` with a message and no `:-`, so the refused default is covered. 2 compares the two messages. 3 is the existing tests staying green. 4 is `make check`. 5 is the docs criterion, whose section exists at `docs/operator-guide.md` line 175. The rule that compose refuses to start when `FACTORY_INSTANCE` is unset is the `:?` form, and criterion 1 tests it.
+   - Demo: runnable with `uv run python -c`. Its Expect line gives two exact lines that the output can be compared with.
+   - Architecture: only a file under `image/` changes, which is inside the coder's write paths. No layer is involved.
+   - Scope: in the feature's scope, item 1.6 (S0022), with the tests and the docs inside the story. Nothing is in "Out of scope".
