@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 185
 blocked: null
 comments_seen: 0
 round: 0
@@ -46,3 +46,9 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
 ## Log (append only)
 
 1. 2026-10-17 human: created from F0012's proposed draft S0032 (feature acceptance of 2026-10-17).
+2. intake: accepted
+   - Interface: names concrete changes in `src/factory/entry/check_demos.py`. I confirmed they fit the code. Line 23 has an untyped `_BACKLOG = "backlog"`. Line 70 builds the path by hand with `FEATURES_DIRECTORY`. `LifecycleFolder` and `work_item_path(feature_directory, folder, file_name)` exist in `factory/domain/paths.py`. The Interface states no behaviour that needs its own criterion.
+   - Criteria: each is testable. Criteria 1 and 2 are the existing tests, which pass unchanged. Criterion 3 is a diff check by the reviewer, and the ticket says no structural test is written. Both sides of the check are covered: the clean demo story in criterion 1 and the failing form in criterion 2. The Interface states no limit, validation or default that lacks a failing side.
+   - Demo: both commands are runnable. Each `Expect:` line can be checked against the output: `demos ok`, and the three named grep lines.
+   - Architecture: the entry layer imports from the domain (`factory.domain.paths`), which is allowed, and the change reuses the existing helper instead of adding a second one.
+   - Scope: the story is inside F0013's scope (FEATURE scope bullet 2 and decisions 2 and 12) and touches nothing in "Out of scope".
