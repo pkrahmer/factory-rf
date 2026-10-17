@@ -1,9 +1,9 @@
 ---
-stage: review
+stage: doing
 pr: 173
 blocked: null
 comments_seen: 0
-round: 0
+round: 1
 attempts: 0
 ---
 # The demo check
@@ -110,3 +110,11 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: Group 1 (acceptance criteria) fails. Following the role skill, I stopped there and did not report later groups.
+   1. `tests/entry/test_check_demos.py::test_a_file_that_is_no_feature_file_or_backlog_story_is_a_finding`: no row has a file in `backlog/` that does not end in `.md`. So removing `parts[2].endswith(".md")` from `src/factory/entry/check_demos.py:_is_backlog_story` would still pass every test. Fix: add a row `features/F0001-x/backlog/notes.txt` that expects `... : not a feature file or a backlog story`.
+   2. Same test: no row has a file directly in a feature folder that is not `feature.md`. So `src/factory/entry/check_demos.py:_is_feature_file` could ignore the file name (`parts[1] == FEATURE_FILE_NAME`) and every test would still pass. Fix: add a row `features/F0001-x/notes.md` that expects `... : not a feature file or a backlog story`.
+   This is a gap in the story, not a fault of the tester. The Interface's rule says a file must be `features/<feature>/feature.md` or `features/<feature>/backlog/<story>.md`, but criterion 8 names only two of its refused cases (a wrong lifecycle folder and a loose file). The `.md` ending and the `feature.md` name have no criterion for their refused side. Both rows are changes to a test the coder did not write, so the coder should end with `tests` and name these two rows for the tester. The code itself already gives the expected findings.
+   Everything else in group 1 holds:
+   - Criteria 1–14 each have a test that checks what the criterion says.
+   - The coder's entry reports `make check` green.
+   - The deviation from the Interface is justified and logged: the pipeline definition reader comes through `build_pipeline_definition_reader()` in the wiring, because `test_wiring.py` lets only the wiring import adapters.
