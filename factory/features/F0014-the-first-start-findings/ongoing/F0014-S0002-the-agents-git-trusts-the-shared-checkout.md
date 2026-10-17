@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 195
 blocked: null
 comments_seen: 0
@@ -93,3 +93,12 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Criteria 1–6: each has a test in `tests/test_image_gitconfig.py` that checks what the criterion says. It uses the routes the Interface names: `run_git` for the real `git config --file <absolute> --list`, `dockerfile_instructions`/`DOCKERFILE`, and `_path_settings` of `tests/test_image.py`. The failing sides are covered: any extra entry or `*` (equality on the full list), any other line (equality on the non-comment lines), a duplicate or flagged COPY (the filter catches any COPY naming gitconfig), a missing comment above, and any chown of the file. Criterion 7 is covered by the unchanged existing tests. The coder's entry records `make check` green.
       - Considered, not counted: the Interface puts the COPY before `ENV FACTORY_TOKEN_FILE` and the directory line under a tab, and criteria 3 and 4 do not test either (criterion 4 orders only the helper RUN against the ENV). Neither changes what the image installs or how git reads the file, and the code matches the Interface on both.
       - Architecture: no `src/` change. Security: no secrets, no markers, and the file stays root-owned with mode 0644. Quality: the test helpers are reused, not copied. Hygiene: Assignment matches what was built, and criterion 9 states what the documenter must write.
+6. documenter: wrote the docs criterion (criterion 9).
+   - `docs/operator-guide.md`: a row for `/etc/gitconfig` (`0644`, `root:root`) in *Users and directories*; a new morning observation row (`git -C /work/checkout status --short` as `agent` prints no `dubious ownership`); the push row now says git fails with `could not read Username`, no credential.
+   - `docs/decisions.md`: new entry "The agent's git trusts the shared checkout" (fault, the human's answer, why the factory's git needs none, exact work-tree path, and the rejected `safe.directory=*`, `.gitconfig` in the agent's home and `GIT_CONFIG_*` in the agent's environment).
+   - `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only docs.
+   - Cross-read the diff (`image/gitconfig`, `image/Dockerfile`) against the guide's `.git` seal text and the sudo section: current. The README is unchanged.
+   - The code matches the Interface; no findings. Nothing stale seen that I left alone.
+
+   `make check`: check: green
+   `make documents`: documents ok

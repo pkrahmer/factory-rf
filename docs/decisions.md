@@ -449,3 +449,14 @@ Date: 2026-10-17 (F0014-S0010; F0014 decisions 30 to 32). The seal keeps the che
 - `git clean -f -d`, the restore, keeps a nested repository; only `-ff` would remove it. The removal does not use git for this, so it does not depend on either flag.
 
 Left open: an index entry of mode `160000` without a repository behind it is not refused, since no child git starts for it; and a folder the factory cannot list is not searched, since its git cannot read it either.
+
+## The agent's git trusts the shared checkout
+
+Date: 2026-10-17 (F0014-S0002; the human's answer to the first start's fault 1, `planning/overnight/first-start-checklist.md`). `git status` as `agent` in `/work/checkout` failed with `detected dubious ownership in repository at '/work/checkout'`: the checkout belongs to `factory`, and git refuses a repository of another user unless a `safe.directory` names it. Every agent stage that reads a diff or a log was hit.
+
+- The image installs a root-owned `/etc/gitconfig` (`0644`, from `image/gitconfig`) with one entry, `safe.directory = /work/checkout`. The agent can read it and cannot write it. The path is tied to the settings' `CHECKOUT_PATH` by a test.
+- The factory's own git needs none: it owns the checkout, and its wrapper sets `GIT_CONFIG_NOSYSTEM=1`, so the file never reaches the factory's git commands. A project command's git (`make` as `factory`) does read it, and a safe directory for the factory's own checkout changes nothing there.
+- Git trusts only the exact work-tree path: not a trailing slash, not `.git` (checked with git 2.39.5). The entry is therefore `/work/checkout` exactly.
+- The agent's git needs only read access to `.git`, which the `0640` of "The factory alone writes the checkout's `.git`" keeps; `git status` skips its index refresh when it cannot write.
+- Rejected: `safe.directory=*`, which trusts every repository; a `.gitconfig` in the agent's home, which the agent can rewrite; a `GIT_CONFIG_*` name in the agent run's environment, which would widen its allow list.
+- Observed only at the shakedown run: the tests cannot be a second user.
