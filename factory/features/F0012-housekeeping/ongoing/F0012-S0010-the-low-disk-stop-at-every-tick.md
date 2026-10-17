@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 162
 blocked: null
 comments_seen: 0
@@ -103,3 +103,22 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared[disk_low]
+4. coder: Implemented the low-disk stop. Commit "feat(application): stop the tick at disk_low before the fetch". `make check` is green, with coverage at 99.52 %.
+
+   - `src/factory/domain/stops.py`: `RepositoryStopReason` gains `disk_low` after `preflight_failed`. The single `_MACHINE_REASON` became the frozenset `_MACHINE_REASONS` = {`preflight_failed`, `disk_low`}, so the scope validator checks membership in the set.
+   - `src/factory/domain/stop_table.py`: added the row `_health("disk-low", ("L64",), "disk_low")` after `preflight-failed`, so the table now has fifteen rows. It uses the existing `_REPOSITORY_TEST` name.
+   - `src/factory/application/tick.py`: `Tick.run` calls the new `_check_disk()` first, inside the same `try` as `_fetch`.
+     - It does nothing when `boundaries.disk` or `boundaries.settings` is `None`.
+     - Otherwise it reads `free_bytes` of `settings.checkout.parent`, then of `settings.state_directory`, into a dict. An `OSError` stops at once with `cannot read the free space of <path>: <error>`, so no later path is read.
+     - It then applies `disk_low_detail` from `factory.domain.disk`. A detail raises the stop; no detail calls `clear_stop("disk_low")`.
+     - `_stop` gained a keyword `scope: StopScope = "repository"`, so the existing stops are unchanged and the disk check passes `scope="machine"`.
+     - Updated the module and `run` docstrings to name the new first step.
+
+   Main design decision: I reused the tick's `_stop`/`_Stopped` path with a scope parameter. I rejected two alternatives: a separate `DiskCheck` service like `Preflight`, which is more wiring for one method, and building the machine `RepositoryStop` inline, which would duplicate `_stop`. Production wiring (`entry/wiring.py`) already passes `settings` and `ShutilDiskSpace()`, so nothing needed to change there.
+
+   Refactor: I re-read my diff and found nothing to change, so there is no refactor commit.
+
+   Noticed, not touched: `make duplicates` reports 2 new findings, both "unused method `used_bytes`", in `application/machine.py` and `adapters/disk_space.py`. That method comes from F0012-S0009 and is meant for F0012-S0016/S0017, so it is not dead code from this ticket. The docs criterion (12) is left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 2 new, 39 known, 0 gone
