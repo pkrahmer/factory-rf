@@ -1,45 +1,42 @@
 ---
-stage: done
-pr: 187
+stage: accept
+pr: 190
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
-stories: [F0013-S0001, F0013-S0002, F0013-S0003, F0013-S0004, F0013-S0005]
-outcome: accepted
+stories: [F0013-S0001, F0013-S0002, F0013-S0003, F0013-S0004, F0013-S0005, F0013-S0006, F0013-S0007]
 ---
 # Acceptance of Podman and the token
 
 ## Verdict
 
-**accepted with drafts.** Every scope item has a merged story. The feature demo is green: the image, the compose file, the factory's token reading, the preflight item and git's credential helper agree on the token's folder, and a user who cannot enter the folder gets no credential even from a `0777` file. The two findings worth a story are not broken promises. One is a set of preflight details that the tests check only in part. The other is four older sentences, in the README and the operator guide, that still say no container was observed, which contradicts the new *Container runtimes* section.
+**accepted.** This is F0013's second acceptance. It covers the five stories of the first one and the two that acceptance proposed (S0006, S0007), and both of its findings are closed. The feature demo is green from the token's folder to the preflight report the operator reads. The documents no longer contradict each other on what the probe observed. `make mutants` kills 561 of 567: the six survivors are the near-equivalent and cosmetic ones the first acceptance already judged not worth a story. Two one-line leftovers (section 4) are too small for a story of their own.
 
 ## 1 Scope
 
-None. Every Scope bullet of `FEATURE.md` has its story, and nothing was built outside it:
-- The token's folder, the bind mount and the path: S0001 (`image/Dockerfile:20-26,41`, `image/compose.yml:22-30`).
-- The preflight item on the folder: S0002 (`src/factory/application/preflight.py:82-124`).
-- F0012's two drafts: S0003, a new test module only, and S0004 (`src/factory/entry/check_demos.py:14,24,71`).
-- Podman's restart, the provider, the runtimes and the disk: S0005, documents only.
-- The stale header comment of `image/entrypoint.sh`: S0001, whose lines 4-5 now name `/work`.
+None. The first acceptance's mapping still holds: S0001 to S0005 cover every Scope bullet of `FEATURE.md`, and nothing was built outside the scope. S0006 and S0007 are the first acceptance's proposals, which the human promoted (decision 16 gives S0006's leave). Since that acceptance (`59221f98`), the diff outside `factory/` and `docs/runs/` is three test modules (S0006), `README.md` and `docs/operator-guide.md` (S0006, S0007). `src/` and `image/` did not change.
 
-The Goal's "done when" holds: `make check` is green (below); the folder and the mount are in the image and the compose file; the preflight checks the folder; and the operator guide has *Container runtimes*, which names the runtimes and says how to run under Podman.
-
-The Out of scope items stayed out: the image pins (the human pinned them in `b642dd31`, outside the stories), the hand tests at the first start, `keep-id`, `:z`, `podman-compose`, and the project commands' route to the token.
+The Goal's "done when" holds:
+- every story is merged and `make check` is green;
+- the token's folder and mount are in the image and the compose file;
+- the preflight checks the folder;
+- *Container runtimes* names the runtimes and says how to run under Podman.
 
 `make check` as found: `check: green`, coverage 99.50 %.
 
 ## 2 Feature demo
 
-No container runtime is on this machine (`which docker podman sudo` finds none, and there is no `agent` user), so the demo runs the real entry points without a container:
+No container runtime is on this machine, so the demo runs the real entry points without one:
 - the image files as Compose and the build read them;
-- `boundaries_from_environment` and `machine_extras` of `factory.entry.wiring`, which the factory's start and its preflight use;
-- `image/git-credential-factory` as git calls it.
+- `boundaries_from_environment`, `machine_extras` and `MachineChecks`, which the factory's start and preflight use;
+- `image/git-credential-factory` as git calls it;
+- the README and the operator guide as a newcomer reads them.
 
-The token's folder is a stand-in in a temporary directory. A folder without its search bit stands in for what the agent meets in a `0700` folder it does not own. The script is `/tmp/f0013-demo/demo.py`, outside the repository.
+The token's folder is a stand-in in a temporary directory. A folder without its search bit stands in for what the agent meets in a `0700` folder it does not own. Section 4 adds what S0006 and S0007 made a user-visible promise. A machine with one fault per item runs the whole preflight: the hosting service fails, the runtime reports a version other than the pin, the agent run has no environment, and the probe run dies. The demo prints the report the operator would read in `preflight_failed`, then checks that the guide quotes those details and no longer says that nothing was observed. Only the hosting service (`FakeHostingService`) and the agent runtime (`FakeAgentRuntime`) are fakes. The script is `/tmp/f0013-accept2/demo.py`, outside the repository.
 
 ```
-$ uv run python /tmp/f0013-demo/demo.py; echo "exit $?"
+$ uv run python /tmp/f0013-accept2/demo.py; echo "exit $?"
 == 1. the image and the compose file
 ENV FACTORY_TOKEN_FILE      = /home/factory/.secrets/hosting-token
 bind mount target           = /home/factory/.secrets/hosting-token read_only True create_host_path False
@@ -54,148 +51,155 @@ preflight item, folder 0755 = token-file False <tmp>/.secrets/hosting-token: the
 == 3. git's credential helper: the user who may enter the folder, then one who may not
 folder 0700, may enter      : exit 0 username=x-access-token | password=example-value | 
 folder no x, file 0777      : exit 1 ''
+== 4. the preflight report the operator reads in preflight_failed, with one fault per item
+agent user                  = None
+  tool:git               pass 
+  tool:uv                pass 
+  tool:make              pass 
+  tool:claude            pass 
+  hosting-service        FAIL the hosting service failed find_open_pull_request: injected failure; check the token and the network
+  agents                 pass 
+  agent-runtime-version  FAIL the agent runtime reports 2.1.290, the image pins 2.1.289; rebuild the image or change the pinned version
+  token-file             pass 
+  agent-user             FAIL FACTORY_AGENT_USER is not set: every agent would run as the factory's user, who can read the token file
+  agent-environment      FAIL the agent run has no PATH; the agent run has no HOME
+  agent-run-probe        FAIL the probe run ended died; run claude -p by hand as the factory user to see why
+== 5. what the guide quotes of those details, and what it says was observed
+guide quotes 'the agent run has no PATH'                          True
+guide quotes 'the agent run has no HOME'                          True
+guide quotes 'check the token and the network'                    False
+guide quotes 'rebuild the image or change the pinned version'     True
+guide quotes 'the factory user'                                   True
+guide quotes '/home/factory/.secrets/hosting-token'               True
+guide quotes 'Container runtimes'                                 True
+guide quotes 'Update the pins'                                    True
+README 'not yet observed'/'not been observed' = 0 | 'repository_unavailable' = True
+guide  'not yet observed'/'not been observed' = 0 | 'repository_unavailable' = True
 exit 0
 ```
 
-Green. The purpose holds end to end, as far as it can be shown without a container:
-- the mount's target is the path the image sets;
-- the factory reads the token through it;
-- the preflight passes a file with the host's `0777` mode and refuses a folder others can enter;
-- whoever cannot enter the folder gets nothing from the helper.
+Green. The details are exactly the ones S0006's Interface table gives, and they are what the operator reads. The one `False` is not a gap. The guide's `hosting-service` row (`docs/operator-guide.md:269`) gives the hint as an instruction ("Check the token (`FACTORY_TOKEN_FILE`) and the network"), not as a quote. S0006's docs criterion left that row as it was.
 
-What the demo cannot show is the folder's owner and mode inside a running container under each runtime. That stays the morning observation of the operator guide, as `FEATURE.md` puts it out of scope.
+What the demo cannot show is still the folder's owner and mode inside a running container. That stays the morning observation that `FEATURE.md` puts out of scope.
 
-Also run: `make documents` printed `documents ok`; `make duplicates` printed `duplicates: 0 new, 39 known, 0 gone`; `uv run python -m factory.entry.check_demos` printed `demos ok`.
+Also run: `uv run python -m factory.entry.check_demos` printed `demos ok`.
 
 ## 3 Mutation score
 
-`make mutants FEATURE=F0013` selected two modules, `src/factory/application/preflight.py` and `src/factory/entry/check_demos.py`, and finished in 27 s, a fresh run. mutmut's results do not print the killed mutants, so the counts come from mutmut's `.meta` files (`exit_code_by_key`):
-- `preflight`: 379 killed of 394, 15 survived.
-- `check_demos`: 170 killed of 173, 3 survived.
-- Together: **549 killed of 567 (96.8 %), 18 survived, no timeouts.**
+The `mutants/` cache from the first acceptance came from before S0006's tests, so I moved it aside (`/tmp/f0013-accept2/mutants-previous`). `make mutants FEATURE=F0013` then ran from scratch and finished without the `stopped after` line. It selected the same two modules. The counts come from mutmut's `.meta` files (`exit_code_by_key`):
+- `src/factory/application/preflight.py`: 391 killed of 394, 3 survived (the first acceptance had 379 of 394).
+- `src/factory/entry/check_demos.py`: 170 killed of 173, 3 survived (unchanged).
+- Together: **561 killed of 567 (98.9 %), 6 survived, no timeouts.** The first acceptance had 549 of 567.
 
-Every mutant of `token_file_item`, `_token_file_fault` and `_token_folder_fault`, the code S0002 rewrote, is killed. So is every mutant of `_story_findings`, which S0004 changed. All 18 survivors are in code this feature did not change. Read with `mutmut show`, they fall into these groups:
-- **Preflight details checked only in part** (11): `"; ".join(faults)` becomes `"XX; XX"` in `agent_environment_item`. The texts of `_path_fault` and `_home_fault` are upper-cased or wrapped in `XX`. `agent_user or 'the factory user'` becomes `and`, and the fallback text changes, in `agent_run_probe_item`. The hints `check the token and the network` and `rebuild the image or change the pinned version` change. The tests assert parts of these details with `in`. The operator reads the details in the stop, and the operator guide quotes them. Draft S0006.
-- **Arguments the fakes do not see** (3): `find_open_pull_request(None)` in `MachineChecks._hosting_service`, because the fake answers any branch and the item ignores the answer. `git.checkout(MAIN_BRANCH, start_point=None)` and the dropped `start_point` in `Preflight._run_probe`, because the `reset_to(_MAIN_REF)` that follows puts the checkout at `origin/main` anyway. These are near-equivalent, so there is no draft.
-- **Equivalent or cosmetic** (3, in `check_demos`): `read_text(encoding="UTF-8")` and `encoding=None`, which are equal under a UTF-8 locale, and `ArgumentParser(prog=None)`. No draft.
-
-F0012's acceptance counted 19 preflight survivors in a partial run. This run counts 15, and none is new.
+S0006 killed all 11 of the preflight detail survivors, the group it was written for, and one more. The make output lists six survivors, and `mutmut show` gives each one's change:
+- **Arguments the fakes do not see** (3, `preflight`):
+  - `MachineChecks._hosting_service__mutmut_1`: `find_open_pull_request(MAIN_BRANCH)` becomes `(None)`. The fake answers any branch, and the item ignores the answer.
+  - `Preflight._run_probe__mutmut_3` and `__mutmut_5`: `git.checkout(MAIN_BRANCH, start_point=_MAIN_REF)` gets `start_point=None` or loses the argument. The `reset_to(_MAIN_REF)` that follows puts the checkout at `origin/main` anyway.
+  - All three are near-equivalent. No draft, as the first acceptance decided.
+- **Equivalent or cosmetic** (3, `check_demos`): `_read__mutmut_1` and `_3` (`read_text(encoding=None)` and `"UTF-8"`, equal under a UTF-8 locale), and `main__mutmut_2` (`ArgumentParser(prog=None)`). No draft.
 
 ## 4 What the stories noticed
 
-- **S0001**:
-  - The coder found that detect-secrets flags a criterion's own text: the YAML of the bind mount in criterion 3. The criterion was then reworded as prose. The coder's log entry quoted the flagged fragment, so it was flagged again, and the human added a `.secrets.baseline` entry for both the `ongoing/` and `done/` paths (log entries 4-8). This cost two extra runs (section 8). A story text that quotes a compose mount of a file named `*secret*` will meet the hook again. That is for the human's lessons, not a story.
-  - The documenter saw that the `agent-user` text still says the factory's user "can read the token file". That is still true.
-- **S0002**: the coder renamed a constant to `_MISSING_FILE_FAULT` because ruff's S105 flagged `_NO_TOKEN_FILE`. That is fine.
-- **S0003**: the coder noted that `AcceptanceMerged._book` runs `git mv` in the checkout before the state check. The Interface left that out, and the tick's restore at the next tick undoes it. Nothing to do.
-- **S0004**: nothing.
-- **S0005**: the documenter left two things to the first Podman run. *The disk record* still speaks of "Docker's disk image" and `docker system df`. *What the container cannot see* gives only Docker Desktop's way to reclaim space (`fstrim`, `diskpart`). Neither is wrong for Docker, and Podman's way was not probed. No draft until a Podman run shows it.
+From S0006 and S0007:
+- **S0006**: the tester, coder and reviewer noticed nothing outside the story, and the documenter saw nothing stale. The coder's run confirmed only that `src/` already behaved as the Interface says. That was expected for a test-only story.
+- **S0007**: the documenter cross-read the remaining "Morning observation" paragraphs (the second user and the `sudo` rule, the agent run, Linux `podman-restart.service`). They are still open and correct. The documenter dropped the *Build it* sentence "v1's container has no Docker" because it is no longer true. Nothing else.
 
-The acceptance noticed three more things:
-- `image/compose.yml:1` still says "Docker restarts it", which is untrue under Podman after a machine restart. This is a one-word comment fix for the next story that touches `image/`.
-- `docs/decisions.md:255` still lists the default path `/run/secrets/hosting-token` as "Open". The F0013-S0001 entry (`:411`) supersedes it by name, so it is not a contradiction.
-- F0012's two drafts that S0003 and S0004 took in are still under `factory/features/F0012-housekeeping/drafts/`. `FEATURE.md` says the human deletes each once its story is merged, and both are merged now.
+What the first acceptance noticed, now:
+- F0012's drafts S0031 and S0032 are gone: the human deleted them in `2346ffaf`. Closed.
+- `image/compose.yml:1` still says "The factory's container: Docker restarts it". Under Podman on Windows nothing restarts it after a machine restart (the guide's *Podman: the restart*). No story of F0013 touched `image/` after S0001, so this one-word comment fix is still left for the next story that touches `image/`. Too small for a draft of its own.
+- `docs/decisions.md:255` still lists `/run/secrets/hosting-token` as "Open". The F0013-S0001 entry supersedes it by name, so it is not a contradiction.
+- Podman's disk reclaim is still not in the guide. It is left until a Podman run shows it, as before.
+
+The acceptance noticed one more: the morning observation of the agent run (`docs/operator-guide.md:220`) says a real agent run "needs Docker and the image's second operating-system user". Since *Container runtimes*, "a container runtime" would be the accurate word. It is harmless, and it fits the same small text pass as `compose.yml:1`.
 
 ## 5 The documentation as a whole
 
-I read `README.md` and the operator guide from the top, and the token, preflight and runtime parts of the project guide and the decision log.
+I read `README.md` and the operator guide from the top, and the decision log's F0013 entries.
 
-The token's story is told the same way everywhere:
-- the guide's *The hosting-service token*, *The agent runs as a second user*, *Users and directories*, the `token-file` row and its four faults;
-- the project guide's `token_file_item` sentence;
-- decision entries `:411` and `:415`.
+The first acceptance's finding is closed. `README.md:3`, the guide's introduction, *Build it* (`:147`) and *The health check and the restart policy* (`:248`) now all say what the probe of 2026-10-17 saw, and they say it the same way:
+- built under rootless Podman without the pins, started, and stopped at `repository_unavailable`;
+- the health check ran;
+- a run with a real repository and token, and a build with the pins, are still open.
 
-No text names `/run/secrets` as current.
+This agrees with *Container runtimes* (`:303`). `:248` also qualifies `restart: unless-stopped` with a pointer to *Podman: the restart*. The heading is now *Update the pins*; nothing linked to the old name, and its text matches the pinned `image/Dockerfile`.
 
-One finding. Four sentences still say that no container or build was observed:
-- `README.md:3`: "a real container is not yet observed";
-- the operator guide's introduction (`docs/operator-guide.md:3`), in the same words;
-- *Build it* (`:147`): "A real build is not yet observed … Treat the first build as the morning observation";
-- *The health check and the restart policy* (`:248`): "A real running container has not been observed yet".
+S0006's sentence in "The probe of the agent run" (`:282`) matches the code: without `FACTORY_AGENT_USER` the detail names `the factory user`, which the demo prints. The other details in the table are quoted or described as the code produces them.
 
-The new *Container runtimes* section (`:303-331`) says the image and the compose file run under Docker Desktop and Podman, from the probe. That probe built the image, started it, reached the stop `repository_unavailable` and saw the health check report it. A newcomer gets both claims.
-
-The heading *Replace the placeholders before the first build* (`:149`) is stale as well: the human's `b642dd31` pinned the image, and the section's text already says so.
-
-None of this misleads anyone about behaviour, but the documents contradict each other. Draft S0007.
-
-The Podman restart text agrees with *The health check and the restart policy*, which now points to it. The examples I could run were run: the S0002 demo's snippet as the guide describes the item, and `check_demos`. The `docker`/`podman` commands need a runtime that is not here.
+No contradiction found. The two leftover word fixes are in section 4. `make documents` printed `documents ok`.
 
 ## 6 Decisions taken for the human
 
 These are listed for the human to accept or revisit. Nothing is decided here.
 
-From `FEATURE.md`, taken by the session for the human to confirm:
-- **6**: two stories for the token, the image and the preflight separately.
-- **7**: a read-only bind mount with `create_host_path: false`, not a compose secret with an absolute target. The folder is `factory:factory` `0700` at `/home/factory/.secrets`. A `chown`/`chmod` in the entrypoint and Swarm mode were rejected.
-- **8**: the entrypoint comment fixed by S0001.
-- **9** and **11**: the leaves to change four earlier test modules (S0001) and to replace the three tests of the token item (S0002).
-- **10**: the item checks the folder and no longer the file's owner and mode. A missing folder reads `the token file does not exist`.
-- **12**: S0003's stand-in `WorkItemReader`, because the real reader never gives a stateless document.
-- **13**: one documentation-only story, under the section name *Container runtimes*, including fault 4.
-- **14**: the host permissions per host. Only Windows was observed; the Linux Docker and rootless Podman commands are written from documentation.
-- **15**: git's hooks are named beside the project commands as left for v2. The folder is checked before the file. Rancher Desktop is named untested, and the Mac is out of scope. The restart text is what was tested, so Windows has no automatic restart and the operator starts the machine and Compose, by hand or as a scheduled task.
+Unchanged since the first acceptance, still to confirm: `FEATURE.md` decisions 6 to 15, and the story-log decisions of S0001 to S0005 that the first report listed in its section 6:
+- the reworded criterion and the `.secrets.baseline` entry;
+- the folder made in the existing `RUN`;
+- the handlers not reordered;
+- `work_item_path` reused;
+- where *Container runtimes* sits.
 
-From the story logs:
-- S0001, the human's answers (entries 5 and 7): criterion 3 was reworded as prose, and there is a `.secrets.baseline` entry for the quoted fragment of the coder's log, on the story's `ongoing/` and `done/` paths.
-- S0001, coder: the folder is made in the existing users-and-folders `RUN`, not in a layer of its own.
-- S0003, coder: the handlers were not reordered to check the state before `_book`'s local `git mv`.
-- S0004, coder: the domain's `work_item_path` was reused, not a local helper.
-- S0005, documenter: *Container runtimes* is placed directly after the container section, and *What the container cannot see* now names both runtimes.
+New since then:
+- **Decision 16** (`FEATURE.md`): the human's leave for S0006 to change four earlier tests in three modules, with renames allowed. The tester stayed within it, and the reviewer checked that.
+- **S0006, tester**: three tests renamed to say "with its detail":
+  - `test_a_fault_in_the_environment_fails_with_its_detail`;
+  - `test_a_probe_that_does_not_complete_fails_with_its_detail`;
+  - `test_the_version_item_fails_with_its_detail_when_the_versions_differ`.
 
-From this acceptance, for the human: whether S0006's test changes get the leave to change earlier tests (the draft asks for it), or the story is rewritten as a new module.
+  `test_the_hosting_service_item_reports_a_failed_call` kept its name. The probe rows with no agent user are built through `settings.model_copy`.
+- **S0006, documenter**: the `hosting-service` row of the guide is left as a description ("Check the token ... and the network") and does not quote the detail. The criterion allowed this.
+- **S0007, documenter**: the sentence "v1's container has no Docker" is dropped from *Build it*. The build time is given as "42 s under Podman 5.8.3".
+- **S0007, tester**: a test that greps the documents for the stale sentences was rejected. The document check and the demo cover them.
+- **From this acceptance**: no draft for the two one-word leftovers (`image/compose.yml:1`, `docs/operator-guide.md:220`). If the human wants them fixed before the first start, a story for both is one coder and one documenter line.
 
 ## 7 The slow checks
 
-The project offers nothing beyond `make check` and `make mutants`: no image scan and no SBOM target. The `Makefile` targets are `check lint types layers sast secrets licenses test duplicates documents mutants`.
+The project offers nothing beyond `make check` and `make mutants`: no image scan and no SBOM. The `Makefile` targets are unchanged: `check lint types layers sast secrets licenses test duplicates documents mutants`.
 
-`make documents` (`documents ok`) and `make duplicates` (`0 new, 39 known, 0 gone`) were run above.
+Also run:
+- `make documents`: `documents ok`;
+- `make duplicates`: `duplicates: 0 new, 39 known, 0 gone`.
 
-No image was built here: there is no runtime, and the build is the morning observation in the operator guide. The real-container checks of S0001 and S0005 are left to the first start (plan step 2), as `FEATURE.md` says:
+No image was built here: there is no runtime. The checks in a real container stay with the first start (plan step 2), as `FEATURE.md` says:
 - the folder's owner and mode, and the agent's `Permission denied`;
+- a build with the pins;
 - the restart service on a Linux host.
 
 ## 8 Cost
 
-5 stories, **32 runs, 17.7 min, $4.45**: $0.89 a story on average, below F0012's.
+7 stories, **44 runs, 22.7 min, $5.76**: $0.82 a story on average.
 
-S0001 stands out: 8 runs, 6.3 min, $1.50, a third of the feature. Its log says why. Two coder runs ended on `make secrets`: detect-secrets flagged the YAML of the bind mount in criterion 3, and then the coder's own log entry that quoted it. The human answered twice (reword the criterion; a baseline entry) before the story went on (entries 4-8). Without those two runs it would have cost about what S0002 cost.
+The two new stories cost little:
+- S0006: 6 runs, 3.1 min, $0.76;
+- S0007: 6 runs, 1.9 min, $0.55.
 
-The other four stories had six runs each, no rework round, and cost $0.60–$0.90. S0003 and S0005 changed no code, so their coder runs only confirmed what was already true.
+Neither had a rework round. Both coder runs changed nothing, as the stories expected, so those runs only confirmed `make check`. That is the fixed cost of a test-only or documentation-only story in this pipeline.
+
+S0001 still stands out at 8 runs and $1.50, for the reasons the first acceptance gave: two coder runs went to `make secrets` on a criterion's quoted YAML. The first acceptance run itself ($2.25, 8.0 min) is not in the stories' sum.
 
 ## Proposed stories
 
-- `drafts/F0013-S0006-the-preflights-details-pinned-in-full.md`: pins the whole detail of `agent-environment`, `agent-run-probe` (with and without an agent user), `hosting-service` and `agent-runtime-version`, which the operator reads and the guide quotes. It kills the 11 text survivors of section 3. It is test-only and needs the human's leave to strengthen four earlier tests.
-- `drafts/F0013-S0007-what-the-probe-observed-in-the-documents.md`: documentation only. It replaces the four "not yet observed" sentences of the README and the operator guide with what the probe saw, and renames the stale *Replace the placeholders* heading.
+None. The six mutation survivors are near-equivalent or cosmetic. The two leftovers (`image/compose.yml:1` "Docker restarts it", `docs/operator-guide.md:220` "needs Docker") are one word each and are listed in section 6 for the human to decide.
 
 ## Log (append only)
 
-1. acceptor: accepted with drafts; 2 drafts proposed; make mutants 549/567
+1. acceptor: accepted; 0 drafts proposed; make mutants 561/567
 
-   1. **Scope:** no finding. Every Scope bullet has a merged story (S0001 to S0005), nothing was built outside the scope, and the Goal's "done when" holds. `make check` was green as I found it and is still green.
-   2. **Feature demo:** green. `/tmp/f0013-demo/demo.py` runs through the real wiring (`boundaries_from_environment`, `machine_extras`) and `image/git-credential-factory`. It shows that:
-      - the image's `ENV` path matches the compose file's read-only bind target, which sits in the `factory:factory` folder with mode `0700`;
-      - the compose file has no secrets left;
-      - the factory reads the token from that path;
+   This is F0013's second acceptance. It covers S0001 to S0007, and both findings of the first acceptance are closed: S0006 pinned the preflight's details and S0007 updated the documents.
+
+   1. **Scope:** no finding. Every Scope bullet has its merged story. Since the first acceptance, only three test modules, `README.md` and `docs/operator-guide.md` changed; `src/` and `image/` did not. The Goal's "done when" holds, and `make check` was green as found (99.50 %).
+   2. **Feature demo:** green. `/tmp/f0013-accept2/demo.py` runs the real wiring, `MachineChecks`, the credential helper and the documents. It shows that:
+      - the image's ENV path equals the compose file's read-only bind target in the `0700` folder;
       - `token-file` passes a `0777` file and refuses a `0755` folder;
-      - the helper gives the token to a user who can enter the folder, and nothing (exit 1) to one who cannot.
-      - No container runtime is installed here, so the folder inside a running container stays the morning observation.
-   3. **Mutation score:** 549 of 567 mutants killed (96.8 %), a fresh run of 27 s. `preflight` 379/394, `check_demos` 170/173.
-      - Every mutant in the code F0013 changed is killed. The 18 survivors are all in code F0013 did not touch.
-      - 11 of them change preflight detail texts that the tests check only with `in`: draft S0006.
-      - The other 7 are near-equivalent or cosmetic: no draft.
-   4. **What the stories noticed:**
-      - In S0001, detect-secrets flagged the criterion's YAML and then the log entry that quoted it. The human added a baseline entry. Worth a lesson for the skills, not a story.
-      - Podman's disk reclaim is not in the guide, left until a Podman run shows it.
-      - `image/compose.yml:1` still says "Docker restarts it".
-      - F0012's drafts S0031 and S0032 are still in F0012's `drafts/`, for the human to delete.
-   5. **Documentation:** the token text is consistent everywhere. The finding: four sentences still say no container or build was observed (README:3; operator guide :3, :147 and :248), which contradicts the new *Container runtimes* section and the probe. The heading *Replace the placeholders* is stale too. Draft S0007.
-   6. **Decisions for the human:** FEATURE decisions 6 to 15, plus from the story logs:
-      - S0001: criterion 3 reworded as prose and a baseline entry (the human's answers); the folder made in the existing `RUN`.
-      - S0003: the handlers not reordered.
-      - S0004: `work_item_path` reused.
-      - S0005: where *Container runtimes* goes in the guide.
-      - S0006 needs the human's leave to change four earlier tests.
-   7. **Slow checks:** none beyond `make check` and `make mutants`. `make documents` printed `documents ok` and `make duplicates` printed `0 new, 39 known, 0 gone`. No image was built: there is no runtime here.
-   8. **Cost:** 32 runs, 17.7 min, $4.45. S0001 stands out at 8 runs and $1.50: two coder runs went to `make secrets` and the human's two answers. The other four stories cost $0.60 to $0.90 each, with no rework.
-2. done (pull request merged); cost: 1 runs, 8.0 min, 51 turns, 142k tokens in (4427k more from cache), 32k out, $2.25
+      - the helper gives the agent nothing (exit 1);
+      - a machine with one fault per item prints exactly S0006's details, including `as the factory user`;
+      - the guide quotes them, and neither the guide nor the README says "not yet observed" any longer.
+      No container runtime is installed here.
+   3. **Mutation score:** a fresh run (the old `mutants/` cache was moved to `/tmp`) killed 561 of 567 (98.9 %), up from 549. `preflight` 391/394, `check_demos` 170/173. S0006 killed all 11 detail survivors. The 6 left are near-equivalent (arguments the fakes do not see, a checkout that the following reset makes irrelevant) or cosmetic (an encoding argument, `prog`). No draft, as the first acceptance decided.
+   4. **What the stories noticed:** S0006 and S0007 noticed nothing new. F0012's superseded drafts are gone (`2346ffaf`). Two one-word leftovers remain: `image/compose.yml:1` says "Docker restarts it", and `docs/operator-guide.md:220` says "needs Docker" where "a container runtime" is meant.
+   5. **Documentation:** no contradiction. The probe's observations read the same way in the README, the guide's introduction, *Build it*, the health check section and *Container runtimes*. The heading *Update the pins* fits the pinned Dockerfile. `documents ok`.
+   6. **Decisions for the human:** `FEATURE.md` decisions 6 to 16 and the story-log decisions of S0001 to S0005, as the first report listed them. New since then:
+      - S0006's test renames under decision 16, and the `hosting-service` row left as a description;
+      - S0007 dropped the "v1's container has no Docker" sentence and rejected a grep test;
+      - this acceptance wrote no draft for the two one-word leftovers.
+   7. **Slow checks:** none beyond `make check` and `make mutants`. `make documents` printed `documents ok`, and `make duplicates` printed `0 new, 39 known, 0 gone`. No image was built: there is no runtime here.
+   8. **Cost:** 7 stories, 44 runs, 22.7 min, $5.76. S0006 ($0.76) and S0007 ($0.55) each took 6 runs with no rework. S0001 ($1.50) still stands out, because of the `make secrets` runs the first report explained.
