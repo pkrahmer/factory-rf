@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 153
 blocked: null
 comments_seen: 1
@@ -163,3 +163,11 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    =========================== short test summary info ============================
    FAILED tests/adapters/test_make_commands.py::test_command_reaching_its_time_limit_is_killed
    make: *** [Makefile:74: test] Error 1; partial work committed
+8. documenter: documenter, round 0 rerun after the stall in entry 7. Criterion 9 stays as entry 6 wrote it, and I changed no file this run.
+   - `docs/project-guide.md` (*The git wrapper*, *The kill-point cases*) still has the `remote` and `world` fixture text from entry 6. `python -m factory.entry.check_documents` prints `documents ok`.
+   - The stall was `tests/adapters/test_make_commands.py::test_command_reaching_its_time_limit_is_killed`. That test failed once in the full parallel run. It has nothing to do with this story, which touches only `tests/conftest.py`, `tests/git_support.py`, `tests/proof_support.py` and `tests/test_git_support.py`. I ran the module on its own and all 26 tests pass. It looks timing-sensitive under load. This is a note, not a finding, and I changed nothing. Coverage was 99.53 % and nothing else failed.
+   - Cross-read: the README and `docs/operator-guide.md` do not describe test fixtures, so they are current.
+   - I ran no `make check`, since I changed no file outside the documents. The factory's run after this stage is the gate.
+   - Stale but unrelated: none seen.
+
+   `make check`: check: green
