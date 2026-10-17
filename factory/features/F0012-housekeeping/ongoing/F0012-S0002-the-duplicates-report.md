@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 154
 blocked: null
 comments_seen: 2
@@ -129,3 +129,28 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: both commands are runnable. The first Expect matches the Interface's rules for the key, the where, the message and the closing line. The second Expect is checkable.
    - Architecture: the rules are pure functions in `factory.domain`, and the entry command only reads files and prints. Layers hold.
    - Scope: the story is F0012 item 1.2 and is not in the feature's "Out of scope".
+5. tester: Wrote red tests from the Interface and criteria 1 to 14. Each test module fails to collect with ImportError because `factory.domain.duplicates` and `factory.entry.check_duplicates` do not exist yet. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_duplicates.py::test_a_duplicate_code_message_gives_its_key_where_and_first_line
+   - criterion 2: tests/domain/test_duplicates.py::test_the_key_ignores_line_numbers_and_blank_lines_but_not_the_code (rows: other line numbers, blank line before the code, other first code line)
+   - criterion 3: tests/domain/test_duplicates.py::test_modules_are_unique_in_the_key_and_other_symbols_give_nothing (rows: one module twice, `unused-import`, `[]`)
+   - criterion 4: tests/domain/test_duplicates.py::test_an_unreadable_pylint_text_is_refused (five rows)
+   - criterion 5: tests/domain/test_duplicates.py::test_a_vulture_line_gives_its_key_without_the_line_number (rows: plain, `, 3 lines`, `, 1 line`, blank). `where` and `message` are asserted only on the plain row. On the `, n lines` rows only the key is asserted, as the criterion says.
+   - criterion 6: tests/domain/test_duplicates.py::test_a_vulture_line_out_of_form_is_refused_by_its_line_number (rows: `oops` on line 2, no line number on line 1, leading spaces on line 3). The test checks that the error text holds the line number as a separate word.
+   - criterion 7: tests/domain/test_duplicates.py::test_the_baseline_skips_blank_and_comment_lines_and_strips_keys
+   - criterion 8: tests/domain/test_duplicates.py::test_compare_splits_findings_into_new_known_and_gone (rows: baseline `e, b, c`; empty baseline)
+   - criterion 9: tests/domain/test_duplicates.py::test_report_lines_list_new_then_gone_then_the_closing_line (rows: new and gone; nothing new or gone)
+   - criterion 14: tests/domain/test_duplicates.py::test_a_duplicate_code_message_out_of_form_is_refused_by_name (rows: no `==` line, no code line, malformed `==factory.a`, valid as the accepted row). The test checks that the error text contains the message's first line, `Similar lines in 2 files`.
+   - Interface limit `known: NonNegativeInt`: tests/domain/test_duplicates.py::test_the_known_count_is_not_negative (-1 refused, 0 accepted)
+   - criterion 10: tests/entry/test_check_duplicates.py::test_the_report_is_printed_and_only_new_findings_fail (rows: every key, one key missing, one key more)
+   - criterion 11: tests/entry/test_check_duplicates.py::test_write_baseline_writes_every_key_once_and_the_next_run_passes. The printed path is `str()` of the path passed to `--baseline`.
+   - criterion 12: tests/entry/test_check_duplicates.py::test_an_unreadable_input_prints_one_error_line_and_returns_two (rows: missing input, unparsable pylint, unparsable vulture, missing baseline). It asserts that stderr is exactly one line starting `check-duplicates: `.
+   - criterion 13: tests/entry/test_check_duplicates.py::test_without_arguments_the_process_arguments_are_read and tests/entry/test_check_duplicates.py::test_without_a_baseline_option_argparse_refuses (with and without `--write-baseline`)
+
+   Files created: tests/domain/test_duplicates.py, tests/entry/test_check_duplicates.py.
+
+   Modules the runner could not import: factory.domain.duplicates, factory.entry.check_duplicates.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_check_duplicates.py - ImportError while importing test...
