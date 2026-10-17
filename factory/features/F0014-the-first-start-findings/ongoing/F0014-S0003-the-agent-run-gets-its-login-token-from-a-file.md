@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 196
 blocked: null
 comments_seen: 0
@@ -150,3 +150,35 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: the commands are runnable, and each `Expect:` line is checkable (exact output lines, or the pytest summary with no failed, error or skipped count).
    - Architecture: the Claude Code name stays in `factory.adapters`; the domain only gains a path setting and the allow list is untouched; the wiring and the probe change as layered. The only external tools are `/bin/sh` and `sudo`, both reached through the runtime wrapper.
    - Scope: within FEATURE.md's S0003 row (the setting, runtime, wiring and probe detail), and the image/compose work is left to S0004. The API key, a preflight item of its own for the file, and the hosting token are out of scope and not touched. The write paths cover the four source files named. Decisions 9 to 13, 30(c) and 33 agree with the ticket.
+3. tester: Wrote the red tests for every acceptance criterion. `make lint` is green. One `make test` run fails for the right reasons: three new modules cannot import names that do not exist yet, and the probe test gets the wrong detail.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_settings_claude_login.py::test_the_login_file_setting_is_a_path_or_none_when_blank (rows: path, unset, empty, spaces)
+   - criterion 2: tests/adapters/test_claude_runtime_login.py::test_the_call_gets_the_login_from_a_file_that_holds_one_and_otherwise_none (row `token`)
+   - criterion 3: the same test, rows `no-setting`, `missing`, `empty`, `blank`; each run also has to end `completed`
+   - criterion 4: tests/adapters/test_claude_runtime_login.py::test_the_request_s_login_entry_is_dropped_for_the_file_s (rows: no-setting, missing, token)
+   - criterion 5: tests/adapters/test_claude_runtime_login.py::test_a_resumed_call_reads_the_login_file_again
+   - criterion 6: tests/adapters/test_claude_runtime_login.py::test_one_runtime_reads_the_login_file_again_at_every_run (rows: changed, new, removed)
+   - criterion 7: tests/adapters/test_claude_runtime_login.py::test_with_a_user_the_login_shell_runs_after_sudo_and_env_i_and_hands_over_the_login
+   - criterion 8: tests/adapters/test_claude_runtime_login.py::test_the_login_stands_in_no_argument_no_run_file_and_no_result (rows: user, no-user)
+   - criterion 9: tests/adapters/test_claude_runtime_login.py::test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file (rows: folder, utf-16, utf-16-without-mark, utf-16-with-a-user)
+   - criterion 10: tests/adapters/test_claude_runtime_login.py::test_the_version_call_gets_no_login_and_no_login_shell
+   - criterion 11: tests/adapters/test_claude_runtime_login.py::test_the_allow_list_keeps_its_six_names_and_scrubbing_drops_the_login
+   - criterion 12: tests/entry/test_wiring_login.py::test_the_built_runtime_hands_the_login_file_s_token_to_claude (rows: login-file, no-login-file)
+   - criterion 13: tests/application/test_agent_run_probe_login.py::test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set (four reasons × with and without an agent user × login file or none, plus a `completed` row that passes with an empty detail)
+   - criterion 14: tests/application/test_agent_run_probe_login.py::test_a_login_file_the_runtime_cannot_read_fails_the_probe_with_the_runtime_s_message
+   - criterion 15: covered by the existing tests/adapters/test_claude_runtime_environment.py, tests/adapters/test_claude_runtime_os_user.py and tests/application/test_agent_run_probe.py, which this stage did not change
+   - criteria 16 and 17: `make check` and the docs, not tests
+
+   Notes for the coder:
+   - The criterion 2 and 3 checks are a subset check: `{**GIVEN, **SWITCHES}` must be contained in claude's environment. They do not require equality, because `/bin/sh` may add its own variables (PWD and the like).
+   - The criterion 8 test and the `version()` test (criterion 10) put a `run_process` wrapper in front of `claude_runtime.run_process`. It records each `ProcessRequest` and then calls the real `run_process`. With it the tests check that the token is nowhere in the factory's process request, neither in `argv` nor in `env`. The wrapper also pins that the shell's argv without an `os_user` is the criterion 7 tail, and that `version()` starts `[executable, "--version"]` directly.
+   - The runtime module also imports `_sudo_calls` from adapters.test_claude_runtime_os_user, next to `_write_sudo` and `_request`. That reuses the existing helper rather than copying it.
+   - The test requests carry no PATH, as the `_request` helper of the earlier tests does, so the login script has to work under `env -i` without a PATH.
+
+   Files created: tests/domain/test_settings_claude_login.py, tests/adapters/test_claude_runtime_login.py, tests/entry/test_wiring_login.py, tests/application/test_agent_run_probe_login.py.
+
+   Could not import: `CLAUDE_LOGIN_FILE_VARIABLE` from factory.domain.settings, and `LOGIN_SCRIPT`, `LOGIN_VARIABLE` and `SHELL_EXECUTABLE` from factory.adapters.claude_runtime (test_settings_claude_login, test_claude_runtime_login, test_wiring_login). test_agent_run_probe_login imports, and its rows fail on the detail. No criterion needed interpretation.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_wiring_login.py - ImportError while importing test mod...
