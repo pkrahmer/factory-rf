@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 191
 blocked: null
 comments_seen: 3
@@ -186,3 +186,29 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+10. demo: Demo, round 0. I ran all three commands from the repository root, in order and exactly as written. All three met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion.
+
+    1. `git_environment()`, sorted:
+    ```
+    [('GIT_CONFIG_COUNT', '3'), ('GIT_CONFIG_KEY_0', 'credential.helper'), ('GIT_CONFIG_KEY_1', 'core.sharedRepository'), ('GIT_CONFIG_KEY_2', 'core.hooksPath'), ('GIT_CONFIG_VALUE_0', '/usr/local/bin/git-credential-factory'), ('GIT_CONFIG_VALUE_1', 'group'), ('GIT_CONFIG_VALUE_2', '/dev/null')]
+    ```
+    Met: the output is one line and matches the expected line character for character. It gives the seven entries of the Interface (criterion 1).
+
+    2. A `pre-commit` hook in a fresh repository, once committing with plain git and once with `git_environment()`:
+    ```
+    plain True
+    factory False
+    ```
+    Met: two lines, `plain True` and `factory False`. The hook is real, it does not run under the factory's environment, and the commit is still made: `check=True` did not raise (criterion 2).
+
+    3. pytest over the hook, wiring, credential-helper and git-wrapper tests:
+    ```
+    ........................................................................ [ 72%]
+    ............................                                             [100%]
+    100 passed in 2.00s
+    ```
+    Met: the last line is `100 passed`, with no failed, error or skipped count (criteria 1–8 through their tests).
+
+    Criteria check: the demo contradicts none of criteria 1–10. Criterion 9 (`make check`) and criterion 10 (docs) were not exercised by these commands. Entries 7 and 9 recorded `make check` green and `documents ok`.
+
+    No findings.
