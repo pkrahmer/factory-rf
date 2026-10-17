@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 186
 blocked: null
 comments_seen: 0
@@ -84,3 +84,27 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their Expect lines. No findings.
+
+   1. `grep -o "podman-restart.service\|docker-compose v2\|Rancher Desktop\|Exited (0)\|should-start-on-boot" docs/operator-guide.md | sort -u`
+   ```
+   Exited (0)
+   Rancher Desktop
+   docker-compose v2
+   podman-restart.service
+   should-start-on-boot
+   ```
+   Met: five lines, one for each term.
+
+   2. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met (exit 0).
+
+   Criteria read against the branch (`git diff main...HEAD`):
+   - Criterion 1: the diff outside the ticket touches only `docs/operator-guide.md` and `docs/decisions.md`. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed. Entries 3 and 4 say so.
+   - Criterion 2: entries 4 and 6 record `check: green`. The demo did not run `make check` again, because the factory runs it.
+   - Criterion 3: `## Container runtimes` begins at line 303 of `docs/operator-guide.md`. It is the first level-2 section after *The container: compose, entrypoint and health check* (line 179). It has the five sub-sections (runtimes and team host, commands, Compose provider, restart, disk), each with the content the criterion lists. The restart sub-section says the Windows restart was tested and the Linux restart was not, and gives the observation left for later. *The health check and the restart policy* points to "Podman: the restart". *What the container cannot see* names both runtimes. The new entry in `docs/decisions.md` covers the runtimes, the provider, the Buildah check, the Windows restart, the untested Linux restart service and Rancher Desktop as untested. No other document changed.
+
+   Open: the restart under Podman on a Linux host stays to be observed at the first start on such a host, as criterion 1 says.
