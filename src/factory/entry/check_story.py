@@ -42,6 +42,15 @@ class _Read(BaseModel):
     folder: LifecycleFolder
 
 
+class _Story(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    path: str
+    text: str
+    folder: LifecycleFolder
+    feature_file_exists: bool
+
+
 def _read_text(root: Path, path: str) -> str:
     try:
         return (root / path).read_text(encoding="utf-8")
@@ -78,23 +87,44 @@ def _feature_file_exists(root: Path, path: str) -> bool:
     return (root / FEATURES_DIRECTORY / directory / FEATURE_FILE_NAME).is_file()
 
 
+def _story_findings(reader: WorkItemReader, story: _Story, form: str) -> list[FormFinding]:
+    return [
+        *check_story_place(story.path, feature_file_exists=story.feature_file_exists),
+        *_form_findings(reader, story.text, form, story.folder),
+    ]
+
+
+def backlog_story_findings(
+    reader: WorkItemReader, path: str, text: str, form: str, *, feature_file_exists: bool
+) -> list[FormFinding]:
+    """Return the place findings of a backlog story at `path`, then the form findings of `text`."""
+    story = _Story(path=path, text=text, folder="backlog", feature_file_exists=feature_file_exists)
+    return _story_findings(reader, story, form)
+
+
+def finding_line(path: str, finding: FormFinding) -> str:
+    """Return a finding as one line: `<path>: <message>`, or `<path>:<line>: <message>`."""
+    where = path if finding.line is None else f"{path}:{finding.line}"
+    return f"{where}: {finding.message}"
+
+
 def _check(
     reader: WorkItemReader, root: Path, path: str, form: str, folder: LifecycleFolder
 ) -> list[FormFinding]:
-    feature_file_exists = _feature_file_exists(root, path)
-    text = _read_text(root, path)
-    return [
-        *check_story_place(path, feature_file_exists=feature_file_exists),
-        *_form_findings(reader, text, form, folder),
-    ]
+    story = _Story(
+        path=path,
+        text=_read_text(root, path),
+        folder=folder,
+        feature_file_exists=_feature_file_exists(root, path),
+    )
+    return _story_findings(reader, story, form)
 
 
 def _print_findings(path: str, findings: Sequence[FormFinding]) -> None:
     if not findings:
         print(f"{path}: ok")
     for finding in findings:
-        where = path if finding.line is None else f"{path}:{finding.line}"
-        print(f"{where}: {finding.message}")
+        print(finding_line(path, finding))
 
 
 def _check_all(reader: WorkItemReader, root: Path, paths: Sequence[str], form: str) -> int:
