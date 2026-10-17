@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 191
+blocked: null
+comments_seen: 3
+round: 0
+attempts: 1
+---
 # The factory's git runs no hooks
 
 ## Assignment (as of log entry 1)
@@ -70,3 +78,137 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `git_environment` in `src/factory/entry/wiring.py` has its signature and a table of the seven entries with exact names and values. The comment's content is stated. The test module, its fixtures and the two changed tests of `test_wiring_boundaries.py` are named, with the stand-in `git` design given.
+   - Criteria: each is testable by one test function or one parametrized test. The behaviour in the Interface (the third pair, `/dev/null`) is covered by criteria 1 and 6. The passing side (no hook runs with `git_environment`) and the failing side (the hook runs with `GitOptions()`) are rows of the same test (criteria 2 to 5). Criterion 5 covers a `core.hooksPath` in the checkout's config. Criterion 7 covers a bare remote's `pre-receive` still rejecting, on both sides. Criterion 8 relies on existing pinned tests. Criterion 9 is `make check` and criterion 10 is `docs:`, the last two.
+   - Demo: all three blocks are runnable. Each `Expect:` line is checkable: the sorted dict, `plain True` and `factory False`, and a pytest tail with no failed, error or skipped count.
+   - Architecture: the change is in `factory.entry` wiring only. `GitCli` and the layers are untouched, and the story says why the setting stays out of `GitCli`.
+   - Scope: it is inside FEATURE scope bullet 1 and not in "Out of scope". The two earlier tests it changes are covered by decision 7's leave.
+   No questions.
+3. stage tests stalled: Tests written; stopped because `make lint` is red outside my lane. All 18 ruff findings are in `planning/overnight/landlock_probe.py` (tracked, committed in 65be4c2a "Plan: 5a the write guard by Landlock..."; e.g. SIM115, D103, S603, PLW1510, S607). `planning/` is the human's; I cannot fix or exclude it. `ruff check tests/entry` and `ruff format --check tests/entry` are green for my files. Needed from the human: fix the probe or keep `planning/` out of `make lint`, then rerun this stage (the tests below can stay as they are).
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks (renamed from ..._and_the_shared_group; expects the seven entries, both rows)
+   - criterion 2: tests/entry/test_git_hooks.py::test_the_factorys_git_runs_no_hook_of_the_checkout[factory-pre-commit / plain-pre-commit]
+   - criterion 3: same test, rows [factory-post-checkout / plain-post-checkout] (checkout `work` from `origin/main`)
+   - criterion 4: same test, rows [factory-pre-push / plain-pre-push] (`push` returns `pushed`, remote holds the commit)
+   - criterion 5: same test, rows [factory-configured-hooks-path / plain-configured-hooks-path] (`git config core.hooksPath <tmp_path/elsewhere-hooks>`)
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings (now a stand-in `git` from `write_executable`, renamed to `git`, first on a monkeypatched PATH; it dumps os.environ as JSON and calls os.execv on the real git found by shutil.which before the PATH changes; four old assertions plus KEY_2/VALUE_2)
+   - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
+   - criterion 8: existing tests, unchanged.
+
+   Hooks are `#!/bin/sh` scripts that `touch` a marker at `tmp_path/hook-ran`, outside the checkout. The factory side uses `GitOptions(environment=git_environment())`; the plain side uses `GitOptions()`.
+
+   Files: created tests/entry/test_git_hooks.py; changed tests/entry/test_wiring_boundaries.py (only the two tests the ticket allows; dropped the unused `sys` import and added `os`, `shutil`, `write_executable`).
+
+   Red on purpose (one of my commands ran `make test` twice by mistake): the four `factory-*` rows of the hook test (the hook still runs), both rows of the renamed environment test and the built-git test (no third pair yet). The `plain-*` rows and both pre-receive rows already pass. No module failed to import.; partial work committed
+4. tester: Rerun of the tests stage. The tests from entry 3 are still committed and have not changed (`tests/entry/test_git_hooks.py`, and the two allowed changes in `tests/entry/test_wiring_boundaries.py`). `make test` is red on purpose: the four `factory-*` rows of `test_the_factorys_git_runs_no_hook_of_the_checkout` fail, and so do both rows of `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks` and `test_the_built_git_runs_with_the_git_options_of_the_settings`. The `plain-*` rows and both pre-receive rows pass. No module failed to import.
+
+   `make lint` is still red, and none of the findings are in my lane. There are 27 ruff findings: 18 in `planning/overnight/landlock_probe.py`, as before, and 9 in `planning/overnight/status-map-mockup/assemble.py`, a new file from the human's commit b375ccdb (SIM115, E702 and others). `uv run ruff check tests/entry` and `uv run ruff format --check tests/entry` are both green. `planning/` belongs to the human and is outside every write path, so I cannot fix these files or exclude them. While lint is red the factory holds the ticket here.
+
+   Question: how should `make lint` get green?
+   (a) The human fixes or removes the two scripts in `planning/overnight/`.
+   (b) The human keeps `planning/` out of ruff, for example with `extend-exclude = ["planning"]` in `pyproject.toml`.
+   I would choose (b). `planning/` is the human's scratch space and is not project code, so (b) also stops the next script there from blocking the pipeline. After either fix, rerun this stage; the tests can stay as they are.
+
+   Criterion → test (the same as entry 3):
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks
+   - criterion 2: tests/entry/test_git_hooks.py::test_the_factorys_git_runs_no_hook_of_the_checkout[factory-pre-commit / plain-pre-commit]
+   - criterion 3: same test, rows [factory-post-checkout / plain-post-checkout]
+   - criterion 4: same test, rows [factory-pre-push / plain-pre-push]
+   - criterion 5: same test, rows [factory-configured-hooks-path / plain-configured-hooks-path]
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
+   - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
+   - criterion 8: existing tests, unchanged.
+5. human (pull request comment, 2026-10-17): Both: the two scripts in `planning/overnight/` are now `.txt` files (ca366459), and `pyproject.toml` leaves `planning` out of ruff (option b). `make lint` is green on `main`. Rerun the stage; the tests stay as they are.
+6. tester: I reran the tests stage after the human's fix in entry 5. The branch now has main's fix: commit a5c2f55a takes `planning/` out of ruff, and it came in through merge 7b8ba41f. `make lint` is green. The tests from entry 3 are the same as before. I changed no test in this run.
+
+   I ran `make test` once and it is red only where it should be. These tests fail:
+   - the four `factory-*` rows of `test_the_factorys_git_runs_no_hook_of_the_checkout`, because the hooks still run;
+   - both rows of `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks`, because the third pair is missing;
+   - `test_the_built_git_runs_with_the_git_options_of_the_settings`.
+
+   No other test fails. Every module imported.
+
+   Which test checks each criterion:
+   - criterion 1: tests/entry/test_wiring_boundaries.py::test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks
+   - criterion 2: tests/entry/test_git_hooks.py::test_the_factorys_git_runs_no_hook_of_the_checkout[factory-pre-commit / plain-pre-commit]
+   - criterion 3: the same test, rows [factory-post-checkout / plain-post-checkout]
+   - criterion 4: the same test, rows [factory-pre-push / plain-pre-push]
+   - criterion 5: the same test, rows [factory-configured-hooks-path / plain-configured-hooks-path]
+   - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
+   - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
+   - criterion 8: the existing tests, unchanged.
+
+   Files: I created tests/entry/test_git_hooks.py in an earlier run and changed tests/entry/test_wiring_boundaries.py, only in the two tests the ticket allows. Neither changed in this run.
+
+   Next step for the coder: add the third pair (`core.hooksPath` = `os.devnull`) to `git_environment` in `src/factory/entry/wiring.py`, with its comment.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
+7. coder: Built the third pair. `git_environment` in `src/factory/entry/wiring.py` now returns `GIT_CONFIG_COUNT=3`, and the new pair is `GIT_CONFIG_KEY_2=core.hooksPath` with `GIT_CONFIG_VALUE_2=os.devnull`. Its comment explains why. The agent can write the checkout's hooks, and this git runs as the user who can read the token. Command-line configuration wins over the checkout's own configuration. Commit 86c39e71. Nothing else changed: `git_options` and `GitCli` are as they were, and no test was touched.
+
+   Design: I used `os.devnull` rather than the literal `"/dev/null"`, because the Interface names `os.devnull`. I rejected setting the hooks path in `GitCli`, as the ticket says. That would also change the git the tests use with plain `GitOptions()`, so the plain rows could no longer show that the hooks are real.
+
+   Refactor: I read the diff (8 lines in one function) and nothing needed changing, so there is no refactor commit.
+
+   `make check` is green on the first run: all of the tester's red rows now pass, coverage is 99.50 %, and it ends with `check: green`.
+
+   Open: criterion 10, the docs, is left for the documenter: the operator guide's "Left for v2", the project guide's sentence on `git_environment`, and the decision-log entry.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+8. reviewer: no findings.
+
+   What I read: the ticket, and `git diff main...HEAD -- . ':!factory'`. The `planning/`, `docs/runs/` and `pyproject.toml` hunks in that diff are the human's own commits (d577ef8f, ca366459, a5c2f55a), which came in through merge 7b8ba41f. They are not the coder's work and I did not review them.
+
+   1. Acceptance criteria:
+      - Criterion 1: `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks` expects exactly the seven entries, for both rows (the default helper and `/opt/other-helper`).
+      - Criteria 2–5: `test_the_factorys_git_runs_no_hook_of_the_checkout` has 8 rows, 4 operations × {factory, plain}. Each operation checks that it succeeded: the commit is HEAD, the branch is checked out, `push` returns `pushed` and the remote holds the commit, and the commit is made under a `core.hooksPath` set in the config. The plain rows show each hook is real.
+      - Criterion 5: the hooks folder is `tmp_path/elsewhere-hooks`, outside the checkout, as required.
+      - Criterion 6: the stand-in `git` on a monkeypatched PATH follows the Interface: `write_executable`, renamed to `git`, real git found with `shutil.which` before the PATH changes, then `os.execv`. It keeps the four old assertions and adds KEY_2/VALUE_2. If the stand-in were not used, the test would fail on the missing JSON file, so it really observes the built git.
+      - Criterion 7: one parametrized test, factory and plain rows. Each gets `rejected`, and the remote has no branch.
+      - Criterion 8: the existing tests are unchanged.
+      - Interface: the only changes to `test_wiring_boundaries.py` are the two the ticket allows, plus their imports.
+      - `make check` was green after the coder (entry 7). `make duplicates` reported 0 new.
+   2. Architecture: the only change is in `factory.entry.wiring.git_environment`. `GitCli`, `git_options` and the layers are untouched.
+   3. Security: no silencing markers and no secrets. The hook scripts quote the marker path with `shlex.quote`.
+   4. Quality: the comment in `src/factory/entry/wiring.py:142-144` says why the pair is there: the agent can write the hooks, this git runs as the token's user, and command-line configuration wins over the checkout's own. The value is `os.devnull`, as the Interface names it.
+   5. Ticket hygiene: entry 7 explains `os.devnull` and why the pair is not in `GitCli`. The Assignment matches what was built. Criterion 10 still describes the three documents the documenter must change.
+9. documenter: Docs stage, round 0. I changed three files, all for the docs criterion.
+   - `docs/operator-guide.md`: in "Left for v2" under the hosting-service token, git's hooks are no longer named as a route. The paragraph now says the factory's git sets `core.hooksPath` to `/dev/null` through its own environment. That wins over a `core.hooksPath` in the checkout's `.git/config`, so a hook in `.git/hooks` never runs as the factory's user. The project commands stay as the route left for v2.
+   - `docs/project-guide.md`: the sentence on `git_environment` now says seven entries, `GIT_CONFIG_COUNT=3`, and the third pair `core.hooksPath` = the null device.
+   - `docs/decisions.md`: I added the entry "The factory's git runs no hooks". It covers the first start confirming the route, the human's answer, why the command-line pairs win over the checkout's configuration, why a bare remote's hooks still run, and what I rejected. The open point on hooks in "The token is a bind mount into a folder only the factory can enter" is now marked closed by it.
+
+   I ran `python -m factory.entry.check_documents`; it printed `documents ok`. I did not run `make check`, because I changed only documents and the factory runs it after this stage.
+
+   Cross-read: the `src/factory/entry/wiring.py` diff matches the Interface, and `README.md` has no stale mention (I grepped for the old count and for hooks). I found nothing stale and nothing unrelated to note. I have no findings for the coder.
+
+   `make check`: check: green
+   `make documents`: documents ok
+10. demo: Demo, round 0. I ran all three commands from the repository root, in order and exactly as written. All three met their `Expect:` lines, and nothing in the output contradicts an acceptance criterion.
+
+    1. `git_environment()`, sorted:
+    ```
+    [('GIT_CONFIG_COUNT', '3'), ('GIT_CONFIG_KEY_0', 'credential.helper'), ('GIT_CONFIG_KEY_1', 'core.sharedRepository'), ('GIT_CONFIG_KEY_2', 'core.hooksPath'), ('GIT_CONFIG_VALUE_0', '/usr/local/bin/git-credential-factory'), ('GIT_CONFIG_VALUE_1', 'group'), ('GIT_CONFIG_VALUE_2', '/dev/null')]
+    ```
+    Met: the output is one line and matches the expected line character for character. It gives the seven entries of the Interface (criterion 1).
+
+    2. A `pre-commit` hook in a fresh repository, once committing with plain git and once with `git_environment()`:
+    ```
+    plain True
+    factory False
+    ```
+    Met: two lines, `plain True` and `factory False`. The hook is real, it does not run under the factory's environment, and the commit is still made: `check=True` did not raise (criterion 2).
+
+    3. pytest over the hook, wiring, credential-helper and git-wrapper tests:
+    ```
+    ........................................................................ [ 72%]
+    ............................                                             [100%]
+    100 passed in 2.00s
+    ```
+    Met: the last line is `100 passed`, with no failed, error or skipped count (criteria 1–8 through their tests).
+
+    Criteria check: the demo contradicts none of criteria 1–10. Criterion 9 (`make check`) and criterion 10 (docs) were not exercised by these commands. Entries 7 and 9 recorded `make check` green and `documents ok`.
+
+    No findings.

@@ -139,13 +139,17 @@ def git_environment(helper: str = CREDENTIAL_HELPER) -> dict[str, str]:
     """Return the git configuration of the factory as environment entries."""
     # Git reads no system or global configuration here, so the environment carries it:
     # the credential helper is the only route to the token, and the shared group keeps
-    # the files git creates writable for both users of the checkout.
+    # the files git creates writable for both users of the checkout. The agent can write
+    # the checkout's hooks and this git runs as the user who can read the token, so it
+    # runs no hooks; as command-line configuration this wins over the checkout's own.
     return {
-        "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_COUNT": "3",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": helper,
         "GIT_CONFIG_KEY_1": "core.sharedRepository",
         "GIT_CONFIG_VALUE_1": "group",
+        "GIT_CONFIG_KEY_2": "core.hooksPath",
+        "GIT_CONFIG_VALUE_2": os.devnull,
     }
 
 
