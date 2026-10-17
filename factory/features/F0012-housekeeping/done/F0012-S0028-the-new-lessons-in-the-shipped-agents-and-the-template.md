@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 178
 blocked: null
 comments_seen: 0
@@ -168,3 +168,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - The working tree was clean when I started.
 
    Not a finding, but worth fixing in a later story: one sentence in the project guide says `acceptance-reviewer` "ends with" the temporary-directory lesson, but its last bullet is the JUnit lesson. The documenter noted this wording was there before this story, and no criterion covers it.
+8. done (pull request merged); cost: 6 runs, 3.4 min, 33 turns, 149k tokens in (377k more from cache), 11k out, $0.84
