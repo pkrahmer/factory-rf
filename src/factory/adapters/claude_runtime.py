@@ -1,6 +1,7 @@
 """The agent runtime that runs an agent as one `claude -p` call under the operator's login."""
 
 import json
+import math
 import shlex
 import time
 import uuid
@@ -50,6 +51,12 @@ MINIMUM_RESUME_BUDGET = Decimal("0.50")
 VERSION_TIME_LIMIT = timedelta(seconds=30)
 SUDO_EXECUTABLE = "/usr/bin/sudo"
 SUDO_PREFIX = "sudo:"
+TIMEOUT_EXECUTABLE = "timeout"
+# The factory may not signal root's `sudo`, so the agent's own `timeout` kills at the limit;
+# the factory's kill waits this much longer and fires only when the inner one did not.
+SUDO_GRACE = timedelta(seconds=30)
+# `timeout --signal=KILL` exits 128 + 9; `subprocess` reports a death by SIGKILL as -9.
+KILL_STATUSES = frozenset({137, -9})
 # The agent reads a run's files through its group and must not rewrite its own guard.
 RUN_FILE_MODE = 0o640
 CENT = Decimal("0.01")
@@ -300,6 +307,18 @@ def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | Non
     return _sudo_line(process.stderr)
 
 
+def _killed_at_limit(
+    request: AgentRunRequest, process: ProcessResult, time_limit: timedelta
+) -> bool:
+    if request.os_user is None or process.exit_status not in KILL_STATUSES:
+        return False
+    return process.duration >= time_limit
+
+
+def _limit_argument(time_limit: timedelta) -> str:
+    return f"{math.ceil(time_limit.total_seconds())}s"
+
+
 def _first_word(output: str) -> str | None:
     for line in output.splitlines():
         if line.strip():
@@ -422,6 +441,9 @@ class ClaudeCodeRuntime(AgentRuntime):
         self, request: AgentRunRequest, arguments: list[str], time_limit: timedelta
     ) -> ProcessResult:
         process = self._start(self._process_request(request, arguments, time_limit))
+        if _killed_at_limit(request, process, time_limit):
+            # The inner kill ends the call as the factory's own would: read as its time limit.
+            process = process.model_copy(update={"timed_out": True})
         refusal = _sudo_refusal(request, process)
         if refusal is not None:
             # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
@@ -439,12 +461,13 @@ class ClaudeCodeRuntime(AgentRuntime):
             )
         # `env -i` drops whatever `sudo` keeps, so the agent sees the request's environment alone.
         assignments = [f"{name}={value}" for name, value in environment.items()]
-        sudo = [self._sudo_executable, "-n", "-u", request.os_user, "--", "env", "-i"]
+        sudo = [self._sudo_executable, "-n", "-u", request.os_user, "--"]
+        timeout = [TIMEOUT_EXECUTABLE, "--signal=KILL", _limit_argument(time_limit)]
         return ProcessRequest(
-            argv=[*sudo, *assignments, *argv],
+            argv=[*sudo, *timeout, "env", "-i", *assignments, *argv],
             cwd=request.working_directory,
             env={},
-            time_limit=time_limit,
+            time_limit=time_limit + SUDO_GRACE,
         )
 
     def _start(self, process_request: ProcessRequest) -> ProcessResult:
