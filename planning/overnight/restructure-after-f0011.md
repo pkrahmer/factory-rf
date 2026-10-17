@@ -2,6 +2,23 @@
 
 Decided by the human on 2026-10-14, in the session's discussion of the package tree. Built as one housekeeping story after F0011 is accepted, not before: F0008 to F0011's drafts name exact module paths, and a move in the middle of them would break those names.
 
+## The order of the work after F0011 (the human's word, 2026-10-17)
+
+The restructure comes last: it is layout only, the todo run neither needs nor tests it, and the findings and notes in this file name today's paths.
+
+1. The small fixes, as v1 stories, in this order:
+   1. `make check` faster: pytest-xdist over the 20 cores, one prepared git remote copied per test, `make secrets` over the changed files.
+   2. Duplicates and dead code: one ad hoc pylint (R0801) and vulture pass, and its findings fixed (F0010-S0025's identity, F0011-S0001's `_rerun_seconds`, the redundant `tests/test_fault_path_names.py`, the others listed below).
+   3. Mutation testing with mutmut: a `make mutants` target outside `make check`, limited to the modules a feature changed (a `FILES` variable), which v1's acceptance stage already runs when the target exists; until now every acceptance made a hand pass of 12 to 28 mutants.
+   4. What the todo run must measure: the low-disk machine stop, no temporary files left, the project-command and model-versus-tool records, the disk record.
+   5. One test of the DTOs' own configuration; an answer at the send-back cap that can grant one more round.
+2. The first start on the real machine: the human pins the image (the base image digest and the Debian versions are placeholders), builds it, logs in once as `agent`; fixes found there go in before the todo run, because its pass rule allows no fix during the run.
+3. The todo run (run 4's eight stories and three acceptances in v1.1's form): the baseline v2 is measured against.
+4. A project's own skills and agents (the sections below): after the todo run, because run 4 used neither and the baseline stays at v1's scope; before the restructure.
+5. The restructure: the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`; then `make check` and one short story run in the todo project to show nothing changed.
+
+The development dependencies: granted by the human on 2026-10-17, pytest-xdist (1.1), and pylint and vulture for a lasting `make duplicates` report (1.2: a make target over `src/factory` against a baseline of today's findings, a non-blocking `records:` entry on the review stage in `factory/stages.yml`, the human's change between two stories, its findings read by the reviewer and the acceptance reviewer). Still to grant: mutmut (1.3).
+
 ## The decision
 
 - The four layers stay at the top (`domain`, `application`, `adapters`, `entry`), and import-linter's layers contract stays as it is.
@@ -128,6 +145,17 @@ Today no agent of v1.1 can load a skill: Claude Code finds a project's `.claude/
 - `.claude/*` stays a protected path: the project's skills are the human's files, like `CLAUDE.md`, and no stage writes them.
 - The operator guide says that a project may bring skills under `.claude/skills/`, that the agents load them where they apply, and that the factory does not check what they say.
 - Prove it once: an agent run in a test project with one skill, and the skill's effect seen in the run (the morning observation of the real machine can hold it).
+
+## A project's own agents (the human's word, 2026-10-17)
+
+Today a project's pipeline definition names its roles, their write paths and which role works each stage, but the agent file of a role is always `<agent_home>/agents/<role>.md`, filled from v1.1's `claude/agents/` (`FrontmatterAgentDefinitionReader`). A project of a very different kind cannot bring its own coder in its repository; the operator can only replace the file in the instance's agent home, outside the project's history and lost with the volume. In v1.1, in the same small story as the project's skills:
+
+- For each role the factory reads `factory/agents/<role>.md` from the project's `origin/main` first (like the pipeline definition, so a branch never changes its own agent), and the shipped agent only when the project has none. A project agent replaces the shipped one whole; it does not extend it.
+- `factory/agents/*` becomes a protected path: the human's files, which no stage writes.
+- The preflight and every tick check a project agent as they check a shipped one (the applied keys, the budget, the tools, the refusals); a faulty file stops with its reason.
+- The operator guide says how to replace a role's agent and how to add a role with its own agent; the decision log records "replaces, never extends".
+- Proved in a test project: a project agent for `coder` is the text the run gets, and without it the shipped one is.
+- Close to v2's archetypes (a kind of project with its own agents and rules); built small in v1.1, revisited there.
 
 ## For the human, outside the build (collected 2026-10-16)
 
