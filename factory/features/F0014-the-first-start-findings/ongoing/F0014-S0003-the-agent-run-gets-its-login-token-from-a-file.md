@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 196
 blocked: null
 comments_seen: 0
 round: 0
@@ -144,3 +144,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: concrete modules and signatures throughout (settings constant and field, `LOGIN_VARIABLE`/`SHELL_EXECUTABLE`/`LOGIN_PREFIX`/`LOGIN_SCRIPT`, the runtime's new keyword, wiring, probe detail). The helpers it names exist (`_write_sudo`, `_request`, `Step.writes`, `write_stand_in`, `read_calls`, `_optional_path`, `SUDO_EXECUTABLE`), and the script's arguments and its order of cases are pinned.
+   - Criteria: each is testable by one test function or one parametrized test. Every Interface rule has a criterion, and so does its failing side. Missing, empty and blank files are criteria 3 and 6. A folder in place of the file and UTF-16 with and without a byte order mark, with and without `os_user`, are criterion 9. The probe's failing side is 13 and 14, and the `completed` side is 13. The request's login variable being dropped is criterion 4. `version()` is criterion 10, the allow list is 11, wiring is 12, and settings unset, empty and blank is 1. One gap: the "no read permission" case has no row, because root ignores permissions. The ticket says so itself, and the folder row covers the same script branch. Not a question.
+   - Demo: the commands are runnable, and each `Expect:` line is checkable (exact output lines, or the pytest summary with no failed, error or skipped count).
+   - Architecture: the Claude Code name stays in `factory.adapters`; the domain only gains a path setting and the allow list is untouched; the wiring and the probe change as layered. The only external tools are `/bin/sh` and `sudo`, both reached through the runtime wrapper.
+   - Scope: within FEATURE.md's S0003 row (the setting, runtime, wiring and probe detail), and the image/compose work is left to S0004. The API key, a preflight item of its own for the file, and the hosting token are out of scope and not touched. The write paths cover the four source files named. Decisions 9 to 13, 30(c) and 33 agree with the ticket.
