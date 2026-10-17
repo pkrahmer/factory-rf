@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 158
 blocked: null
 comments_seen: 2
@@ -185,3 +185,14 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. reviewer: reviewer (round 1): no findings.
+
+    - Scope: `git diff main...HEAD -- . ':!factory'`. The changes to `tests/process_support.py`, `tests/adapters/test_process.py` and `tests/adapters/test_make_commands.py` come from the human's commit a637bc3 on origin/main, which reached this branch through the merge 17d5cc5. They are not this ticket's work and I did not review them as such. The ticket's own diff is `src/factory/adapters/pipeline_yaml.py` and the two new test files.
+    - Acceptance criteria. Criteria 1–3, 5 and 10 are exact-fault rows of `test_a_yaml_error_is_refused_with_its_problem_and_position`. Criterion 4 pins the start and the end of the fault. Criterion 6 has a no-line-break row for each of the five texts plus criterion 10's text, and a test that the repeated-key fault has no hint and no context. Criterion 7 covers the definition that still parses and the refused non-mapping. Criterion 8 has three hand-built rows for the branches: problem without a mark, an empty problem falling back to the text, and a plain error with two lines. Criterion 9 goes through `PipelineLoader.load` and checks the raised fault, the single health stop and its detail, and exactly one added log line with its ending. The failing sides of the Interface's rules are tested: a problem that holds a line break (criterion 10, the human's answer in entry 7), context excluded (criterion 8's `context="while x"` row and criterion 6), and the +1 shift of both positions through exact line and column values. The coder's entry 10 reports `make check` green.
+    - Architecture: the change stays in the adapter that already wraps ruamel.yaml, it raises the domain's `PipelineDefinitionInvalid`, it adds no layer import, and it is fully typed.
+    - Security: no strings built into commands and no suppression markers. The fault carries ruamel's problem text and position, not a traceback.
+    - Quality: `yaml_fault` has its docstring, and the comments explain why (the factory keeps the duplicate-key check; a block scalar brings line breaks). I looked for an existing helper in `src/factory` and found none that does what `_first_line` or `_escaped_line_breaks` does. `make duplicates` reports 0 new.
+    - Ticket hygiene: the log explains the main decision (build the fault from ruamel's structured `problem`/`problem_mark` and escape line breaks) and what was rejected (cutting up `str(error)`, collapsing whitespace). The Assignment and Interface match the code. The docs criterion (12) names what the project guide, the operator guide and the decision log must say.
+    - Considered, not raised:
+      - Only `\n` inside a problem is tested, not `\r`. The human fixed the form of the new criterion in entry 7, and `\r` takes the same `replace` path.
+      - The criterion 8 test name says "falls back", yet its first row (a problem without a mark) does not fall back. The rows match the criterion exactly.
