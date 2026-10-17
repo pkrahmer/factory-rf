@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 198
 blocked: null
 comments_seen: 0
 round: 0
@@ -37,3 +37,9 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: "None" is correct for a documentation-only story; the only file changed is `docs/operator-guide.md`, and the row (line 134, now `775`) and the section `### Podman: the commands` (line 341, under `## Container runtimes`) that criterion 3 names both exist.
+   - Criteria: 1 (no change under src/image/template/claude/tests) and 2 (`make check`) are the pipeline's usual closing and scope criteria. Criterion 3 gives the exact text, the reason, and the exact command shapes, so the documenter has no decision left. The story states no code rule, so there is no failing side to cover. The format check passed, so I did not check form again.
+   - Demo: the grep and `check_documents` commands are runnable. Each Expect line is checkable: four terms (`2775` for the directory, `podman-machine-default`, `podman system connection list`, `--identity`) and `documents ok`.
+   - Architecture: no layer is touched, so no architecture rule applies.
+   - Scope: it is within F0014's scope, which lists S0005 as documentation only with the `2775` fix and the Podman connection on Windows. The login's place is left to S0004, as the feature says.
