@@ -322,3 +322,8 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - The drafting agent was stopped by the compaction and rerun: F0012-S0028 and S0029 drafted, decisions 48–50 added. Pre-check: S0028 go; S0029 refused as drafted (its `mutants` reads `work item <id>:` subjects that v1.1 writes only on handler records, the `duplicates` count is not the last line, MAKEFLAGS leaks into the tests, a second stand-in). **For the morning**: how the template's `make mutants` finds a feature's modules (pre-check recommends a story S0030 that prefixes every work-item commit with `work item <id>: `).
 | 2026-10-17 13:45 | v1's container recreated with ANTHROPIC_API_KEY (the human's key, default workspace; compose.override.yml); the agents now bill the API (apiKeySource ANTHROPIC_API_KEY). S0008 started. |
 | 2026-10-17 14:02 | F0012-S0008 merged (#160; 6 runs, 2.9 agent minutes, $0.76, first pass; the factory's check after docs covered the head). Project guide 1,682 lines. S0009 started. |
+
+## 2026-10-17 14:15, F0012-S0029 and S0030 ready
+
+- The human answered (decision 51): a new story S0030 prefixes every commit made with `Git.commit` on a work item's branch with `work item <id>: `, built after S0028 and before S0029; `duplicates` stays in the template.
+- S0030 drafted (sonnet), pre-checked (opus): its Demo's `-k` matched a second test (fixed), and the reopen merge keeps git's subject (wording narrowed). S0029 revised and pre-checked again: accepted, plus the not-checked filter and squash-merge subjects in its `mutants`. Taken by the session within the human's answers as decision 53. All drafts form-check in v1's container (28, exit 0).
