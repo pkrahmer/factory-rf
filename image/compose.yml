@@ -21,16 +21,14 @@ services:
       - work:/work
       - state:/state
       - claude-home:/home/agent/.claude
-    # The factory's user (uid 1000) alone reads the token: mode 0400 shuts out the shared group.
-    secrets:
-      - source: hosting_token
-        target: hosting-token
-        uid: "1000"
-        gid: "1002"
-        mode: 0400
-secrets:
-  hosting_token:
-    file: ./secrets/hosting-token
+      # Compose ignores a file secret's owner and mode outside Swarm, so the folder, made in the
+      # image for the factory's user alone, not the file, keeps the agent out.
+      - type: bind
+        source: ./secrets/hosting-token
+        target: /home/factory/.secrets/hosting-token
+        read_only: true
+        bind:
+          create_host_path: false
 volumes:
   work:
   state:
