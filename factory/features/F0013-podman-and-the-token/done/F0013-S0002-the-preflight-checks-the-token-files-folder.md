@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 183
 blocked: null
 comments_seen: 0
@@ -131,3 +131,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    Met: the last line is `26 passed in 0.05s`, with no failed, error or skipped count. That covers criteria 1–6 and the `agent-user` part of criterion 7.
 
    Not covered by the demo: the commands do not run `tests/entry/test_wiring_extras.py` (the wiring part of criterion 7), `make check` (criterion 8) or the docs (criterion 9). Earlier entries cover them: the coder and documenter recorded `make check` green, and the documenter recorded `documents ok`. The demo shows nothing against them.
+8. done (pull request merged); cost: 6 runs, 3.8 min, 36 turns, 142k tokens in (421k more from cache), 14k out, $0.90
