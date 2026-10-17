@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 159
 blocked: null
 comments_seen: 0
@@ -90,3 +90,11 @@ Expect: a number of at least 5, one test function per call.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (27.4 s)
+4. coder: nothing to build. The tester's module `tests/application/test_no_state_refusals.py` passes against the code as it is, as the Assignment expected: all five calls already refuse a document without a state with the exception type, fields and message the Interface gives, and they write, push and post nothing. I changed nothing in `src/` and made no commit.
+   - Design decision: I left the code as it is. The tests are green, so changing code would only add risk and go beyond the ticket's scope. I rejected tightening the call sites so that each one builds its exception only after `require_state` finds no state. The coverage gap the Assignment describes is now closed by these tests, so that change is not needed and it is not in the Interface.
+   - Refactor: there is no diff outside `factory/` and `tests/` (`git diff main...HEAD -- . ':!factory' ':!tests'` is empty), so nothing needed refactoring.
+   - Noticed, not touched: nothing.
+   `make check`: check: green (test: green, coverage 99.51 %)
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
