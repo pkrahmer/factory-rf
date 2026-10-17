@@ -146,6 +146,28 @@ def _close(path: Path) -> None:
         raise RepositoryUnsealed(f"{path}: {error}") from error
 
 
+def _nested_repositories(root: Path) -> list[Path]:
+    found: list[Path] = []
+    # A folder the walk cannot list is skipped: the factory's git cannot look into it either.
+    for parent, folders, files in os.walk(root, followlinks=False):
+        here = Path(parent)
+        if here != root and (".git" in folders or ".git" in files):
+            found.append(here / ".git")
+        if ".git" in folders:
+            folders.remove(".git")
+    return found
+
+
+def _remove_entry(path: Path) -> None:
+    try:
+        if stat.S_ISDIR(path.lstat().st_mode):
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    except OSError as error:
+        raise RepositoryUnsealed(f"{path}: {error}") from error
+
+
 def _is_rejected(porcelain: str) -> bool:
     # A `push --porcelain` ref line is "<flag>\t<from>:<to>\t<summary>"; `!` marks a refusal.
     return any(line.startswith("!\t") for line in porcelain.splitlines())
@@ -367,6 +389,13 @@ class GitCli(Git):
         folder = self._check_git_folder()
         if folder.lstat().st_mode & SHARED_WRITE:
             raise RepositoryUnsealed(f"{folder} is writable by its group or by others")
+
+    def remove_nested_repositories(self) -> list[str]:
+        """Remove each `.git` below the working copy but its own, without a git process."""
+        found = _nested_repositories(self._directory)
+        for path in found:
+            _remove_entry(path)
+        return sorted(path.relative_to(self._directory).as_posix() for path in found)
 
     def discard(self) -> None:
         """Remove the working copy with its `.git`; a missing one is no error."""

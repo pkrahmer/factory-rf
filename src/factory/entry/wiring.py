@@ -143,14 +143,18 @@ def git_environment(helper: str = CREDENTIAL_HELPER) -> dict[str, str]:
     # the repository and cannot change it; the work tree is outside this setting and stays
     # group-writable through the umask. This git runs as the user who can read the token,
     # so it runs no hooks; as command-line configuration this wins over the checkout's own.
+    # A child git started for a nested repository inherits these pairs, so that repository's
+    # `core.fsmonitor` never runs as this user either.
     return {
-        "GIT_CONFIG_COUNT": "3",
+        "GIT_CONFIG_COUNT": "4",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": helper,
         "GIT_CONFIG_KEY_1": "core.sharedRepository",
         "GIT_CONFIG_VALUE_1": "0640",
         "GIT_CONFIG_KEY_2": "core.hooksPath",
         "GIT_CONFIG_VALUE_2": os.devnull,
+        "GIT_CONFIG_KEY_3": "core.fsmonitor",
+        "GIT_CONFIG_VALUE_3": "false",
     }
 
 

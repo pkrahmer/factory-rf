@@ -23,6 +23,7 @@ StallReason = Literal[
     "form_invalid",
     "check_red",
     "merge_conflict",
+    "nested_repository",
 ]
 
 _UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "

@@ -155,13 +155,15 @@ def test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hoo
     environment = git_environment() if helper is None else git_environment(helper)
 
     assert environment == {
-        "GIT_CONFIG_COUNT": "3",
+        "GIT_CONFIG_COUNT": "4",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": expected_helper,
         "GIT_CONFIG_KEY_1": "core.sharedRepository",
         "GIT_CONFIG_VALUE_1": "0640",
         "GIT_CONFIG_KEY_2": "core.hooksPath",
         "GIT_CONFIG_VALUE_2": "/dev/null",
+        "GIT_CONFIG_KEY_3": "core.fsmonitor",
+        "GIT_CONFIG_VALUE_3": "false",
     }
 
 
@@ -262,6 +264,8 @@ def test_the_built_git_runs_with_the_git_options_of_the_settings(
     assert environment["GIT_CONFIG_VALUE_1"] == "0640"
     assert environment["GIT_CONFIG_KEY_2"] == "core.hooksPath"
     assert environment["GIT_CONFIG_VALUE_2"] == "/dev/null"
+    assert environment["GIT_CONFIG_KEY_3"] == "core.fsmonitor"
+    assert environment["GIT_CONFIG_VALUE_3"] == "false"
 
 
 def test_the_built_project_commands_run_in_the_checkout(settings: InstanceSettings) -> None:

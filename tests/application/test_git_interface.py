@@ -28,10 +28,11 @@ OPERATIONS = {
     "seal",
     "check_seal",
     "discard",
+    "remove_nested_repositories",
 }
 
 
-def test_git_has_exactly_the_twenty_two_operations_and_git_cli_has_each() -> None:
+def test_git_has_exactly_the_twenty_three_operations_and_git_cli_has_each() -> None:
     public = {name for name, _ in inspect.getmembers(Git, callable) if not name.startswith("_")}
 
     assert public == OPERATIONS

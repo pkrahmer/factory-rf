@@ -161,7 +161,7 @@ def test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned(
     runtime = ModeRecordingRuntime(agent_runtime, boundaries.checkout)
     recording = replace(boundaries, agent_runtime=runtime)
 
-    result = run_sealed(recording, _request(boundaries.checkout))
+    result = run_sealed(recording, _request(boundaries.checkout)).result
 
     assert runtime.modes == [(0o2755, 0o644)]
     assert result == COMPLETED

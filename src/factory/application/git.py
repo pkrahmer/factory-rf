@@ -149,5 +149,14 @@ class Git(ABC):
         """
 
     @abstractmethod
+    def remove_nested_repositories(self) -> list[str]:
+        """Remove every entry named `.git` below the working copy other than its own repository.
+
+        A folder, a file or a symbolic link counts. Returns their paths relative to the working
+        copy, `/`-separated and sorted; `[]` when there is none. Raises `RepositoryUnsealed`
+        when one cannot be removed.
+        """
+
+    @abstractmethod
     def discard(self) -> None:
         """Remove the working copy and its repository; a missing working copy is no error."""
