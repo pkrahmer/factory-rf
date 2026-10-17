@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 168
 blocked: null
 comments_seen: 0
@@ -60,3 +60,15 @@ Expect: two lines: `Disk now: disk acceptance: /work 1.0 GB free, 0.1 GB used` a
    - Demo: runnable with `uv run python -c`, and its Expect line names the two exact lines to compare.
    - Architecture: the domain gets pure fields and lines. The application service calls `DiskRecorder` through the boundaries. No new layer crossing, no new dependency.
    - Scope: within F0012's item 1.4 ("the disk record (S0016, S0017)") and decision 23. It adds no new feature and touches nothing under "Out of scope".
+3. tester: red tests written for criteria 1 to 6. `make lint` is green. I skipped the type check, as this stage says to.
+   - criterion 1: tests/domain/test_acceptance_facts_disk.py::test_facts_with_a_disk_now_give_the_two_disk_lines_after_the_three_of_today (parametrized: no previous record gives `none`, a previous record gives that record) and ::test_acceptance_facts_pass_the_disk_values_on
+   - criterion 2: tests/domain/test_acceptance_facts_disk.py::test_facts_without_a_disk_now_give_the_three_lines_of_today (parametrized: `disk_before` None and set)
+   - criterion 3: tests/application/test_acceptance_facts_disk.py::test_the_facts_record_the_disk_at_acceptance_and_name_the_record_before
+   - criterion 4: tests/application/test_acceptance_facts_disk.py::test_a_start_record_is_the_previous_record (the `start` record is written through `DiskRecorder(...).record("start")`)
+   - criterion 5: tests/application/test_acceptance_facts_disk.py::test_without_the_disk_the_records_or_the_settings_the_facts_carry_no_disk (parametrized: no disk, no disk records, no settings). The walk's existing prompt tests are unchanged.
+   - criterion 6: tests/test_acceptance_reviewer_disk.py::test_the_slow_checks_of_the_acceptance_reviewer_end_with_the_disk_comparison (the line starting `7. **The slow checks.**` ends with the sentence). The tests in tests/test_claude_agent_texts.py are unchanged and cover the rest of that criterion.
+   Files created: tests/domain/test_acceptance_facts_disk.py, tests/application/test_acceptance_facts_disk.py, tests/test_acceptance_reviewer_disk.py. The application file has its own fixtures: `settings`, `records` (a JsonLinesRecordLog in tmp_path) and `recorded`. `recorded` builds the walk, fetches through `walk.status() == "due"` and replaces disk, disk_records and settings on the boundaries.
+   Nothing failed to import: every module exists. In the single `make test` run the tests fail as intended: `AcceptanceFacts` refuses the unknown `disk_now`/`disk_before` fields, `acceptance_facts` takes no such keywords, `facts` records no disk, and the agent file lacks the sentence.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/application/test_acceptance_facts_disk.py::test_the_facts_record_the_disk_at_acceptance_and_name_the_record_before
