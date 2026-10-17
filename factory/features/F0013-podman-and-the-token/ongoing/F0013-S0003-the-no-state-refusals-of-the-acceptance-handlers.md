@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 184
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The no-state refusals of the acceptance handlers
 
 ## Assignment (as of log entry 1)
@@ -44,3 +52,69 @@ Expect: `3`, the three messages the tests pin.
 ## Log (append only)
 
 1. 2026-10-17 human: created from F0012's proposed draft S0031 (feature acceptance of 2026-10-17).
+2. intake: accepted. Nothing in the story was changed.
+   - Interface: it names no new code, only three existing handlers. I checked `acceptance.py`: lines 219, 292 and 353 build `CannotHandle` with the exact kinds and reasons in the table, and `_HAND_OVER`, `_MERGED` and `_CLOSED` hold `hand_over`, `merged` and `closed`. The stand-in reader and the `walk` fixture sequence are specified concretely.
+   - Criteria: criteria 1 to 3 are each one test. Each gives the exception type, kind and reason, and the unchanged remote ref and no new comment. Each criterion covers the refusing side of the no-state rule. Criterion 4 (a report with a state still passes) is covered by the existing tests of the three handlers' modules. Criteria 5 and 6 are the closing two.
+   - Demo: both commands can be run. The expectations can be checked against the output: `3 passed`, and a grep count of `3`. The grep count matches the three lines found.
+   - Architecture: the tests sit in `tests/application/`. The stand-in derives from the `WorkItemReader` interface, as `CLAUDE.md` asks. It adds no new dependency, and git and the hosting service are not faked beyond the existing fake.
+   - Scope: the story is inside F0013's scope (taken in from F0012's draft S0031, FEATURE decision 2). It touches nothing listed under Out of scope and changes no existing test (decision 12).
+3. tester: wrote the three no-state refusals as rows of one parametrized test.
+   - criterion 1: tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted[hand_over]
+   - criterion 2: tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted[merged]
+   - criterion 3: tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted[closed]
+   - criterion 4: covered by the existing tests of the three handlers' modules, which I did not change.
+   - criteria 5 and 6: the closing criteria, so no test.
+   How each row works: the `walk` fixture brings the acceptance to the event, as the Interface describes. The row asserts that `walk.evaluate()` returns the expected kind. It then builds the handler with `walk.definition` and `dataclasses.replace(boundaries, work_item_reader=StatelessReportReader(...))`. `StatelessReportReader` is defined in the module and derives from `factory.application.files.WorkItemReader`. Its `read` returns `WorkItemDocument(state=None, body=<the file's text>)` for `boundaries.checkout / report_of(FIRST)`, and it hands every other path and both parse methods to `FrontmatterWorkItemReader`. Each row asserts the `CannotHandle` kind and reason from the table. It also asserts that the remote's watched branch (the acceptance branch, or `main` for merged) holds the same commit as before, and that `hosting.list_comments(number)` is unchanged.
+   Files created: tests/application/test_acceptance_no_state_refusals.py.
+   Imports: every module the test runner loads already exists. No test is red, as expected: the story says the code already behaves this way, so the coder should change nothing in `src/`. `make test` and `make lint` are green. I did not run the type check, as the stage says.
+   Rejected: one test function per handler. The CLAUDE.md test rules want the sides of one rule as rows of one parametrized test.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.8 s)
+4. coder: nothing in `src/` needed changing, so there is no commit. The story expected this: the code already refuses as the criteria say.
+   - I ran `make test` first. All three rows of `tests/application/test_acceptance_no_state_refusals.py::test_a_stateless_report_is_refused_before_anything_is_pushed_or_posted` (hand_over, merged, closed) already pass against the current `src/factory/application/acceptance.py`.
+   - `make check`: check: green. Line coverage is 99.50 %.
+   - Demo: the test module ends with `3 passed in 0.89s`. `grep -c 'has no state' src/factory/application/acceptance.py` prints `3`.
+   - Refactor: there is no diff outside `factory/` and `tests/`, so there was nothing to refactor.
+   - Assignment: unchanged, because no log entry changed what the task means.
+   - Rejected: changing the handlers to check the state before building the exception, or before `_book`'s local `git mv`. The Interface excludes that local move, and the story asks for no behaviour change.
+   - Open: nothing.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Scope: one new file, `tests/application/test_acceptance_no_state_refusals.py`. Nothing changed in `src/`.
+   - Criteria 1 to 3: there is one parametrized test with a row per criterion (hand_over, merged, closed). Each row checks the type, kind and reason from the Interface table exactly. It also reads the remote ref before and after, using `branch_name(FIRST)`, which is the acceptance branch for `F0002-A0001`, or `MAIN_BRANCH` for merged. And it checks that `hosting.list_comments(number)` did not change. Each row also asserts the event kind before building the handler, so a guard that failed for another reason cannot pass as the refusal. The mutant `no_state = None` at `acceptance.py:219`, `:292` and `:353` would raise something other than `CannotHandle` with that exact reason, so each row kills it. Criterion 4 is covered by the existing handler modules, which are unchanged. The coder's entry reports `make check: green`.
+   - Fixtures: the test uses the `walk` fixture as the Interface prescribes and copies no fixture from the handler modules.
+   - Architecture: `StatelessReportReader` derives from `factory.application.files.WorkItemReader`. It hands `parse`, `parse_specification` and every other path's `read` to `FrontmatterWorkItemReader`. Git is not faked, and there are no new dependencies or suppression markers.
+   - Quality: the names fit, there is no dead code, and `make duplicates` reports 0 new.
+   - Ticket hygiene: the Assignment matches what was built. The log gives the reason for the parametrized form and what was rejected. Docs criterion "none" is right, since behaviour does not change.
+6. documenter: wrote nothing. The docs criterion says `none`, and the diff is one new test module (`tests/application/test_acceptance_no_state_refusals.py`) with no change in `src/`, so no behaviour or name moved.
+   - Cross-read: searched `docs/` for the three acceptance handlers and their "has no state" refusals. The mentions in `docs/project-guide.md` and `docs/operator-guide.md` match the behaviour the tests pin. I did not read every document in full.
+   - Stale but untouched: nothing seen.
+   - No findings. I ran no `make check`, as I changed no file outside the docs.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: ran both Demo commands from the repository root, in order. Both met their `Expect:` lines.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/application/test_acceptance_no_state_refusals.py`
+   ```
+   ...                                                                      [100%]
+   3 passed in 0.87s
+   ```
+   Met: the last line reads `3 passed in 0.87s`, with no `failed`, `error` or `skipped` count.
+
+   2. `grep -c 'has no state' src/factory/application/acceptance.py`
+   ```
+   3
+   ```
+   Met: `3`, the three messages the tests pin.
+
+   Against the acceptance criteria:
+   - Criteria 1 to 3: the three passing rows (hand_over, merged, closed) are the tests the tester mapped to these criteria. Each row asserts the kind and reason from the table, that the remote ref is unchanged, and that no new comment was posted.
+   - Criterion 4: the demo neither shows nor contradicts it. The coder's and documenter's entries report `make check` green, which runs the existing handler tests.
+   - Criterion 5: I did not run `make check`. The factory runs it as this stage's check.
+   - Criterion 6 (docs: none): consistent with the demo.
+
+   Nothing contradicts a criterion. No findings.
