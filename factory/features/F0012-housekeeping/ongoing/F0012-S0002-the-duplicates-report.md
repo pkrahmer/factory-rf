@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 154
 blocked: null
 comments_seen: 2
@@ -175,3 +175,14 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - A `==` line that comes after the code is treated as code.
 
    `make check`: check: green
+7. reviewer: no findings.
+
+   I read the whole diff (`src/factory/domain/duplicates.py`, `src/factory/entry/check_duplicates.py`, `tests/domain/test_duplicates.py`, `tests/entry/test_check_duplicates.py`) against the Interface and criteria 1 to 14. The only other changed file, `docs/runs/2026-10-12-overnight/night-log.md`, comes from the human's own commit e299e13, not from the story's work.
+
+   - Acceptance criteria: each of criteria 1 to 14 has a test that checks what the criterion says. Criteria 2, 4, 5, 6, 8, 9, 10, 12 and 14 are rows of one parametrized test each, and criterion 13 is two test functions. Each failing side the Interface names has a refused row: bad JSON, a non-array, a non-object element, a missing message and a non-string message (criterion 4); no `==` line, no code line and a malformed `==` line, with the accepted row beside them (criterion 14); vulture lines out of form, named by line number, including leading spaces (criterion 6); a missing input, unparsable pylint or vulture text and a missing baseline (criterion 12); a missing `--baseline` (criterion 13). The limit `known: NonNegativeInt` is tested with -1 and 0. The coder's entry records that the factory's `make check` was green.
+   - Architecture: `factory.domain.duplicates` is pure: it uses only `json` and `re`, with no I/O. `factory.entry.check_duplicates` imports only the domain, and its only I/O is reading and writing files. The pylint JSON is decoded as `object` and narrowed with `isinstance`, so no `dict[str, Any]` crosses a function boundary. It calls no command-line tool.
+   - Security: no secrets, no shell or SQL, and no suppression markers. Input is validated where it enters, and an error reaches standard error as one `check-duplicates: <reason>` line with exit status 2.
+   - Quality: names and docstrings fit what they describe, and there is no dead code. `_read` and `_UnreadableError` follow the private pattern in `check_story.py`, but the signature and the error class differ, so I don't count it as a second copy of a shared helper. Keeping the baseline's text form in the entry module (log entry 6) matches the Interface, which gives the domain no writer.
+   - Ticket hygiene: the log gives the main decision and what was rejected, the Assignment matches what was built, and criterion 16 still describes what the documenter has to write.
+
+   Open items, not findings: the Interface does not specify what happens when writing the baseline fails (`OSError`); the coder flagged this. A `==` line that comes after the code is read as code, which follows the Interface's "first non-blank line after the `==` lines".
