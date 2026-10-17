@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 163
 blocked: null
 comments_seen: 0
@@ -96,3 +96,33 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both demo blocks from the repository root, exactly as written. Both met their `Expect:` lines, and nothing I saw goes against any acceptance criterion.
+
+   1. The grep for the lesson and the grep for `mkdtemp`:
+   ```
+   claude/agents/smoke-tester.md:1
+   claude/agents/acceptance-reviewer.md:1
+   claude/agents/documenter.md:1
+   claude/agents/coder.md:0
+   docs/project-guide.md:0
+   docs/operator-guide.md:0
+   README.md:0
+   ```
+   Met: the four agent lines have the expected counts (1, 1, 1, 0), and the three document lines each end in `:0`.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_agent_texts.py`:
+   ```
+   ........................................................................ [ 76%]
+   ......................                                                   [100%]
+   94 passed in 0.06s
+   ```
+   Met: the last line is `94 passed in 0.06s`, with no failed, error or skipped count.
+
+   Checked against the criteria:
+   - Criterion 1: the ends of `claude/agents/smoke-tester.md`, `documenter.md` and `acceptance-reviewer.md` show the earlier bullets followed by the temporary-directory bullet. In `acceptance-reviewer.md` the JUnit bullet comes after it, as the Interface asks.
+   - Criterion 2: the diff against `origin/main`, leaving out `factory/`, touches only those three agent files, `docs/project-guide.md` and `tests/test_claude_agent_texts.py`. The other four agents are unchanged.
+   - Criterion 5: `mkdtemp` occurs in none of the three documents.
+   - Criterion 3: I did not run `tests/test_claude_files.py` or `tests/adapters/test_shipped_agents_effect.py` myself. The coder and documenter entries report `make check` green, and that run includes those modules.
+   - Criterion 4: `make check` is left to the factory's own check.
+
+   Findings: none.
