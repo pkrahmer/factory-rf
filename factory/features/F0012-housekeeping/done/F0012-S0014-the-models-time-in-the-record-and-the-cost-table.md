@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 166
 blocked: null
 comments_seen: 0
@@ -255,3 +255,4 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
     Checked against the criteria once more: the demo is consistent with criteria 1 to 11. Criterion 12 (`make check`) is the factory's gate after this stage. Criterion 13 (docs) was handled by the documenter in entry 10; the demo does not exercise it.
 
     Open, not part of this ticket: the two vulture hits on `used_bytes` (`src/factory/adapters/disk_space.py:19`, `src/factory/application/machine.py:48`) that earlier entries noted.
+12. done (pull request merged); cost: 10 runs, 9.4 min, 73 turns, 294k tokens in (1395k more from cache), 31k out, $2.14
