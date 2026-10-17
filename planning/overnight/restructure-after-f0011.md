@@ -4,20 +4,26 @@ Decided by the human on 2026-10-14, in the session's discussion of the package t
 
 ## The order of the work after F0011 (the human's word, 2026-10-17)
 
-The restructure comes last: it is layout only, the todo run neither needs nor tests it, and the findings and notes in this file name today's paths.
+The single order; the sections below hold the detail of each step.
 
-1. The small fixes, as v1 stories, in this order:
-   1. `make check` faster: pytest-xdist over the 20 cores, one prepared git remote copied per test, `make secrets` over the changed files.
-   2. Duplicates and dead code: one ad hoc pylint (R0801) and vulture pass, and its findings fixed (F0010-S0025's identity, F0011-S0001's `_rerun_seconds`, the redundant `tests/test_fault_path_names.py`, the others listed below).
-   3. Mutation testing with mutmut: a `make mutants` target outside `make check`, limited to the modules a feature changed (a `FILES` variable), which v1's acceptance stage already runs when the target exists; until now every acceptance made a hand pass of 12 to 28 mutants.
+0. Finish the unattended build: F0011 accepted (2026-10-17, second acceptance); `session-logs/refresh.sh`, the run record and the factory log copied into `session-logs/metrics/`, the summary for the human.
+1. The small fixes, built by v1 as one housekeeping feature:
+   1. `make check` faster: pytest-xdist over the 20 cores, one prepared git remote copied per test, `make secrets` over the changed files (granted).
+   2. `make duplicates` as a lasting report (pylint R0801, vulture) against a baseline, a `records:` entry on the review stage, and its findings fixed: F0010-S0025's identity, F0011-S0001's `_rerun_seconds` and `_opening_text`, the redundant `tests/test_fault_path_names.py`, and the others listed below (granted).
+   3. `make mutants` with mutmut, limited to the modules a feature changed, run by the acceptance stage; it takes in the parked draft F0011-S0007 (pin `GLOSSARY_FORBIDDEN` and the two section tuples, six hand mutants survived) (granted).
    4. What the todo run must measure: the low-disk machine stop, no temporary files left, the project-command and model-versus-tool records, the disk record.
    5. One test of the DTOs' own configuration; an answer at the send-back cap that can grant one more round.
-2. The first start on the real machine (after the compose project name below is made per instance): the human pins the image (the base image digest and the Debian versions are placeholders), builds it, logs in once as `agent`; fixes found there go in before the todo run, because its pass rule allows no fix during the run.
-3. The todo run (run 4's eight stories and three acceptances in v1.1's form): the baseline v2 is measured against.
-4. A project's own skills and agents (the sections below): after the todo run, because run 4 used neither and the baseline stays at v1's scope; before the restructure.
-5. The restructure: the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`; then `make check` and one short story run in the todo project to show nothing changed.
+   6. The compose project name per instance (`name: factory-${FACTORY_INSTANCE}`), so v1 and v1.1 cannot collide.
+   7. The `demo/` frame: the index README and the one test in `make check` that walks every demo.
+2. The todo demo: run 4's eight stories and three features rewritten by hand into `demo/todo-service/` in v1.1's form, checked by 1.7's test.
+3. The first start on the real machine (the human, the session alongside): the image pinned (base digest, the Debian versions), built, the one login as `agent`; the morning observations (`sudo`, the umask, the token mount, the time limit under `sudo`, F0010 decision 30); fixes found here go in through v1 before the run.
+4. The todo run: v1.1 builds `demo/todo-service` into a new empty repository, a session plays the human, disk records at start and end. It passes when everything is accepted with no fix to `factory-rf` during the run, every stop reached the human, and cost and time per first-pass story are within 25 % of run 4's. It is the baseline v2 is measured against.
+5. The handover of `factory-rf` to v1.1, one human commit while no v1 story is in progress (see "v1.1 builds itself").
+6. Built by v1.1 itself: a project's own skills and agents; then a new image and a short smoke run on the todo demo.
+7. Built by v1.1 itself: the restructure (the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`); then `make check` and a short smoke run.
+8. The rename, after a few clean self-built stories: v1's compose file gets `name: factory` first; `factory` becomes `factory-v1` and `factory-rf` becomes `factory`; the four lines of text; the remotes, `REPOS` and `FACTORY_REPOSITORY_URL` set again.
 
-The development dependencies: granted by the human on 2026-10-17, pytest-xdist (1.1), and pylint and vulture for a lasting `make duplicates` report (1.2: a make target over `src/factory` against a baseline of today's findings, a non-blocking `records:` entry on the review stage in `factory/stages.yml`, the human's change between two stories, its findings read by the reviewer and the acceptance reviewer). mutmut (1.3) granted by the human on 2026-10-17 too.
+At any time, the human's: compact and move Docker's disk image, update Docker and WSL; confirm the decisions taken for the human; choose the tree of step 7.
 
 ## The decision
 
