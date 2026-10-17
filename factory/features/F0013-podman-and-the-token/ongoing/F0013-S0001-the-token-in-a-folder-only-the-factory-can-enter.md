@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 182
 blocked: null
 comments_seen: 4
@@ -136,3 +136,17 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    I would choose (a). Once that commit is in, I will run `make check` and send the story to review.
 7. human (pull request comment, 2026-10-17): Neither (a) nor (c): the factory's log stays as it is. I added a `.secrets.baseline` entry for the quoted fragment on `main`, for this file's `ongoing/` and `done/` paths (so `main` stays green after the archive); the factory merges `main` into this branch at the next stage start. Run `make check` and go on to review.
+8. coder: `make check` is green now. The baseline entry from entry 7 is on this branch through the merge of `main` (81351a7b). No code changed in this run.
+
+   - **Built (0978b427, unchanged):**
+     - `image/Dockerfile`: `/home/factory/.secrets` is added to the `mkdir -p`, with `chown factory:factory` and `chmod 0700` next to those of `/state`. `ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token` keeps its place before `USER factory`, and its comment says only the factory's user can enter the folder.
+     - `image/compose.yml`: both `secrets:` blocks and their comment are gone. The read-only bind mount is the fourth volume entry, keys in the Interface's order, with a comment on why: Compose ignores a file secret's owner and mode outside Swarm, so the folder keeps the agent out.
+     - `image/entrypoint.sh`: the header comment now names `/work` as where either user can remove the other's files.
+     - Criterion 3 of the ticket is reworded as prose, as the human asked in entry 5. That change was committed by the factory with entry 6.
+   - **Main decision:** the folder is made in the image's existing user-and-folder `RUN`, next to `/state`. I rejected a separate `RUN` layer, which would add a layer for one folder and split the ownership setup across two places.
+   - **Checks:** the full `make check` passes. Every target is green, `secrets` included, and coverage is 99.50 %.
+   - **Refactor:** I read the diff again. It is three small config changes and a comment, with nothing to tidy.
+   - **Left for later:** the preflight item `token-file` still checks the file's own owner and mode, as the Assignment says. Moving that check is S0002's work. Criterion 9 (the docs) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
