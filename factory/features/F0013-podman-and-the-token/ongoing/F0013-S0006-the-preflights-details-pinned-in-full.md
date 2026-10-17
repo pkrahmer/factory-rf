@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 188
 blocked: null
 comments_seen: 0
@@ -105,3 +105,24 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines and there are no findings.
+
+   1. The `agent_environment_item` call with an empty environment:
+   ```
+   the agent run has no PATH; the agent run has no HOME
+   ```
+   Met the expectation: this is exactly `the agent run has no PATH; the agent run has no HOME` (exit 0).
+
+   2. pytest over the three test modules:
+   ```
+   ....................................                                     [100%]
+   36 passed in 0.65s
+   ```
+   Met the expectation: the last line is `36 passed in 0.65s`, with no failed, error or skipped count (exit 0).
+
+   Criteria checked against the demo:
+   - Criterion 1: the demo's output is the both-faults detail.
+   - Criteria 1–5: the tests that pin these criteria (the tester's entry names them) are among the 36 that passed.
+   - Criterion 7: I read the paragraph "The probe of the agent run" in `docs/operator-guide.md`. At line 282 it now says that without `FACTORY_AGENT_USER` the detail names `the factory user`.
+   - No criterion is contradicted.
+   - Criterion 6 (`make check`) is the factory's gate; I did not run it in this stage.
