@@ -9,7 +9,7 @@ from factory.domain.stops import RepositoryStopReason
 
 Destination = Literal["health_status", "pull_request", "none"]
 
-_LIMIT = re.compile(r"^L\d+$")
+_LIMIT = re.compile(r"L[0-9]+")
 _REPOSITORY_TEST = "test_repository_stop_reaches_the_health_status_and_the_factory_log"
 
 
@@ -35,7 +35,7 @@ class StopRow(BaseModel):
         if not self.limits:
             raise ValueError("a stop answers at least one of v1's limits")
         for limit in self.limits:
-            if not _LIMIT.match(limit):
+            if not _LIMIT.fullmatch(limit):
                 raise ValueError(f"{limit!r} is not one of v1's limits")
         return self
 
