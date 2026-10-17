@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 180
 blocked: null
 comments_seen: 1
@@ -319,3 +319,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    Met its Expect line: 63 passed, with no failed, error or skipped count.
 
    Against the acceptance criteria: `template/` holds exactly `CLAUDE.md`, `Makefile` and `factory/` (criterion 1). The Makefile has the placeholder `SOURCE = src/<package>` (criterion 4). Nothing in the demo contradicts any criterion. No findings.
+9. done (pull request merged); cost: 7 runs, 8.5 min, 60 turns, 252k tokens in (1265k more from cache), 43k out, $2.10
