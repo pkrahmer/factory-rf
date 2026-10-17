@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 174
 blocked: null
 comments_seen: 0
@@ -134,3 +134,18 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
    - Quality: `_call` sets `timed_out` on the result once, so `_end_reason`, `_result` and `_sudo_refusal` stay unchanged. That is simpler than the alternative the coder rejected. The comments on `SUDO_GRACE` and `KILL_STATUSES` say why. `make duplicates` reports 0 new.
      - Minor, not raised as a finding: the criterion 1 test reads `sudo-calls.jsonl` inline instead of importing `_sudo_calls` from the os_user test module. It is three lines and not a separate helper.
    - Ticket hygiene: the log gives the main decision and what was rejected. `Assignment` matches what was built. Criterion 9 still says what the documenter must write.
+6. documenter: Docs for the inner `timeout` kill under `sudo`.
+
+   Files changed:
+   - docs/operator-guide.md: the `sudo` call in "The agent runs as a second user" now shows `timeout --signal=KILL <limit>s`. I replaced the "not solved" paragraph with "A `time_limit` under `sudo`". It covers the inner kill, status 137/-9 at or after the limit read as `time_limit`, the 30 s grace before the factory's own kill, and what to see in the morning (no `claude` process of `agent` after the limit). The morning table row points to it.
+   - docs/project-guide.md: the `claude -p` runtime's argument vector includes `timeout`. I added `TIMEOUT_EXECUTABLE`, `SUDO_GRACE`, `KILL_STATUSES`, the `timed_out` marking in `_call`, and the resume.
+   - docs/decisions.md: new entry for the human's answer to F0010 decision 30, with why the agent's own kill is used and what was rejected.
+
+   Cross-read and found current: README (it has no `sudo` text), the rest of the operator guide's `sudo:` rule paragraph (consistent with the diff), and the project guide's other runtime text. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only documents.
+
+   Findings: none. The code matches the Interface. The real run under `sudo` is still to be observed at the first start.
+
+   Stale text I saw but did not touch: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
