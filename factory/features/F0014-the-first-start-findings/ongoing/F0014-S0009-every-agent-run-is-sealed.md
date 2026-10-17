@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 193
 blocked: null
 comments_seen: 2
@@ -127,3 +127,24 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: no findings.
+
+   What I checked, against the diff (`git diff main...HEAD -- . ':!factory'`, 6 files) and the code around it, not against the log:
+   - Criterion 1: `test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned` opens `.git` to 0o2775 and `.git/config` to 0o666. It asserts that the runtime sees 0o2755 and 0o644 during the run, and that it gets back the runtime's own result.
+   - Criterion 2: `test_a_run_raises_unless_git_is_sealed_before_and_after_it` has the five rows the criterion lists, all in one parametrized test:
+     - Folder in place, link in place, and swap followed by `AgentRuntimeError` all raise `RepositoryUnsealed`. The last row also asserts that `__context__` is the `AgentRuntimeError`.
+     - A missing `.git` raises `RepositoryUnsealed` with no request recorded, so the failing side of "no run when the seal fails" is tested.
+     - A run error that leaves `.git` alone raises exactly that `AgentRuntimeError`.
+     - Each of these sides holds in `src/factory/application/sealed_runs.py`: `seal` runs outside the `try` and `check_seal` runs in the `finally`.
+   - Criterion 3: `test_launch_raises_when_the_run_swaps_git` covers `StageLauncher.launch`. `test_the_probe_raises_when_the_run_swaps_git_and_the_preflight_lets_it_out` covers `agent_run_probe_item`, and also `Preflight.run` with the probe as one of `MachineChecks`' extra items. In the code:
+     - `Preflight.run` (`src/factory/application/preflight.py`) catches `GitError` only around `_probe`, the probe of `main`. The machine's items are outside that `except`, so the error gets out.
+     - From there, only `Scheduler._iterate`'s `except Exception` in `src/factory/application/scheduler.py` catches it, and it logs the iteration as failed.
+   - Ending the tick: in `src/factory/application/stage.py`, a `RepositoryUnsealed` from `launch` passes `self._after.process` without any handler that runs git. `Tick.run` in `src/factory/application/tick.py` has no `except` around `dispatch`. `CheckoutPreparer._keep_or_clone_again` then clones again on the next iteration.
+   - Callers: `run_sealed` is now the only caller of `agent_runtime.run` in `src/factory/application`.
+   - Criterion 4: `test_a_handlers_unsealed_repository_passes_uncounted_and_another_git_error_counts` has two rows: the unsealed error is raised and not counted, and a plain `GitError` still counts. The re-raise in `src/factory/application/dispatcher.py` sits before `except Exception`, which needs it because `RepositoryUnsealed` is a subclass of `GitError`.
+   - Test changes: no existing test changed. The only change to the new dispatcher test, the `outcome: str` annotation, was approved by the human in entry 5.
+   - Architecture: `sealed_runs.py` sits in `factory.application` and uses only the `Git` and `AgentRuntime` interfaces through `Boundaries`. The tests' runtimes inherit `AgentRuntime` and wrap `FakeAgentRuntime`, and git is a real clone.
+   - Security: no suppression markers, secrets, or strings built into shell or SQL commands.
+   - Quality: the module and function docstrings are there, and the comments say why. `make duplicates` reported 0 new.
+   - Make check: green according to the coder's entry 8. I did not run it myself, as this stage says.
+   - Ticket hygiene: entry 8 gives the main decision (`try/finally` and its implicit `__context__` instead of wrapping the error explicitly). The Assignment matches what was built, and criterion 7 still says what the documenter must write.
