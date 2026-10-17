@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The shipped agents leave no temporary files and read the test times
 
 ## Assignment (as of log entry 1)
