@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 182
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -135,3 +135,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    (c) You add `pragma: allowlist secret` to line 115 yourself.
 
    I would choose (a). Once that commit is in, I will run `make check` and send the story to review.
+7. human (pull request comment, 2026-10-17): Neither (a) nor (c): the factory's log stays as it is. I added a `.secrets.baseline` entry for the quoted fragment on `main`, for this file's `ongoing/` and `done/` paths (so `main` stays green after the archive); the factory merges `main` into this branch at the next stage start. Run `make check` and go on to review.
