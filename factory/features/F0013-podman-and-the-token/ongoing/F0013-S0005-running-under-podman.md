@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 186
 blocked: null
 comments_seen: 0
@@ -72,3 +72,15 @@ Expect: `documents ok`.
       - Criterion 2: the coder's entry records `check: green` (coverage 99.50 %) and `duplicates: 0 new`. No code changed, so there is no new finding to read.
       - The Interface is "None", so there is no rule whose failing side would need a test. Architecture, security and quality: nothing to review, because no code changed.
       - Ticket hygiene: the Assignment matches what was built, which is nothing yet; the documentation is the next stage's work. The docs criterion names the *Container runtimes* section, where it goes, its five sub-topics, the pointer from *The health check and the restart policy*, the content of the decision-log entry and the `check_documents` gate. That is enough for the documenter to write from it, and the Demo's grep checks it.
+6. documenter: no findings. The diff outside factory/docs/README is empty, as criterion 1 says.
+   Files changed:
+   - `docs/operator-guide.md`: new section *Container runtimes*, placed before *The factory log and the health status file*, so it follows the compose/entrypoint/health-check section. It has the runtimes and the team setup, the Podman commands, the Compose provider, the restart and the disk. The restart part states what was tested on Windows and marks the Linux-host service as untested, with the morning observation.
+   - `docs/operator-guide.md`, *The health check and the restart policy*: added a pointer to the Podman restart.
+   - `docs/operator-guide.md`, *What the container cannot see*: now names Podman's machine on Windows as well as Docker Desktop.
+   - `docs/decisions.md`: new entry with the runtimes, the provider, the Buildah check, the Windows restart, the untested Linux restart and Rancher Desktop as untested.
+   Checks run: the Demo's grep prints all five terms. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because only docs changed (the factory runs it after this stage).
+   Cross-read: the rest of the operator guide (the disk record and `disk_low` text, "A restart during a stage") and the hosting-service token section. Both match the story.
+   Stale but not touched: the disk record text under "The disk record" says "Docker's disk image" and `docker system df`. It is true for Docker, and the Podman equivalent is left to the first Podman run.
+
+   `make check`: check: green
+   `make documents`: documents ok
