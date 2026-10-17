@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 192
 blocked: null
 comments_seen: 4
@@ -277,3 +277,31 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (29.9 s)
+10. coder: This round was a confirmation only. The code was already committed (cacf17ea feat, 085a3783 refactor). The tester has made the fixture change the human approved (log entries 7 and 9). I changed no code and no test in this run, and the working tree was clean.
+
+    - `make check`: check: green. `make test` passes with total coverage at 99.48 %. `make duplicates`: 0 new, 39 known, 0 gone.
+
+    What is built (details in entry 6):
+    - `RepositoryUnsealed(GitError)` in `src/factory/domain/errors.py`.
+    - `seal`, `check_seal` and `discard` on the `Git` interface in `src/factory/application/git.py`.
+    - In `GitCli` (`src/factory/adapters/git_cli.py`):
+      - The three operations, which start no git process.
+      - One `_check_git_folder` that both `seal` and `check_seal` use. It checks, in order: the folder exists, is not a symbolic link, is a directory, belongs to the effective user and holds a regular `HEAD` file.
+      - `seal` closes `.git` and then walks it with an `onerror` that raises. It leaves symbolic links alone.
+      - `GIT_CEILING_DIRECTORIES` is set to the working copy's absolute parent, among the entries no option can lift.
+    - `CheckoutPreparer` in `src/factory/application/scheduler.py` takes an optional `log`:
+      - If `.git` does not exist in any form, it clones.
+      - Otherwise it calls `check_seal`. On `RepositoryUnsealed` it logs, discards and clones again.
+      - In both cases it then calls `seal`.
+    - `src/factory/entry/run.py` passes `boundaries.log` to the preparer. `src/factory/entry/wiring.py` sets the shared mode to `0640` and its comment says why.
+
+    Main design decision: a `.git` that fails the check is never repaired in place, only discarded and cloned again, because an agent cannot close a folder of the factory's. I rejected separate checks for each operation, because one shared check keeps `seal` and `check_seal` refusing exactly the same cases.
+
+    Refactor: already done in 085a3783, where the folder's status is read once and `.git` is closed before the walk. Nothing more needed changing on this reading of the diff.
+
+    Noticed, not touched: `scheduler.py` (application layer) now imports `os` for `os.path.lexists`. The layer already did file-system checks through `Path.exists`, and `lexists` is needed so that a dangling symbolic link at `.git` counts as existing.
+
+    Open: nothing.
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
