@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 197
 blocked: null
 comments_seen: 0
@@ -100,3 +100,20 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Architecture and security: no source or layer is touched. The diff has no secrets and no suppression markers, and the mount is read-only with `create_host_path: false`.
       - Quality: the test module's helpers do not copy an existing helper. `tests/test_token_folder.py` and `tests/test_compose.py` each read the volumes inline.
       - Ticket: the coder's entry explains the main decision, a separate ENV line rather than an entry in the multi-name block. `Assignment` matches what was built. Criterion 9 still describes what the documenter must write.
+6. documenter: the image mounts the agent's login token, and the operator guide and decision log now say so. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide.md`, *The agent runs as a second user*: "Log in once as `agent`" is replaced by "The agent's login token". It has the steps (`claude setup-token`, saving it as `image/secrets/claude-token`, the Windows no-BOM form, the permissions for each host). It also covers the mount at `/home/agent/.claude-token` and `FACTORY_CLAUDE_LOGIN_FILE`. A missing file makes Compose refuse to start. An empty file means the manual login, which stays in `claude-home` while `/home/agent/.claude.json` is rebuilt.
+   - `docs/operator-guide.md`, morning observations: two rows added, `test -r ... && echo readable` and the probe passing on a new instance with no login.
+   - `docs/operator-guide.md`, *Users and directories*: a row added for `/home/agent/.claude-token`.
+   - `docs/operator-guide.md`, *The container*: the new mount is named beside the volumes. The renamed-instance sentence now says a new `claude` login is needed only when the token file is empty.
+   - `docs/operator-guide.md`, *The preflight's items*: `agent-run-probe` names a missing or expired token as the usual cause when the detail names the login file.
+   - `docs/operator-guide.md`, Configuration table: the `FACTORY_CLAUDE_LOGIN_FILE` row said "the image sets it (S0004)". It now gives the path.
+   - `docs/decisions.md`: the entry "The agent's login is a token from a file" gains the mount, its place and the empty-file rule.
+
+   I read the diff (`image/Dockerfile`, `image/compose.yml`, the tests) against these docs and found no contradiction. I also read the README and *The agent runtime* section and found them current.
+
+   I saw nothing stale that I left untouched. No findings.
+
+   `make check`: check: green
+   `make documents`: documents ok
