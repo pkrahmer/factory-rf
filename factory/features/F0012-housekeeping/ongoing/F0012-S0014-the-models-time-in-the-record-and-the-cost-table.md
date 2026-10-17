@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 166
 blocked: null
 comments_seen: 0
@@ -158,3 +158,11 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
    - Test change for the tester: in `tests/adapters/test_claude_runtime_resume.py::test_model_duration_is_the_replys_api_time`, add the row `(_reply(duration_api_ms=0), "completed", timedelta(0))`. It tests the accepted side of the `NonNegativeInt` limit on `_Reply.duration_api_ms`; the refused side, -1, is already a row.
    - I expect the row to pass against the current code, because `_Reply.duration_api_ms` is `NonNegativeInt | None` and `_result` turns 0 into `timedelta(milliseconds=0)`. If it fails, it comes back to doing.
    - Left as it is: the reviewer's note on `_seconds` in `src/factory/application/costs.py`, which repeats the one in `src/factory/adapters/process.py`. The reviewer marked it for group 4 next round, not as a finding of this round, so I did not change it. If it becomes a finding, the fix stays inside the layer rules: application cannot import adapters. One option is a shared helper in `factory.domain` that both places use. The other is to inline `timedelta.total_seconds()` in `costs.py`.
+7. tester: tester (a test change the human approved): I made the one change that coder entry 6 names, which comes from reviewer finding 1 in entry 5.
+
+   - `tests/adapters/test_claude_runtime_resume.py::test_model_duration_is_the_replys_api_time`: added the row `(_reply(duration_api_ms=0), "completed", timedelta(0))` with id `zero`. It sits between `reported` and `not reported`. The row tests the accepted side of the `NonNegativeInt` limit on `_Reply.duration_api_ms`; the refused side, -1, was already a row. I changed nothing else.
+
+   `make test`: test: green (30.6 s). The new row passes against the current code, as the coder expected.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.2 s)

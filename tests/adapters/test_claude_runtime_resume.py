@@ -435,10 +435,11 @@ def test_budget_stop_with_a_negative_measure_died_and_is_not_resumed(tmp_path: P
     ("reply", "end_reason", "expected"),
     [
         (_reply(duration_api_ms=41500), "completed", timedelta(seconds=41.5)),
+        (_reply(duration_api_ms=0), "completed", timedelta(0)),
         (_reply(), "completed", None),
         (_reply(duration_api_ms=-1), "died", None),
     ],
-    ids=["reported", "not reported", "negative"],
+    ids=["reported", "zero", "not reported", "negative"],
 )
 def test_model_duration_is_the_replys_api_time(
     tmp_path: Path, reply: str, end_reason: str, expected: timedelta | None
