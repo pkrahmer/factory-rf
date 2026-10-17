@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 155
 blocked: null
 comments_seen: 0
@@ -114,3 +114,18 @@ Expect: the single line `documents ok`.
       - Quality: the unused `import sys` in `check_documents` and `health` is removed. The docstrings fit what the code does.
       - One deviation from the Interface: the explicit re-export in `settings.py` uses `__all__` instead of `import ... as ...`, because ruff's PLC0414 refuses the `as` form. The log gives the reason and the rejected alternatives. `src/factory/adapters/git_cli.py:29` already uses the same pattern, and criterion 2's guarantee holds. I did not count this as a finding.
       - Open: the docs part of criterion 8 (project guide sections, the decision-log entry of 2026-10-17, the `GitOptions` table) is for the documenter.
+6. documenter: the docs criterion is written. `python -m factory.entry.check_documents` prints `documents ok`. I changed only documents, so I did not run `make check`; the factory's check after this stage is the gate.
+   - `docs/project-guide.md`, *The document check*: says v1's pipeline configuration for this repository runs the check as a check of the docs stage through `make documents`, and that red holds the work item at the docs stage. It also says `make check` does not run it, and points to the decision log for the reason. The old "F0011, decision 13" reference is gone.
+   - `docs/project-guide.md`, the `GitOptions` table: the `identity` default is now `DEFAULT_GIT_IDENTITY` in `factory.domain.git`. `factory.domain.settings` re-exports the same object.
+   - `docs/project-guide.md`, *The `claude -p` runtime*: names the new `ClaudeCodeRuntime.sudo_executable` property. It says `build_boundaries` gives the runtime the `sudo` on the `PATH` that the preflight's `tool:sudo` item finds, and `/usr/bin/sudo` only when there is none.
+   - `docs/decisions.md`: a new entry of 2026-10-17 (F0012-S0003).
+     - It supersedes the F0011-S0005 entry for the docs stage.
+     - It records `DEFAULT_GIT_IDENTITY` as the one default, re-exported through `__all__` because ruff refuses the `import ... as` form.
+     - It records the `sudo` lookup and the `argparse` change.
+     - The "Known duplicate" sentence in the 2026-10-16 identity entry now points to it as settled.
+   - Cross-read and found current: README, `docs/operator-guide.md` (the `sudo` and `tool:sudo` text already says the `PATH`), and the rest of `docs/project-guide.md`.
+   - Stale but unrelated: nothing seen.
+   - No findings for the coder. The only deviation, `__all__` instead of `import ... as`, is reasoned in the log and now in the decision log.
+
+   `make check`: check: green
+   `make documents`: documents ok
