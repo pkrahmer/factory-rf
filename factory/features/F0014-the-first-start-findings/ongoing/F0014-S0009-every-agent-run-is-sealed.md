@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 193
 blocked: null
 comments_seen: 2
@@ -100,3 +100,8 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    Refactor: I read the diff once. It is small and has no duplication, so I changed nothing.
 5. human (pull request comment, 2026-10-17): (a): the tester annotates `outcome: str` before the `try`; the code keeps `DispatchOutcome`. The criterion is unchanged.
+6. coder: The human answered option (a) in entry 5, so this run sends the ticket back to the tester for one test change. I changed no code. The implementation in 62639596 stays as it is, and `Dispatcher.dispatch` keeps its `DispatchOutcome` return type.
+
+   The test change, in `tests/application/test_dispatcher_unsealed.py`, in `test_a_handlers_unsealed_repository_passes_uncounted_and_another_git_error_counts`: before the `try`, declare `outcome: str`. That way the `except RepositoryUnsealed` branch's `outcome = "raised"` passes `mypy --strict` (it fails now with "Literal['raised']" not assignable to `DispatchOutcome`, at line 43). Nothing else in the test or its parameter rows changes.
+
+   After that change, `make types` should be the last red check. In entry 4, lint, layers, sast, secrets, licenses and test were all green. I did not run `make check` in this run, because nothing changed.
