@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 149
 blocked: null
 comments_seen: 0
@@ -138,3 +138,34 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
    - Demo: the three commands are runnable. Each `Expect:` line is checkable. The first demo's README text `x` correctly gives no finding.
    - Architecture: the pure function is in `domain` and the command is in `entry`. It imports only downward and calls no tool.
    - Scope: it is within F0011's scope (the four documents, WE6.1, WE6.2, WE6.4, WE6.5, R17). It does not wire into `make check` or add a console script, as FEATURE.md's out of scope requires. WE6.3 is left out as the feature states.
+3. tester: wrote red tests for criteria 1 to 23. Criteria 24 and 25 are the check and the docs, so they get no test.
+   - criterion 1: tests/domain/test_documents.py::test_four_clean_documents_give_no_finding
+   - criterion 2: tests/domain/test_documents.py::test_a_missing_document_gives_one_missing_finding (each document, with `None` and with the key absent)
+   - criterion 3: tests/domain/test_documents.py::test_a_blank_document_gives_one_empty_finding (each document, whitespace only and the empty string)
+   - criterion 4: tests/domain/test_documents.py::test_an_absent_required_section_is_a_finding_for_that_name_only (all five names)
+   - criterion 5: tests/domain/test_documents.py::test_a_required_heading_only_inside_a_code_fence_does_not_count
+   - criterion 6: tests/domain/test_documents.py::test_a_stop_without_its_table_row_is_a_finding (row absent, fenced, without backticks, prose line, indented)
+   - criterion 7: tests/domain/test_documents.py::test_a_stop_row_needs_its_destination_in_words_in_any_case (three wrong rows, plus three rows with capitalised words that give no finding)
+   - criterion 8: tests/domain/test_documents.py::test_a_kill_point_case_without_its_table_row_is_a_finding
+   - criterion 9: tests/domain/test_documents.py::test_a_fault_path_without_a_row_naming_its_test_is_a_finding
+   - criterion 10: tests/domain/test_documents.py::test_a_replaced_phrase_is_a_finding_for_its_document (every phrase plus `Factory-Run.json`, in each of README, operator guide and project guide)
+   - criterion 11: tests/domain/test_documents.py::test_a_v1_word_standing_alone_is_a_finding
+   - criterion 12: tests/domain/test_documents.py::test_a_v1_word_inside_a_longer_word_is_no_finding
+   - criterion 13: tests/domain/test_documents.py::test_the_replaced_section_is_exempt_from_both_lists (section running to the end of the text, section ending at the next heading, a `###` line inside it, a fenced `## ` line inside it)
+   - criterion 14: tests/domain/test_documents.py::test_text_outside_the_replaced_section_is_checked (text before the section, text after the next heading, a fenced `## Replaced from v1`)
+   - criterion 15: tests/domain/test_documents.py::test_the_decision_log_is_exempt_from_both_lists
+   - criterion 16: tests/domain/test_documents.py::test_a_decision_log_needs_a_heading_outside_code_fences
+   - criterion 17: tests/domain/test_documents.py::test_findings_follow_the_rule_order_and_the_list_order (the operator-guide and project-guide cases together, in one call)
+   - criterion 18: tests/domain/test_documents.py::test_a_finding_is_a_closed_model
+   - criterion 19: tests/entry/test_check_documents.py::test_clean_documents_print_documents_ok_and_return_zero
+   - criterion 20: tests/entry/test_check_documents.py::test_each_finding_prints_one_line_in_order_and_returns_one
+   - criterion 21: tests/entry/test_check_documents.py::test_without_a_root_the_current_directory_is_read
+   - criterion 22: tests/entry/test_check_documents.py::test_the_module_run_as_a_process_exits_with_the_status_of_main (clean documents give 0 and `documents ok`; an empty directory gives 1 and four `missing` lines; run through `run_process`)
+   - criterion 23: tests/entry/test_check_documents.py::test_documents_are_read_as_utf_8
+
+   Files created: tests/document_texts.py, tests/domain/test_documents.py, tests/entry/test_check_documents.py. tests/document_texts.py is a shared builder at the tests root, imported the way `human_clone` is. It builds clean texts from `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS`, so the tests follow the tables when they change. Destinations appear in words: health status, pull request, no stop. It also writes the documents as UTF-8 bytes.
+
+   `make test` stops with 2 collection errors, in tests/domain/test_documents.py and tests/entry/test_check_documents.py. The modules `factory.domain.documents` and `factory.entry.check_documents` do not exist yet, and tests/document_texts.py also imports `factory.domain.documents`. `make lint` is green. Nothing open; no criterion needed interpreting.
+
+   `make lint`: lint: green
+   `make test`: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
