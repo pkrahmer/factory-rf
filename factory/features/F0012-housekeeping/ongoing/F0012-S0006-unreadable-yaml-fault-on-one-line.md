@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 158
 blocked: null
 comments_seen: 0
@@ -85,3 +85,24 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
    - Demo: runnable with `uv run python -c`, two broken texts. The Expect line gives the exact two output lines and the absence of `accepted`.
    - Architecture: the change sits in the adapters layer, in the module that already wraps ruamel.yaml. The error type is the domain's `PipelineDefinitionInvalid`, and no layer import is added.
    - Scope: within F0012's item 1.2, which takes in the parked draft F0003-S0011 (FEATURE.md's parked-drafts table). Nothing in Out of scope is touched.
+3. tester: Wrote the red tests for the one-line YAML fault. First I checked ruamel's real errors for the five texts built from PIPELINE_YAML. Each problem and 0-based mark gives exactly the fault the criteria state. The control character raises a ReaderError with no `problem`.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_pipeline_yaml_one_line_fault.py::test_a_yaml_error_is_refused_with_its_problem_and_position[repeated-key]
+   - criterion 2: same test, [unclosed-list]
+   - criterion 3: same test, [mapping-in-a-value]
+   - criterion 4: tests/adapters/test_pipeline_yaml_one_line_fault.py::test_a_python_tag_is_refused_with_its_problem_and_position
+   - criterion 5: test_a_yaml_error_is_refused_with_its_problem_and_position[control-character]
+   - criterion 6: tests/adapters/test_pipeline_yaml_one_line_fault.py::test_a_yaml_fault_holds_no_line_break (all five texts) and ::test_a_repeated_key_fault_holds_no_hint_and_no_context
+   - criterion 7: tests/adapters/test_pipeline_yaml_one_line_fault.py::test_the_example_definition_still_parses and ::test_a_yaml_text_that_is_not_a_mapping_is_still_refused_as_such
+   - criterion 8: tests/adapters/test_pipeline_yaml_one_line_fault.py::test_yaml_fault_falls_back_to_the_first_line_of_the_text (rows: problem-without-mark, empty-problem, plain-error)
+   - criterion 9: tests/application/test_pipeline_loading_yaml_fault.py::test_a_repeated_key_on_main_is_one_stop_and_one_log_line. It checks the raised fault, that the health status holds exactly one stop with that detail, and that the log gains exactly one line ending with `stop repository pipeline_definition_invalid: <fault>`.
+
+   Files created: tests/adapters/test_pipeline_yaml_one_line_fault.py, tests/application/test_pipeline_loading_yaml_fault.py. No existing test changed.
+
+   Result of `make test`: the adapter module fails to collect with an ImportError, because `yaml_fault` is not yet in `factory.adapters.pipeline_yaml`. The application test fails because `parse` still gives ruamel's multi-line text as the fault. `make lint` is green. I skipped the type check, as the stage says.
+
+   No interpretation was needed. Every exact fault in the criteria matches what ruamel actually reports.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/adapters/test_pipeline_yaml_one_line_fault.py - ImportError while...
