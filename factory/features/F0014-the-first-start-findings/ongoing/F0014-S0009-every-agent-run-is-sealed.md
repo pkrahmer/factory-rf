@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 193
 blocked: null
 comments_seen: 2
@@ -114,3 +114,16 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (28.9 s)
+8. coder: The tester's change in entry 7 made `make types` green. I ran `make check` on the committed state and it ended with `check: green` (test: green, coverage 99.48 %). This run changed no code. The implementation is still the one in 62639596:
+   - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.seal()`, then the agent run in a `try`, then `git.check_seal()` in its `finally`. If the seal fails, no run starts. If the check after the run fails, its `RepositoryUnsealed` wins, and the run's error becomes its `__context__`.
+   - `src/factory/application/stage.py` (`StageLauncher.launch`) and `src/factory/application/preflight.py` (`agent_run_probe_item`) both run the agent through `run_sealed`. The probe still catches only `AgentDefinitionError` and `AgentRuntimeError`. `launch`'s docstring now lists `RepositoryUnsealed` among what it lets through.
+   - `src/factory/application/dispatcher.py`: `dispatch` re-raises `RepositoryUnsealed` before its `except Exception` and does not count it as an error.
+
+   Main decision: I used `try/finally` and not an explicit `except` that wraps the run's error. With `finally`, Python's implicit exception chaining sets `__context__` for us, which is exactly the behaviour the Interface asks for.
+
+   Refactor: I read the diff (4 files, +30/−8) again and found no duplication and nothing unclear, so I changed nothing.
+
+   Open: the docs criterion (7) is for the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
