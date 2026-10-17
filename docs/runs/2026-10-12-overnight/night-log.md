@@ -378,3 +378,4 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 - Form check: 5 drafts, exit 0. F0013 placed in `factory/features/`; S0001 started.
 | 2026-10-17 20:26 | F0013-S0001 merged (#182; 8 runs, 6.3 agent minutes, $1.50; two coder questions on detect-secrets flagging the story's own text: criterion 3 reworded as prose, the log's quote covered by a baseline entry for the ongoing/ and done/ paths; test changes as F0013 decision 9 allows). The token now lives in /home/factory/.secrets (0700). S0002 started. |
 | 2026-10-17 20:33 | F0013-S0002 merged (#183; 6 runs, 3.8 agent minutes, $0.90, first pass; the test change is F0013 decision 11's). S0003 started. |
+| 2026-10-17 20:40 | F0013-S0003 merged (#184; 6 runs, 3.1 agent minutes, $0.80, first pass; one new test module, no code changed). S0004 started. |
