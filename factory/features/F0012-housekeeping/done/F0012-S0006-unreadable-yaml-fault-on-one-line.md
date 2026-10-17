@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 158
 blocked: null
 comments_seen: 2
@@ -215,3 +215,4 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
     Exit status 0. This meets its `Expect:` line: exactly two lines, both identical to the expected faults, and no `accepted`.
 
     Checked against the acceptance criteria: each fault is one line with ruamel's problem and its 1-based position. Neither fault has context lines, `<unicode string>` or the `To suppress` hint. Both start with `not valid YAML: `, as the Interface's first branch says. Nothing in the demo contradicts any criterion. The criteria the demo does not exercise (the health status and log line, the fallback branches, block-scalar escaping) are covered by the tests the reviewer listed in entry 11.
+14. done (pull request merged); cost: 11 runs, 8.7 min, 65 turns, 189k tokens in (935k more from cache), 24k out, $1.96
