@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 179
 blocked: null
 comments_seen: 0
@@ -128,3 +128,4 @@ Expect: only the line `status 1`: no commit of the factory is made with a subjec
    - Criterion 5: `commit_subject` (`handlers/recording.py:47`) and the handlers' and recovery's subjects are unchanged.
    - Criterion 6: the documenter's entry records `make check` green. I did not run it in this stage; the factory runs it after this stage.
    - Criterion 7: `docs/project-guide.md:641` states the prefix rule, the merge exception and the use by `make mutants`, and step 4 at `:1028` names the subject `work item <id>: <stage> starts as <instance>`. The `docs/decisions.md` entry is in the documenter's log entry; I did not open the file to check it.
+8. done (pull request merged); cost: 6 runs, 3.8 min, 45 turns, 181k tokens in (655k more from cache), 14k out, $1.11
