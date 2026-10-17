@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 185
 blocked: null
 comments_seen: 0
@@ -52,3 +52,12 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
    - Demo: both commands are runnable. Each `Expect:` line can be checked against the output: `demos ok`, and the three named grep lines.
    - Architecture: the entry layer imports from the domain (`factory.domain.paths`), which is allowed, and the change reuses the existing helper instead of adding a second one.
    - Scope: the story is inside F0013's scope (FEATURE scope bullet 2 and decisions 2 and 12) and touches nothing in "Out of scope".
+3. tester: no new or changed tests. This is a refactoring, and the Interface says "Tests: none new and none changed" (FEATURE decision 12). The existing tests pin the behaviour, so the branch has no red tests. The coder's specification is to keep them green.
+   - criterion 1: tests/test_demos.py::test_the_shipped_demos_pass_the_demo_check
+   - criterion 2: tests/entry/test_check_demos.py: the existing story-finding tests, including test_a_story_without_its_smoke_test_gives_the_story_check_finding, test_story_findings_come_in_path_order_and_carry_their_line and test_a_story_with_front_matter_that_is_not_yaml_is_one_finding. They pin the `<demo>/features/<feature>/backlog/<story>` path and the finding text.
+   - criterion 3: no test, as the ticket says. The reviewer checks it in the diff.
+   - criteria 4 and 5: `make check` and docs, no tests.
+   Files created: none. Modules the runner could not import: none. `make test` is green before the change (coverage 99.50 %), and so is `make lint`.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.8 s)
