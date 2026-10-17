@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 194
 blocked: null
 comments_seen: 4
@@ -284,3 +284,27 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make documents`: documents ok
+13. demo: Ran the three `## Demo` commands from the repository root, in order, as uid 1000 (not root, so the tests that skip for root ran).
+
+    1. `git_environment()`:
+    ```
+    [('GIT_CONFIG_COUNT', '4'), ('GIT_CONFIG_KEY_0', 'credential.helper'), ('GIT_CONFIG_KEY_1', 'core.sharedRepository'), ('GIT_CONFIG_KEY_2', 'core.hooksPath'), ('GIT_CONFIG_KEY_3', 'core.fsmonitor'), ('GIT_CONFIG_VALUE_0', '/usr/local/bin/git-credential-factory'), ('GIT_CONFIG_VALUE_1', '0640'), ('GIT_CONFIG_VALUE_2', '/dev/null'), ('GIT_CONFIG_VALUE_3', 'false')]
+    ```
+    Met its `Expect:` line: one line, identical to the expected one.
+
+    2. `GitCli.remove_nested_repositories()` on a checkout with a `git init` repository at `notes/sub` and a `gitdir:` file at `other/.git`:
+    ```
+    ['notes/sub/.git', 'other/.git']
+    True False False True
+    ```
+    Met its `Expect:` line: both paths reported, sorted and `/`-separated. `notes/sub/a.txt` is kept, both nested `.git` entries are gone, and the root's `.git` is still there.
+
+    3. pytest over the new and changed test modules plus `tests/application/test_after_agent.py`:
+    ```
+    ........................................................................ [ 51%]
+    ....................................................................     [100%]
+    140 passed in 6.66s
+    ```
+    Met its `Expect:` line: `140 passed`, with no `failed`, `error` or `skipped` count.
+
+    Checked against the acceptance criteria: nothing in the demo contradicts any of them. Command 1 covers criterion 1 and command 2 covers rows of criterion 3. Command 3 runs the test modules for criteria 2–8 and the earlier-story modules named in criteria 7 and 11. It does not include the preparer's tests (criteria 9, 10 and 12), so those are left to the factory's `make check`. No findings.
