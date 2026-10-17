@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 155
 blocked: null
 comments_seen: 0
@@ -151,3 +151,4 @@ Expect: the single line `documents ok`.
    Met: the single line `documents ok` (the last clause of criterion 8).
 
    Criteria 4 to 7 and the rest of criterion 8 have no demo command. Nothing in the output contradicts them. The log has the tests for criteria 4 to 6 passing, `check: green` from the coder and the documenter, and `documents ok` from `make documents`.
+8. done (pull request merged); cost: 6 runs, 5.0 min, 46 turns, 127k tokens in (830k more from cache), 20k out, $1.36
