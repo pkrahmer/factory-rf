@@ -90,7 +90,7 @@ The last line is the only rule: `factory` may become `agent`, for any command, w
 
 The files of a run are `instructions-<session>.md` and, when the stage has write paths, `guard-<session>.json` and `hooks-<session>.json`. They are in `/state/runs`. The runtime sets each to mode `0640` before it starts the agent, whatever the factory's umask. The agent reads them through the group `factory-work`, and it cannot rewrite them: the files are not writable by the group, and the directory is not writable by the agent either. So a run cannot widen its own write paths.
 
-The agent's home, `/home/agent`, stays writable by the agent. It holds its `claude` login and its `.claude`, and the agent could change the files there; that is left for v2 (see the decision log).
+The agent's home, `/home/agent`, stays writable by the agent, and the `claude` login in `~/.claude` stays the agent's own. The files the factory installs there are protected: `/home/agent/.claude` belongs to `factory`, group `factory-work`, mode `3775`, and the entrypoint installs `agents/` as `0755` with each file `0644` and `settings.json` as `0644`. The agent can add files of its own to that folder, and the sticky bit stops it from renaming or removing the factory's. So one run cannot widen the tools, budget or permissions of later runs. What stays writable: files of its own in `~/.claude` that `claude` reads (a user `CLAUDE.md`, skills) and `/home/agent/.claude.json`; that stays open (see the decision log). `/home/agent/.claude` is the mount point of the volume `claude-home`, so the agent cannot rename the folder either. A `claude-home` volume made by an earlier image keeps its old owner and mode, so the protection holds on a new volume.
 
 A `sudo` that refuses is a misconfiguration, not a stall: when the call ends without a usable reply (a call that reached its time limit counts as one, even when it printed a reply first, so a `sudo:` line then stops the run too) and `sudo` printed a line that starts `sudo:` to standard error, the run stops with an error that holds that line (`sudo: a password is required`: the rule is missing or wrong). A `sudo:` line before a good reply, for example `sudo: unable to resolve host x`, is ignored. A run that dies for another reason is still a stall.
 
@@ -110,6 +110,7 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | WE3.3: it cannot read the token file | `docker exec -u agent <container> cat "$FACTORY_TOKEN_FILE"` (use the path in the variable) | `Permission denied` |
 | WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
 | The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `775` for the directory, `664` for the file |
+| The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
 | The factory's restore after an agent-made directory | after the line above, `docker exec <container> sh -c 'cd /work/checkout && git clean -fd && git status --short'` | the directory is gone, no error |
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
 | WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | an authentication failure, no push |
@@ -166,7 +167,8 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 |---|---|---|
 | `/state` | `0755`, `factory:factory` | The agent can read the health file, the log and the stamp, and cannot write them. |
 | `/state/runs` | `2750`, `factory:factory-work` | The files of an agent's run: the agent can read them and cannot write them. |
-| `/work`, `/home/agent/.claude` | `2775`, group `factory-work` | Both users can write. |
+| `/work` | `2775`, `factory:factory-work` | Both users can write. |
+| `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
 
 ### The image on the cost records
 

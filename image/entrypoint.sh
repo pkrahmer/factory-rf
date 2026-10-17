@@ -23,6 +23,10 @@ rm -rf "$home/agents"
 mkdir -p "$home"
 cp -R "$opt/claude/agents" "$home/agents"
 cp "$opt/claude/settings.json" "$home/settings.json"
+# Read-only to the agent, so one run cannot widen the tools or permissions of later runs.
+chmod 0755 "$home/agents"
+find "$home/agents" -type f -exec chmod 0644 {} +
+chmod 0644 "$home/settings.json"
 log "installed agents and settings into $home"
 
 mkdir -p "$state/runs"
