@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 155
 blocked: null
 comments_seen: 0
@@ -70,3 +70,26 @@ Expect: the single line `documents ok`.
    - Demo: all three commands run. Each `Expect:` line can be checked: the printed values and the one grep line, `status 1` for the absent argv expression, and `documents ok`.
    - Architecture: the constant sits in `factory.domain`, the `which` injection is in `factory.entry.wiring`, and the runtime only gets a property. No layer rule is touched.
    - Scope: within F0012 items 1.2 and 1.9, taken from decisions 3, 12, 16 and 17 of FEATURE.md. It does not touch any "Out of scope" item.
+3. tester: Wrote the tests for criteria 1 to 6. They follow the Interface's test plan, and no existing test changed.
+   - criterion 1: tests/domain/test_default_git_identity.py::test_the_default_identity_is_factory_at_noreply_invalid
+   - criterion 2: tests/domain/test_default_git_identity.py::test_git_options_and_settings_share_the_one_default_identity
+   - criterion 3: tests/domain/test_default_git_identity.py::test_the_default_email_is_written_once_in_src_in_the_git_domain_module (uses `modules()` and `string_literals()` of tests/source_search.py; the list of holding modules must be exactly `["factory.domain.git"]`)
+   - criterion 4: tests/domain/test_default_git_identity.py::test_read_settings_defaults_the_identity_and_overrides_each_half_alone
+   - criterion 5: tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_starts_the_sudo_on_the_path_or_usr_bin_sudo (two rows: found `/opt/tools/sudo`, and `None` → `/usr/bin/sudo`; uses the module's `settings` fixture and `FakeHostingService` as `hosting`)
+   - criterion 6: tests/entry/test_entry_arguments.py::test_main_without_arguments_reads_the_process_arguments (four rows: check_documents `--root` with clean documents → 0; health `--state-directory` with an empty `HealthStatus` written through `health_store` → 0; check_documents `--colour` and watch `--follow` → SystemExit code 2. `sys.argv` is monkeypatched to the program name plus its arguments.)
+
+   Files created: tests/domain/test_default_git_identity.py and tests/entry/test_entry_arguments.py. Appended one test to tests/entry/test_wiring_boundaries.py.
+
+   Result of `make test`:
+   - tests/domain/test_default_git_identity.py fails at collection with an ImportError: `DEFAULT_GIT_IDENTITY` cannot yet be imported from `factory.domain.git`.
+   - Both rows of the sudo test fail because `build_boundaries` has no `which` keyword yet and `ClaudeCodeRuntime` has no `sudo_executable` property.
+   - The criterion 6 test already passes on today's code, as the ticket expects. I confirmed this with one extra run of that module alone, beyond the single `make test` run the stage asks for.
+
+   `make lint` is green. Two lint fixes on the way:
+   - I reversed the equality in criterion 1's assertion (SIM300).
+   - I put the program name into each command-line builder, so the parametrized test has fewer positional arguments (PLR0917).
+
+   Nothing needed interpreting, and nothing is open.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/domain/test_default_git_identity.py - ImportError while importing...
