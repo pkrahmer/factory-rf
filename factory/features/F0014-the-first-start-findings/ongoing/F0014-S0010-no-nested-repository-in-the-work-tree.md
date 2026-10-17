@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 194
 blocked: null
 comments_seen: 4
@@ -226,3 +226,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    No code changed this round. The implementation from commit 0013e710 stands. In that run of `make check`, this assertion was the only failure. Criterion 6 and `## Assignment` are unchanged, so I did not rewrite the Assignment.
 
    Still open: once the tester has made the change, run `make check` again, then run `make duplicates` for the reviewer (it was not run last round).
+9. tester: Made the one test change the human approved in entry 7, as the coder named it in entry 8. In `tests/application/test_nested_repositories.py::test_a_stage_whose_agent_leaves_a_nested_repository_stalls` (the on-branch row), the assertion `_note(hosting, stalled) == stall_note("nested_repository", 1, stalled.attempts_cap, detail=NESTED)` is now `stall_note(...) in _note(hosting, stalled)`. The reason: every post ends with the factory's marker lines, so the body can never equal the note. This is how `tests/application/test_stalls.py` already checks notes. Criterion 6 is unchanged. ruff format reflowed the new assertion. Nothing else changed.
+
+   `make test`: test: green (29.7 s), coverage 99.48 %
+   `make lint`: lint: green (0.0 s)
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (29.4 s)

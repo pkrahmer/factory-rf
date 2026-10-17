@@ -196,8 +196,8 @@ def test_a_stage_whose_agent_leaves_a_nested_repository_stalls(
     assert stalled.reason == "nested_repository"
     assert stalled.attempts == _started_attempts(launched) + 1
     if not switched:
-        assert _note(hosting, stalled) == stall_note(
-            "nested_repository", 1, stalled.attempts_cap, detail=NESTED
+        assert stall_note("nested_repository", 1, stalled.attempts_cap, detail=NESTED) in _note(
+            hosting, stalled
         )
         pushed = _pushed(boundaries, remote)
         state = pushed.state
