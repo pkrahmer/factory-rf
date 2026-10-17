@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 182
 blocked: null
 comments_seen: 0
@@ -88,3 +88,20 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: all three commands are runnable (a Python one-liner on the compose file, a grep, a pytest run). Each `Expect:` line is checkable against the output.
    - Architecture: the files are all under `image/`, tests and docs. This touches no layer of `src/factory`, and the write paths are in order per FEATURE.
    - Scope: inside FEATURE's Scope (the token, and the stale entrypoint comment, decision 8). The preflight item is left to S0002, and the image pins and Podman restart are out of scope. No finding from the format check.
+3. tester: red tests for the token folder, plus the changes to three earlier test modules allowed by FEATURE decision 9.
+   - criterion 1: tests/test_token_folder.py::test_the_image_makes_the_token_folder_for_the_factory_user_alone (the `mkdir -p` includes `/home/factory/.secrets`; that folder's last chown is `factory:factory` and its last chmod is `0700`, both read with `_path_settings`)
+   - criterion 2: tests/test_token_folder.py::test_the_token_setting_points_into_the_folder_before_the_user_changes, and tests/test_image_credentials.py::test_the_dockerfile_installs_the_helper_and_sets_nothing_secret (`FILE_SETTING` changed to the new path)
+   - criterion 3: tests/test_token_folder.py::test_the_token_is_bind_mounted_read_only_at_the_setting_in_the_folder (the last volume entry's keys in order and its values; `target` equals the Dockerfile's ENV value and its parent is the folder)
+   - criterion 4: tests/test_token_folder.py::test_the_folder_belongs_to_the_factory_user_whom_the_agent_is_not (the folder's owner is `factory`; the uids are 1000 and 1001, they differ, and the agent's is not 0; agent has exactly one useradd, and none of its `--gid/-g/--groups/-G` values is `factory`)
+   - criterion 5: tests/test_image_credentials.py::test_the_compose_file_has_no_secret_and_sets_nothing_secret (renamed; asserts `"secrets" not in compose` and not in the service) and tests/test_compose.py::test_the_three_volumes_are_mounted_and_declared (the bind mount added as the fourth expected entry)
+   - criterion 6: covered by the existing tests in tests/test_image_credentials.py, tests/test_compose_project.py, tests/test_compose.py and tests/test_agent_home_ownership.py. No new test.
+   - criteria 7 and 9 are left to the reviewer and the documenter. Criterion 8 is the gate.
+
+   Files: created tests/test_token_folder.py. Changed tests/test_image_credentials.py (FILE_SETTING, the renamed test, the module docstring now says "mounted file"). Changed tests/test_image_users.py (removed the token-secret test, the COMPOSE constant and the YAML import; `_uid_of` stays; docstring trimmed). Changed tests/test_compose.py (the fourth volume entry). These are the earlier-test edits the Interface names, and no others.
+
+   The new module defines its own `COMPOSE` path, because the constant in test_image_users.py is removed. It reuses `_commands` and `_path_settings` from tests/test_image.py, `dockerfile_instructions` and `DOCKERFILE` from tests/dockerfile_support.py, and `_uid_of` from tests/test_image_users.py. I renamed one constant to `FILE_ENV` because ruff's S105 flagged the name `TOKEN_SETTING`.
+
+   `make test` result: 7 tests fail, all with wrong-result assertions or a KeyError for the missing folder setting. Every module imports, and there are no collection errors. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_token_folder.py::test_the_token_setting_points_into_the_folder_before_the_user_changes
