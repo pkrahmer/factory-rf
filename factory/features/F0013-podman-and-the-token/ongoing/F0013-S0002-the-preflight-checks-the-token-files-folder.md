@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 183
 blocked: null
 comments_seen: 0
@@ -99,3 +99,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: each of criteria 1–6 has a test in `tests/application/test_token_file_item.py`, and each test checks the full detail string, not a substring. Criterion 1 covers 0700 and 0500 against the six single-bit modes, and its detail string checks the four-digit octal form. Criterion 3 checks the owner fault. Criterion 4 covers `None` and a missing file. Criterion 5 has three rows: mode before missing file, owner before mode, and a missing folder. Criterion 6's stub records the paths it is asked for and checks the order `[path.parent, path]`. Each fault in the Interface table has a failing-side test, and the passing side of the owner rule is covered by the other rows. Criterion 7 needs no new test: `src/factory/entry/wiring.py` is unchanged, and no other code or test refers to the old fault texts. The coder's entry records `make check` green.
+      - Architecture: the change stays in `factory.application.preflight` and reads only through the injected `stat`. No new import and no I/O.
+      - Security: no suppression markers, and the fault texts expose only the configured path, its owner uid and its mode.
+      - Quality: `_token_file_fault` runs the checks in order and `_token_folder_fault` checks the folder. The comments explain why. The renamed `_MISSING_FILE_FAULT` constant avoids a `noqa`. The public docstring says what the item checks now. `make duplicates` reported 0 new findings.
+      - Ticket hygiene: the log gives the design split and the version that was rejected. `Assignment` matches the code. Criterion 9 still describes what the documenter has to write.
