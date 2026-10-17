@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 175
 blocked: null
 comments_seen: 0
@@ -51,3 +51,17 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: the `grep` commands and the pytest command are runnable. Each `Expect:` line is checkable against the output: the named `chown`, `chmod 3775` and `0755`/`0644` lines, and a final `<n> passed` line with no failed, error or skipped count.
    - Architecture: the change stays in `image/`, inside the coder's write paths, and adds no new dependency. The docs criterion touches only the operator guide and the decision log.
    - Scope: this is item 1.10 of FEATURE.md, listed as S0025 and decided in decisions 13, 28, 42 and 47. It is not in "Out of scope". The other writable files in the home stay open, as decision 47 says.
+3. tester: wrote the red tests for the agent home's ownership and modes.
+   - criterion 1: tests/test_agent_home_ownership.py::test_the_agent_home_is_the_factorys_with_the_sticky_bit_and_work_stays_shared. It has two rows. In `agent-home`, `/home/agent/.claude` has `3775` and `factory:factory-work`. In `work`, `/work` has `2775` and group `factory-work`. Both read the last values through `_path_settings` of tests/test_image.py.
+   - criterion 2: tests/test_agent_home_ownership.py::test_the_installed_agents_and_settings_are_not_writable_by_group_or_others. The rows are `agents` 0755, `agents/coder.md` 0644, `agents/reviewer.md` 0644 and `settings.json` 0644. Each row also checks that the group and others have no write bit. The test runs the entrypoint with `Layout` from tests/test_entrypoint.py. It makes the image's copies group-writable first (dir 0775, files 0664), as a checkout under umask 002 gives them. Without that the test passed by accident: `cp` keeps the source's 0644 under umask 002, so it was not testing the entrypoint. It adds a second agent file so that "each agent file" covers more than one.
+   - criterion 3: covered by the existing tests of tests/test_entrypoint.py (contents, replaced agents) and tests/test_entrypoint_umask.py::test_the_entrypoint_sets_umask_002_after_set_eu_and_starts_the_instance_with_it. No new test was needed.
+   - criterion 4: tests/test_agent_home_ownership.py::test_a_file_the_agent_made_in_the_home_is_left_as_it_was. A stand-in `.credentials.json` at 0600 keeps its text and mode. It passes already and guards against a later chmod reaching too far.
+   - criteria 5 and 6 (make check, docs): not tests.
+   - Approved change to an earlier test (FEATURE decision 42): removed the row `/home/agent/.claude` from `test_the_shared_directories_are_writable_by_the_work_group` in tests/test_image.py. Its row `/work` stays.
+   - Files: created tests/test_agent_home_ownership.py and edited tests/test_image.py (that one row).
+   - Red as intended: the `agent-home` row of criterion 1 fails because the Dockerfile still has `agent:factory-work` and `2775`. All four rows of criterion 2 fail on the mode the entrypoint leaves. Every module imported. No collection errors.
+   - `make lint` is green. I ran `make test` twice because the first run showed the mode test passing for the wrong reason (above). The second run gave the five expected failures.
+   - Not tested: the sticky bit's effect on renaming and deleting, which needs a container (intake noted this).
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_agent_home_ownership.py::test_the_installed_agents_and_settings_are_not_writable_by_group_or_others[settings]

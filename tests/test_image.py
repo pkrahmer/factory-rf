@@ -446,7 +446,7 @@ def test_the_runs_directory_is_readable_but_not_writable_by_the_work_group(
     assert _path_settings(dockerfile, "chown")["/state/runs"] == "factory:factory-work"
 
 
-@pytest.mark.parametrize("path", ["/work", "/home/agent/.claude"])
+@pytest.mark.parametrize("path", ["/work"])
 def test_the_shared_directories_are_writable_by_the_work_group(dockerfile: str, path: str) -> None:
     assert _path_settings(dockerfile, "chmod")[path] == "2775"
     assert _path_settings(dockerfile, "chown")[path].partition(":")[2] == "factory-work"
