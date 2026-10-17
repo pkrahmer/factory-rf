@@ -361,3 +361,7 @@ Date: 2026-10-17 (F0012-S0013; F0012 decisions 21 and 22). `RecordingProjectComm
 ## The time per tool command inside a run is not recorded
 
 Date: 2026-10-17 (F0012-S0014; F0012 decision 22). A cost record holds the run's `duration_seconds` and `model_seconds` (the reply's `duration_api_ms`); the rest is the tools' and the factory's. The time of each tool command inside a run (`make check` above all) is not recorded, because the single JSON reply of `claude -p --output-format json` does not carry it: it needs `claude`'s streamed events. Rejected: estimating it from the difference, which mixes the tools with the factory's own work.
+
+## The disk record is not committed and none is written at the end of a run
+
+Date: 2026-10-17 (F0012-S0016). `DiskRecorder` appends one line to `records/disk.jsonl` in the state directory when an instance starts (and at each feature acceptance, F0012-S0017). The record is not committed, for the reason of the records of project commands: it measures the factory's own machine, not a work item's state, and a commit would add a push and a diff to a pull request for every start. No record is written at the end of a run: the last feature acceptance is near it, and the host's numbers (the drive's free space, Docker's disk image) cannot be seen from the container and are read by hand at the end. A failed append is logged and does not stop the instance.

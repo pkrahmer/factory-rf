@@ -334,6 +334,18 @@ python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in m
 
 A commit that appears more than once was checked more than once.
 
+#### The disk record
+
+`records/disk.jsonl` in the state directory holds one JSON line each time the factory measures its folders: `at` (UTC with an offset), `occasion` (`start` or `acceptance`) and `folders`, a list of `{"path", "free_bytes", "used_bytes"}` for the work directory (the checkout's parent), the state directory and the process's temporary directory (`/tmp` in the container), in that order. `free_bytes` is the free space of the file system the folder is on; `used_bytes` is the size of what is under it. A value the factory could not read is `null`.
+
+The same record is one line in the factory log, for example `disk start: /work 812.3 GB free, 0.7 GB used; /state 812.3 GB free, 0.0 GB used; /tmp 812.3 GB free, 4.3 GB used`, each value in GB or `unknown`.
+
+It is written at each start of the instance, before the first tick, and at each feature acceptance (F0012-S0017). No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. Like the other records it is not committed and nothing reads it to decide anything.
+
+The size of a folder counts only what the factory user can read. The agent's own folders under `/tmp`, made by pytest or Claude Code with mode `0700`, are left out, while the free space of the file system still shows them.
+
+The record cannot see the host. Read the host's own numbers by hand at the same moments and at the end of a run: the free space of the drive, and the size of Docker's disk image (`docker system df`).
+
 ## The stops
 
 Every stop the factory raises has one destination. A stop of the repository or the machine goes to the health status and to a line of the factory log. A stop of one work item goes once on that work item's pull request. One case, a backlog story that names a later stage in its own file, has no stop. Every line about a stop in the factory log is time-stamped (see "The factory log").

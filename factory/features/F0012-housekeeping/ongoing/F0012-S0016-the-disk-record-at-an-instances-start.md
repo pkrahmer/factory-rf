@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 167
 blocked: null
 comments_seen: 2
@@ -202,3 +202,21 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Security: the diff has no secrets and no suppression markers. The test's `# noqa: DTZ001` is a lint marker for the deliberately naive datetime row, not a security marker. The disk record holds paths and byte counts only.
    - Quality: names and docstrings are in place, the comment on the append `except` says why, and there is no dead code. `record` handles a failed append the same way `RecordingProjectCommands.run` does (`src/factory/application/project_commands.py:58`). It is a three-line try/except, not a helper worth sharing. `Tick._check_disk` also lists the checkout's parent and the state directory, but it stops the instance where `record` stores None, so `_folders` is no second copy of a helper.
    - Ticket hygiene: entry 8 states the main decision (log first, then append; a full disk does not stop the instance) and the rejected alternative (setting the temporary directory in `read_settings`). The Assignment matches the build, apart from one thing it gets wrong in a harmless way: it expected `last` to show as new dead code, but `make duplicates` reports `0 new`. Criterion 12 still describes what the documenter must write.
+10. documenter: wrote the three documents the docs criterion names; no findings for the coder.
+
+    Files changed:
+    - `docs/operator-guide.md`: new subsection "The disk record" under *The records*. It gives the fields of `records/disk.jsonl`, the folder order, the factory log line, and when it is written (every start, every acceptance in F0012-S0017, none at the end of a run). It also covers the failed-append line, the size rule (what the factory user can read, with the `0700` folders under `/tmp` left out), and the host numbers read by hand (`docker system df`, free space of the drive).
+    - `docs/project-guide.md`: a paragraph after the `RecordLog` text names `DiskRecorder`, `DiskRecord`, `DiskUse`, `disk_line`, `Boundaries.disk_records`, `temporary_directory` and the wiring.
+    - `docs/decisions.md`: a new entry on why the record is not committed and why none is written at the end of a run.
+
+    Checks:
+    - `python -m factory.entry.check_documents` prints `documents ok`.
+    - I changed only documents, so I did not run `make check`. The factory runs it after this stage.
+    - The factory log example line in the operator guide is built from the `disk_line` format. I did not run it against a live instance.
+
+    Cross-read against the diff: the code matches the Interface (folder order, `None` on `OSError`, the failed-append line, `run_instance` recording `start` once, and `read_settings` leaving `temporary_directory` unset). The operator guide's *The low disk* section and the project guide's `DiskSpace` text are still correct.
+
+    Stale but untouched: nothing found. The Assignment expected `last` to show as new dead code, but `make duplicates` reports 0 new. That is already noted in the review.
+
+    `make check`: check: green
+    `make documents`: documents ok
