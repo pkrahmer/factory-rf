@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 165
 blocked: null
 comments_seen: 0
@@ -134,3 +134,15 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/entry/test_wiring_command_records.py - ImportError while importin...
+4. coder: Built the project command recorder; `make check` is green (99.5 % coverage) and the tests are untouched.
+      - `src/factory/domain/command_records.py`: the new `CommandRecord`, built from the existing types `CommandName`, `CommitId`, `UtcDatetime`, `Duration`, `CheckStatus` and `TargetTime`.
+      - `src/factory/application/files.py`: the new generic interface `RecordLog[R: BaseModel]` with `append` and `read`. Both docstrings are split over two lines to stay within the line length.
+      - `src/factory/adapters/record_log_jsonl.py`: the new `JsonLinesRecordLog`. `append` creates the folder and writes `model_dump_json()` plus `\n` in one write to the file opened for appending. `read` gives `[]` without a file, skips blank lines and skips a line that raises `ValidationError`.
+      - `src/factory/application/project_commands.py`: the new `RecordingProjectCommands`. It reads `HEAD` before the run (a `GitError` gives `None`) and the clock's `started_at`, then runs `inner.run`. Errors from the inner run propagate before anything is recorded. An `OSError` on append becomes the factory log line `cannot write the record of <command>: <error>`, and the result is returned unchanged either way.
+      - `src/factory/entry/wiring.py`: `build_boundaries` now builds one `GitCli` and one log and shares them, with the clock, between the boundaries and the recorder. The record file is `<state>/records/project-commands.jsonl`, held in the constant `_COMMAND_RECORDS_PATH`.
+      - Main decision: the record takes `command` from the caller's argument, not from `result.command`, as the Interface says. The two are equal for every real implementation. I rejected a dedicated reader and writer pair like the cost records have: the Interface asks for one generic append-only log that the disk record can use again.
+      - Refactor: I read the diff and found nothing to change, so there is no refactor commit.
+      - Noticed, not touched: `make duplicates` reports `duplicates: 2 new, 39 known, 0 gone`. Both new findings are an unused `used_bytes` in `adapters/disk_space.py` and `application/machine.py`, which this ticket did not change. `RecordLog.read` is not listed as dead code, although the Assignment expected it to be. Line 34 of `record_log_jsonl.py`, the blank-line skip, is the one line no test covers.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 2 new, 39 known, 0 gone
