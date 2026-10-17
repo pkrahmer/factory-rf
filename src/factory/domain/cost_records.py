@@ -35,6 +35,7 @@ class CostRecord(BaseModel):
     status: Literal["started", "completed"]
     started_at: UtcDatetime
     duration_seconds: Duration | None = None
+    model_seconds: Duration | None = None
     end_reason: EndReason | None = None
     turns: NonNegativeInt | None = None
     tokens: TokenCounts | None = None
@@ -54,6 +55,7 @@ class CostRecord(BaseModel):
         if self.status == "started":
             measures = {
                 "duration_seconds": self.duration_seconds,
+                "model_seconds": self.model_seconds,
                 "end_reason": self.end_reason,
                 "turns": self.turns,
                 "tokens": self.tokens,

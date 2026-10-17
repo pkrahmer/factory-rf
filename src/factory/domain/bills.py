@@ -14,8 +14,8 @@ _ZERO_TOKENS = TokenCounts(input=0, output=0)
 _ONE_DECIMAL = Decimal("0.1")
 _TWO_DECIMALS = Decimal("0.01")
 _SECONDS_PER_MINUTE = Decimal(60)
-_TABLE_HEADER = "| stage | runs | min | turns | in | cached | out | USD |"
-_TABLE_ALIGNMENT = "| :-- | --: | --: | --: | --: | --: | --: | --: |"
+_TABLE_HEADER = "| stage | runs | min | model min | turns | in | cached | out | USD |"
+_TABLE_ALIGNMENT = "| :-- | --: | --: | --: | --: | --: | --: | --: | --: |"
 _TOTAL_CELL = "**total**"
 
 
@@ -30,6 +30,7 @@ class Bill(BaseModel):
     turns: NonNegativeInt
     tokens: TokenCounts
     cost_usd: Decimal
+    model_duration: timedelta = timedelta(0)
 
 
 class StageBill(BaseModel):
@@ -50,16 +51,20 @@ def _add_tokens(left: TokenCounts, right: TokenCounts) -> TokenCounts:
     )
 
 
+def _known_duration(seconds: float | None) -> timedelta:
+    return timedelta(0) if seconds is None else timedelta(seconds=seconds)
+
+
 def _record_bill(record: CostRecord) -> Bill:
     # An unknown measure contributes nothing; only the run itself is always counted.
-    seconds = record.duration_seconds
     return Bill(
         runs=1,
         runs_cost_unknown=1 if record.cost_usd is None else 0,
-        duration=timedelta(0) if seconds is None else timedelta(seconds=seconds),
+        duration=_known_duration(record.duration_seconds),
         turns=0 if record.turns is None else record.turns,
         tokens=_ZERO_TOKENS if record.tokens is None else record.tokens,
         cost_usd=Decimal(0) if record.cost_usd is None else record.cost_usd,
+        model_duration=_known_duration(record.model_seconds),
     )
 
 
@@ -71,6 +76,7 @@ def _add(left: Bill, right: Bill) -> Bill:
         turns=left.turns + right.turns,
         tokens=_add_tokens(left.tokens, right.tokens),
         cost_usd=left.cost_usd + right.cost_usd,
+        model_duration=left.model_duration + right.model_duration,
     )
 
 
@@ -106,8 +112,8 @@ def total(stage_bills: Sequence[StageBill]) -> Bill:
     return _sum([stage_bill.bill for stage_bill in stage_bills])
 
 
-def _minutes(bill: Bill) -> str:
-    seconds = Decimal(str(bill.duration.total_seconds()))
+def _minutes(duration: timedelta) -> str:
+    seconds = Decimal(str(duration.total_seconds()))
     return str((seconds / _SECONDS_PER_MINUTE).quantize(_ONE_DECIMAL, rounding=ROUND_HALF_UP))
 
 
@@ -126,7 +132,7 @@ def cost_line(bill: Bill) -> str:
     """The one-line text of a bill: runs, minutes, turns, tokens and dollars."""
     tokens = bill.tokens
     return (
-        f"{bill.runs} runs, {_minutes(bill)} min, {bill.turns} turns, "
+        f"{bill.runs} runs, {_minutes(bill.duration)} min, {bill.turns} turns, "
         f"{_tokens_in(tokens)} tokens in ({tokens.cache_read} more from cache), "
         f"{tokens.output} out, ${_dollars(bill)}"
     )
@@ -136,7 +142,8 @@ def _row(first_cell: str, bill: Bill) -> str:
     cells = [
         first_cell,
         str(bill.runs),
-        _minutes(bill),
+        _minutes(bill.duration),
+        _minutes(bill.model_duration),
         str(bill.turns),
         str(_tokens_in(bill.tokens)),
         str(bill.tokens.cache_read),

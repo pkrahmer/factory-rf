@@ -135,6 +135,7 @@ class AgentRunResult(BaseModel):
     decision: str | None = None
     entry: str | None = None
     duration: timedelta
+    model_duration: timedelta | None = None
     turns: NonNegativeInt | None = None
     tokens: TokenCounts | None = None
     cost_usd: Decimal | None = None

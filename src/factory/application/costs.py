@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import timedelta
 from pathlib import PurePosixPath
 from typing import TYPE_CHECKING
 
@@ -84,6 +85,10 @@ class CostRecorder:
         self._boundaries.cost_writer.write(self._boundaries.checkout / run.path, run.records)
 
 
+def _seconds(duration: timedelta | None) -> float | None:
+    return None if duration is None else duration.total_seconds()
+
+
 def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
     # Copied as reported: an unknown measure stays None and a reported zero stays zero (R24).
     return CostRecord.model_validate(
@@ -91,6 +96,7 @@ def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
             **record.model_dump(),
             "status": "completed",
             "duration_seconds": result.duration.total_seconds(),
+            "model_seconds": _seconds(result.model_duration),
             "end_reason": result.end_reason,
             "turns": result.turns,
             "tokens": result.tokens,
