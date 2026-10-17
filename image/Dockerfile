@@ -21,10 +21,11 @@ RUN groupadd --gid 1000 factory \
  && mkdir -p /work /state/runs /home/agent/.claude \
  && chown factory:factory /state \
  && chown factory:factory-work /work /state/runs \
- && chown agent:factory-work /home/agent/.claude \
+ && chown factory:factory-work /home/agent/.claude \
  && chmod 0755 /state \
  && chmod 2750 /state/runs \
- && chmod 2775 /work /home/agent/.claude
+ && chmod 2775 /work \
+ && chmod 3775 /home/agent/.claude
 WORKDIR /opt/factory
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
