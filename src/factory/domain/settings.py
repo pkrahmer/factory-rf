@@ -3,7 +3,7 @@
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
+from pydantic import BaseModel, ConfigDict, PositiveInt, TypeAdapter, ValidationError
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
@@ -27,6 +27,8 @@ CLAUDE_VERSION_VARIABLE = "FACTORY_CLAUDE_VERSION"
 # No word `token` in the name: ruff's S105 takes a string assigned to such a name for a secret.
 CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
 AGENT_USER_VARIABLE = "FACTORY_AGENT_USER"
+MIN_FREE_SPACE_VARIABLE = "FACTORY_MIN_FREE_GB"
+DEFAULT_MIN_FREE_GB = 5
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
@@ -50,6 +52,7 @@ class InstanceSettings(BaseModel):
     token_file: Path | None = None
     pinned_agent_version: str | None = None
     agent_user: Name | None = None
+    min_free_gb: PositiveInt = DEFAULT_MIN_FREE_GB
 
 
 def read_settings(
@@ -70,6 +73,7 @@ def read_settings(
         token_file=_optional_path(environ, CREDENTIAL_FILE_VARIABLE),
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
         agent_user=_agent_user(environ),
+        min_free_gb=_min_free_gb(environ),
     )
 
 
@@ -106,6 +110,18 @@ def _instance(environ: Mapping[str, str]) -> str:
 def _agent_user(environ: Mapping[str, str]) -> str | None:
     agent_user = _optional(environ, AGENT_USER_VARIABLE)
     return _name(AGENT_USER_VARIABLE, agent_user) if agent_user else None
+
+
+def _min_free_gb(environ: Mapping[str, str]) -> int:
+    value = _optional(environ, MIN_FREE_SPACE_VARIABLE)
+    if not value:
+        return DEFAULT_MIN_FREE_GB
+    # `isdigit` alone takes other scripts' digits, which `int` reads but no operator means.
+    if not (value.isascii() and value.isdigit()) or int(value) < 1:
+        raise SettingsInvalid(
+            MIN_FREE_SPACE_VARIABLE, "is not a whole number of gigabytes of at least 1"
+        )
+    return int(value)
 
 
 def _name(variable: str, value: str) -> str:
