@@ -1,10 +1,8 @@
 """The stops of a repository, the machine and one work item, and the health status."""
 
-from datetime import UTC, datetime
 from typing import Literal, Self
 
 from pydantic import (
-    AwareDatetime,
     BaseModel,
     ConfigDict,
     PositiveInt,
@@ -14,6 +12,7 @@ from pydantic import (
 
 from factory.domain.hosting import PostKey, PostOutcome
 from factory.domain.identifiers import branch_name
+from factory.domain.times import UtcDatetime
 
 RepositoryStopReason = Literal[
     "fetch_failed",
@@ -37,7 +36,7 @@ class RepositoryStop(BaseModel):
     scope: StopScope
     reason: RepositoryStopReason
     detail: str
-    at: AwareDatetime
+    at: UtcDatetime
 
     @field_validator("detail")
     @classmethod
@@ -45,11 +44,6 @@ class RepositoryStop(BaseModel):
         if not value.strip():
             raise ValueError("a stop's detail must name the fault")
         return value
-
-    @field_validator("at")
-    @classmethod
-    def _to_utc(cls, value: datetime) -> datetime:
-        return value.astimezone(UTC)
 
     @model_validator(mode="after")
     def _scope_matches_reason(self) -> Self:

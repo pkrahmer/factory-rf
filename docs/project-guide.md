@@ -412,7 +412,7 @@ The first two are validations of their own field, so their error is located at t
 
 ### The claim
 
-`Claim` is an instance's hold on a work item: `instance` and `stage` (both `Name`), `started_at` and `lease_duration` in minutes (at least 1). `started_at` must carry a time zone and is stored in UTC.
+`Claim` is an instance's hold on a work item: `instance` and `stage` (both `Name`), `started_at` and `lease_duration` in minutes (at least 1). `started_at` must carry a time zone and is stored in UTC. `UtcDatetime` in `factory.domain.times` (an aware time, converted to the same instant in UTC) is the one way a model converts a time; give every new time field that type and write no validator of your own.
 
 ### The journal's data
 
@@ -981,7 +981,7 @@ After rule 1 passes, rules 2 to 5 are independent and reported in that order. `l
 
 ## Stops, the clock and the factory log
 
-`factory.domain.stops` holds `RepositoryStop` (scope, reason, detail, `at`) and `HealthStatus` (`stops`, `healthy`); both are frozen and refuse unknown fields. The rules (blank detail, scope against reason, naive `at`, one stop per reason) are in the operator guide's formats and are `ValidationError`s. `at` is converted to UTC by a validator.
+`factory.domain.stops` holds `RepositoryStop` (scope, reason, detail, `at`) and `HealthStatus` (`stops`, `healthy`); both are frozen and refuse unknown fields. The rules (blank detail, scope against reason, naive `at`, one stop per reason) are in the operator guide's formats and are `ValidationError`s. `at` is typed `UtcDatetime` and so is converted to UTC.
 
 `factory.application.machine` holds the abstract `Clock` (`now()`, aware and UTC), `FactoryLog` (`line(text)`) and `HealthStatusStore` (`read()`, `write(status)`). Their first implementations are `SystemClock` and `ManualClock(start)` (tests; `advance(by)`; a naive start is a `ValueError`) in `factory.adapters.clock`, `TimestampedFactoryLog(path, clock)` in `factory.adapters.factory_log` and `JsonHealthStatusFile(path)` in `factory.adapters.health_file`. Both JSON stores (and `JsonPreflightStampFile`) replace their file through `replace_text(path, text)` in `factory.adapters.atomic_file`; `tests/test_atomic_replace_search.py` checks that `os.replace` is called once in the package. In tests use the `clock` fixture (a `ManualClock` at 2026-10-12 12:00 UTC).
 

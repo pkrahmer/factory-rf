@@ -1,22 +1,21 @@
 """The pull request DTOs, the factory's marker and the post key."""
 
 import re
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Annotated, Literal, Self
 
 from pydantic import (
-    AwareDatetime,
     BaseModel,
     ConfigDict,
     PositiveInt,
     StringConstraints,
     ValidationError,
-    field_validator,
     model_validator,
 )
 
 from factory.domain.git import CommitId
 from factory.domain.identifiers import WorkItemId
+from factory.domain.times import UtcDatetime
 
 FACTORY_MARKER = "<!-- factory -->"
 PullRequestState = Literal["open", "closed", "merged"]
@@ -77,14 +76,9 @@ class PullRequestComment(_Frozen):
     id: PositiveInt
     author: str
     body: str
-    created_at: AwareDatetime
+    created_at: UtcDatetime
     by_factory: bool
     key: PostKey | None
-
-    @field_validator("created_at")
-    @classmethod
-    def _to_utc(cls, value: datetime) -> datetime:
-        return value.astimezone(UTC)
 
     @classmethod
     def from_body(

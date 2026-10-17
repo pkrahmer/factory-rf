@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 156
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # One conversion to UTC for the models' times
 
 ## Assignment (as of log entry 1)
@@ -43,3 +51,69 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `factory.domain.times` with `in_utc` and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]` is concrete. I checked the source: the five named fields exist with `AwareDatetime` and a validator `_to_utc` (cost_records, hosting, stops, work_item) or `_in_utc` (git), each ending in `value.astimezone(UTC)`. No Interface comment states a behaviour that lacks a criterion.
+   - Criteria: each is testable by one function. 1 covers `in_utc` directly. 2 is a 10-row parametrized test with the aware side and the naive side (`ValidationError`), so the failing side is covered. 3 is an AST check through `modules()` in `tests/source_search.py`, which exists. 4 is `make check` and 5 is docs.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable: `2026-10-12T12:00:00+00:00`, and `status 1` only.
+   - Architecture: a new pure domain module that imports only Pydantic and the standard library, so the layers are respected. The existing `astimezone` in `domain/board.py` is outside the five modules of criterion 3 and is not touched.
+   - Scope: this is F0012 item 1.2 (decision 18). It is within scope and not in "Out of scope". The docs criterion points at the existing section *The claim* in `docs/project-guide.md`, line 413, whose `started_at` sentence is the one to change.
+3. tester: Wrote the tests for the one UTC conversion in `tests/domain/test_times.py` (new file).
+   - criterion 1: tests/domain/test_times.py::test_in_utc_keeps_the_instant_in_utc
+   - criterion 2: tests/domain/test_times.py::test_time_fields_hold_utc_and_refuse_a_naive_time. It is one parametrized test with ten rows: `CostRecord.started_at`, `CommitInfo.committed_at`, `PullRequestComment.created_at`, `RepositoryStop.at` and `Claim.started_at`, each with an aware side and a naive side. Each row builds its model from valid values as that model's own test module does, through a typed builder `Callable[[datetime], datetime]`.
+   - criterion 3: tests/domain/test_times.py::test_only_the_times_module_converts_to_utc. It uses `modules()` from `tests/source_search.py`, imported as `source_search` like the existing tests do. It looks for an `ast.Attribute` named `astimezone`, which must be absent from the five model modules and present in `factory.domain.times`.
+   - criteria 4 and 5: `make check` and the docs, not tests.
+
+   `make test` ran once and failed with a collection ImportError on `tests/domain/test_times.py`, as intended: `factory.domain.times` does not exist yet. The rest of the suite passed, with coverage at 99.51 %. On that run the file also had a wrong import of `tests.source_search`. I changed it afterwards to `from source_search import modules`, the existing convention, and did not run `make test` again, as the stage says. So I have not seen the corrected file run. `make lint` is green. I did not run the type check (skipped in this stage). Module the test runner could not import: `factory.domain.times`. No existing test was changed.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/domain/test_times.py - ImportError while importing test module '/...
+4. coder: Built the single UTC conversion in commit cc4636c.
+      - New `src/factory/domain/times.py` holds `in_utc(value)`, which returns `value.astimezone(UTC)`, and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]`. It imports only the standard library and Pydantic.
+      - Five fields are now typed `UtcDatetime`: `CostRecord.started_at` (`domain/cost_records.py`), `CommitInfo.committed_at` (`domain/git.py`), `PullRequestComment.created_at` (`domain/hosting.py`), `RepositoryStop.at` (`domain/stops.py`) and `Claim.started_at` (`domain/work_item.py`). Their `_to_utc`/`_in_utc` validators are gone, and so are the imports that only those validators used (`UTC`, `datetime`, `AwareDatetime`, `field_validator` where nothing else uses them).
+      - Design: I used the annotated type from the Interface with an `AfterValidator`, so `AwareDatetime` still refuses a naive time before the conversion runs. I rejected a shared base model or mixin with the validator, because the five models have different bases (`_Frozen`, `BaseModel`) and a field-level type composes without inheritance.
+      - Refactor: I read the diff. It is a pure removal plus one small module, so there was nothing to clean up and there is no refactor commit.
+      - Checks: `make check` is green, with coverage at 99.51 %. I ran the demo: the first command prints `2026-10-12T12:00:00+00:00` and the grep prints only `status 1`.
+      - Noticed, not touched: `domain/board.py` still calls `astimezone`. It is outside this story's five modules, as intake noted. The docs criterion (project guide, *The claim*) is left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: criterion 1 is tested by `tests/domain/test_times.py::test_in_utc_keeps_the_instant_in_utc`, which checks both the instant and `tzinfo is UTC`. Criterion 2 is tested by `test_time_fields_hold_utc_and_refuse_a_naive_time`. It has ten rows, five fields times the aware and naive sides, and the naive side expects `ValidationError`. Each model is built from valid typed values, so no `type: ignore` is needed. Criterion 3 is tested by `test_only_the_times_module_converts_to_utc`. It uses `modules()` from `tests/source_search.py` and checks that the five modules contain no `astimezone` attribute and that `factory.domain.times` does. The coder's entry records `make check: check: green` and `duplicates: 0 new`.
+      - Interface: `src/factory/domain/times.py` matches it: `in_utc` and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]`. The five named fields have the new type. All five `_to_utc`/`_in_utc` validators are gone, and so are their imports that nothing else used. `field_validator` stays where other validators still need it (cost_records, stops, work_item), and `datetime` stays in hosting for `from_body`. No other field changed.
+      - Architecture: the new domain module imports only the standard library and Pydantic, so the layers are respected. No new dependency.
+      - Security: no suppression markers, secrets or new input boundaries.
+      - Quality: the five duplicated validators become one helper. The module and the public function have docstrings, and nothing is dead.
+      - Ticket hygiene: the coder's entry gives the main decision (an annotated type rather than a shared base) and the reason for it. The Assignment matches what was built. Docs criterion 5 still describes what the documenter has to write in the project guide's *The claim* section.
+6. documenter: changed only `docs/project-guide.md`.
+   - Line 415 (*The claim*): after "`started_at` ... is stored in UTC", it now says that `UtcDatetime` in `factory.domain.times` is the one way a model converts a time, and that every new time field takes that type and no validator of its own. This is the docs criterion.
+   - Line 984 (`RepositoryStop`): "`at` is converted to UTC by a validator" was stale, because the validator is gone. It now says `at` is typed `UtcDatetime`. This is a small extra edit in the same file. The other "stored in UTC" places (lines 88, 139, 829 and the rest) are still true and I left them.
+   - Cross-read against the diff and found current: README, `docs/operator-guide.md` and `docs/decisions.md`. They name no validator or `_to_utc`.
+   - `python -m factory.entry.check_documents` prints `documents ok`.
+   - I did not run `make check`, because I changed no file outside the docs; the factory runs it next.
+   - No findings, and nothing stale left untouched.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: ran both commands from the repository root, exactly as written. Both met their `Expect:` lines.
+
+   1. Build a `RepositoryStop` with an aware time at +02:00 and print `at`:
+   ```
+   2026-10-12T12:00:00+00:00
+   ```
+   Met: it prints `2026-10-12T12:00:00+00:00`, the same instant in UTC.
+
+   2. Grep the five model modules for `astimezone(UTC)`:
+   ```
+   status 1
+   ```
+   Met: it prints only `status 1`, with no matching line.
+
+   Checked against the acceptance criteria:
+   - 1: `src/factory/domain/times.py` defines `in_utc`, which returns `value.astimezone(UTC)`, and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]`.
+   - 2 and 3: the demo shows that `RepositoryStop.at` converts to UTC. Under `src/factory/domain/`, `astimezone` appears only in `times.py` and in `board.py`, and `board.py` is outside the five modules this story names.
+   - 5: `docs/project-guide.md` line 415 names `UtcDatetime` in `factory.domain.times` as the one way a model converts a time.
+   - The demo contradicts no criterion.
+
+   One note, not a finding: the documenter also changed line 984 of the project guide (`RepositoryStop.at`). It used to say "converted to UTC by a validator", and that validator no longer exists, so the edit keeps the sentence true. It is in the same file, and it does not touch the "stored in UTC" sentences that criterion 5 says must stay as they are.
+
+   Findings: none.
