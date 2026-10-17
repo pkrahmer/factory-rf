@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 167
 blocked: null
 comments_seen: 0
@@ -113,3 +113,26 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: both commands are runnable. Each `Expect:` line can be checked against the output; the first is the exact line, the second is the pytest summary.
    - Architecture: the domain model is pure. The recorder sits in application behind `Boundaries`. The concrete JsonLinesRecordLog and `tempfile.gettempdir()` are wired only in entry. This matches the four layers.
    - Scope: it is inside F0012 item 1.4 (S0016) and outside "Out of scope" (host-side numbers are left to the session). The test edits to earlier stories are covered by FEATURE decision 46. The expected dead-code finding for `last` is stated in the Assignment.
+3. tester: I wrote red tests for criteria 1 to 10. `make lint` is green. I ran `make test` once and it fails as intended: collection stops with ImportErrors in three modules, because `DiskRecord`, `DiskUse`, `DiskOccasion` and `disk_line` in `factory.domain.disk` and the module `factory.application.disk_records` do not exist yet.
+
+   - criterion 1: tests/domain/test_disk_records.py::test_the_disk_line_names_each_folder_in_gigabytes_or_unknown
+   - criterion 2: tests/domain/test_disk_records.py::test_a_disk_record_refuses_an_unknown_occasion_a_naive_time_and_negative_bytes (rows: an occasion outside the two, `acceptance` accepted, `at` without an offset, free -1, used -1, both None, both 0; built with `DiskRecord.model_validate`)
+   - criterion 3: tests/application/test_disk_recorder.py::test_a_start_record_holds_the_work_and_the_state_directory_and_is_kept_and_logged
+   - criterion 4: tests/application/test_disk_recorder.py::test_the_temporary_directory_is_a_third_folder_only_when_it_is_set (rows: with and without the temporary directory)
+   - criterion 5: tests/application/test_disk_recorder.py::test_an_os_error_of_one_measure_leaves_only_that_value_unknown (rows: free fails, used fails)
+   - criterion 6: tests/application/test_disk_recorder.py::test_a_record_that_cannot_be_appended_is_logged_with_the_error_and_still_returned
+   - criterion 7: tests/application/test_disk_recorder.py::test_boundaries_without_disk_records_or_settings_record_nothing (rows: no disk, no disk_records, no settings)
+   - criterion 8: tests/application/test_disk_recorder.py::test_last_gives_the_latest_record_whatever_its_occasion (rows: acceptance after start, start after acceptance, empty log, no record log). I read "reads nothing" as "never measures the disk", so every row asserts `FakeDiskSpace.asked == []`.
+   - criterion 9: tests/entry/test_run.py::test_run_instance_writes_one_start_disk_record_before_it_runs
+   - criterion 10: tests/entry/test_run.py::test_only_the_environment_settings_name_the_temporary_directory (rows: environment, settings)
+
+   Files created: tests/domain/test_disk_records.py and tests/application/test_disk_recorder.py.
+
+   Files changed, both by the human's leave in FEATURE decision 46 and in no other way:
+   - tests/entry/test_run.py gains the two new tests. The expected settings of `test_main_runs_a_valid_environment_once_and_returns_zero` gain `temporary_directory=Path(tempfile.gettempdir())`.
+   - tests/entry/test_wiring_run.py: the expected settings of `test_boundaries_from_environment_reads_the_settings_and_builds_their_boundaries` gain the same field.
+
+   Modules the test runner could not import: tests/domain/test_disk_records.py, tests/application/test_disk_recorder.py and tests/entry/test_run.py. The cause in all three is the missing names in `factory.domain.disk` and the missing `factory.application.disk_records`. I did not run the type check, as this stage says to skip it.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/entry/test_run.py - ImportError while importing test module '/wor...
