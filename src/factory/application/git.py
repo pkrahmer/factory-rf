@@ -130,3 +130,24 @@ class Git(ABC):
         Both paths follow the rule of `revert_paths`: an absolute path or a `..` segment in
         either raises `ValueError` before anything is created.
         """
+
+    @abstractmethod
+    def seal(self) -> None:
+        """Take the group's and others' write permission from the repository folder and its entries.
+
+        Raises `RepositoryUnsealed` when the folder is missing, is a symbolic link, is not a
+        directory, holds no regular file `HEAD` or belongs to another user, or when an entry
+        cannot be read or changed.
+        """
+
+    @abstractmethod
+    def check_seal(self) -> None:
+        """Raise `RepositoryUnsealed` unless the repository folder is the factory's alone.
+
+        That is a directory, not a symbolic link, of the factory's own user, that neither its
+        group nor others may write and that holds a regular file `HEAD`. Changes nothing.
+        """
+
+    @abstractmethod
+    def discard(self) -> None:
+        """Remove the working copy and its repository; a missing working copy is no error."""

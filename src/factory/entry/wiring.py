@@ -138,16 +138,17 @@ def build_pipeline_definition_reader() -> PipelineDefinitionReader:
 def git_environment(helper: str = CREDENTIAL_HELPER) -> dict[str, str]:
     """Return the git configuration of the factory as environment entries."""
     # Git reads no system or global configuration here, so the environment carries it:
-    # the credential helper is the only route to the token, and the shared group keeps
-    # the files git creates writable for both users of the checkout. The agent can write
-    # the checkout's hooks and this git runs as the user who can read the token, so it
-    # runs no hooks; as command-line configuration this wins over the checkout's own.
+    # the credential helper is the only route to the token. The shared mode makes what git
+    # writes in `.git` readable and not writable by the group, so the agent's git can read
+    # the repository and cannot change it; the work tree is outside this setting and stays
+    # group-writable through the umask. This git runs as the user who can read the token,
+    # so it runs no hooks; as command-line configuration this wins over the checkout's own.
     return {
         "GIT_CONFIG_COUNT": "3",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": helper,
         "GIT_CONFIG_KEY_1": "core.sharedRepository",
-        "GIT_CONFIG_VALUE_1": "group",
+        "GIT_CONFIG_VALUE_1": "0640",
         "GIT_CONFIG_KEY_2": "core.hooksPath",
         "GIT_CONFIG_VALUE_2": os.devnull,
     }

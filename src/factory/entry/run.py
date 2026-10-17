@@ -104,7 +104,7 @@ def run_instance(
     DiskRecorder(boundaries).record("start")
     # One tick for the whole run: its status lives in memory and counts across ticks.
     tick = build_tick(boundaries, settings)
-    preparer = CheckoutPreparer(boundaries.git, settings)
+    preparer = CheckoutPreparer(boundaries.git, settings, log=boundaries.log)
     waiter = RepositoryWaiter(preparer, boundaries, StopService(boundaries))
     Scheduler(
         prepare=waiter.prepare,

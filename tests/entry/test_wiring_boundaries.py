@@ -159,7 +159,7 @@ def test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hoo
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": expected_helper,
         "GIT_CONFIG_KEY_1": "core.sharedRepository",
-        "GIT_CONFIG_VALUE_1": "group",
+        "GIT_CONFIG_VALUE_1": "0640",
         "GIT_CONFIG_KEY_2": "core.hooksPath",
         "GIT_CONFIG_VALUE_2": "/dev/null",
     }
@@ -259,7 +259,7 @@ def test_the_built_git_runs_with_the_git_options_of_the_settings(
     assert environment["GIT_AUTHOR_NAME"] == "Ann"
     assert environment["GIT_CONFIG_KEY_0"] == "credential.helper"
     assert environment["GIT_CONFIG_VALUE_0"] == "/usr/local/bin/git-credential-factory"
-    assert environment["GIT_CONFIG_VALUE_1"] == "group"
+    assert environment["GIT_CONFIG_VALUE_1"] == "0640"
     assert environment["GIT_CONFIG_KEY_2"] == "core.hooksPath"
     assert environment["GIT_CONFIG_VALUE_2"] == "/dev/null"
 
