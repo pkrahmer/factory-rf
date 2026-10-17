@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 151
 blocked: null
 comments_seen: 0
@@ -119,3 +119,35 @@ Expect: the single line `documents ok`.
    - Findings for the coder: none. The code matches the Interface.
 
    `make check`: check: green
+7. demo: I ran all three commands in order from the repository root. Each one met its `Expect:` line, and the demo contradicts no criterion.
+
+   1. `StopRow` limit probe (`L7`, `L7\n`, `L7x`):
+   ```
+   'L7' accepted
+   'L7\n' rejected
+   'L7x' rejected
+   ```
+   Met: the three lines are as expected, and the command exited with 0.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/domain/test_documents.py tests/domain/test_stop_table.py` (tail):
+   ```
+   ........................................................................ [ 43%]
+   ........................................................................ [ 86%]
+   ......................                                                   [100%]
+   166 passed in 0.23s
+   ```
+   Met: the last line is `<n> passed in <t>s`, with no failed, error or skipped count.
+
+   3. `uv run python -m factory.entry.check_documents`:
+   ```
+   documents ok
+   ```
+   Met: one line, and the command exited with 0.
+
+   Criteria cross-check:
+   - Selecting the criterion 1–5 tests (the nine-phrase test, the three `every_*` table tests and the limit test) collects 44 tests, and all 44 pass. That is 1 + 6 + 13 + 14 + 10, which matches the row counts in criteria 1 to 5.
+   - `src/factory/domain/stop_table.py:12` holds `re.compile(r"L[0-9]+")`, and `src/factory/domain/stop_table.py:38` uses `_LIMIT.fullmatch`, as the Interface states.
+   - `docs/project-guide.md:990` holds the criterion 7 paragraph on `STOP_TABLE` and `StopRow`. Command 3 confirms that `documents ok` still holds.
+   - I did not run `make check` (criterion 6) myself. The factory runs it after this stage, and the coder and documenter entries report it green.
+
+   Findings: none. Open: nothing.
