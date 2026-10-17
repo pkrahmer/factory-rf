@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 157
 blocked: null
 comments_seen: 0
 round: 0
@@ -72,3 +72,9 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`tests/proof_support.py`: `rerun_seconds`, `state_at`, `branch_state`; `_kill_to_rerun_recorded`, `_opening_document`, `_rerun` behaviour; `tests/test_kill_points.py`; deletion of `tests/test_fault_path_names.py`). I checked with grep that today's `_rerun_seconds`, `_branch_state`, `_state_at`, `_opening_text`, `_rerun`, `_claim_commits` and `_kill_to_rerun_recorded` exist where the story says. The `_state_at` and `_branch_state` copies in other test modules (under `tests/application/`) are outside the story, as FEATURE decision 33 says.
+   - Criteria: each is testable by one test function. Criteria 2 and 3 name their rows, and each rule has its failing side: killed_at one second earlier, `killed_at=None`, a crash-free case, a missing branch, a path `origin/main` does not hold, and `AssertionError` from `rerun_seconds`. Criterion 4 (AST and absence) is one test, 5 and 6 are existing gates, 7 is the docs criterion.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable (an `ls` error plus `status 1`; a last line with `passed` and no `failed` or `error`).
+   - Architecture: the change is tests only, so it touches no layer. Decision 33 grants the human's leave for editing tests I did not write.
+   - Scope: within F0012 scope 1.2 (S0003 to S0005, the findings known today). Nothing in Out of scope is touched.
