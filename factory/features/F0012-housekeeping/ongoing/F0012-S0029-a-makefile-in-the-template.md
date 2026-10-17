@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 180
+blocked: null
+comments_seen: 1
+round: 0
+attempts: 1
+---
 # A Makefile in the template
 
 ## Assignment (as of log entry 1)
@@ -173,3 +181,141 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: `template/Makefile` is given as exact text, and the two replacement bullets for `template/CLAUDE.md` *Checks* are exact text. The test changes in `tests/test_claude_files.py` are named (the one rename, the new `TEMPLATE_RULES_LINES` bullets), with the human's leave in FEATURE decision 49. The new test module and its stand-in harness are specified concretely: `run_process`, `write_stand_in`, `read_calls`, the cleaned environment, and how `origin/main` is set up.
+   - Criteria: 13 criteria. Each is testable by one function or one parametrized test, and the row counts add up (13 header names, 6 targets × 2 sides = 12 rows, 5 for secrets, 4 for duplicates, 4 for mutants). Every behaviour the Interface comments state has a criterion: the timed last line, exit status 5 on an empty project, secrets over the changed files with the `uv.lock` and baseline exclusion, the duplicates count lines, mutants by commit subject (both the `work item` and the squash-merge forms) and by acceptance branch. Every rule has its failing side: a stand-in that exits 1 (and called exactly once), a secret found, vulture status 1, pylint failing, and mutants with no FEATURE, with a story branch, and outside a git repository.
+   - Demo: all three commands are runnable. The `mutants` run with no FEATURE on a ticket branch gives status 2 and the stated line. `lint` runs for real over this repository, which `make lint` already keeps clean. The pytest line is checkable. Every Expect line says something the output can be checked against.
+   - Architecture: the change only adds a file under `template/` (inside the coder's write paths) and a tests module at the `tests/` root, where a module outside the layers belongs. No `src/factory` module changes, so the layering is not touched. Layers stay a project placeholder, as CLAUDE.md R8 requires.
+   - Scope: this is the "What v1.1 ships to new projects" item of FEATURE.md's Scope. Its dependency on S0030 is stated in the story and in FEATURE decision 51. `documents` and the baseline comparison are left out, with reasons in decisions 50 and 53. None of it falls under Out of scope.
+3. stage tests stalled: Stuck: the write guard refuses every write by the tester. Creating `tests/test_template_makefile.py` with the Write tool failed with `PreToolUse:Write hook error: [factory-guard tester]: guard: no lane configured for 'tester' in factory/stages.yml`. That is a problem in the pipeline's configuration, not a path outside my lane. Fixing it means changing `factory/stages.yml`, which is the human's file (R15). I did not use shell writes to get around the guard.
+
+   Where I stopped:
+   - **Done before the guard error:** I edited `tests/test_claude_files.py` with a shell script, exactly as the Interface allows (FEATURE decision 49), for criteria 1 and 11:
+     - `TEMPLATE_RULES_LINES` now has the two *Checks* bullets in place of the one. I checked that the joined strings equal the Interface's two bullet lines exactly.
+     - The test is renamed to `test_template_holds_only_the_rules_file_the_makefile_and_the_pipeline_definition`. It now expects `["CLAUDE.md", "Makefile", "factory", "factory/pipeline.yml"]` and checks that `template/Makefile` is a file.
+     - This change is still in the working tree. I tried to revert it after the error, but `git checkout` was denied. If the guard decides it was outside my lane, the factory may undo it.
+   - **Not written:** `tests/test_template_makefile.py` (criteria 2–10) was fully drafted but not saved. The plan for it:
+     - Text tests read `template/Makefile`: the `.PHONY` list and no `documents` target, the prerequisites and one recipe line of `check`, the `SOURCE`/`LAYERS` placeholders, and a 13-row test of the tool names in the header.
+     - Behaviour tests copy the Makefile to `tmp_path/project` and run `make` through `run_process`. Stderr is merged, `MAKEFLAGS`, `MFLAGS`, `MAKELEVEL`, `FEATURE`, `SOURCE` and `LAYERS` are removed from the environment, and `tmp_path/bin` comes first on `PATH`. That folder holds the `claude_stand_in`, renamed to `uv`.
+     - Planned rows: 6 targets × pass/fail, two tests for `make test`, 5 rows for secrets, 4 for duplicates, 4 for mutants. Git repositories are built with `run_git`, `write_files` and `commit_all`, and `origin/main` is set with `update-ref`.
+   - **Not run:** `make test` and `make lint`.
+
+   Open for the human: give the `tester` role a lane in `factory/stages.yml` (it should include `tests/*` and the story file), then run the tests stage again.; denied: Write: /work/factory-rf/tests/test_template_makefile.py; partial work committed
+4. tester: Tests written for every criterion. The tester lane in `factory/stages.yml` now exists, so this run finished what the stalled run left. The `tests/test_claude_files.py` change from that run was already committed in a398d663. I checked it against the Interface and left it as it is.
+
+   Criterion → test:
+   - criterion 1: tests/test_claude_files.py::test_template_holds_only_the_rules_file_the_makefile_and_the_pipeline_definition (renamed by the human's leave, FEATURE decision 49)
+   - criterion 2: tests/test_template_makefile.py::test_phony_line_names_the_targets_and_there_is_no_documents_target
+   - criterion 3: tests/test_template_makefile.py::test_check_runs_the_other_targets_and_says_green
+   - criterion 4: tests/test_template_makefile.py::test_package_folder_and_layers_command_are_placeholders
+   - criterion 5: tests/test_template_makefile.py::test_header_names_the_development_dependency (13 rows; each name is matched as a whole word, so `pytest` is not found inside `pytest-cov`)
+   - criterion 6: tests/test_template_makefile.py::test_target_is_timed_green_and_stops_at_its_first_failing_line (6 targets × statuses 0 and 1 = 12 rows)
+   - criterion 7: tests/test_template_makefile.py::test_test_runs_pytest_on_every_core_with_a_junit_report and ::test_test_is_green_when_no_test_is_collected
+   - criterion 8: tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file (5 rows: main, no-origin, branch, lock-only, secret-found)
+   - criterion 9: tests/test_template_makefile.py::test_duplicates_counts_similar_and_dead_code (4 rows: none, findings, vulture-fails, pylint-fails)
+   - criterion 10: tests/test_template_makefile.py::test_mutants_runs_mutmut_over_the_modules_the_feature_changed (4 rows: acceptance-branch, no-module, story-branch, no-repository; each row is a frozen `MutantsCase` dataclass, to stay under ruff's limit on positional arguments)
+   - criterion 11: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text (unchanged; it reads the new `TEMPLATE_RULES_LINES`, whose *Checks* now holds the two bullets)
+   - criterion 12: the factory's `make check` after the coder. Criterion 13 is for the docs stage.
+
+   Harness, as the Interface says:
+   - A `project` fixture copies `template/Makefile` into `tmp_path/project`.
+   - `_make` runs `make` there through `run_process`, with stderr merged and a time limit of 120 s. The environment is `os.environ` without MAKEFLAGS, MFLAGS, MAKELEVEL, FEATURE, SOURCE and LAYERS, with `tmp_path/bin` first on PATH.
+   - In `tmp_path/bin`, `write_stand_in` writes the stand-in and the test renames it from `claude` to `uv`. `read_calls` gives the calls.
+   - Repositories are built with `run_git`, `write_files` and `commit_all`. `origin/main` is set with `git update-ref refs/remotes/origin/main <rev-parse HEAD>`.
+
+   Files: created `tests/test_template_makefile.py`; `tests/test_claude_files.py` was changed in the earlier run.
+
+   Red run (`make test`, run once): `tests/test_template_makefile.py` fails with errors, because `template/Makefile` does not exist yet. The fixture's copy fails and the text tests cannot read the file. The changed tests in `test_claude_files.py` fail on the template's file list and on the *Checks* text. No module was missing: the imports `factory.adapters.process`, `adapters.claude_stand_in`, `git_support` and `shipped_agents` already exist.
+
+   `make lint`: green. The type check was skipped, as this stage says.
+
+   Not decided by me: only the call counts the criteria name are asserted (the fail rows of criterion 6, and the pylint-fails row of criterion 9).
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/test_template_makefile.py::test_mutants_runs_mutmut_over_the_modules_the_feature_changed[no-repository]
+5. coder: Added the template's Makefile and its Checks text. Commit a0f3004f.
+
+   What I built:
+   - `template/Makefile` (new): the Interface's text, copied verbatim out of the ticket's `make` block. The copy kept the tab-indented recipe lines (49 lines with a leading tab, none indented with spaces).
+   - `template/CLAUDE.md`: the one *Checks* bullet is replaced by the Interface's two bullets. Nothing else in the file changed.
+
+   Main decision: I copied both texts out of the ticket with a script instead of retyping them, so they match the Interface byte for byte. Retyping was rejected because a stray space instead of a tab, or a changed character, would break the exact-text tests. I wrote no new code under `src/factory`.
+
+   Verification:
+   - `tests/test_template_makefile.py` and `tests/test_claude_files.py`: all pass.
+   - The demo works: `make -f template/Makefile mutants` prints `mutants: set FEATURE, as in make mutants FEATURE=F0001` and status 2, and `make -f template/Makefile lint` ends `lint: green (0.0 s)`.
+   - `make check`: `check: green`.
+
+   Refactor: none needed. The diff is two template files whose text the Interface fixes exactly.
+
+   Open: criterion 13 (the project guide, the operator guide and the decision log) is for the docs stage. I noticed nothing else outside the ticket.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+6. reviewer: no findings.
+
+   What I checked, in `git diff main...HEAD -- . ':!factory'`:
+   - **Interface text.** `template/Makefile` is byte for byte the Interface's `make` block: I diffed the committed file against the block extracted from the ticket, and they are identical. Its recipe lines start with a tab. `template/CLAUDE.md` changes only its *Checks*: the one bullet becomes the Interface's two bullets.
+   - **Criteria 1–11, one by one.**
+     - Each criterion has its test, named as the tester's entry 4 lists them.
+     - The parametrized row counts match the criteria: 13, 12, 5, 4 and 4.
+     - The failing sides are tested:
+       - criterion 6: a stand-in exiting 1 makes the target fail with exactly one call;
+       - criterion 7: exit 5 is green, and exit 1 is red through the criterion 6 rows;
+       - criterion 8: the secret-found row, and the lock-only row with no call;
+       - criterion 9: vulture status 1, and pylint failing with exactly one call;
+       - criterion 10: a story branch and a folder that is not a git repository give status 2 with no call, and `FEATURE=F0004` with no module gives status 0 with no call.
+     - Both sides of the `origin/main` choice in `make secrets` are tested: on main or with no origin it reads every tracked file, on a branch only the changed files. The exclusion of `uv.lock` and `.secrets.baseline` is checked in the main row.
+     - The test harness follows the Interface: `run_process`, stderr merged, the six variables dropped from the environment, and the stand-in in `tmp_path/bin` renamed to `uv`. It reuses the existing `run_git`, `write_files`, `commit_all` and `write_stand_in`/`read_calls`, so no helper is duplicated.
+     - The `tests/test_claude_files.py` change is exactly the one FEATURE decision 49 allows: the rename, the new file list with the `Makefile` check, and the two bullets in `TEMPLATE_RULES_LINES`.
+   - **Checks.** The coder's entry records `make check: check: green` and `duplicates: 0 new`.
+   - **Architecture.** Nothing under `src/factory` changes, and the new test module sits at the `tests/` root, which fits a module outside the layers.
+   - **Security.** The diff adds no suppression marker and no secret.
+   - **Ticket hygiene.** The log's main decision is stated: the texts were copied by script rather than retyped. `Assignment` matches what was built. Criterion 13 (docs) still describes what the docs stage must write.
+
+   One thing to know about the diff, not a finding against this story:
+   - The diff also shows `image/Dockerfile` and `docs/operator-guide.md` (the Claude Code pin `2.1.296`, the base image digest and the Debian package pins). Those changes come from the human's own commit b642dd31 on this branch, not from the coder.
+   - The documenter should know that the operator guide already changed on this branch before adding criterion 13's sentence about the template.
+7. documenter: criterion 13 written. I ran `python -m factory.entry.check_documents`, which prints `documents ok`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide.md`, *The template*: it now says `template/` holds three files. A new bullet on `template/Makefile` covers:
+     - the contract's three targets and the other targets of `check`;
+     - the one shell per recipe, the `<target>: green (<seconds> s)` last line, the JUnit report and the changed-files `secrets`;
+     - `duplicates` with no baseline, and `mutants` by feature id from the commit subjects (`work item <id>: ...`, or `<id>: ...` after a squash merge) and from an acceptance's branch;
+     - no `documents` target;
+     - the `SOURCE` and `LAYERS` placeholders, and the header that names the development dependencies.
+   - `docs/operator-guide.md`: the paragraph on the shipped agents and the template now names the `Makefile` beside the pipeline definition and the `CLAUDE.md`, and says that `SOURCE` and `LAYERS` are filled in.
+   - `docs/decisions.md`: a new entry on why `documents` is left out and why `duplicates` has no baseline in the template. Both are `factory-rf`'s own modules (F0012 decisions 50 and 53).
+
+   Cross-read and found current: the other parts of the project guide's template section (the pipeline definition, the no-forms paragraph) and `template/CLAUDE.md` against the diff. The Makefile text matches the Interface and the code is consistent with it.
+
+   Not touched: the diff shows `image/Dockerfile` pin changes from the human's commit b642dd31. They are unrelated to this story, and the operator guide's pins were already updated in that commit.
+
+   No findings.
+
+   `make check`: check: green
+   `make documents`: documents ok
+8. demo: Demo run from the repository root on branch `ticket/F0012-S0029-a-makefile-in-the-template`. I ran the three commands as written, in order.
+
+   1. `make -f template/Makefile mutants 2>/dev/null; echo "status $?"`
+   ```
+   mutants: set FEATURE, as in make mutants FEATURE=F0001
+   status 2
+   ```
+   Met its Expect line. The current branch is a ticket branch, not `work-item/<feature>-A<nnnn>`, so no feature is found and the target refuses with status 2.
+
+   2. `make -f template/Makefile lint 2>&1 | tail -1`
+   ```
+   lint: green (0.0 s)
+   ```
+   Met its Expect line. I ran it again without `tail`: it prints ruff's `All checks passed!` before the green line, so ruff really ran over the repository (`ruff check --output-format=concise .` and `ruff format --check --quiet .`). The 0.0 s comes from ruff's cache.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_template_makefile.py tests/test_claude_files.py`
+   ```
+   ...............................................................          [100%]
+   63 passed in 2.06s
+   ```
+   Met its Expect line: 63 passed, with no failed, error or skipped count.
+
+   Against the acceptance criteria: `template/` holds exactly `CLAUDE.md`, `Makefile` and `factory/` (criterion 1). The Makefile has the placeholder `SOURCE = src/<package>` (criterion 4). Nothing in the demo contradicts any criterion. No findings.

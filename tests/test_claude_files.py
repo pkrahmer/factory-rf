@@ -94,9 +94,26 @@ TEMPLATE_RULES_LINES = [
     "says it all. Comments say why, never what.",
     "",
     "## Checks",
-    "- `make check` must be green before any stage reports done. It runs <lint, types, sast, "
-    "secrets, licenses, tests with coverage>. `make lint` and `make test` run <subset>; the "
-    "pipeline knows only these three targets.",
+    "- `make check` must be green before any stage reports done. It runs `make lint` (ruff check "
+    "and format check), `make types` (`mypy --strict`), `make layers` (<the layers command>), "
+    "`make sast` (semgrep with the rules in `security/semgrep`, and bandit over <the package "
+    "folder>), `make secrets` (detect-secrets against `.secrets.baseline`, over the files changed "
+    "against `origin/main`, every tracked file on `main` itself), `make licenses` (pip-licenses "
+    "against an allow list for the production dependencies) and `make test` (pytest on every "
+    "core with pytest-xdist, coverage as `pyproject.toml` sets it, a JUnit report in "
+    "`.reports/junit.xml`). Each target ends with the line `<target>: green (<seconds> s)`; "
+    "`make check` ends with `check: green`.",
+    "- `make lint` and `make test` run those two alone. `make duplicates` writes similar code "
+    "(pylint's duplicate-code) and dead code (vulture) in <the package folder> to `.reports/` and "
+    "counts them on its last line: a report, never a check. `make mutants FEATURE=<feature id>` "
+    "runs mutmut over the modules of <the package folder> that the feature's story commits on "
+    "`origin/main` changed (`work item <id>: ...`, or the pull request's title `<id>: ...` after "
+    "a squash merge), and lists the surviving mutants: run by the feature acceptance, never part "
+    "of `make check`; mutmut rewrites the source with its own import, so its runs leave out the "
+    "tests that read the source (`pytest_add_cli_args` in `[tool.mutmut]` of `pyproject.toml`). "
+    "The pipeline definition names `check`, `lint` and `test`; a project that wants the "
+    "duplicates report after the coder adds `duplicates` to its `project_commands` and to the "
+    "`reports` of the stage `doing`.",
     "",
     "## Not without asking (end the stage with `question`)",
     "- New dependency, new top-level package, change to `factory/`, change to a test you did not "
@@ -157,11 +174,12 @@ def test_template_pipeline_definition_is_valid_with_the_shipped_roles() -> None:
     assert sorted(definition.roles) == sorted(SHIPPED_NAMES)
 
 
-def test_template_holds_only_the_rules_file_and_the_pipeline_definition() -> None:
+def test_template_holds_only_the_rules_file_the_makefile_and_the_pipeline_definition() -> None:
     entries = sorted(path.relative_to(TEMPLATE).as_posix() for path in TEMPLATE.rglob("*"))
 
-    assert entries == ["CLAUDE.md", "factory", "factory/pipeline.yml"]
+    assert entries == ["CLAUDE.md", "Makefile", "factory", "factory/pipeline.yml"]
     assert (TEMPLATE / "CLAUDE.md").is_file()
+    assert (TEMPLATE / "Makefile").is_file()
     assert (TEMPLATE / "factory").is_dir()
     assert (TEMPLATE / "factory" / "pipeline.yml").is_file()
 
