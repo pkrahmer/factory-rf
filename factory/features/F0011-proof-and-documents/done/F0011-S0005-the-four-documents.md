@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 149
 blocked: null
 comments_seen: 2
@@ -274,3 +274,4 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
     - `docs/decisions.md` has a section saying that this check is a command outside `make check`, that the decision log is exempt from both word lists, that the `## Replaced from v1` sections are exempt too, and that WE6.3 is observed across the stories.
 
     I did not run `make check` myself: the factory runs it after this stage. No findings.
+12. done (pull request merged); cost: 9 runs, 23.2 min, 71 turns, 216k tokens in (1414k more from cache), 38k out, $2.41
