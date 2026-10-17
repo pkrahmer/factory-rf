@@ -10,3 +10,4 @@ Every demo holds:
 
 | Demo | Kind | Stack | What it builds | Stories | Baseline of |
 |---|---|---|---|---|---|
+| `todo-service/` | web service | Python 3.12, FastAPI, SQLite (SQLAlchemy Core), uv, make | a single-user to-do service with an HTTP API: domain, service, in-memory and SQLite storage, health, version, statistics, title search | 8 in 3 features (F0001 to F0003), and 3 feature acceptances | the todo run (plan step 10), measured against v1's run 4 |

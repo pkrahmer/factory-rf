@@ -92,10 +92,13 @@ documents:
 # `make mutants FEATURE=F0012`. Slow, so not part of `check`; the feature acceptance runs it.
 # v1's acceptance stage runs plain `make mutants` on the branch acceptance/<feature id>-<slug>.
 FEATURE ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | sed -n 's|^acceptance/\(F[0-9]\{4\}\)-.*|\1|p')
+MUTANTS_SECONDS ?= 540
 MUTATED = $(wildcard $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' | sort -u))
 mutants:
 	if [ -z "$(FEATURE)" ]; then echo "mutants: set FEATURE, as in make mutants FEATURE=F0012"; exit 2; fi
 	if [ -z "$(MUTATED)" ]; then echo "mutants: no module under src/factory changed by $(FEATURE)"; exit 0; fi
-	uv run mutmut run $(foreach module,$(MUTATED),"$(subst /,.,$(patsubst src/%.py,%,$(module))).*")
+	# An agent's shell command ends after 10 minutes: stop mutmut before that and report what it
+	# reached; its results stay in mutants/, so the next run goes on from there.
+	timeout $(MUTANTS_SECONDS) uv run mutmut run $(foreach module,$(MUTATED),"$(subst /,.,$(patsubst src/%.py,%,$(module))).*") || { status=$$?; [ $$status -eq 124 ] && echo "mutants: stopped after $(MUTANTS_SECONDS) s; the results below are partial, run it again to go on"; [ $$status -eq 124 ]; }
 	# mutmut generates mutants for every module; the ones outside the feature stay "not checked".
 	uv run mutmut results | { grep -v ': not checked$$' || true; }
