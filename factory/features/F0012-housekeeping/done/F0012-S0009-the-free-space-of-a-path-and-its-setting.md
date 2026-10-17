@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 161
 blocked: null
 comments_seen: 0
@@ -162,3 +162,4 @@ Expect: `5`.
    Met: the default is 5, as criterion 5 says.
 
    Against the acceptance criteria: the output agrees with criteria 1 (3_299_999_999 rounds down to 3.2), 2 (one byte below the minimum gives the fault text, a path above it is not named), 3 (`free_bytes` of an existing path is positive) and 5 (unset gives 5). Nothing in the demo contradicts criteria 4 and 6–10. The commands did not exercise those, and the log records their tests and docs.
+8. done (pull request merged); cost: 6 runs, 5.2 min, 40 turns, 196k tokens in (666k more from cache), 20k out, $1.30
