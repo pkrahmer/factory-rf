@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 196
 blocked: null
 comments_seen: 4
@@ -274,3 +274,16 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     - Quality. Names are clear. The script's comment says why the check counts bytes. No dead code.
     - Not counted against the coder: `docs/runs/2026-10-12-overnight/night-log.md` and `pyproject.toml` appear in the diff only because the human's `main` was merged in.
     - Ticket hygiene. Entry 10 gives the main decision (the agent's own shell reads the file) and what was rejected. The Assignment matches what was built, and the docs criterion still describes what the reader needs to know.
+14. documenter: wrote the documentation the docs criterion asks for. No findings for the coder; the code matches the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`: a configuration-table row for `FACTORY_CLAUDE_LOGIN_FILE`; *The agent runtime* now says what the token is, how it is read and when it is used, and gives the two error messages, the calls it reaches, the no-arguments property and the allow list; *The probe of the agent run* names the new end of the detail and the login-file error.
+    - `docs/project-guide.md`: the `ClaudeCodeRuntime` entry gives `login_file`, the login shell, its arguments, its rules and the error; the agent-run environment sentence adds the token and the dropped request entry; the `build_boundaries` paragraph gives `login_file=settings.claude_login_file`; the `InstanceSettings` sentence names `claude_login_file`.
+    - `docs/decisions.md`: new entry "The agent's login is a token from a file": the fault, the human's answer, the name staying in the adapter, the six-name allow list, why the agent's own shell reads the file, and the rejected alternative.
+
+    Open: the criterion asks the entry to give the API key's reason for being left out, and the story records none. I wrote that the reason is not recorded rather than inventing one. The human can add it.
+
+    I read `README.md` and the rest of `docs/` (other sections) only by searching for the changed names (`FACTORY_CLAUDE_LOGIN_FILE`, `CLAUDE_CODE_OAUTH_TOKEN`, the changed signatures). I found nothing else stale. Nothing unrelated was touched. I ran `python -m factory.entry.check_documents` and it printed `documents ok`. I did not run `make check`, because only documents changed.
+
+    `make check`: check: green
+    `make documents`: documents ok

@@ -460,3 +460,13 @@ Date: 2026-10-17 (F0014-S0002; the human's answer to the first start's fault 1, 
 - The agent's git needs only read access to `.git`, which the `0640` of "The factory alone writes the checkout's `.git`" keeps; `git status` skips its index refresh when it cannot write.
 - Rejected: `safe.directory=*`, which trusts every repository; a `.gitconfig` in the agent's home, which the agent can rewrite; a `GIT_CONFIG_*` name in the agent run's environment, which would widen its allow list.
 - Observed only at the shakedown run: the tests cannot be a second user.
+
+## The agent's login is a token from a file
+
+Date: 2026-10-17 (F0014-S0003; F0014 decisions 9 and 30; the human's answers to the first start's fault 3, `planning/overnight/first-start-checklist.md`). Every new instance needed an interactive `claude` login as `agent`: a new `claude-home` volume, and the Podman machine with its own volumes, each needed one. The human's answer: every credential is injected from outside, and no instance needs an interactive login.
+
+- The login is a token made once with `claude setup-token`, kept in a file named by `FACTORY_CLAUDE_LOGIN_FILE`, and handed to each `claude -p` call only, as `CLAUDE_CODE_OAUTH_TOKEN`. Without the file, or with a blank one, the login in the agent's home is used as before.
+- The name is Claude Code's, so it stays in `factory.adapters.claude_runtime` (R12). `ALLOWED_ENVIRONMENT_NAMES` keeps its six names: it filters what is copied from the factory's own environment, and the token never passes through that environment.
+- The agent's own shell reads the file, as the user the call runs as, and `exec`s `claude`. The token thus stands on no command line. On a Linux host every host user's `ps` shows a container's processes with their arguments, unless `/proc` is mounted with `hidepid=2`, so a token in an argument would be seen beyond the container. The factory never holds it, and a file it cannot use stops the run with a message that names the path.
+- Rejected: the factory reading the file and passing the token as an `env -i` assignment on the `sudo` command line (visible in `ps`, and the factory would hold the token).
+- Left out: an API key (`ANTHROPIC_API_KEY`). This story builds only the token from `claude setup-token`; the reason for the API key's absence is not recorded in the story.
