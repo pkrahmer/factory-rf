@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 196
 blocked: null
 comments_seen: 4
@@ -321,3 +321,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     Met its Expect line: `73 passed`, with no failed, error or skipped count.
 
     Checked against the acceptance criteria: nothing in the demo contradicts any of them. Commands 1 to 3 back criteria 1, 9 and 11. Command 4 runs the tests for criteria 1–15. For criterion 17 I spot-checked the docs: `FACTORY_CLAUDE_LOGIN_FILE` appears in `docs/operator-guide.md` (3 times) and `docs/project-guide.md` (once), `docs/decisions.md:464` has the entry "The agent's login is a token from a file", and `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check` (criterion 16), because the factory runs it as the gate.
+16. done (pull request merged); cost: 12 runs, 13.1 min, 123 turns, 361k tokens in (2929k more from cache), 53k out, $4.16
