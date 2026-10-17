@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 157
 blocked: null
 comments_seen: 0
@@ -151,3 +151,4 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    Met: one line that says `passed`, with no `failed` or `error`.
 
    Against the criteria: command 1 covers the absence parts of criterion 4. Command 2 runs the tests for criteria 1–3 and part of criterion 5 (`test_fault_paths.py` and `test_fault_paths_7_to_13.py` were not in the demo; the earlier entries record them green under `make check`). The demo contradicts no criterion. I did not rerun `make check`, because the factory runs it as the gate.
+8. done (pull request merged); cost: 6 runs, 4.5 min, 38 turns, 111k tokens in (577k more from cache), 15k out, $1.11
