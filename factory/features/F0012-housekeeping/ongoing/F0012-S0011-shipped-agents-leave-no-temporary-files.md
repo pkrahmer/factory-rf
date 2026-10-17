@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 163
 blocked: null
 comments_seen: 0
@@ -60,3 +60,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: both blocks are runnable grep/pytest commands, and each `Expect:` line gives exact counts or a last-line form that can be checked.
    - Architecture: only agent texts (coder's write path `claude/*`) and docs change. No layer is touched.
    - Scope: inside F0012 scope item 1.4 ("no temporary files left", S0011) and FEATURE decisions 24 and 35; nothing in Out of scope.
+3. tester: Changed `LESSONS` in `tests/test_claude_agent_texts.py`, the one earlier-story test the Interface allows to change (FEATURE decision 35). Nothing else in that file changed, and I created no new test files.
+   - criterion 1: tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[smoke-tester|documenter|acceptance-reviewer]. A new constant `_TEMPORARY_DIRECTORY_LESSON` holds the Interface's first bullet word for word. It is the last entry for `documenter` and `smoke-tester`. For `acceptance-reviewer`, it is followed by the JUnit-report bullet.
+   - criterion 2: the same test with [intake|tester|coder|reviewer]. Their `LESSONS` entries are unchanged.
+   - criterion 3: the existing tests in tests/test_claude_agent_texts.py, tests/test_claude_files.py and tests/adapters/test_shipped_agents_effect.py, unchanged. The banned-word and section-order tests already cover the new bullets once they are in the bodies.
+   - criteria 4 and 5: `make check` and the docs stage cover these; no test was written for them.
+   `make test` result: as intended, only the three parametrized cases for smoke-tester, acceptance-reviewer and documenter fail, because the agent bodies under `claude/agents/` don't have the new bullets yet. There are no import errors. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[smoke-tester]
