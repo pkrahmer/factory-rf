@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 191
 blocked: null
 comments_seen: 3
@@ -212,3 +212,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     Criteria check: the demo contradicts none of criteria 1–10. Criterion 9 (`make check`) and criterion 10 (docs) were not exercised by these commands. Entries 7 and 9 recorded `make check` green and `documents ok`.
 
     No findings.
+11. done (pull request merged); cost: 8 runs, 6.3 min, 52 turns, 204k tokens in (848k more from cache), 20k out, $1.39
