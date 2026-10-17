@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 151
 blocked: null
 comments_seen: 0
@@ -81,3 +81,21 @@ Expect: the single line `documents ok`.
    - Demo: all three commands are runnable. Each `Expect:` line is checkable against the output: three named lines, a final `passed` line with no failed, error or skipped count, and `documents ok`.
    - Architecture: the change sits in `factory.domain`, which is pure, and adds no dependency or layer crossing. The tests go in `tests/domain/`, which mirrors the package. They reuse `tests/document_texts.py` and `FIRST_ROW`, with no new helper.
    - Scope: the story is within F0011's scope (the stop table and the document check) and touches nothing under Out of scope. The edits to earlier stories' tests (moving the `X7` row, removing three `absent` rows) are covered by FEATURE decision 22 and named exactly in the Interface. The docs criterion changes only the project guide.
+3. tester: Wrote the tests for criteria 1 to 5. Each table test is parametrized over its constant, with ids taken from the row.
+   - criterion 1: tests/domain/test_documents.py::test_the_replaced_phrases_are_the_nine_in_their_order
+   - criterion 2: tests/domain/test_documents.py::test_every_kill_point_case_without_its_table_row_is_a_finding (one row per `KILL_POINT_CASES` case, id `case.id`)
+   - criterion 3: tests/domain/test_documents.py::test_every_fault_path_without_a_row_naming_its_test_is_a_finding (one row per `FAULT_PATHS` path, id `str(path.number)`)
+   - criterion 4: tests/domain/test_documents.py::test_every_stop_without_its_table_row_is_a_finding (one row per `STOP_TABLE` row, id `row.id`)
+   - criterion 5: tests/domain/test_stop_table.py::test_a_limit_is_the_whole_text_l_and_ascii_digits (ten rows: `L7` and `L65` accepted; `"L7\n"`, `"L7 "`, `L7x`, `L`, `l7`, `XL7`, `X7` and `"L٣"` rejected). Each row is built from `FIRST_ROW` with its `limits` replaced, through `model: type[BaseModel] = StopRow`.
+   - criteria 6 and 7: no test (`make check`, docs).
+
+   Changes to earlier tests, as FEATURE decision 22 and the Interface allow, and nothing else: I removed the `X7` row and its id from `test_a_row_breaking_a_rule_of_the_table_is_rejected` (it is now a row of the limit test). I removed the `absent` row (`""`) and its id from `test_a_stop_without_its_table_row_is_a_finding`, `test_a_kill_point_case_without_its_table_row_is_a_finding` and `test_a_fault_path_without_a_row_naming_its_test_is_a_finding`. Their other rows are unchanged.
+
+   Files changed: tests/domain/test_documents.py (adds imports of `FAULT_PATHS`/`FaultPath`, `KILL_POINT_CASES`/`KillPointCase` and `STOP_TABLE`/`StopRow`) and tests/domain/test_stop_table.py. No new helper and no new file. The texts come from `operator_guide(without_stop=...)` and `project_guide(without_case=..., without_path=...)` through the module's `_with` and `_finding`.
+
+   Result of `make test`: every module imported. The only failures are the two rows the assignment expected: `test_a_limit_is_the_whole_text_l_and_ascii_digits[trailing-newline]` and `[non-ascii-digit]`. Today's `re.match` with `^L\d+$` accepts both; the coder's fix is `_LIMIT.fullmatch` with `L[0-9]+`. Criteria 1 to 4 pass on today's code, as the assignment says they should. My first `make test` run stopped at a collection error: I had put a new function between an existing parametrize decorator and its function. I fixed that and ran it again; the result above is from that run. `make lint` is green.
+
+   Rejected: in the limit test, checking the accepted rows' `.limits` would have needed a `type: ignore`, which the project's test rules forbid. The accepted rows check `isinstance(model(**fields), StopRow)` instead. Open: nothing.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/domain/test_stop_table.py::test_a_limit_is_the_whole_text_l_and_ascii_digits[non-ascii-digit]
