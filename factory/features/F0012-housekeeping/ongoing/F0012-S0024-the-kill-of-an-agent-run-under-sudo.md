@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 174
 blocked: null
 comments_seen: 0
@@ -58,3 +58,34 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
    - Demo: both commands are runnable. The `Expect:` lines are checkable: the pytest summary line has no failed, error or skipped count, and the grep prints two exact lines.
    - Architecture: the change sits wholly in `factory.adapters.claude_runtime`, the agent-runtime wrapper, and uses the existing `run_process` and `ProcessRequest`. No other layer is touched.
    - Scope: within F0012 item 1.8, which is S0024's own scope. Nothing in "Out of scope" is touched.
+3. tester: Wrote the tests for criteria 1 to 7. The red tests are the coder's specification.
+
+   Which criterion maps to which test:
+   - criterion 1: tests/adapters/test_claude_runtime_sudo_time_limit.py::test_with_a_user_sudo_runs_the_agent_under_timeout_with_the_limit_rounded_up (rows `whole` 30 s → `30s`, `rounded-up` 1.5 s → `2s`). It uses the real `sudo` stand-in, the real `claude` stand-in and coreutils `timeout`.
+   - criterion 2: …::test_with_a_user_the_inner_kill_at_the_limit_is_a_time_limit_without_measures. The `claude` stand-in prints a reply and then waits 60 s; the time limit is 1 s. Expected: `time_limit`, no decision, entry, turns, tokens, cost or model time, and the call ends in under 31 s.
+   - criterion 3: …::test_a_kill_status_at_the_limit_under_sudo_is_a_time_limit_and_otherwise_a_death. Six rows: 137 or -9 at 30 s is `time_limit` with no measures; 137 or -9 at 29.9 s is `died`; status 1 at 30 s is `died`; 137 at 30 s without an `os_user` is `died`. It uses the `recorder` fixture, which puts a recorder in place of `claude_runtime.run_process` through monkeypatch.
+   - criterion 4: …::test_a_sudo_line_before_the_inner_kill_is_a_runtime_error. The `sudo` stand-in prints `sudo: unable to resolve host x`; the time limit is 1 s. Expected: `AgentRuntimeError` whose detail holds that line.
+   - criterion 5: …::test_the_outer_limit_adds_the_grace_only_under_sudo. Rows: with a user the outer limit is 60 s; without one it is 30 s and the arguments hold no `timeout`.
+   - criterion 6: …::test_the_resume_under_sudo_is_limited_by_what_is_left_of_the_time_limit. The first call returns a budget-stop reply. Expected for the resume: `timeout --signal=KILL 30s` in its arguments, and a time limit above 59 s and at most 60 s.
+   - criterion 7: the existing tests stay as they are. By the leave of FEATURE decision 41, I changed only the expected head in tests/adapters/test_claude_runtime_os_user.py::test_with_a_user_sudo_gets_the_user_env_i_the_environment_and_the_executable to `["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]`, with the slice offsets moved from 6 to 9.
+
+   Files:
+   - created tests/adapters/test_claude_runtime_sudo_time_limit.py; it imports `_request` and `_write_sudo` from test_claude_runtime_os_user.py, as the Interface allows
+   - edited tests/adapters/test_claude_runtime_os_user.py, the one test above only
+
+   Imports: every module imports. These tests fail with a wrong result, not a missing name:
+   - the os_user head test
+   - both rows of criterion 1
+   - the two `time_limit` rows of criterion 3
+   - the with-a-user row of criterion 5
+   - criterion 6
+
+   `make lint` is green.
+
+   Open points for the next stage:
+   - Criteria 2 and 4 already pass today, because the factory's own outer kill gives the same result at a 1 s limit. They guard the new path once `timeout` sits inside the `sudo` call, but they do not tell an inner kill from an outer one. Criterion 2's bound of 31 s is the one that would catch an inner kill that never fires.
+   - `SUDO_GRACE` and `TIMEOUT_EXECUTABLE` are not imported by the tests. Criterion 5 pins the 60 s outer limit as a literal, and the demo's grep checks the two constants.
+   - I ran `make test` twice instead of once: the first run had a lint fix still pending, and the second confirmed which tests fail.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/adapters/test_claude_runtime_sudo_time_limit.py::test_the_resume_under_sudo_is_limited_by_what_is_left_of_the_time_limit
