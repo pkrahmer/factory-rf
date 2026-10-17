@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 194
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 0
 attempts: 0
 ---
@@ -218,3 +218,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    I would choose (a). With your answer I end with `tests`, naming that assertion and that change.
 
    Refactor: I read my diff and found nothing more to change. `make duplicates` has not been run yet.
+7. human (pull request comment, 2026-10-17): (a): the tester changes that one assertion to `stall_note(...) in _note(hosting, stalled)`, as `tests/application/test_stalls.py` checks notes. Posts keep their marker; criterion 6 is unchanged.
