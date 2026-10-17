@@ -26,6 +26,7 @@ CLAUDE_EXECUTABLE_VARIABLE = "FACTORY_CLAUDE"
 CLAUDE_VERSION_VARIABLE = "FACTORY_CLAUDE_VERSION"
 # No word `token` in the name: ruff's S105 takes a string assigned to such a name for a secret.
 CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
+CLAUDE_LOGIN_FILE_VARIABLE = "FACTORY_CLAUDE_LOGIN_FILE"
 AGENT_USER_VARIABLE = "FACTORY_AGENT_USER"
 MIN_FREE_SPACE_VARIABLE = "FACTORY_MIN_FREE_GB"
 DEFAULT_MIN_FREE_GB = 5
@@ -50,6 +51,7 @@ class InstanceSettings(BaseModel):
     agent_home: Path = AGENT_HOME_DEFAULT
     claude_executable: str = _CLAUDE_EXECUTABLE_DEFAULT
     token_file: Path | None = None
+    claude_login_file: Path | None = None
     pinned_agent_version: str | None = None
     agent_user: Name | None = None
     min_free_gb: PositiveInt = DEFAULT_MIN_FREE_GB
@@ -72,6 +74,7 @@ def read_settings(
         claude_executable=_optional(environ, CLAUDE_EXECUTABLE_VARIABLE)
         or _CLAUDE_EXECUTABLE_DEFAULT,
         token_file=_optional_path(environ, CREDENTIAL_FILE_VARIABLE),
+        claude_login_file=_optional_path(environ, CLAUDE_LOGIN_FILE_VARIABLE),
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
         agent_user=_agent_user(environ),
         min_free_gb=_min_free_gb(environ),
