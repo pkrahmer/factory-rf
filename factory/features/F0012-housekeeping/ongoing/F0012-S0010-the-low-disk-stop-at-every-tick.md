@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 162
 blocked: null
 comments_seen: 0
@@ -159,3 +159,26 @@ Expect: the pytest run's last line reads `<n> passed in <t>s`, with no `failed`,
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both demo blocks from the repository root, as written and in order. Both met their `Expect:` lines and there are no findings.
+
+   1. The `STOP_TABLE[7]` command:
+   ```
+   15 disk-low health_status L64 disk_low
+   ```
+   This meets `Expect: 15 disk-low health_status L64 disk_low`.
+
+   2. The pytest run over `tests/application/test_tick_disk.py`, `tests/domain/test_stop_table.py` and `tests/test_stop_table.py`, then the document check:
+   ```
+   .........................................................                [100%]
+   57 passed in 4.06s
+   documents ok
+   ```
+   This meets the expectation. The last pytest line is `57 passed in 4.06s`, with no `failed`, `error` or `skipped` count. The document check printed the single line `documents ok`.
+
+   Checked against the acceptance criteria:
+   - Criterion 2: the table has fifteen rows and the eighth is `disk-low`, with destination `health_status`, limit `L64` and reason `disk_low`, as the Interface gives.
+   - Criteria 3 to 9: the tests in `test_tick_disk.py` that cover them all pass.
+   - Criteria 1 and 10: the stop-table tests that cover them pass.
+   - Criterion 12: the docs part is consistent with `documents ok`.
+
+   Nothing in the demo contradicts a criterion. Criterion 11 (`make check`) is not part of the demo, and I did not run it; the factory runs the check after this stage. Nothing is open.
