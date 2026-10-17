@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 189
 blocked: null
 comments_seen: 0
@@ -45,3 +45,13 @@ Expect: `documents ok`.
    - Demo: both commands run. I ran the grep on the current tree: `README.md:1` and `docs/operator-guide.md:4` (lines 3, 147, 149 and 248 of the guide). The Expect line is checkable: README 0, and the guide below 4 once the four stale sentences and the heading change. The second command prints `documents ok`.
    - Architecture: nothing under `src/` changes, so the layers are untouched. The documenter's write paths cover `README.md` and `docs/*`.
    - Scope: it is the F0013 documentation follow-up from the probe of 2026-10-17. It is not in the feature's Out of scope, and it follows decision 16's order (S0006 and S0007 are built before the second acceptance).
+3. tester: no test written, as criterion 1 requires. This story only changes documents: its Interface is "None", and the only thing that changes is the text of `README.md` and `docs/operator-guide.md`.
+   - criterion 1 (nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes): I changed nothing in those folders. Before I ended, `git status` showed a clean working tree.
+   - criterion 2 (`make check` stays green): the factory checks this itself. No test needed.
+   - criterion 3 (docs): the documenter's criterion. `python -m factory.entry.check_documents` and the Demo grep check it, not a pytest test.
+   Files created: none. Modules the test runner could not import: none, because no new test exists. I did not run `make test`: no test was added, so none can fail for this story. `make lint`: green.
+   Rejected: a test that greps the docs for the stale sentences. Criterion 1 forbids changes under `tests/`, and the document check already covers the docs.
+   Open: nothing for the coder to implement. The coder ends with an entry saying nothing under the five folders changed, and the documenter writes criterion 3.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (28.1 s)
