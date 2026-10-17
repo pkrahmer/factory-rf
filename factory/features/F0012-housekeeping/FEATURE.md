@@ -16,6 +16,7 @@ Make v1.1 ready for its first real start and for the todo run, the baseline that
 - 1.8 The kill of an agent run under `sudo` at its time limit (S0024).
 - 1.9 The document check as a check of the docs stage: `make documents` and the docs stage's `checks` (the human's change before S0003); the documents say so (S0003's docs criterion). No story of its own: nothing under a write path changes but the documents.
 - 1.10 Three of F0010's open points: the agent cannot rewrite its agents and settings (S0025), a missing health file reads as not healthy (S0026), a standing `main_branch_failing` is cleared when `main` moves while the machine items fail (S0027).
+- What v1.1 ships to new projects (the human's decision of 2026-10-17): the lessons of `planning/lessons-for-the-skills.md` since F0010-S0017 in the shipped agents and the template's `CLAUDE.md` (S0028), and a `Makefile` in `template/` in the pattern of this repository's after H1, H3 and H5, from which the todo demo's starts (S0029).
 
 ## Out of scope
 
@@ -56,6 +57,8 @@ The order is the story numbers. A later number may start first if it is the only
 - S0025 — The agent cannot rewrite its agents and settings
 - S0026 — A missing health file reads as not healthy
 - S0027 — A standing main_branch_failing cleared when main moves
+- S0028 — The lessons since F0010-S0017 in the shipped agents and the template
+- S0029 — A Makefile in the template
 
 ## The parked drafts and where they go
 
@@ -164,11 +167,14 @@ Reason: 1.3; the feature acceptance runs `make mutants` when the project has it 
 
   ```toml
   [tool.mutmut]
-  paths_to_mutate = ["src/factory/"]
-  tests_dir = ["tests/"]
+  source_paths = ["src/factory/"]
+  pytest_add_cli_args_test_selection = ["tests/"]
   # The tests read these from the repository root; mutmut runs them in its own copy.
   also_copy = ["claude/", "docs/", "factory/", "image/", "security/", "template/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
   ```
+
+  and `pytest_add_cli_args` with `-p no:cov` and one `--deselect` for each structural test that reads the source (the import whitelists in `tests/domain/test_hosting.py`, the guard module run, the agent home wiring, the searches for `os.replace`, state copies and suppression markers): mutmut rewrites the source with an import of its own, so they fail under it and kill no mutant. The first trial stopped on the import whitelist (decided by the session on 2026-10-17).
+- `CLAUDE.md` *Checks*: the line on `make mutants FEATURE=<feature id>` (outside `make check`, run by the feature acceptance, the structural tests left out), and the six targets the pipeline knows.
 - `Makefile`: add `mutants` to `.PHONY` and
 
   ```make
@@ -181,7 +187,8 @@ Reason: 1.3; the feature acceptance runs `make mutants` when the project has it 
   	if [ -z "$(FEATURE)" ]; then echo "mutants: set FEATURE, as in make mutants FEATURE=F0012"; exit 2; fi
   	if [ -z "$(MUTATED)" ]; then echo "mutants: no module under src/factory changed by $(FEATURE)"; exit 0; fi
   	uv run mutmut run $(foreach module,$(MUTATED),"$(subst /,.,$(patsubst src/%.py,%,$(module))).*")
-  	uv run mutmut results
+  	# mutmut generates mutants for every module; the ones outside the feature stay "not checked".
+  	uv run mutmut results | { grep -v ': not checked$$' || true; }
   ```
 - `CLAUDE.md`, *Checks*: `make mutants FEATURE=<id>`, outside `make check`.
 - Verified once before pushing with `make mutants FEATURE=F0011` (the mutant names under a `src/` layout, the `also_copy` list); what differs is fixed in this change, not in S0008.
@@ -269,3 +276,6 @@ Taken by the session for the human, to confirm (2026-10-17, story texts):
 45. The human's leave for F0012-S0012 (taken by the session for the human, to confirm): its tester renames `test_fields_are_exactly_the_generic_six` in `tests/domain/test_checks.py` (F0001-S0007) to `test_fields_are_exactly_the_generic_seven` and adds `targets` to the set of fields it expects; nothing else in that module changes. (S0012, pre-check)
 46. The human's leave for F0012-S0016 (taken by the session for the human, to confirm): its tester changes the expected settings of `test_boundaries_from_environment_reads_the_settings_and_builds_their_boundaries` in `tests/entry/test_wiring_run.py` and of `test_main_runs_a_valid_environment_once_and_returns_zero` in `tests/entry/test_run.py` from `read_settings(environment, read_file=Path.read_text)` to that value's `model_copy(update={"temporary_directory": Path(tempfile.gettempdir())})`, because `read_environment_settings` now sets the temporary directory; nothing else they assert changes. (S0016, pre-check)
 47. The human's answers of 2026-10-17 on the drafting agent's choices: decision 22 is confirmed (model time from `duration_api_ms`, the per-command split and the board left open in the decision log); decision 26 is confirmed (an answer at the round cap sets the count to 0); decision 30 is confirmed (a standing `main_branch_failing` is cleared when `main` has moved); for decision 28, the agent's other writable files in its home (a user `CLAUDE.md`, `skills/`, `commands/`, `~/.claude.json`) stay open and are recorded so in the decision log. Decision 23 follows the plan after the pre-check: the acceptance reviewer compares with the last disk record of any occasion, not only the previous acceptance's.
+48. The human's leave for F0012-S0028 (taken by the session for the human, to confirm): its tester adds to `LESSONS` in `tests/test_claude_agent_texts.py` (F0010-S0017, and S0011 by decision 35) a constant `_SECOND_LESSON`, the timeout lesson, as the second entry of every agent, the time-limit lesson as the last entry of `tester` and the documents-only lesson as the last of `documenter`; and adds the time-limit bullet to `TEMPLATE_RULES_LINES` in `tests/test_claude_files.py` (F0010-S0012), after the line that starts `- Fake commit ids`. Nothing else in the two modules changes. (S0028, story text)
+49. The human's leave for F0012-S0029 (taken by the session for the human, to confirm): in `tests/test_claude_files.py` (F0010-S0012) its tester replaces the one *Checks* bullet of `TEMPLATE_RULES_LINES` by the story's two, and renames `test_template_holds_only_the_rules_file_and_the_pipeline_definition` to `test_template_holds_only_the_rules_file_the_makefile_and_the_pipeline_definition`, which expects `Makefile` among the entries and checks that `template/Makefile` is a file; S0028's bullet in *Tests* stays. Nothing else in the module changes. (S0029, story text)
+50. The template's `Makefile` (taken by the session for the human, to confirm): it leaves out `documents`, because that target runs this repository's own document check (`factory.entry.check_documents`), which a project does not have; its `duplicates` writes pylint's and vulture's findings to `.reports/` and counts them without a baseline, because the comparison with a baseline is this repository's own module (`factory.entry.check_duplicates`); its `mutants` reads v1.1's commit subjects (`work item <id>: ...`) and takes the feature from an acceptance's branch (`work-item/<feature id>-A<number>`), since v1.1's acceptance reviewer runs plain `make mutants`; it assumes a src layout (`SOURCE = src/<package>`, the mutant names drop `src/`), and the layers command is a placeholder, because the layers belong to the project (R8). (S0029, story text)

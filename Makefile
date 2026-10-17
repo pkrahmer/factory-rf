@@ -3,7 +3,7 @@
 # its own (the type check is skipped there, because the modules under test do not exist yet).
 # What each target runs is the repository's business; this file is a Python example. `types` and
 # `layers` are in `check`, not in `lint`: the tests stage runs `lint` only.
-.PHONY: check lint types layers sast secrets licenses test duplicates documents
+.PHONY: check lint types layers sast secrets licenses test duplicates documents mutants
 .SILENT:
 
 # One shell per recipe, stopped by its first failing line, so that a recipe can time itself.
@@ -87,3 +87,15 @@ duplicates:
 # The four documents against the document check: a check of the docs stage, not of `check`.
 documents:
 	uv run python -m factory.entry.check_documents
+
+# Mutation testing of the modules under src/factory that one feature's commits changed:
+# `make mutants FEATURE=F0012`. Slow, so not part of `check`; the feature acceptance runs it.
+# v1's acceptance stage runs plain `make mutants` on the branch acceptance/<feature id>-<slug>.
+FEATURE ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | sed -n 's|^acceptance/\(F[0-9]\{4\}\)-.*|\1|p')
+MUTATED = $(wildcard $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' | sort -u))
+mutants:
+	if [ -z "$(FEATURE)" ]; then echo "mutants: set FEATURE, as in make mutants FEATURE=F0012"; exit 2; fi
+	if [ -z "$(MUTATED)" ]; then echo "mutants: no module under src/factory changed by $(FEATURE)"; exit 0; fi
+	uv run mutmut run $(foreach module,$(MUTATED),"$(subst /,.,$(patsubst src/%.py,%,$(module))).*")
+	# mutmut generates mutants for every module; the ones outside the feature stay "not checked".
+	uv run mutmut results | { grep -v ': not checked$$' || true; }
