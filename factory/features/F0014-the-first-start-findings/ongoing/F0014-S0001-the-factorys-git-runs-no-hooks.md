@@ -1,8 +1,8 @@
 ---
 stage: tests
 pr: 191
-blocked: question
-comments_seen: 1
+blocked: asked
+comments_seen: 2
 round: 0
 attempts: 1
 ---
