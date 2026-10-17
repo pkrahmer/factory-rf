@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 155
 blocked: null
 comments_seen: 0
@@ -129,3 +129,25 @@ Expect: the single line `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: all three commands met their `Expect:` lines, and the demo contradicts no acceptance criterion. No findings.
+
+   Command 1 (the default identity, and where its email literal appears in `src/factory`):
+   ```
+   True True name='factory' email='factory@noreply.invalid'
+   src/factory/domain/git.py:41:DEFAULT_GIT_IDENTITY = GitIdentity(name="factory", email="factory@noreply.invalid")
+   ```
+   Met: it prints `True True name='factory' email='factory@noreply.invalid'`, and the grep finds exactly one line, in `src/factory/domain/git.py` (criteria 1 to 3).
+
+   Command 2 (the old argv expression in the three entry modules):
+   ```
+   status 1
+   ```
+   Met: the single line `status 1`. The expression is gone from `check_documents`, `health` and `watch`.
+
+   Command 3 (`uv run python -m factory.entry.check_documents`):
+   ```
+   documents ok
+   ```
+   Met: the single line `documents ok` (the last clause of criterion 8).
+
+   Criteria 4 to 7 and the rest of criterion 8 have no demo command. Nothing in the output contradicts them. The log has the tests for criteria 4 to 6 passing, `check: green` from the coder and the documenter, and `documents ok` from `make documents`.
