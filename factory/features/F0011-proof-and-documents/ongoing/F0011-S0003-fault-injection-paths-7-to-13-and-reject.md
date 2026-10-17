@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 147
 blocked: null
 comments_seen: 4
@@ -296,3 +296,26 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     Findings: none. Stale but not touched: nothing seen.
 
     `make check`: check: green
+17. demo: Demo run from the repository root, both commands exactly as written.
+
+    Command 1 (FAULT_PATHS count, order, cases, row 9's test):
+    ```
+    13 True True
+    test_reject_killed_before_push_reverts_once_and_leaves_main_clean
+    ```
+    Met its Expect: `13 True True`, then the expected test name.
+
+    Command 2 (pytest over tests/test_fault_paths_7_to_13.py, tests/test_fault_paths_table.py, tests/domain/test_fault_paths_all_rows.py):
+    ```
+    ...........                                                              [100%]
+    11 passed in 14.63s
+    ```
+    Met its Expect: the last line reports `passed`, with no `failed` and no `error`.
+
+    Cross-checks against the acceptance criteria, outside the demo commands:
+    - Criterion 9: rows 1 to 6 keep their cases and their tests in tests/test_fault_paths.py. Rows 7 to 13 have the cases post-record, agent-run-dies, commit-push, tick-other, tick-other, container and agent-run-tick.
+    - Criterion 10: every row's test is a `def` in exactly one of the two test files. Rows 1 to 6 are in tests/test_fault_paths.py and rows 7 to 13 in tests/test_fault_paths_7_to_13.py.
+    - Criterion 11: the longest test name is 90 characters, so every name is within the limit.
+    - Criterion 13: the *Fault-injection paths* section of docs/project-guide.md lists all 13 rows, paths 7 to 13 included.
+
+    The demo contradicts no criterion. No findings.
