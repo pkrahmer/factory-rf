@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 155
 blocked: null
 comments_seen: 0
 round: 0
@@ -64,3 +64,9 @@ Expect: the single line `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.git.DEFAULT_GIT_IDENTITY` and its explicit re-export in `factory.domain.settings`, `ClaudeCodeRuntime.sudo_executable`, `build_boundaries(..., which=shutil.which)`, the three `main` functions calling `parser.parse_args(argv)`). The tests are named by file.
+   - Criteria: each can be tested by one test function. Criteria 1 to 3 pin the identity (value, identity of the object, a single literal in `src`). Criterion 4 covers the unset and the partly overridden identity. Criterion 5 covers the `which` found and not found sides, as two rows. Criterion 6 covers the success rows and the refusal rows, with exit code 2. The Interface comment on the `sudo` fallback to `/usr/bin/sudo` has criterion 5. The docs criterion 8 lists what each document must say.
+   - Demo: all three commands run. Each `Expect:` line can be checked: the printed values and the one grep line, `status 1` for the absent argv expression, and `documents ok`.
+   - Architecture: the constant sits in `factory.domain`, the `which` injection is in `factory.entry.wiring`, and the runtime only gets a property. No layer rule is touched.
+   - Scope: within F0012 items 1.2 and 1.9, taken from decisions 3, 12, 16 and 17 of FEATURE.md. It does not touch any "Out of scope" item.
