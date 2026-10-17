@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 191
 blocked: null
 comments_seen: 3
@@ -146,3 +146,15 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
+7. coder: Built the third pair. `git_environment` in `src/factory/entry/wiring.py` now returns `GIT_CONFIG_COUNT=3`, and the new pair is `GIT_CONFIG_KEY_2=core.hooksPath` with `GIT_CONFIG_VALUE_2=os.devnull`. Its comment explains why. The agent can write the checkout's hooks, and this git runs as the user who can read the token. Command-line configuration wins over the checkout's own configuration. Commit 86c39e71. Nothing else changed: `git_options` and `GitCli` are as they were, and no test was touched.
+
+   Design: I used `os.devnull` rather than the literal `"/dev/null"`, because the Interface names `os.devnull`. I rejected setting the hooks path in `GitCli`, as the ticket says. That would also change the git the tests use with plain `GitOptions()`, so the plain rows could no longer show that the hooks are real.
+
+   Refactor: I read the diff (8 lines in one function) and nothing needed changing, so there is no refactor commit.
+
+   `make check` is green on the first run: all of the tester's red rows now pass, coverage is 99.50 %, and it ends with `check: green`.
+
+   Open: criterion 10, the docs, is left for the documenter: the operator guide's "Left for v2", the project guide's sentence on `git_environment`, and the decision-log entry.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
