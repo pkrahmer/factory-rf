@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 145
 blocked: null
 comments_seen: 6
@@ -469,3 +469,32 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     No findings for the coder: `KILL_POINT_CASES` matches the Interface, and the module and class docstrings are there.
 
     `make check`: check: green
+23. demo: Demo, round 4: I ran the three commands under `## Demo` from the repository root, in order. All three met their `Expect:` lines.
+
+    1. Listing `KILL_POINT_CASES`:
+    ```
+    agent-run-tick tick agent-run crash True
+    agent-run-dies agent-run - stall False
+    commit-push tick before-push crash True
+    post-record tick after-post crash False
+    tick-other tick after-push crash True
+    container container agent-run crash True
+    ```
+    Met: there are six lines, identical to the expected ones and in the same order.
+
+    2. The `KillPointCase` rule violations (a stall with a kill point, a crash without one, a stall that charges a crash):
+    ```
+    rejected
+    rejected
+    rejected
+    ```
+    Met: there are three lines and each is `rejected`.
+
+    3. `uv run pytest --no-header -p no:cacheprovider tests/test_kill_points.py tests/domain/test_kill_point_cases.py`:
+    ```
+    ....................................................................     [100%]
+    68 passed in 19.13s
+    ```
+    Met: the last line says `passed` and has neither `failed` nor `error`.
+
+    Against the criteria: the printed rows match the Interface table and criterion 1. The rejections match criteria 2 and 3. The scenario criteria (5–22) are covered by the tests that passed. `docs/project-guide.md` has the section `## Kill points` (line 1530), as criterion 24 asks. Nothing in the demo contradicts any criterion. I did not run `make check` myself, because the factory runs it after this stage. No findings.
