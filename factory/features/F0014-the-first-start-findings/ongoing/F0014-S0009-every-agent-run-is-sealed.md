@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 193
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -99,3 +99,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    I would choose (a). If you agree, the next doing run ends with `tests`, naming that change.
 
    Refactor: I read the diff once. It is small and has no duplication, so I changed nothing.
+5. human (pull request comment, 2026-10-17): (a): the tester annotates `outcome: str` before the `try`; the code keeps `DispatchOutcome`. The criterion is unchanged.
