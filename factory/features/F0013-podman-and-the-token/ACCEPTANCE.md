@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 187
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0013-S0001, F0013-S0002, F0013-S0003, F0013-S0004, F0013-S0005]
+outcome: accepted
 ---
 # Acceptance of Podman and the token
 
@@ -197,3 +198,4 @@ The other four stories had six runs each, no rework round, and cost $0.60–$0.9
       - S0006 needs the human's leave to change four earlier tests.
    7. **Slow checks:** none beyond `make check` and `make mutants`. `make documents` printed `documents ok` and `make duplicates` printed `0 new, 39 known, 0 gone`. No image was built: there is no runtime here.
    8. **Cost:** 32 runs, 17.7 min, $4.45. S0001 stands out at 8 runs and $1.50: two coder runs went to `make secrets` and the human's two answers. The other four stories cost $0.60 to $0.90 each, with no rework.
+2. done (pull request merged); cost: 1 runs, 8.0 min, 51 turns, 142k tokens in (4427k more from cache), 32k out, $2.25
