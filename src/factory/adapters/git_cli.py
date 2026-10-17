@@ -357,9 +357,8 @@ class GitCli(Git):
     def seal(self) -> None:
         """Take the group's and others' write bits from `.git` and every entry in it."""
         folder = self._check_git_folder()
+        _close(folder)
         for parent, folders, files in os.walk(folder, onerror=_raise_unsealed):
-            if Path(parent) == folder:
-                _close(folder)
             for name in [*folders, *files]:
                 _close(Path(parent) / name)
 
@@ -427,14 +426,15 @@ class GitCli(Git):
     def _check_git_folder(self) -> Path:
         folder = self._directory / ".git"
         try:
-            mode = folder.lstat().st_mode
+            folder_stat = folder.lstat()
         except FileNotFoundError:
             raise RepositoryUnsealed(f"{folder} does not exist") from None
+        mode = folder_stat.st_mode
         if stat.S_ISLNK(mode):
             raise RepositoryUnsealed(f"{folder} is a symbolic link")
         if not stat.S_ISDIR(mode):
             raise RepositoryUnsealed(f"{folder} is not a directory")
-        owner, effective = folder.lstat().st_uid, os.geteuid()
+        owner, effective = folder_stat.st_uid, os.geteuid()
         if owner != effective:
             raise RepositoryUnsealed(f"{folder} belongs to the user {owner}, not to {effective}")
         head = folder / "HEAD"
