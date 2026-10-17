@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 195
 blocked: null
 comments_seen: 0
@@ -78,3 +78,13 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_image_gitconfig.py::test_the_configuration_is_readable_by_all_and_owned_by_root
+4. coder: Added the image's git system configuration (commit f0f1ff8b).
+   - `image/gitconfig`: three comment lines saying why (the agent's git trusts the checkout the factory owns; the factory's git wrapper reads no system configuration), then `[safe]` and a tab-indented `directory = /work/checkout`. Running `git config --file image/gitconfig --list` prints exactly `safe.directory=/work/checkout`.
+   - `image/Dockerfile`: a comment followed by `COPY image/gitconfig /etc/gitconfig` and `RUN sed -i 's/\r$//' /etc/gitconfig && chmod 0644 /etc/gitconfig`. They sit right after the git-credential-factory install and before `ENV FACTORY_TOKEN_FILE=...`. There is no `--chown`/`--chmod` and no chown of the file, so it stays root:root. Nothing else in the Dockerfile changed.
+   - Design: I followed the interface as written. It already rejects the alternatives (`safe.directory=*`, a `.gitconfig` in the agent's home, a `GIT_CONFIG_*` env name). The sed strip matches the other copied files, so a CRLF checkout cannot break the config.
+   - Refactor: I read the diff and found nothing to change. It is two data files and adds no code.
+   - Not touched: the docs from criterion 9 (operator guide rows, decision log entry). Those belong to the documenter.
+   - `make check`: green.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
