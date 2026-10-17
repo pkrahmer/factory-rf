@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 194
 blocked: null
 comments_seen: 4
@@ -219,3 +219,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    Refactor: I read my diff and found nothing more to change. `make duplicates` has not been run yet.
 7. human (pull request comment, 2026-10-17): (a): the tester changes that one assertion to `stall_note(...) in _note(hosting, stalled)`, as `tests/application/test_stalls.py` checks notes. Posts keep their marker; criterion 6 is unchanged.
+8. coder: The human answered option (a) in entry 7, which changes one test, so this goes back to the tester.
+
+   The change: at `tests/application/test_nested_repositories.py:199`, in `test_a_stage_whose_agent_leaves_a_nested_repository_stalls[on-branch]`, replace `assert _note(hosting, stalled) == stall_note("nested_repository", 1, cap, detail=NESTED)` with `assert stall_note("nested_repository", 1, cap, detail=NESTED) in _note(hosting, stalled)`. That is how `tests/application/test_stalls.py` checks notes. The equality can never hold, because every post ends with the factory's marker lines.
+
+   No code changed this round. The implementation from commit 0013e710 stands. In that run of `make check`, this assertion was the only failure. Criterion 6 and `## Assignment` are unchanged, so I did not rewrite the Assignment.
+
+   Still open: once the tester has made the change, run `make check` again, then run `make duplicates` for the reviewer (it was not run last round).
