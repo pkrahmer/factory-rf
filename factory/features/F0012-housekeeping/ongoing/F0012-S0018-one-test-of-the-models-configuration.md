@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 169
 blocked: null
 comments_seen: 2
@@ -108,3 +108,14 @@ Expect: the single line `status 1`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+7. reviewer: No findings.
+
+   What I checked in `git diff main...HEAD -- . ':!factory'` (18 test files, nothing under `src/`):
+   - Criterion 1: `tests/test_model_configuration.py::test_the_rule_names_the_model_and_each_missing_setting` has the six rows the criterion names. Each failing row checks that the fault contains the stand-in's `__name__` and every missing setting. The no-config row expects both `frozen` and `extra`. `closed_fault` returns `None` only when `frozen == True` and `extra == "forbid"`.
+   - Criterion 2: `test_every_model_is_frozen_and_forbids_unknown_keys` is parametrized over `MODELS` minus `EXCEPTIONS`, with the dotted name as each row's id. Models are collected with `pkgutil.walk_packages(factory.__path__, prefix="factory.")` and filtered by `__module__`, private ones included, as the Interface says. No `src/factory` module nests a `BaseModel` inside a class, so walking module-level classes misses none.
+   - Criterion 3: `test_the_collection_finds_every_model_and_nothing_else` checks a count above 90, the three named models and that `Boundaries` is absent.
+   - Criterion 4: `test_each_exception_is_a_model_that_ignores_unknown_keys` has one row for each of the six dotted names, and checks that each is collected and has `extra == "ignore"`.
+   - Criterion 5: exactly 25 `def test_` lines are removed, and a search for all 25 names under `tests/` finds none (status 1). No other test was removed. Each import, constant, helper and fixture the removed tests used is still used elsewhere in its module (`_context_values`, `_result`, `_launch_new`, `_aftermath`, `QUESTION`, `COMPLETED`, `SIDECAR`, `snapshot_of`/`state_with`, `CopyResult`, `GuardVerdict` and others). `_prepared` in `test_opening.py` was used only by the removed tests and is gone.
+   - Criterion 6: the coder's entry reports `make check` green (coverage 99.51 %), and `make duplicates` reports 0 new findings.
+   - Architecture and security: a test-only change, with the new module at the `tests/` root as `CLAUDE.md` says for a module outside the layers. No silencing markers, no secrets, no strings run as shell commands.
+   - Ticket hygiene: the Assignment matches what was built. Criterion 7 (project guide section *The models' configuration* after *Errors*, and a decision log entry for the rule and its six exceptions) is still open for the documenter.
