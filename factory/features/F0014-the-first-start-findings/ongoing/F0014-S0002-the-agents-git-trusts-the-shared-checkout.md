@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 195
 blocked: null
 comments_seen: 0
 round: 0
@@ -59,3 +59,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: concrete. `image/gitconfig` content is pinned line by line, and the two Dockerfile lines are given verbatim with their position. Helpers named exist (`run_git` in tests/git_support.py, `dockerfile_instructions` and `DOCKERFILE` in tests/dockerfile_support.py, `_path_settings` in tests/test_image.py). `CHECKOUT_PATH` is `/work/checkout` in settings, and the Dockerfile's anchor lines (git-credential-factory chmod RUN at line 39, `ENV FACTORY_TOKEN_FILE` at line 41) are there.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for the failing side too: criterion 1 rejects any extra entry and `safe.directory=*`, criterion 3 rejects any other line, criterion 4 rejects `--chown`/`--chmod` and a duplicate `COPY`, criterion 6 rejects a `chown` of the file. The sed CRLF strip is pinned as the exact instruction text in criterion 4.
+   - Demo: all three commands are runnable. Each Expect line is checkable against the output (one exact line, the named lines, `<n> passed` with no failed/error/skipped).
+   - Architecture: the change is image files only, with a test module at the `tests/` root, which suits a module outside the layers. No layer is touched.
+   - Scope: within the feature's S0002 scope (`image/gitconfig`, `image/Dockerfile`). Nothing is in "Out of scope". The real `git status` as agent is left to step 4, as the feature says. No test of an earlier story changes, so no leave is needed.
