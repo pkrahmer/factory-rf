@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 167
 blocked: null
 comments_seen: 2
@@ -236,3 +236,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
     This met the `Expect:` line: the last line is `<n> passed in <t>s`, with no `failed`, `error` or `skipped` count. Exit code 0.
 
     Checked against the acceptance criteria: the first command gives the format criterion 1 asks for, including the `unknown` case. The second command runs the tests for criteria 1 to 10, and all of them pass. Nothing in the demo contradicts any criterion. I did not run `make check` (criterion 11) or check the documents (criterion 12) myself, because the demo does not cover them. Entry 10 reports `make check` green and `documents ok`.
+12. done (pull request merged); cost: 9 runs, 7.9 min, 70 turns, 250k tokens in (1294k more from cache), 28k out, $1.86
