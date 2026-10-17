@@ -14,6 +14,7 @@ from proof_support import (
     FEATURE,
     LEAK_PATH,
     World,
+    branch_state,
     completed,
     died,
     drive_to,
@@ -47,17 +48,6 @@ def _merge_main(world: World, work_item: WorkItemId) -> None:
     main = remote_commit(world.remote, "main")
     assert main is not None
     world.hosting.merge_by_human(_number(world, work_item), main)
-
-
-def _branch_state(world: World, work_item: WorkItemId) -> WorkItemState | None:
-    git = world.boundaries.git
-    git.fetch()
-    branch = f"origin/{branch_name(work_item)}"
-    if git.resolve(branch) is None:
-        return None
-    text = git.show_file(branch, work_item_file(world, work_item))
-    assert text is not None
-    return world.boundaries.work_item_reader.parse(text).state
 
 
 def test_round_cap_question_killed_between_post_and_record_posts_once_and_waits(
@@ -206,7 +196,7 @@ def test_close_at_approval_tick_killed_after_close_recorded_reopens_once_and_ask
 def _tick_until_acceptance_opened(world: World) -> None:
     for _ in range(ACCEPTANCE_TICKS):
         world.tick.run()
-        state = _branch_state(world, ACCEPTANCE)
+        state = branch_state(world, ACCEPTANCE)
         if state is not None and state.claim is None:
             return
     raise AssertionError(f"{ACCEPTANCE} was not opened in {ACCEPTANCE_TICKS} ticks")

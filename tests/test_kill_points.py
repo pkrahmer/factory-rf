@@ -5,7 +5,6 @@ from collections.abc import Callable
 import pytest
 
 from factory.domain.hosting import FACTORY_MARKER, PostKey, render_post
-from factory.domain.identifiers import branch_name
 from factory.domain.kill_point_cases import KILL_POINT_CASES
 from factory.domain.kill_points import InjectedKill, KillPoint
 from proof_support import (
@@ -21,6 +20,7 @@ from proof_support import (
     posts,
     pull_request_of,
     repeated_posts,
+    rerun_seconds,
     restart,
     run_case,
     run_ticks,
@@ -81,27 +81,11 @@ def test_the_rerun_starts_five_seconds_after_the_kill(
     result: CaseResult, case_id: str, record_property: Callable[[str, object], None]
 ) -> None:
     assert case_by_id(case_id).charges_crash
-    seconds = _rerun_seconds(result)
+    seconds = rerun_seconds(result)
     record_property("kill_to_rerun_seconds", seconds)
 
     assert seconds == KILL_TO_RERUN.total_seconds() == 5.0
-
-
-def _rerun_seconds(result: CaseResult) -> float:
-    git = result.world.boundaries.git
-    git.fetch()
-    branch = f"origin/{branch_name(result.work_item)}"
-    reader = result.world.boundaries.work_item_reader
-    assert result.killed_at is not None
-    for info in git.log(branch):
-        for path in git.list_files(info.commit, "factory/features/F0001-example/in-progress"):
-            if not path.endswith(".md"):
-                continue
-            text = git.show_file(info.commit, path)
-            state = reader.parse(text).state if text is not None else None
-            if state is not None and state.claim is not None:
-                return (state.claim.started_at - result.killed_at).total_seconds()
-    raise AssertionError("no commit of the branch carries a claim")
+    assert _checked("kill-to-rerun-recorded")(result, case_id) == []
 
 
 @_over(ALL)

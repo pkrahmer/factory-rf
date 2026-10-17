@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 157
 blocked: null
 comments_seen: 0
@@ -78,3 +78,29 @@ Expect: one line that reports `passed` and neither `failed` nor `error`.
    - Demo: both commands are runnable. Each `Expect:` line is checkable (an `ls` error plus `status 1`; a last line with `passed` and no `failed` or `error`).
    - Architecture: the change is tests only, so it touches no layer. Decision 33 grants the human's leave for editing tests I did not write.
    - Scope: within F0012 scope 1.2 (S0003 to S0005, the findings known today). Nothing in Out of scope is touched.
+3. tester: wrote the tests for criteria 1–5. I also did the whole helper refactor the story asks for, because every file it touches is under `tests/`, and the tester's lane is the only one that may write there. So the branch is green, not red: the coder has nothing left to change under `src/`, and criterion 7 belongs to the documenter.
+
+   Criterion → test:
+   - criterion 1: tests/test_kill_points.py::test_the_rerun_starts_five_seconds_after_the_kill. It now records `rerun_seconds(result)`, asserts 5.0, and asserts `violations(..., ("kill-to-rerun-recorded",)) == []`.
+   - criterion 2: tests/test_proof_support.py::test_the_kill_to_rerun_check_holds_only_for_the_recorded_five_seconds, with four rows: commit-push as recorded, commit-push with `killed_at` one second earlier, commit-push with `killed_at=None`, and post-record with `killed_at` one second earlier. The `AssertionError` side is tests/test_proof_support.py::test_the_rerun_seconds_of_a_result_without_a_kill_time_raise.
+   - criterion 3: tests/test_proof_support.py::test_the_state_helpers_read_the_branch_or_return_none, with three rows: a ticked story, a story with no branch, and a path that `origin/main` does not hold. Each row compares stage, round and blocked.
+   - criterion 4: tests/test_proof_support.py::test_each_proof_helper_has_one_copy. It uses `ast` to check that none of the three modules defines `_rerun_seconds`, `_branch_state`, `_state_at` or `_opening_text`, that `_rerun` calls `rerun` and neither `restart` nor `advance`, and that `tests/test_fault_path_names.py` is absent.
+   - criterion 5: the existing tests of test_kill_points, test_fault_paths, test_fault_paths_7_to_13 and test_fault_paths_table pass unchanged. No new test is needed.
+
+   Changes:
+   - tests/proof_support.py: `_state_at` is now the public `state_at`, with a docstring, and all callers use the new name.
+   - tests/proof_support.py: new `rerun_seconds`, built on `_claim_commits` and `state_at`, which asserts that `killed_at` is set. `_kill_to_rerun_recorded` returns False when `killed_at` is None and otherwise compares `rerun_seconds` with `KILL_TO_RERUN`.
+   - tests/proof_support.py: new `branch_state`, which keeps the behaviour of the old `_branch_state` and uses `work_item_file`. `_opening_text` is renamed `_opening_document`. `_rerun` now calls `rerun(world, empty_disk=...)` instead of advancing the clock and calling `restart` itself.
+   - tests/test_fault_paths_7_to_13.py: `_branch_state` removed; the module imports `branch_state`.
+   - tests/test_kill_points.py: `_rerun_seconds` removed, along with the import of `branch_name` that is no longer used.
+   - tests/test_fault_path_names.py: deleted, with `git rm`.
+   - tests/test_proof_support.py: created.
+
+   Runs: `make test` passed ("test: green", 99.51 % coverage) and `make lint` passed. `make types` also passed, since nothing under test is missing. The runner reported no module it could not import.
+
+   Rejected: putting the four criterion-2 rows into separate test functions, because the project rule is one parametrized test per rule.
+
+   Open: criterion 7 (the project guide, section *Fault-injection paths* and *The kill-point cases*) is the documenter's.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (26.8 s)
