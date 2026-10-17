@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 178
 blocked: null
 comments_seen: 0
@@ -118,3 +118,15 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Failing sides: the Interface states no limit or rejected input. Because the test compares the whole list exactly, a missing, extra or misplaced bullet fails it.
    - Architecture, security, quality: the change is shipped text and test constants only. There is no code under `src/`, no suppression marker and no new dependency. Inlining the documents-only bullet, which is used once, matches how the other single-use lessons are written.
    - Ticket hygiene: the Assignment matches what was built. The coder's log explains how the bullets were placed. Criterion 6 still says what the documenter must write in the project guide.
+6. documenter: Changed only `docs/project-guide.md`, two edits in the section on the shipped agents, settings and template.
+   - *The seven agents*, the `## Lessons` bullet: it now says the first two bullets (foreground, and the shell tool's largest timeout) are in every body. It names the tester's time-limit lesson and the documenter's documents-only lesson as their last bullets.
+   - Same bullet: the old text said `documenter` ends with the temporary-directory lesson, which is no longer true. It now says `smoke-tester` and `acceptance-reviewer` end with it, and `documenter` carries it before its last bullet.
+   - *The template*, the `template/CLAUDE.md` bullet: it now names the time-limit lesson among the Python lessons it carries.
+   - Cross-read: the diff of `claude/agents/*.md`, `template/CLAUDE.md` and the two tests matches the Interface word for word. No other document mentions the lessons.
+   - I ran `python -m factory.entry.check_documents`: it prints `documents ok`.
+   - I did not run `make check`, because I changed only documents; the factory runs it next.
+   - No code findings.
+   - Stale but not touched: the same bullet says `acceptance-reviewer` "ends with" the temporary-directory lesson, and the next sentence says it ends with the JUnit lesson. That wording was there before this story, and I left it as it was.
+
+   `make check`: check: green
+   `make documents`: documents ok
