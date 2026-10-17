@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 171
 blocked: null
 comments_seen: 0
 round: 0
@@ -52,3 +52,9 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names `src/factory/domain/answers.py` `unblock(state)` and `src/factory/domain/post_texts.py` `round_cap_question(rounds, cap)`, with the exact new text and the unchanged cases listed (question, send_back, attempts_cap, crash_cap, no wait). Also names the test files and the fixtures and helpers they use.
+   - Criteria: each is testable by one test function. 1 is a parametrized table covering round_cap (reset to 0, attempts and crashes kept) and the question and send_back rows (round kept). 2 pins the text. 3 is the end-to-end test: unblocked at round 0, then the next `doing` decision gives round 1, and the pull request holds one round_cap post. 4 points at the existing tests for the unchanged caps. Every rule in the Interface has a criterion for each side.
+   - Demo: one runnable `uv run python -c` command. Its `Expect:` line gives both exact output lines, so it can be checked.
+   - Architecture: both changes are in `factory.domain`, pure and with no I/O. The tests go in the mirrored `tests/domain/` and at the `tests/` root. No new dependency or module.
+   - Scope: this is item 1.5 of FEATURE.md, as decisions 26 and 47 confirm. The two existing tests it changes have the human's leave (decision 40) and are named in the Interface.
