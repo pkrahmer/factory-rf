@@ -1,8 +1,8 @@
 ---
 stage: tests
 pr: 191
-blocked: asked
-comments_seen: 2
+blocked: null
+comments_seen: 3
 round: 0
 attempts: 1
 ---
@@ -120,3 +120,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - criterion 6: tests/entry/test_wiring_boundaries.py::test_the_built_git_runs_with_the_git_options_of_the_settings
    - criterion 7: tests/entry/test_git_hooks.py::test_a_refusing_pre_receive_hook_of_the_remote_still_rejects_the_push[factory / plain]
    - criterion 8: existing tests, unchanged.
+5. human (pull request comment, 2026-10-17): Both: the two scripts in `planning/overnight/` are now `.txt` files (ca366459), and `pyproject.toml` leaves `planning` out of ruff (option b). `make lint` is green on `main`. Rerun the stage; the tests stay as they are.
