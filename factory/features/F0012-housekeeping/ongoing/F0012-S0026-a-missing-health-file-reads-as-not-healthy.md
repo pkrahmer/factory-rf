@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 176
 blocked: null
 comments_seen: 0
@@ -101,3 +101,13 @@ Expect: two lines: `no health status: <tmp>/health.json is missing` and `1`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran the one demo command from the repository root exactly as written. It met its `Expect:` line, so there are no findings.
+
+   - Command 1 runs `main(['--state-directory', <empty temporary folder>])` and masks the temporary path with `sed`. Output:
+     ```
+     no health status: <tmp>/health.json is missing
+     1
+     ```
+     This meets `Expect:`: the two expected lines, in order. The pipeline exited with 0 because the exit status is `sed`'s; the `1` that `main` returned is printed.
+   - I checked the output against the acceptance criteria. It matches criterion 1's missing-file row: the message is exact, and the folder is followed by `/health.json`. It contradicts none of the other criteria. The demo does not exercise criteria 2 to 6, which the tests in `tests/entry/test_health_missing.py` and `tests/entry/test_run_health_file.py` cover. It does not exercise criteria 7 and 8 either: the earlier entries record `make check` green and `make documents` ok.
+   - Open: nothing.
