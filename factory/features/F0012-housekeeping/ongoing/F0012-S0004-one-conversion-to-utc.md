@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 156
 blocked: null
 comments_seen: 0
@@ -94,3 +94,26 @@ Expect: the first command prints `2026-10-12T12:00:00+00:00`; the second prints 
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: ran both commands from the repository root, exactly as written. Both met their `Expect:` lines.
+
+   1. Build a `RepositoryStop` with an aware time at +02:00 and print `at`:
+   ```
+   2026-10-12T12:00:00+00:00
+   ```
+   Met: it prints `2026-10-12T12:00:00+00:00`, the same instant in UTC.
+
+   2. Grep the five model modules for `astimezone(UTC)`:
+   ```
+   status 1
+   ```
+   Met: it prints only `status 1`, with no matching line.
+
+   Checked against the acceptance criteria:
+   - 1: `src/factory/domain/times.py` defines `in_utc`, which returns `value.astimezone(UTC)`, and `UtcDatetime = Annotated[AwareDatetime, AfterValidator(in_utc)]`.
+   - 2 and 3: the demo shows that `RepositoryStop.at` converts to UTC. Under `src/factory/domain/`, `astimezone` appears only in `times.py` and in `board.py`, and `board.py` is outside the five modules this story names.
+   - 5: `docs/project-guide.md` line 415 names `UtcDatetime` in `factory.domain.times` as the one way a model converts a time.
+   - The demo contradicts no criterion.
+
+   One note, not a finding: the documenter also changed line 984 of the project guide (`RepositoryStop.at`). It used to say "converted to UTC by a validator", and that validator no longer exists, so the edit keeps the sentence true. It is in the same file, and it does not touch the "stored in UTC" sentences that criterion 5 says must stay as they are.
+
+   Findings: none.
