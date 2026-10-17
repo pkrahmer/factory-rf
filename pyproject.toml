@@ -50,7 +50,7 @@ packages = ["src/factory"]
 target-version = "py312"
 line-length = 100
 src = ["src", "tests"]
-extend-exclude = ["*.md"]   # stories carry illustrative code blocks, not code
+extend-exclude = ["*.md", "planning"]   # stories carry illustrative code blocks, not code; planning/ is the human's
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RET", "ARG", "PL", "C90", "S", "D"]
