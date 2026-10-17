@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 190
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0013-S0001, F0013-S0002, F0013-S0003, F0013-S0004, F0013-S0005, F0013-S0006, F0013-S0007]
+outcome: accepted
 ---
 # Acceptance of Podman and the token
 
@@ -203,3 +204,4 @@ None. The six mutation survivors are near-equivalent or cosmetic. The two leftov
       - this acceptance wrote no draft for the two one-word leftovers.
    7. **Slow checks:** none beyond `make check` and `make mutants`. `make documents` printed `documents ok`, and `make duplicates` printed `0 new, 39 known, 0 gone`. No image was built: there is no runtime here.
    8. **Cost:** 7 stories, 44 runs, 22.7 min, $5.76. S0006 ($0.76) and S0007 ($0.55) each took 6 runs with no rework. S0001 ($1.50) still stands out, because of the `make secrets` runs the first report explained.
+2. done (pull request merged); cost: 2 runs, 16.8 min, 77 turns, 275k tokens in (5495k more from cache), 47k out, $3.42
