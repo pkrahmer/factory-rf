@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 146
 blocked: null
 comments_seen: 0
@@ -158,3 +158,26 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Findings: none. The code matches the Interface. Nothing stale seen and left alone.
 
    `make check`: check: green
+7. demo: ran both commands under `## Demo` from the repository root, as written and in order. Both met their `Expect:` line, and there are no findings.
+
+   Command 1 (checks the `FAULT_PATHS` rows against `KILL_POINT_CASES` and prints the fourth row's test name):
+   ```
+   True True True
+   test_review_rework_after_reviewer_run_dies_charges_one_attempt_then_one_round
+   ```
+   Met: the output is `True True True`, then the expected test name. Exit code 0.
+
+   Command 2 (`uv run pytest --no-header -p no:cacheprovider tests/test_fault_paths.py tests/domain/test_fault_paths.py`):
+   ```
+   .............                                                            [100%]
+   13 passed in 10.24s
+   ```
+   Met: the last line reports `passed` and neither `failed` nor `error`. Exit code 0.
+
+   Criteria cross-check: nothing in the demo contradicts any acceptance criterion.
+   - The demo shows criteria 8 and 9 directly: the six rows are in number order and every case id exists in `KILL_POINT_CASES`.
+   - The tests for criteria 1 to 7 and 10 are in the passing set.
+   - For criterion 13 I made a quick spot check: `docs/project-guide.md` has the section *Fault-injection paths*, and `docs/decisions.md` has the entry "Each fault-injection path is walked with one kill, by judgment". The branch diff against main shows no change to `README.md` or `docs/operator-guide.md`.
+   - I did not run `make check` (criterion 12): the factory runs it after this stage. The coder and the documenter both report it green.
+
+   Open: none.
