@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 175
 blocked: null
 comments_seen: 0
@@ -65,3 +65,13 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_agent_home_ownership.py::test_the_installed_agents_and_settings_are_not_writable_by_group_or_others[settings]
+4. coder: the factory now owns the agent home. Commit e0ce79e.
+   - `image/Dockerfile`: `/home/agent/.claude` is now `chown factory:factory-work` and gets its own `chmod 3775`. `/work` keeps `factory:factory-work` and `chmod 2775`. Nothing else in that `RUN` changed.
+   - `image/entrypoint.sh`: after the two `cp` commands it runs `chmod 0755 "$home/agents"`, `find "$home/agents" -type f -exec chmod 0644 {} +` and `chmod 0644 "$home/settings.json"`, with one comment saying why. The umask, the replaced copy, the log lines and the start of the instance are unchanged. Nothing else in the home is touched, so the agent's `.credentials.json` keeps its mode (criterion 4).
+   - Design decision: I used `find -type f` rather than `chmod 0644 "$home/agents"/*`. A glob fails on an empty folder and skips dotfiles. I rejected `chmod -R u=rwX,go=rX` because it keeps an exec bit and does not give the exact `0644` the Interface asks for. One limit: a subfolder inside `agents/` would keep its copied mode. The image's agents folder has no subfolders today.
+   - Refactor: I read the diff and found nothing to change. No separate refactor commit.
+   - Noticed, not touched: the entrypoint's header comment says the umask lets "either remove the other's" files. That is still true in `/work`, but no longer for the factory's files in the home. The docs criterion (6) covers the operator guide and decision log for this story. The documenter may want to check whether that comment's wording matters.
+   - `make check`: check: green.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
