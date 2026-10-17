@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 193
 blocked: null
 comments_seen: 0
@@ -53,3 +53,31 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: the one pytest command is runnable and names the new and the existing test modules. Its `Expect:` line can be checked against the last line: `<n> passed`, with no failed, error or skipped count.
    - Architecture: `run_sealed` sits in `factory.application` and uses only the `Boundaries`' git and agent runtime interfaces. It names no concrete tool, and no layer rule is broken. The tests mirror the package under `tests/application/`, use the real-clone `boundaries` fixture, and wrap `FakeAgentRuntime`.
    - Scope: it stays inside S0009 of F0014 (FEATURE decisions 19 to 21, 24 and 30). The nested-repository search (S0010) and the login probe (S0003) are left out, and no test of an earlier story changes. The source files it touches are the ones FEATURE lists for S0009.
+3. tester: Wrote red tests for the criteria that carry behaviour (1 to 4). Criteria 5 to 7 need no new test: 5 is the existing suites, 6 is `make check`, 7 is the docs stage's.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_sealed_runs.py::test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned. The test sets `.git` to 0o2775 and `.git/config` to 0o666. `ModeRecordingRuntime` records the modes during the run and must see 0o2755 and 0o644. `run_sealed` must return the runtime's result.
+   - criterion 2: tests/application/test_sealed_runs.py::test_a_run_raises_unless_git_is_sealed_before_and_after_it, one parametrized test with five rows:
+     - folder-in-place: `.git` is renamed to `.git-moved`, and a copy of it at 0o2775 is put in its place, so the only fault is the write bits.
+     - link-in-place: a symbolic link to `.git-moved` is put in its place.
+     - swap-then-runtime-error: the same swap, but no run is queued, so the fake raises `AgentRuntimeError`. Expects `RepositoryUnsealed` with that error as `__context__`.
+     - missing-before-the-run: expects `RepositoryUnsealed` and no request recorded.
+     - runtime-error-git-alone: expects exactly `AgentRuntimeError`.
+   - criterion 3: tests/application/test_sealed_runs.py::test_launch_raises_when_the_run_swaps_git checks that `StageLauncher.launch` raises `RepositoryUnsealed`. tests/application/test_sealed_runs.py::test_the_probe_raises_when_the_run_swaps_git_and_the_preflight_lets_it_out covers the probe: `agent_run_probe_item` raises it, and `Preflight.run` lets it out when the probe is one of `MachineChecks`' extra items.
+   - criterion 4: tests/application/test_dispatcher_unsealed.py::test_a_handlers_unsealed_repository_passes_uncounted_and_another_git_error_counts has two rows. With `RepositoryUnsealed`, the error is raised and none is counted. With a plain `GitError`, the outcome is "error" and one error is counted.
+
+   How the test runtimes work: `SwappingRuntime` and `ModeRecordingRuntime` are `AgentRuntime` implementations written in the test, wrapping `FakeAgentRuntime`. The swap first removes an old `.git-moved` if one is there, so the preflight's second probe run can swap again.
+
+   Files created:
+   - tests/application/test_sealed_runs.py
+   - tests/application/test_dispatcher_unsealed.py
+
+   The one `make test` run failed as expected:
+   - test_sealed_runs.py does not import: there is no module `factory.application.sealed_runs`.
+   - The dispatcher's `unsealed` row fails, because the error is still counted today.
+   - The dispatcher's `other-git-error` row already passes; that is the side that should keep working.
+
+   `make lint` is green. The type check was skipped, as this stage says.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/application/test_sealed_runs.py - ImportError while importing tes...
