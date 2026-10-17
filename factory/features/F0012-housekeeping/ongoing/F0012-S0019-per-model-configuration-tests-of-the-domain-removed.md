@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 170
 blocked: null
 comments_seen: 0
@@ -107,3 +107,10 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (30.6 s)
+4. coder: nothing to implement, as the Assignment expected. The tester's commit removed the 49 tests and the helpers that only they used. Nothing under `src/` changes, and this stage made no commit.
+   - Checked: both Demo greps print only `status 1`. `git diff main...HEAD -- src` is empty. `make check` is green on the second run (lint, types, layers, sast, secrets, licenses, test; `check: green`).
+   - Refactor: there is no diff of mine to refactor, and I did not touch the tester's test changes (R9).
+   - Noticed but not touched: the first `make check` failed on `tests/application/test_acceptance_ticks_closed.py::test_a_close_before_the_approval_runs_through_the_gate_and_is_booked_refused`. That module passed 3 times in a row on its own, and the full `make check` was green right after. This branch does not change it or anything under `tests/application` or `src`. It looks flaky under the parallel load of `make test` (pytest-xdist). I did not keep the failure's traceback. It may need its own story if it recurs.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
