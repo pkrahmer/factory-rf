@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 147
 blocked: null
 comments_seen: 4
@@ -319,3 +319,4 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
     - Criterion 13: the *Fault-injection paths* section of docs/project-guide.md lists all 13 rows, paths 7 to 13 included.
 
     The demo contradicts no criterion. No findings.
+18. done (pull request merged); cost: 14 runs, 35.1 min, 116 turns, 320k tokens in (2501k more from cache), 52k out, $3.81
