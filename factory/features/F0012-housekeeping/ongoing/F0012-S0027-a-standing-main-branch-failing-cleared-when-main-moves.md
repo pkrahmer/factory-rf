@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 177
 blocked: null
 comments_seen: 0
@@ -89,3 +89,19 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: no findings.
+
+   Command 1: `uv run pytest --no-header -p no:cacheprovider tests/application/test_preflight_stale_main_stop.py tests/application/test_preflight_run.py`
+   ```
+   ...........................                                              [100%]
+   27 passed in 2.07s
+   ```
+   This met its `Expect:` line. The last line reads `<n> passed in <t>s`, with no failed, error or skipped count.
+
+   Checked against the acceptance criteria:
+   - Criteria 1–5: the new test file passes in full.
+   - Criterion 6: `test_preflight_run.py` passes in this run. Neither existing test file appears in the diff against `origin/main`. `test_tick_preflight.py` was not run in this demo.
+   - Criterion 8: `docs/decisions.md` and `docs/operator-guide.md` are the only documents changed against `origin/main`, and `python -m factory.entry.check_documents` prints `documents ok`.
+   - Criterion 7: I did not run `make check` again. The coder's entry records `check: green`, and the factory runs the check itself after this stage.
+
+   Nothing in the demo contradicts a criterion.
