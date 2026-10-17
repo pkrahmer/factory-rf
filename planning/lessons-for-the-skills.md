@@ -13,6 +13,7 @@ The rules `factory-rf`'s `CLAUDE.md` gained while v1 built v1.1, sorted by where
 | Lesson | Kind | Where it belongs | Since |
 |---|---|---|---|
 | Run `make check` and every make target in the foreground and read its output; never start one in the background, never wait with `pgrep -f` (it matches its own command line) | general | every role skill | 2026-10-14, F0007-S0009, F0008-S0002 |
+| A stage whose change the factory checks right after it (the documenter's documents) does not run the same check itself | general | documenter skill | 2026-10-17, the human's go to speed up F0012 |
 | Give a long project command (`make check`, over two minutes) the shell tool's largest timeout, so that the tool does not move it to the background | general | every role skill | 2026-10-16, F0010's second acceptance |
 | Before writing a helper, search for one that does the same and reuse or extend it; the reviewer counts a second copy as a finding | general | coder and reviewer skills | 2026-10-14 |
 | Every clause of an Interface rule has its own criterion, on both sides (an ordering, the second branch of an "or", a "when longer than", the value for every kind an enum names, an exact value beyond its first part) | general | intake skill; the planning briefs | 2026-10-14, four F0006 stories |
