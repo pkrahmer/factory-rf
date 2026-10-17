@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 158
 blocked: null
 comments_seen: 2
@@ -10,7 +10,7 @@ attempts: 0
 
 <!-- takes in the parked draft F0003-S0011 (proposed by F0003's feature acceptance of 2026-10-14) -->
 
-## Assignment (as of log entry 1)
+## Assignment (as of log entry 7)
 
 When `factory/pipeline.yml` on `main` is not valid YAML, the stop `pipeline_definition_invalid` carries ruamel.yaml's own error text as its detail, and that text spans four to seven lines. `TimestampedFactoryLog` stamps each line, so the factory log gets one `stop repository pipeline_definition_invalid: not valid YAML: while constructing a mapping` line followed by several stamped lines without the `stop` prefix: `in "<unicode string>", line 5, column 3`, the actual problem (`found duplicate key "done" ...`), an empty line, and for a repeated key, ruamel's hint `To suppress this check see: https://yaml.dev/...`. An operator who greps the log for `stop repository` sees only the context line and misses the problem. The hint is also wrong advice, because the factory refuses a repeated key on purpose (F0003 decision 11). This story makes the fault one line: ruamel's problem and its 1-based position, with no context lines and no hint. The fault is the same in the health status, the log and `PipelineDefinitionInvalid`. This keeps F0003's kept thing 7 and its Goal's "a reported stop that names the fault". F0003's first acceptance found the issue (4.1). F0003's FEATURE.md decision 20 kept it out of F0003-S0008, and no story took it up, so F0003's second acceptance proposed it; the human folded it into this feature (FEATURE decision 5).
 
@@ -34,6 +34,7 @@ When ruamel.yaml's safe loader raises a `YAMLError`, `parse` raises `PipelineDef
 Rules:
 
 - The fault never contains a line break (`\n` or `\r`).
+- A line break inside ruamel's `problem` is written as the two characters `\n` or `\r` (a backslash followed by `n` or `r`).
 - `context`, `context_mark`, `note` and ruamel's warning text (`To suppress this check see: ...`) are not part of the fault.
 - Every other fault of `parse` (a text that is not a mapping, the field faults, the rules) is unchanged.
 
@@ -50,8 +51,9 @@ Tests: a new file `tests/adapters/test_pipeline_yaml_one_line_fault.py`, through
 7. `PIPELINE_YAML` itself still parses, and a text that is valid YAML but not a mapping (`"- a\n"`) is still refused with `the pipeline definition must be a mapping`.
 8. `yaml_fault(MarkedYAMLError(context="while x", problem="found y"))` is `not valid YAML: found y`; `yaml_fault(MarkedYAMLError(context="while x", problem="", problem_mark=FileMark("<s>", 0, 4, 2)))` is `not valid YAML: while x` (an empty problem falls to the first line of the text); `yaml_fault(YAMLError("plain\nsecond"))` is `not valid YAML: plain`. Rows of one parametrized test, the errors built by hand (`ruamel.yaml.error`).
 9. Loaded through `PipelineLoader.load` at `origin/main`, the text of criterion 1 is one reported stop. `load` raises `PipelineDefinitionInvalid`. The health status holds one stop `pipeline_definition_invalid` whose `detail` is the fault of criterion 1. The factory log file gains exactly one line, and that line ends with `stop repository pipeline_definition_invalid: ` followed by that fault.
-10. `make check` stays green.
-11. docs: `docs/project-guide.md`, "Faults" under "The pipeline definition", gives the YAML fault as `not valid YAML: <problem> (line <l>, column <c>)`, on one line and 1-based, and no longer says that ruamel's text can span several lines. `docs/operator-guide.md`'s row for faults of the text in "The stop `pipeline_definition_invalid`" shows the same form with an example (the repeated key). `docs/decisions.md` records that the YAML fault is reduced to ruamel's problem and position: one stop, one log line, and no suppression hint for a check the factory wants.
+10. `"a: 1\na: |\n  x\n  y\n"` (a repeated key whose value is a block scalar) is refused with exactly the fault `not valid YAML: found duplicate key "a" with value "x\\ny\\n" (original value: "1") (line 2, column 1)`, where each `\\n` is a backslash followed by `n`, and the fault contains no `\n` and no `\r`.
+11. `make check` stays green.
+12. docs: `docs/project-guide.md`, "Faults" under "The pipeline definition", gives the YAML fault as `not valid YAML: <problem> (line <l>, column <c>)`, on one line and 1-based, and no longer says that ruamel's text can span several lines. `docs/operator-guide.md`'s row for faults of the text in "The stop `pipeline_definition_invalid`" shows the same form with an example (the repeated key). `docs/decisions.md` records that the YAML fault is reduced to ruamel's problem and position: one stop, one log line, and no suppression hint for a check the factory wants.
 
 ## Demo
 
@@ -146,3 +148,14 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 
    I recommend (a): it pins the escaped form the code now produces. If you choose (a) or (b), I will end the next round with `tests` so the tester adds the row.
 7. human (pull request comment, 2026-10-17): (a). Add the criterion with the exact escaped fault for `"a: 1\na: |\n  x\n  y\n"`, the Interface sentence (a line break inside the problem is written as the two characters `\n` or `\r`), and the tester's row in `test_a_yaml_error_is_refused_with_its_problem_and_position` plus that text in `test_a_yaml_fault_holds_no_line_break`.
+8. coder: coder (round 1): The human chose (a) in entry 7, so this round hands the ticket to the tester for a test change. No code changed. The escaping fix is already in commit ee70afa.
+
+   The ticket now reflects the answer:
+   - Assignment heading: "as of log entry 7".
+   - Interface rule added: a line break inside ruamel's `problem` is written as the two characters `\n` or `\r`.
+   - New criterion 10: `"a: 1\na: |\n  x\n  y\n"` is refused with exactly the fault `not valid YAML: found duplicate key "a" with value "x\\ny\\n" (original value: "1") (line 2, column 1)`, where each `\\n` is a backslash and `n`, and the fault has no `\n` and no `\r`.
+   - The closing criteria are renumbered to 11 (`make check`) and 12 (docs).
+
+   Test change for the tester:
+   - In `tests/adapters/test_pipeline_yaml_one_line_fault.py`, add a row for that text and fault to `test_a_yaml_error_is_refused_with_its_problem_and_position`.
+   - Add the same text to the texts of `test_a_yaml_fault_holds_no_line_break`.
