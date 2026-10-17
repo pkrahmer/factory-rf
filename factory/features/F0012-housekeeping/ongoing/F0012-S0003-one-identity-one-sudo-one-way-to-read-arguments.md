@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 155
 blocked: null
 comments_seen: 0
@@ -93,3 +93,13 @@ Expect: the single line `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/domain/test_default_git_identity.py - ImportError while importing...
+4. coder: I removed the three copies without changing behaviour. `make check` is green and all three Demo commands print what they should. Everything is in one commit on the branch.
+      - Identity: `DEFAULT_GIT_IDENTITY` is now defined in `src/factory/domain/git.py`, next to `GitIdentity`, and `GitOptions.identity` defaults to it. `src/factory/domain/settings.py` imports it and re-exports it.
+      - sudo: `ClaudeCodeRuntime.sudo_executable` is a new read-only property in `src/factory/adapters/claude_runtime.py`. `build_boundaries` in `src/factory/entry/wiring.py` takes a keyword `which`, defaulting to `shutil.which`, and gives the runtime `which("sudo") or SUDO_EXECUTABLE`.
+      - Arguments: `check_documents.main`, `health.main` and `watch.main` now call `parser.parse_args(argv)`. I removed the `import sys` from `check_documents` and `health`, which no longer use it.
+      - Main decision: the Interface asks for the re-export to be written `from factory.domain.git import DEFAULT_GIT_IDENTITY as DEFAULT_GIT_IDENTITY`. ruff refuses that line (PLC0414, an alias that does not rename). I re-export through an `__all__` in `settings.py` instead, listing `DEFAULT_GIT_IDENTITY`, `InstanceSettings`, `read_setting_file` and `read_settings`, with a one-line comment saying why. `git_cli.py` and `wiring.py` already do the same. The `__all__` only decides which imported names are re-exported; the names `settings.py` defines itself stay importable, and mypy confirms it. I rejected a `# noqa: PLC0414`: `CLAUDE.md` does not allow lint markers outside `process.py`. I also rejected `DEFAULT_GIT_IDENTITY = git.DEFAULT_GIT_IDENTITY`: it would look like a second definition.
+      - Refactor: I read the diff and found nothing to clean up, so there is no separate refactor commit. My one work commit is labelled `refactor(domain,entry)` because the ticket changes no behaviour.
+      - Open: the docs part of criterion 8 (project guide, decision log) is left to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
