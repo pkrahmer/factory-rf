@@ -299,9 +299,32 @@ Missing parent directories are created. If the file cannot be written, the line 
 - A file that is missing, cannot be read, is not JSON or is not a valid status reads as healthy (no stops). Do not repair it by hand: the next stop that is raised replaces the whole file, and a fault that lasts is raised again.
 - A write goes to a temporary file in the same directory and replaces `health.json` in one step, so a reader never sees half a file. If `health.json` is a directory, the write fails with an `OSError` and leaves nothing behind.
 
-## Stops of the repository or the machine
+## The stops
 
-When the factory finds a fault of the repository or the machine (a failed fetch, a checkout it cannot restore, an invalid pipeline definition, a failing preflight), it raises a stop in two places, and tries both: a line in the factory log and an entry in the health status file. A stop of this kind never goes to a pull request; look in the log and in `health.json`.
+Every stop the factory raises has one destination. A stop of the repository or the machine goes to the health status and to a line of the factory log. A stop of one work item goes once on that work item's pull request. One case, a backlog story that names a later stage in its own file, has no stop. Every line about a stop in the factory log is time-stamped (see "The factory log").
+
+| Stop | Destination | What you do |
+|---|---|---|
+| `fetch-failed` | health status and factory log | `git fetch` failed, an expired or revoked token included. Fix the network, the address or the credentials; see "The stops of the tick". |
+| `checkout-restore-failed` | health status and factory log | The checkout cannot be put on `origin/main` (the dirty main branch). Fix the cause or delete the checkout and clone again; see "The stops of the tick". |
+| `pipeline-definition-invalid` | health status and factory log | `factory/pipeline.yml` on `origin/main` fails its validation, an agent that is not installed included. See "The stop `pipeline_definition_invalid`". |
+| `agent-definition-invalid` | health status and factory log | An agent file holds a key the runner does not apply. See "The stop `agent_definition_invalid`". |
+| `repository-unavailable` | health status and factory log | The entrypoint or the tick waits for a repository that is empty or has no pipeline definition. Push `main` with `factory/pipeline.yml`; see "The wait for a repository that is not ready". |
+| `main-branch-failing` | health status and factory log | `lint` fails on the main branch. Push a fix to `main`; see "The stamp and the probe of the main branch". |
+| `preflight-failed` | health status and factory log | A preflight item fails, or the settings are invalid. Fix what the detail names; see "The preflight's items" and "When the process refuses to start". When the state directory cannot be written, `factory-run` still ends with status 2 but writes no stop: the settings fault reaches standard error as two lines without a stamp. Check the `state` volume. |
+| `duplicate` | pull request | Two work items have one id. Keep one file and rename or delete the other; see "Stops that cannot be done". |
+| `pull-request-lookup` | pull request | The one pull request lookup fails. Fix the cause named after the colon; see "Stops that cannot be done". |
+| `ask-without-pull-request` | pull request | A question is recorded for a work item that has no pull request. Open one for the branch or push a commit to it; see "Stops that cannot be done". |
+| `handler-error` | pull request | A handler fails on the same event and state three times. See "An event that keeps failing". |
+| `hand-over-error` | pull request | A hand-over fails every time, three ticks in a row. See "When the hand-over fails or is killed" and "An event that keeps failing". |
+| `push-rejected` | pull request | A push is rejected, for example by a hook of the remote. No agent is run while it lasts. See "An event that keeps failing"; fix the remote's rule or push to the branch to start the count again. |
+| `later-stage-in-backlog-file` | no stop | A backlog story whose own file names a later stage in its front matter. The start rule removes it: the work item starts at the first stage with `round`, `attempts` and `crashes` at 0, and nothing is reported. |
+
+The ids are those of `STOP_TABLE` in `factory.domain.stop_table`, and the reasons in the health status are the same words with underscores.
+
+### The stops of the repository or the machine
+
+When the factory finds a fault of the repository or the machine, it raises a stop in two places, and tries both: a line in the factory log and an entry in the health status file. A stop of this kind never goes to a pull request; look in the log and in `health.json`.
 
 The line when a stop is raised:
 
@@ -323,7 +346,7 @@ That is `stop cleared <reason>`. It is written only when the stop was in the hea
 - A stop is removed from the health status, then the cleared line is written, when the factory finds the fault gone. You never clear one by hand; deleting `health.json` only hides it until the next cycle raises it again.
 - One failing destination never loses the stop. If the log file cannot be written, the stop is still put into the health status; if the health status cannot be written, the line still reaches standard output and the log file. In both cases the factory then reports the write error (an `OSError`); when both fail, it is the log's error. If the health status cannot be written while a stop is cleared, the stop stays in force and no cleared line is written. If the log cannot be written while a stop is cleared, the stop is already removed.
 
-## Stops of one work item
+### The stops of one work item
 
 A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. A question is first recorded (a journal entry of kind `question`, with `blocked` set, committed and pushed) and then posted; see "The factory's own questions". The rules below are those of `StopService.post`, which the dispatcher's error report calls (see "An event that keeps failing"). A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
 
@@ -337,6 +360,7 @@ A stop of one work item (a question, a cap reached) is meant to appear as one co
 - If the work item's branch already has an open pull request, the factory posts on that one. A pull request you closed or merged is not reused for a new one; but when the work item's state records a pull request number, the stop is posted there even if you have since closed it.
 - A restart never repeats a stop. The key identifies the stop: if the factory died after posting and before recording it, the next attempt finds the key on the pull request and posts nothing. The same key with another text is still a repeat; a different kind or number is a new stop and a new comment.
 - The posting writes no state. In particular the dispatcher does not record the number of a pull request it opened for an error report; a later stop finds that pull request by its branch.
+- Two files with one id are both read: the second is read from `origin/main` as a started story, because the id's branch holds only the first file. So the duplicate is reported on the first work item's pull request and does not end the tick.
 
 ## What a stage run shows
 
@@ -908,7 +932,7 @@ The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`
 
 It ends in the one report of its work item and remote state, and then holds back all new work, until its handler is registered. A push to the branch makes the factory try again.
 
-After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "Stops of one work item".
+After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "The stops of one work item".
 
 What to do about it:
 

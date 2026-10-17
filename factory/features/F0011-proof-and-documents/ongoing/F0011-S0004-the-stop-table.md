@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 148
 blocked: null
 comments_seen: 0
@@ -191,3 +191,23 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Security: no secrets, no suppression markers. The only shell text is the test's `hooks/update` script, written to the bare remote under `tmp_path`.
    - Quality: names are clear and the private row builders carry no docstrings. The new comment in `_snapshot` says why the duplicate is read from main. No existing helper is duplicated.
    - Ticket hygiene: the coder's entry explains the main decision (read a later file of a seen id from main and keep the branch tip as `branch_commit`) and the rejected alternative (`branch_commit=None`). The Assignment matches what was built. Criterion 18 still describes what the documenter has to write.
+6. documenter: wrote criterion 18; `make check` green.
+
+   Files changed:
+   - `docs/operator-guide.md`: the two sections "Stops of the repository or the machine" and "Stops of one work item" are replaced by "The stops".
+     - It opens with the destinations and says that every stop line in the factory log is time-stamped.
+     - It has one table with fourteen rows, one per row of `STOP_TABLE`, in the same order. The destinations read `health status and factory log`, `pull request` or `no stop`, and each row says what the operator does.
+     - The `preflight-failed` row states that when the state directory cannot be written, `factory-run` still ends with status 2 and writes no stop. The settings fault reaches standard error as two lines without a stamp.
+     - Each row links to the section that already holds the detail instead of repeating the destination. I kept the old mechanics text as the subsections "The stops of the repository or the machine" and "The stops of one work item".
+     - I added one bullet for the duplicate read from `origin/main`.
+     - Two references now name "The stops of one work item" and "Stops that cannot be done".
+   - `docs/decisions.md`: a new entry records that the producers of the machine stops are proved by F0006 and F0010, and that a story file naming a later stage is removed by the start rule, not stopped. It also records the duplicate read from `origin/main`.
+
+   Cross-read against the diff and found current: README, "The stops of the tick", "The stops you will see here", "The factory log and the health status file", "An event that keeps failing", and the pipeline-definition and agent-definition stop sections. I did not run any command from the guide.
+
+   No findings: the code matches the Interface and the criteria.
+
+   Stale but not touched, because criterion 18 leaves the project guide alone:
+   - `docs/project-guide.md` line 988 cites the operator guide section "Stops of one work item". That section is now "The stops of one work item" under "The stops".
+
+   `make check`: check: green
