@@ -15,15 +15,19 @@ The single order; the sections below hold the detail of each step.
    5. One test of the DTOs' own configuration; an answer at the send-back cap that can grant one more round.
    6. The compose project name per instance (`name: factory-${FACTORY_INSTANCE}`), so v1 and v1.1 cannot collide.
    7. The `demo/` frame: the index README and the one test in `make check` that walks every demo.
+   8. The kill of an agent run under `sudo` at its time limit (F0010 decision 30, the human's answer of 2026-10-17): `timeout --signal=KILL <limit>` inside the `sudo` call, exit status 137 read as `time_limit`, a grace time on the outer call; observed for real in step 3.
+   9. The document check as a check of the docs stage only (the human's answer of 2026-10-17): a `make documents` target, in v1's `factory/stages.yml` now (the human's change between two stories) and in v1.1's pipeline definition; F0011 decision 13 is superseded for the docs stage.
+   10. Three of F0010's open points fixed (the human's answer of 2026-10-17): the agent cannot rewrite the agent files and `settings.json` in its home (owned by the factory, read-only to the agent); a missing health file after the start period reads as not healthy; a standing `main_branch_failing` is cleared when `main` is green again. The other two stay as built, by the human's decision: the token file's default only in the image's `ENV`, and the template's write paths.
+   The parked drafts F0003-S0011 and F0008-S0007 fold into 1.2 (the human's answer).
 2. The todo demo: run 4's eight stories and three features rewritten by hand into `demo/todo-service/` in v1.1's form, checked by 1.7's test.
 3. The first start on the real machine (the human, the session alongside): the image pinned (base digest, the Debian versions), built, the one login as `agent`; the morning observations (`sudo`, the umask, the token mount, the time limit under `sudo`, F0010 decision 30); fixes found here go in through v1 before the run.
 4. The todo run: v1.1 builds `demo/todo-service` into a new empty repository, a session plays the human, disk records at start and end. It passes when everything is accepted with no fix to `factory-rf` during the run, every stop reached the human, and cost and time per first-pass story are within 25 % of run 4's. It is the baseline v2 is measured against.
 5. The handover of `factory-rf` to v1.1, one human commit while no v1 story is in progress (see "v1.1 builds itself").
 6. Built by v1.1 itself: a project's own skills and agents; then a new image and a short smoke run on the todo demo.
-7. Built by v1.1 itself: the restructure (the tree, `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`); then `make check` and a short smoke run.
-8. The rename, after a few clean self-built stories: v1's compose file gets `name: factory` first; `factory` becomes `factory-v1` and `factory-rf` becomes `factory`; the four lines of text; the remotes, `REPOS` and `FACTORY_REPOSITORY_URL` set again.
+7. Built by v1.1 itself: the restructure (the tree chosen by the human on 2026-10-17: domains at the top, each with `domain/` and `application/` and its own ports, adapters grouped by tool, as simulated in the session; `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`); then `make check` and a short smoke run.
+8. The rename, after a few clean self-built stories: v1's compose file gets `name: factory` first (the session may make that edit in `pkrahmer/factory`, the human's leave of 2026-10-17); `factory` becomes `factory-v1` and `factory-rf` becomes `factory`; the four lines of text; the remotes, `REPOS` and `FACTORY_REPOSITORY_URL` set again.
 
-At any time, the human's: compact and move Docker's disk image, update Docker and WSL; confirm the decisions taken for the human; choose the tree of step 7.
+At any time, the human's: compact and move Docker's disk image, update Docker and WSL; delete the scratch repository `pkrahmer/factory-night-scratch` and the branch `ccr-cf8b451b-yugt27`. The decisions taken for the human during the build were all confirmed on 2026-10-17.
 
 ## The decision
 
