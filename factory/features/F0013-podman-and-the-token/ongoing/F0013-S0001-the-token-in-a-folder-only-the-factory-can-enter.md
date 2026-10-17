@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 182
 blocked: null
 comments_seen: 4
@@ -150,3 +150,12 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: no findings.
+
+   - Criteria 1–5: tests/test_token_folder.py, tests/test_image_credentials.py and tests/test_compose.py test each criterion they are named after. The checks: the `mkdir -p` includes the folder; the last chown is `factory:factory` and the last chmod is `0700`, read with `_path_settings`, which keeps the last value; the ENV comes before `USER factory`; `FACTORY_TOKEN_FILE` is the only credential-named ENV/ARG; the bind entry's key order and values match; its target equals the ENV value and its parent is the folder; the uids are 1000 and 1001, and the agent's is not 0; the agent has exactly one useradd, and none of its group options names `factory`; and there are no `secrets` keys. `create_host_path: false` covers the refused side (a missing host file). Criterion 6 rests on the existing modules, which are present and unchanged apart from the edits the Interface permits. The coder's entry 8 reports `make check: green`.
+   - Earlier tests: the edits to tests/test_image_credentials.py, tests/test_image_users.py and tests/test_compose.py are exactly the ones the Interface names under FEATURE decision 9. `_uid_of` stays, and the removed `COMPOSE` constant and YAML import were used only by the removed test.
+   - Criterion 7: the comments say what the criterion asks for. image/entrypoint.sh:4-5 now names `/work`. image/Dockerfile:40 says the folder is one only the factory's user can enter. image/compose.yml:24-25 says that Compose ignores a file secret's owner and mode outside Swarm, so the folder, not the file, keeps the agent out.
+   - Scope: the Dockerfile changes only the mkdir, chown, chmod and ENV lines. compose.yml loses both `secrets` blocks and their comment and gains the fourth volume entry, and nothing else changes.
+   - Architecture: nothing under src/ changed, so no layer rule is affected.
+   - Security: no secret in code. The diff's `.secrets.baseline` entry and the planning/lessons-for-the-skills.md row come from the human's commit 81b26834 on main, brought in by the merge 81351a7b at the human's instruction (entry 7). They are not the coder's change and are not a finding.
+   - Hygiene: entry 8 gives the main decision (the existing RUN rather than a separate layer). The Assignment matches what was built, and criterion 9 still describes what the documenter must write.
