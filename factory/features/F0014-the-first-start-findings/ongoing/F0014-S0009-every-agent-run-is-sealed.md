@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 193
 blocked: null
 comments_seen: 0
 round: 0
@@ -47,3 +47,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: concrete. It names the new module `src/factory/application/sealed_runs.py` and the signature `run_sealed(boundaries: Boundaries, request: AgentRunRequest) -> AgentRunResult`. It gives the call order (seal, run, `check_seal` in a `finally`) and says which error wins. It names both callers (`StageLauncher.launch`, `agent_run_probe_item`), the exceptions the probe still catches, and the dispatcher's re-raise before `except Exception`.
+   - Criteria: each can be tested by one test function. Criterion 2 is a parametrized table. Every behaviour the Interface states has a criterion: seal before run (1), the check after the run (2), `RepositoryUnsealed` winning over a run error with the run error as `__context__` (2), no run when the seal fails (2), both callers (3), and the dispatcher pass-through (4). Every rule has its failing side and its passing side. The failing sides are a swapped `.git`, a symlinked `.git`, a missing `.git` (no request recorded), and an unsealed run that also raises. The passing sides are a run error with `.git` left alone, which propagates unchanged, and a handler's other `GitError`, which is still counted.
+   - Demo: the one pytest command is runnable and names the new and the existing test modules. Its `Expect:` line can be checked against the last line: `<n> passed`, with no failed, error or skipped count.
+   - Architecture: `run_sealed` sits in `factory.application` and uses only the `Boundaries`' git and agent runtime interfaces. It names no concrete tool, and no layer rule is broken. The tests mirror the package under `tests/application/`, use the real-clone `boundaries` fixture, and wrap `FakeAgentRuntime`.
+   - Scope: it stays inside S0009 of F0014 (FEATURE decisions 19 to 21, 24 and 30). The nested-repository search (S0010) and the login probe (S0003) are left out, and no test of an earlier story changes. The source files it touches are the ones FEATURE lists for S0009.
