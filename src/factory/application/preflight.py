@@ -292,8 +292,10 @@ class Preflight:
 
     def run(self) -> RepositoryStopReason | None:
         """Run what changed since the last pass; `None` when it passed, else the stop raised."""
-        stamp = self._machine_items(self._stamps.read())
+        started_with = self._stamps.read()
+        stamp = self._machine_items(started_with)
         if stamp is None:
+            self._clear_stale_failing_stop(started_with)
             return _PREFLIGHT_FAILED
         try:
             reason = self._probe(stamp)
@@ -317,6 +319,18 @@ class Preflight:
         passed = PreflightStamp(image=self._image)
         self._stamps.write(passed)
         return passed
+
+    def _clear_stale_failing_stop(self, stamp: PreflightStamp | None) -> None:
+        # The machine cannot run the probe, but a stop naming a commit that is no longer
+        # main is stale; the new main is probed once the machine's items pass again.
+        if stamp is None or stamp.main_failed is None:
+            return
+        try:
+            main = self._boundaries.git.resolve(_MAIN_REF)
+        except GitError:
+            return
+        if main != stamp.main_failed:
+            self._stops.clear_stop(_MAIN_FAILING)
 
     def _probe(self, stamp: PreflightStamp) -> RepositoryStopReason | None:
         main = self._boundaries.git.resolve(_MAIN_REF)
