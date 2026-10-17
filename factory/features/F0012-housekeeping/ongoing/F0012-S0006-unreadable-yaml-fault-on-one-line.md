@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 158
 blocked: null
 comments_seen: 2
@@ -205,3 +205,13 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
 
     `make check`: check: green
     `make documents`: documents ok
+13. demo: demo (round 1): ran the one Demo command from the repository root, exactly as written. No findings.
+
+    Command 1 (`uv run python -c "..."`, which parses two broken pipeline definitions with `RuamelPipelineDefinitionReader`):
+    ```
+    not valid YAML: found duplicate key "done" with value "{}" (original value: "{}") (line 7, column 3)
+    not valid YAML: did not find expected ',' or ']' (line 5, column 35)
+    ```
+    Exit status 0. This meets its `Expect:` line: exactly two lines, both identical to the expected faults, and no `accepted`.
+
+    Checked against the acceptance criteria: each fault is one line with ruamel's problem and its 1-based position. Neither fault has context lines, `<unicode string>` or the `To suppress` hint. Both start with `not valid YAML: `, as the Interface's first branch says. Nothing in the demo contradicts any criterion. The criteria the demo does not exercise (the health status and log line, the fallback branches, block-scalar escaping) are covered by the tests the reviewer listed in entry 11.
