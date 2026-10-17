@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 185
 blocked: null
 comments_seen: 0
@@ -111,3 +111,4 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
    - Criterion 5: docs none, consistent with the diff.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 2.4 min, 28 turns, 111k tokens in (223k more from cache), 6k out, $0.60
