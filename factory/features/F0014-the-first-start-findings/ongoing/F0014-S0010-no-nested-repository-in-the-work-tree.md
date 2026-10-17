@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 194
 blocked: null
 comments_seen: 4
@@ -233,3 +233,22 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (29.4 s)
+10. coder: The tester made the one change from entry 7 (`stall_note(...) in _note(hosting, stalled)`), and with it `make check` is green on the implementation from commit 0013e710: check: green, coverage 99.48 %. I changed no code this round.
+
+    What is built (commit 0013e710):
+    - `src/factory/entry/wiring.py`: `git_environment` has the fourth pair `core.fsmonitor=false` (`GIT_CONFIG_COUNT=4`), and its comment says the child git inherits the pairs.
+    - `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`: `remove_nested_repositories()`. It walks with `os.walk(followlinks=False)` and leaves out the root's own `.git`. It does not enter a nested `.git`. It removes folders with `rmtree` (decided by `lstat`) and everything else with `unlink`. An `OSError` becomes `RepositoryUnsealed("<abs path>: <error>")`. No git process runs.
+    - `src/factory/application/sealed_runs.py`: the `SealedRun` model. In `run_sealed`'s `finally`, `check_seal()` runs and then the removal, so a failed check searches nothing.
+    - `src/factory/application/stage.py`: `LaunchedStage.nested_repositories` is filled from the `SealedRun`. `AfterAgent.process` stalls on `nested_repository` first. The early checks (nested repository, branch, end reason) are in `_early_stall`, because ruff limits the number of returns in `process`.
+    - `src/factory/domain/decisions.py` and `src/factory/domain/post_texts.py`: the new reason and its sentence.
+    - `src/factory/application/preflight.py`: the probe fails with the nested-repository detail before it looks at the end reason.
+    - `src/factory/application/scheduler.py`: `CheckoutPreparer._keep_or_clone_again` runs `check_seal()` and then the removal in the same `try`. A `RepositoryUnsealed` from either one makes it clone again, and a removal writes the line `removed nested repositories: ...`. The log-if-present logic is now `_write_log`.
+
+    Main decision: the preparer handles a failed removal through the same `except RepositoryUnsealed` path as a failed seal check. I rejected a second, separate handler, because it would repeat the discard-and-clone steps.
+
+    Refactor: I read the diff as a reviewer would and found nothing to change, so there is no refactor commit. `make duplicates`: 0 new, 39 known, 0 gone.
+
+    Open / not touched: none.
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
