@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 148
 blocked: null
 comments_seen: 0
@@ -181,3 +181,13 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Not touched: the docs criterion (18) belongs to the documenter.
 
    `make check`: check: green
+5. reviewer: No findings.
+
+   - Acceptance criteria: every criterion from 1 to 16 has a test, and each test checks what its criterion says. Criteria 1 to 5 are in `tests/domain/test_stop_table.py`, 6 to 15 in `tests/test_stop_table.py` and 16 in `tests/application/test_work_items_duplicate.py`.
+     - Both sides of each Interface rule are rows of one parametrized test: reason against destination (all three wrong cases), empty limits, `"X7"`, the accepted first row, frozen assignment, an unknown key, `destination="log"` and `reason="v1_work_item_found"`.
+     - Criterion 16 also covers the failing side: the only file of an id missing on its branch still raises `WorkItemFormatError`.
+     - The coder's entry reports `make check` green at commit 49a4329.
+   - Architecture: `src/factory/domain/stop_table.py` is pure data and validators, and imports only pydantic, `re` and `factory.domain.stops`. The change in `src/factory/application/work_items.py` stays in its layer and adds no tool call.
+   - Security: no secrets, no suppression markers. The only shell text is the test's `hooks/update` script, written to the bare remote under `tmp_path`.
+   - Quality: names are clear and the private row builders carry no docstrings. The new comment in `_snapshot` says why the duplicate is read from main. No existing helper is duplicated.
+   - Ticket hygiene: the coder's entry explains the main decision (read a later file of a seen id from main and keep the branch tip as `branch_commit`) and the rejected alternative (`branch_commit=None`). The Assignment matches what was built. Criterion 18 still describes what the documenter has to write.
