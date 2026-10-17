@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 164
 blocked: null
 comments_seen: 0
@@ -97,3 +97,11 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 3 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: criteria 1 to 4 each have a test that matches the criterion it is named for. Criterion 2 is one parametrized table: nine refused lines and two accepted ones (`0 s`, and a trailing `\r`). In criterion 4, the `check` target prints 43 lines, so the `lint` line falls outside the 30-line `output_tail`, and the test asserts this. The `TargetTime` limits are tested on both sides: `seconds` 0.0 is accepted and -0.1 refused, `Lint` is refused, and an extra field is refused. The coder's entry records `make check` green.
+      - Implementation: in `src/factory/domain/checks.py`, `_TARGET_TIME_LINE` is built from `COMMAND_NAME_PATTERN` and uses `[0-9]`, so only ASCII digits match. `fullmatch` runs on each line from `splitlines()`. `run_process` decodes bytes without universal newlines, so a `\r` reaches the parser, and `splitlines` drops it as the Interface requires. `targets` is the last field of `CheckResult`. `MakeProjectCommands.run` reads `result.stdout` in full, not the tail.
+      - Architecture: the parsing lives in the domain and has no I/O. The adapter only calls it. No layer rule is broken.
+      - Security: no silencing markers, no command built from strings, no secrets.
+      - `make duplicates` (3 new): one is vulture's `checks.py: unused variable 'targets'`. This is a false positive: it is a Pydantic field that S0013 will read. The other two (`disk_space.py` and `machine.py` `used_bytes`) are in files this diff does not touch.
+      - Considered, not a finding: `splitlines` also splits on a `\r` in the middle of a line (and on `\x85` and similar characters), so `foo\rlint: green (1 s)` would count. The Interface does not define this case, and the coder's entry names it.
+      - Ticket hygiene: the log gives the main decision (a per-line `fullmatch` rather than a `MULTILINE` `finditer`) and the rejected alternative. `Assignment` matches what was built. Criterion 6 still describes what the project guide must say.
