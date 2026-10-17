@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 185
 blocked: null
 comments_seen: 0
@@ -87,3 +87,27 @@ Expect: three lines: `work_item_path,` in the import from `factory.domain.paths`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root, in order. Both met their `Expect:` lines and nothing contradicts a criterion, so there are no findings.
+
+   1. `uv run python -m factory.entry.check_demos` (exit 0)
+   ```
+   demos ok
+   ```
+   Met: the expectation is `demos ok`.
+
+   2. `grep -n 'work_item_path\|"backlog"' src/factory/entry/check_demos.py` (exit 0)
+   ```
+   14:    work_item_path,
+   24:_BACKLOG: LifecycleFolder = "backlog"
+   71:    path = work_item_path(feature, _BACKLOG, story)
+   ```
+   Met: there are exactly three lines. They are the import from `factory.domain.paths`, the typed `_BACKLOG` and the call in `_story_findings`.
+
+   Criteria check:
+   - Criterion 1 holds: command 1 printed `demos ok`.
+   - Criterion 2: the demo does not exercise it and does not contradict it.
+   - Criterion 3: I also grepped the module for `FEATURES_DIRECTORY` and found nothing. The quoted literal `"backlog"` appears only at line 24. The other matches for "backlog" are the names `backlog_story_findings` and `_is_backlog_story` and the prose of one finding message, so none of them is the quoted literal.
+   - Criterion 4: I did not run `make check`. The factory runs it as the gate, and the coder's and documenter's entries record it green.
+   - Criterion 5: docs none, consistent with the diff.
+
+   Open: nothing.
