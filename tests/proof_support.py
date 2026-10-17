@@ -491,6 +491,15 @@ def head_state(world: World, work_item: WorkItemId) -> WorkItemState:
     return state
 
 
+def work_item_file(world: World, work_item: WorkItemId) -> str:
+    """The path of the work item's file in the example feature's `in-progress/` on its branch."""
+    git = world.boundaries.git
+    git.fetch()
+    listed = git.list_files(f"origin/{branch_name(work_item)}", f"{FEATURE}/in-progress")
+    [path] = [path for path in listed if Path(path).name.startswith(work_item)]
+    return path
+
+
 def head_journal(world: World, work_item: WorkItemId) -> list[JournalRecord]:
     """The work item's journal records on `origin/<branch>`."""
     return head_state(world, work_item).journal

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 147
 blocked: null
 comments_seen: 0
@@ -87,3 +87,38 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
    - Demo: both commands are runnable. Each `Expect:` line is checkable: `13 True True` and the named test line for the first, and `passed` with no `failed` or `error` for the second.
    - Architecture: tests plus appended domain data rows in `factory.domain`, with no I/O. The `test_retrying_wording` constraint is respected.
    - Scope: matches the feature's scope (the thirteen paths, one kill or stall each, `reject` walked). The first six rows stay as they are, and the docs criterion touches only the project guide and the decision log.
+3. tester: wrote the tests for criteria 1–11. Criterion 12 is the gate and criterion 13 belongs to docs.
+
+   Mapping:
+   - criterion 1: tests/test_fault_paths_7_to_13.py::test_round_cap_question_killed_between_post_and_record_posts_once_and_waits
+   - criterion 2: tests/test_fault_paths_7_to_13.py::test_attempts_cap_run_stalls_twice_asks_human_without_a_rerun_and_reruns_on_comment
+   - criteria 3 and 4: tests/test_fault_paths_7_to_13.py::test_reject_killed_before_push_reverts_once_and_leaves_main_clean. It reads `status().changes` right after the kill and checks `origin/main` against the commit before the hand push once the rerun is over. The hand move uses the reader and writer to set `stage: review`.
+   - criterion 5: tests/test_fault_paths_7_to_13.py::test_two_items_in_progress_tick_killed_after_claim_push_reruns_lower_id_and_other_waits
+   - criterion 6: tests/test_fault_paths_7_to_13.py::test_close_at_approval_tick_killed_after_close_recorded_reopens_once_and_asks_once
+   - criterion 7: tests/test_fault_paths_7_to_13.py::test_acceptance_container_lost_in_review_reruns_once_and_books_result[refused|accepted]. The booked acceptance is found as the one file of `<feature>/done` on `origin/main` whose name starts with `F0001-A0001`.
+   - criterion 8: tests/test_fault_paths_7_to_13.py::test_test_change_approved_tick_killed_during_tester_run_reruns_tests_without_round
+   - criterion 9: tests/domain/test_fault_paths_all_rows.py::test_the_paths_are_the_six_first_rows_then_the_seven_last_in_number_order. It checks number, title and case of the first six rows; their test names are already pinned by tests/domain/test_fault_paths.py.
+   - criterion 10: tests/test_fault_paths_table.py::test_every_path_test_is_a_function_of_exactly_one_path_module
+   - criterion 11: tests/test_fault_paths_table.py::test_every_path_test_name_is_at_most_ninety_characters
+
+   Files: created tests/test_fault_paths_7_to_13.py, tests/test_fault_paths_table.py and tests/domain/test_fault_paths_all_rows.py. In tests/proof_support.py I added `work_item_file(world, work_item)` as the Interface describes it.
+
+   Imports: every module imported. Nothing is missing, because `FAULT_PATHS` and the helpers already exist.
+
+   The one `make test` run (`tail -5`) was taken before I made path 9 a plain test function. It showed these red:
+   - the all-rows test, as intended: rows 7–13 are missing.
+   - both cases of path 12.
+   - path 9, as an ERROR. At that time its setup was a fixture, so a missing `InjectedKill` or a failing step showed up as a setup error. I then folded the fixture into the test, so it now reports as a failure.
+
+   Paths 7, 8, 10, 11 and 13 and the table tests did not show in that tail. They may already pass, since the mechanisms exist. The tail does not show why path 9 or path 12 fails. The coder should read those failures first and treat them as defects under src/, per the Assignment. If one turns out to be a wrong test, end with a question.
+
+   `make lint` is green; I ran ruff format on the new files. I did not run the type check (skipped in this stage).
+
+   Rejected:
+   - testing the two sides of the 90-character limit on made-up names. The criterion is a property of the rows, not a validation of `FaultPath`.
+   - checking that the two path modules share no function at all. Both define the `world` fixture, so the check covers only the path test names, as the criterion says.
+
+   Open: tests/test_fault_path_names.py (from F0011-S0002) still checks only the first six rows. I left it alone because it is not my test.
+
+   `make lint`: lint: green
+   `make test`: FAILED tests/test_fault_paths_7_to_13.py::test_acceptance_container_lost_in_review_reruns_once_and_books_result[accepted]
