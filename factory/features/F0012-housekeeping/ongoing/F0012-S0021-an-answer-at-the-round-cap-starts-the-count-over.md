@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 171
 blocked: null
 comments_seen: 2
@@ -115,3 +115,17 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
 
     `make check`: check: green
     `make documents`: documents ok
+11. demo: accepted, with no findings. I ran the one command under `## Demo` from the repository root, exactly as written.
+
+    Command 1 (`uv run python -c "…unblock…round_cap_question(4, 3)"`):
+    ```
+    None 0
+    This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+    ```
+    It met its `Expect:` line. Both lines match word for word.
+
+    - I checked the output against the acceptance criteria:
+      - Criterion 1: `unblock` of a state blocked `round_cap` with round 4 returns `blocked=None` and `round=0`.
+      - Criterion 2: the question text is exactly the Interface's text for 4 and 3.
+      - The demo does not cover criterion 3 (the end-to-end tick), criterion 4 (the other caps), criterion 5 (`make check`) or criterion 6 (docs). The output contradicts none of them.
+    - Not run in this stage: `make check`. The factory runs it after this stage.
