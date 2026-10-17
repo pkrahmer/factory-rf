@@ -78,3 +78,5 @@ When the human merges, the factory books the acceptance as accepted, moves the r
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Make every file you need outside the repository in a temporary directory that removes itself: `tempfile.TemporaryDirectory()` in Python, or `d=$(mktemp -d)` followed by `trap 'rm -rf "$d"' EXIT` in the shell. Leave nothing behind in `/tmp` when you end.
+- When `make test` writes a JUnit report (the `--junit-xml` file its `Makefile` names), read the time of each test from it, and name the slowest tests in the slow checks and in the cost.

@@ -16,6 +16,12 @@ _FIRST_LESSON = (
     "matches its own command line, so the wait never ends."
 )
 
+_TEMPORARY_DIRECTORY_LESSON = (
+    "- Make every file you need outside the repository in a temporary directory that removes "
+    "itself: `tempfile.TemporaryDirectory()` in Python, or `d=$(mktemp -d)` followed by "
+    "`trap 'rm -rf \"$d\"' EXIT` in the shell. Leave nothing behind in `/tmp` when you end."
+)
+
 LESSONS = {
     "intake": [
         _FIRST_LESSON,
@@ -55,9 +61,16 @@ LESSONS = {
         _FIRST_LESSON,
         "- The project guide is an index plus one file for each domain, each well under the "
         "2,000 lines the file tool reads by default; split a file before it grows past that.",
+        _TEMPORARY_DIRECTORY_LESSON,
     ],
-    "smoke-tester": [_FIRST_LESSON],
-    "acceptance-reviewer": [_FIRST_LESSON],
+    "smoke-tester": [_FIRST_LESSON, _TEMPORARY_DIRECTORY_LESSON],
+    "acceptance-reviewer": [
+        _FIRST_LESSON,
+        _TEMPORARY_DIRECTORY_LESSON,
+        "- When `make test` writes a JUnit report (the `--junit-xml` file its `Makefile` names), "
+        "read the time of each test from it, and name the slowest tests in the slow checks and "
+        "in the cost.",
+    ],
 }
 
 ROLE_AND_STAGE_ANCHORS = {
