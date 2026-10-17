@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 177
 blocked: null
 comments_seen: 0
@@ -45,3 +45,18 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Demo: one runnable pytest command over two named test files. Its `Expect:` line names the last line's form (`<n> passed in <t>s`, with no failed, error or skipped count), which can be checked against the output.
    - Architecture: the change sits in the application layer and uses only the existing git and stop-clearing interfaces. It adds no dependency and no new module, and the only test file is the new one in `tests/application/`.
    - Scope: this is item 1.10 of FEATURE.md. It matches FEATURE decision 30, which the human confirmed in decision 47, and nothing in "Out of scope" applies.
+3. tester: Wrote the tests for the acceptance criteria in a new file, `tests/application/test_preflight_stale_main_stop.py`. It reuses the `rig` and `red_main` fixtures of `tests/application/test_preflight_run.py`, assigned as module attributes so that ruff raises no F811, and imports `IMAGE`, `OTHER_IMAGE`, `TOOLS` and `Rig` from that file. A shared fixture `failed_once` probes the red main once and asserts that the stamp holds `main_failed`. To make the machine's items fail, each test removes `make` from the rig's `which` and runs the preflight with `OTHER_IMAGE`.
+
+   - criterion 1: tests/application/test_preflight_stale_main_stop.py::test_a_failed_machine_clears_the_stop_of_a_main_that_moved_on, rows `moved` (BROKEN removed from main) and `gone` (git swapped for a clone of an empty bare remote). Each row checks the result, that the health status reasons are exactly `["preflight_failed"]`, that the log has a line ending `stop cleared main_branch_failing`, and that the stamp is unchanged.
+   - criterion 2: tests/application/test_preflight_stale_main_stop.py::test_a_failed_machine_keeps_the_stop_of_a_main_that_has_not_moved (both stops stand, `main_branch_failing` keeps its earlier detail, the stamp is unchanged).
+   - criterion 3: tests/application/test_preflight_stale_main_stop.py::test_a_failed_machine_keeps_a_standing_stop_when_the_stamp_names_no_failed_main (a green main probed first, then a `main_branch_failing` written with `Rig.raise_standing`).
+   - criterion 4: tests/application/test_preflight_stale_main_stop.py::test_a_failed_machine_keeps_the_stop_when_git_cannot_resolve_main (the checkout removed with `shutil.rmtree`).
+   - criterion 5: tests/application/test_preflight_stale_main_stop.py::test_the_moved_main_is_probed_once_when_the_machine_passes_again, rows `green` (BROKEN removed, the run returns `None` and no `main_branch_failing` stands) and `red` (an unrelated commit pushed: `main_branch_failing` is raised with a detail naming the new commit). Both rows check that `lint` ran exactly twice in total and that no `preflight_failed` remains.
+   - criterion 6: no new test. The existing files `tests/application/test_preflight_run.py` and `tests/application/test_tick_preflight.py` are left unchanged.
+
+   Result of the one `make test` run: only the two rows of criterion 1 fail, on assertions, not on import or collection errors. Every module imported fine, because the change goes into the existing `Preflight.run`. The tests for criteria 2–5 already pass on the current code: they pin behaviour the coder must keep. Criterion 5 passes because the later run with a new image probes the moved main whether or not the stop was cleared before. `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+   No criterion needed interpreting. I decided not to add, to criteria 2–4, a check that no "stop cleared" line was logged, because the criteria do not ask for it.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/application/test_preflight_stale_main_stop.py::test_a_failed_machine_clears_the_stop_of_a_main_that_moved_on[gone]
