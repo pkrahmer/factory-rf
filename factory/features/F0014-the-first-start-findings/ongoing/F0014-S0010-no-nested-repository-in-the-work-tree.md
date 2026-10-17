@@ -1,7 +1,7 @@
 ---
 stage: ready
-pr: null
-blocked: null
+pr: 194
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -147,3 +147,13 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: 1. Several behaviours stated in `## Interface` have no criterion, so a coder could implement them in two ways and still pass the tests. The format check passed. The rest of the story looks complete: the Interface names modules and signatures, the Demo runs, and the architecture and scope fit `FEATURE.md`. Each gap below needs a criterion, or a statement that it is deliberately untested.
+      a. `GitCli.remove_nested_repositories`: "Every other folder is entered, `.venv` included". Criterion 3 has no row with a nested `.git` inside `.venv` or another ordinary hidden folder. Option: add a row `.venv/lib/x/.git` that returns `[".venv/lib/x/.git"]`.
+      b. `GitCli.remove_nested_repositories`: "A folder the walk cannot list is skipped". No criterion covers it. Option: add a row with a `0o000` folder, skipped for root and restored afterwards, that returns `[]` with no error.
+      c. `run_sealed`: "When `check_seal()` raises, no search runs". Criterion 5 has no row for it. Option: add a row in which `check_seal()` fails, `RepositoryUnsealed` propagates and the nested `.git` stays.
+      d. `run_sealed`: "A `RepositoryUnsealed` of the check or the removal wins" over the run's error. No criterion covers it. Option: add a row in which the run raises `AgentRuntimeError` and the removal raises `RepositoryUnsealed` (the `locked` folder), and `RepositoryUnsealed` propagates.
+      e. `agent_run_probe_item`: the nested-repository failure comes "before the end reason is looked at". Criterion 8 covers only runs that complete. Option: add a row in which the run ends with a non-complete reason and makes a repository, and the detail is still the nested-repository text.
+      f. `CheckoutPreparer.prepare`: "A fresh clone is not searched". No criterion covers it. Option: add a criterion that a missing checkout is cloned without a call to `remove_nested_repositories`, or drop the sentence.
+      g. `CheckoutPreparer.prepare`: the log line is written only when it removed any. Criterion 9 tests only the case where something was removed. Option: add a row for an existing checkout with nothing nested, which writes no `removed nested repositories` line and keeps the checkout.
+      h. `AfterAgent.process`: the stall is "as its first step, before the branch check". Criterion 6 does not show the order. Option: add a row in which the branch check would also fail and the reason is still `nested_repository`.
+   I would choose to add all eight as rows of the existing parametrized criteria (3, 5, 8, 9 and 6), and criterion f as a new criterion before the two closing ones.
