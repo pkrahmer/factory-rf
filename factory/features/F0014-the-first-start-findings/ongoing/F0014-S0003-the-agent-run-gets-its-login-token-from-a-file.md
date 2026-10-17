@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 196
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -203,3 +203,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    Rejected: leaving out the separate check for a file that cannot be read and letting the ASCII count catch it. That would report a folder as plain text, since `tr` sees no bytes. A dangling symlink counts as a missing file (`test -e`), matching the ticket's wording.
 
    For review: the ticket pins a constructor signature that exceeds ruff's PLR0913 limit (6 > 5). I added `# noqa: PLR0913` with a reason comment on `ClaudeCodeRuntime.__init__`. A ruff `noqa` is not on the "not without asking" list, but the reviewer may want it noted. The refactor pass is still to do after the answer.
+5. human (pull request comment, 2026-10-17): (a): the tester builds the `completed` result with `decision="question", entry="probe"` in the constructor (or a small helper); `agent_runs.py` and its validator stay. The criterion is unchanged. The `# noqa: PLR0913` with its reason on `ClaudeCodeRuntime.__init__` is fine: the ticket pins that signature.
