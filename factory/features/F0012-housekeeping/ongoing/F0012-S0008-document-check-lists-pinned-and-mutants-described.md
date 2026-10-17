@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 160
 blocked: null
 comments_seen: 0
@@ -89,3 +89,14 @@ Expect: two lines, `mutants: set FEATURE, as in make mutants FEATURE=F0012` and 
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+   - Scope: the diff changes only `tests/domain/test_documents.py` (+39 lines). `src/factory/domain/documents.py` is unchanged, as the Assignment expects.
+   - Criterion 1: `test_the_v1_words_are_the_eighteen_in_their_order` compares `GLOSSARY_FORBIDDEN` to the Interface's eighteen-entry tuple, in order.
+   - Criterion 2: `test_the_operator_guide_sections_are_the_three_in_their_order` and `test_the_project_guide_sections_are_the_two_in_their_order` compare against the exact tuples. The values match `src/factory/domain/documents.py:19-20`.
+   - Criterion 3: `test_every_v1_word_alone_on_its_line_is_one_finding` is one test with 18 rows, parametrized over `GLOSSARY_FORBIDDEN` with the entry as its id. The parametrization drops a row if an entry is removed, but criterion 1 pins the tuple, so the two tests together cover every entry. The test expects exactly `[_finding(OPERATOR_GUIDE, "uses the v1 word '<entry>'")]`.
+     - I checked that the test line can be flagged at all: `operator_guide(suffix=...)` (`tests/document_texts.py:32-56`) puts the line after the default sections, and none of them is `Replaced from v1`.
+     - The exempt side is left to `test_the_replaced_section_is_exempt_from_both_lists`, as the criterion says.
+   - Existing tests: none changed. The tests reuse the existing `_with`, `_finding` and `operator_guide` helpers and add no new one.
+   - Checks: according to the coder's entry, `make check` was green (coverage 99.51 %) and `make duplicates` reported 0 new findings.
+   - Architecture and security: nothing to judge. The diff only adds tests and has no silencing markers.
+   - Ticket hygiene: the coder's entry explains why there was no production change and why criterion 5 was left alone. Criterion 5 (the *Mutation testing* section in the project guide and the decision-log entry) is still open and is the documenter's work.
