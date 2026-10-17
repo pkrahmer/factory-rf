@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The free space of a path, and its setting
 
 ## Assignment (as of log entry 1)
