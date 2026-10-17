@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 170
 blocked: null
 comments_seen: 0
@@ -121,3 +121,10 @@ Expect: one line `<n> passed in <t>s`, with neither `failed` nor `error` (`addop
    - Criterion 3: I parsed each changed module with an AST script and counted each top-level helper, fixture or constant by name. Every one appears at least twice in its module, so none is left unused. Unused imports are left to `make lint`, which the coder's `make check` covers.
    - Criterion 4: the coder reports `make check: check: green` and `duplicates: 0 new, 39 known, 0 gone`. I did not run it. The coder saw a possibly flaky test in `tests/application/test_acceptance_ticks_closed.py` that this branch does not touch. If it fails again, it may need a story of its own.
    - Hygiene: the Assignment matches what was built. The tester's log entry says how the tests were removed and names the four helpers it removed. The docs criterion is "none", which fits a story that only removes tests.
+6. documenter: wrote nothing. The docs criterion is `none`, and the diff changes only tests under `tests/domain` (13 insertions, 589 deletions). `git diff main...HEAD -- src` is empty.
+   - Cross-read: `docs/project-guide.md` line 27 already says `tests/test_model_configuration.py` checks every model's frozen and `extra="forbid"` configuration at once, and that a new model needs no test of its own for an assignment or an unknown key. That matches what this story completed for `tests/domain`. The other lines of the guide that say "frozen" or "forbids unknown keys" describe the models, not tests, and they are still true. Nothing stale found. I did not open README, the operator guide or the decision log, because the diff touches no behaviour or name they could describe.
+   - No findings for the coder. I ran no `make` target: I changed no file, and the factory runs `make check` after this stage.
+   - Stale but untouched: nothing found. The coder's note about a possibly flaky `tests/application/test_acceptance_ticks_closed.py` stays as that note says, unrelated to this story.
+
+   `make check`: check: green
+   `make documents`: documents ok
