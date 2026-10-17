@@ -78,14 +78,28 @@ def _feature_file_exists(root: Path, path: str) -> bool:
     return (root / FEATURES_DIRECTORY / directory / FEATURE_FILE_NAME).is_file()
 
 
+def _story_findings(
+    reader: WorkItemReader,
+    path: str,
+    text: str,
+    form: str,
+    folder: LifecycleFolder,
+    *,
+    feature_file_exists: bool,
+) -> list[FormFinding]:
+    return [
+        *check_story_place(path, feature_file_exists=feature_file_exists),
+        *_form_findings(reader, text, form, folder),
+    ]
+
+
 def backlog_story_findings(
     reader: WorkItemReader, path: str, text: str, form: str, *, feature_file_exists: bool
 ) -> list[FormFinding]:
     """Return the place findings of a backlog story at `path`, then the form findings of `text`."""
-    return [
-        *check_story_place(path, feature_file_exists=feature_file_exists),
-        *_form_findings(reader, text, form, "backlog"),
-    ]
+    return _story_findings(
+        reader, path, text, form, "backlog", feature_file_exists=feature_file_exists
+    )
 
 
 def finding_line(path: str, finding: FormFinding) -> str:
@@ -99,14 +113,9 @@ def _check(
 ) -> list[FormFinding]:
     feature_file_exists = _feature_file_exists(root, path)
     text = _read_text(root, path)
-    if folder == "backlog":
-        return backlog_story_findings(
-            reader, path, text, form, feature_file_exists=feature_file_exists
-        )
-    return [
-        *check_story_place(path, feature_file_exists=feature_file_exists),
-        *_form_findings(reader, text, form, folder),
-    ]
+    return _story_findings(
+        reader, path, text, form, folder, feature_file_exists=feature_file_exists
+    )
 
 
 def _print_findings(path: str, findings: Sequence[FormFinding]) -> None:
