@@ -16,8 +16,9 @@ pytestmark = pytest.mark.usefixtures("group_umask")
 
 
 @pytest.fixture
-def cloned(tmp_path: Path, remote: Path) -> GitCli:
+def cloned(tmp_path: Path, remote: Path, group_umask: None) -> GitCli:
     """Return the factory's git on a clone of `remote` made under the umask `0002`."""
+    del group_umask  # requested for its umask alone, so that it is set before the clone
     git = GitCli(
         tmp_path / CHECKOUT, GitOptions(identity=TEST_IDENTITY, environment=git_environment())
     )

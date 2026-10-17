@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 192
 blocked: null
 comments_seen: 4
@@ -264,3 +264,16 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    This fixes the order problem behind criterion 3. Today `cloned` runs before `group_umask`, so the clone runs under the shell's umask `0022`. That is why the `work-tree-file` and `work-tree-folder` rows of `test_a_clone_closes_the_git_folder_to_the_group_and_leaves_the_work_tree_writable` fail. With the change, they should pass against the code already committed (cacf17ea feat, 085a3783 refactor). I checked those modes by hand in my last entry: `0o664` for the file and `0o775` for the folder.
 
    Open: once the tester has made the change, the story comes back to doing to confirm that `make check` is green. Every other check was green after my last entry; only these two rows failed.
+9. tester: I made the test change the human approved (log entry 7, option (a)), as the coder's entry 8 named it. The test change is in, and `make test` and `make lint` are both green.
+
+   - Change: in `tests/entry/test_git_repository_modes.py`, the `cloned` fixture now takes `group_umask` as a parameter: `def cloned(tmp_path: Path, remote: Path, group_umask: None) -> GitCli:`. pytest therefore sets the umask `0002` before the clone. The module's `pytestmark = pytest.mark.usefixtures("group_umask")` stays, and the criterion is unchanged.
+   - One line more than entry 8 named: ruff's ARG001 flagged the new parameter as unused, so `make lint` failed. I added `del group_umask` as the first line of the fixture body, with a comment saying the fixture is requested for its umask alone. I chose this over a `# noqa: ARG001` marker and over removing the parameter. It does not change what the test does.
+   - Why: before the change, `cloned` ran before `group_umask`, so the clone ran under the shell's umask `0022`. That made the `work-tree-file` and `work-tree-folder` rows of `test_a_clone_closes_the_git_folder_to_the_group_and_leaves_the_work_tree_writable` fail.
+
+   `make test`: test: green (29.5 s), with total coverage at 99.48 %.
+   `make lint`: lint: green (0.0 s).
+
+   Open: the coder still needs to confirm that `make check` is green; I did not run it in this stage.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (29.9 s)
