@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 164
 blocked: null
 comments_seen: 0
@@ -88,3 +88,12 @@ Expect: one line of the form `lint: green (<n>.<d> s)`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/domain/test_target_times.py - ImportError while importing test mo...
+4. coder: implemented the target times in commit e7903b9. `make check` is green: all tests pass and coverage is 99.52 %.
+      - `src/factory/domain/checks.py`: added `TargetTime` (frozen, extra fields forbidden, `target: CommandName`, `seconds: NonNegativeFloat`) and `target_times(output)`. The function checks each line from `output.splitlines()` with `fullmatch`, so it takes only whole lines and the trailing `\r` is gone before matching. The regex is built from `COMMAND_NAME_PATTERN` with `removeprefix("^")` and `removesuffix("$")`, then `: green \(([0-9]+(?:\.[0-9]+)?) s\)`. The explicit `[0-9]` accepts only ASCII digits, which `\d` would not do. `CheckResult` gained `targets: list[TargetTime] = []` as its last field.
+      - `src/factory/adapters/make_commands.py`: `MakeProjectCommands.run` passes `targets=target_times(result.stdout)`, so it reads the whole output and not the 30-line tail.
+      - Main decision: matching line by line with `fullmatch`. I rejected one `re.MULTILINE` `finditer` over the whole text: with it, a `\r` before the line end needs special handling, and an anchor mistake could let indented lines or lines with trailing text through.
+      - Refactor: I reread the diff and nothing needed changing, so there is no refactor commit.
+      - Noticed, not touched: `splitlines` also breaks on rare Unicode separators such as `\x85` and ` `. The Interface does not cover these, and such a fragment cannot match the pattern unless it is a whole `<target>: green (<n> s)` line anyway.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 3 new, 39 known, 0 gone
