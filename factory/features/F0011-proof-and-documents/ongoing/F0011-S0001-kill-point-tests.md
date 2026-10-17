@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 145
 blocked: null
 comments_seen: 6
@@ -436,3 +436,16 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 
     This story has now been sent back 4 times, more than 2. What should happen? Answer with a comment; close the pull request to discard the story.
 20. human (pull request comment, 2026-10-17): My earlier answer could not work: past the cap, every send-back asks again. Go forward instead: the reviewer moves the story on (review → docs) and records both findings as open, not as a send-back. Neither is a defect: criterion 8 is asserted by `test_the_rerun_starts_five_seconds_after_the_kill` itself; the dead `kill-to-rerun-recorded` check and the second copy of the claim-commit logic (finding 1) and the name `_opening_text` (finding 2) go to the housekeeping story after F0011, which removes duplicate helpers. Review groups 2 to 5 as usual; a new finding of a defect is still a send-back.
+21. reviewer: round 4. No new findings. Per the human's answer in entry 20, the story moves on to docs, and the two group-4 findings from entries 17 and 19 are recorded as open, not as a send-back. They go to the housekeeping story after F0011.
+
+    Since 04ba05b, nothing under `src/` or `tests/` has changed: `git diff 04ba05b..HEAD` touches only `docs/runs/` and `planning/`, the human's own files, which I did not review. The diff's changes to `CLAUDE.md` are the human's too.
+
+    - Group 1 (acceptance criteria): passes, as entry 17 reported. Criteria 1–22 each have a test that checks what it is named after. Both sides of the two `KillPointCase` rules and of the closed-model rules are rows of parametrized tests. The coder's entry 16 reports `make check` green.
+    - Group 2 (architecture): passes. `src/factory/domain/kill_point_cases.py` imports only pydantic and `factory.domain.kill_points`, does no I/O, and every rule is a `mode="after"` model validator. No production module imports `tests/proof_support.py`. The tests use a real bare remote, the fake hosting service and the fake agent runtime, and no fake git.
+    - Group 3 (security): passes. There are no secrets, no silencing markers, and no shell or SQL built from strings.
+    - Group 4 (quality): passes apart from the two open findings below. The domain module has a module docstring and a class docstring, and its two comments explain why (a stall has no kill point; `post-record` falls after the result is pushed).
+    - Group 5 (ticket hygiene): passes. The log records the main decision, two validators with one per rule (entry 8), and what was rejected. `Assignment` matches what was built. Criterion 24 still describes what the documenter must write: the `## Kill points` section rename with the six-row table and how to run `tests/test_kill_points.py`, plus the three `docs/decisions.md` points.
+
+    Open, not a send-back (entry 20):
+    1. `tests/test_kill_points.py:84-104` (`_rerun_seconds`) is a second copy of the claim-commit logic in `tests/proof_support.py` (`_claim_commits`, `_state_at`). Because of it, the `kill-to-rerun-recorded` check in `_kill_to_rerun_recorded` (`proof_support.py:531`) is never reached by any test. Fix: one shared `rerun_seconds(result)` helper, in the housekeeping story.
+    2. `tests/proof_support.py:236` (`_opening_text`) returns a `WorkItemDocument`, not text. Fix: rename it `_opening_document`, in the housekeeping story.
