@@ -130,21 +130,32 @@ def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
 
 @pytest.mark.usefixtures("coder")
 @pytest.mark.parametrize("reason", ["died", "no_result", "time_limit", "budget"])
-def test_a_probe_that_does_not_complete_fails_naming_its_end_and_claude_p(
+@pytest.mark.parametrize(
+    ("agent_user", "named"),
+    [
+        pytest.param("agent", "agent", id="agent-user"),
+        pytest.param(None, "the factory user", id="no-agent-user"),
+    ],
+)
+def test_a_probe_that_does_not_complete_fails_with_its_detail(
     boundaries: Boundaries,
     settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
     *,
     reason: EndReason,
+    agent_user: str | None,
+    named: str,
 ) -> None:
     agent_runtime.queue(_ended(reason))
+    probed = settings.model_copy(update={"agent_user": agent_user})
 
-    item = agent_run_probe_item(boundaries, settings, ENVIRONMENT)
+    item = agent_run_probe_item(boundaries, probed, ENVIRONMENT)
 
     assert item.name == "agent-run-probe"
     assert not item.passed
-    assert reason in item.detail
-    assert "claude -p" in item.detail
+    assert item.detail == (
+        f"the probe run ended {reason}; run claude -p by hand as {named} to see why"
+    )
 
 
 @pytest.mark.usefixtures("coder")

@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 188
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The preflight's details pinned in full
 
 <!-- proposed by feature acceptance of 2026-10-17; refine before promoting -->
@@ -53,3 +61,68 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 feature acceptance of F0013: proposed.
+2. intake: accepted
+   - Interface: no new names. The table gives the exact detail text for each of the four items, with placeholders for the values. It also names the four tests to strengthen and the human's leave for that (FEATURE.md decision 16).
+   - Criteria: each one is testable by one parametrized test. Criterion 1 covers the four single faults and the PATH+HOME pair. Criterion 2 covers four end reasons, each with and without an agent user. Criteria 3 and 4 pin the exact hosting-service and runtime-version details. Criterion 5 covers the passing side: the existing passing tests stay green. Every rule in the table has a case for the faulty side and the passing side.
+   - Demo: both commands are runnable. Each Expect line is checkable: an exact string, and a pytest summary line with no failed, error or skipped count.
+   - Architecture: the story touches only application-layer tests and one operator-guide paragraph. It needs no change in src and crosses no layer.
+   - Scope: it is within the feature acceptance's follow-up on the survivors of F0013's mutants. It is not listed under the feature's Out of scope.
+   Caveat: I did not read preflight.py or the four tests. The story itself says the code already behaves as the criteria state.
+3. tester: I tightened the four existing tests that the Interface names, which the human allowed when they promoted this story. Each one now compares the whole detail string, where before it checked part of it with `in`. I did not create or change any other test.
+   - criterion 1: tests/application/test_agent_environment_item.py::test_a_fault_in_the_environment_fails_with_its_detail. This was `..._fails_naming_it`. It has one row for each of the four single faults with the table's exact text (`{file}` stands for tmp_path/file in the HOME-not-a-directory row), plus a new row `neither-path-nor-home` expecting `the agent run has no PATH; the agent run has no HOME`.
+   - criterion 2: tests/application/test_agent_run_probe.py::test_a_probe_that_does_not_complete_fails_with_its_detail. This was `..._naming_its_end_and_claude_p`. It crosses the four end reasons with agent_user `agent` / `None` (the second through `settings.model_copy`), expecting `... as agent to see why` and `... as the factory user to see why`.
+   - criterion 3: tests/application/test_preflight.py::test_the_hosting_service_item_reports_a_failed_call. The name is unchanged; the `fails` row now compares the whole detail.
+   - criterion 4: tests/application/test_preflight.py::test_the_version_item_fails_with_its_detail_when_the_versions_differ. This was `..._naming_both_versions_when_they_differ` and now compares the whole detail.
+   - criterion 5: I left the existing passing tests of the three modules unchanged.
+   Files changed: the three test modules above. No new files.
+   Red/green: as the story expected, every module imports and the new tests pass already, because `src/factory/application/preflight.py` already produces these details. `make test` is green at 99.50 % coverage, and so is `make lint`. They are not red: they pin behaviour that already exists so that the mutants survivors die. The coder should not need to change anything in `src/`.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (27.7 s)
+4. coder: I changed nothing in `src/`, as the story expected, so this round has no commits. `src/factory/application/preflight.py` already produces every detail in the Interface table. The four tests the tester tightened pass against the code as it stands.
+      - Verified: `make check` is green (test: green, 99.50 % coverage; check: green). The first demo command prints `the agent run has no PATH; the agent run has no HOME`.
+      - Refactor: none, because there is no diff to refactor.
+      - Rejected: touching the detail texts in preflight.py. They already match the table, and the operator guide quotes them.
+      - Open: the documenter still has to do criterion 7, adding the note about `the factory user` to the operator guide's paragraph "The probe of the agent run".
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: the diff changes only three test modules. There are no changes in `src/`, which matches the coder's entry. I compared each new expected string with the text in `src/factory/application/preflight.py` (lines 149–277): the `"; ".join(faults)` call, the PATH and HOME faults, `agent_user or 'the factory user'`, and both hints.
+      - Criterion 1: `tests/application/test_agent_environment_item.py::test_a_fault_in_the_environment_fails_with_its_detail` compares the whole detail. It has one row for each of the four single faults and the `neither-path-nor-home` row, all in one parametrized test.
+      - Criterion 2: `tests/application/test_agent_run_probe.py::test_a_probe_that_does_not_complete_fails_with_its_detail` crosses the four end reasons with agent user `agent` and with `None` (through `model_copy`). Each case is checked against the exact detail.
+      - Criteria 3 and 4: in `tests/application/test_preflight.py`, `test_the_hosting_service_item_reports_a_failed_call` and `test_the_version_item_fails_with_its_detail_when_the_versions_differ` now compare exactly the strings the criteria give.
+      - Criterion 5: the passing tests of the three modules are unchanged and still pass, so each item still passes on a ready machine.
+      - Criterion 6: the coder's entry reports `make check: check: green`. `make duplicates` reports 0 new.
+      - The test changes stay within the human's leave as the Interface states it: only the four named tests changed, plus the renames it allows.
+      - Architecture and security: nothing changed in `src/`, and no suppression markers were added.
+      - Quality: no findings.
+      - Ticket hygiene: `Assignment` matches what was built. Criterion 7 (the docs criterion) is still open and goes to the documenter.
+6. documenter: changed `docs/operator-guide.md`, paragraph "The probe of the agent run". It now says that without `FACTORY_AGENT_USER` the detail names `the factory user` in place of the agent user (criterion 7). No other file changed.
+   - Cross-read: the operator guide's "The preflight's items" and the probe paragraph against the diff and the Interface table. The other details (agent-environment, hosting-service, agent-runtime-version) are already quoted or described and stay as they are. The diff is tests only; `src/` is unchanged, so no code finding.
+   - Not run: only documents changed, so I did not run `make check`. The factory runs it next.
+   - Stale but unrelated: nothing seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: I ran both demo commands from the repository root, exactly as written. Both met their `Expect:` lines and there are no findings.
+
+   1. The `agent_environment_item` call with an empty environment:
+   ```
+   the agent run has no PATH; the agent run has no HOME
+   ```
+   Met the expectation: this is exactly `the agent run has no PATH; the agent run has no HOME` (exit 0).
+
+   2. pytest over the three test modules:
+   ```
+   ....................................                                     [100%]
+   36 passed in 0.65s
+   ```
+   Met the expectation: the last line is `36 passed in 0.65s`, with no failed, error or skipped count (exit 0).
+
+   Criteria checked against the demo:
+   - Criterion 1: the demo's output is the both-faults detail.
+   - Criteria 1–5: the tests that pin these criteria (the tester's entry names them) are among the 36 that passed.
+   - Criterion 7: I read the paragraph "The probe of the agent run" in `docs/operator-guide.md`. At line 282 it now says that without `FACTORY_AGENT_USER` the detail names `the factory user`.
+   - No criterion is contradicted.
+   - Criterion 6 (`make check`) is the factory's gate; I did not run it in this stage.

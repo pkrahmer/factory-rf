@@ -29,16 +29,32 @@ def test_a_path_holding_factory_guard_and_an_existing_home_pass(tmp_path: Path) 
 
 
 @pytest.mark.parametrize(
-    ("path", "home", "named"),
+    ("path", "home", "detail"),
     [
-        pytest.param("/usr/bin", "home", "factory-guard", id="path-without-factory-guard"),
-        pytest.param(None, "home", "PATH", id="no-path"),
-        pytest.param(GUARD_DIRECTORY, None, "HOME", id="no-home"),
-        pytest.param(GUARD_DIRECTORY, "file", "HOME", id="home-not-a-directory"),
+        pytest.param(
+            "/usr/bin",
+            "home",
+            "factory-guard is not on the agent run's PATH /usr/bin",
+            id="path-without-factory-guard",
+        ),
+        pytest.param(None, "home", "the agent run has no PATH", id="no-path"),
+        pytest.param(GUARD_DIRECTORY, None, "the agent run has no HOME", id="no-home"),
+        pytest.param(
+            GUARD_DIRECTORY,
+            "file",
+            "the agent run's HOME {file} is no directory",
+            id="home-not-a-directory",
+        ),
+        pytest.param(
+            None,
+            None,
+            "the agent run has no PATH; the agent run has no HOME",
+            id="neither-path-nor-home",
+        ),
     ],
 )
-def test_a_fault_in_the_environment_fails_naming_it(
-    tmp_path: Path, *, path: str | None, home: str | None, named: str
+def test_a_fault_in_the_environment_fails_with_its_detail(
+    tmp_path: Path, *, path: str | None, home: str | None, detail: str
 ) -> None:
     (tmp_path / "home").mkdir()
     (tmp_path / "file").write_text("not a directory\n", encoding="utf-8")
@@ -52,4 +68,4 @@ def test_a_fault_in_the_environment_fails_naming_it(
 
     assert item.name == "agent-environment"
     assert not item.passed
-    assert named in item.detail
+    assert item.detail == detail.format(file=tmp_path / "file")
