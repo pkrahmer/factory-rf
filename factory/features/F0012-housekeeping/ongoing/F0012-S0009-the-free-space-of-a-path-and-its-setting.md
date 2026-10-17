@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 161
 blocked: null
 comments_seen: 0
@@ -128,3 +128,11 @@ Expect: `5`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 7 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Acceptance criteria: I read each of criteria 1–8 against its test, and each test checks what its criterion says. `tests/domain/test_disk.py` has 5 `gigabytes` rows and 4 `disk_low_detail` rows; the exact minimum gives None and one byte below gives the fault. `tests/adapters/test_disk_space.py` covers `free_bytes` within the total and a missing path raising `FileNotFoundError`. It also covers `used_bytes` with files only, a link to a file, a link to a folder, a named pipe and a missing path. `tests/domain/test_settings_min_free.py` covers unset, empty, blank, 1, ` 12 `, 0, -1, 2.5, `five` and `٣`, plus the model's default, 1 and 0 through `type[BaseModel]`. `tests/entry/test_wiring_boundaries.py` checks `disk` as built and `None` when left out. `tests/application/test_disk_space_interface.py` checks the abstract methods and the subclass. Both sides of every stated limit are tested: `PositiveInt` at 0 and 1, the setting at 0 and 1, and the minimum at exactly and one byte below. No existing test function changed. The coder's entry records `check: green`.
+      - Architecture: `DiskSpace` is an ABC in `application/machine.py` whose method bodies are docstrings only. `ShutilDiskSpace` in `adapters/disk_space.py` inherits it and uses the standard library only, with no command-line tool. The pure text rules are in `domain/disk.py`, which imports only `domain/settings`. The wiring is only in `entry/wiring.py`. `Boundaries.disk` is the last optional field, as the Interface states.
+      - Implementation, checked against the Interface: `os.walk(followlinks=False)` puts links to folders among the folders and does not descend into them. `lstat` with `S_ISREG` skips links to files and pipes without opening them, and a missing path yields nothing, so it gives 0. `_min_free_gb` uses the shared `_optional`, which strips, and requires ASCII digits. `gigabytes` uses integer tenths, so it rounds down exactly.
+      - Security: no shell, SQL, secrets or suppression markers. The input check is at the settings boundary.
+      - Quality: I searched `src/factory` and found no existing helper for the same parsing, size walk or GB formatting. The `@override` methods without docstrings follow the existing adapters' style (`adapters/clock.py`). The comments explain why. The 7 new `make duplicates` dead-code findings are the parts S0010 and S0016 will use, as the coder's entry says.
+      - Ticket hygiene: the log gives the main decision (integer tenths rather than float formatting) and what was rejected (`rglob` with `is_file`, which follows links). `Assignment` matches what was built, and criterion 10 still describes the docs to write.
+      - Open, not a finding: if a file is removed during the walk, `used_bytes` passes on its `FileNotFoundError`. The Interface does not cover this; S0016, which calls `used_bytes`, may need to decide it.
