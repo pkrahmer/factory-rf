@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 189
 blocked: null
 comments_seen: 0
 round: 0
@@ -39,3 +39,9 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-17 feature acceptance of F0013: proposed.
+2. intake: accepted
+   - Interface: "None", which is right for a documentation-only story. It names the two documents that change (`README.md`, `docs/operator-guide.md`) and no code, image file or test. It states no behaviour, so no Interface comment needs a criterion.
+   - Criteria: each is checkable by a person or a command. 1 is a diff check on `src/`, `image/`, `template/`, `claude/` and `tests/`. 2 is `make check`. 3 (docs) names each sentence and heading to change, and `documents ok` checks the guide. The story states no limit, validation or error, so no failing side is missing.
+   - Demo: both commands run. I ran the grep on the current tree: `README.md:1` and `docs/operator-guide.md:4` (lines 3, 147, 149 and 248 of the guide). The Expect line is checkable: README 0, and the guide below 4 once the four stale sentences and the heading change. The second command prints `documents ok`.
+   - Architecture: nothing under `src/` changes, so the layers are untouched. The documenter's write paths cover `README.md` and `docs/*`.
+   - Scope: it is the F0013 documentation follow-up from the probe of 2026-10-17. It is not in the feature's Out of scope, and it follows decision 16's order (S0006 and S0007 are built before the second acceptance).
