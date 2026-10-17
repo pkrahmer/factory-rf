@@ -23,7 +23,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; the image sets it to `/home/factory/.secrets/hosting-token`. |
-| `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the image sets it (S0004). See "The agent runtime". |
+| `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.claude-token`. See "The agent runtime" and "The agent's login token". |
 | `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
 
@@ -107,13 +107,21 @@ The agent's home, `/home/agent`, stays writable by the agent, and the `claude` l
 
 A `sudo` that refuses is a misconfiguration, not a stall: when the call ends without a usable reply (a call that reached its time limit counts as one, even when it printed a reply first, so a `sudo:` line then stops the run too) and `sudo` printed a line that starts `sudo:` to standard error, the run stops with an error that holds that line (`sudo: a password is required`: the rule is missing or wrong). A `sudo:` line before a good reply, for example `sudo: unable to resolve host x`, is ignored. A run that dies for another reason is still a stall.
 
-**Log in once as `agent`.** The agent runs under `agent`'s own `claude` login, not yours as `factory`. Once per instance, with the container running:
+**The agent's login token.** The agent runs under its own login, not yours as `factory`. The login is a token, made once for all instances and the Podman machine:
+
+1. Run `claude setup-token`, on the host where Claude Code is installed, or in a running container as `agent`: `docker exec -it -u agent <container> claude setup-token`.
+2. Save the token it prints, with nothing else in the file, as `image/secrets/claude-token` (git ignores the folder). On Windows write it as plain text without a byte-order mark, for example `Set-Content -NoNewline -Encoding ascii image/secrets/claude-token <token>`: PowerShell 5's `>` writes UTF-16, which is not read as the token.
+3. Set the file's permissions for your host. Linux with Docker: `chown 1001:1002 image/secrets/claude-token` and `chmod 0440 image/secrets/claude-token` (the agent reads it as its owner; the group `factory-work` lets a run on an instance without an agent user, which runs as `factory`, read it too). Linux with rootless Podman: `chmod 0440` first, then `podman unshare chown 1001:1002 image/secrets/claude-token`. Windows and macOS: keep the folder in your own user account, where other accounts cannot read it.
+
+Compose mounts the file read-only at `/home/agent/.claude-token`, in the agent's home and outside the volume `claude-home`, and the image sets `FACTORY_CLAUDE_LOGIN_FILE` to that path. Every instance and the Podman machine use the same file and need no login of their own. The agent may read it, because it is the agent's own login; it lies outside `/home/factory/.secrets`, which the agent must not enter. A missing host file makes Compose refuse to start, instead of creating a folder in its place.
+
+An empty file means no token, and the agent then needs the manual login:
 
 ```
 docker exec -it -u agent <container> claude
 ```
 
-and complete the login. It is kept in `/home/agent`, which is in a volume only if you mount one there; otherwise a new container needs the login again.
+That login is kept in the volume `claude-home` (`/home/agent/.claude/.credentials.json`) and survives `docker compose down` and `up`. `/home/agent/.claude.json` lies outside the volume, and `claude` rebuilds it in a new container (both seen at the first start of 2026-10-17).
 
 **Morning observations.** The second user, the `sudo` rule and the group exist only in a real image, so the tests cannot show these. Do them once on a running instance and note the result:
 
@@ -124,6 +132,8 @@ and complete the login. It is kept in `/home/agent`, which is in a volume only i
 | The token's folder is the factory's | `docker exec <container> ls -lnd /home/factory/.secrets` | `drwx------` and uid 1000 |
 | WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
 | The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `775` for the directory, `664` for the file |
+| The agent can read its token | `docker exec -u agent <container> test -r /home/agent/.claude-token && echo readable` | `readable` |
+| The probe needs no login | start a new instance (a new `claude-home` volume) with the token file in place and read the health status | the preflight item `agent-run-probe` passes, with no login made by hand |
 | The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
 | The factory's restore after an agent-made directory | after the line above, `docker exec <container> sh -c 'cd /work/checkout && git clean -fd && git status --short'` | the directory is gone, no error |
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
@@ -189,6 +199,7 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 | `/work` | `2775`, `factory:factory-work` | Both users can write. |
 | `/work/checkout/.git` | `2750`, `factory:factory-work`; its files `0640` | Git's repository of the checkout. The factory alone writes it. The agent's git reads it (`git status`, `git diff`, `git log`) and cannot create, change, rename or remove anything in it. The work tree around it stays group-writable. |
 | `/etc/gitconfig` | `0644`, `root:root` | Git's system configuration, installed from `image/gitconfig`. The agent's git reads it; the factory's git wrapper does not (it sets `GIT_CONFIG_NOSYSTEM=1`). It names `/work/checkout` as a safe directory, so that the agent can run `git status`, `git diff` and `git log` in the checkout `factory` owns. The agent cannot change the file. |
+| `/home/agent/.claude-token` | the host file's owner and mode (`1001:1002`, `0440` on Linux), mounted read-only | The agent's login token. The agent can read it; it lies outside `/home/factory/.secrets` and outside the volume `claude-home`. |
 | `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
 
 ### The image on the cost records
@@ -209,7 +220,7 @@ FACTORY_REPOSITORY_URL=https://github.com/you/project.git FACTORY_INSTANCE=main 
 | `FACTORY_INSTANCE` | Required. This instance's name. Compose refuses to start when it is unset. |
 | `FACTORY_IMAGE` | Optional. Only a label for the build (default `unlabelled`); it is not the image's identity. |
 
-The compose project is named `factory-<instance>`, after `FACTORY_INSTANCE`. The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container, and are named `factory-<instance>_work`, `factory-<instance>_state` and `factory-<instance>_claude-home`. Two instances on one machine, and v1 beside v1.1, therefore get their own container and volumes and never replace or mount each other's. Renaming an instance changes the project name, so the renamed instance starts with new, empty volumes (a new checkout, a new state directory, a new `claude` login); the old volumes stay until you remove them.
+The compose project is named `factory-<instance>`, after `FACTORY_INSTANCE`. The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container, and are named `factory-<instance>_work`, `factory-<instance>_state` and `factory-<instance>_claude-home`. Beside them Compose bind-mounts two host files read-only: the agent's login token at `/home/agent/.claude-token` (from `image/secrets/claude-token`; see "The agent runs as a second user") and the hosting token (next section). Two instances on one machine, and v1 beside v1.1, therefore get their own container and volumes and never replace or mount each other's. Renaming an instance changes the project name, so the renamed instance starts with new, empty volumes (a new checkout, a new state directory, and a new `claude` login only when the token file is empty); the old volumes stay until you remove them.
 
 ### The hosting-service token
 
@@ -298,7 +309,7 @@ The preflight is a list of seven items, and of up to twelve with the machine's e
 
 `agent-run-probe` runs the agent runtime once, with the factory's own arguments: the shipped agent `coder`, a budget of 0.10 dollar, a fixed one-line prompt, the decision `question` only, a time limit of 2 minutes, as the agent user, with the agent run's environment and a guard that gives no write path. It costs a few cents. Like the other machine items it runs once for each image build and is skipped while the image is unchanged.
 
-It fails with `the probe run ended <reason>; run claude -p by hand as <agent user> to see why` when the run does not end `completed`. Without `FACTORY_AGENT_USER` the detail names `the factory user` in place of `<agent user>`. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. A login file that cannot be read or is not ASCII text fails the item with the runtime's message, `cannot read the agent's login file <file>: ...`. The usual causes are a flag the pinned `claude` rejects (every real run would end `died` with no text that says why), a login missing for the agent user (log in as that user and keep the login in its `HOME`), and a run that ran out of its budget or time. A refused `sudo` (`sudo: a password is required`: the rule is missing or wrong) and a state directory that cannot be written fail it with the runtime's own message, and a missing agent `coder` fails it with the reader's message naming the agent. All of these stop the machine before any work item is claimed.
+It fails with `the probe run ended <reason>; run claude -p by hand as <agent user> to see why` when the run does not end `completed`. Without `FACTORY_AGENT_USER` the detail names `the factory user` in place of `<agent user>`. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. A login file that cannot be read or is not ASCII text fails the item with the runtime's message, `cannot read the agent's login file <file>: ...`. The usual causes are a flag the pinned `claude` rejects (every real run would end `died` with no text that says why), a login missing for the agent user (a missing or expired token when the detail names the login file; otherwise log in as that user and keep the login in its `HOME`), and a run that ran out of its budget or time. A refused `sudo` (`sudo: a password is required`: the rule is missing or wrong) and a state directory that cannot be written fail it with the runtime's own message, and a missing agent `coder` fails it with the reader's message naming the agent. All of these stop the machine before any work item is claimed.
 
 The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first. The commit identity is not an item.
 

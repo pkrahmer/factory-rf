@@ -46,6 +46,8 @@ ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token
 COPY image/sudoers-factory-agent /etc/sudoers.d/factory-agent
 RUN sed -i 's/\r$//' /etc/sudoers.d/factory-agent && chmod 0440 /etc/sudoers.d/factory-agent && visudo -cf /etc/sudoers.d/factory-agent
 ENV FACTORY_AGENT_USER=agent
+# The agent's login, a token from `claude setup-token` that Compose mounts; each agent run's shell reads it.
+ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token
 # A fresh id per build, so a rebuild never keeps a stale preflight stamp valid.
 RUN cat /proc/sys/kernel/random/uuid > /opt/factory/image-id
 ENV PATH=/opt/factory/.venv/bin:$PATH \
