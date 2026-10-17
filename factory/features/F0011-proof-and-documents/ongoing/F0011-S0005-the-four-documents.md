@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 149
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -184,3 +184,4 @@ Expect: five lines, `README.md: missing`, `docs/operator-guide.md: missing`, `do
    My recommendation is (a): the test is meant to stop code from knowing a follow mode, and a list of forbidden phrases is not such code.
 
    No refactor pass yet; it follows once the check is green. Nothing else is open.
+5. human (pull request comment, 2026-10-17): (a), the first form: the tester exempts exactly `src/factory/domain/documents.py` and its compiled `.pyc` from `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode`, by name, with a comment saying why (the list of replaced phrases must name them); every other file under `src/` stays searched. This is the human's leave for that change to an earlier story's test (recorded as F0011 decision 21). `src/` keeps the constants as the Interface states.
