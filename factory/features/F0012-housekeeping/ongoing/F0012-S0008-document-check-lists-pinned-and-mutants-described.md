@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The document check's v1 words and required sections, pinned in full, and `make mutants` described
 
 <!-- takes in the parked draft F0011-S0007 (proposed by F0011's feature acceptance of 2026-10-17), criteria 1 to 3 -->
