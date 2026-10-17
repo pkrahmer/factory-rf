@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 197
 blocked: null
 comments_seen: 0
 round: 0
@@ -60,3 +60,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: concrete. It names the Dockerfile line and its place (after `ENV FACTORY_AGENT_USER=agent` at line 48, before `USER factory` at line 57), and the compose entry, its place (fourth, before the comment above the hosting token's mount, which I confirmed in `image/compose.yml`), its key order and its values. It names the new test module and the one earlier test that changes, with the exact expected dict. `CLAUDE_LOGIN_FILE_VARIABLE` exists in `src/factory/domain/settings.py:29`.
+   - Criteria: each is testable by one test function. 1 is the Dockerfile line once, in order. 2 is the constant. 3 is the compose entry and its target matching the ENV value. 4 is the path-parts checks (parent, not inside `.secrets`, not inside a volume target). 5 and 6 are existing tests that must still pass. 7 is a review-only comment, as the story says. 8 is `make check`. 9 is docs. The rules in the Interface have a failing side: a missing host file is `create_host_path: false` (criterion 3). The string-prefix trap is criterion 4's failing side.
+   - Demo: runnable. The first two commands and the pytest line are concrete, and each `Expect:` line is checkable. One check: the pytest Demo names five test modules that exist or are new.
+   - Architecture: only `image/` files change, which is within the coder's write paths. No layer is touched, and nothing is added to the source.
+   - Scope: this is S0004 of F0014 (the image's mount and the guide's steps), matching FEATURE.md's Scope bullet on the login and decisions 10, 12 and 14. The one earlier-test change is covered by the human's leave in decision 14. API keys and a preflight item for the login file are out of scope and not touched.
