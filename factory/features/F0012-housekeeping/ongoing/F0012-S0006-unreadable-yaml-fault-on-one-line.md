@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 158
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 1
 attempts: 0
 ---
@@ -145,3 +145,4 @@ Expect: exactly two lines and no `accepted`: `not valid YAML: found duplicate ke
    - (c) No new criterion: the fix stays and remains untested.
 
    I recommend (a): it pins the escaped form the code now produces. If you choose (a) or (b), I will end the next round with `tests` so the tester adds the row.
+7. human (pull request comment, 2026-10-17): (a). Add the criterion with the exact escaped fault for `"a: 1\na: |\n  x\n  y\n"`, the Interface sentence (a line break inside the problem is written as the two characters `\n` or `\r`), and the tester's row in `test_a_yaml_error_is_refused_with_its_problem_and_position` plus that text in `test_a_yaml_fault_holds_no_line_break`.
