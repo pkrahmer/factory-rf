@@ -57,6 +57,7 @@ Check that the story is buildable before anyone spends tokens on it. You do not 
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - Every clause of an Interface rule has its own criterion, on both sides: an ordering, the second branch of an "or", a "when longer than", the value for every kind an enum names, an exact value beyond its first part. A clause without one is a question.
 - Every behaviour that the Description, the Interface or a decision of the feature states has its own criterion; one without is a question.
 - A story that changes a test another story wrote names that test and has the human's word; one that does not is a question.

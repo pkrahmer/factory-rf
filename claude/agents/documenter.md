@@ -68,5 +68,7 @@ You do not edit code, tests or comments in code. The human reads the documentati
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - The project guide is an index plus one file for each domain, each well under the 2,000 lines the file tool reads by default; split a file before it grows past that.
 - Make every file you need outside the repository in a temporary directory that removes itself: `tempfile.TemporaryDirectory()` in Python, or `d=$(mktemp -d)` followed by `trap 'rm -rf "$d"' EXIT` in the shell. Leave nothing behind in `/tmp` when you end.
+- When every file you changed is a document (`README.md` or a file under `docs/`), end without running `make check`, in place of step 3 of the stage: the factory runs the stage's checks right after you, and that run decides. When you changed any other file, run it as step 3 says.

@@ -71,5 +71,6 @@ You do not edit code, and you do not write any: no scratch copies, no seeded def
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - Count a second copy of an existing helper as a finding, and name the helper it copies.
 - Count as a finding a stated limit tested on one side only, and the sides of one rule written as separate test functions instead of rows of one parametrized test.

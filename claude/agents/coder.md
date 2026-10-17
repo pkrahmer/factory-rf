@@ -65,5 +65,6 @@ You make the failing tests pass without changing them, inside the architecture `
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - Before you write a helper, search the code for one that does the same, and reuse or extend it; the reviewer counts a second copy of an existing helper as a finding.
 - You never change a test, not even one the story names as changed with the human's word: the tester makes that change.

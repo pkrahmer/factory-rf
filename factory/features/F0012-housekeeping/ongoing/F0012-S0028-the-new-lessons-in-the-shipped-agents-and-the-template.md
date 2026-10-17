@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 178
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The lessons since F0010-S0017 in the shipped agents and the template
 
 ## Assignment (as of log entry 1)
@@ -75,3 +83,88 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: the three new bullets are given word for word, one line each. A table lists the exact bullet order of the seven `## Lessons` sections. The template gets the time-limit bullet at the end of *Tests*, after `- Fake commit ids`. The two test changes are named: `_SECOND_LESSON` in `LESSONS`, and the time-limit bullet in `TEMPLATE_RULES_LINES`.
+   - Criteria: criteria 1 to 4 are each checked by an existing test (`LESSONS`, `test_template_rules_file_is_the_python_project_text`, the other tests in the three modules), so one test function can decide each. Criterion 5 is `make check`. Criterion 6 is the docs criterion and uses the document check.
+   - Failing sides: the Interface states no limit, validation or rejected input. The bullets are text, and the exact-list comparison of `LESSONS` fails on a missing, extra or misordered bullet. The Demo also pins the negative cases: the time-limit bullet is not in `coder.md`, and the documents-only bullet is not in `tester.md`.
+   - Demo: all three blocks are runnable (`grep -c`, `uv run pytest`). Each `Expect:` line gives exact counts or a last-line form that can be checked against the output.
+   - Architecture: the change touches only `claude/agents/*.md` and `template/CLAUDE.md`, which are shipped text inside the coder's write paths. No layer or code is involved.
+   - Scope: the story is inside F0012's "What v1.1 ships to new projects" item. The mutation-testing row is explicitly left to S0029, and S0011's bullets are assumed already merged. FEATURE decision 48 covers the human's leave to change the two tests.
+3. tester: Changed the two existing tests the story names, as FEATURE decision 48 allows. No new test functions: criteria 1 to 4 are checked by tests that already exist.
+   - criterion 1: tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets (parametrized over the seven agents). Added a new constant `_SECOND_LESSON` holding the timeout bullet word for word from the Interface. It is now second in all seven `LESSONS` lists, including smoke-tester's one-line list.
+   - criterion 2: the same test. Added a new constant `_TIME_LIMIT_LESSON`, now the last entry of `tester`. The documents-only bullet is now the last entry of `documenter`. The list lengths now match the Interface's table: intake 5, tester 6, coder 4, reviewer 4, documenter 5, smoke-tester 3, acceptance-reviewer 4.
+   - criterion 3: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text. Added the time-limit bullet to `TEMPLATE_RULES_LINES` after the `- Fake commit ids` line, so it is the last bullet of *Tests*.
+   - criterion 4: the other tests of tests/test_claude_agent_texts.py, tests/test_claude_files.py and tests/adapters/test_shipped_agents_effect.py. They are unchanged, and in this run they were not among the failures.
+   - criteria 5 and 6: `make check` and the docs stage; no tests here.
+   Files changed: tests/test_claude_agent_texts.py, tests/test_claude_files.py. No files created. No import failures: the two changed modules import fine, and the only failures are wrong results. In the `make test` run, these failed: the lessons test for documenter, smoke-tester and acceptance-reviewer (the last lines shown), and the template test. That is red for the right reason. `make lint` is green. I checked by evaluation that the three bullet strings match the Interface word for word. S0011's bullets were already in the agents and in `LESSONS`, so nothing else needed changing.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[acceptance-reviewer]
+4. coder: Added the three lessons as the Interface states them. Commit 2abcfe0b.
+   - `claude/agents/*.md` (all seven): the timeout bullet is now second in `## Lessons`, right after the foreground bullet. `claude/agents/tester.md` ends with the time-limit bullet and `claude/agents/documenter.md` with the documents-only bullet.
+   - `template/CLAUDE.md`: the time-limit bullet comes right after `- Fake commit ids`, so it is the last bullet of *Tests*.
+   - Each bullet is one line and matches the Interface word for word. These are the same strings as the tester's `_SECOND_LESSON`, `_TIME_LIMIT_LESSON` and `TEMPLATE_RULES_LINES`. Nothing else in the bodies or the template changed.
+   - Design: I placed the bullets with a one-off script anchored on the first lesson line and on the `- Fake commit ids` line, so no other line could move. I did not hand-edit each file because it repeats the same work eight times. The script lived outside the repository and is deleted.
+   - Tests: `tests/test_claude_agent_texts.py`, `tests/test_claude_files.py` and `tests/adapters/test_shipped_agents_effect.py` all pass, and `make check` is green.
+   - Refactor: nothing to change. The diff is ten added text lines with no code.
+   - Open: the docs criterion (6) is for the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+   - Acceptance criteria: all four criteria are covered by tests that already existed. Criteria 1 and 2 are covered by `tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets`, which compares each agent's whole `LESSONS` list. Criterion 3 is covered by `tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text`. Criterion 4 is covered by the other tests in the three modules. The coder's entry records `make check` as green.
+   - Test changes: the tester changed only what the Interface names under FEATURE decision 48. That is `_SECOND_LESSON`, now second in all seven lists; `_TIME_LIMIT_LESSON`, last in `tester`; the documents-only bullet, last in `documenter`; and the time-limit line in `TEMPLATE_RULES_LINES` after `- Fake commit ids`. No other test was changed.
+   - Shipped text: I read `claude/agents/*.md` and `template/CLAUDE.md` in the diff against the Interface. Each new bullet is one line and matches the Interface word for word. The bullet order in each `## Lessons` section matches the table (intake 5, tester 6, coder 4, reviewer 4, documenter 5, smoke-tester 3, acceptance-reviewer 4). The template bullet is the last bullet of *Tests*. No other line in the bodies or the template changed.
+   - Failing sides: the Interface states no limit or rejected input. Because the test compares the whole list exactly, a missing, extra or misplaced bullet fails it.
+   - Architecture, security, quality: the change is shipped text and test constants only. There is no code under `src/`, no suppression marker and no new dependency. Inlining the documents-only bullet, which is used once, matches how the other single-use lessons are written.
+   - Ticket hygiene: the Assignment matches what was built. The coder's log explains how the bullets were placed. Criterion 6 still says what the documenter must write in the project guide.
+6. documenter: Changed only `docs/project-guide.md`, two edits in the section on the shipped agents, settings and template.
+   - *The seven agents*, the `## Lessons` bullet: it now says the first two bullets (foreground, and the shell tool's largest timeout) are in every body. It names the tester's time-limit lesson and the documenter's documents-only lesson as their last bullets.
+   - Same bullet: the old text said `documenter` ends with the temporary-directory lesson, which is no longer true. It now says `smoke-tester` and `acceptance-reviewer` end with it, and `documenter` carries it before its last bullet.
+   - *The template*, the `template/CLAUDE.md` bullet: it now names the time-limit lesson among the Python lessons it carries.
+   - Cross-read: the diff of `claude/agents/*.md`, `template/CLAUDE.md` and the two tests matches the Interface word for word. No other document mentions the lessons.
+   - I ran `python -m factory.entry.check_documents`: it prints `documents ok`.
+   - I did not run `make check`, because I changed only documents; the factory runs it next.
+   - No code findings.
+   - Stale but not touched: the same bullet says `acceptance-reviewer` "ends with" the temporary-directory lesson, and the next sentence says it ends with the JUnit lesson. That wording was there before this story, and I left it as it was.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: I ran the three Demo blocks from the repository root, in order. All three met their `Expect:` lines and I found nothing wrong.
+
+   1. `grep -c "the shell tool's largest timeout" claude/agents/*.md`
+   ```
+   claude/agents/acceptance-reviewer.md:1
+   claude/agents/coder.md:1
+   claude/agents/documenter.md:1
+   claude/agents/intake.md:1
+   claude/agents/reviewer.md:1
+   claude/agents/smoke-tester.md:1
+   claude/agents/tester.md:1
+   ```
+   Met: seven lines, one for each agent, each ending in `:1`.
+
+   2. `grep -c "room to start" claude/agents/tester.md template/CLAUDE.md claude/agents/coder.md`, then `grep -c "every file you changed is a document" claude/agents/documenter.md claude/agents/tester.md`
+   ```
+   claude/agents/tester.md:1
+   template/CLAUDE.md:1
+   claude/agents/coder.md:0
+   claude/agents/documenter.md:1
+   claude/agents/tester.md:0
+   ```
+   Met: these are exactly the counts the Expect line asks for.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_agent_texts.py tests/test_claude_files.py`
+   ```
+   ........................................................................ [ 63%]
+   ..........................................                               [100%]
+   114 passed in 0.08s
+   ```
+   Met: the last line is `114 passed`, with no failed, error or skipped count.
+
+   Checked against the criteria:
+   - Criteria 1 to 3: the passing tests compare the whole `LESSONS` lists and the whole template text.
+   - Criterion 6: `uv run python -m factory.entry.check_documents` prints `documents ok`. The `## Lessons` bullet and the template bullet in `docs/project-guide.md` say what criterion 6 asks for.
+   - The working tree was clean when I started.
+
+   Not a finding, but worth fixing in a later story: one sentence in the project guide says `acceptance-reviewer` "ends with" the temporary-directory lesson, but its last bullet is the JUnit lesson. The documenter noted this wording was there before this story, and no criterion covers it.

@@ -59,4 +59,5 @@ Leaving the approval is the human's: merging the pull request accepts the story,
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
+- Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - Make every file you need outside the repository in a temporary directory that removes itself: `tempfile.TemporaryDirectory()` in Python, or `d=$(mktemp -d)` followed by `trap 'rm -rf "$d"' EXIT` in the shell. Leave nothing behind in `/tmp` when you end.
