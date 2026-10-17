@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 152
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0011-S0001, F0011-S0002, F0011-S0003, F0011-S0004, F0011-S0005, F0011-S0006]
+outcome: accepted
 ---
 # Acceptance of Proof and documents
 
@@ -259,3 +260,4 @@ The six stories cost 60 runs, 150.1 min and $17.75. The first acceptance is not 
    6 Decisions: 19–21 are still to confirm. 22 (S0006's test edits) was checked, and nothing was lost. S0007 was applied by hand without review or demo; this acceptance checked it. Open for the human: wire the check into make check or stages.yml; junit_family; grant mutmut.
    7 Slow checks: none beyond make check (green as found, 99.53 %). There is no mutants target. The document check prints documents ok.
    8 Cost: 60 runs, 150.1 min, $17.75. S0006 is the cheapest story ($1.08, 6 runs, no send-back): it was pre-checked, needed a two-line fix, and had the test leave given in advance. S0001 is still 38 % of the cost, for the reasons the first acceptance gave.
+2. done (pull request merged); cost: 2 runs, 26.4 min, 82 turns, 216k tokens in (5666k more from cache), 59k out, $4.03
