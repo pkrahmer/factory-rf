@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 188
 blocked: null
 comments_seen: 0
@@ -126,3 +126,4 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
    - Criterion 7: I read the paragraph "The probe of the agent run" in `docs/operator-guide.md`. At line 282 it now says that without `FACTORY_AGENT_USER` the detail names `the factory user`.
    - No criterion is contradicted.
    - Criterion 6 (`make check`) is the factory's gate; I did not run it in this stage.
+8. done (pull request merged); cost: 6 runs, 3.1 min, 32 turns, 132k tokens in (324k more from cache), 9k out, $0.76
