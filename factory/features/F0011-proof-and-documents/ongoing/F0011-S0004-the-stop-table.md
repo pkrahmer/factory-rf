@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 148
 blocked: null
 comments_seen: 0
 round: 0
@@ -128,3 +128,9 @@ Expect: the last line reports `passed` and neither `failed` nor `error`.
 ## Log (append only)
 
 1. 2026-10-12 human: created.
+2. intake: accepted
+   - Interface: `src/factory/domain/stop_table.py` names `StopRow`, `Destination`, `STOP_TABLE` with concrete fields and validator rules; the fourteen rows are spelled out, and the 7 reason values match `RepositoryStopReason` in `domain/stops.py`. The one code change (`RemoteWorkItems.read`) names its module and the behaviour.
+   - Criteria: 1 to 18 are each testable by one function. Every Interface rule has both sides: reason set exactly when `health_status` (criterion 4 covers missing and surplus reasons), non-empty limits and `^L\d+$` (empty and `"X7"` rejected, first row accepted), closed model (criterion 5). The read change has both sides in criterion 16 (duplicate read from main; missing file still raises). Error caps are checked at the second and third ticks, plus three more ticks with no repeat.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable (fourteen lines with named first, seventh, eighth and last; `True`; the `passed` line).
+   - Architecture: the table is data in `factory.domain`, with no I/O. It imports only `factory.domain.stops`. The tests use the existing helpers (`tests/proof_support.py`, `tests/source_search.py`, `FakeHosting.fail_next` and `pull_requests`).
+   - Scope: stays within F0011's stop-table scope (L11, L19, L26, L30, L33, L55, L58, L64, L65). The producers of the machine stops stay out of scope. The F0006 code change is recorded as decision 19 in `FEATURE.md`.
