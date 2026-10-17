@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 166
 blocked: null
 comments_seen: 0
@@ -202,3 +202,28 @@ Expect: four lines: the header `| stage | runs | min | model min | turns | in | 
      - The docs criterion (13) still describes what the documenter must write.
 
    Open, not part of this ticket: `make duplicates` reports 2 new vulture hits on `used_bytes` in `src/factory/adapters/disk_space.py:19` and `src/factory/application/machine.py:48`. Both files are outside this diff.
+10. documenter: docs (round 1): I wrote the documentation the docs criterion asks for. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only documents. The factory's check after this stage is the gate.
+
+    Files changed:
+    - `docs/project-guide.md`, *The agent runtime*:
+      - The measures paragraph now says `model_duration` is the reply's `duration_api_ms`. It is unknown when the reply lacks the field or the time limit killed the call, and a negative value makes the call `died`.
+      - It says `duration` stays what the factory measured, and the "JSON's own durations are ignored" wording is replaced. `duration_ms` is still ignored.
+      - The resume paragraph gives the sum rule for `model_duration`.
+    - `docs/project-guide.md`, *Cost records*:
+      - `model_seconds` is named in the completion step, in the field list and in the rules for a started record.
+      - It is also named in the non-negative and finite rule, which now says the rest of a run's duration is the tools' and the factory's.
+      - A line written before the key existed reads with `None`.
+      - Both example lines carry the key.
+    - `docs/project-guide.md`, *Bills*: `model_duration` is in the `Bill` fields and in the summing rule.
+    - `docs/operator-guide.md`, *What a work item cost: `factory-bill`*: the opening paragraph says each record also holds the model's time.
+    - `docs/operator-guide.md`, *The cost table*: the example table has the `model min` column, and the table of columns has a `model min` row.
+    - `docs/decisions.md`: a new entry explains why the time per tool command inside a run is not recorded. The single JSON reply does not carry it, and it would need `claude`'s streamed events.
+
+    The numbers in the operator guide's example table are illustrative. I did not run them through `factory-bill`; I only checked that the rows add up to the total row.
+
+    Cross-read and found current: the other sections of `docs/operator-guide.md` and `docs/project-guide.md`, `README.md`, and the older entries in `docs/decisions.md`. None of them names the cost table columns or `duration_api_ms`.
+
+    No findings for the coder. The code matches the Interface. The two vulture hits on `used_bytes` (`src/factory/adapters/disk_space.py:19` and `src/factory/application/machine.py:48`) were already noted by the coder and are unrelated to this story, so I left them.
+
+    `make check`: check: green
+    `make documents`: documents ok
