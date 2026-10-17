@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 168
 blocked: null
 comments_seen: 0
 round: 0
@@ -54,3 +54,9 @@ Expect: two lines: `Disk now: disk acceptance: /work 1.0 GB free, 0.1 GB used` a
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted
+   - Interface: names concrete modules and signatures (`AcceptanceFacts.disk_now`/`disk_before`, `acceptance_facts(..., *, disk_now, disk_before)`, `AcceptanceService.facts`, the sentence for `claude/agents/acceptance-reviewer.md` check 7). The things it uses exist: `DiskRecorder.record`/`last` in `application/disk_records.py`, `disk_line` in `domain/disk.py`, `FakeDiskSpace` in `tests/disk_support.py`, and check 7 "The slow checks" in the agent file.
+   - Criteria: each is testable by one test function. Every Interface behaviour has one: the two added lines and `none` (1), the unchanged three lines (2), the previous record (3), a `start` record counting as previous (4), the sentence (6). The failing side is covered by 2 (no `disk_now`, also with `disk_before` set) and 5 (no disk, records or settings: `disk_now is None`, nothing appended).
+   - Demo: runnable with `uv run python -c`, and its Expect line names the two exact lines to compare.
+   - Architecture: the domain gets pure fields and lines. The application service calls `DiskRecorder` through the boundaries. No new layer crossing, no new dependency.
+   - Scope: within F0012's item 1.4 ("the disk record (S0016, S0017)") and decision 23. It adds no new feature and touches nothing under "Out of scope".
