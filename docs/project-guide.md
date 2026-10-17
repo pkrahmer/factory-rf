@@ -690,7 +690,7 @@ The handler posts nothing; `AskHandler` posts the question. Tests: `tests/applic
 
 - `blocked` unset: the comments are only copied.
 - `blocked` set: `copy` gets an `adjust` function, so the answer lands in the same commit as the copied comments. `adjust` finds the factory's post of the wait, the comment listed with `by_factory` and the key `PostKey(work_item, <the blocked value>, str(<number of the latest question record>))`. It applies `unblock` when a comment of this copy has a non-blank body and an id greater than the post's. With no such post (not posted yet, or only an earlier question's) or no such comment, the document is unchanged and the wait stays.
-- `unblock(state)` (`factory.domain.answers`) sets `blocked` to `None`, resets `attempts` to 0 when the wait was `attempts_cap` and `crashes` to 0 when it was `crash_cap`, and keeps `round`, so a later send-back at the cap asks again. A state that does not wait is returned as it is.
+- `unblock(state)` (`factory.domain.answers`) sets `blocked` to `None`, resets `attempts` to 0 when the wait was `attempts_cap` `crashes` to 0 when it was `crash_cap` and `round` to 0 when it was `round_cap`, so an answer at the round cap starts the count of rounds over (the count also holds the approval's send-backs). For any other wait, `send_back` included, it keeps `round`, so a later send-back past the cap asks again. A state that does not wait is returned as it is.
 
 The answer is read from ids and keys, never from the comment's text. Tests: `tests/application/handlers/test_comment_handler.py`, `tests/domain/test_answers.py`.
 

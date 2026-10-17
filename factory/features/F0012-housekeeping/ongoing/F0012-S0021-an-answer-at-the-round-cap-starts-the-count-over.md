@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 171
 blocked: null
 comments_seen: 2
@@ -102,3 +102,16 @@ Expect: two lines: `None 0` and `This work item has now been sent back 4 times, 
       - Security: no new markers, secrets or process calls.
       - Quality: `src/factory/domain/answers.py:19-20` follows the existing branch-per-cap pattern. The docstring sentence on `round` is updated to match, and the module docstring ("its own counter starts over") now fits every cap. No other place in `src/factory` still says that an answer keeps `round`. `make duplicates` reports 0 new findings.
       - Ticket hygiene: the log gives the main decision, the per-cap branch rather than a lookup table, and the rejected option of posting in the same tick as the block. Assignment and Interface match the code. Criterion 6 still describes what the documenter has to write.
+10. documenter: wrote criterion 6. I ran no `make check`, because I changed only documents. `python -m factory.entry.check_documents` prints `documents ok`.
+    - `docs/operator-guide.md`, "The factory's own questions":
+      - The table row for the round cap now says an answer starts the count over.
+      - The bullet on what an answer resets now says `round` goes back to 0 for the round cap. It says the count also holds the approval's send-backs. It says an answer to the approval's send-back question keeps `round`, so the next send-back past the cap asks again.
+      - The round cap question text is the new one. The paragraph says an answer resets `round` and a close discards the work item.
+    - `docs/project-guide.md`: the description of `unblock` (line 693) says the same.
+    - `docs/decisions.md`: new entry "An answer at the round cap starts the count of rounds over". It records why the count starts over instead of granting exactly one round: the code does not read the answer's words, so an answer can only reset or keep the count, and keeping it made "one more round" impossible.
+    - Cross-read against the diff and found current: the rest of the operator guide and project guide, including the "The reason and the round cap" section and the post-text paragraph (it names the function, not the text). I did not read README.md.
+    - Stale but not touched: nothing seen.
+    - Findings: none. The code matches the Interface.
+
+    `make check`: check: green
+    `make documents`: documents ok
