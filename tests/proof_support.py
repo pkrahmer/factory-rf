@@ -244,7 +244,7 @@ def _work_item_path(world: World, work_item: WorkItemId) -> str:
     raise AssertionError(f"{work_item} is not in progress on origin/main")
 
 
-def _opening_text(world: World, path: str) -> WorkItemDocument:
+def _opening_document(world: World, path: str) -> WorkItemDocument:
     boundaries = world.boundaries
     text = boundaries.git.show_file("origin/main", path)
     assert text is not None
@@ -276,7 +276,7 @@ def leak_writes(world: World, work_item: WorkItemId, *, stage: str | None = None
     if boundaries.git.resolve(branch) is not None:
         text = boundaries.git.show_file(branch, path)
     if text is None:
-        document = _opening_text(world, path)
+        document = _opening_document(world, path)
     else:
         document = boundaries.work_item_reader.parse(text)
     if stage is not None:
@@ -355,13 +355,14 @@ def _claim_commits(world: World, work_item: WorkItemId, ref: str) -> list[Commit
     path = _work_item_path(world, work_item)
     found: list[CommitId] = []
     for info in git.log(ref, since=MAIN, path=path):
-        state = _state_at(world, info.commit, path)
+        state = state_at(world, info.commit, path)
         if state is not None and state.claim is not None:
             found.append(info.commit)
     return found
 
 
-def _state_at(world: World, ref: str, path: str) -> WorkItemState | None:
+def state_at(world: World, ref: str, path: str) -> WorkItemState | None:
+    """The state of the work item file `path` at `ref`, or None when `ref` has no such file."""
     text = world.boundaries.git.show_file(ref, path)
     if text is None:
         return None
@@ -400,8 +401,7 @@ def _rerun(
     empty_disk: bool = False,
     queue: bool = True,
 ) -> CaseResult:
-    world.clock.advance(KILL_TO_RERUN)
-    restarted = restart(world, empty_disk=empty_disk)
+    restarted = rerun(world, empty_disk=empty_disk)
     if queue:
         restarted.agent_runtime.queue(_question())
     run_ticks(restarted)
@@ -499,7 +499,7 @@ def drive_to(world: World, work_item: WorkItemId, stage: str) -> None:
 def head_state(world: World, work_item: WorkItemId) -> WorkItemState:
     """The work item's state on `origin/<branch>`."""
     world.boundaries.git.fetch()
-    state = _state_at(world, f"origin/{branch_name(work_item)}", _work_item_path(world, work_item))
+    state = state_at(world, f"origin/{branch_name(work_item)}", _work_item_path(world, work_item))
     assert state is not None
     return state
 
@@ -513,6 +513,16 @@ def work_item_file(world: World, work_item: WorkItemId) -> str:
         path for path in listed if Path(path).name.startswith(work_item) and path.endswith(".md")
     ]
     return path
+
+
+def branch_state(world: World, work_item: WorkItemId) -> WorkItemState | None:
+    """The state on the work item's branch after a fetch, or None when there is no branch."""
+    git = world.boundaries.git
+    git.fetch()
+    branch = f"origin/{branch_name(work_item)}"
+    if git.resolve(branch) is None:
+        return None
+    return state_at(world, branch, work_item_file(world, work_item))
 
 
 def head_journal(world: World, work_item: WorkItemId) -> list[JournalRecord]:
@@ -578,7 +588,7 @@ def _stall_commit(world: World, work_item: WorkItemId) -> CommitId | None:
     adding: CommitId | None = None
     branch = f"origin/{branch_name(work_item)}"
     for info in world.boundaries.git.log(branch, since=MAIN, path=path):
-        state = _state_at(world, info.commit, path)
+        state = state_at(world, info.commit, path)
         if state is not None and any(record.kind == "stall" for record in state.journal):
             adding = info.commit
     return adding
@@ -594,6 +604,19 @@ def _branch(result: CaseResult) -> str:
     return f"origin/{branch_name(result.work_item)}"
 
 
+def rerun_seconds(result: CaseResult) -> float:
+    """Seconds from the kill to the claim of the newest claim commit of the result's branch."""
+    assert result.killed_at is not None
+    world = result.world
+    world.boundaries.git.fetch()
+    starts = _claim_commits(world, result.work_item, _branch(result))
+    assert starts, "no commit of the branch carries a claim"
+    state = state_at(world, starts[0], _work_item_path(world, result.work_item))
+    assert state is not None
+    assert state.claim is not None
+    return (state.claim.started_at - result.killed_at).total_seconds()
+
+
 def _resumes_at_first_tick(result: CaseResult, case: KillPointCase) -> bool:
     if not case.charges_crash:
         return result.world.agent_runtime.requests() == []
@@ -604,14 +627,9 @@ def _resumes_at_first_tick(result: CaseResult, case: KillPointCase) -> bool:
 def _kill_to_rerun_recorded(result: CaseResult, case: KillPointCase) -> bool:
     if not case.charges_crash:
         return True
-    world = result.world
-    starts = _claim_commits(world, result.work_item, _branch(result))
-    if not starts or result.killed_at is None:
+    if result.killed_at is None:
         return False
-    state = _state_at(world, starts[0], _work_item_path(world, result.work_item))
-    assert state is not None
-    assert state.claim is not None
-    return state.claim.started_at - result.killed_at == KILL_TO_RERUN
+    return rerun_seconds(result) == KILL_TO_RERUN.total_seconds()
 
 
 def _no_repeated_post(result: CaseResult, _case: KillPointCase) -> bool:
@@ -670,7 +688,7 @@ def _stalled(result: CaseResult) -> _Stalled | None:
     commit = _stall_commit(world, result.work_item)
     if commit is None:
         return None
-    state = _state_at(world, commit, path)
+    state = state_at(world, commit, path)
     assert state is not None
     return _Stalled(result, path, commit, state)
 
@@ -692,7 +710,7 @@ def _state_restored(stalled: _Stalled) -> bool:
     world = stalled.result.world
     git = world.boundaries.git
     starts = _claim_commits(world, stalled.result.work_item, stalled.commit)
-    start = _state_at(world, starts[0], stalled.path) if starts else None
+    start = state_at(world, starts[0], stalled.path) if starts else None
     leaked = any(
         JOURNAL_LEAK in (git.show_file(commit, stalled.path) or "")
         for commit in _remote_commits(world)
