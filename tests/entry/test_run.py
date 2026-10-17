@@ -2,6 +2,7 @@
 
 import re
 import signal
+import tempfile
 import threading
 from collections.abc import Callable, Iterator, Mapping
 from datetime import UTC, datetime, timedelta
@@ -13,10 +14,12 @@ import factory.entry.run as run_module
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
+from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import DispatchOutcome
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.agent_runs import AgentRunResult
+from factory.domain.disk import DiskRecord
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import Event, EventKind
 from factory.domain.settings import InstanceSettings, read_settings
@@ -30,7 +33,7 @@ from factory.entry.run import (
     run_instance,
     run_until_stopped,
 )
-from factory.entry.wiring import handler_factory, health_store
+from factory.entry.wiring import handler_factory, health_store, read_environment_settings
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 
@@ -283,6 +286,34 @@ def test_run_instance_builds_one_tick_for_the_whole_run(
     assert len(built) == 1
 
 
+def test_run_instance_writes_one_start_disk_record_before_it_runs(
+    settings: InstanceSettings, hosting: FakeHostingService
+) -> None:
+    run_instance(settings, sleep=Sleeps(), should_stop=lambda: True, hosting=hosting)
+
+    path = settings.state_directory / "records" / "disk.jsonl"
+    [record] = JsonLinesRecordLog(path, DiskRecord).read()
+    assert record.occasion == "start"
+    assert not settings.checkout.exists()
+
+
+@pytest.mark.parametrize(
+    ("read", "expected"),
+    [
+        pytest.param(read_environment_settings, Path(tempfile.gettempdir()), id="environment"),
+        pytest.param(
+            lambda environ: read_settings(environ, read_file=Path.read_text), None, id="settings"
+        ),
+    ],
+)
+def test_only_the_environment_settings_name_the_temporary_directory(
+    environment: dict[str, str],
+    read: Callable[[Mapping[str, str]], InstanceSettings],
+    expected: Path | None,
+) -> None:
+    assert read(environment).temporary_directory == expected
+
+
 @pytest.mark.usefixtures("restored_signals")
 @pytest.mark.parametrize("number", [signal.SIGTERM, signal.SIGINT])
 def test_the_stop_handlers_set_the_event_on_sigterm_and_sigint(number: signal.Signals) -> None:
@@ -428,7 +459,10 @@ def test_main_runs_a_valid_environment_once_and_returns_zero(
     status = main(environment, runner=runner, state_directory=tmp_path, clock=clock)
 
     assert status == 0
-    assert runner.calls == [read_settings(environment, read_file=Path.read_text)]
+    expected = read_settings(environment, read_file=Path.read_text).model_copy(
+        update={"temporary_directory": Path(tempfile.gettempdir())}
+    )
+    assert runner.calls == [expected]
 
 
 def test_main_turns_a_settings_fault_of_the_runner_into_a_line_and_a_machine_stop(

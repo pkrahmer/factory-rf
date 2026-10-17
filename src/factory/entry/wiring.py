@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
@@ -60,6 +61,7 @@ from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
+from factory.domain.disk import DiskRecord
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
@@ -113,6 +115,7 @@ _LOG_FILE_NAME = "factory.log"
 _HEALTH_FILE_NAME = "health.json"
 _PREFLIGHT_STAMP_FILE_NAME = "preflight-stamp.json"
 _COMMAND_RECORDS_PATH = Path("records", "project-commands.jsonl")
+_DISK_RECORDS_PATH = Path("records", "disk.jsonl")
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -166,8 +169,12 @@ def _read_utf8(path: Path) -> str:
 
 
 def read_environment_settings(environ: Mapping[str, str]) -> InstanceSettings:
-    """Return the settings of `environ`, the image identity read from the file it names."""
-    return read_settings(environ, read_file=_read_utf8)
+    """Return the settings of `environ`, the image identity read from the file it names.
+
+    The temporary directory is the process's own, so it is read here and not from `environ`.
+    """
+    settings = read_settings(environ, read_file=_read_utf8)
+    return settings.model_copy(update={"temporary_directory": Path(tempfile.gettempdir())})
 
 
 def boundaries_from_environment(
@@ -240,6 +247,7 @@ def build_boundaries(
         checkout=settings.checkout,
         settings=settings,
         disk=ShutilDiskSpace(),
+        disk_records=JsonLinesRecordLog(state / _DISK_RECORDS_PATH, DiskRecord),
     )
 
 

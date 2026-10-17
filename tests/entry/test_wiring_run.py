@@ -1,5 +1,6 @@
 """The wiring of one instance's run: its tick and the boundaries read from the environment."""
 
+import tempfile
 from datetime import timedelta
 from pathlib import Path
 
@@ -142,7 +143,9 @@ def test_boundaries_from_environment_reads_the_settings_and_builds_their_boundar
 ) -> None:
     settings, boundaries = boundaries_from_environment(environment, hosting=hosting)
 
-    assert settings == read_settings(environment, read_file=Path.read_text)
+    assert settings == read_settings(environment, read_file=Path.read_text).model_copy(
+        update={"temporary_directory": Path(tempfile.gettempdir())}
+    )
     assert boundaries.settings == settings
 
 
