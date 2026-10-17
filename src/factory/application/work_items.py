@@ -61,7 +61,12 @@ class RemoteWorkItems:
         Raises `WorkItemFormatError`, its path the story's, for a file that cannot be read.
         """
         first_stage = definition.first_stage()
-        return [self._snapshot(story, first_stage) for story in self.list_stories("in-progress")]
+        seen: set[str] = set()
+        snapshots: list[WorkItemSnapshot] = []
+        for story in self.list_stories("in-progress"):
+            snapshots.append(self._snapshot(story, first_stage, duplicate=story.id in seen))
+            seen.add(story.id)
+        return snapshots
 
     def last_stage_change(self, snapshot: WorkItemSnapshot) -> StageChange | None:
         """The stage change of the newest commit beyond origin/main that touched the file.
@@ -96,10 +101,12 @@ class RemoteWorkItems:
         except WorkItemFormatError:
             return None
 
-    def _snapshot(self, story: StoryFile, first_stage: str) -> WorkItemSnapshot:
+    def _snapshot(self, story: StoryFile, first_stage: str, *, duplicate: bool) -> WorkItemSnapshot:
         branch = branch_name(story.id)
         branch_commit = self._git.resolve(f"{REMOTE}/{branch}")
-        if branch_commit is None:
+        # The branch of an id holds only its first file; a later file of that id is read from
+        # main, so the duplicate reaches the dispatcher instead of failing the whole read.
+        if branch_commit is None or duplicate:
             document = self._started_document(story, first_stage)
         else:
             document = self._branch_document(story, branch)
