@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 182
 blocked: null
 comments_seen: 0
 round: 0
@@ -82,3 +82,9 @@ Expect: the last line reads `<n> passed in <t>s`, with no `failed`, `error` or `
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted.
+   - Interface: names concrete files and lines (`image/Dockerfile` mkdir/chown/chmod and the ENV line, `image/compose.yml` bind entry with key order, `image/entrypoint.sh` header comment), and the test modules and helpers to reuse (`_path_settings`, `dockerfile_instructions`, `_uid_of`). The changes to the three earlier test modules are named exactly and carry the human's leave (FEATURE decision 9).
+   - Criteria: each is testable by one test function. Criterion 1 covers mkdir, last chown and last chmod. Criterion 2 covers the ENV before `USER factory` and the only-credential-name rule. Criterion 3 covers the bind entry, its key order and target, and `create_host_path: false`, which is the refusing side for a missing host file. Criterion 4 covers the owner uid, the uid difference, the agent not being 0, and no `useradd` giving agent the group `factory`. Criterion 5 covers the absence of `secrets` and the volume list. Criterion 6 covers what must still hold. Criteria 7 and 9 are comment and docs criteria for the reviewer and documenter. The Interface states no limit or validation whose failing side lacks a criterion.
+   - Demo: all three commands are runnable (a Python one-liner on the compose file, a grep, a pytest run). Each `Expect:` line is checkable against the output.
+   - Architecture: the files are all under `image/`, tests and docs. This touches no layer of `src/factory`, and the write paths are in order per FEATURE.
+   - Scope: inside FEATURE's Scope (the token, and the stale entrypoint comment, decision 8). The preflight item is left to S0002, and the image pins and Podman restart are out of scope. No finding from the format check.
