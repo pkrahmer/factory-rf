@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 174
 blocked: null
 comments_seen: 0
 round: 0
@@ -52,3 +52,9 @@ Expect: two lines, `TIMEOUT_EXECUTABLE = "timeout"` and `SUDO_GRACE = timedelta(
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted.
+   - Interface: names concrete module `src/factory/adapters/claude_runtime.py`, both constants with values, the exact argument vector of the `sudo` call, the rounding rule, the outer limit, the exit statuses (137, -9) and the resume. The test files and stand-ins it names are the ones in the repository's test conventions.
+   - Criteria: each is testable by one parametrized or single test function. Every behaviour in the Interface has a criterion: the argument vector and rounding (1), the end reason and no measures (2, 3), the `sudo:` line (4), the outer limit and the call without a user (5), the resume (6). The failing sides are covered: 137 or -9 before the limit is `died`, status 1 after the limit is `died`, and 137 without an `os_user` is `died` (3). The one earlier test that changes is named, with FEATURE decision 41 as the leave (7).
+   - Demo: both commands are runnable. The `Expect:` lines are checkable: the pytest summary line has no failed, error or skipped count, and the grep prints two exact lines.
+   - Architecture: the change sits wholly in `factory.adapters.claude_runtime`, the agent-runtime wrapper, and uses the existing `run_process` and `ProcessRequest`. No other layer is touched.
+   - Scope: within F0012 item 1.8, which is S0024's own scope. Nothing in "Out of scope" is touched.
