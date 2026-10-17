@@ -27,7 +27,7 @@ The single order; the sections below hold the detail of each step.
 7. Built by v1.1 itself: the restructure (the tree chosen by the human on 2026-10-17: domains at the top, each with `domain/` and `application/` and its own ports, adapters grouped by tool, as simulated in the session; `tests/support/`, the project guide split by domain, `entry` renamed `entrypoints`); then `make check` and a short smoke run.
 8. The rename, after a few clean self-built stories: v1's compose file gets `name: factory` first (the session may make that edit in `pkrahmer/factory`, the human's leave of 2026-10-17); `factory` becomes `factory-v1` and `factory-rf` becomes `factory`; the four lines of text; the remotes, `REPOS` and `FACTORY_REPOSITORY_URL` set again.
 
-At any time, the human's: Docker's disk image was compacted on 2026-10-17 (340.5 GB to 57.3 GB after `fstrim` and `diskpart compact vdisk`); still open: a disk limit and the move to D:, and updating Docker and WSL; delete the scratch repository `pkrahmer/factory-night-scratch` and the branch `ccr-cf8b451b-yugt27`. The decisions taken for the human during the build were all confirmed on 2026-10-17.
+At any time, the human's: Docker's disk image was compacted on 2026-10-17 (340.5 GB to 57.3 GB after `fstrim` and `diskpart compact vdisk`); updated the same day to Docker Desktop 4.95.0 (engine 29.8.2) and WSL 3.0.3; still open: a disk limit and the move to D:; delete the scratch repository `pkrahmer/factory-night-scratch` and the branch `ccr-cf8b451b-yugt27`. The decisions taken for the human during the build were all confirmed on 2026-10-17.
 
 ## The decision
 
