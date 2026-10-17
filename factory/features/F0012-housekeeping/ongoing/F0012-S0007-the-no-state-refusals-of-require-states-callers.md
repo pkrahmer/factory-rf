@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The no-state refusals of require_state's callers
 
 <!-- takes in the parked draft F0008-S0007 (proposed by F0008's feature acceptance of 2026-10-15) -->
