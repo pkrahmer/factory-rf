@@ -24,3 +24,7 @@ Not probed: a Mac (no machine here); Podman without a Compose provider; a real r
 - Fault 1: the token file is mounted into a folder only the factory user can enter (for example `/home/factory/.secrets`, mode 0700, made in the image), so the agent cannot traverse it whatever the file's own mode; the first story of F0013, before any real run with a token.
 - F0013 also takes faults 2 (the restart service in the Podman machine, operator guide) and 3 (docker-compose v2 as the provider, operator guide), drafted from this record.
 - The probe's container, volumes and images in the Podman machine and its clones were deleted.
+
+## The restart service, tested (2026-10-17, after F0013's pre-check)
+
+The machine's `podman-restart.service` (a user unit) starts `podman start --all --filter should-start-on-boot=true`; it was disabled. `systemctl --user enable podman-restart.service` inside the WSL machine failed with `Failed to enable unit: Access denied` (linger is on), and an `unless-stopped` test container stayed `Exited` after `podman machine stop` and `start`. On Windows, therefore, nothing restarts the factory after a machine or host restart: the operator runs `podman machine start` and then `podman compose -f image/compose.yml up -d` (by hand, or as a scheduled task at logon). On a Linux host the service with linger is the documented way; not tested here.
