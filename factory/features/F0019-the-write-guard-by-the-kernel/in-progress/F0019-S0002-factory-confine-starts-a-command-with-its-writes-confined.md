@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T15:01:36.150704Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -107,6 +111,11 @@ journal:
   at: '2026-10-18T15:01:16.143712Z'
   stage: doing
   run: 1c4f9960192b4b2ebe6f24c20e501429
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:01:36.150704Z'
+  stage: tests
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -364,3 +373,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     Open: when the tester sends the work item back, the next doing run confirms `make check` is green after the merge. No source change is expected.
 
     Noticed, not touched (as in entry 14): coverage is 78% for `src/factory/entry/confine.py` and 35% for `src/factory/adapters/landlock.py`, because the rows that restrict and exec run in a child that coverage does not follow. `CONFINE_COMMAND` is still unused until S0004, and `make duplicates` reports it as a new dead-code record.
+19. factory: started tests as self.
