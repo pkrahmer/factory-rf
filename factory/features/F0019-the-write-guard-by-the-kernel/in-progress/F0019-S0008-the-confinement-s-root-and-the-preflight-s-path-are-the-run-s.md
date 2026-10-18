@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T19:26:00.492193Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T19:25:40.247176Z'
   stage: review
   run: 46d19e5def7b4b048d29e842e3bf0b9b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:26:00.492193Z'
+  stage: doing
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -178,3 +187,4 @@ Expect: `completed | root file refused | False`
    Earlier tests:
    - tests/adapters/test_claude_runtime_confinement.py: the standing leave to move a shared test helper. Its constants, models, `Layout` and helpers moved to tests/confine_support.py and the `layout` fixture to tests/conftest.py. The private helpers were renamed (`_request` to `run_request`, `_runtime` to `confined_runtime`). Every test keeps its name, and no assertion changed.
    - tests/conftest.py: the standing leave to move a shared test helper. It only gains the moved `layout` fixture.
+10. factory: started doing as self.
