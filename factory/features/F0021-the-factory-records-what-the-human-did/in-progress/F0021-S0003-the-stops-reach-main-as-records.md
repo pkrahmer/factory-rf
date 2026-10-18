@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T22:54:51.522529Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-18T22:54:31.153953Z'
   stage: tests
   run: bd9ecdf01ed346f3b2c348090b7ca8c1
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:54:51.522529Z'
+  stage: doing
 ---
 
 # The stops reach main as records
@@ -232,3 +241,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_stop_records.py - ImportError while importing t...
+9. factory: started doing as self.
