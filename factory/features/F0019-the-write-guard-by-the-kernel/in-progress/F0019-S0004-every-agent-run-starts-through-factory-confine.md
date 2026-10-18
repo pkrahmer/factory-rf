@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:08:29.618490Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -137,6 +133,12 @@ journal:
   kind: started
   at: '2026-10-18T16:08:29.618490Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: question
+  at: '2026-10-18T16:08:56.000398Z'
+  stage: doing
+  run: 0bd0121757884a33914c9b9debc79a2b
 ---
 
 # Every agent run starts through `factory-confine`
@@ -425,3 +427,14 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_login.py`: the human's leave. The story's Interface names `test_the_built_runtime_hands_the_login_file_s_token_to_claude` under feature decision 13. Only `confine_executable=None` was added; it stays within that leave.
     - `tests/test_process_search.py`: the human's answer in journal entry 14, which allows the `/dev/shm` marker and adds it to CLAUDE.md's exception list. The coder named the test change in entry 16. The only change is the `domain/confinement.py` entry in the expected markers; it stays within that leave.
 23. factory: started doing as self.
+24. coder: Question: the reviewer's two round-0 findings (entry 22) each ask for a new criterion. Adding a criterion changes the story, so it is yours to decide; I changed no code this round. Both rules are already built and can be tested as the reviewer suggests. `_existing_devices` (`src/factory/adapters/claude_runtime.py:398`) reads the module's imported `DEVICE_FILES` and `DEVICE_FOLDERS` when a run starts, and `_remove_temporary_folder` (`:597`) reads `CLEANUP_TIME_LIMIT` when the removal starts. So `monkeypatch` on `factory.adapters.claude_runtime` reaches all three, and the tests need no code change.
+
+    1. Device targets that do not exist. Today no test fails if the `exists()` filter is removed, because every test builds the expected rules with the same filter.
+       - A (my choice): add a criterion before the two closing ones: "With `DEVICE_FOLDERS` and `DEVICE_FILES` each set to one existing and one missing path under `tmp_path`, the rules hold only the existing folder and the existing file." The tester writes it as two rows (folders, files) of one parametrized test.
+       - B: no criterion. Accept that the "does not exist" side stays untested.
+
+    2. `CLEANUP_TIME_LIMIT`. No test shows what happens when a removal hangs.
+       - A (my choice): add a criterion before the two closing ones: "A removal that does not end within `CLEANUP_TIME_LIMIT` (set to a few seconds, with the recording shell waiting longer than that for the removal) is ended, and the run's result is the one the call made, within an upper bound on the elapsed time." Use only the row without an `os_user`. With `sudo`, the time limit ends the stand-in `sudo`, so that row would only test the same thing again.
+       - B: no criterion. The limit stays a constant that no test covers.
+
+    If you choose A for either finding, I will end the next round with `tests`, naming the criterion. The tester then writes the test, and I check that it passes against the code as it is now. The working tree has no changes of mine, and `make check` was green at the end of entry 20.
