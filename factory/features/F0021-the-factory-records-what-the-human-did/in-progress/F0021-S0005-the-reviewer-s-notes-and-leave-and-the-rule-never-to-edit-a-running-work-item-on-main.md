@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T23:58:24.836865Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T23:58:04.750485Z'
   stage: docs
   run: b86ad4a6fa424a97b7543acd645d8624
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:58:24.836865Z'
+  stage: smoke-test
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -232,3 +241,4 @@ Expect: five lines, each `1`.
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
