@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T20:26:40.088547Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -50,6 +46,12 @@ journal:
   kind: started
   at: '2026-10-18T20:26:40.088547Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T20:29:51.896966Z'
+  stage: tests
+  run: 64ff27c3ae124cd0b90806c9d89e63d3
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -146,3 +148,25 @@ Expect: `with: 0`, then `without: 2`
    - Architecture: a domain model field, an adapter judge and the runtime adapter, each in its own layer. No new dependency, package or layer. The hook stays and the tool paths stay kernel-only (decision 8).
    - Scope: inside F0019 and not in its "Out of scope". Removing the hook is left out. The story makes the hook agree with the kernel for R14's temporary folder, which supports decision 16's cross-check.
 7. factory: started tests as self.
+8. tester: Wrote the red tests for the temporary-folder rule of the guard.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_claude_guard_temporary.py::test_a_write_beneath_the_temporary_folder_is_allowed_after_the_checkout_rules. Seven rows: file in folder, missing folders, the folder itself, prefixed sibling `<T>-x`, link into the checkout, no temporary folder, checkout beneath the folder. The refused rows expect the text `refusal` gives for `src/a.py`.
+   - criterion 2: tests/adapters/test_claude_guard_temporary.py::test_the_settings_file_reads_the_temporary_folder_back. Rows: absolute, absent (reads back as None), relative (raises GuardSettingsInvalid).
+   - criterion 3: tests/adapters/test_claude_runtime_guard_temporary.py::test_the_guard_settings_file_names_the_run_s_temporary_folder_when_confined. Rows: confined, through the real factory-confine as the existing confinement tests do (the value must equal the recorded $TMPDIR), and unconfined (the value must be null). It reuses the stand-in claude from tests/adapters/claude_stand_in.py, which already records the environment and the guard settings file named in the hook settings.
+   - criterion 4: tests/adapters/test_claude_guard_temporary.py::test_the_console_script_allows_a_write_in_the_temporary_folder_it_is_given. It runs the installed factory-guard beside sys.executable. Rows: with the folder (exit 0, empty stderr) and without it (exit 2, `<T>/notes.txt is outside the checkout.`). It sits in the new adapters module because the Interface names only these two new test modules.
+   - criteria 5 and 6 (make check, docs): no tests.
+
+   Files created: tests/guard_support.py (shared helpers hook_payload and outside), tests/adapters/test_claude_guard_temporary.py, tests/adapters/test_claude_runtime_guard_temporary.py.
+
+   Earlier test files changed under the standing leave to move a shared test helper (CLAUDE.md, Tests):
+   - tests/adapters/test_claude_guard.py: its _payload and _outside now come from guard_support (hook_payload, outside).
+   - tests/entry/test_guard.py: its identical _payload copy now comes from guard_support.hook_payload, and its unused json import is gone.
+   Every test in both files keeps its name and checks the same thing.
+
+   Imports: no module failed to import. The modules under test exist; the new tests fail because GuardSettings has no field temporary_directory yet and the runtime does not write one into the guard settings file.
+
+   Checks: make test was run once and is red on purpose; its last lines name the four new console-script and runtime tests. I read only those last lines, so they do not show the failure reason or the result of the two changed test files; the factory's own make test run shows both. make lint is green. The type check was skipped as this stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/adapters/test_claude_runtime_guard_temporary.py::test_the_guard_settings_file_names_the_run_s_temporary_folder_when_confined[unconfined]

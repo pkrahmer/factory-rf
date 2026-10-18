@@ -9,6 +9,7 @@ from factory.adapters.claude_guard import GuardVerdict, judge, read_guard_settin
 from factory.domain.agent_runs import GuardSettings
 from factory.domain.errors import GuardSettingsInvalid
 from factory.domain.write_paths import PROTECTED_PATHS
+from guard_support import hook_payload, outside
 
 PROTECTED_MESSAGE = "pyproject.toml is owned by the human; a change there is a question."
 OUTSIDE_WRITE_PATHS_MESSAGE = "docs/a.md is outside the write paths of this stage."
@@ -26,19 +27,11 @@ def _settings(root: Path, write_paths: list[str]) -> GuardSettings:
     return GuardSettings(root=root, write_paths=write_paths, protected_paths=list(PROTECTED_PATHS))
 
 
-def _payload(file_path: str, tool: str = "Write") -> str:
-    return json.dumps({"tool_name": tool, "tool_input": {"file_path": file_path}})
-
-
-def _outside(file_path: str) -> str:
-    return f"{file_path} is outside the checkout."
-
-
 @pytest.mark.parametrize("tool", ["Edit", "Write"])
 def test_a_path_inside_the_write_paths_is_allowed(tmp_path: Path, tool: str) -> None:
     root = _root(tmp_path)
 
-    verdict = judge(_payload(str(root / "src" / "a.py"), tool), _settings(root, ["src/*"]))
+    verdict = judge(hook_payload(str(root / "src" / "a.py"), tool), _settings(root, ["src/*"]))
 
     assert verdict == GuardVerdict(allowed=True, message="")
 
@@ -46,7 +39,7 @@ def test_a_path_inside_the_write_paths_is_allowed(tmp_path: Path, tool: str) -> 
 def test_a_path_outside_the_write_paths_is_refused(tmp_path: Path) -> None:
     root = _root(tmp_path)
 
-    verdict = judge(_payload(str(root / "docs" / "a.md")), _settings(root, ["src/*"]))
+    verdict = judge(hook_payload(str(root / "docs" / "a.md")), _settings(root, ["src/*"]))
 
     assert verdict == GuardVerdict(allowed=False, message=OUTSIDE_WRITE_PATHS_MESSAGE)
 
@@ -54,7 +47,7 @@ def test_a_path_outside_the_write_paths_is_refused(tmp_path: Path) -> None:
 def test_a_protected_path_is_refused_although_a_write_path_matches(tmp_path: Path) -> None:
     root = _root(tmp_path)
 
-    verdict = judge(_payload(str(root / "pyproject.toml")), _settings(root, ["*"]))
+    verdict = judge(hook_payload(str(root / "pyproject.toml")), _settings(root, ["*"]))
 
     assert verdict == GuardVerdict(allowed=False, message=PROTECTED_MESSAGE)
 
@@ -68,9 +61,9 @@ def test_a_path_outside_the_checkout_is_refused(tmp_path: Path, where: str) -> N
         "system": "/etc/passwd",
     }[where]
 
-    verdict = judge(_payload(file_path), _settings(root, ["*"]))
+    verdict = judge(hook_payload(file_path), _settings(root, ["*"]))
 
-    assert verdict == GuardVerdict(allowed=False, message=_outside(file_path))
+    assert verdict == GuardVerdict(allowed=False, message=outside(file_path))
 
 
 @pytest.mark.parametrize(
@@ -86,7 +79,7 @@ def test_parent_segments_are_resolved_before_the_verdict(
     root = _root(tmp_path)
     write_paths = ["*"] if relative.endswith("pyproject.toml") else ["src/*"]
 
-    verdict = judge(_payload(f"{root}/{relative}"), _settings(root, write_paths))
+    verdict = judge(hook_payload(f"{root}/{relative}"), _settings(root, write_paths))
 
     assert verdict == expected
 
@@ -103,7 +96,7 @@ def test_a_relative_path_is_taken_relative_to_the_root(
 ) -> None:
     root = _root(tmp_path)
 
-    assert judge(_payload(file_path), _settings(root, ["src/*"])) == expected
+    assert judge(hook_payload(file_path), _settings(root, ["src/*"])) == expected
 
 
 def test_a_link_to_outside_the_checkout_is_refused(tmp_path: Path) -> None:
@@ -113,16 +106,16 @@ def test_a_link_to_outside_the_checkout_is_refused(tmp_path: Path) -> None:
     (root / "src" / "out").symlink_to(target)
     file_path = str(root / "src" / "out")
 
-    verdict = judge(_payload(file_path), _settings(root, ["src/*"]))
+    verdict = judge(hook_payload(file_path), _settings(root, ["src/*"]))
 
-    assert verdict == GuardVerdict(allowed=False, message=_outside(file_path))
+    assert verdict == GuardVerdict(allowed=False, message=outside(file_path))
 
 
 def test_a_link_to_a_protected_path_is_refused(tmp_path: Path) -> None:
     root = _root(tmp_path)
     (root / "src" / "p").symlink_to(root / "pyproject.toml")
 
-    verdict = judge(_payload(str(root / "src" / "p")), _settings(root, ["*"]))
+    verdict = judge(hook_payload(str(root / "src" / "p")), _settings(root, ["*"]))
 
     assert verdict == GuardVerdict(allowed=False, message=PROTECTED_MESSAGE)
 
@@ -132,7 +125,7 @@ def test_a_link_to_a_writable_path_is_allowed(tmp_path: Path) -> None:
     (root / "src" / "real.py").write_text("", encoding="utf-8")
     (root / "src" / "ok").symlink_to(root / "src" / "real.py")
 
-    verdict = judge(_payload(str(root / "src" / "ok")), _settings(root, ["src/*"]))
+    verdict = judge(hook_payload(str(root / "src" / "ok")), _settings(root, ["src/*"]))
 
     assert verdict == GuardVerdict(allowed=True, message="")
 
@@ -159,9 +152,9 @@ def test_a_path_with_a_nul_character_is_refused_as_outside_the_checkout(tmp_path
     root = _root(tmp_path)
     file_path = f"{root}/src/a\x00.py"
 
-    verdict = judge(_payload(file_path), _settings(root, ["src/*"]))
+    verdict = judge(hook_payload(file_path), _settings(root, ["src/*"]))
 
-    assert verdict == GuardVerdict(allowed=False, message=_outside(file_path))
+    assert verdict == GuardVerdict(allowed=False, message=outside(file_path))
 
 
 def test_the_settings_file_reads_back_what_model_dump_json_wrote(tmp_path: Path) -> None:
