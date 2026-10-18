@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T16:03:50.278652Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -106,6 +110,11 @@ journal:
   at: '2026-10-18T16:03:30.240686Z'
   stage: tests
   run: d1b646089fac4143ab39789ea1787af6
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:03:50.278652Z'
+  stage: doing
 ---
 
 # Every agent run starts through `factory-confine`
@@ -358,3 +367,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (49.2 s)
+19. factory: started doing as self.
