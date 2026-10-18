@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:00:56.854893Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -105,6 +101,12 @@ journal:
   kind: started
   at: '2026-10-18T15:00:56.854893Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:01:16.143712Z'
+  stage: doing
+  run: 1c4f9960192b4b2ebe6f24c20e501429
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -342,3 +344,23 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     - `tests/test_wrapper_search.py`: covered by the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7; the change adds one importer.
     - `tests/entry/test_wiring.py`: covered by the human's leave, the answer in journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
 17. factory: started doing as self.
+18. coder: Round 1 has one review finding (entry 16), and it is a change to a test, so this goes to the tester.
+
+    The change: in `tests/adapters/test_process_replace.py`, merge `test_replace_process_becomes_the_command_with_the_given_environment` (line 17) and `test_replace_process_that_cannot_start_raises_and_this_process_goes_on` (line 32) into one parametrized test with three rows:
+    - The success row runs `CHILD` in a child through `sys.executable -c` and expects `("replaced\n", 7)` as stdout and exit status.
+    - The `not-on-the-path` row calls `replace_process(["no-such-program"], {"PATH": str(tmp_path)})` in-process and expects `FileNotFoundError`; the test goes on afterwards.
+    - The `empty-argv` row calls `replace_process([], {"PATH": "/usr/bin:/bin"})` in-process and expects `ValueError`; the test goes on afterwards.
+
+    Nothing else changes. This test module belongs to this story (the tester wrote it in entry 5), so the merge does not need the human's leave.
+
+    I changed no code in this run. What I built is already committed on the branch, as entry 14 describes:
+    - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`
+    - `src/factory/domain/confinement.py`: `Confinement`
+    - `src/factory/adapters/process.py`: `replace_process`
+    - `src/factory/entry/confine.py`: `main`, which runs the six steps in order
+
+    Main choice (unchanged from entry 14): each fault raises a private `_Stop` that carries its line, and `main` writes that line once and returns 1. I rejected having each step return a status, because that would repeat the write-and-return at all six faults.
+
+    Open: when the tester sends the work item back, the next doing run confirms `make check` is green after the merge. No source change is expected.
+
+    Noticed, not touched (as in entry 14): coverage is 78% for `src/factory/entry/confine.py` and 35% for `src/factory/adapters/landlock.py`, because the rows that restrict and exec run in a child that coverage does not follow. `CONFINE_COMMAND` is still unused until S0004, and `make duplicates` reports it as a new dead-code record.
