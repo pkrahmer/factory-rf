@@ -172,7 +172,7 @@ def test_pushed_work_item_holds_the_returned_claim(
 
 
 def test_claim_appends_one_started_journal_entry(
-    boundaries: Boundaries, tmp_path: Path, remote: Path
+    boundaries: Boundaries, tmp_path: Path, remote: Path, clock: ManualClock
 ) -> None:
     document = _prepare(boundaries)
 
@@ -182,7 +182,7 @@ def test_claim_appends_one_started_journal_entry(
     assert pushed.state is not None
     assert pushed.state.journal == [
         CREATED,
-        JournalRecord(number=2, speaker="factory", kind="started"),
+        JournalRecord(number=2, speaker="factory", kind="started", at=clock.now(), stage=STAGE),
     ]
     assert started_text(STAGE, INSTANCE) == f"started {STAGE} as {INSTANCE}."
     assert pushed.body.rstrip("\n").splitlines()[-1] == (

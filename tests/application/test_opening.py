@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -25,6 +26,11 @@ BODY_WITH_JOURNAL = "# First story\n\n## Description\n\nOriginal.\n\n## Journal\
 NOTES = "notes.md"
 CREATED = JournalRecord(number=1, speaker="human", kind="created")
 BRANCH_BODY = BODY_WITH_JOURNAL + "\n1. 2026-10-12 human: created.\n"
+
+
+def _new_created(clock: ManualClock) -> JournalRecord:
+    """The created record the opening writes: stamped with the clock and the first stage."""
+    return CREATED.model_copy(update={"at": clock.now(), "stage": "intake"})
 
 
 def _opening(boundaries: Boundaries) -> WorkItemOpening:
@@ -78,7 +84,7 @@ def test_new_work_item_is_branched_from_origin_main_without_pushing(
 
 
 def test_new_document_starts_at_the_first_stage(
-    boundaries: Boundaries, checkout: GitCli, human: HumanClone
+    boundaries: Boundaries, checkout: GitCli, human: HumanClone, clock: ManualClock
 ) -> None:
     _start(human, checkout)
     definition = boundaries.pipeline_reader.parse(PIPELINE_YAML)
@@ -86,12 +92,13 @@ def test_new_document_starts_at_the_first_stage(
     prepared = _opening(boundaries).prepare(WORK_ITEM, PATH)
 
     first_stage = next(iter(definition.stages))
-    expected = initial_state(first_stage).model_copy(update={"journal": [CREATED]})
+    created = CREATED.model_copy(update={"at": clock.now(), "stage": first_stage})
+    expected = initial_state(first_stage).model_copy(update={"journal": [created]})
     assert prepared.document.state == expected
 
 
 def test_backlog_front_matter_is_dropped(
-    boundaries: Boundaries, checkout: GitCli, human: HumanClone
+    boundaries: Boundaries, checkout: GitCli, human: HumanClone, clock: ManualClock
 ) -> None:
     text = (
         "---\n"
@@ -110,7 +117,7 @@ def test_backlog_front_matter_is_dropped(
     state = prepared.document.state
     assert state is not None
     assert state.model_copy(update={"journal": []}) == initial_state("intake")
-    assert state.journal == [CREATED]
+    assert state.journal == [_new_created(clock)]
     rendered = boundaries.work_item_writer.render(prepared.document)
     assert "stage: doing" not in rendered
     assert "attempts: 1" not in rendered
@@ -118,7 +125,7 @@ def test_backlog_front_matter_is_dropped(
 
 
 def test_new_document_journal_holds_the_created_entry(
-    boundaries: Boundaries, checkout: GitCli, human: HumanClone
+    boundaries: Boundaries, checkout: GitCli, human: HumanClone, clock: ManualClock
 ) -> None:
     _start(human, checkout)
 
@@ -126,7 +133,7 @@ def test_new_document_journal_holds_the_created_entry(
 
     state = prepared.document.state
     assert state is not None
-    assert state.journal == [CREATED]
+    assert state.journal == [_new_created(clock)]
     rendered = boundaries.work_item_writer.render(prepared.document)
     assert "## Journal\n\n1. 2026-10-12 human: created.\n" in rendered
     assert rendered.count("## Journal") == 1

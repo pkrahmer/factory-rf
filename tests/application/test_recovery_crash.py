@@ -292,7 +292,11 @@ def test_the_journal_ends_with_one_factory_crash_record(
     after = _state_at(boundaries, f"origin/{BRANCH}")
     assert after.journal[:-1] == before.journal
     assert after.journal[-1] == JournalRecord(
-        number=before.journal[-1].number + 1, speaker=FACTORY, kind="crash"
+        number=before.journal[-1].number + 1,
+        speaker=FACTORY,
+        kind="crash",
+        at=clock.now(),
+        stage=before.stage,
     )
 
 

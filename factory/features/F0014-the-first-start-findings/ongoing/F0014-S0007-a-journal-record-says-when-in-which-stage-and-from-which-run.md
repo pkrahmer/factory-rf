@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 199
 blocked: null
 comments_seen: 0
@@ -124,3 +124,48 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both commands run. Expect lines are checkable: ten named lines, with the first record having no new keys, and the pytest command ends in `<n> passed` with no failures or skips.
    - Architecture: domain gets the record and `append_entry`, adapters get the writer, and application gets the call sites, with the clock reached through `Boundaries`. The domain gets no clock because `at` is a parameter. This matches the layers in CLAUDE.md.
    - Scope: the story is within the feature's scope (the status-map data, decisions 25 to 27, and the stories S0007 and S0008). The cost record's `instance`, the body markers, any change to the pull request and a `run` on `crash` and `expiry` are out of scope and are not touched. The 26 changed earlier tests are covered by the human's leave in decision 27, which gives every line.
+3. tester: Tests written from the Interface and the criteria. They are red on purpose. `make lint` is green. I ran `make test` once: it fails, and `tests/application/handlers/test_reject.py` fails at collection because its module constant `MOVE_BACK` now builds a `JournalRecord` with `at` and `stage`, which the model forbids until those fields exist. Every other new or changed expectation fails because a field is missing (`at`, `stage`, `run`) or `append_entry`, `book_merge` and `book_refusal` don't take the `at`/`run` keywords yet. No module is missing: all three new test modules import names that already exist.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_journal_stamps.py::test_a_journal_record_reads_its_time_stage_and_run_when_valid. The rows are: none of the three, all three, +02:00 stored as UTC, 32 hex accepted, naive `at`, stage `Tests`, run of 31, run of 33, uppercase, `g`. It builds the record through `type[BaseModel]`.
+   - criterion 2: tests/domain/test_journal_stamps.py::test_append_entry_stamps_the_record_with_the_time_the_state_stage_and_the_run. The five rows are neither, `at` alone, `at`+`run`, `run` alone, and `run` alone without a state. The `ValueError` message is matched exactly, the document is left unchanged, and the body line is the same in each row that appends.
+   - criterion 3: tests/adapters/test_journal_stamps_file.py::test_the_writer_writes_a_records_time_stage_and_run_only_when_set. The rows are all three, no run, none of the three, and the numeric-looking run `'111…'` single-quoted. Each row checks the whole text and the round trip `parse(render(doc)) == doc`.
+   - criterion 4: tests/adapters/test_journal_stamps_file.py::test_a_work_item_file_reads_with_and_without_the_stamps_and_is_written_back_the_same. It has an old file and a stamped file, and each is written back byte for byte.
+   - criterion 5 (new tests):
+     (a) tests/application/test_stage_finish.py::test_a_stage_end_that_asks_a_question_stamps_both_entries_with_the_stage_and_its_run. This uses the findings question of the move. The role's `result` and the factory's `question` carry `aftermath.cost.run`, and `started` has no run.
+     (b) tests/application/test_stage_finish.py::test_a_red_check_stamps_the_entry_and_the_stall_with_the_stages_run
+     (c) tests/application/test_after_agent.py::test_a_new_form_finding_stamps_the_entry_and_the_stall_with_the_launched_run
+     (d) tests/application/test_stalls.py::test_a_stall_without_a_cost_stamps_its_entry_with_the_time_and_stage_and_no_run
+     (e) tests/application/handlers/test_closed_send_back.py::test_a_send_back_with_a_question_stamps_its_entries_with_the_stage_closed_at_and_no_run
+   - criterion 5 (changed tests under FEATURE decision 27): only the expected records gain `at=clock.now()` (the ManualClock fixture) and the table's `stage`, or the expected-document calls gain `at=`. The changes are in:
+     - test_claims::test_claim_appends_one_started_journal_entry
+     - test_opening, its three tests (`created` at stage `intake`)
+     - test_stage_launch::test_the_stage_start_commit_of_a_new_work_item_is_its_opening_commit
+     - test_stalls, its three tests
+     - test_recovery_expiry, its two tests, and test_recovery_crash, its one test. The stage there is `before.stage`.
+     - test_recovery_cap::test_the_crash_commit_at_the_cap_…
+     - test_acceptance_closed: `at=` on the comment and close `append_entry` calls and on `book_refusal`
+     - test_acceptance_merged: `at=` on `book_merge`
+     - handlers/test_merged, its three tests. The stage is the one the story was merged in: `doing`, the parametrized stage, and `approval`.
+     - handlers/test_questions, its two tests (stage `doing`)
+     - handlers/test_comments::test_append_adds_one_dated_human_comment_entry_per_comment_in_order
+     - handlers/test_reject: `MOVE_BACK` gains `at=2026-10-12 12:00 UTC` and `stage="doing"`, the stage the human set.
+
+     Where a test needed it, the `clock: ManualClock` fixture parameter and its import were added. Test names and other assertions are unchanged.
+   - criterion 6: tests/domain/test_journal_stamps.py::test_booking_records_the_done_entry_with_the_time_and_the_done_stage (merge and refusal, each with and without `at`)
+   - criterion 7: covered by the existing tests the criterion names. No new test.
+   - criteria 8 and 9: not tests (the gate, and docs).
+
+   Files created: tests/domain/test_journal_stamps.py, tests/adapters/test_journal_stamps_file.py.
+
+   Files changed:
+   - New test functions in tests/application/test_stage_finish.py, test_after_agent.py, test_stalls.py and handlers/test_closed_send_back.py.
+   - The decision-27 edits in the files listed above.
+   - Formatting by `ruff format`, which also reformatted some of the lines I edited.
+
+   What the coder should know:
+   - In (e), the `question` after a send-back is expected to carry the approval stage the item was closed in, as the criterion says, even though `send_back` moves the stage.
+   - In test_acceptance_closed, the copied `comment` entry is expected with `at=clock.now()`, following the CommentCopier row of the table.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: ERROR tests/application/handlers/test_reject.py - pydantic_core._pydantic_cor...

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.agent_runtime import AgentRuntime
@@ -190,6 +191,7 @@ def test_the_agents_rewrite_of_the_state_and_journal_is_put_back(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
     remote: Path,
+    clock: ManualClock,
 ) -> None:
     started = _started(
         boundaries,
@@ -211,7 +213,13 @@ def test_the_agents_rewrite_of_the_state_and_journal_is_put_back(
 
     state = _pushed_state(boundaries, remote)
     start_journal = _start_state(boundaries, started).journal
-    stall = JournalRecord(number=len(start_journal) + 1, speaker="factory", kind="stall")
+    stall = JournalRecord(
+        number=len(start_journal) + 1,
+        speaker="factory",
+        kind="stall",
+        at=clock.now(),
+        stage="tests",
+    )
     assert state.stage == "tests"
     assert state.attempts == 2
     assert state.journal == [*start_journal, stall]
@@ -291,6 +299,7 @@ def test_the_journal_gains_one_stall_entry_of_the_factory_naming_the_cause(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
     remote: Path,
+    clock: ManualClock,
 ) -> None:
     started = _started(boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime)
     before = len(_start_state(boundaries, started).journal)
@@ -301,7 +310,7 @@ def test_the_journal_gains_one_stall_entry_of_the_factory_naming_the_cause(
     assert document.state is not None
     assert len(document.state.journal) == before + 1
     assert document.state.journal[-1] == JournalRecord(
-        number=before + 1, speaker="factory", kind="stall"
+        number=before + 1, speaker="factory", kind="stall", at=clock.now(), stage="tests"
     )
     text = entry_text(document, before + 1)
     assert text.startswith(STALL_PREFIX)
@@ -506,6 +515,7 @@ def test_a_given_document_keeps_its_entries_above_the_stall_entry(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
     remote: Path,
+    clock: ManualClock,
 ) -> None:
     started = _started(boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime)
     entry = NewEntry(speaker="tester", kind="result", text="the agent's entry.")
@@ -523,7 +533,7 @@ def test_a_given_document_keeps_its_entries_above_the_stall_entry(
         number=before + 1, speaker="tester", kind="result"
     )
     assert pushed.state.journal[-1] == JournalRecord(
-        number=before + 2, speaker="factory", kind="stall"
+        number=before + 2, speaker="factory", kind="stall", at=clock.now(), stage="tests"
     )
     assert entry_text(pushed, before + 1) == "the agent's entry."
 
@@ -566,6 +576,25 @@ def test_a_hosting_error_while_posting_the_note_leaves_the_stall_commit_pushed(
     assert stall_commit.parents == [started.stage_start.commit]
     assert _pushed_state(boundaries, remote).attempts == 1
     assert hosting.factory_posts(started.pull_request.number) == []
+
+
+def test_a_stall_without_a_cost_stamps_its_entry_with_the_time_and_stage_and_no_run(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    remote: Path,
+    clock: ManualClock,
+) -> None:
+    started = _started(boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime)
+    context = _context(started, pull_request=started.pull_request)
+    assert context.cost is None
+
+    _stall(boundaries, context, "died")
+
+    stall = _pushed_state(boundaries, remote).journal[-1]
+    assert (stall.kind, stall.at, stall.stage, stall.run) == ("stall", clock.now(), "tests", None)
 
 
 def _result(**changes: object) -> StallResult:

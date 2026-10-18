@@ -21,6 +21,7 @@ from crash_support import (
     remote_state,
     snapshot,
 )
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -140,7 +141,7 @@ def test_at_the_cap_the_work_item_is_blocked_with_the_crashes_counted_and_no_cla
 
 
 def test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothing_else(
-    boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
+    boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService, clock: ManualClock
 ) -> None:
     claimed = claim(boundaries, human, pull_request=_pull_request(hosting))
     before = _state_of(snapshot(boundaries))
@@ -151,8 +152,12 @@ def test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothin
     last = before.journal[-1].number
     assert after.journal[:-2] == before.journal
     assert after.journal[-2:] == [
-        JournalRecord(number=last + 1, speaker=FACTORY, kind="crash"),
-        JournalRecord(number=last + 2, speaker=FACTORY, kind="question"),
+        JournalRecord(
+            number=last + 1, speaker=FACTORY, kind="crash", at=clock.now(), stage=before.stage
+        ),
+        JournalRecord(
+            number=last + 2, speaker=FACTORY, kind="question", at=clock.now(), stage=before.stage
+        ),
     ]
     assert len(boundaries.git.log(f"origin/{BRANCH}", since=claimed.start.commit)) == 1
 

@@ -513,3 +513,27 @@ def test_only_a_close_recorded_since_the_latest_result_spares_a_new_close_entry(
     document = _remote_document(boundaries, checkout)
     assert len(_records(document, "close")) == closes
     assert _kinds(document)[-1] in {"send_back", "question"}
+
+
+def test_a_send_back_with_a_question_stamps_its_entries_with_the_stage_closed_at_and_no_run(
+    boundaries: Boundaries,
+    *,
+    checkout: GitCli,
+    publish: Publish,
+    pull_request: int,
+    clock: ManualClock,
+) -> None:
+    snapshot = publish(pull_request, (EARLIER_COMMENT, RESULT))
+    closed_at = _state(snapshot.document).stage
+
+    _handle(boundaries, _event(snapshot))
+
+    stamps = [
+        (record.speaker, record.kind, record.at, record.stage, record.run)
+        for record in _state(_remote_document(boundaries, checkout)).journal[-3:]
+    ]
+    assert stamps == [
+        (HUMAN, "close", clock.now(), closed_at, None),
+        (FACTORY, "send_back", clock.now(), closed_at, None),
+        (FACTORY, "question", clock.now(), closed_at, None),
+    ]

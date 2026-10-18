@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -103,7 +104,13 @@ def test_the_merged_story_is_moved_under_done_on_main(
 
 
 def test_the_archived_state_is_done_unblocked_and_unclaimed_and_keeps_the_rest(
-    boundaries: Boundaries, *, remote: Path, checkout: GitCli, merge: Merge, pull_request: int
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    checkout: GitCli,
+    merge: Merge,
+    pull_request: int,
+    clock: ManualClock,
 ) -> None:
     created = WorkItemDocument(state=_state("doing", pull_request), body=BODY)
     appended = append_entry(created, RESULT).state
@@ -129,7 +136,7 @@ def test_the_archived_state_is_done_unblocked_and_unclaimed_and_keeps_the_rest(
 
     MergedHandler(boundaries).handle(_event(snapshot, remote))
 
-    done = JournalRecord(number=3, speaker=FACTORY, kind="done")
+    done = JournalRecord(number=3, speaker=FACTORY, kind="done", at=clock.now(), stage="doing")
     expected = state.model_copy(
         update={
             "stage": "done",
@@ -150,20 +157,27 @@ def test_a_story_is_archived_the_same_way_at_whatever_stage_it_was_merged(
     merge: Merge,
     pull_request: int,
     stage: str,
+    clock: ManualClock,
 ) -> None:
     state = _state(stage, pull_request)
     snapshot = merge(state, None)
 
     MergedHandler(boundaries).handle(_event(snapshot, remote))
 
-    done = JournalRecord(number=2, speaker=FACTORY, kind="done")
+    done = JournalRecord(number=2, speaker=FACTORY, kind="done", at=clock.now(), stage=stage)
     expected = state.model_copy(update={"stage": "done", "journal": [*state.journal, done]})
     assert _archived_state(boundaries, checkout) == expected
     assert checkout.show_file("origin/main", PATH) is None
 
 
 def test_the_archive_appends_one_done_entry_of_the_factory_with_the_bill(
-    boundaries: Boundaries, *, remote: Path, checkout: GitCli, merge: Merge, pull_request: int
+    boundaries: Boundaries,
+    *,
+    remote: Path,
+    checkout: GitCli,
+    merge: Merge,
+    pull_request: int,
+    clock: ManualClock,
 ) -> None:
     records = completed_records(WORK_ITEM, 2)
     snapshot = merge(_state("approval", pull_request), records)
@@ -172,7 +186,9 @@ def test_the_archive_appends_one_done_entry_of_the_factory_with_the_bill(
 
     archived = _archived(boundaries, checkout)
     assert archived.state is not None
-    assert archived.state.journal[-1] == JournalRecord(number=2, speaker=FACTORY, kind="done")
+    assert archived.state.journal[-1] == JournalRecord(
+        number=2, speaker=FACTORY, kind="done", at=clock.now(), stage="approval"
+    )
     assert len(archived.state.journal) == 2
     assert entry_text(archived, 2) == done_entry_text(bill(records))
 

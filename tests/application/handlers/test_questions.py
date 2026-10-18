@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -205,7 +206,12 @@ def test_a_blocked_work_item_without_a_question_record_cannot_be_handled(
 
 
 def test_at_the_attempts_cap_the_question_is_recorded_in_one_pushed_commit(
-    boundaries: Boundaries, *, checkout: GitCli, publish: Publish, pull_request: int
+    boundaries: Boundaries,
+    *,
+    checkout: GitCli,
+    publish: Publish,
+    pull_request: int,
+    clock: ManualClock,
 ) -> None:
     snapshot = publish(_document(pull_request, [RESULT, FIRST_STALL, LAST_STALL], attempts=2))
 
@@ -216,7 +222,9 @@ def test_at_the_attempts_cap_the_question_is_recorded_in_one_pushed_commit(
     assert commit.subject == SUBJECT
     assert recorded.state is not None
     assert recorded.state.blocked == "attempts_cap"
-    assert recorded.state.journal[-1] == JournalRecord(number=5, speaker=FACTORY, kind="question")
+    assert recorded.state.journal[-1] == JournalRecord(
+        number=5, speaker=FACTORY, kind="question", at=clock.now(), stage="doing"
+    )
     assert entry_text(recorded, 5) == attempts_cap_question("doing", 2, LAST_STALL.text)
 
 
@@ -294,6 +302,7 @@ def test_the_attempts_cap_question_is_recorded_before_a_failing_post(
     checkout: GitCli,
     publish: Publish,
     pull_request: int,
+    clock: ManualClock,
 ) -> None:
     snapshot = publish(_document(pull_request, [RESULT, LAST_STALL], attempts=2))
     hosting.fail_next("post_comment")
@@ -304,7 +313,9 @@ def test_the_attempts_cap_question_is_recorded_before_a_failing_post(
     recorded = _remote_document(boundaries, checkout)
     assert recorded.state is not None
     assert recorded.state.blocked == "attempts_cap"
-    assert recorded.state.journal[-1] == JournalRecord(number=4, speaker=FACTORY, kind="question")
+    assert recorded.state.journal[-1] == JournalRecord(
+        number=4, speaker=FACTORY, kind="question", at=clock.now(), stage="doing"
+    )
     assert hosting.factory_posts(pull_request) == []
 
 
