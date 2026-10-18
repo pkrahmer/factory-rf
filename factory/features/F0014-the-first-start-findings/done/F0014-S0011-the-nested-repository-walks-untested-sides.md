@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 202
 blocked: null
 comments_seen: 0
@@ -138,3 +138,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    Met: the last line says `53 passed`, with no `failed`, `error` or `skipped` count. The 6 warnings come from pytest's own cleanup: it fails to remove leftover `garbage-*` temp folders under `/tmp/pytest-of-factory`, which an earlier run's `test_seal_takes_the_group_and_…` left behind (a sealed checkout). This story's tests do not cause them, and the `Expect:` line does not rule out warnings, so this is not a finding. It is noted here in case the human wants a story about the seal test's temp folders being hard to remove.
 
    Criteria cross-read: the demo contradicts none of them. Criteria 1, 2 and 4 are borne out by command 1: links are not followed, the root's `.git` is kept, and the output is sorted. Criteria 1 to 7 are covered by the passing rows in command 2. Criterion 8 (`make check`) is recorded green by the coder and the documenter; the factory runs it as the gate. Criterion 9 (docs: none) holds, because no rule changed.
+8. done (pull request merged); cost: 6 runs, 3.5 min, 29 turns, 154k tokens in (273k more from cache), 10k out, $1.23
