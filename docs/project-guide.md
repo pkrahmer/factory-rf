@@ -438,9 +438,19 @@ The first two are validations of their own field, so their error is located at t
 
 `factory.domain.journal.JournalRecord` is the one element the front matter lists for each journal entry: `number` (≥ 1), `speaker` (a `Name`; `HUMAN` is `"human"` and `FACTORY` is `"factory"`) and `kind`. So the speaker and kind of every entry are data in the front matter, beside the entry text in the body. `JournalKind` is one of `created`, `started`, `result`, `question`, `comment`, `close`, `stall`, `crash`, `expiry`, `move_back`, `send_back`, `done`.
 
+Three more fields follow `kind`, each optional with the default `None`, so a record written before they existed reads with no migration (a reader accepts each alone; nothing ties them to one another):
+
+| Field | Type | Meaning |
+|---|---|---|
+| `at` | `UtcDatetime \| None` (`factory.domain.times`) | when the entry was written; an aware time, stored in UTC; a naive time is refused |
+| `stage` | `Name \| None` | the stage of the work item's state when the entry was written |
+| `run` | `RunId \| None` (`factory.domain.cost_records`) | the id of the agent run the entry came from: 32 lowercase hexadecimal characters, the `run` of that run's cost record |
+
+Every entry the factory appends from now on carries `at` and `stage`, and `run` when it came from a run. The time comes from the factory's `Clock` (`boundaries.clock`; the claim's `started_at` for `started`), because the domain has no clock of its own. The stage comes from the state the entry is appended to. A run is carried by the role's entry at a stage's end, the factory's `question` of that move, and a `stall` that has a cost record (a red check, a new form finding); `created`, `started`, `crash`, `expiry`, `close`, `send_back`, `comment`, the other questions and `done` come from no run and have `run` `None`. Because the stage is read from the state at the call, no call site changes its order, and two entries carry a stage that is not the one the work item ends in: a `move_back` entry carries the stage the human set (it is appended before the move back), and a story's `done` entry carries the stage it was merged in (`_archived` appends before it sets `done`). The acceptance's `done` entry carries `done`, since its booking sets the stage first.
+
 ### The journal's entries
 
-The journal is two halves that always match. The visible half is Markdown in the body under `## Journal`; the data half is the front matter's `journal` list. `append_entry(document, NewEntry(...))` writes both in one call, so the number of records equals the number of entries. The input document is not changed; the result ends with a newline exactly when the body did.
+The journal is two halves that always match. The visible half is Markdown in the body under `## Journal`; the data half is the front matter's `journal` list. `append_entry(document, NewEntry(...), at=..., run=...)` writes both in one call, so the number of records equals the number of entries. `at` and `run` are keyword-only and optional. Given `at`, the new record carries it, the `stage` of the document's state and `run`; without `at` the record carries none of the three. A `run` without `at` raises `ValueError("an entry with a run needs the time it was written")` before anything else, also for a document with no state. The rendered entry shows no time, stage or run. The input document is not changed; the result ends with a newline exactly when the body did.
 
 - **Format.** An entry is `<number>. <speaker>: <text>`. Only the human's entries are dated: `<number>. <YYYY-MM-DD> human: <text>`; `NewEntry` requires `on` for the speaker `human` and refuses it for any other. The text is stripped and must not be blank. Lines after the first are indented by the width of `"<number>. "` (3 spaces for 1 to 9, 4 for 10 to 99, 5 for 100 to 999); a blank line stays empty. An entry whose text leaves a code block open gets one more line that closes it: the indent and the opening run, the same character and count, without the info string (a text ending in an unclosed four-backtick `python` block gets a closing line of four backticks). The numbered first line opens no block, so a fence there does not count. Without that line an open fence would hide the later entries and the sections after the journal, and the form check would report a valid work item as damaged. `NewEntry.text` and the journal records stay as given. Entries follow one another with no blank line between them, directly after the last non-blank line of the section (or one blank line under the heading when the section is empty), so a section after the journal keeps its blank line.
 - **Speaker and kind are data.** Code that needs to know who spoke or what kind an entry is reads the state: `last_record(document, speaker=..., kind=...)` returns the last record that matches every filter given, or `None`. Nothing reads them from the text, so changing how a speaker is displayed (`intake:` to `Intake Agent:`) changes no record. `entry_text(document, number)` returns an entry's text as rendered, a closing fence line included (without its indent), for display only: it finds the line that starts with `"<number>. "` at column 0 and ends the entry at the next line that starts with a number at column 0, so an indented `2. ...` inside a text is not an entry.
@@ -462,7 +472,7 @@ print(entry_text(doc, 2))
 "
 ```
 
-prints the body (`# T`, an empty line, `## Journal`, an empty line, `1. 2026-10-12 human: created.`, `2. intake: accepted`, `   Every criterion is testable.`), then `number=2 speaker='intake' kind='result'`, then `accepted` and `Every criterion is testable.`.
+prints the body (`# T`, an empty line, `## Journal`, an empty line, `1. 2026-10-12 human: created.`, `2. intake: accepted`, `   Every criterion is testable.`), then `number=2 speaker='intake' kind='result' at=None stage=None run=None`, then `accepted` and `Every criterion is testable.`.
 
 ### The feature acceptance
 
@@ -794,6 +804,18 @@ journal:
 The notation:
 
 - A missing value is `null`, an empty list `[]`, a non-empty `comments_read` a flow list, `claim` is `claim: null` when absent, `journal` a block list of mappings.
+- A journal record's `at`, `stage` and `run` are left out of the file when unset, so a record written before they existed is written back as it was read; every other key stays (`claim: null`). A record with all three:
+
+  ```yaml
+  - number: 2
+    speaker: tester
+    kind: result
+    at: '2026-10-17T20:31:00Z'
+    stage: tests
+    run: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  ```
+
+  `at` is written like `started_at`. A `run` a YAML reader would take for a number (32 times `1`) is single-quoted.
 - `started_at` is single-quoted UTC text in `isoformat()` form with the offset written as `Z`.
 - A name a YAML reader could take for null or a boolean (`null`, `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`) is single-quoted (`handed_over: 'true'`), so it reads back as the same text. Every other scalar is unquoted.
 

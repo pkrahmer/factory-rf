@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 199
 blocked: null
 comments_seen: 2
@@ -236,3 +236,17 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    5. Ticket hygiene: the log explains the `move_back` question and its answer, and the `exclude_none` and `StallContext` choices. The Assignment matches what was built. The docs criterion (9) still describes what the documenter has to write.
 
    Open for the docs stage: criterion 9 (project guide, decision log, and one pointer sentence in the entry for SI1.1).
+10. documenter: criterion 9 written; no findings. The code matches the Interface.
+
+    Files changed:
+    - `docs/project-guide.md`, *The journal's data*: names `at`, `stage` and `run` with their types. It says they are optional when read, set on every new entry, and where each comes from. It also gives the stage of a `move_back`, a story's `done` and the acceptance's `done`, and says which entries carry a run.
+    - `docs/project-guide.md`, *The journal's entries*: `append_entry` takes `at` and `run` and gets the stage from the state. It covers the `run`-without-`at` `ValueError` and says the rendered body is unchanged. The printed record of the example is now `number=2 speaker='intake' kind='result' at=None stage=None run=None`. I ran the example and it prints exactly that.
+    - `docs/project-guide.md`, *The layout*: the three fields are left out when unset. It shows a full record, and says a numeric-looking `run` is single-quoted.
+    - `docs/decisions.md`: new entry "Journal records say when, in which stage and from which run; cost records on which instance". It covers the human's word, optional when read with no migration, why an unset field is left out rather than written `null`, why the time comes from the `Clock` and the stage from the state, which entries carry a run, and what was rejected. The SI1.1 entry gets one pointing sentence.
+
+    Cross-read: the rest of `project-guide.md` (the entries that mention `append_entry`, the hand-over and stall text) and `README.md`. I found nothing else stale. `python -m factory.entry.check_documents` prints `documents ok`. I changed only documents, so I did not run `make check`.
+
+    Stale but unrelated: none seen.
+
+    `make check`: check: green
+    `make documents`: documents ok
