@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 203
 blocked: null
 comments_seen: 0
@@ -82,3 +82,11 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Criterion 4: the coder reports `make check` as `check: green` and `make duplicates` as 0 new.
       - Criterion 5: docs: none, which still holds because the project guide already describes the stamp.
       - Architecture, security and quality: there is no source diff. The test helper follows the existing `_merge`/`_refuse` pattern, and the sides of the rule are rows of one parametrized test.
+6. documenter: none, so I wrote nothing new and changed no files. The diff is two test files and no source change.
+
+   Cross-read: `docs/project-guide.md` (line 449) already says that every entry the factory appends carries `at` and `stage`, and that the acceptance's `done` entry carries `done`. That matches `book_merge` on both branches, so the guide is current. I did not read the README, the operator guide or the decision log, because this story changes nothing they describe.
+
+   I found no stale text and no code that contradicts the Interface. I ran no `make check`, since I changed nothing outside the README and `docs/`.
+
+   `make check`: check: green
+   `make documents`: documents ok
