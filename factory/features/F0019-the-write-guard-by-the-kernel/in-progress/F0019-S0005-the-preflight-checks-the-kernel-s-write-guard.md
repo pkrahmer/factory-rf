@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T16:51:44.503697Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T16:51:24.594049Z'
   stage: intake
   run: 9c0192c99dee48378d0af712964229e3
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:51:44.503697Z'
+  stage: tests
 ---
 
 # The preflight checks the kernel's write guard
@@ -96,3 +105,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
    Smoke test: the command is runnable. Both `Expect:` lines are checkable against the output: `True`, then the exact joined fault text.
    Architecture: the item sits in `application`. The ABI reader and `which` are injected from `entry`, so `application` knows no tool. Layering is respected.
    Scope: it is within the feature's S0005 scope (preflight item and wiring). The fallback to the hook is out of scope and not added.
+4. factory: started tests as self.
