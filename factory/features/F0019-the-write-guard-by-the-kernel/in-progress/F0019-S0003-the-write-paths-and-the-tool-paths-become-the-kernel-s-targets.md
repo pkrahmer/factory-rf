@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T15:25:18.294131Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   at: '2026-10-18T15:24:57.750228Z'
   stage: doing
   run: 684785e4577549389e1dfa31e211987e
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:25:18.294131Z'
+  stage: tests
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -323,3 +332,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     Noticed but not touched: `make duplicates` still lists `write_targets`, `confinement_of` and the older `CONFINE_COMMAND` as dead code, until S0004 uses them.
 
     The factory undid changes outside the write paths: factory/features/F0019-the-write-guard-by-the-kernel/in-progress/F0019-S0003-the-write-paths-and-the-tool-paths-become-the-kernel-s-targets.md.
+15. factory: started tests as self.
