@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T15:30:45.000903Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -116,6 +112,12 @@ journal:
   kind: started
   at: '2026-10-18T15:30:45.000903Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: question
+  at: '2026-10-18T15:31:52.021339Z'
+  stage: review
+  run: 6e67b1f22d77476fad21cde268cbb768
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -392,3 +394,14 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     `check`: check: green
     `duplicates`: duplicates: 3 new, 36 known, 3 gone
 19. factory: started review as self.
+20. reviewer: Groups 1 to 4 pass. Every criterion has a test that checks what it is named after. Every limit is tested on both sides: the `.`/`..` segments, a wildcard in the first segment, `home` `None`, and a missing file at the root versus deeper. The coder's entry 18 reports `check: green`. The layers hold, there is nothing new for security, and no existing helper is copied. Group 5 fails on one finding, and the stage that gets it cannot fix it, so I am asking instead of sending the work item back to doing.
+
+    1. `## Description` of this work item, sections Interface and criteria 2 and 4: they still hold the text from before entry 12. The tool-path rule says "none `..`" and should say "none `.` or `..`". The `write_targets` rule says "holding a `..` segment" and should say "holding a `.` or `..` segment". Criterion 2 is missing the rows `"./*"`, `"a/./b/*"` and `"~/./*"`. Criterion 4 is missing the rows `./*`, `./*.md` and `.`, each giving nothing. The code (`src/factory/domain/pipeline_definition.py` `_is_plain_segment`, `src/factory/domain/confinement.py` `_write_path_target`) and the tests (`tests/domain/test_tool_paths.py` `REFUSED`, `tests/domain/test_write_targets.py`) already follow entry 12. So the Description does not match what was built, and the documenter would write the tool-path form for criterion 11 from the old rule. The fix is to rewrite those three places as entry 14 lists them. The coder cannot do this: entry 14 shows the factory undid the coder's edit, because the work item is not in the coder's write paths (`src/*`, `image/*`, `template/*`, `claude/*`). Sending it back to doing would only stall.
+
+    Question: who brings the Description in line with entry 12?
+    - A (my choice): you tell the reviewer to do it. The work item is in the reviewer's write paths. On the next review round I would rewrite the Interface's two rules and criteria 2 and 4 exactly as listed in finding 1, change nothing else, and end with `docs` if nothing else is found.
+    - B: you commit the amended Description on `work-item/F0019-S0003` yourself, and the review runs again.
+    - C: leave the Description as it is and treat entry 12 as the record. I would not choose this: the documenter writes from the Description.
+
+    Earlier tests:
+    - `tests/application/test_write_paths.py`: changed under the standing leave to move a shared test helper. `_stage_start`, `_push_definition` and `PIPELINE_FILE` moved to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
