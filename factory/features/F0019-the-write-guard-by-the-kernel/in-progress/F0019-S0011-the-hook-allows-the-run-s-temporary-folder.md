@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T20:26:05.402243Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -39,6 +35,12 @@ journal:
   kind: started
   at: '2026-10-18T20:26:05.402243Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T20:26:19.826150Z'
+  stage: intake
+  run: 371965e7aa6640ac9de38a58038edba9
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -88,6 +90,7 @@ Test modules (new): `tests/adapters/test_claude_guard_temporary.py`, `tests/adap
    - `<T>-x/a.txt`: refused, `<T>-x/a.txt is outside the checkout.`.
    - `<T>/link.py`, a link to `<R>/src/a.py`, with write paths `["docs/*"]`: refused with the text `refusal` gives for `src/a.py`.
    - `<T>/notes.txt` with `temporary_directory` `None`: refused, `<T>/notes.txt is outside the checkout.`.
+   - The checkout `<R>` placed beneath `<T>`, with write paths `["docs/*"]`: a `Write` to `<R>/src/a.py` is refused with the text `refusal` gives for `src/a.py`.
 2. A guard settings file with `"temporary_directory": "<T>"` and one without the key both read back through `read_guard_settings`, the second as `None`. `"temporary_directory": "relative/t"` raises `GuardSettingsInvalid` (rows of one parametrized test).
 3. Through a stand-in `claude` that records `$TMPDIR` and the guard settings file named in its hook settings, rows of one parametrized test:
    - A runtime built with `confine_executable`: the file's `temporary_directory` equals the recorded `$TMPDIR`.
@@ -127,3 +130,9 @@ Expect: `with: 0`, then `without: 2`
    - The scope is inside F0019 and not in its "Out of scope". The hook stays.
 4. 2026-10-18 human: (a): add the row to criterion 1 yourself. A checkout `<R>` beneath `<T>`, write paths `["docs/*"]`, and a `Write` to `<R>/src/a.py` is refused with the text `refusal` gives for `src/a.py`. The Interface clause stays.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: `GuardSettings.temporary_directory`, `judge` and `ClaudeCodeRuntime.run` are named with modules and signatures. Every ordering and "beneath" clause is stated.
+   - Criteria: each is testable by one parametrized test. Criterion 1 covers both sides of each rule: inside, missing folders, the folder itself, the `-x` sibling, the link into the checkout, `None`, and the checkout-first ordering. Criterion 2 covers a present, an absent and a relative value. Criterion 3 covers both runtime builds. Criterion 4 covers the console script's exit 0 and exit 2. I added the ordering row to criterion 1 (a checkout `<R>` beneath `<T>`, write paths `["docs/*"]`, a `Write` to `<R>/src/a.py` refused with the text `refusal` gives for `src/a.py`). It comes from journal entry 4, the human's answer (a) to my question in entry 3.
+   - Smoke test: runnable with `uv run -q factory-guard --settings`. The `Expect:` line (`with: 0`, then `without: 2`) can be checked against the output.
+   - Architecture: a domain model field, an adapter judge and the runtime adapter, each in its own layer. No new dependency, package or layer. The hook stays and the tool paths stay kernel-only (decision 8).
+   - Scope: inside F0019 and not in its "Out of scope". Removing the hook is left out. The story makes the hook agree with the kernel for R14's temporary folder, which supports decision 16's cross-check.
