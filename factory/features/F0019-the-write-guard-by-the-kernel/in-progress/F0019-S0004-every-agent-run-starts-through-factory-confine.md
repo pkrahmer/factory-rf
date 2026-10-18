@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:27:24.572765Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-10-18T16:27:24.572765Z'
   stage: doing
+- number: 43
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:29:27.580443Z'
+  stage: doing
+  run: bd5bde295bb14c3993d4c3bf25f0ee6f
 ---
 
 # Every agent run starts through `factory-confine`
@@ -680,3 +682,28 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `lint`: lint: green (0.0 s)
     `test`: test: green (39.4 s)
 42. factory: started doing as self.
+43. coder: Coder, round 2. `make check` is green and I changed no code this round (`check: green`, coverage 98.67 %).
+
+    The round-1 review findings (entry 37) were all about test code. The tester settled all four in entry 41:
+    - `local_settings` and `hosted_environment` now live in `tests/conftest.py`.
+    - `CREDENTIAL` and `HOSTED_URL` now live in `tests/wiring_support.py`.
+    - `REPLY` is imported from `tests/adapters/test_claude_runtime_os_user.py`.
+    - The renames are done in `test_the_rules_hold_only_the_device_targets_that_exist`.
+
+    Against those changed tests, the code as it was passes the whole of `make check`, including `make types`, which the tester had not run.
+
+    What I built (unchanged since entry 20):
+    - `src/factory/adapters/claude_runtime.py`: the confined command line, the rules file `confine-<session>.json`, `CLAUDE_CONFIG_DIR`, the per-run `TMPDIR`, the removal through `SHELL_EXECUTABLE` and `CLEANUP_SCRIPT`, and the handling of a `factory-confine:` refusal.
+    - `src/factory/domain/confinement.py`: `DEVICE_FILES` and `DEVICE_FOLDERS`, with the allowed `/dev/shm` marker.
+    - `src/factory/entry/wiring.py`: `confine_executable` defaults to `CONFINE_COMMAND`.
+
+    Main choice (unchanged): the runtime builds its rules through the existing `write_targets` and `confinement_of` and starts every process through `run_process`. I rejected a second command builder of its own for the confined path.
+
+    Refactor: I read the source diff against main once more. Nothing needs changing.
+
+    Description: no rewrite. This round's journal changes no part of the task.
+
+    Noticed but not touched (as in entries 35 and 39): the name of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` is out of date now that it also covers the `/dev/shm` marker. `[tool.mutmut]` deselects the test by that name.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
