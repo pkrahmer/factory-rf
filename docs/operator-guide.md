@@ -345,6 +345,7 @@ The items read the instance's settings, so the three variables `FACTORY_CLAUDE_H
 - **A red `main` is probed once.** The failing commit is remembered, so an idle tick runs no project command while the stop stands. If `health.json` loses the stop meanwhile, the next call raises it again with the detail `lint is red on main at <commit> (probed earlier)`, without running `lint`.
 - **A fix clears it.** When you push a new commit to `main`, the next call probes it, and when `lint` passes the stop `main_branch_failing` is cleared. A call that ends without a probe error also clears a standing `preflight_failed` stop.
 - **A failed machine clears a stale stop.** While the machine's items fail the probe cannot run, so a `main_branch_failing` is cleared when the stamp's failing commit is no longer `origin/main` (a fix was pushed, or `main` is gone) and the call still returns `preflight_failed`. The new `main` is probed when the machine's items pass again, and a red one raises the stop anew. A stop whose commit is still `main` stays, and so does a stop when git cannot resolve `origin/main`. The stamp is not rewritten.
+- **A `stops recorded` commit is a new `main`.** The probe runs again for it. While the machine's items fail (`preflight_failed` stands), the stale-stop rule above clears `main_branch_failing` and writes a `cleared` record for it, although `main` is still red; the probe raises it again, with a `raised` record, once the machine's items pass. This is accepted for now: the rule does not yet ignore a commit that changes only `factory/stops.jsonl`.
 - A repository with no commit on `main` has nothing to probe, and the preflight passes once the machine's items have.
 
 Deleting `preflight-stamp.json` is safe: a missing or damaged stamp reads as no stamp, and the only cost is one more run of the machine's items and of the probe. The agent can read the file and cannot write it.
@@ -435,6 +436,19 @@ python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in m
 
 A commit that appears more than once was checked more than once.
 
+#### The stop records
+
+`records/stops.jsonl` in the state directory holds one JSON line for each event of a stop of the repository or the machine. A line has these fields, in this order: `event` (`raised` or `cleared`), `scope` (`machine` for `preflight_failed` and `disk_low`, `repository` for the rest), `reason`, `at` (UTC, ending in `Z`) and `instance` (the instance's name, `null` without settings). It never holds the stop's detail:
+
+```text
+{"event":"raised","scope":"machine","reason":"disk_low","at":"2026-10-18T10:00:00Z","instance":"self"}
+```
+
+- `raised` is written when a stop of its reason is raised and the health status held none of that reason. A stop raised again every cycle while it lasts writes nothing more. `cleared` is written, after the status and the `stop cleared` line, when a stop of that reason stood and is removed; clearing a reason that does not stand writes nothing.
+- A raise whose health status cannot be read writes no `raised` record. The next raise that can read the status finds no stop standing and writes it. A stop that clears before the status is readable again therefore never reaches the records; its line is still in the factory log.
+- When the record cannot be written, the other destinations were still tried and the factory reports the `OSError` as for the log and the status.
+- The factory never clears this file. The tick publishes its records to `main` (see "The stops"), and a record is pushed once. Delete the file only when `main`'s `factory/stops.jsonl` holds every line of it; a record deleted before it was pushed is lost.
+
 #### The disk record
 
 `records/disk.jsonl` in the state directory holds one JSON line each time the factory measures its folders: `at` (UTC with an offset), `occasion` (`start` or `acceptance`) and `folders`, a list of `{"path", "free_bytes", "used_bytes"}` for the work directory (the checkout's parent), the state directory and the process's temporary directory (`/tmp` in the container), in that order. `free_bytes` is the free space of the file system the folder is on; `used_bytes` is the size of what is under it. A value the factory could not read is `null`.
@@ -494,6 +508,14 @@ That is `stop cleared <reason>`. It is written only when the stop was in the hea
 - The health status holds one stop per reason. A stop raised again for a reason already there replaces the earlier one where it stood (with the new detail and time); it is not added twice. A new reason is added at the end. A fault that lasts is raised every cycle, so the log repeats the line and the status does not grow.
 - A stop is removed from the health status, then the cleared line is written, when the factory finds the fault gone. You never clear one by hand; deleting `health.json` only hides it until the next cycle raises it again.
 - One failing destination never loses the stop. If the log file cannot be written, the stop is still put into the health status; if the health status cannot be written, the line still reaches standard output and the log file. In both cases the factory then reports the write error (an `OSError`); when both fail, it is the log's error. If the health status cannot be written while a stop is cleared, the stop stays in force and no cleared line is written. If the log cannot be written while a stop is cleared, the stop is already removed.
+
+### The stop records on main
+
+Every raise and every clear of a stop of the repository or the machine is also a record (see "The stop records"). Each tick, right after it restored the checkout and before the preflight, pushes the records that `origin/main` does not hold to `factory/stops.jsonl` on `main`, as a commit with the subject `stops recorded`. The records carry the event, scope, reason, time and instance, without the detail, which stays in the factory log.
+
+- A tick that ends before the restore succeeded (`disk_low`, `fetch_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `checkout_restore_failed`) publishes nothing. The records wait in the state directory for the next tick that gets past the restore, so a `fetch_failed` is published after the fetch works again.
+- A failed push (for example a rule of the remote that refuses `main`), any other git error or a file that cannot be written leaves the records where they are and writes one line, `cannot publish the stop records: <error>`; the tick goes on and tries again next tick. Nothing is lost and nothing is pushed twice.
+- **Pull `main` before you push to it.** The factory pushes `main` after a stop event as well as after an archive. If you push first the factory's push is refused and succeeds on the next tick; if the factory pushes first, yours is refused until you pull.
 
 ### The stops of one work item
 
@@ -641,7 +663,7 @@ The tick ends there and nothing else happens: no stage is started and no event i
 
 ## The stops of the tick
 
-A tick works from the remote alone: the checkout is disposable. It reads the free space first, before the fetch (see "The low disk" below), then fetches, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, and only then looks at the work items. Four repository stops, and the machine stop `disk_low`, end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
+A tick works from the remote alone: the checkout is disposable. It reads the free space first, before the fetch (see "The low disk" below), then fetches, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, publishes the stop records (see "The stop records on main"), and only then looks at the work items. Four repository stops, and the machine stop `disk_low`, end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
 
 | Stop | Meaning | What to do |
 |---|---|---|

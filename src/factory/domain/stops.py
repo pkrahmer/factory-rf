@@ -1,17 +1,19 @@
 """The stops of a repository, the machine and one work item, and the health status."""
 
+from collections.abc import Sequence
 from typing import Literal, Self
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     PositiveInt,
+    ValidationError,
     field_validator,
     model_validator,
 )
 
 from factory.domain.hosting import PostKey, PostOutcome
-from factory.domain.identifiers import branch_name
+from factory.domain.identifiers import Name, branch_name
 from factory.domain.times import UtcDatetime
 
 RepositoryStopReason = Literal[
@@ -25,8 +27,15 @@ RepositoryStopReason = Literal[
     "disk_low",
 ]
 StopScope = Literal["repository", "machine"]
+StopEvent = Literal["raised", "cleared"]
 
 _MACHINE_REASONS: frozenset[RepositoryStopReason] = frozenset({"preflight_failed", "disk_low"})
+
+
+def _require_scope_of_reason(scope: StopScope, reason: RepositoryStopReason) -> None:
+    expected: StopScope = "machine" if reason in _MACHINE_REASONS else "repository"
+    if scope != expected:
+        raise ValueError(f"a stop for {reason} has the scope {expected}")
 
 
 class RepositoryStop(BaseModel):
@@ -48,10 +57,41 @@ class RepositoryStop(BaseModel):
 
     @model_validator(mode="after")
     def _scope_matches_reason(self) -> Self:
-        expected: StopScope = "machine" if self.reason in _MACHINE_REASONS else "repository"
-        if self.scope != expected:
-            raise ValueError(f"a stop for {self.reason} has the scope {expected}")
+        _require_scope_of_reason(self.scope, self.reason)
         return self
+
+
+class StopRecord(BaseModel):
+    """One event of a stop of the repository or the machine, as the remote keeps it."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    event: StopEvent
+    scope: StopScope
+    reason: RepositoryStopReason
+    at: UtcDatetime
+    instance: Name | None = None
+
+    @model_validator(mode="after")
+    def _scope_matches_reason(self) -> Self:
+        _require_scope_of_reason(self.scope, self.reason)
+        return self
+
+
+def stop_records_text(records: Sequence[StopRecord]) -> str:
+    """One `model_dump_json()` line per record, each ending in a newline; `""` for none."""
+    return "".join(record.model_dump_json() + "\n" for record in records)
+
+
+def parse_stop_records(text: str) -> list[StopRecord]:
+    """The records of the lines of `text` that validate, in order; other lines are skipped."""
+    records: list[StopRecord] = []
+    for line in text.splitlines():
+        try:
+            records.append(StopRecord.model_validate_json(line))
+        except ValidationError:
+            continue
+    return records
 
 
 class HealthStatus(BaseModel):

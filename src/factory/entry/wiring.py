@@ -78,6 +78,7 @@ from factory.domain.settings import (
     read_setting_file,
     read_settings,
 )
+from factory.domain.stops import StopRecord
 
 __all__ = [
     "CREDENTIAL_HELPER",
@@ -118,6 +119,7 @@ _HEALTH_FILE_NAME = "health.json"
 _PREFLIGHT_STAMP_FILE_NAME = "preflight-stamp.json"
 _COMMAND_RECORDS_PATH = Path("records", "project-commands.jsonl")
 _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
+_STOP_RECORDS_PATH = Path("records", "stops.jsonl")
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -273,6 +275,7 @@ def build_boundaries(
         settings=settings,
         disk=ShutilDiskSpace(),
         disk_records=JsonLinesRecordLog(state / _DISK_RECORDS_PATH, DiskRecord),
+        stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
     )
 
 

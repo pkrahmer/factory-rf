@@ -1,4 +1,4 @@
-"""The tick: check the disk, fetch, load, restore, preflight, clean up, evaluate, dispatch."""
+"""The tick: check the disk, fetch, load, restore, publish the stops, preflight, dispatch."""
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
@@ -11,7 +11,7 @@ from factory.application.dispatcher import Dispatcher, DispatchOutcome, Handler
 from factory.application.pipeline_loading import PipelineLoader
 from factory.application.preflight import Preflight
 from factory.application.recovery import delete_stale_branches
-from factory.application.stops import StopService
+from factory.application.stops import StopPublisher, StopService
 from factory.application.watcher import Watcher
 from factory.application.work_items import RemoteWorkItems
 from factory.domain.disk import disk_low_detail
@@ -20,6 +20,7 @@ from factory.domain.errors import (
     FetchFailed,
     GitError,
     PipelineDefinitionInvalid,
+    PushFailed,
 )
 from factory.domain.events import Event, EventKind
 from factory.domain.identifiers import Name, branch_name, work_item_of_branch
@@ -101,6 +102,7 @@ class Tick:
             self._fetch()
             definition = self._load()
             self._restore()
+            self._publish_stop_records()
             self._run_preflight()
         except _Stopped as stopped:
             return TickOutcome(stopped=stopped.reason)
@@ -155,6 +157,14 @@ class Tick:
         except GitError as error:
             self._stop("checkout_restore_failed", str(error))
         self._stops.clear_stop("checkout_restore_failed")
+
+    def _publish_stop_records(self) -> None:
+        # After the restore, which logs what a killed stage left behind before the
+        # publisher's checkout could discard it. A failure keeps the records for the next tick.
+        try:
+            StopPublisher(self._boundaries).publish()
+        except (GitError, PushFailed, OSError) as error:
+            self._boundaries.log.line(f"cannot publish the stop records: {error}")
 
     def _run_preflight(self) -> None:
         # The preflight raises and clears its stops itself.

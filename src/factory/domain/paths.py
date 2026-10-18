@@ -13,6 +13,7 @@ STORY_FORM_FILE = "factory/story-form.md"
 FEATURE_FORM_FILE = "factory/feature-form.md"
 FEATURES_DIRECTORY = "factory/features"
 FEATURE_FILE_NAME = "feature.md"
+STOP_RECORDS_FILE = "factory/stops.jsonl"
 LifecycleFolder = Literal["backlog", "in-progress", "done"]
 LIFECYCLE_FOLDERS: tuple[LifecycleFolder, ...] = ("backlog", "in-progress", "done")
 COST_RECORDS_SUFFIX = ".costs.jsonl"
