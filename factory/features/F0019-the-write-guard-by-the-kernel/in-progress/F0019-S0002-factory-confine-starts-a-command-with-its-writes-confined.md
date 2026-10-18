@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T14:43:28.699870Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T14:43:28.693326Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:43:28.699870Z'
+  stage: intake
+---
+
 # `factory-confine` starts a command with its writes confined
 
 ## Description
@@ -108,3 +135,6 @@ uv run -q factory-confine --rules "$d/rules.json" -- echo started 2>&1 | sed "s|
 Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
