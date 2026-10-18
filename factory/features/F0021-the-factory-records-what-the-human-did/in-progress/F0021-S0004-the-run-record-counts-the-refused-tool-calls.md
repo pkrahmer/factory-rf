@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:42:24.814329Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-18T23:42:24.814329Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-18T23:44:33.320397Z'
+  stage: doing
+  run: 998f4f0fa9e04f10861c44e3b3751b9d
 ---
 
 # The run record counts the refused tool calls
@@ -432,3 +434,22 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     Noticed, not touched: the possibly flaky `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` from entry 10 is still open.
 26. 2026-10-18 human: (a): give the two records different `run` values (take `run` out of `fields`; `run="a" * 32` for `started`, `run="b" * 32` for `done`); the `Expect:` line stays. The reviewer has leave to make exactly this edit to `## Smoke test` on its next run, and nothing else; the code goes forward unchanged.
 27. factory: started doing as self.
+28. coder: No code changed this round. In entry 26 the human answered the smoke-test finding (entry 23): option (a). The two records in `## Smoke test` get different `run` values, and the reviewer has leave to make exactly that edit on its next run. The code goes forward unchanged. That edit to `## Smoke test` is the reviewer's, so I did not make it.
+
+    What was built, already on the branch since entry 10, with paths:
+    - `src/factory/domain/agent_runs.py`: `PermissionDenial.path: str | None = None`.
+    - `src/factory/adapters/claude_runtime.py`: `_denied_path` gives `file_path` when it is a string, or else `notebook_path` when that is a string, or else `None`. `_denials` fills `path` from it, and `detail` is unchanged.
+    - `src/factory/domain/cost_records.py`: new fields `denials` and `denied_paths` after `instance`. A `started` record refuses both.
+    - `src/factory/application/costs.py`: `_completed` sets `denials` and `denied_paths`. `denied_paths` keeps each path once, in the order the runtime reported it. Both stay `None` for `died` and `time_limit`.
+    - `src/factory/adapters/cost_records_jsonl.py`: one loop leaves `instance`, `denials` and `denied_paths` out of the line when each is `None`.
+
+    Main choice (unchanged): `_completed` decides from the end reason whether the runtime replied. I rejected building the fields in a `dict` helper and merging it in, because CLAUDE.md does not allow a dict to cross a function boundary.
+
+    Since then a merge from `origin/main` came into the branch. I ran `make check` again on it, and it is green (`check: green`, coverage 99.08 %). Refactor pass: nothing to change, because the diff to `src/` is the same as before.
+
+    What the journal changed: only the smoke test's data, not what the task means. The Description stays as it is.
+
+    Noticed, not touched: `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` failed once under load in an earlier round. It may be a flaky test, and it is unrelated to this work item.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
