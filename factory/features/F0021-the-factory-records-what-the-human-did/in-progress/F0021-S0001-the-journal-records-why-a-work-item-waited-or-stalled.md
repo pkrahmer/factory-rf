@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T21:53:59.940064Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T21:53:39.863063Z'
   stage: tests
   run: e712012ae52341c1a14bfaf0619ff2d2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:53:59.940064Z'
+  stage: doing
 ---
 
 # The journal records why a work item waited or stalled
@@ -182,3 +191,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_journal_causes.py - ImportError while importing test ...
+6. factory: started doing as self.
