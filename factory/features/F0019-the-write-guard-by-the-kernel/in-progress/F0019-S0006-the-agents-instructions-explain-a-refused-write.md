@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T17:14:44.213731Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T17:14:24.190370Z'
   stage: doing
   run: ad57b57cace84bcaa14cc48e2ffe84aa
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:14:44.213731Z'
+  stage: review
 ---
 
 # The agents' instructions explain a refused write
@@ -124,3 +133,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
