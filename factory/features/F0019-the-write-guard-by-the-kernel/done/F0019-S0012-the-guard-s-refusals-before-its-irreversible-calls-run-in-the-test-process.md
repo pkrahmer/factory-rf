@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-18T20:46:48.837695Z'
   stage: smoke-test
   run: dd1a0d66be5844398da7b70c7589e4b4
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-18T20:48:05.848933Z'
+  stage: approval
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -265,3 +270,4 @@ Expect: `replace_process needs a program to start`
     Checked against the acceptance criteria: the output contradicts none of them. The first command's text is the exact text criterion 1 gives for a link among the folders (`folders [dangling]`). The write after the refusal is the check that criterion 1 asks for after each row. The second command's text is the exact `ValueError` text in criterion 2. The smoke test does not exercise criteria 3 to 5 (`main`'s defaults, the wrapper's folders, the rules file's fault), and nothing in it contradicts them. I did not run `make check` (criterion 6) because the stage does not ask for it. The journal records it green after the docs stage (entry 11).
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 5.4 min, 44 turns, 138133 tokens in (910763 more from cache), 20636 out, $1.51
