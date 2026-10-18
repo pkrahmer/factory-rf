@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 203
 blocked: null
 comments_seen: 0
@@ -73,3 +73,12 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: tests only. `tests/domain/test_journal_stamps.py` gains `_merge_before_approval` and a third `booking` row, `merge-before-approval`. `tests/application/test_acceptance_merged_before_approval.py` gains `test_an_acceptance_merged_before_approval_stamps_its_done_entry_with_the_time_and_stage`. No source change, which matches "No behaviour is meant to change".
+      - Criterion 1: the `with-at` × `merge-before-approval` row calls `book_merge(_report(), bill([]), before_approval=True, at=at)`. It checks number 4, speaker `FACTORY`, kind `done` and `(at, stage, run) == (AT, "done", None)`. The test's name and body did not change, as the criterion requires.
+      - Criterion 2: the `without-at` row of the same `booking` checks `(None, None, None)`.
+      - Criterion 3: the new function pushes the report at stage `acceptance`, merges it and runs `AcceptanceMerged.handle`. `_booked` reads `done/` on `origin/main` and asserts the last record is `(FACTORY, "done")`. The test then checks that `(at, stage)` equals `(boundaries.clock.now(), "done")`, which is the fixed `ManualClock`, and that the text starts with `BEFORE_APPROVAL`. If `at` became `None` on this branch, both the domain row and this test would fail. That is the surviving mutant the story is meant to kill.
+      - The rule has no rejected input and no limit, so there is no failing side to test. The side without `at` is criterion 2.
+      - Criterion 4: the coder reports `make check` as `check: green` and `make duplicates` as 0 new.
+      - Criterion 5: docs: none, which still holds because the project guide already describes the stamp.
+      - Architecture, security and quality: there is no source diff. The test helper follows the existing `_merge`/`_refuse` pattern, and the sides of the rule are rows of one parametrized test.
