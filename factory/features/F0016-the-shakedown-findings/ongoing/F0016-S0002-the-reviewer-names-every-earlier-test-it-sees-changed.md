@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 211
 blocked: null
 comments_seen: 0
@@ -103,3 +103,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+      - Acceptance criteria: the three changed lines in `claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md` match the Interface word for word. Nothing else in either file changed, so the boundary sentence, the entry sentence, `## Rules`, `## Stage` and `## Lessons` are untouched. Criteria 1 and 2 are the new anchors in `ROLE_AND_STAGE_ANCHORS`, and the old anchors are still there. Criterion 3 is `test_the_reviewer_no_longer_stops_before_the_earlier_tests`, which checks that the old sentence is gone. Criterion 4 is held by the existing tests. The new text uses none of the words `_BANNED_WORDS` refuses. The coder's entry says `make check` was green.
+      - Architecture and security: nothing under `src/` changed. The diff adds no marker and no secret.
+      - Quality and hygiene: the coder's entry gives the main decision, copying the Interface text exactly, and what was rejected. The docs criterion still describes what the documenter must write.
+      Earlier tests:
+      - `tests/test_claude_agent_texts.py` (M): changed with the human's leave, FEATURE decision 9 as the story's Interface names it. The change stays within that leave: three anchors are added to `ROLE_AND_STAGE_ANCHORS`, the acceptance-reviewer list is reflowed with the same text, and criterion 3 adds its new test. `test_role_and_stage_sections_carry_the_texts_of_the_role` is unchanged.
