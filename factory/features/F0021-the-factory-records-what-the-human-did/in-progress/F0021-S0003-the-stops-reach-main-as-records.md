@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:07:18.146766Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-18T23:07:18.146766Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-18T23:09:16.702072Z'
+  stage: doing
+  run: 39be84f13ce74600aa8f49a7eaa7e920
 ---
 
 # The stops reach main as records
@@ -399,3 +401,24 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     `lint`: lint: green (0.0 s)
     `test`: test: green (39.6 s)
 20. factory: started doing as self.
+21. coder: Round 1, after the tester's entry 19. That entry added the test the human approved in entry 15 (option (b)): tests/application/test_stop_records_service.py::test_a_raise_whose_log_or_health_status_fails_records_only_with_a_readable_status. The code already did what that test checks (entries 10 and 17), so I changed no code this run. `make check` is green with the new test (test: green, coverage 99.07 %, check: green). I did not change any test.
+
+    What I built (same as entries 10 and 17, nothing new this run): src/factory/domain/stops.py, src/factory/domain/paths.py, src/factory/application/boundaries.py, src/factory/application/stops.py (`StopService.raise_stop`/`clear_stop` record the stop events; `StopPublisher`), src/factory/application/tick.py (`_publish_stop_records` between the restore and the preflight), src/factory/entry/wiring.py.
+
+    The review findings in entry 12:
+    - Finding 1 (no criterion for a failing log line or health status): now covered by the tester's new three-row test.
+    - Finding 2 (a failed health status read skips the append): the human chose option (b) in entry 15, so no record is appended without a readable status. That is what `raise_stop` does. One comment says why, at the line `standing = True` in src/factory/application/stops.py.
+
+    Main choice: I kept `raise_stop`'s control flow as it is, because it already does (b). I rejected splitting the health status read and write into separate try blocks, because behaviour would not change.
+
+    Refactor pass: I reread the diff and found nothing to change.
+
+    Still open:
+    - The journal changed the task, but the work item is outside my write paths, so its `## Description` and criteria are not updated (entry 17).
+    - The Interface sentence of `StopService.raise_stop` should gain: "except that without a readable health status no record is appended".
+    - A new criterion 16 should hold the three rows of the new test. `make check` then becomes 17 and docs 18.
+
+    Noticed, not touched: nothing beyond entry 10. That is the three `close` methods that `make duplicates` lists as gone, which came from earlier work on main.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
