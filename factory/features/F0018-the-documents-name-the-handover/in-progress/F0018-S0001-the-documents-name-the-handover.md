@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T12:49:32.053320Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -83,6 +79,12 @@ journal:
   kind: started
   at: '2026-10-18T12:49:32.053320Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T12:50:45.869333Z'
+  stage: docs
+  run: 4950acbfcc0849b3964aca31310f0da7
 ---
 
 # The documents name the handover
@@ -190,3 +192,20 @@ Expect: `documents ok`
 
     Earlier tests: none. The diff changes, renames or deletes no test file.
 13. factory: started docs as self.
+14. documenter: Documentation only; I changed no code, test or comment in code. I did not run `make check`, because every changed file is a document and the factory runs it after this stage.
+
+    Files changed:
+    - `README.md`: the opening paragraph now says the repository was built by the first implementation (github.com/pkrahmer/factory) until the handover of 2026-10-18 and is built by v1.1 itself since then. The sentence saying a stage's agent run and a `time_limit` under `sudo` are first observed at the shakedown run now says both were observed on 2026-10-18, on the todo demo. The section *How it is built* now says v1.1's instance builds the repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, and that v1's history lies in `factory/v1/`. I wrote "its stages" there, not "stage table" or `stages.yml`, because `check_documents` rejects those v1 words in the README.
+    - `docs/operator-guide.md`: the bullet "This repository's own `factory/` tree is v1's" is replaced as the criterion says. It names `factory/v1/` and its contents, says nothing reads it and `factory-check-story` does not apply to it, and says v1.1 builds from `factory/pipeline.yml`, `factory/story-form.md` and `factory/features/` since the handover. The intro paragraph (line 3) had the same "first observed at the shakedown run" sentence, so I made it match the README.
+    - `docs/decisions.md`: new last entry, *factory-rf is built by v1.1 since the handover*, dated 2026-10-18 (commit `3bcee441`). It gives the three reasons from the criterion: v1's features left `factory/features/` because v1.1 reads no v1 work item and v1's `done/` folders would have counted each as due for an acceptance; the numbers continue from F0018 because `make mutants` finds a feature's modules by its id in commit subjects; v1 is stopped, not removed, as the fallback. It also lists the two alternatives I rejected: leaving v1's features in place, and restarting the numbers at F0001. Those two rejections are my inference from the stated reasons, not the human's words. Please check them.
+
+    Checked: `uv run python -m factory.entry.check_documents` prints `documents ok`. `grep -c "until this repository moves"` on the operator guide gives 0. `grep -c "factory-rf is built by v1.1 since the handover"` on the decision log gives 1. `grep -c "factory/v1/"` on the README gives 1.
+
+    Cross-read and found current: `docs/project-guide.md`, and the rest of `README.md` and `docs/operator-guide.md`. `docs/decisions.md` has no other mention of the handover in this sense.
+
+    Stale text I saw and left alone: `docs/decisions.md` lines 462 and 504, and `docs/operator-guide.md` line 259 ("Under Podman this is first observed at the shakedown"), still say some things are observed only at the shakedown run. They are about the second user and PID 1 reaping under Podman, not about this story's passages, and I could not tell whether those were observed on 2026-10-18.
+
+    No findings.
+
+    `check`: check: green
+    `documents`: documents ok
