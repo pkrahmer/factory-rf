@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T22:49:15.553197Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-18T22:48:55.189607Z'
   stage: intake
   run: f584f613515e4e1cac9ff6bb6407a1d5
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:49:15.553197Z'
+  stage: tests
 ---
 
 # The stops reach main as records
@@ -186,3 +195,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
    - Smoke test: it is runnable. The three Expect outputs (the JSON line, `True`, `refused`) can be checked against the output.
    - Architecture: `domain` holds the record and the pure text functions. `application` holds the service and the publisher, which reach git only through `WorkItemRecorder` and the boundaries. `entry` holds the wiring. The layering is respected.
    - Scope: the story is inside the feature's decisions 1 to 3. It leaves out `factory-run`'s invalid-settings stop, the health status and S0004's refused calls, as the feature's "Out of scope" requires.
+7. factory: started tests as self.
