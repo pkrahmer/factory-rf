@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 207
 blocked: null
 comments_seen: 0
@@ -78,3 +78,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Architecture and security: nothing under `src/` changes, and there are no suppression markers or secrets.
       - Quality: the module docstring is present and the names say what they hold. There is no dead or duplicated code.
       - Ticket hygiene: the Assignment matches what was built. The coder's entry names the design choice and the rejected alternatives (the factory as the reaper, tini in the image). The docs criterion is still current for the documenter.
+6. documenter: wrote the docs criterion.
+   - docs/operator-guide.md, "The container: compose, entrypoint and health check": new paragraph on `init: true` (the runtime's init as PID 1, what it does, the zombies without it, `--init` outside Compose, the Podman fallback).
+   - docs/operator-guide.md, "The entrypoint" step 4: says the factory is started with `exec` and runs as the init's child, not as PID 1.
+   - docs/operator-guide.md, "A `time_limit` under `sudo`" and its morning-observation row: the check is now `docker exec <container> ps -eo pid,ppid,user,stat,args`; PID 1 must be the runtime's init, no `Z` in `STAT` and no `<defunct>`, and no live `claude` of `agent`.
+   - docs/decisions.md: new entry "The container runtime's init reaps the processes a killed run leaves": cause, decision, the rejected alternatives (the factory as reaper, tini in the image, `timeout --foreground`), and why `make test` shows no reaping.
+   - Cross-read: `image/compose.yml` and the tests against the diff (`init: true` after `restart: unless-stopped`, entrypoint unchanged). They agree with what I wrote. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only docs; the factory runs it next.
+   - No findings against the code. I wrote the rejected-alternative reasons from FEATURE decision 6 and my own reading of the options. FEATURE decision 6 does not give a reason for rejecting `timeout --foreground`, so that reason is mine.
+   - Stale but unrelated, not touched: the operator guide's opening paragraph still says a `time_limit` under `sudo` is "first observed at the shakedown". That is still true, so nothing to fix.
+
+   `make check`: check: green
+   `make documents`: documents ok
