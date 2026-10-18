@@ -1348,7 +1348,7 @@ The rules file is JSON for the domain model `Confinement` (`factory.domain.confi
 
 ### The six steps
 
-`main(argv=None, *, stderr=None, abi=None) -> int` does these in order; a fault writes one line to standard error and returns 1, and no later step runs.
+`main(argv=None, *, stderr=None, abi=None, restrict=None, replace=None) -> int` does these in order (`restrict` and `replace` are for tests: `None` is `restrict_writes` and `replace_process`, and the console script passes neither); a fault writes one line to standard error and returns 1, and no later step runs.
 
 1. Read the rules (UTF-8, validated as `Confinement`): `factory-confine: cannot read the rules <file>: <fault>`, the fault on one line.
 2. Check the ABI with `abi_fault(abi())`: `factory-confine: the kernel offers Landlock ABI <n>, the write guard needs ABI 3 or higher`.
@@ -1363,7 +1363,7 @@ Fail closed: after any fault the command never starts. On success `main` does no
 
 ### Tests
 
-`tests/entry/test_confine.py` runs every row that reaches step 5 or 6 in a child process (`sys.executable -m factory.entry.confine`), because the restriction cannot be undone; rows that stop at steps 1 to 4 call `main` in-process with `abi` injected. Coverage does not follow the children. `factory.entry.confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly: it picks no adapter behind an interface (feature decision 19).
+`tests/entry/test_confine.py` runs every row that reaches step 5 or 6 in a child process (`sys.executable -m factory.entry.confine`), because the restriction cannot be undone; rows that stop at steps 1 to 4 call `main` in-process with `abi` injected. These rows check the real kernel. `tests/entry/test_confine_steps.py` runs the steps up to step 6 in-process as well, with `restrict` and `replace` injected as recorders (`replace` raises a test-local exception instead of replacing the process), so coverage and mutation testing see them. Coverage does not follow the children. `factory.entry.confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly: it picks no adapter behind an interface (feature decision 19).
 
 ## The agent definition reader
 

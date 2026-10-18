@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T19:42:16.509322Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T19:42:16.509322Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T19:43:17.396215Z'
+  stage: docs
+  run: 792ead386ee542458c0e8aa3da8e53ee
 ---
 
 # factory-confine's steps run in the test process
@@ -205,3 +207,15 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
 
    Earlier tests: none. The diff only adds `tests/entry/test_confine_steps.py`, and no test file on `main` is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Changed `docs/project-guide.md` only, in the section *The start wrapper*:
+    - *The six steps*: the `main` signature now shows `restrict=None, replace=None`. It says they are for tests, that `None` means `restrict_writes` and `replace_process`, and that the console script passes neither.
+    - *Tests*: the paragraph says the child-process rows in `tests/entry/test_confine.py` check the real kernel. It says `tests/entry/test_confine_steps.py` runs the steps up to step 6 in-process with recorders injected, so coverage and mutation testing see them.
+
+    I wrote only prose and ran no example. The diff matches the Interface: the defaults, the `<default> if x is None else x` form, and unchanged texts and order. I found no contradiction between the code and the Interface, so there are no findings. I did not run `make check`, because only a document changed; the factory runs it.
+
+    Cross-read and found current: steps 3 to 6 of the six-steps list (their texts and order are unchanged), *What the command gets*, `README.md`, `docs/operator-guide.md` (its `factory-confine` passages), and `docs/decisions.md` (entry on the wrapper).
+
+    Stale text that is not this story's, left alone: the first paragraph of *The start wrapper* ends with "Nothing starts it yet: the runtime will." Later entries (F0019-S0004, and the operator guide) say the runtime now starts every agent run through it.
+
+    `check`: check: green
+    `documents`: documents ok
