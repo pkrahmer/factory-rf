@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-18T19:43:57.326551Z'
   stage: smoke-test
   run: c093e40a43744e998821efb00d7378fb
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-18T19:45:14.336140Z'
+  stage: approval
 ---
 
 # factory-confine's steps run in the test process
@@ -248,3 +253,4 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
     - Criteria 4 to 8: the smoke test does not reach them. Nothing in its output points the other way.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 4.4 min, 37 turns, 117515 tokens in (578543 more from cache), 15263 out, $1.16
