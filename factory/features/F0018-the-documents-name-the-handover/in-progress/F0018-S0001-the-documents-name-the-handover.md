@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T12:51:06.752799Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   at: '2026-10-18T12:50:45.869333Z'
   stage: docs
   run: 4950acbfcc0849b3964aca31310f0da7
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:51:06.752799Z'
+  stage: smoke-test
 ---
 
 # The documents name the handover
@@ -209,3 +218,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+15. factory: started smoke-test as self.
