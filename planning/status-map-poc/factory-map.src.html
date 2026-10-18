@@ -314,7 +314,7 @@ async function readBranches() {
 // ---------------------------------------------------------------------------------------------
 // Drawing.
 // ---------------------------------------------------------------------------------------------
-const COLW = 92, LEFT = matchMedia('(max-width: 600px)').matches ? 132 : 190, PX = 2.4 / 60e3, GAP_MS = 40 * 60e3, GAP_PX = 22;
+const COLW = 92, LEFT = matchMedia('(max-width: 600px)').matches ? 158 : 200, PX = 2.4 / 60e3, GAP_MS = 40 * 60e3, GAP_PX = 22;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hm = t => new Date(t).toISOString().slice(11, 16);
@@ -443,7 +443,7 @@ function drawMap() {
     }
     if (dp) paths += `<path data-item="${esc(d.id)}" d="${dp}" fill="none" stroke="${col}" stroke-width="1.5"/>`;
   });
-  let gutter = `<div class="gutter" style="position:absolute;left:0;top:0;bottom:0;width:${LEFT}px">`, lastY = -99;
+  let gutter = `<div class="gutter" style="height:100%;width:${LEFT}px">`, lastY = -99;
   items.forEach(d => {
     const top = Math.max(y(d.first) - 6, lastY + 41); lastY = top;
     gutter += `<button class="label" data-item="${esc(d.id)}" style="top:${top}px" title="${esc(d.title)}"><span class="when">${hm(d.first)}</span><span class="fid">${esc(d.id.slice(6))}</span><span class="badge ${d.status[1]}">${esc(d.status[0])}</span><span class="name"><span class="dot" style="background:hsl(${d.hue} var(--seg-s) var(--seg-l))"></span>${esc(d.title)}</span></button>`;
