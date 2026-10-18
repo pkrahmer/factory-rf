@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T21:59:08.759637Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T21:59:08.759637Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:00:19.888400Z'
+  stage: review
+  run: 49ffbc9e4efb4d90bd5b8c4ecbb0a79a
 ---
 
 # The journal records why a work item waited or stalled
@@ -239,3 +241,31 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item.
+
+   Groups 1 to 3 pass:
+   - Each criterion from 1 to 11 has a test that checks what the criterion says.
+   - The refused sides are tested: wrong kind, value outside the type, `blocked` through `append_entry` on a `result` entry.
+   - The coder's journal entry reports `make check` green.
+   - The layers hold: the cause types live in `factory.domain.journal` and are kept by assignment in `work_item` and `decisions`.
+   - No markers, no secrets.
+
+   Group 4 (quality) fails on helpers the new test module copies from earlier tests:
+
+   1. `tests/application/test_question_causes_recorded.py:44` `_pull_request` is a third copy of `_pull_request` in `tests/application/test_recovery_cap.py:49` and `tests/application/test_recovery_expiry.py:46`, and of the `pull_request` fixture in `tests/application/handlers/conftest.py:64`. Fix: under the standing leave, the tester moves it to `tests/crash_support.py`, which all three modules already import, and has the earlier modules use it from there.
+   2. `tests/application/test_question_causes_recorded.py:36-37,88-95` copies three things from `tests/application/test_recovery_expiry.py`:
+      - `OTHER_INSTANCE` and `LEASE` (lines 39-40);
+      - the other instance's recovery handler, `_other` (line 67);
+      - the expired event, `_expired` (line 73).
+      It also inlines `_expired_claim`'s clock advance (line 52). Fix: the tester moves these constants and helpers to `tests/crash_support.py` under the standing leave and uses them in both modules. Every earlier test keeps its name and checks the same thing.
+
+   The tester's entry 5 names both copies as "deliberately repeated", but the standing leave in `CLAUDE.md` is meant for exactly this case. These are test changes, so the coder ends with `tests` and names the moves for the tester.
+
+   Not reported because the stop is at the first failing group (group 5): `append_entry`'s built signature is `**causes: Unpack[JournalCauses]` (`src/factory/domain/journal.py:174-188`), not the two keyword-only parameters the Interface shows. The coder's entry 7 explains this.
+
+   Earlier tests (item 6):
+   - `tests/application/handlers/test_questions.py`: human's leave. The story's Interface names it under the feature's decision 13. The change only adds `blocked="attempts_cap"` to two expected records.
+   - `tests/application/test_recovery_cap.py`: human's leave, the same way. The change only adds `blocked="crash_cap"` to the expected question record.
+   - `tests/application/test_recovery_expiry.py`: human's leave, the same way. The change only adds `blocked="crash_cap"` to the expected question record.
+   - `tests/application/test_stalls.py`: human's leave, the same way. The change only adds `reason="died"` to three expected stall records.
+   - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`; `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
