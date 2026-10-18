@@ -20,6 +20,8 @@ The guide for agents working on `factory-rf`: how the code is laid out, where a 
 
 `WorkItemFormatError(fault, path=None)` is a `FactoryError` for a work item file that cannot be read (see *The data of a work item*).
 
+`ConfinementError(detail)` is a `FactoryError` for a write restriction the kernel guard cannot make (see *The kernel's write guard*); the message is `detail` itself, and it names the path or the call.
+
 `CostRecordFormatError(line, fault)` is a `FactoryError` for a cost record file that cannot be read or written; `line` is counted from 1 and the message is `line <line>: <fault>`.
 
 ## The models' configuration
@@ -1255,6 +1257,39 @@ The baseline is read first. When the stage-start commit does not hold the work i
 - Git's paths are taken as they are; renames show as a deletion and an addition (see "The git wrapper").
 
 Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.checkout` between `ClaimService` and `undo`.
+
+## The kernel's write guard
+
+`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Nothing calls it yet; the wrapper `factory-confine` is its first user. The guard in "The guard command" sees two tools and the undo reverts the rest afterwards; the kernel refuses a write by any route, a shell command included.
+
+### What Landlock is
+
+Landlock is a Linux security module that an unprivileged process uses on itself: no root, no capability. The process builds a ruleset, adds rules to it and restricts itself with it. The restriction cannot be lifted and is inherited by every child. It is built on the standard library's `ctypes` (the system calls 444, 445 and 446 and `prctl`), with no dependency.
+
+### The rights and the two kinds of rule
+
+The rules handle the twelve write rights of ABI 3 and nothing else: write a file, remove a folder, remove a file, make a character device, folder, regular file, socket, fifo, block device or symbolic link, refer (rename or link across folders) and truncate. `WRITE_RIGHTS` is their mask (`0x7FF2`). Reading, executing and the network stay open: a restricted process reads the whole file system.
+
+- A folder rule (`restrict_writes(folders, ...)`) allows all twelve rights beneath the folder: create, delete, rename within and between allowed folders, link, truncate.
+- A file rule (`restrict_writes(..., files)`) allows only writing and truncating that file in place (`FILE_RIGHTS`, `0x4002`). The file cannot be renamed, replaced or deleted, and nothing can be renamed onto it.
+
+A refused write fails with `EACCES` (`PermissionError`, errno 13). Empty `folders` and `files` are allowed and refuse every write.
+
+### The minimum ABI
+
+`abi_version()` returns the ABI the kernel offers (7 in v1.1's container), or 0 when it offers none or a seccomp profile refuses the call; it restricts nothing. `factory.domain.confinement` holds `LANDLOCK_MINIMUM_ABI = 3` and `abi_fault(abi)`: `None` from 3 up, below it `the kernel offers Landlock ABI <n>, the write guard needs ABI 3 or higher`. The adapter itself does not call `abi_fault`.
+
+### Checks first: fail closed
+
+`restrict_writes` checks every path with `os.lstat` before its first system call, folders before files, each in the given order, and raises `ConfinementError` (`factory.domain.errors`; the message is `detail`, nothing added) at the first that fails: `cannot open <path>: <strerror>`, `<path> is a symbolic link`, `<path> is not a folder` (in `folders`) or `<path> is a folder` (in `files`). A refusal therefore leaves the process unrestricted. Symbolic links are refused because a rule on a link would apply to its target. A failing system call later raises `<call> failed: <strerror>`, the call being `landlock_create_ruleset`, `landlock_add_rule for <path>`, `prctl PR_SET_NO_NEW_PRIVS` or `landlock_restrict_self`; the descriptors the function opened are closed in every case.
+
+### Stacking
+
+A second call in a restricted process adds a ruleset on top of the first: a write must be allowed by both. A later call can narrow the restriction and never widen it.
+
+### Tests
+
+The tests (`tests/adapters/test_landlock.py`, `tests/domain/test_confinement_abi.py`) call `restrict_writes` only in child processes (`sys.executable -c ...`, paths under `tmp_path`), because the restriction cannot be undone and would bind the pytest worker. Coverage does not measure the children, so the module shows little in the coverage table. No test is skipped without Landlock. Not tested: a failing system call and `abi_version`'s negative result, which no test can make the kernel produce.
 
 ## The agent definition reader
 

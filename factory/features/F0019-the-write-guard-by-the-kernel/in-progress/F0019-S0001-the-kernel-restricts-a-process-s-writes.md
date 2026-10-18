@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T14:39:14.245727Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -83,6 +79,12 @@ journal:
   kind: started
   at: '2026-10-18T14:39:14.245727Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T14:40:39.661134Z'
+  stage: docs
+  run: d340de66ef3d40e8b70d85b3dba6c02f
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -281,3 +283,19 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
 
     Earlier tests: none. The diff only adds test files (`A` for both); it changes, renames or deletes no test file that `main` holds.
 13. factory: started docs as self.
+14. documenter: Wrote the documentation criterion 11 asks for. The code matches the Interface, so there are no findings.
+
+    Files changed:
+    - `docs/project-guide.md`: new section *The kernel's write guard* after *The undo*. It covers what Landlock is, the twelve write rights of ABI 3 with reading, executing and the network left open, and a folder rule against a file rule (in place only). It also covers the minimum ABI 3 and its fault text, the checks before the first system call (fail closed), stacking, and that the tests restrict child processes only. I also added a `ConfinementError(detail)` paragraph to *Errors*.
+    - `docs/decisions.md`: new entry *The write guard by the kernel: Landlock through ctypes*, dated 2026-10-18 (F0019-S0001). It gives the reasons (the hook sees two tools, the kernel every route; `ctypes` over a binding; ABI 3's write set; fail closed) and the alternatives rejected (a PyPI binding; chmod or ownership changes over the tree; a root helper).
+
+    I wrote no runnable examples, so I ran none. I changed only documents and did not run `make check`.
+
+    Two sentences state a reason or an effect that the diff does not show. I wrote the reason for refusing symbolic links (a rule on a link would apply to its target) from my knowledge of how `O_PATH` opens work. I wrote the file rule's "nothing can be renamed onto it" from how Landlock treats rename rights. The tests do not cover either. Both are in the project guide, and the reviewer can cut them if they read as unverified.
+
+    Cross-read and found current against the diff: `README.md`, `docs/operator-guide.md`, and the *guard command*, *undo* and *claude -p runtime* sections of the project guide. The new adapter is not wired in, so none of them describes anything that changed.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green
+    `documents`: documents ok

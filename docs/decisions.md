@@ -551,3 +551,12 @@ Date: 2026-10-18 (commit `3bcee441`; F0018). Until then v1 built this repository
 - Why the numbers continue from F0018: `make mutants` finds a feature's modules by its id in the commit subjects, and a reused id would match v1's commits.
 - v1 is stopped, not removed, as the fallback.
 - Rejected: leaving v1's features in place (each would be due for an acceptance); restarting the numbers at F0001 (the ids would clash with v1's commit subjects).
+
+## The write guard by the kernel: Landlock through ctypes
+
+Date: 2026-10-18 (F0019-S0001). The hook `factory-guard` sees two tools (`Edit` and `Write`) and the undo reverts the rest afterwards; a shell command writes wherever the agent's user may. Landlock makes the kernel refuse a write by every route, for the process and all its children, without privilege. S0001 builds the adapter (`factory.adapters.landlock`); the wrapper `factory-confine` and the runtime use it later.
+
+- Decision: `ctypes` from the standard library calls the system calls directly, with every argument of the variadic `syscall` and `prctl` given an explicit C type. No dependency is added.
+- Decision: the rules handle the twelve write rights of ABI 3 (refer and truncate included) and nothing else, so reading, executing and the network stay open. A folder rule allows all twelve beneath it; a file rule only writes and truncates the file in place. The minimum is ABI 3 because refer and truncate arrive with it; below it a rename across folders or a truncate could not be refused.
+- Decision: fail closed. Every path is checked with `os.lstat` before the first system call (missing, symbolic link, wrong kind), so a refused rule leaves the process unrestricted and the caller sees a `ConfinementError` and not a half-made restriction.
+- Rejected: a binding from PyPI (a dependency for four system calls, and a package to trust); changing modes or ownership over the tree (it needs the tree to be ours, races with the agent and is undone by any `chmod` the agent can run); a helper that runs as root (a privileged part to build and defend, where Landlock needs none).
