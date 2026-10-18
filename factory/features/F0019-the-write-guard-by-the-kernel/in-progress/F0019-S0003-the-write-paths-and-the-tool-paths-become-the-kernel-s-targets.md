@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379, 6251729450]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T15:36:56.149863Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -145,6 +149,11 @@ journal:
   at: '2026-10-18T15:36:36.069607Z'
   stage: docs
   run: 087824e6f80e4c4280a4bda1cdc53b72
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:36:56.149863Z'
+  stage: smoke-test
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -471,3 +480,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
     `check`: check: green
     `documents`: documents ok
+26. factory: started smoke-test as self.
