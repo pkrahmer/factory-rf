@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T22:24:48.782669Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T22:24:31.203151Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:24:48.782669Z'
   stage: intake
 ---
 
@@ -180,3 +189,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
 
    Everything else is testable by one test function. The smoke test commands are runnable and their Expect lines can be checked against the output.
 4. 2026-10-18 human: Yes to both: add the fourth row to criterion 6 (a done story whose front matter fails validation adds nothing) and the row to criterion 1 (a human `comment` at 09:00 before a blocking question at 10:00 and no later human record gives `answered_at` `None`).
+5. factory: started intake as self.
