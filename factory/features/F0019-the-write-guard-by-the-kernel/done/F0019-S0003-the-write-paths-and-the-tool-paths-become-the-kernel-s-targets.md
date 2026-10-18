@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -156,6 +156,11 @@ journal:
   at: '2026-10-18T15:37:36.054128Z'
   stage: smoke-test
   run: cfaf910f60e0430a88013a239d4eae42
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-10-18T15:38:54.464985Z'
+  stage: approval
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -512,3 +517,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     The smoke test does not cover `confinement_of` (criteria 7 and 8), the `WritePathService` (criterion 3) or the `refusal` verdict (criterion 9). These are left to the tests and the factory's `make check` gate.
 
     Findings: none.
+28. factory: done (pull request merged); cost: 12 runs, 14.1 min, 104 turns, 317257 tokens in (2337833 more from cache), 50589 out, $3.66
