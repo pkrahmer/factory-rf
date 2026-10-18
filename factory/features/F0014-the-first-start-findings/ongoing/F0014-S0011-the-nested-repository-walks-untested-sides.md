@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 202
 blocked: null
 comments_seen: 0
 round: 0
@@ -74,3 +74,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: no new names. It pins three walk rules of `GitCli.remove_nested_repositories()` (no link followed, the root's `.git` not entered, a found `.git` not entered). It also pins the sorted, `/`-separated return and the `", "` join in three named texts (`stage.py`, `preflight.py`, `scheduler.py`). The paths and signatures are concrete.
+   - Criteria: each is testable by one test function or one row. Criteria 1 to 4 are rows of one existing parametrized test (decision 34's leave). Criteria 5 to 7 are one new function and two named rows. Each rule has its refused side (links not followed, `.git` not entered) and its passing side (the nested repositories are removed). The sorted-order comment has criterion 4, whose `a/.cache` layout makes the order independent of listing order.
+   - Demo: both blocks are runnable. The first has fixed output (`['a/.git', 'b/.git']`, then `True True True`). The second has an `<n> passed` line to check against.
+   - Architecture: the story adds tests only and touches no layer. The adapter and application texts it pins are already where `CLAUDE.md` puts them.
+   - Scope: it is inside F0014. FEATURE decisions 34 and 36 give the leave for the added rows and name S0011 as tests only. Nothing in the story is listed under "Out of scope". The link case (a link to a repository is not itself a nested one) is decided in 36 (2).
