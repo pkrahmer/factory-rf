@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T23:51:11.226300Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T23:51:11.226300Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T23:53:11.509869Z'
+  stage: tests
+  run: 03f208f9b840403d8b1103af6dc68852
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -124,3 +126,25 @@ Expect: five lines, each `1`.
    - Architecture: only shipped agent texts, one new test module and docs change. No layer or `src/` code is touched. The paths fit the roles' write paths: the coder writes `claude/*`, the tester writes `tests/*`, the documenter writes `docs/*`.
    - Scope: this is S0005 of F0021, listed in the feature's Scope under "The texts". Decisions 10, 11 and 12 are followed, including the smoke-test pin for the operator guide. Nothing in "Out of scope" is touched.
 4. factory: started tests as self.
+5. tester: Tests written for the agent text criteria. They are red on purpose: the new texts are not yet in `claude/agents/`.
+
+   - criterion 1: tests/test_claude_agent_texts_review_leave.py::test_agent_section_holds_the_review_leave_text has six rows. Each row checks that one text is in its section, read with `section_text` over `agent_body`. The rows are:
+     - the reviewer's recommendation paragraph, notes paragraph and added-criterion paragraph, in `Role`
+     - the coder's sentence, in `Stage`
+     - the tester's sentence, in `Stage`
+     - the acceptance reviewer's sentence, in `Role`
+   - criterion 2: two tests.
+     - tests/test_claude_agent_texts_review_leave.py::test_reviewer_no_longer_holds_the_old_recommendation_sentence checks that the old sentence is gone.
+     - tests/test_claude_agent_texts_review_leave.py::test_reviewer_paragraph_follows_the_one_before_it has two rows, one per pair of paragraphs (recommendation→notes, notes→added criterion). Each row checks that the later paragraph comes right after the earlier one, with one blank line between them.
+   - criterion 3: no new test. The unchanged tests/test_claude_agent_texts.py covers it, the `test_lessons_section_is_last_and_holds_exactly_the_role_bullets` rows and the banned-word tests included. I did not touch that file.
+   - criterion 4: `make check`, run by the coder and the factory.
+   - criterion 5 (docs): no test. The documenter writes it, and the smoke test greps for it.
+
+   Files created: tests/test_claude_agent_texts_review_leave.py. No earlier test file changed.
+
+   Every module imported. One run of `make test`: the new tests fail on a wrong result because the texts are missing; the acceptance reviewer row and those of the coder, the tester and the reviewer's added criterion are among them. `make lint` is green.
+
+   What I chose not to do: I check that the paragraphs are adjacent by matching the text `earlier\n\nlater`, not by comparing positions with `index`. "Follow each other" in criterion 2 means adjacent, and comparing positions would only check the order. I did not check that the coder's and the tester's sentences come at the very end of their numbered step. Criterion 1 asks only that the section holds the text.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_texts_review_leave.py::test_agent_section_holds_the_review_leave_text[acceptance]
