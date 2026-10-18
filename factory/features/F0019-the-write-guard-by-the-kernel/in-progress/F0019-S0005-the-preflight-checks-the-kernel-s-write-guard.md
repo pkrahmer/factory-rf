@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T16:54:31.124779Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T16:54:11.240795Z'
   stage: tests
   run: 35b230ec5d9a4e51aa5b440502f0c3a2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:54:31.124779Z'
+  stage: doing
 ---
 
 # The preflight checks the kernel's write guard
@@ -125,3 +134,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/application/test_confinement_item.py - ImportError while importin...
+6. factory: started doing as self.
