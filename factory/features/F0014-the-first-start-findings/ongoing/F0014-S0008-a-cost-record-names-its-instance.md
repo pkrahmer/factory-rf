@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 200
 blocked: null
 comments_seen: 0
@@ -74,3 +74,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/domain/test_cost_record_instance.py::test_a_cost_record_carries_an_optional_instance_name[completed-with]
+4. coder: cost records now say which instance ran them. Commit ef7dff29.
+   - `src/factory/domain/cost_records.py`: `CostRecord` has a new last field, `instance: Name | None = None`, after `image`. The class docstring now names `image` and `instance`. The rule that only completed records carry measures does not touch it, so a started or a completed record may have it.
+   - `src/factory/adapters/cost_records_jsonl.py`: when `instance` is `None`, `_line_of_record` drops the key from the dumped fields. So a record without it gives the same line as before, and a record with it gets `"instance":...` as the last key. The reader is unchanged: the existing `first_fault` form gives `invalid instance: ...`.
+   - `src/factory/application/costs.py`: `CostRecorder.begin` reads `self._boundaries.settings` once and sets both `image` and `instance` from it, `None` when there are no settings. That replaces the private `_image()` helper, which would otherwise have needed an `_instance()` twin. `complete` keeps the instance with no change, because `_completed` copies `record.model_dump()`.
+   - Main decision: drop the key in the writer when `instance` is `None`. The alternative was a model-level `exclude_none`, which I rejected because it would also drop `image` and the null measures, which must still be written as `null`.
+   - Refactor pass: the diff is 12 lines and needed nothing beyond folding `_image()` into `begin`, which the feature commit already does. So there is no separate refactor commit.
+   - Checks: `make check` is green (coverage 99.47 %). The first demo command prints the two lines the ticket expects.
+   - Not touched: the docs for criterion 7 belong to the documenter.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
