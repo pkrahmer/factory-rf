@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 216
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T12:36:21.250017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T12:36:21.250017Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-18T12:38:19.703999Z'
+  stage: doing
+  run: e7c5560f39834239a2ee27f41a30b82a
 ---
 
 # The documents name the handover
@@ -106,3 +108,20 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed]
 6. factory: started doing as self.
+7. coder: I built nothing. Criterion 1 holds: nothing under src/, tests/, image/, template/ or claude/ changes, and `git diff main -- src tests` is empty. I stopped before handing forward because `make check` is red in this stage's environment for a reason outside this story.
+
+   The failing tests are 8 in total. Under umask 0002:
+   - 4 rows of `test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout` and `test_a_nested_repository_the_preparer_cannot_remove_makes_it_clone_again`, in tests/application/test_nested_repositories.py.
+   - `test_an_existing_clone_is_kept_without_calling_git`, in tests/application/test_scheduler.py.
+   - `test_a_ready_checkout_is_not_fetched_and_leaves_no_stop` and the `_deleted_after_clone` row of `test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error`, in tests/application/test_repository_waiter.py. This last row is the failure the tester's entry also shows.
+
+   The cause is the shell this stage runs in, which has umask `0002`. New checkouts in `tmp_path` come out group-writable, and the repository seal refuses them: `RepositoryUnsealed: seal failed ... checkout/.git is writable by its group or by others`.
+
+   With `umask 022` and the same tree, `make check` ends `check: green`. So the code is fine, but the factory's own run of `make check` after this stage will probably be red and hold the work item here.
+
+   The options I see:
+   (a) The operator runs the factory under umask 022, and this stage runs again unchanged. This is the one I would choose: the seal's refusal is intended behaviour, and the story is documentation only.
+   (b) A separate story makes the affected tests set their own umask, or makes the seal tolerate a group-writable tmp checkout. That is out of scope here, and it would change tests and code other stories wrote.
+   (c) You accept that this check is red because of the environment and move the item forward by hand.
+
+   Nothing else is open. Once the check is green, I hand forward with `review` and no change.
