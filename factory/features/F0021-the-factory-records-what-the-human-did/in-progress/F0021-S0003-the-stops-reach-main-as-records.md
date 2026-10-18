@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182, 6256356204]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T23:16:53.553423Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-18T23:16:53.553423Z'
   stage: smoke-test
+- number: 30
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T23:17:23.884792Z'
+  stage: smoke-test
+  run: 4f80cfdae10f4e8b988630607f22689b
 ---
 
 # The stops reach main as records
@@ -526,3 +528,24 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     `check`: check: green
     `documents`: documents ok
 29. factory: started smoke-test as self.
+30. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written.
+
+    Command 1 (`uv run -q python -c '…'`: builds a `raised` `disk_low` record, prints `stop_records_text`, parses it back with a trailing non-JSON line, then builds a `repository`/`disk_low` record):
+
+    ```
+    {"event":"raised","scope":"machine","reason":"disk_low","at":"2026-10-18T10:00:00Z","instance":"self"}
+    True
+    refused
+    exit: 0
+    ```
+
+    Expect: three lines: the JSON line, `True`, `refused`. **Met.** It printed exactly those three lines, and the command exited with 0.
+
+    Checked against the acceptance criteria:
+    - Criterion 2: the line matches the expected text character for character. The fields come in the order the Interface gives, the time is UTC with a `Z`, and the line ends in a newline (the `print(..., end="")` put the next output on its own line).
+    - Criterion 3: a line that is not JSON is skipped, and the round trip gives back the same record.
+    - Criterion 1: `scope="repository"` with `reason="disk_low"` is refused with a `ValueError`.
+
+    The smoke test contradicts no criterion. It only covers the domain layer. Criteria 4 to 16 (the service, the publisher, the tick, the wiring) and 17 (`make check`) are outside what it touches. Those are covered by the test modules and the factory's checks, not judged here.
+
+    Findings: none.
