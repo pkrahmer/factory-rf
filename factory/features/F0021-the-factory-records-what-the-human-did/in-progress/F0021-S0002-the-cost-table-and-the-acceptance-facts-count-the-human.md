@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T22:43:38.623875Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-18T22:43:18.500621Z'
   stage: docs
   run: b5186e19f7234c70b9e0c4aff96c3a03
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:43:38.623875Z'
+  stage: smoke-test
 ---
 
 # The cost table and the acceptance facts count the human
@@ -432,3 +441,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
 
     `check`: check: green
     `documents`: documents ok
+23. factory: started smoke-test as self.
