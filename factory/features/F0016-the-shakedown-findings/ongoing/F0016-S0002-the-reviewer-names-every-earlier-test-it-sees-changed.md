@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The reviewer names every earlier test it sees changed
 
 ## Assignment (as of log entry 1)
