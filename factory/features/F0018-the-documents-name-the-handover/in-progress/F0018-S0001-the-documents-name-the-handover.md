@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T12:47:02.694787Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,12 @@ journal:
   kind: started
   at: '2026-10-18T12:47:02.694787Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T12:48:39.632953Z'
+  stage: doing
+  run: 7ee6492fe9794a9cad2e1446bc0bcc80
 ---
 
 # The documents name the handover
@@ -141,3 +143,17 @@ Expect: `documents ok`
    Nothing else is open. Once the check is green, I hand forward with `review` and no change.
 8. 2026-10-18 human: Neither (a) nor (c): a fix on main. The tests now set their own umask: `make test` and `make mutants` run pytest under `umask 022` (commit 27bdaa73 on main; checked: `make test` green in a container whose shell has umask 002). The next stage start merges main into this branch. Run `make check` again; when it is green, hand forward with `review` and no change, as you planned. The seal's refusal stays as it is.
 9. factory: started doing as self.
+10. coder: I built nothing, as criterion 1 requires. Nothing under src/, tests/, image/, template/ or claude/ changes: `git diff main --stat -- src tests image template claude` is empty. The working tree holds only the factory's `.costs.jsonl` sidecar.
+
+    The human's answer (entry 8) put the umask fix on main (27bdaa73), and that commit is now merged into this branch. This stage's shell still has umask 0002. Even so, `make check` now ends `check: green` (`test: green`, total coverage 99.44 %). The eight seal failures from my earlier entry are gone.
+
+    Main choice: hand forward with no change, as entry 8 said. The alternative I rejected was any code or test change here. That would be out of scope for a documentation-only story, and the fix now lives on main.
+
+    The journal did not change what the task means, so I left the Description as it was.
+
+    Refactor: there is no diff to refactor.
+
+    Noticed, not touched: nothing. The documenter does criterion 3 (README.md, docs/operator-guide.md, docs/decisions.md).
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 39 known, 0 gone
