@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T23:56:56.248192Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T23:56:35.877483Z'
   stage: review
   run: a793badd8b3040e880b3013ecbf9f192
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:56:56.248192Z'
+  stage: docs
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -205,3 +214,4 @@ Expect: five lines, each `1`.
    - Quality and work item hygiene: the new test module has a module docstring and uses plain parametrized tests. The journal gives the coder's main choice and what it rejected, and the Description matches what was built. The docs criterion is the documenter's next job.
 
    Earlier tests: none. The only test file in the diff is the new `tests/test_claude_agent_texts_review_leave.py`.
+10. factory: started docs as self.
