@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T21:48:26.171210Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T21:48:05.945446Z'
   stage: intake
   run: 7589b9ea023b4c5a82537dfe3cb5c7b5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:48:26.171210Z'
+  stage: tests
 ---
 
 # The journal records why a work item waited or stalled
@@ -131,3 +140,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
    - Smoke test: the command runs as written with `uv run -q python -c`. Its `Expect:` line gives four exact output lines that can be compared with the output.
    - Architecture: the causes move into `domain` and are re-exported upward. The writers sit in `application`, in the modules that already make the `append_entry` calls. No layer is crossed and no new dependency is added. The writer in `adapters` needs no change because it already uses `exclude_none`.
    - Scope: within the feature's S0001 scope (the cause on the record). It leaves the computation to S0002, the stops to S0003, refusals to S0004 and agent texts to S0005. It adds no reason on `crash` or `expiry`, which matches decision 4 and the out-of-scope list.
+4. factory: started tests as self.
