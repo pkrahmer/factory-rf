@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 237
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T22:46:44.901225Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-18T22:46:44.901225Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-18T22:47:01.667121Z'
+  stage: intake
+  run: 5d1423ebb19442048d35512415edc976
+  blocked: question
 ---
 
 # The stops reach main as records
@@ -141,3 +144,12 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. Interface, architecture and scope are fine: the layers are right, the story sits inside feature.md's decisions 1 to 3, and the smoke test is runnable with checkable Expect lines. Three Interface clauses have no criterion, so two coders could read them two ways.
+
+   1. The tick's error handling names `GitError`, `PushFailed` and `OSError`. Criterion 13 covers only a refused push (`PushFailed`) and a folder in the file's place (`OSError`). Should a third row make `publish` raise `GitError` inside `Tick.run`, for example with `origin/main` unresolvable, and check the same log line and that the tick goes on? I would add that row to criterion 13.
+
+   2. The Interface says a tick that stops before the restore succeeds publishes nothing, and it lists five reasons: `disk_low`, `fetch_failed`, `pipeline_definition_invalid`, `agent_definition_invalid` and `checkout_restore_failed`. Criterion 12 tests only `fetch_failed` and `disk_low`. Should it get rows for the other three? I would add them, each with a local record present, checking that `origin/main` gains nothing on that tick.
+
+   3. `publish` must create `factory/` "when it is missing", but criterion 8 does not say whether the checkout has that folder. Should criterion 8 gain a row where `origin/main` has no `factory/` folder at all and the file still ends up with the two lines? I would add it. Otherwise I would drop the clause.
+
+   A smaller point, not blocking: criterion 5 does not check `instance` on the `cleared` record, though the Interface sets it. I would add "instance is the settings' instance" to that criterion.
