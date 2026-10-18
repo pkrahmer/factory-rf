@@ -62,10 +62,11 @@ secrets:
 ALLOWED_LICENSES = MIT;MIT License;MIT-0;BSD;BSD License;BSD-2-Clause;BSD-3-Clause;3-Clause BSD License;ISC;ISC License;Apache-2.0;Apache 2.0;Apache Software License;PSF-2.0;Python Software Foundation License;MPL-2.0;Mozilla Public License 2.0 (MPL 2.0);GNU Library or Lesser General Public License (LGPL);Apache-2.0 OR BSD-3-Clause
 licenses:
 	$(start)
-	uv export -q --frozen --no-dev --no-emit-project --format requirements-txt -o .licenses-requirements.txt
+	mkdir -p .reports
+	uv export -q --frozen --no-dev --no-emit-project --format requirements-txt -o .reports/licenses-requirements.txt
 	uv run pip-licenses --from=mixed --allow-only="$(ALLOWED_LICENSES)" \
-	  --packages $$(sed -n 's/^\([A-Za-z0-9_.-]*\)==.*/\1/p' .licenses-requirements.txt) > /dev/null
-	rm -f .licenses-requirements.txt
+	  --packages $$(sed -n 's/^\([A-Za-z0-9_.-]*\)==.*/\1/p' .reports/licenses-requirements.txt) > /dev/null
+	rm -f .reports/licenses-requirements.txt
 	$(green)
 
 # Short tracebacks, no banner; coverage (branch, `fail_under` in pyproject.toml) with the lines

@@ -16,6 +16,7 @@ dependencies = [
 # built by the stories named in planning/overnight/interfaces.md (factory.entry).
 factory-check-story = "factory.entry.check_story:main"
 factory-guard = "factory.entry.guard:main"
+factory-confine = "factory.entry.confine:main"
 factory-bill = "factory.entry.bill:main"
 factory-watch = "factory.entry.watch:main"
 factory-run = "factory.entry.run:main"
@@ -104,6 +105,7 @@ tmp_path_retention_policy = "failed"
 [tool.coverage.run]
 source = ["src/factory"]
 branch = true
+data_file = ".reports/.coverage"
 
 [tool.coverage.report]
 fail_under = 90
