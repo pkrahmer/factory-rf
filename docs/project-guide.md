@@ -719,6 +719,8 @@ The answer is read from ids and keys, never from the comment's text. Tests: `tes
 3. `post_comment` of `cost_table_post(cost_table(bills_by_stage(records)))`, read from the cost records file on the branch, with the key `PostKey(work_item, "cost_table", str(<number of the latest result record>))`, or `"0"` with no result.
 4. Record `handed_over = <stage>` with the subject `handed over at <stage>`.
 
+The description is already in place when the hand-over runs: the stage that reached the approval wrote it between its result commit and its push (see `StageFinisher.finish`). Step 1 writes it again with the same text, since it reads the same document and commits; the hand-over stays the place that marks the pull request ready, posts the cost table and records `handed_over`. If the stage's own write failed, step 1 is the first write.
+
 The first three effects are safe to repeat, so a failure or a kill anywhere before the record is retried whole; the record comes last. Tests: `tests/application/handlers/test_hand_over.py`, `tests/domain/test_hand_over.py`.
 
 ### An illegal stage change is put back
@@ -1558,6 +1560,7 @@ Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.
 5. The entry is appended; when the move has a question (rules 1 and 4), a `factory` entry of kind `question` follows it.
 6. The new state takes `stage`, `blocked` and `round` from the move and `pull_request` from the started stage, and the claim is released. `crashes` is reset to 0 on rule 6, a forward move, and unchanged otherwise; `attempts`, `comments_read` and `handed_over` never change.
 7. The file is written, everything in the work tree is committed in one commit and pushed. Any push outcome but `pushed` raises `PushFailed`, and no label has been written.
+   Between the commit and the push, when the move's stage is an approval stage (`approval` in the pipeline definition): `HostingService.set_description(number, text)`, with `hand_over_description(moved, Git.log("HEAD", since="origin/main"))` for a story, or `acceptance_description(moved, role)` for an acceptance, `role` being the role of the stage that ran. After the push those commits are the ones the hand-over reads from `origin/<branch>`. A `HostingServiceError` there is caught and logged as `pull request #<number>: description not written before the push: <error>`, and the push goes on; the hand-over writes the description on the next tick. A forward move, a rework and a question write no description. It is the private `_describe` of `_commit_and_push`; the order commit, description, push is fixed. `handed_over` stays unset.
 8. Last, `HostingService.set_labels(pull_request, labels_for(new_state))`. `labels_for` (`factory.domain.labels`) gives `[LABEL_PREFIX + state.stage]`, for example `["stage:review"]`. Labels are a projection of the stage: they are written after the push and never read back. A `HostingServiceError` from this step propagates; the result commit stays pushed.
 
 Rules 1, 2, 3, 4 and 7 run no check and no report.

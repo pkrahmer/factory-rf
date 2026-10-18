@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 212
 blocked: null
 comments_seen: 0
@@ -96,3 +96,13 @@ Expect: `documents ok`.
    - Security: no new suppression markers, no strings built into commands, and the log line holds only the error's text.
    - Quality: names are clear, and the two comments explain why rather than what. The private methods need no docstrings.
    - Ticket hygiene: the coder's entry gives the main decision (the description is written inside `_commit_and_push`) and the rejected split into separate commit and push methods. `Assignment` matches what was built, and criterion 8 still says what the documenter has to write.
+6. documenter: criterion 8 written; the code matches the Interface, so no findings.
+   - docs/project-guide.md: `StageFinisher.finish(aftermath)` gets the description step between the commit and the push of step 7. "The hand-over at the approval" says the description is already in place, that the handler writes it again with the same text, and that the hand-over still marks ready, posts the cost table and records `handed_over`.
+   - docs/operator-guide.md: "What a stage run shows" gets the approval-description line, including the case where the push fails. "The hand-over at the approval" says who writes the description first and the log line if that write fails. The acceptance section needed no separate edit, since the new paragraph says the same holds for an acceptance.
+   - docs/decisions.md: new entry "An approval's description is written before the push that shows the approval", with the cause, the decision and four rejected alternatives with reasons.
+   - Checked: `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check` because I changed only documents.
+   - Cross-read against the diff and found current: README.md (no mention of the description order), the rest of project-guide.md and operator-guide.md.
+   - Stale prose I saw and left alone: none.
+
+   `make check`: check: green
+   `make documents`: documents ok

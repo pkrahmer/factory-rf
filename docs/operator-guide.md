@@ -500,6 +500,7 @@ One stage run leaves these traces on the remote and the pull request, in this or
 2. **The stage-start commit.** It is pushed before any agent runs. It holds the claim and one journal entry, speaker `factory`, kind `started`, with the text `factory: started <stage> as <instance>.` (for example `factory: started doing as factory-1.`). If this push fails, no agent runs.
 3. **The agent's entry.** The speaker is the agent's role and the kind is `result`, or `question` when the agent asked; code writes both, the agent writes the words. For each green check and each report the entry ends with one line `` `<command>`: <last line of its output> ``, for example `` `check`: 12 passed ``.
 4. **One commit by the factory**, directly above the stage-start commit: the result commit, or the stall commit after a stall. The agent cannot commit, because the checkout's `.git` is the factory's alone (see the decision log's "The factory alone writes the checkout's `.git`"). It holds the whole work tree.
+   A stage that moves the work item to an approval also writes the pull request's description after the result commit and before its push, so the description is complete when the board first shows the approval. If that push fails, the description may already show the reports while the work item stays at its stage.
 5. **The label** `stage:<stage>` (written so, for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
 
 While an agent runs, the work item's `.costs.jsonl` is modified in the work tree and not committed: it holds the running run's record, which the result commit or the stall commit carries. An agent that mentions it in its entry has seen the factory's file, not made a change of its own (seen by the coder of the tiny story, 2026-10-18).
@@ -890,6 +891,8 @@ A running acceptance is a work item like a story and is picked by the same order
 ## The hand-over at the approval
 
 When a work item reaches an approval stage, the factory shows you on its pull request what to decide. `HandOverHandler` (in `factory.application.handlers.hand_over`) does this for the `hand_over` event. It is registered.
+
+The description is written first by the stage that reaches the approval, before its push, and again, unchanged, by the hand-over on the next tick, which then marks the pull request ready and posts the cost table. The same holds for an acceptance. If the stage's write failed, the factory logs `pull request #<number>: description not written before the push` and the hand-over writes it.
 
 It does these things, in this order:
 
