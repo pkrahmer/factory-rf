@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 216
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T12:36:21.250017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T12:36:01.202329Z'
   stage: tests
   run: 9905dc3280b04639bcad08c06ff24a0e
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:36:21.250017Z'
+  stage: doing
 ---
 
 # The documents name the handover
@@ -96,3 +105,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed]
+6. factory: started doing as self.
