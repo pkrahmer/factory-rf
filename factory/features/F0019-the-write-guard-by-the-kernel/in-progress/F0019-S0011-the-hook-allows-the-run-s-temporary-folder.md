@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T20:32:38.643800Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,12 @@ journal:
   kind: started
   at: '2026-10-18T20:32:38.643800Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T20:33:20.773112Z'
+  stage: review
+  run: 81aef6779f7b461aa3fc8b42535203f4
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -213,3 +215,19 @@ Expect: `with: 0`, then `without: 2`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I checked:
+    - Criterion 1: `tests/adapters/test_claude_guard_temporary.py::test_a_write_beneath_the_temporary_folder_is_allowed_after_the_checkout_rules` has the seven rows of the criterion as one parametrized test: file in the folder, missing folders, the folder itself, the `-x` sibling, a link into the checkout, `None`, and the checkout beneath the folder. Both sides of "strictly beneath" are tested (the folder itself and a file in it), and so is the part-wise rule (the `-x` sibling). The refused rows expect `refusal("src/a.py", settings)`.
+    - Criterion 2: the absolute, absent and relative rows test both sides of the `AbsolutePath` limit through `read_guard_settings`.
+    - Criterion 3: the confined and unconfined rows check `temporary_directory` in the guard file the stand-in recorded. The confined row compares it with the recorded `$TMPDIR`, and the unconfined row expects `null`.
+    - Criterion 4: the installed `factory-guard` exits 0 with empty stderr when the settings name the folder. Without the folder it exits 2 with the outside text.
+    - Coder's `make check`: green, per journal entry 10.
+    - Code: `judge` (`src/factory/adapters/claude_guard.py:51-54`) checks the temporary folder only after the checkout check has failed, so the checkout-first order from the Interface holds. `_beneath_temporary_directory` compares real paths by their parts and does not count the folder itself as beneath it. The shared `_real_path` replaced the two inline `realpath` calls rather than adding a copy. `ClaudeCodeRuntime._guard_settings` (`src/factory/adapters/claude_runtime.py:569-572`) writes `files.temporary`, the folder the confined command gets as `TMPDIR`, and `None` when the runtime is unconfined. The domain field is `AbsolutePath | None = None`.
+    - Architecture: the layers hold, nothing new is wired and there is no new dependency.
+    - Security: no suppression markers in `src`. The new test's `# noqa: S603` on a fixed-argument console-script call follows existing test practice.
+    - Work item: the journal names the main choice (the runtime fills in the folder) and the alternative it rejected (the caller sets it). The Description and the docs criterion match what was built.
+
+    Earlier tests:
+    - tests/adapters/test_claude_guard.py: standing leave to move a shared test helper. Its `_payload` and `_outside` moved to `tests/guard_support.py` as `hook_payload` and `outside`. Every test keeps its name and what it checks.
+    - tests/entry/test_guard.py: standing leave to move a shared test helper. Its identical `_payload` copy now comes from `guard_support.hook_payload`, and the `json` import it no longer uses is removed. Every test keeps its name and what it checks.
