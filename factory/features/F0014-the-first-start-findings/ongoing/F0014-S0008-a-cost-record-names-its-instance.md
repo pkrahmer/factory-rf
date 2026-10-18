@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 200
 blocked: null
 comments_seen: 0
 round: 0
@@ -54,3 +54,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted.
+   - Interface: names concrete modules and signatures: `CostRecord.instance: Name | None = None` (last field, after `image`) in `src/factory/domain/cost_records.py`; the key order and omit-when-unset rule in `_line_of_record` of `src/factory/adapters/cost_records_jsonl.py`; `CostRecorder.begin` taking `settings.instance` in `src/factory/application/costs.py`, `None` without settings. I checked that `Name` exists in `identifiers.py` and that `costs.py` already has `_image()` for `image`. The reader is unchanged, with the existing `invalid instance: <reason>` fault form. The three new test modules do not exist yet.
+   - Criteria: each is testable by one parametrized test. Every rule has its failing side: `Shakedown` refused (1, 3), an unset instance leaves the key out (2), no settings gives `None` (4). Criteria 5 and 6 are the regression and gate criteria. The helpers and constants criteria 2 and 4 import exist: `_completed`, `_started`, `COMPLETED_LINE` and `STARTED_LINE` in `tests/adapters/test_cost_records_jsonl.py`, and `_settings` and `_launch` in `tests/application/test_cost_image.py`. I did not open `INSTANCE`, so I did not confirm it equals `factory-1`.
+   - Demo: both commands are runnable. The expected line ends are checkable against the output, and the pytest run names the new modules and the earlier ones.
+   - Architecture: the domain model, the adapter writer and the application recorder each stay in their layer, and the instance comes from the settings through `Boundaries`, as `image` does. Nothing new is wired.
+   - Scope: this is S0008 of the feature (FEATURE scope bullet and decision 28). It follows S0007 and changes no earlier test (decision 28, "S0008 needs no leave"). Its docs criterion completes the decision-log entry S0007 writes.
