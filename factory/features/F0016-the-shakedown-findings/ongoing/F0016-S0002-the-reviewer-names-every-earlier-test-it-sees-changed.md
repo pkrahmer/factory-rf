@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 211
 blocked: null
 comments_seen: 0
@@ -120,3 +120,33 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: no findings. I ran the commands under `## Demo` from the repository root, in order.
+
+   1. `grep -c "Earlier tests" claude/agents/reviewer.md claude/agents/acceptance-reviewer.md`
+   ```text
+   claude/agents/reviewer.md:1
+   claude/agents/acceptance-reviewer.md:0
+   ```
+   This met its Expect line.
+
+   2. `grep -c "earlier tests the reviewers' entries name" claude/agents/acceptance-reviewer.md claude/agents/reviewer.md`
+   ```text
+   claude/agents/acceptance-reviewer.md:1
+   claude/agents/reviewer.md:0
+   ```
+   This met its Expect line.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_agent_texts.py tests/test_claude_files.py`
+   ```text
+   ........................................................................ [ 62%]
+   ...........................................                              [100%]
+   115 passed in 0.09s
+   ```
+   This met its Expect line: the last line names `115 passed`, with no failed, error or skipped count.
+
+   I also checked the criteria against the branch:
+   - Criterion 3: `grep -c "Stop at the first failing group and report it" claude/agents/reviewer.md` gives 0, so the old sentence is gone.
+   - Criterion 4: `tests/adapters/test_shipped_agents_effect.py` passes as well.
+   - Scope: `git diff main...HEAD --stat` touches only the two agent files, the three documents, the ticket and `tests/test_claude_agent_texts.py`. Nothing under `src/` changed.
+
+   No criterion is contradicted. Open: nothing.
