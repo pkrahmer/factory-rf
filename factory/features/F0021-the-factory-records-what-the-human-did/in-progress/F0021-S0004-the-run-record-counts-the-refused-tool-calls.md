@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:34:33.079295Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-18T23:34:12.960771Z'
   stage: tests
   run: bfb5de6234ab40fe882e0713f04143c7
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:34:33.079295Z'
+  stage: doing
 ---
 
 # The run record counts the refused tool calls
@@ -260,3 +269,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (41.6 s)
+16. factory: started doing as self.
