@@ -1,7 +1,6 @@
 """The handlers that ask record on the question the block it opened."""
 
 from collections.abc import Sequence
-from datetime import timedelta
 from typing import Literal
 
 import pytest
@@ -9,21 +8,22 @@ import pytest
 from crash_support import (
     BRANCH,
     PATH,
-    WORK_ITEM,
     Rerun,
     claim,
     crash_event,
+    expired_claim,
+    expired_event,
     handler,
+    open_pull_request,
+    other_handler,
     remote_state,
     snapshot,
 )
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.claims import ClaimService
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.questions import AskHandler
-from factory.application.recovery import RecoveryHandler
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -33,16 +33,10 @@ from human_clone import HumanClone
 
 BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 CREATED = JournalRecord(number=1, speaker=HUMAN, kind="created")
-OTHER_INSTANCE = "factory-2"
-LEASE = timedelta(minutes=60)
 
 
 def _definition(boundaries: Boundaries) -> PipelineDefinition:
     return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
-def _pull_request(hosting: FakeHostingService) -> int:
-    return hosting.create_pull_request(BRANCH, f"{WORK_ITEM}: first", "body", draft=True).number
 
 
 def _publish(
@@ -64,7 +58,7 @@ def test_the_ask_handler_at_the_attempts_cap_records_the_question_with_its_block
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
     state = WorkItemState(
-        stage="doing", attempts=2, pull_request=_pull_request(hosting), journal=[CREATED]
+        stage="doing", attempts=2, pull_request=open_pull_request(hosting), journal=[CREATED]
     )
     stall = NewEntry(speaker=FACTORY, kind="stall", text="the agent gave no result")
     event = _publish(boundaries, human, state, [stall])
@@ -84,18 +78,13 @@ def test_the_recovery_at_the_crash_cap_records_the_question_with_its_block(
     clock: ManualClock,
     ended_by: Literal["crash", "expiry"],
 ) -> None:
-    claimed = claim(boundaries, human, crashes=1, pull_request=_pull_request(hosting))
+    pull_request = open_pull_request(hosting)
     if ended_by == "crash":
+        claimed = claim(boundaries, human, crashes=1, pull_request=pull_request)
         handler(boundaries, claimed.definition, Rerun()).handle(crash_event(snapshot(boundaries)))
     else:
-        clock.advance(LEASE)
-        claims = ClaimService(boundaries, OTHER_INSTANCE, claimed.definition)
-        recovery = RecoveryHandler(boundaries, claimed.definition, claims, Rerun())
-        work_item = snapshot(boundaries)
-        assert work_item.branch_commit is not None
-        recovery.handle(
-            Event(kind="expired", work_item=work_item, remote_state=work_item.branch_commit)
-        )
+        claimed = expired_claim(boundaries, human, clock, crashes=1, pull_request=pull_request)
+        other_handler(boundaries, claimed, Rerun()).handle(expired_event(snapshot(boundaries)))
 
     ended, question = remote_state(boundaries).journal[-2:]
     assert (ended.kind, ended.reason) == (ended_by, None)
@@ -105,7 +94,7 @@ def test_the_recovery_at_the_crash_cap_records_the_question_with_its_block(
 def test_a_close_that_sends_back_without_a_reason_records_the_question_with_its_block(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    pull_request = _pull_request(hosting)
+    pull_request = open_pull_request(hosting)
     state = WorkItemState(
         stage="approval", pull_request=pull_request, handed_over="approval", journal=[CREATED]
     )

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T22:01:19.948537Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T22:01:19.948537Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:03:59.269344Z'
+  stage: tests
+  run: dd7576238bcc4c4d97efa53225f6a120
 ---
 
 # The journal records why a work item waited or stalled
@@ -319,3 +321,37 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 
     I did not run `make check` this round because nothing changed. It was green at the end of round 0.
 12. factory: started tests as self.
+13. tester: Mode: a test change the human approved. I moved the copied test helpers that the reviewer found (entry 9) and the coder listed (entry 11). I did this under the standing leave in `CLAUDE.md` for moving a shared test helper. No acceptance criterion was added or changed, so the criterion-to-test mapping from entry 5 still holds.
+
+    New in `tests/crash_support.py` (none of these names were there before):
+    - `OTHER_INSTANCE`, `LEASE`: the constants from `test_recovery_expiry.py`.
+    - `open_pull_request(hosting)`: was the `_pull_request` copy. It is now the one shared helper, and the title is `f"{WORK_ITEM}: {STORY_TITLE}"`.
+    - `expired_claim(...)`: was `_expired_claim`. It claims as `INSTANCE`, then advances the clock by `LEASE`.
+    - `expired_event(work_item)`: was `_expired`.
+    - `other_handler(boundaries, claimed, run)`: was `_other`, the other instance's `RecoveryHandler`.
+
+    Earlier test files I changed under the standing leave (every test keeps its name and checks the same thing):
+    - `tests/application/test_recovery_expiry.py`:
+      - Removed its local `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired`.
+      - It now imports them from `crash_support` under the new names.
+      - `CAP`, `UNTRACKED` and `COMMITTED` stay in the module.
+    - `tests/application/test_recovery_cap.py`: removed its `_pull_request` and uses `open_pull_request`.
+
+    This story's test changed: `tests/application/test_question_causes_recorded.py`.
+    - Its own `OTHER_INSTANCE`, `LEASE` and `_pull_request` are removed.
+    - The expiry row of `test_the_recovery_at_the_crash_cap_records_the_question_with_its_block` now uses `expired_claim` (with `crashes=1`), `other_handler` and `expired_event` instead of the inlined copies.
+    - Its pull request title is now `"<id>: First story"` instead of `"<id>: first"`. None of its assertions read the title.
+
+    Rejected: changing the `pull_request` fixture in `tests/application/handlers/conftest.py` to use the shared helper. That was left to me (entry 11). The fixture belongs to the handler tests and has its own `WORK_ITEM`/`BRANCH` constants and its own title (`"…: first"`). `test_closed_send_back.py:420` uses the same title inline. Switching would change the pull request title for every handler test, which goes beyond moving a copy.
+
+    Results:
+    - `make test`: `test: green (40.3 s)`. The tests are green because the code was already built in round 0.
+    - `make lint`: `lint: green`.
+    - No module failed to import.
+
+    Files changed: `tests/crash_support.py`, `tests/application/test_recovery_expiry.py`, `tests/application/test_recovery_cap.py`, `tests/application/test_question_causes_recorded.py`.
+
+    Still open, from entry 11: group 5. `append_entry`'s signature is `**causes: Unpack[JournalCauses]`, not the two keyword-only parameters in the Interface.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.7 s)

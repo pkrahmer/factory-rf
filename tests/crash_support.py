@@ -1,8 +1,10 @@
 """A work item claimed by this instance, ready to crash, for the crash-cap tests."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
+from factory.adapters.clock import ManualClock
+from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.dispatcher import Handler
@@ -21,6 +23,8 @@ from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
+OTHER_INSTANCE = "factory-2"
+LEASE = timedelta(minutes=60)
 STAGE = "doing"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
@@ -73,6 +77,28 @@ def claim(
     return Claimed(definition=definition, start=start)
 
 
+def expired_claim(
+    boundaries: Boundaries,
+    human: HumanClone,
+    clock: ManualClock,
+    *,
+    crashes: int = 0,
+    pull_request: int | None = None,
+    body: str = STORY,
+) -> Claimed:
+    """Claim the stage as `INSTANCE` and let its lease run out."""
+    claimed = claim(boundaries, human, crashes=crashes, pull_request=pull_request, body=body)
+    clock.advance(LEASE)
+    return claimed
+
+
+def open_pull_request(hosting: FakeHostingService) -> int:
+    """The number of a new draft pull request of the work item's branch."""
+    return hosting.create_pull_request(
+        BRANCH, f"{WORK_ITEM}: {STORY_TITLE}", "body", draft=True
+    ).number
+
+
 def remote_head(boundaries: Boundaries) -> str:
     """The commit `origin/<branch>` points to after a fetch."""
     boundaries.git.fetch()
@@ -115,6 +141,12 @@ def crash_event(work_item: WorkItemSnapshot) -> Event:
     return Event(kind="crash", work_item=work_item, remote_state=work_item.branch_commit)
 
 
+def expired_event(work_item: WorkItemSnapshot) -> Event:
+    """The expired event of the work item as it is on the remote."""
+    assert work_item.branch_commit is not None
+    return Event(kind="expired", work_item=work_item, remote_state=work_item.branch_commit)
+
+
 def handler(
     boundaries: Boundaries, definition: PipelineDefinition, run: Handler
 ) -> RecoveryHandler:
@@ -122,3 +154,9 @@ def handler(
     return RecoveryHandler(
         boundaries, definition, ClaimService(boundaries, INSTANCE, definition), run
     )
+
+
+def other_handler(boundaries: Boundaries, claimed: Claimed, run: Handler) -> RecoveryHandler:
+    """A recovery handler of another instance than the one that claimed the stage."""
+    claims = ClaimService(boundaries, OTHER_INSTANCE, claimed.definition)
+    return RecoveryHandler(boundaries, claimed.definition, claims, run)
