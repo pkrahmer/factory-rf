@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T19:11:42.839225Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T19:11:23.061205Z'
   stage: tests
   run: 8de3f032009f49d5b9f3f87cb14b815a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:11:42.839225Z'
+  stage: doing
 ---
 
 # The documents describe the live write guard
@@ -101,3 +110,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (37.5 s)
+6. factory: started doing as self.
