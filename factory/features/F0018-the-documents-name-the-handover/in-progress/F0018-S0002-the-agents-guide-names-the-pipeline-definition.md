@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T13:07:21.549155Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   at: '2026-10-18T13:07:01.074966Z'
   stage: docs
   run: 1afc899dd1ae43e9ba155bc9da227519
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:07:21.549155Z'
+  stage: smoke-test
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -188,3 +197,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+15. factory: started smoke-test as self.
