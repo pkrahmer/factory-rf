@@ -171,6 +171,8 @@ class FrontmatterWorkItemWriter(WorkItemWriter):
     def render(self, document: WorkItemDocument) -> str:
         state = require_state(document, WorkItemFormatError("the document has no state"))
         values: dict[str, object] = state.model_dump()
+        # An unset stamp is left out, so a record read without one is written back unchanged.
+        values["journal"] = [record.model_dump(exclude_none=True) for record in state.journal]
         post = frontmatter.Post(document.body.strip(), None, **values)
         return frontmatter.dumps(post, handler=self._handler) + "\n"
 

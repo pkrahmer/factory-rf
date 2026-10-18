@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
@@ -911,3 +912,66 @@ def test_a_stage_report_refuses_values_its_types_refuse(field: str, value: objec
 
     with pytest.raises(ValidationError):
         model(**{**_report_fields(), field: value})
+
+
+def test_a_stage_end_that_asks_a_question_stamps_both_entries_with_the_stage_and_its_run(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
+    remote: Path,
+    clock: ManualClock,
+) -> None:
+    aftermath = _aftermath(
+        boundaries,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        tmp_path=tmp_path,
+        run=ScriptedRun(result=_completed("doing")),
+        body=WITHOUT_SMOKE_TEST,
+    )
+
+    _finish(boundaries, aftermath)
+
+    state = _pushed_state(boundaries, remote)
+    stamps = [(record.kind, record.at, record.stage, record.run) for record in state.journal]
+    assert stamps[-2:] == [
+        ("result", clock.now(), "tests", aftermath.cost.run),
+        ("question", clock.now(), "tests", aftermath.cost.run),
+    ]
+    [started] = [record for record in state.journal if record.kind == "started"]
+    assert started.stage == "tests"
+    assert started.run is None
+
+
+def test_a_red_check_stamps_the_entry_and_the_stall_with_the_stages_run(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
+    remote: Path,
+    clock: ManualClock,
+) -> None:
+    aftermath = _aftermath(
+        boundaries,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        tmp_path=tmp_path,
+        run=ScriptedRun(result=_completed("doing")),
+        makefile=_makefile(tmp_path / TARGETS_LOG, statuses={"lint": 1}),
+    )
+
+    _finish(boundaries, aftermath)
+
+    state = _pushed_state(boundaries, remote)
+    stamps = [(record.kind, record.at, record.stage, record.run) for record in state.journal]
+    assert stamps[-2:] == [
+        ("result", clock.now(), "tests", aftermath.cost.run),
+        ("stall", clock.now(), "tests", aftermath.cost.run),
+    ]

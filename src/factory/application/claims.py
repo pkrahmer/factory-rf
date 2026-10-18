@@ -107,7 +107,8 @@ class ClaimService:
         entry = NewEntry(
             speaker="factory", kind="started", text=started_text(claim.stage, self._instance)
         )
-        return append_entry(document.model_copy(update={"state": claimed_state}), entry)
+        claimed = document.model_copy(update={"state": claimed_state})
+        return append_entry(claimed, entry, at=claim.started_at)
 
 
 def _no_state() -> ValueError:

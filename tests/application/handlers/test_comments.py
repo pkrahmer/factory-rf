@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -104,7 +105,7 @@ def test_unread_leaves_out_the_comments_read_and_keeps_the_listed_order(
 
 
 def test_append_adds_one_dated_human_comment_entry_per_comment_in_order(
-    boundaries: Boundaries, *, snapshot_of: SnapshotOf, state_with: StateWith
+    boundaries: Boundaries, *, snapshot_of: SnapshotOf, state_with: StateWith, clock: ManualClock
 ) -> None:
     document = _document(snapshot_of, state_with(1))
     late_in_berlin = datetime(2026, 10, 13, 1, 30, tzinfo=timezone(timedelta(hours=2)))
@@ -112,10 +113,11 @@ def test_append_adds_one_dated_human_comment_entry_per_comment_in_order(
 
     appended = CommentCopier(boundaries).append(document, comments)
 
+    stamp = {"at": clock.now(), "stage": _state_of(document).stage}
     assert _state_of(appended).journal == [
         CREATED,
-        JournalRecord(number=2, speaker=HUMAN, kind="comment"),
-        JournalRecord(number=3, speaker=HUMAN, kind="comment"),
+        JournalRecord(number=2, speaker=HUMAN, kind="comment", **stamp),
+        JournalRecord(number=3, speaker=HUMAN, kind="comment", **stamp),
     ]
     assert entry_text(appended, 2) == "a\nb"
     assert entry_text(appended, 3) == "single line"

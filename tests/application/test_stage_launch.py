@@ -214,6 +214,7 @@ def test_the_stage_start_commit_of_a_new_work_item_is_its_opening_commit(
     agent_runtime: FakeAgentRuntime,
     remote: Path,
     hosting: FakeHostingService,
+    clock: ManualClock,
 ) -> None:
     launched, _ = _launch_new(
         boundaries,
@@ -230,7 +231,8 @@ def test_the_stage_start_commit_of_a_new_work_item_is_its_opening_commit(
     state = _state_at(boundaries, commits[0].commit)
     assert state.claim == launched.started.stage_start.claim
     assert state.model_copy(update={"claim": None, "journal": []}) == initial_state("intake")
-    assert state.journal == [CREATED, STARTED]
+    stamp = {"at": clock.now(), "stage": "intake"}
+    assert state.journal == [CREATED.model_copy(update=stamp), STARTED.model_copy(update=stamp)]
 
 
 def test_a_push_by_another_clone_rejects_the_claim_and_no_run_starts(

@@ -26,7 +26,13 @@ PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 OTHER_PATH = "src/other.py"
 BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 CREATED = JournalRecord(number=1, speaker=HUMAN, kind="created")
-MOVE_BACK = JournalRecord(number=2, speaker=FACTORY, kind="move_back")
+MOVE_BACK = JournalRecord(
+    number=2,
+    speaker=FACTORY,
+    kind="move_back",
+    at=datetime(2026, 10, 12, 12, 0, tzinfo=UTC),
+    stage="approval",
+)
 CLAIM = Claim(
     instance="factory-1",
     stage="approval",

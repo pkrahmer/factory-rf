@@ -1,7 +1,7 @@
 """The feature acceptance as data: its id, report, state, status and the reviewer's facts."""
 
 from collections.abc import Iterable, Sequence
-from datetime import date
+from datetime import date, datetime
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
@@ -280,7 +280,7 @@ def _acceptance_state(document: WorkItemDocument) -> AcceptanceState:
 
 
 def _booked(
-    document: WorkItemDocument, outcome: AcceptanceOutcome, done_text: str
+    document: WorkItemDocument, outcome: AcceptanceOutcome, done_text: str, at: datetime | None
 ) -> WorkItemDocument:
     state = _acceptance_state(document)
     # The human's act ends the acceptance, whoever held it and whatever it waited for.
@@ -288,7 +288,7 @@ def _booked(
         update={"stage": DONE_STAGE, "outcome": outcome, "claim": None, "blocked": None}
     )
     entry = NewEntry(speaker=FACTORY, kind="done", text=done_text)
-    return append_entry(document.model_copy(update={"state": done}), entry)
+    return append_entry(document.model_copy(update={"state": done}), entry, at=at)
 
 
 def is_before_approval(definition: PipelineDefinition, stage: str) -> bool:
@@ -302,15 +302,19 @@ def is_before_approval(definition: PipelineDefinition, stage: str) -> bool:
 
 
 def book_merge(
-    document: WorkItemDocument, bill: Bill, *, before_approval: bool = False
+    document: WorkItemDocument,
+    bill: Bill,
+    *,
+    before_approval: bool = False,
+    at: datetime | None = None,
 ) -> WorkItemDocument:
     """The acceptance booked `accepted` at `done`, with a `done` entry carrying its bill.
 
     A merge `before_approval` says so in its entry: the human's merge decides all the same.
     """
     if before_approval:
-        return _booked(document, "accepted", _MERGED_BEFORE_APPROVAL_PREFIX + cost_line(bill))
-    return _booked(document, "accepted", done_entry_text(bill))
+        return _booked(document, "accepted", _MERGED_BEFORE_APPROVAL_PREFIX + cost_line(bill), at)
+    return _booked(document, "accepted", done_entry_text(bill), at)
 
 
 def refusal_reason(document: WorkItemDocument, role: str) -> str:
@@ -341,7 +345,7 @@ def _with_recommendation(body: str, paragraph: str) -> str:
 
 
 def book_refusal(
-    document: WorkItemDocument, *, role: str, on: date, bill: Bill
+    document: WorkItemDocument, *, role: str, on: date, bill: Bill, at: datetime | None = None
 ) -> WorkItemDocument:
     """The acceptance booked `refused` at `done`, the human's reason heading its recommendation."""
     # Checked first, so a plain state is refused before its body is read.
@@ -349,4 +353,4 @@ def book_refusal(
     paragraph = f"Refused by the human on {on.isoformat()}: {refusal_reason(document, role)}"
     body = _with_recommendation(document.body, paragraph)
     refused = document.model_copy(update={"body": body})
-    return _booked(refused, "refused", _CLOSED_ENTRY_PREFIX + cost_line(bill))
+    return _booked(refused, "refused", _CLOSED_ENTRY_PREFIX + cost_line(bill), at)

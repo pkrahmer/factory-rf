@@ -75,7 +75,9 @@ class CommentCopier:
         appended = document
         for comment in comments:
             if comment.body.strip():
-                appended = append_entry(appended, _entry_of(comment))
+                appended = append_entry(
+                    appended, _entry_of(comment), at=self._boundaries.clock.now()
+                )
         state = require_state(appended, _no_state())
         read = sorted({*state.comments_read, *(comment.id for comment in comments)})
         return appended.model_copy(

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.acceptance import AcceptanceMerged, AcceptanceService
@@ -173,6 +174,7 @@ def test_a_merged_acceptance_is_booked_accepted_in_done_with_its_cost_records(
     publish: Publish,
     merge: Merge,
     records: list[CostRecord] | None,
+    clock: ManualClock,
 ) -> None:
     snapshot = publish(records)
     event = merge(snapshot)
@@ -181,7 +183,9 @@ def test_a_merged_acceptance_is_booked_accepted_in_done_with_its_cost_records(
 
     AcceptanceMerged(boundaries, definition).handle(event)
 
-    expected = book_merge(boundaries.work_item_reader.parse(merged), bill(records or []))
+    expected = book_merge(
+        boundaries.work_item_reader.parse(merged), bill(records or []), at=clock.now()
+    )
     assert _main_text(checkout, DONE_REPORT) == boundaries.work_item_writer.render(expected)
     assert _main_text(checkout, DONE_SIDECAR) == (
         None if records is None else sidecar_text(records)

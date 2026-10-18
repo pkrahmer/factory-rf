@@ -292,7 +292,12 @@ class AcceptanceMerged(Handler):
         no_state = CannotHandle(kind=_MERGED, reason="the report on the main branch has no state")
         stage = require_state(document, no_state).stage
         before_approval = is_before_approval(self._definition, stage)
-        booked = book_merge(document, bill(records), before_approval=before_approval)
+        booked = book_merge(
+            document,
+            bill(records),
+            before_approval=before_approval,
+            at=boundaries.clock.now(),
+        )
         recorder.write(destination, booked)
         recorder.publish(MAIN_BRANCH, commit_subject(snapshot.id, "merged, archived"))
 
@@ -324,7 +329,13 @@ class AcceptanceClosed(Handler):
             recorder.check_out(snapshot.branch)
             records = self._branch_records(snapshot, branch_ref)
             document = self._record_close(recorder, snapshot, number)
-            refused = book_refusal(document, role=role, on=self._today(), bill=bill(records))
+            refused = book_refusal(
+                document,
+                role=role,
+                on=self._today(),
+                bill=bill(records),
+                at=self._boundaries.clock.now(),
+            )
             self._book(recorder, snapshot, refused, records)
         WorkItemRecorder(self._boundaries).delete_branch(snapshot.branch)
 
@@ -357,7 +368,7 @@ class AcceptanceClosed(Handler):
         # An acceptance ends at its first close; a later one is the same close seen again.
         if last_record(closed, speaker=HUMAN, kind="close") is None:
             entry = NewEntry(speaker=HUMAN, kind="close", text=CLOSE_ENTRY_TEXT, on=self._today())
-            closed = append_entry(closed, entry)
+            closed = append_entry(closed, entry, at=self._boundaries.clock.now())
         if closed != document:
             subject = commit_subject(snapshot.id, "close recorded")
             recorder.record(snapshot.branch, snapshot.path, closed, subject)

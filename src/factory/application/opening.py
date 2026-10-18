@@ -82,13 +82,9 @@ class WorkItemOpening:
             state=initial_state(self._definition.first_stage()),
             body=_with_journal_section(specification.body),
         )
-        created = NewEntry(
-            speaker=HUMAN,
-            kind="created",
-            text="created.",
-            on=self._boundaries.clock.now().date(),
-        )
-        return append_entry(document, created)
+        now = self._boundaries.clock.now()
+        created = NewEntry(speaker=HUMAN, kind="created", text="created.", on=now.date())
+        return append_entry(document, created, at=now)
 
     def ensure_pull_request(
         self, work_item: WorkItemId, document: WorkItemDocument

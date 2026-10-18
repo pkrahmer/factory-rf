@@ -283,6 +283,7 @@ def test_a_closed_acceptance_is_booked_refused_in_done_and_nothing_else_reaches_
     publish: Publish,
     pull_request: int,
     records: list[CostRecord] | None,
+    clock: ManualClock,
 ) -> None:
     snapshot = publish(records, proposed=True)
     comment_id = hosting.add_human_comment(pull_request, "The list cannot be sorted.")
@@ -293,11 +294,13 @@ def test_a_closed_acceptance_is_booked_refused_in_done_and_nothing_else_reaches_
     AcceptanceClosed(boundaries, definition).handle(event)
 
     said = NewEntry(speaker=HUMAN, kind="comment", text=comment.body, on=comment.created_at.date())
-    commented = append_entry(snapshot.document, said)
+    commented = append_entry(snapshot.document, said, at=clock.now())
     read = _state(commented).model_copy(update={"comments_read": [comment_id]})
     closed = NewEntry(speaker=HUMAN, kind="close", text=CLOSE_ENTRY_TEXT, on=CLOSED_ON)
-    recorded = append_entry(commented.model_copy(update={"state": read}), closed)
-    expected = book_refusal(recorded, role=ROLE, on=CLOSED_ON, bill=bill(records or []))
+    recorded = append_entry(commented.model_copy(update={"state": read}), closed, at=clock.now())
+    expected = book_refusal(
+        recorded, role=ROLE, on=CLOSED_ON, bill=bill(records or []), at=clock.now()
+    )
     checkout.fetch()
     assert checkout.show_file("origin/main", DONE_REPORT) == (
         boundaries.work_item_writer.render(expected)

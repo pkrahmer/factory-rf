@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
@@ -776,3 +777,35 @@ def test_the_own_cost_record_file_is_not_named_as_undone(
         assert aftermath.entry.text == ENTRY
     else:
         assert aftermath.entry.text == f"{ENTRY}\n\n{paragraph}"
+
+
+def test_a_new_form_finding_stamps_the_entry_and_the_stall_with_the_launched_run(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    remote: Path,
+    clock: ManualClock,
+) -> None:
+    broken = STORY.replace(CRITERIA_SECTION, "")
+    launched = _launch(
+        boundaries,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        run=ScriptedRun(
+            writes={PATH: _rendered(boundaries, broken, "review")}, result=_completed()
+        ),
+        stage="review",
+    )
+
+    stalled = _stalled(boundaries, launched)
+
+    assert stalled.reason == "form_invalid"
+    state = _pushed_state(boundaries, remote)
+    stamps = [(record.kind, record.at, record.stage, record.run) for record in state.journal]
+    assert stamps[-2:] == [
+        ("result", clock.now(), "review", launched.cost.run),
+        ("stall", clock.now(), "review", launched.cost.run),
+    ]

@@ -90,9 +90,10 @@ class ClosedHandler(Handler):
         )
         # A retry after a failed reopen finds its close recorded and must not close again.
         if not recorded_since_latest_result(closed, "close"):
-            on = self._boundaries.clock.now().astimezone(UTC).date()
+            now = self._boundaries.clock.now()
+            on = now.astimezone(UTC).date()
             entry = NewEntry(speaker=HUMAN, kind="close", text=CLOSE_ENTRY_TEXT, on=on)
-            closed = append_entry(closed, entry)
+            closed = append_entry(closed, entry, at=now)
         closed = _with_state(closed, handed_over=None)
         if closed != document:
             subject = commit_subject(snapshot.id, "close recorded")
@@ -104,12 +105,14 @@ class ClosedHandler(Handler):
     ) -> WorkItemDocument:
         new_round = require_state(closed, _no_state()).round + 1
         text = send_back_entry_text(stage, new_round)
-        decided = append_entry(closed, NewEntry(speaker=FACTORY, kind="send_back", text=text))
+        now = self._boundaries.clock.now()
+        send_back = NewEntry(speaker=FACTORY, kind="send_back", text=text)
+        decided = append_entry(closed, send_back, at=now)
         question = send_back_question(new_round, cap, reason_given(closed))
         blocked = None
         if question is not None:
             entry = NewEntry(speaker=FACTORY, kind="question", text=question)
-            decided = append_entry(decided, entry)
+            decided = append_entry(decided, entry, at=now)
             blocked = "send_back"
         # Released here, not through the claim service, which needs an instance name.
         decided = _with_state(decided, stage=stage, round=new_round, claim=None, blocked=blocked)

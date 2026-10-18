@@ -195,7 +195,11 @@ def test_the_journal_ends_with_a_factory_expiry_entry_naming_the_stage_start(
 
     after = remote_state(boundaries)
     assert after.journal[-1] == JournalRecord(
-        number=before.journal[-1].number + 1, speaker=FACTORY, kind="expiry"
+        number=before.journal[-1].number + 1,
+        speaker=FACTORY,
+        kind="expiry",
+        at=clock.now(),
+        stage=before.stage,
     )
     document = document_at(boundaries, f"origin/{BRANCH}")
     assert entry_text(document, after.journal[-1].number) == expiry_entry_text(
@@ -271,8 +275,12 @@ def test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns
     assert after.crashes == CAP
     last = before.journal[-1].number
     assert after.journal[-2:] == [
-        JournalRecord(number=last + 1, speaker=FACTORY, kind="expiry"),
-        JournalRecord(number=last + 2, speaker=FACTORY, kind="question"),
+        JournalRecord(
+            number=last + 1, speaker=FACTORY, kind="expiry", at=clock.now(), stage=before.stage
+        ),
+        JournalRecord(
+            number=last + 2, speaker=FACTORY, kind="question", at=clock.now(), stage=before.stage
+        ),
     ]
     note, question = hosting.factory_posts(number)
     assert note.key is not None

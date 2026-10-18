@@ -38,7 +38,8 @@ class MergedHandler(Handler):
     def _archived(self, document: WorkItemDocument, path: str) -> WorkItemDocument:
         sidecar = self._boundaries.checkout / cost_records_path(path)
         text = done_entry_text(bill(self._boundaries.cost_reader.read(sidecar)))
-        appended = append_entry(document, NewEntry(speaker=FACTORY, kind="done", text=text))
+        entry = NewEntry(speaker=FACTORY, kind="done", text=text)
+        appended = append_entry(document, entry, at=self._boundaries.clock.now())
         error = ValueError(f"the work item at {path} has no state to archive")
         # The claim is dropped in the state: the merge ends the work, whoever held it.
         state = require_state(appended, error).model_copy(
