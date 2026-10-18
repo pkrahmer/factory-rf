@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 210
 blocked: null
 comments_seen: 0
@@ -134,3 +134,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Tests: the tester changed only the constants the Interface names. `TEMPLATE_RULES_LINES` in `tests/test_claude_files.py` has the new `Not without asking` line and the new bullet before the empty line that ends `## Tests`. `LESSONS["tester"]` and `LESSONS["coder"]` in `tests/test_claude_agent_texts.py` match the Interface. Neither test function changed. These constants pin criteria 1 to 4: the two exact-text tests leave no room for the old tester bullet to stay or for another agent's lessons to drift. The coder's entry reports `make check` green and `duplicates: 0 new`.
       - Architecture and security: text files and test constants only. Nothing under `src/` changes, and the diff adds no markers or secrets.
       - Quality and ticket hygiene: the log gives the coder's main decision (exact single-match replacements) and what it rejected. `Assignment` matches what was built. Criterion 7 still describes what the documenter must write.
+6. documenter: Docs written for criterion 7. Only documents changed, so I did not run `make check`; the factory runs it next. `python -m factory.entry.check_documents` prints `documents ok`.
+   - `docs/project-guide.md`: in *The template*, the `template/CLAUDE.md` bullet now states the standing leave and its bounds. In *The seven agents*, the `## Lessons` bullet names the tester's two lessons on earlier tests and the coder's last lesson, and says `tester` still ends with the time-limit lesson.
+   - `docs/decisions.md`: new entry "A standing leave to move a shared test helper", with the reason ($8.85 for three stories, about $6 above clean passes), the bounds, and the five rejected alternatives with their reasons.
+   Cross-read against the diff: the text of the three shipped files matches the Interface, and the rest of the project guide's section on the agents and template is current. I read no other document. No findings, and I saw nothing stale that is unrelated to this story.
+
+   `make check`: check: green
+   `make documents`: documents ok
