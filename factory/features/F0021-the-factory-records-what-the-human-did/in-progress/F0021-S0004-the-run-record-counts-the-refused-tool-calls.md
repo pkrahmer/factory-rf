@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:25:48.968346Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-18T23:25:28.838357Z'
   stage: tests
   run: 16f9f49dddac449ba375c31e7aab49a2
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:25:48.968346Z'
+  stage: doing
 ---
 
 # The run record counts the refused tool calls
@@ -154,3 +163,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/application/test_costs_denials.py - pydantic_core._pydantic_core....
+9. factory: started doing as self.
