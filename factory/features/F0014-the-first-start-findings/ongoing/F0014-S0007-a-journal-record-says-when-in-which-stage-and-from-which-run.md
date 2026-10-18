@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 199
 blocked: null
 comments_seen: 2
@@ -215,3 +215,24 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+9. reviewer: no findings. I read the ticket and the whole diff, `git diff main...HEAD -- . ':!factory'`: 14 source files and 18 test files.
+
+   1. Acceptance criteria: each criterion has a test that tests what it is named for.
+      - Criterion 1: `tests/domain/test_journal_stamps.py` builds the record through `type[BaseModel]`. Its rows: none of the three, all three, +02:00 stored as UTC, 32 hex characters accepted, and naive `at`, `Tests`, 31, 33, an uppercase letter and `g` refused. Both sides of the 32-character limit are covered.
+      - Criterion 2: five rows. The `ValueError` message is matched exactly, the document is checked unchanged, and the body is checked the same in each row that appends.
+      - Criteria 3 and 4: `tests/adapters/test_journal_stamps_file.py` compares the whole text and does the round trip, including the single-quoted run of 32 times `1` and an old file written back byte for byte.
+      - Criterion 5: (a) to (e) are in `test_stage_finish.py`, `test_after_agent.py`, `test_stalls.py` and `handlers/test_closed_send_back.py`. The changed tests of decision 27 match the list in the Interface, `MOVE_BACK` with `stage="approval"` as the human answered in entry 5.
+      - Criterion 6: four booking rows.
+      - The coder's entry 8 reports `make check` green and `make duplicates` with 0 new findings.
+   2. Architecture: the domain gets no clock, because `at` is a parameter. `journal.py` imports only domain modules (`cost_records.RunId`, `times.UtcDatetime`). Every call site reads the clock through `self._boundaries.clock`. No layer is crossed and no tool is called outside its wrapper.
+   3. Security: no secrets; the hex test values are low-entropy (`"a" * 32`). There is one new `# noqa: DTZ001` on the naive-`at` row. It is the established pattern for that row (`tests/domain/test_disk_records.py:38` on main) and is needed to build a naive datetime on purpose. No `nosec`, `nosemgrep` or baseline entry was added.
+   4. Quality:
+      - `append_entry` checks for a `run` without an `at` before it reads the state, as the Interface asks.
+      - The private `_record` does one thing.
+      - The writer uses `model_dump(exclude_none=True)` per record. I accept the coder's reason: the other fields of a record can never be `None`, so the effect is the same.
+      - `StallService._stalled` now takes the `StallContext` instead of a sixth parameter.
+      - The `JournalRecord` docstring names the three fields. The comment in `work_item_markdown.py` says why.
+      - No order of a call site changed: `move_back` is appended before the move back, the story's `done` before `done` is set, and `_booked` sets `done` first.
+   5. Ticket hygiene: the log explains the `move_back` question and its answer, and the `exclude_none` and `StallContext` choices. The Assignment matches what was built. The docs criterion (9) still describes what the documenter has to write.
+
+   Open for the docs stage: criterion 9 (project guide, decision log, and one pointer sentence in the entry for SI1.1).
