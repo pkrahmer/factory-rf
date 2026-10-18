@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 203
 blocked: null
 comments_seen: 0
@@ -90,3 +90,25 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands ran from the repository root and both met their Expect lines. No findings.
+
+   Command 1 (`book_merge` with `at`, with and without `before_approval`):
+   ```
+   True done 2026-10-18 09:00:00+00:00 done
+   False done 2026-10-18 09:00:00+00:00 done
+   ```
+   Met: these are exactly the two expected lines, and the process exited with 0.
+
+   Command 2 (pytest over the five journal-stamp and acceptance test modules), trimmed:
+   ```
+   …
+   .venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+     PytestWarning: (rm_rf) error removing /tmp/pytest-of-factory/garbage-…/test_seal_takes_the_group_and_0
+     <class 'OSError'>: [Errno 39] Directory not empty: …
+   …
+   -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+   67 passed, 6 warnings in 5.25s
+   ```
+   Met: the last line reports `67 passed` with no `failed`, `error` or `skipped` count. The 6 warnings come from pytest's cleanup of old temporary directories under /tmp (rm_rf on `garbage-*`), not from these tests. The Expect line does not mention warnings.
+
+   Criteria check: criterion 1 holds. Command 1 shows that `before_approval=True` with `at` gives a `done` entry with that `at` and `stage` `done`. Criteria 2 and 3 are covered by the tests in command 2, all of which pass. The demo contradicts nothing in criteria 4 and 5: the coder and the documenter report `make check` green, and this story needs no docs. The plain branch (`False`) still stamps too, so no behaviour changed, as the assignment says.
