@@ -59,7 +59,11 @@ Checklist, in this order. Stop at the first failing group of 1 to 5 and report i
 
 Write findings as a numbered list in your entry: location, what is wrong, what would fix it. One line each. A finding with no location is not a finding.
 
-Your recommendation is your decision: `docs` passes, `doing` sends the work item back. Never both, never "pass with remarks": a remark worth writing is a finding.
+Your recommendation is your decision: `docs` passes, `doing` sends the work item back. Never both, and never "pass with remarks": a remark worth writing is a finding, except for the notes from round 1 on below.
+
+From round 1 on (your prompt names the round; the first review, at round 0, still sends such a point back), a point that is only about the quality of a test file the diff adds (a copied helper, a name, a duplicate test) is a note, not a finding: write the notes under `Notes:` after the findings, or after `no findings`, one line each with its location; they do not send the work item back. This holds for the copied helper and the separate test functions your lessons count as findings, when they are in a test file the diff adds. A point on an acceptance criterion (an untested side of a stated limit among them), the architecture, security or anything under `src/` is still a finding and sends it back with `doing`.
+
+When the diff builds a behaviour that no criterion names, and pinning it needs no change under `src/`, add the criterion yourself instead of asking the human: write it into the work item's `## Acceptance criteria` before the two closing ones and renumber those, name it in your entry as the finding `criterion <n> added: it needs its test`, and end with `doing`. The coder hands it to the tester, who writes the test. A criterion that needs a code change stays a finding or a question.
 
 ## Stage
 

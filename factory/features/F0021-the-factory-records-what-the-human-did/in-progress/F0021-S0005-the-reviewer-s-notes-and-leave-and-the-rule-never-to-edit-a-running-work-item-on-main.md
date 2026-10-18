@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:53:31.880702Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T23:53:31.880702Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T23:55:34.162702Z'
+  stage: doing
+  run: 95814edefb5e4f14b155cf65b1e9b7fe
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -158,3 +160,21 @@ Expect: five lines, each `1`.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_review_leave.py::test_agent_section_holds_the_review_leave_text[acceptance]
 6. factory: started doing as self.
+7. coder: I added the shipped agent texts exactly as the Interface gives them. `make check` is green.
+
+   - `claude/agents/reviewer.md`, `## Role`: the paragraph that began `Your recommendation is your decision:` is replaced by the new one. Right after it come the notes paragraph (from round 1 on) and the added-criterion paragraph, separated by single blank lines.
+   - `claude/agents/coder.md`, `## Stage` step 2: the new sentence is appended after "The tester makes the change and sends the work item back."
+   - `claude/agents/tester.md`, `## Stage` step 0: the new sentence is appended after "Skip the steps below."
+   - `claude/agents/acceptance-reviewer.md`, `## Role` check 8 (**Cost.**): the new sentence is appended at its end.
+
+   Main choice: I made the replacements with a throwaway script in `$TMPDIR`. It reads the expected strings from the tester's module and checks that each anchor appears exactly once, so the shipped text matches the tests character for character. I rejected retyping the paragraphs by hand, which risked a small mismatch in long exact strings. No other line of the four files changed, and the `## Lessons` sections are untouched.
+
+   Refactor: there was nothing to change, since the diff is only the stated text.
+
+   Noticed but not touched:
+   - In the tester's step 0, the new sentence comes after "Skip the steps below." This is the order the Interface asks for ("appended at its end"). It reads a little oddly, because the new case also skips the steps below but is a different mode.
+   - The docs criterion (`docs/operator-guide.md`, `docs/decisions.md`) is the documenter's.
+   - The journal did not change the meaning of the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
