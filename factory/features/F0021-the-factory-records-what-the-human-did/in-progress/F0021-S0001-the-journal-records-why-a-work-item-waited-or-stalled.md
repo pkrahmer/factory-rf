@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T21:47:49.404190Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T21:47:49.397840Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:47:49.404190Z'
+  stage: intake
+---
+
 # The journal records why a work item waited or stalled
 
 ## Description
@@ -93,3 +120,6 @@ for kind, field, value in (
 Expect: four lines, `stall reason accepted`, `crash reason refused`, `question blocked accepted`, `result blocked refused`.
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
