@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T17:22:24.606593Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-18T17:22:04.476368Z'
   stage: docs
   run: 2dd1ced5e3e744c3996d2e339f9d53ca
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:22:24.606593Z'
+  stage: smoke-test
 ---
 
 # The agents' instructions explain a refused write
@@ -271,3 +280,4 @@ Expect: `1`
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
