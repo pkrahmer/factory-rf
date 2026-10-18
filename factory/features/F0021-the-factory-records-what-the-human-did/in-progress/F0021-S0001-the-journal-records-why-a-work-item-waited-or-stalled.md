@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T21:48:26.171210Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T21:48:26.171210Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T21:53:39.863063Z'
+  stage: tests
+  run: e712012ae52341c1a14bfaf0619ff2d2
 ---
 
 # The journal records why a work item waited or stalled
@@ -141,3 +143,42 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
    - Architecture: the causes move into `domain` and are re-exported upward. The writers sit in `application`, in the modules that already make the `append_entry` calls. No layer is crossed and no new dependency is added. The writer in `adapters` needs no change because it already uses `exclude_none`.
    - Scope: within the feature's S0001 scope (the cause on the record). It leaves the computation to S0002, the stops to S0003, refusals to S0004 and agent texts to S0005. It adds no reason on `crash` or `expiry`, which matches decision 4 and the out-of-scope list.
 4. factory: started tests as self.
+5. tester: I wrote one test for each acceptance criterion. All of them are red, and each fails for the right reason: the module and attribute that are missing (`Blocked`/`StallReason` in `factory.domain.journal`, `JournalRecord.blocked`/`.reason`) or an unknown field (`extra_forbidden`). Nothing fails on a setup fault. `make lint` is green.
+
+   - criterion 1: tests/domain/test_journal_causes.py::test_a_cause_is_accepted_only_on_its_own_kind
+   - criterion 2: tests/domain/test_journal_causes.py::test_a_cause_outside_its_type_is_refused_and_every_value_of_it_accepted
+   - criterion 3: tests/domain/test_journal_causes.py::test_the_cause_types_kept_in_work_item_and_decisions_are_the_journals
+   - criterion 4: tests/domain/test_journal_causes.py::test_append_entry_puts_the_cause_into_the_new_record and ::test_append_entry_refuses_a_blocked_on_a_result_entry
+   - criterion 5: tests/adapters/test_journal_causes_file.py::test_the_writer_writes_a_records_cause_only_when_set_and_reads_it_back
+   - criterion 6: tests/application/test_stage_finish_causes.py::test_a_stage_end_records_the_block_its_question_opened (rows rule-2, rule-1, rule-4, rule-6; driven through `StageRunner.run`, which ends in `StageFinisher.finish`)
+   - criterion 7: tests/application/test_stall_reasons_recorded.py::test_a_stall_records_its_reason (one row per value of `StallReason`)
+   - criterion 8: tests/application/test_stall_reasons_recorded.py::test_a_stage_run_that_stalls_records_the_reason (rows red-check at `doing`, merge-conflict)
+   - criterion 9: tests/application/test_question_causes_recorded.py::test_the_ask_handler_at_the_attempts_cap_records_the_question_with_its_block
+   - criterion 10: tests/application/test_question_causes_recorded.py::test_the_recovery_at_the_crash_cap_records_the_question_with_its_block (rows crash, expiry)
+   - criterion 11: tests/application/test_question_causes_recorded.py::test_a_close_that_sends_back_without_a_reason_records_the_question_with_its_block
+   - criteria 12 and 13: not tested here (the `make check` gate and the docs stage).
+
+   Files created: tests/domain/test_journal_causes.py, tests/adapters/test_journal_causes_file.py, tests/application/test_stage_finish_causes.py, tests/application/test_stall_reasons_recorded.py, tests/application/test_question_causes_recorded.py, tests/stage_run_support.py.
+
+   Earlier tests changed under the feature's decision 13, which the Interface names. Each change only adds the new field to an expected record:
+   - tests/application/handlers/test_questions.py: `blocked="attempts_cap"` in two expected question records.
+   - tests/application/test_stalls.py: `reason="died"` in three expected stall records.
+   - tests/application/test_recovery_cap.py and tests/application/test_recovery_expiry.py: `blocked="crash_cap"` in the expected question record.
+
+   Earlier test changed under the standing leave to move a shared test helper:
+   - tests/application/test_stage_run.py: its constants and its open/Makefile/run/head/state helpers moved to tests/stage_run_support.py as `open_story`, `stage_makefile`, `completed`, `run_stage`, `branch_head` and `pushed_state`.
+   - `open_story` gained the optional `state`, `body` and `roles` parameters. Their defaults keep the old behaviour.
+   - Every test there keeps its name and checks the same thing, and that module stayed green in the run.
+
+   Modules the test run could not import: tests/domain/test_journal_causes.py and tests/adapters/test_journal_causes_file.py both fail at collection on the new names in `factory.domain.journal` and the new fields.
+
+   Rejected: copying test_stage_finish.py's large helper set for criteria 6 and 8. The whole stage run reaches every rule with less setup.
+
+   Small helpers deliberately repeated in tests/application/test_question_causes_recorded.py:
+   - `_pull_request`, which several handler tests already have.
+   - An expired event built inline, as test_recovery_expiry.py does.
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_journal_causes.py - ImportError while importing test ...

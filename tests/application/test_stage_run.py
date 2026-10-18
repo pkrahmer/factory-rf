@@ -10,54 +10,25 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.git import Git
-from factory.application.stage import StageReport, StageRunner
 from factory.domain.agent_runs import QUESTION, AgentRunRequest, AgentRunResult
 from factory.domain.git import CommitId
-from factory.domain.identifiers import branch_name
-from factory.domain.journal import JournalRecord
-from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
+from stage_run_support import (
+    BRANCH,
+    ENVIRONMENT,
+    branch_head,
+    completed,
+    open_story,
+    pushed_state,
+    run_stage,
+    stage_makefile,
+)
 
-INSTANCE = "factory-1"
-WORK_ITEM = "F0001-S0001"
-BRANCH = branch_name(WORK_ITEM)
-BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
-PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
-ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
 INSIDE = "tests/test_a.py"
 AGENT_TEXT = "written by the agent\n"
 NOTES = "notes.md"
 BUILT = "build/out.txt"
 IGNORED = "ignored/out.txt"
-STORY = """\
-# First story
-
-## Description
-
-Text.
-
-## Interface
-
-None.
-
-## Acceptance criteria
-
-1. It works.
-2. make check stays green.
-3. docs: none, nothing changes.
-
-## Smoke test
-
-```bash
-true
-```
-Expect: nothing.
-
-## Journal
-"""
-CREATED = JournalRecord(number=1, speaker="human", kind="created")
-CREATED_LINE = "\n1. 2026-10-12 human: created.\n"
 
 
 class CommittingRuntime(AgentRuntime):
@@ -86,65 +57,6 @@ class CommittingRuntime(AgentRuntime):
         return self._delegate.version()
 
 
-def _target(name: str, status: int, extra: list[str]) -> str:
-    recipe = [*extra, f"@echo '{name} done'", f"@exit {status}"]
-    return f"{name}:\n" + "".join(f"\t{line}\n" for line in recipe)
-
-
-def _makefile(statuses: dict[str, int] | None = None, extra: list[str] | None = None) -> str:
-    exits = statuses or {}
-    names = ["lint", "check", "test"]
-    targets = [_target(name, exits.get(name, 0), extra or []) for name in names]
-    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets)
-
-
-def _completed(decision: str = "doing") -> AgentRunResult:
-    return AgentRunResult(
-        end_reason="completed", decision=decision, entry="done.", duration=timedelta(minutes=1)
-    )
-
-
-def _open(
-    boundaries: Boundaries,
-    human: HumanClone,
-    agent_home: Path,
-    *,
-    makefile: str | None = None,
-    main_files: dict[str, str] | None = None,
-) -> WorkItemState:
-    """Push the Makefile and `main_files`, start the story and push its branch in `tests`."""
-    install_agents(agent_home, ["tester"])
-    human.push_file("main", "Makefile", makefile or _makefile())
-    for path, text in (main_files or {}).items():
-        human.push_file("main", path, text)
-    human.push_file("main", BACKLOG_PATH, STORY)
-    human.start(BACKLOG_PATH)
-    state = WorkItemState(stage="tests", journal=[CREATED])
-    document = WorkItemDocument(state=state, body=STORY + CREATED_LINE)
-    human.push_file(BRANCH, PATH, boundaries.work_item_writer.render(document))
-    boundaries.git.fetch()
-    return state
-
-
-def _run(boundaries: Boundaries) -> StageReport:
-    definition = boundaries.pipeline_reader.parse(PIPELINE_YAML)
-    return StageRunner(boundaries, INSTANCE, definition, ENVIRONMENT).run(WORK_ITEM, PATH)
-
-
-def _head(remote: Path) -> CommitId:
-    commit = remote_commit(remote, BRANCH)
-    assert commit is not None
-    return commit
-
-
-def _pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
-    text = boundaries.git.show_file(_head(remote), PATH)
-    assert text is not None
-    state = boundaries.work_item_reader.parse(text).state
-    assert state is not None
-    return state
-
-
 @pytest.mark.parametrize(
     "commits", [False, True], ids=["agent-committed-nothing", "agent-committed"]
 )
@@ -164,15 +76,15 @@ def test_a_run_adds_exactly_one_commit_of_its_own(
     statuses: dict[str, int],
     commits: bool,
 ) -> None:
-    _open(boundaries, human, agent_home, makefile=_makefile(statuses))
-    agent_runtime.queue(ScriptedRun(result=_completed(decision)))
+    open_story(boundaries, human, agent_home, makefile=stage_makefile(statuses))
+    agent_runtime.queue(ScriptedRun(result=completed(decision)))
     runtime = CommittingRuntime(agent_runtime, boundaries.git, commits=commits)
 
-    report = _run(replace(boundaries, agent_runtime=runtime))
+    report = run_stage(replace(boundaries, agent_runtime=runtime))
 
     base = runtime.agent_commit if commits else runtime.start_head
     assert base is not None
-    assert report.commit == _head(remote)
+    assert report.commit == branch_head(remote)
     [own] = boundaries.git.log(report.commit, since=base)
     assert own.parents == [base]
     if runtime.agent_commit is not None:
@@ -192,19 +104,19 @@ def test_the_result_commit_holds_what_a_check_created_unless_it_is_ignored(
         f"@echo built > {BUILT}",
         f"@echo built > {IGNORED}",
     ]
-    _open(
+    open_story(
         boundaries,
         human,
         agent_home,
-        makefile=_makefile(extra=creates),
+        makefile=stage_makefile(extra=creates),
         main_files={".gitignore": "ignored/\n"},
     )
-    agent_runtime.queue(ScriptedRun(result=_completed("doing")))
+    agent_runtime.queue(ScriptedRun(result=completed("doing")))
 
-    report = _run(boundaries)
+    report = run_stage(boundaries)
 
     assert report.rule == 6
-    assert report.commit == _head(remote)
+    assert report.commit == branch_head(remote)
     assert boundaries.git.show_file(report.commit, BUILT) == "built\n"
     assert boundaries.git.show_file(report.commit, IGNORED) is None
 
@@ -217,14 +129,14 @@ def test_a_branch_that_cannot_take_the_main_branch_stalls_before_the_claim(
     agent_runtime: FakeAgentRuntime,
     remote: Path,
 ) -> None:
-    started = _open(boundaries, human, agent_home, main_files={NOTES: "base\n"})
+    started = open_story(boundaries, human, agent_home, main_files={NOTES: "base\n"})
     human.push_file(BRANCH, NOTES, "branch\n")
     human.push_file("main", NOTES, "main\n")
     boundaries.git.fetch()
 
-    report = _run(boundaries)
+    report = run_stage(boundaries)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert report.rule is None
     assert report.stall is not None
     assert report.stall.reason == "merge_conflict"
@@ -243,17 +155,17 @@ def test_a_died_agent_run_ends_in_a_stall_report(
     agent_runtime: FakeAgentRuntime,
     remote: Path,
 ) -> None:
-    _open(boundaries, human, agent_home)
+    open_story(boundaries, human, agent_home)
     agent_runtime.queue(
         ScriptedRun(result=AgentRunResult(end_reason="died", duration=timedelta(minutes=3)))
     )
 
-    report = _run(boundaries)
+    report = run_stage(boundaries)
 
     assert report.rule is None
     assert report.stall is not None
     assert report.stall.reason == "died"
-    assert report.commit == report.stall.commit == _head(remote)
+    assert report.commit == report.stall.commit == branch_head(remote)
 
 
 def test_the_agent_runs_with_exactly_the_environment_given_to_the_runner(
@@ -263,10 +175,10 @@ def test_the_agent_runs_with_exactly_the_environment_given_to_the_runner(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
 ) -> None:
-    _open(boundaries, human, agent_home)
-    agent_runtime.queue(ScriptedRun(result=_completed("doing")))
+    open_story(boundaries, human, agent_home)
+    agent_runtime.queue(ScriptedRun(result=completed("doing")))
 
-    _run(boundaries)
+    run_stage(boundaries)
 
     [request] = agent_runtime.requests()
     assert request.environment == ENVIRONMENT

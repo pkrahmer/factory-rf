@@ -156,7 +156,12 @@ def test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothin
             number=last + 1, speaker=FACTORY, kind="crash", at=clock.now(), stage=before.stage
         ),
         JournalRecord(
-            number=last + 2, speaker=FACTORY, kind="question", at=clock.now(), stage=before.stage
+            number=last + 2,
+            speaker=FACTORY,
+            kind="question",
+            at=clock.now(),
+            stage=before.stage,
+            blocked="crash_cap",
         ),
     ]
     assert len(boundaries.git.log(f"origin/{BRANCH}", since=claimed.start.commit)) == 1

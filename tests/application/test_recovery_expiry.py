@@ -279,7 +279,12 @@ def test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns
             number=last + 1, speaker=FACTORY, kind="expiry", at=clock.now(), stage=before.stage
         ),
         JournalRecord(
-            number=last + 2, speaker=FACTORY, kind="question", at=clock.now(), stage=before.stage
+            number=last + 2,
+            speaker=FACTORY,
+            kind="question",
+            at=clock.now(),
+            stage=before.stage,
+            blocked="crash_cap",
         ),
     ]
     note, question = hosting.factory_posts(number)
