@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T13:07:21.549155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-18T13:07:21.549155Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T13:07:39.808777Z'
+  stage: smoke-test
+  run: 026a46f995f243668c3aa1d4663de3e0
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -198,3 +200,40 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test: all four commands met their `Expect:` lines. No findings.
+
+    I ran each command once from the repository root, in order, as written.
+
+    1. `grep -c "v1's pipeline configuration for this repository" docs/project-guide.md`
+    ```
+    0
+    ```
+    Expect `0`: met. grep exits 1 when the count is 0, which is normal for `grep -c`.
+
+    2. ``grep -c "The coder's write paths in \`factory/stages.yml\` name them" docs/decisions.md``
+    ```
+    0
+    ```
+    Expect `0`: met. grep exits 1 for the same reason.
+
+    3. ``grep -c "v1's \`factory/stages.yml\` until the handover of 2026-10-18" docs/decisions.md``
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Expect `documents ok`: met (exit 0).
+
+    Criteria re-read against the committed state:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `docs/decisions.md`, `docs/project-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed. The tester's entry (8) and the coder's entry (10) each say so.
+    - Criterion 2: I did not run `make check` (the smoke test doesn't call it). The documenter's entry (14) records `check: green` from the factory's run after the docs stage.
+    - Criterion 3: the docs diff has exactly one changed line in each file.
+      - In `docs/project-guide.md`, the sentence now begins "This repository's pipeline definition (`factory/pipeline.yml`) runs it as a check of the docs stage through `make documents`", and the rest of the paragraph is unchanged.
+      - In `docs/decisions.md`, the sentence now reads "The coder's write paths in the pipeline definition (`factory/pipeline.yml`; v1's `factory/stages.yml` until the handover of 2026-10-18) name them".
+      - No other passage of either document changed, and `documents ok` was printed.
+
+    The smoke test contradicts no criterion. Nothing is open.
