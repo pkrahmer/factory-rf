@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:58:36.274663Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T16:58:36.274663Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:58:52.318179Z'
+  stage: doing
+  run: b9eb4d54b5ab47dd981d00a60658e887
 ---
 
 # The preflight checks the kernel's write guard
@@ -180,3 +182,18 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
    Earlier tests:
    - tests/entry/test_wiring_extras.py: the human's leave, named in the story's Interface under the feature's decision 12. Only the two rows of names in `test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user` changed, each gaining "confinement" between "agent-environment" and "agent-run-probe". This is within the leave.
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's one finding is a change to tests, which the coder does not make. I am handing it to the tester under the standing leave in CLAUDE.md for moving a shared test helper.
+
+    I checked the finding. `def _every_tool(name: str) -> str | None` appears in six test modules:
+    - tests/application/test_confinement_item.py:35
+    - tests/entry/test_wiring_extras.py:53
+    - tests/entry/test_wiring_run.py:76
+    - tests/entry/test_wiring_agent_user.py:53
+    - tests/entry/test_wiring_preflight.py:18
+    - tests/application/test_tick_preflight.py:32
+
+    Change for the tester, in one sentence: move `_every_tool` into one shared module at the `tests/` root (or a fixture in `tests/conftest.py`), and change all six modules listed above to use it from there, each earlier test keeping its name and checking the same thing.
+
+    What I built in round 0 stands unchanged (src/factory/application/preflight.py `confinement_item`, src/factory/entry/wiring.py `machine_extras`). I made no source change this round and did not run `make check` again; it was green at the end of round 0.
+
+    The journal did not change the meaning of the task, so `## Description` stays as it is.
