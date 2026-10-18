@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T13:05:52.091852Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   at: '2026-10-18T13:05:31.904794Z'
   stage: review
   run: 8b52df4e900c4dc693661a6229230f03
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:05:52.091852Z'
+  stage: docs
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -160,3 +169,4 @@ Expect: `documents ok`
     2.–4. Architecture, security, quality: nothing to judge, because no code changed and no silencing marker was added.
     5. Work item hygiene: entry 10 states the main decision (leave both passages to the documenter) and the rejected alternative. The Description matches the empty diff. The docs criterion is still accurate against the committed state. `docs/project-guide.md:1710` still has the sentence "v1's pipeline configuration for this repository runs it…". `docs/decisions.md:11` still has "The coder's write paths in `factory/stages.yml` name them". `factory/pipeline.yml:31` (docs stage, `checks: [check, documents]`) and `factory/pipeline.yml:20` (coder write paths `src/*`, `image/*`, `template/*`, `claude/*`) back the new wording the criterion asks for.
     6. Earlier tests: no test file on `main` is changed, renamed or deleted.
+13. factory: started docs as self.
