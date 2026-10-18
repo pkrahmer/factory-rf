@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 218
-comments_read: []
+comments_read: [6250212284]
 handed_over: null
 claim: null
 journal:
@@ -25,6 +25,11 @@ journal:
   at: '2026-10-18T12:59:20.130700Z'
   stage: intake
   run: f3c6912b075a40df83b177ae7020e8e6
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T13:00:36.241486Z'
+  stage: intake
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -74,3 +79,6 @@ Expect: `documents ok`
 3. intake: 1. Scope: `feature.md` lists in its Scope only the README's opening and *How it is built*, the operator guide's bullet, and a new decision-log entry for the handover. This story edits `docs/project-guide.md` (section *The document check*) and rewords an existing, dated entry in `docs/decisions.md`. Neither is in the Scope, and the feature's Stories list names only S0001. Out of scope does not exclude them. Do you want `feature.md` widened to cover them and S0002 added to its Stories list? That file is yours to change (R14). I would choose yes: the passages are plainly stale, and the story is the acceptance reviewer's proposal that you started from `backlog/`.
    2. Decision log: criterion 3 rewrites a sentence in an existing dated entry, while the Description keeps "the dated history in the decision log's other entries". Is a rewording in place what you want, or should the correction be a new dated line added to that entry? I would choose the in-place rewording the criterion states, since it keeps the pointer to v1's file.
    3. Criterion 1 ("the tester and the coder each end with an entry saying so") is a statement about journal entries. One test function cannot check it, and it has no check for the files that must not change. Do you accept it as a process note, with the reviewer checking the diff? I would choose yes.
+4. 2026-10-18 human: 1. Yes: `feature.md` now names both passages in its Scope and S0002 in its Stories (on main; the next stage start merges it).
+   2. Reword in place, as the criterion states, keeping the pointer to v1's file (feature decision 3).
+   3. Yes: criterion 1 is a process note; the reviewer checks the diff.
