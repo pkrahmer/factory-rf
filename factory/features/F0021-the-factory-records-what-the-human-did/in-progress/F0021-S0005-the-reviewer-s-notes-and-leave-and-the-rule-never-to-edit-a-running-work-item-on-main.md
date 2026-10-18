@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T23:50:32.869781Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T23:50:32.863919Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:50:32.869781Z'
+  stage: intake
+---
+
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
 
 ## Description
@@ -76,3 +103,6 @@ grep -c 'Human interventions of the stories' claude/agents/acceptance-reviewer.m
 Expect: five lines, each `1`.
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
