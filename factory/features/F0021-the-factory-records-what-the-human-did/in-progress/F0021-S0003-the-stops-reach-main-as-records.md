@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T22:48:35.785156Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-18T22:48:35.785156Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T22:48:55.189607Z'
+  stage: intake
+  run: f584f613515e4e1cac9ff6bb6407a1d5
 ---
 
 # The stops reach main as records
@@ -116,15 +118,15 @@ Test modules (new): `tests/domain/test_stop_records.py`, `tests/application/test
 2. `stop_records_text` of a `raised` record at 2026-10-18 10:00 UTC for `disk_low`, instance `self`, is exactly `{"event":"raised","scope":"machine","reason":"disk_low","at":"2026-10-18T10:00:00Z","instance":"self"}` and a newline; of no records, `""`.
 3. `parse_stop_records`, rows of one parametrized test: the text of two records gives both in order; a blank line, a line that is not JSON and a line with an unknown reason between them are skipped; `""` gives `[]`.
 4. `StopService.raise_stop`, rows of one parametrized test: a first `fetch_failed` appends one `raised` record with the stop's scope, reason and `at` and the settings' instance; a second raise of `fetch_failed` while it stands appends nothing more; a `disk_low` raised while `fetch_failed` stands appends a `raised` record for `disk_low`; boundaries without settings give `instance` `None`.
-5. `StopService.clear_stop`, rows of one parametrized test: clearing a standing `fetch_failed` appends one `cleared` record with scope `repository` and the clock's time; clearing a standing `disk_low` gives scope `machine`; clearing a reason that does not stand appends nothing.
+5. `StopService.clear_stop`, rows of one parametrized test: clearing a standing `fetch_failed` appends one `cleared` record with scope `repository` and the clock's time; clearing a standing `disk_low` gives scope `machine`; clearing a reason that does not stand appends nothing; the `cleared` record's `instance` is the settings' instance.
 6. With `stop_records` `None`, a raise and a clear write the log lines and the health status as today and append nowhere.
 7. A record log whose `append` raises `OSError`: `raise_stop` still writes the log line and the health status, and then raises that `OSError`; `clear_stop` removes the stop from the health status, writes `stop cleared <reason>`, and then raises it (rows of one parametrized test).
-8. `StopPublisher.publish` with two local records and no `factory/stops.jsonl` on `origin/main`: it returns both, `origin/main` then holds the file with exactly their two lines in local order, and the commit's subject is `stops recorded`.
+8. `StopPublisher.publish` with two local records and no `factory/stops.jsonl` on `origin/main`: it returns both, `origin/main` then holds the file with exactly their two lines in local order, and the commit's subject is `stops recorded`; the same when `origin/main` has no `factory/` folder at all (a second row of the same parametrized test).
 9. `StopPublisher.publish` when `origin/main`'s file already holds lines, rows of one parametrized test: the file holds the first of three local records and one line that does not validate: it returns the second and third, and the file holds its earlier two lines unchanged followed by the two new lines; the file's last line has no newline: a newline is added after it, before the new lines; the local log holds the second record twice: it is returned and written once.
 10. `StopPublisher.publish` makes no commit (`origin/main`'s head unchanged) and returns `[]`, rows of one parametrized test: with `stop_records` `None`; with an empty record log; when `origin/main`'s file holds every local record.
 11. `StopPublisher.publish` when `main` moved on the remote after the fetch (the human pushed): `PushFailed` is raised, `origin/main` holds no `stops recorded` commit, and a second call after a fetch publishes the records once.
-12. `Tick.run` and the publish, rows of one parametrized test on the records of `origin/main`'s `factory/stops.jsonl` after each tick: a tick with a local record that `origin/main` does not hold publishes it; a tick whose fetch fails publishes nothing, and the next tick, whose fetch succeeds, publishes the `raised` and the `cleared` record of `fetch_failed`; a tick stopped by `disk_low` (a disk below `min_free_gb`) publishes nothing, and the next tick with room publishes its `raised` and `cleared` records.
-13. `Tick.run` when the publish fails, rows of one parametrized test: the publish's push is refused (a hook of the remote refuses `main`); `origin/main` holds a folder `factory/stops.jsonl/`, so that the write raises `OSError`. In both the factory log holds a line starting `cannot publish the stop records: `, the local records stay, and the tick still evaluates and dispatches its event.
+12. `Tick.run` and the publish, rows of one parametrized test on the records of `origin/main`'s `factory/stops.jsonl` after each tick: a tick with a local record that `origin/main` does not hold publishes it; a tick whose fetch fails publishes nothing, and the next tick, whose fetch succeeds, publishes the `raised` and the `cleared` record of `fetch_failed`; a tick stopped by `disk_low` (a disk below `min_free_gb`) publishes nothing, and the next tick with room publishes its `raised` and `cleared` records; a tick stopped by `pipeline_definition_invalid`, one by `agent_definition_invalid` and one by `checkout_restore_failed`, each with a local record present, leave `origin/main` without a new commit on that tick.
+13. `Tick.run` when the publish fails, rows of one parametrized test: the publish's push is refused (a hook of the remote refuses `main`); `origin/main` holds a folder `factory/stops.jsonl/`, so that the write raises `OSError`; `origin/main` does not resolve, so that `publish` raises `GitError`. In all three the factory log holds a line starting `cannot publish the stop records: `, the local records stay, and the tick still evaluates and dispatches its event.
 14. `StopPublisher.publish` with a local record, on a checkout whose `origin/main` does not resolve (a bare remote with no `main`, fetched): it raises `GitError`, and the local record log holds the same records afterwards.
 15. `build_boundaries` gives `stop_records` a record log at `<state directory>/records/stops.jsonl` that reads back a record it appended.
 16. `make check` stays green.
@@ -172,3 +174,15 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
    3. Yes: add the row to criterion 8 where origin/main has no `factory/` folder; keep the clause.
    4. Yes: add "instance is the settings' instance" to criterion 5.
 5. factory: started intake as self.
+6. intake: accepted. The human's answer is journal entry 4. I carried its four edits into the story and changed nothing else:
+   - Criterion 5: the `cleared` record's `instance` is the settings' instance.
+   - Criterion 8: a second row where `origin/main` has no `factory/` folder. The `factory/` clause stays.
+   - Criterion 12: rows for `pipeline_definition_invalid`, `agent_definition_invalid` and `checkout_restore_failed`, each with a local record present and no new commit on `origin/main`.
+   - Criterion 13: a third row where `origin/main` does not resolve, so `publish` raises `GitError`. The same log line is expected and the tick goes on.
+
+   Checks:
+   - Interface: it names concrete modules and signatures (`factory.domain.stops`, `factory.domain.paths`, `Boundaries`, `StopService`, `StopPublisher`, `Tick.run`, `build_boundaries`). Every behaviour stated in an Interface comment has a criterion: the JSON line format and field order (2), the scope rule (1), the append and no-append cases (4, 5), the `None` case (6), the `OSError` after all three destinations were tried (7), and the file text rules for newline, duplicates and unvalidated lines (9).
+   - Criteria: each is testable by one parametrized test, and each rule has a criterion for its failing side. Examples: the refused scopes and the unknown event (1); the refused push (11, 13); the `GitError` (14, 13); no commit for `None`, an empty log or a file that already holds every record (10); and the five pre-restore stops publishing nothing (12).
+   - Smoke test: it is runnable. The three Expect outputs (the JSON line, `True`, `refused`) can be checked against the output.
+   - Architecture: `domain` holds the record and the pure text functions. `application` holds the service and the publisher, which reach git only through `WorkItemRecorder` and the boundaries. `entry` holds the wiring. The layering is respected.
+   - Scope: the story is inside the feature's decisions 1 to 3. It leaves out `factory-run`'s invalid-settings stop, the health status and S0004's refused calls, as the feature's "Out of scope" requires.
