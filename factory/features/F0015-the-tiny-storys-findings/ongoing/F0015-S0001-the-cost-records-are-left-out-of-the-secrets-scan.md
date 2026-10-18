@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 206
 blocked: null
 comments_seen: 0
@@ -93,3 +93,8 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria: the change to `template/Makefile` (line 66) is exactly the Interface's filter line. Every criterion has a test that tests what it is named after. The sidecar rows (`sidecar-on-main`, `sidecars-on-branch`, `sidecar-only`) cover the left-out side. On the scanned side there is `look-alikes` (`costs.jsonl`, `docs/a.costs.jsonl.txt`) and the five existing rows, which are unchanged. `sidecar-only` covers the case where nothing is left. `sidecars-on-branch` builds an unstaged changed sidecar and a new untracked one, as the Interface asks. `test_the_todo_demos_secrets_target_is_the_templates` checks that each Makefile has exactly one `secrets` head line, that the two recipes are equal and that the template holds the filter line. A diff of the two `secrets` recipes shows they are identical. The coder's entry records `make check` green.
+      - Architecture and security: no `src/factory` code changed. There is no suppression marker and no baseline entry. The test data is low-entropy (`{}`, `{"run": 1}`).
+      - Quality: the new setup functions reuse the module's `_branch`, `_on_main`, `write_files` and `commit_all`, and the new module's helper is private and small.
+      - Hygiene: Assignment matches what was built, and the coder's entry gives the main decision and the alternative it rejected. Criterion 8 still says what the documenter must write.
