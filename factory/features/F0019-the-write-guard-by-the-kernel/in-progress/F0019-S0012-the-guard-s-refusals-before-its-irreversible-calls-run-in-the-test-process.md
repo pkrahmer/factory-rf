@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T20:46:30.228519Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T20:46:10.253551Z'
   stage: docs
   run: fbbf9fcfc46040dd99c1d8f2c75f66e8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:46:30.228519Z'
+  stage: smoke-test
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -233,3 +242,4 @@ Expect: `replace_process needs a program to start`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
