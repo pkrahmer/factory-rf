@@ -43,6 +43,7 @@ class StopService:
             self._boundaries.log.line(f"stop {stop.scope} {stop.reason}: {stop.detail}")
         except OSError as error:
             errors.append(error)
+        # Without a readable status no record: the records stay paired with the health status.
         standing = True
         try:
             status = self._boundaries.health.read()

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:02:42.986595Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-18T23:02:42.986595Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-18T23:04:17.888582Z'
+  stage: doing
+  run: b95fd51aa7ff4e6b83a0357ad17941d8
 ---
 
 # The stops reach main as records
@@ -340,3 +342,19 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     **Noticed, not touched:** nothing new beyond entry 10.
 15. 2026-10-18 human: (b): without a readable health status no record is appended. Change the Interface sentence as you propose, and add the new criterion before 16 as rows of one parametrized test (log line raises: record appended, OSError raised; status write raises: record appended, OSError raised; status read raises: no record, OSError raised).
 16. factory: started doing as self.
+17. coder: Round 1, after the human's answer (entry 15: option (b)). This needs a new test, so I am handing to the tester.
+
+    The test change: in `tests/application/test_stop_records_service.py`, add one parametrized test of `StopService.raise_stop` with three rows, one per failing destination:
+    - the log line raises: a `raised` record is appended and the `OSError` is raised;
+    - the health status write raises: a `raised` record is appended and the `OSError` is raised;
+    - the health status read raises: no record is appended and the `OSError` is raised.
+
+    Code: `src/factory/application/stops.py`, `raise_stop`, already behaves this way. The code from entry 10 is unchanged apart from one comment I added before `standing = True`, which says why: without a readable status no record is appended, so the records stay paired with the health status. `make check` is green after the change.
+
+    Main choice: I kept the existing control flow, which already gives (b). The alternative I rejected was restructuring `raise_stop` so the read and the write are tried separately. Nothing in the answer asks for that, and behaviour would not change.
+
+    Work item not updated: my edit of the work item was refused with `Permission denied`, so the work item is outside my write paths. The journal changed the task in two places, and both are still open for whoever can write the work item:
+    - The Interface sentence of `StopService.raise_stop` should read: "The append is tried like the log line and the health status (the decision "Both destinations of a stop are tried"), except that without a readable health status no record is appended: an `OSError` of any of the three is raised after all three were tried."
+    - A new criterion 16 should hold the three rows above, so that `make check` becomes 17 and docs becomes 18.
+
+    Noticed, not touched: nothing beyond entry 10.
