@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T15:41:41.723498Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -29,6 +33,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T15:41:23.957800Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:41:41.723498Z'
   stage: intake
 ---
 
@@ -159,3 +168,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
    2. Add the criterion: the stand-in `sudo` and the no-`os_user` removal each see the request's working directory and an empty environment.
    3. Add the criterion: `boundaries_from_environment` yields a runtime whose `confine_executable` is `factory-confine`, and `factory.entry.run` passes no `confine_executable` (a source check).
    Each before the two closing criteria.
+5. factory: started intake as self.
