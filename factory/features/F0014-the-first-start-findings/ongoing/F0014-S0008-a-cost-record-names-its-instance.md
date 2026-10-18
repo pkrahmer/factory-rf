@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 200
 blocked: null
 comments_seen: 0
@@ -108,3 +108,25 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands ran from the repository root and met their `Expect:` lines. No findings.
+
+   1. Rendering two started records, one with `instance` and one without:
+   ```
+   {"run":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","work_item":"F0014-S0008","stage":"tests","role":"tester","attempt":0,"status":"started","started_at":"2026-10-17T20:31:00Z","duration_seconds":null,"model_seconds":null,"end_reason":null,"turns":null,"tokens":null,"cost_usd":null,"image":"build-7","instance":"shakedown"}
+   {"run":"cccccccccccccccccccccccccccccccc","work_item":"F0014-S0008","stage":"tests","role":"tester","attempt":0,"status":"started","started_at":"2026-10-17T20:31:00Z","duration_seconds":null,"model_seconds":null,"end_reason":null,"turns":null,"tokens":null,"cost_usd":null,"image":"build-7"}
+   ```
+   Met. The output has two lines. In the first, `"instance":"shakedown"` is the last key, after `"image":"build-7"`. The second line is the same apart from its run of 32 `c`s, ends `"cost_usd":null,"image":"build-7"}` and has no `instance` key. The command exited with 0.
+
+   2. pytest over the three new modules and the three earlier ones:
+   ```
+   ........................................................................ [100%]
+   72 passed in 4.98s
+   ```
+   Met. The last line names `72 passed`, with no `failed`, `error` or `skipped` count.
+
+   Cross-check against the acceptance criteria:
+   - Criterion 2: the writer puts `instance` last when it is set and leaves the key out when it is not. Command 1 shows this.
+   - Criteria 1, 3 and 4: the reader, model and recorder are covered by the new tests in command 2, which passed.
+   - Criterion 5: the earlier modules it names that command 2 ran (`test_cost_records_jsonl`, `test_cost_image` and `test_costs`) passed.
+
+   Not run here: `tests/adapters/test_cost_records_jsonl_model_seconds.py`, `tests/domain/test_cost_records.py` and `tests/domain/test_bills.py`, which criterion 5 also names. The demo does not list them, and the factory's `make check` covers them. Criteria 6 and 7 are the factory's checks after this stage and the documenter's recorded `make check: green` and `documents ok`. Nothing in the demo contradicts any criterion.
