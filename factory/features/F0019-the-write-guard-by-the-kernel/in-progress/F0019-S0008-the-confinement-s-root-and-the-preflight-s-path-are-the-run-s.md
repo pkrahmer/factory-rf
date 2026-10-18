@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T19:28:47.533312Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-18T19:28:27.349575Z'
   stage: tests
   run: 6c618677b6c14d018fa0dca6d28d4d82
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:28:47.533312Z'
+  stage: doing
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -228,3 +237,4 @@ Expect: `completed | root file refused | False`
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (35.9 s)
+14. factory: started doing as self.
