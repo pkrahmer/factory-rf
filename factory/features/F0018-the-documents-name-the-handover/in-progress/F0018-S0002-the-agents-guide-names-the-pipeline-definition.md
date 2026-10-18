@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T13:00:53.784861Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -29,6 +33,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T13:00:36.241486Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:00:53.784861Z'
   stage: intake
 ---
 
@@ -82,3 +91,4 @@ Expect: `documents ok`
 4. 2026-10-18 human: 1. Yes: `feature.md` now names both passages in its Scope and S0002 in its Stories (on main; the next stage start merges it).
    2. Reword in place, as the criterion states, keeping the pointer to v1's file (feature decision 3).
    3. Yes: criterion 1 is a process note; the reviewer checks the diff.
+5. factory: started intake as self.
