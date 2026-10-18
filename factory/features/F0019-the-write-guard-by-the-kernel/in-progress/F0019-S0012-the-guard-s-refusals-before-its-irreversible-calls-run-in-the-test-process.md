@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T20:43:38.734954Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T20:43:18.488892Z'
   stage: doing
   run: b9e4d0cf33b44cffa040870ed2f9590c
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:43:38.734954Z'
+  stage: review
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -180,3 +189,4 @@ Expect: `replace_process needs a program to start`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
