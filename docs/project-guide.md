@@ -1334,7 +1334,7 @@ Each body starts with two paragraphs: the role's boundary as one sentence, a bla
 - `## Stage`: v1's stage skill for the agent's stage.
 - `## Lessons`: v1.1's own part, after v1's texts, and always last. It holds the lessons of v1.1's build for the role, one bullet each: the first two bullets (run make targets in the foreground; give a long project command such as `make check` the shell tool's largest timeout, 600000 ms) are in every body; `intake`, `tester`, `coder`, `reviewer` and `documenter` have more. `tester` has two lessons on earlier tests (the standing leave `CLAUDE.md` gives to move a shared test helper, with its entry naming each earlier test file it changed; and, in the mode `a test change the human approved`, making the move that a coder's entry names under that leave), and `coder` ends with one that sends a reviewer's finding of a copied test helper to the tester with `tests`. `tester` still ends with the time-limit lesson: a test that waits for a time limit gives the process it starts room to start (a limit of a few seconds, an upper bound on the elapsed time with room above it, never a check that a one-second limit is met to the tenth). `documenter` ends with the documents-only lesson: when every file it changed is a document, it ends without running `make check`, because the factory runs the stage's checks right after it; when it changed any other file, it runs it. Two lessons belong to the agents that run scripts outside the repository. `smoke-tester` and `acceptance-reviewer` end with the temporary-directory lesson (`documenter` carries it before its last bullet): make every such file in a self-removing temporary directory (`tempfile.TemporaryDirectory()`, or `mktemp -d` with a `trap` in the shell) and leave nothing in `/tmp`. `acceptance-reviewer` ends with one more: when `make test` writes a JUnit report, read each test's time from it and name the slowest tests in the slow checks and in the cost. No other agent carries either.
 
-The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions (questionnaire 1, Q29). The words are renamed, the sentences are not rewritten in other words. Three passages are v1.1's own text and not v1's: the sentence before the `reviewer`'s checklist, the checklist's sixth item and the `acceptance-reviewer`'s added sentence in its check 6 (described below):
+The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions (questionnaire 1, Q29). The words are renamed, the sentences are not rewritten in other words. Three passages are v1.1's own text and not v1's: the sentence before the `reviewer`'s checklist, the checklist's sixth item and the `acceptance-reviewer`'s added sentence in its check 6, described in the `## Role` bullet above.
 
 (the table of renamed words is under "Replaced from v1")
 
@@ -1731,13 +1731,13 @@ A demo's stories are backlog stories checked at the path they will have in the p
 
 `make mutants FEATURE=<id>` (for example `FEATURE=F0012`) runs mutmut over the modules under `src/factory` that the commits of that feature changed. It finds them by the feature's id in the commit subjects on `origin/main`. It is not part of `make check`: it is slow, and the feature acceptance runs it. On v1's acceptance branch `acceptance/<id>-<slug>` the id is read from the branch name, so plain `make mutants` works there.
 
-The acceptance reads the survivors with `uv run mutmut results` and `uv run mutmut show <name>`. The target lists only the mutants it checked, not the thousands of other modules' mutants that mutmut leaves as not checked.
+The acceptance reads the survivors with `uv run mutmut results` and `uv run mutmut show <name>`. The target drops mutmut's `not checked` lines, but it lists every survivor and timeout that `mutants/` holds, including those that earlier runs left for earlier features' modules. So the acceptance reads the survivors of its own feature's modules by their module name, for example `uv run mutmut results | grep 'factory.application.stage\.'`.
 
 Two ends are not a run. Without `FEATURE` the target prints `mutants: set FEATURE, as in make mutants FEATURE=F0012` and exits 2. A feature with no changed module prints `mutants: no module under src/factory changed by <id>` and exits 0. Which subjects it reads, and why only one feature's modules, is in the decision log (*Mutation testing is limited to one feature's modules*).
 
 ## Replaced from v1
 
-The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words):
+The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words, except the three passages of v1.1's own text that *The seven agents* names):
 
 | v1 | v1.1 |
 |---|---|
