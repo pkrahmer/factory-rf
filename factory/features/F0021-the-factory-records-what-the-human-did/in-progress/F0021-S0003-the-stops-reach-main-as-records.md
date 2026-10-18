@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182, 6256356204]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T23:16:53.553423Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-10-18T23:16:33.230349Z'
   stage: docs
   run: 85e566ca4f1d468da1aed8d15271b1e8
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:16:53.553423Z'
+  stage: smoke-test
 ---
 
 # The stops reach main as records
@@ -516,3 +525,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
     `check`: check: green
     `documents`: documents ok
+29. factory: started smoke-test as self.
