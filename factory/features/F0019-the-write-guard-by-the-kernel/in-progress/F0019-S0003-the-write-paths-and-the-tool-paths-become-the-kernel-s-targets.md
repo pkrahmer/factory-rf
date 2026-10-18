@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 222
-comments_read: [6251638379]
+comments_read: [6251638379, 6251729450]
 handed_over: null
 claim: null
 journal:
@@ -118,6 +118,11 @@ journal:
   at: '2026-10-18T15:31:52.021339Z'
   stage: review
   run: 6e67b1f22d77476fad21cde268cbb768
+- number: 21
+  speaker: human
+  kind: comment
+  at: '2026-10-18T15:33:08.258234Z'
+  stage: review
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -405,3 +410,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
     Earlier tests:
     - `tests/application/test_write_paths.py`: changed under the standing leave to move a shared test helper. `_stage_start`, `_push_definition` and `PIPELINE_FILE` moved to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
+21. 2026-10-18 human: A: you amend the Description. Rewrite the Interface's two rules and criteria 2 and 4 exactly as finding 1 lists them (`.` beside `..` in both rules; the three rows each in criteria 2 and 4), change nothing else, and end with `docs` if nothing else is found.
