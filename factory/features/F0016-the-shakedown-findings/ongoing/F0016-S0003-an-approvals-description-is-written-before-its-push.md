@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 212
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # An approval's description is written before its push
 
 ## Assignment (as of log entry 1)
@@ -55,3 +63,70 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: names `StageFinisher` in `src/factory/application/stage.py`, the exact call (`hosting.set_description`), its position (after `git.commit`, before `git.push`), the text for a story (`hand_over_description(moved, commits)`) and for an acceptance (`acceptance_description(moved, role)`), the caught `HostingServiceError`, the exact log line, and what stays unchanged. The split between `finish` and `_commit_and_push` is left to the coder, and the order is fixed.
+   - Criteria: criteria 1 to 5 each map to one named test (criteria 1 and 2 are rows of one parametrized test). Every rule has its failing side: the non-approval moves (rework, forward, question) write no description, and a failing write is logged and does not stop the push. Criterion 6 pins the existing tests that must still pass. Criterion 8 (docs) is specific.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable (`<n> passed` with no failed, error or skipped count; `documents ok`).
+   - Architecture: the change sits in the application layer and calls the hosting-service interface, the `Git` wrapper and the `FactoryLog`. It reaches `factory.domain` for `hand_over_description` and `acceptance_description`. No new dependency, package or `factory/` change.
+   - Scope: within F0016's scope item 3 and its decisions 7, 8 and 9. The changes to earlier tests (`tests/test_stop_table.py` and one new test in `tests/application/test_stage_run_acceptance.py`) have the human's leave, given in FEATURE decision 9. Nothing in "Out of scope" is touched.
+3. tester: Tests written from the Interface and the criteria; red on purpose for the approval path.
+   - criterion 1: tests/test_approval_description.py::test_the_description_is_written_before_the_result_push_only_for_a_move_to_an_approval[approval]
+   - criterion 2: the same test, rows [rework], [forward], [question] (these pass today and must keep passing)
+   - criterion 3: tests/test_approval_description.py::test_a_work_item_at_its_approval_shows_the_full_description_before_its_hand_over
+   - criterion 4: tests/application/test_stage_run_acceptance.py::test_an_acceptance_that_ends_with_approval_has_its_report_in_the_description_at_once
+   - criterion 5: tests/test_approval_description.py::test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it
+   - criterion 6: tests/test_stop_table.py::test_hand_over_that_fails_every_time_is_reported_once_after_the_error_cap, its `fail_next("set_description", times=3)` moved to right after the first `run_ticks(world)` (human's leave, FEATURE decision 9); it still passes, and so do the other listed modules.
+   Files: created tests/test_approval_description.py (private helper `_pushed` reads the document and `log(origin/<branch>, since=origin/main)`); changed tests/test_stop_table.py (one line moved) and tests/application/test_stage_run_acceptance.py (one new test plus the import of `acceptance_description`; nothing existing changed).
+   Run of make test: 4 failures, all wrong results (the description is not yet written before the push): the [approval] row, the two other new tests in tests/test_approval_description.py, and the new acceptance test. No import or collection errors: every name the tests use already exists. make lint green; type check skipped per the stage.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_approval_description.py::test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it
+4. coder: the finisher now writes an approval's description before the push that shows the approval. Commit 5adbe416.
+   - `src/factory/application/stage.py`, `StageFinisher`: `finish` reads `self._definition.stages[move.stage].approval` and passes it to `_commit_and_push(..., describe=approval)`. When that is true, `_commit_and_push` calls the new private `_describe(started, moved)` after `git.commit` and before `git.push`. `_describe` calls `hosting.set_description` with the text from `_description`. For an acceptance (`is_acceptance`) that text is `acceptance_description(moved, _role_of(definition, started.stage))`. For a story it is `hand_over_description(moved, git.log("HEAD", since="origin/main"))`. A `HostingServiceError` is caught and the line `pull request #<n>: description not written before the push: <error>` goes to `self._boundaries.log`; the push and the label go on as before. `_stall_red`, `HandOverHandler` and `AcceptanceHandOver` are unchanged, and `handed_over` stays unset by the finisher.
+   - Main decision: the description is written inside `_commit_and_push`, which keeps the order commit → description → push in one place. I rejected splitting the commit and the push into two methods called from `finish`: that spreads the push sequence over more code and adds nothing. `_role_of` is reused for the acceptance role, and `MAIN_BRANCH` is reused the same way `HandOverHandler` uses it.
+   - Refactor: I read my diff once and found nothing to change, so there is no refactor commit.
+   - Checks: `make check` is green (lint, types, layers, sast, secrets, licenses, test). Every module named in the demo passes.
+   - Noticed, not touched: the description text is now built in two places, the finisher and the hand-over handlers, from the same domain functions. Only the `git.log` ref differs (`HEAD` before the push, `origin/<branch>` after it).
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Acceptance criteria: each of criteria 1 to 6 has the test the ticket names, and each test checks what its criterion says. The four rows of `test_the_description_is_written_before_the_result_push_only_for_a_move_to_an_approval` cover the approval move and the moves that must not write: rework, forward and question. The failing side of the `HostingServiceError` rule is covered by `test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it`. The acceptance path is covered in `tests/application/test_stage_run_acceptance.py`, which only gains a test and an import. In `tests/test_stop_table.py` exactly one line moved, as FEATURE decision 9 allows. The coder's entry records `make check` green and `duplicates: 0 new`.
+   - Architecture: the change stays in `factory.application` (`src/factory/application/stage.py`). It calls only the hosting interface, the `Git` wrapper, `FactoryLog` and domain functions. The order is commit, then `_describe`, then push, all inside `_commit_and_push`, and `_stall_red` is untouched. The story text uses `git.log("HEAD", since="origin/main")`; after the push this resolves to the same commits as the hand-over's `origin/<branch>` read in `handlers/hand_over.py`. The acceptance text reuses the existing `_role_of` helper. No helper is duplicated.
+   - Security: no new suppression markers, no strings built into commands, and the log line holds only the error's text.
+   - Quality: names are clear, and the two comments explain why rather than what. The private methods need no docstrings.
+   - Ticket hygiene: the coder's entry gives the main decision (the description is written inside `_commit_and_push`) and the rejected split into separate commit and push methods. `Assignment` matches what was built, and criterion 8 still says what the documenter has to write.
+6. documenter: criterion 8 written; the code matches the Interface, so no findings.
+   - docs/project-guide.md: `StageFinisher.finish(aftermath)` gets the description step between the commit and the push of step 7. "The hand-over at the approval" says the description is already in place, that the handler writes it again with the same text, and that the hand-over still marks ready, posts the cost table and records `handed_over`.
+   - docs/operator-guide.md: "What a stage run shows" gets the approval-description line, including the case where the push fails. "The hand-over at the approval" says who writes the description first and the log line if that write fails. The acceptance section needed no separate edit, since the new paragraph says the same holds for an acceptance.
+   - docs/decisions.md: new entry "An approval's description is written before the push that shows the approval", with the cause, the decision and four rejected alternatives with reasons.
+   - Checked: `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check` because I changed only documents.
+   - Cross-read against the diff and found current: README.md (no mention of the description order), the rest of project-guide.md and operator-guide.md.
+   - Stale prose I saw and left alone: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: all three commands met their `Expect:` lines; no findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/test_approval_description.py tests/application/test_stage_run_acceptance.py tests/test_stop_table.py`
+   ```
+   ..................................                                       [100%]
+   34 passed in 11.45s
+   ```
+   Met: the last line is `34 passed`, with no failed, error or skipped count.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/application/handlers/test_hand_over.py tests/application/test_acceptance_hand_over.py tests/application/test_stage_finish.py`
+   ```
+   ........................................................................ [ 98%]
+   .                                                                        [100%]
+   73 passed in 12.40s
+   ```
+   Met: the last line is `73 passed`, with no failed, error or skipped count.
+
+   3. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met.
+
+   Against the criteria: the first command runs every test named in criteria 1 to 5, plus the moved line of criterion 6 in `tests/test_stop_table.py`. The second command runs the rest of the modules criterion 6 lists. All of them pass. The third command covers the document check in criterion 8. Nothing in the demo goes against any criterion. Criterion 7 (`make check`) is the factory's gate after this stage; I did not run it here.
