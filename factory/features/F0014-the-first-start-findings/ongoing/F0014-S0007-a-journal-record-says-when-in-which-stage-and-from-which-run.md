@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 199
 blocked: null
 comments_seen: 4
@@ -350,3 +350,32 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make documents`: documents ok
+17. demo: I ran the two commands under `## Demo` from the repository root, in order, exactly as written.
+
+    Command 1 (render a document with an old-style record and a stamped record):
+    ```
+    journal:
+    - number: 1
+      speaker: human
+      kind: created
+    - number: 2
+      speaker: tester
+      kind: result
+      at: '2026-10-17T20:31:00Z'
+      stage: tests
+      run: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    ```
+    It met its `Expect:` line: there are ten lines in the expected order. The first record has no `at`, `stage` or `run` line. The second record's `at` is single-quoted and ends in `Z`, its `stage` comes from the document's state (`tests`), and its `run` is 32 times `a`. Exit code 0.
+
+    Command 2 (pytest over the eleven named modules):
+    ```
+    ........................................................................ [ 20%]
+    ........................................................................ [ 41%]
+    ........................................................................ [ 61%]
+    ........................................................................ [ 82%]
+    ..............................................................           [100%]
+    350 passed in 23.07s
+    ```
+    It met its `Expect:` line: the last line reads `350 passed`, with no failed, error or skipped count. Exit code 0.
+
+    Judgement: I checked the output against the acceptance criteria. It agrees with criteria 2 and 3: with no `at`, `append_entry` gives a record with none of the three fields. With `at` and `run`, the record gets both, plus the stage from the state. The writer leaves out unset fields and writes the three keys after `kind`. Nothing in the demo contradicts any other criterion. The modules this run covers include the new stamp tests and the existing journal, writer, stage-finish, after-agent, stall, claim, opening, send-back and reject tests, and all of them passed. I did not run `make check`, because the factory runs it as this stage's gate. No findings.
