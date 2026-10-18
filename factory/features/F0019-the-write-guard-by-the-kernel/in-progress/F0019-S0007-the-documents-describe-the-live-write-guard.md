@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T19:11:42.839225Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T19:11:42.839225Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T19:13:25.116104Z'
+  stage: doing
+  run: 485c7896a08e4b12be8e1cf96d6eb420
 ---
 
 # The documents describe the live write guard
@@ -111,3 +113,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (37.5 s)
 6. factory: started doing as self.
+7. coder: Built nothing. This story only changes documentation, and its Interface says no module, test, image, template or agent file changes. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage, which is what criterion 1 asks. The three documents (`README.md`, `docs/operator-guide.md`, `docs/project-guide.md`) belong to the documenter, so I left them alone too.
+   Main choice: hand forward with no change. I rejected the alternative of making the docs edits here, because CLAUDE.md gives the docs to the documenter stage and not to the coder.
+   Refactor: there is no diff, so there was nothing to refactor. The journal did not change the meaning of the task, so `## Description` is unchanged.
+   Noticed but not touched: nothing.
+   `make check`: check: green (test: green, total coverage 98.67 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
