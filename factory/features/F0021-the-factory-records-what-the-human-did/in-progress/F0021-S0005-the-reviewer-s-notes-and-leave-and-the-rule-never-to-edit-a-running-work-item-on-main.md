@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T23:55:54.233713Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T23:55:34.162702Z'
   stage: doing
   run: 95814edefb5e4f14b155cf65b1e9b7fe
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:55:54.233713Z'
+  stage: review
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -178,3 +187,4 @@ Expect: five lines, each `1`.
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
