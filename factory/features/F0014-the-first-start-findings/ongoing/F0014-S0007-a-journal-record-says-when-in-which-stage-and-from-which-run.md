@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 199
 blocked: null
 comments_seen: 4
@@ -319,3 +319,20 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+15. reviewer: reviewer, round 1: no findings. I read the ticket, the diff's `--stat` (34 files) and the whole source and test diff (`git diff main...HEAD -- . ':!factory'`). The code diff has not changed since entry 9: no commit after 3f7b85b8. This round's only change is the second `## Demo` command, rewritten exactly as the human asked in entry 13 (the missing `tests/application/test_journal_stamps.py` dropped, the four modules added, the two `handlers/` modules next to each other). The coder reports 350 passed with that command.
+
+    1. Acceptance criteria:
+       - Criterion 1: `tests/domain/test_journal_stamps.py` builds the record through `type[BaseModel]` in one parametrized test. Both sides of every limit are covered: a naive `at` is refused and an aware one is stored in UTC; `Tests` is refused as a stage; runs of 31 and 33 characters, one with an uppercase letter and one with `g` are refused, and 32 hex characters are accepted.
+       - Criterion 2: five rows. The message is matched exactly (`^…$`), the document is checked unchanged, the no-state row gets `ValueError` because the check in `append_entry` (`src/factory/domain/journal.py`) runs before `_state_of`, and the body is checked the same in each row that appends.
+       - Criteria 3 and 4: `tests/adapters/test_journal_stamps_file.py` compares the whole text, does the round trip, and covers the single-quoted `'111…'` run and an old file written back byte for byte.
+       - Criterion 5: the new tests (a) to (e) check `at`, `stage` and `run` against `clock.now()` and `aftermath.cost.run` / `launched.cost.run`. The decision-27 edits match the list in the Interface, and `MOVE_BACK` has `stage="approval"` as the human answered in entry 5.
+       - Criterion 6: four rows (merge and refusal, each with and without `at`).
+       - The coder's entry 14 reports `check: green`, and `make duplicates` reports 0 new findings.
+    2. Architecture: `journal.py` imports only domain modules (`RunId`, `UtcDatetime`) and the domain gets no clock, because `at` is a parameter. Every call site reads time through `self._boundaries.clock`, except `started`, which uses the claim's `started_at`. `_stall_red` and `AfterAgent` pass `cost=` into `StallContext`, so the run of the `stall` comes from it. No call site changes its order.
+    3. Security: no secrets; the test hex values are low-entropy. The only new marker is `# noqa: DTZ001` on the naive-`at` row, which builds a naive datetime on purpose (the same pattern as `tests/domain/test_disk_records.py`). No `nosec`, `nosemgrep` or baseline entry was added.
+    4. Quality:
+       - The private `_record` does one thing.
+       - `model_dump(exclude_none=True)` per record carries a comment saying why; the other fields of a record are never `None`.
+       - `_stalled` taking the `StallContext` avoids a sixth parameter.
+       - The docstrings of `JournalRecord` and `append_entry` name the three fields.
+    5. Ticket hygiene: the log explains the `move_back` question, the demo fix and the `exclude_none` and `StallContext` choices. The Assignment matches what was built, and criterion 9 still describes what the documenter writes (already done in entry 10).
