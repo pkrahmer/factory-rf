@@ -674,8 +674,17 @@ The keys, with what a left-out key takes:
 | `attempts_cap` | attempts before the human is asked | 2 |
 | `crash_cap` | crashes before the human is asked | 2 |
 | `acceptance_stage` | the stage of the feature acceptance | none |
+| `tool_paths` | folders every agent run may write besides the stage's write paths (see below) | `[]` |
 
 A stage has `role` (none: no agent runs), `next` (the first name is the forward move), `approval` (the human decides), `checks` (project commands that must pass after the agent), `reports` (project commands run after green and only recorded) and `round_cap` (none: no cap). A role has `write_paths` (required), `lease_duration` (60 minutes) and `time_limit` (40 minutes, one agent run). A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path (`factory/features/F0004-x`). The engine's protected paths (`factory/pipeline.yml`, the forms, `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/`) are outside every write path. Every limit is a positive whole number.
+
+`tool_paths` lists the project's tool state, which no write path names: a virtual environment, caches, reports. Each entry is `<folder>/*` for a folder of the checkout or `~/<folder>/*` for a folder of the agent's home; `<folder>` is one or more plain segments (no `.`, `..`, wildcard or leading `/`). For example:
+
+```yaml
+tool_paths: [".venv/*", ".reports/*", "~/.cache/*"]
+```
+
+Once the kernel's write guard is live, an agent run can write only its stage's write paths and these folders. A project's tool that writes anywhere else is refused by the kernel, so list its folder here. Any other form is a fault of the definition: `tool path *.log: must be <folder>/* or ~/<folder>/*`. The tool paths widen what the kernel allows only; the hook and the undo still judge the write paths alone.
 
 The rules you meet most often:
 

@@ -11,7 +11,11 @@ from factory.domain.paths import (
     PIPELINE_DEFINITION_FILE,
     STORY_FORM_FILE,
 )
-from factory.domain.pipeline_definition import FEATURE_PLACEHOLDER, WORK_ITEM_PLACEHOLDER
+from factory.domain.pipeline_definition import (
+    FEATURE_PLACEHOLDER,
+    PARENT_SEGMENT,
+    WORK_ITEM_PLACEHOLDER,
+)
 
 PROTECTED_PATHS: tuple[str, ...] = (
     ".claude/*",
@@ -28,7 +32,6 @@ PROTECTED_PATHS: tuple[str, ...] = (
 
 _PLACEHOLDER = re.compile(r"\{[a-z_]+\}")
 _KNOWN_PLACEHOLDERS = (WORK_ITEM_PLACEHOLDER, FEATURE_PLACEHOLDER)
-_PARENT_SEGMENT = ".."
 
 
 def matches_any(path: str, patterns: Sequence[str]) -> bool:
@@ -38,7 +41,7 @@ def matches_any(path: str, patterns: Sequence[str]) -> bool:
 
 def is_writable(path: str, write_paths: Sequence[str]) -> bool:
     """Whether `path` is inside the checkout and matches one of `write_paths`."""
-    return _is_safe(path) and matches_any(path, write_paths)
+    return is_inside_checkout(path) and matches_any(path, write_paths)
 
 
 def expand_write_paths(
@@ -50,7 +53,7 @@ def expand_write_paths(
 
 def refusal(path: str, guard: GuardSettings) -> str | None:
     """The text that refuses a write to `path`, or `None` when the write is allowed."""
-    if not _is_safe(path):
+    if not is_inside_checkout(path):
         return f"{path} is not a path inside the checkout."
     if matches_any(path, guard.protected_paths):
         return f"{path} is owned by the human; a change there is a question."
@@ -59,11 +62,12 @@ def refusal(path: str, guard: GuardSettings) -> str | None:
     return None
 
 
-def _is_safe(path: str) -> bool:
+def is_inside_checkout(path: str) -> bool:
+    """Whether `path` is relative, non-empty and holds no `..` segment."""
     # fnmatch sees only the string, so `src/../x` would match `src/*` though it leaves `src`.
     if not path or path.startswith("/"):
         return False
-    return _PARENT_SEGMENT not in path.split("/")
+    return PARENT_SEGMENT not in path.split("/")
 
 
 def _expand(pattern: str, work_item_path: str, feature_path: str) -> str:

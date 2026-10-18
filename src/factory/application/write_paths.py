@@ -42,6 +42,7 @@ class WritePathService:
             root=self._boundaries.checkout,
             write_paths=write_paths,
             protected_paths=list(PROTECTED_PATHS),
+            tool_paths=definition.tool_paths,
         )
 
     def _definition_at(self, commit: str) -> PipelineDefinition:
