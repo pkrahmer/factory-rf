@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 212
 blocked: null
 comments_seen: 0
@@ -90,3 +90,9 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Acceptance criteria: each of criteria 1 to 6 has the test the ticket names, and each test checks what its criterion says. The four rows of `test_the_description_is_written_before_the_result_push_only_for_a_move_to_an_approval` cover the approval move and the moves that must not write: rework, forward and question. The failing side of the `HostingServiceError` rule is covered by `test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it`. The acceptance path is covered in `tests/application/test_stage_run_acceptance.py`, which only gains a test and an import. In `tests/test_stop_table.py` exactly one line moved, as FEATURE decision 9 allows. The coder's entry records `make check` green and `duplicates: 0 new`.
+   - Architecture: the change stays in `factory.application` (`src/factory/application/stage.py`). It calls only the hosting interface, the `Git` wrapper, `FactoryLog` and domain functions. The order is commit, then `_describe`, then push, all inside `_commit_and_push`, and `_stall_red` is untouched. The story text uses `git.log("HEAD", since="origin/main")`; after the push this resolves to the same commits as the hand-over's `origin/<branch>` read in `handlers/hand_over.py`. The acceptance text reuses the existing `_role_of` helper. No helper is duplicated.
+   - Security: no new suppression markers, no strings built into commands, and the log line holds only the error's text.
+   - Quality: names are clear, and the two comments explain why rather than what. The private methods need no docstrings.
+   - Ticket hygiene: the coder's entry gives the main decision (the description is written inside `_commit_and_push`) and the rejected split into separate commit and push methods. `Assignment` matches what was built, and criterion 8 still says what the documenter has to write.
