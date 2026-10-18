@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T20:17:27.845408Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T20:17:08.179405Z'
   stage: intake
   run: 844ab25542b1472cacced9ccd906d55a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:17:27.845408Z'
+  stage: tests
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -77,3 +86,4 @@ Expect: `documents ok`
    - Smoke test: all four commands are runnable. I checked the sed ranges against the current headings. After the edit, `confine_executable` appears only on the new sentence's line in the start wrapper range, because the paragraph is a single line. The `confinement_item` paragraph is one line too, so the count of 0 in the start wrapper range and 1 in the write guard range is checkable. Each `Expect:` line gives an exact value.
    - Architecture: it fits. It changes only the project guide, which the documenter owns. The facts it states match the guide's own *Confinement* paragraph (line 327), the operator guide and the README.
    - Scope: it matches the feature's scope ("`docs/project-guide.md` ... from each story's docs criterion"). It touches nothing in "Out of scope" and removes the stale-text note raised by S0007 and S0009.
+4. factory: started tests as self.
