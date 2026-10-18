@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T20:33:40.869898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -83,6 +79,12 @@ journal:
   kind: started
   at: '2026-10-18T20:33:40.869898Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T20:34:49.659242Z'
+  stage: docs
+  run: a3b90922fe5740009ac97ac15fef4c49
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -241,3 +243,18 @@ Expect: `with: 0`, then `without: 2`
     - tests/adapters/test_claude_guard.py: standing leave to move a shared test helper. Its `_payload` and `_outside` moved to `tests/guard_support.py` as `hook_payload` and `outside`. Every test keeps its name and what it checks.
     - tests/entry/test_guard.py: standing leave to move a shared test helper. Its identical `_payload` copy now comes from `guard_support.hook_payload`, and the `json` import it no longer uses is removed. Every test keeps its name and what it checks.
 13. factory: started docs as self.
+14. documenter: Docs written for the docs criterion. I changed documents only, so I did not run `make check`; the factory's check after this stage is the gate.
+
+    Files changed:
+    - `docs/project-guide.md`, "Which path is judged": a paragraph on the temporary-folder rule. It says the checkout is judged first, that "beneath" is tested on path parts and excludes the folder itself, and that a link into the checkout is still decided by the write paths. It also covers a checkout beneath the temporary folder, the unchanged verdict when `temporary_directory` is `None` or the key is missing, the refusal of a relative path, how the runtime sets the field (only when built with `confine_executable`), and that the tool paths stay kernel-only.
+    - `docs/operator-guide.md`, "`factory-guard` on the agent run's `PATH`": one sentence saying the hook also allows an `Edit` or `Write` in the run's own temporary folder, as the kernel does.
+    - `docs/decisions.md`: new entry "The hook allows the run's temporary folder". It gives the reason (R14 sends the agent to `$TMPDIR`, and the cross-check would count each refusal as a disagreement) and the two rejected alternatives the criterion names.
+
+    Cross-read against the diff and found current: the `GuardSettings` and runtime file lists in `docs/project-guide.md` ("The `claude -p` runtime"), "The guard command", "What it reads", "Failing open", and the README. I did not re-run the smoke-test script; I only read its commands.
+
+    Code against the Interface: `judge`, `GuardSettings.temporary_directory` and the runtime's `_guard_settings` match the Interface. I found nothing for the coder.
+
+    Stale text I noticed and did not touch: none that this story caused.
+
+    `check`: check: green
+    `documents`: documents ok
