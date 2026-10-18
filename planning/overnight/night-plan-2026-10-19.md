@@ -24,6 +24,10 @@ The human sleeps; the session plays the human for `self` (v1.1 building factory-
    - then F0020's acceptance.
 4. **Stop at change 6.** The todo-demo run on opencode needs the human's key. Nothing is placed or read. Leave it **For the morning**.
 
+## Standing order: planning in spare capacity (the human's word, 2026-10-19 01:07; until the weekly reset, Mon 2026-10-20 05:00 local)
+
+At every heartbeat: when the 5-hour window likely has spare room (about 60 % or less with under 2.5 hours to its reset) and no planning agent runs, start one planning agent on the subscription for the remaining steps that needs no human. It writes only under `planning/overnight/` and its own temporary folder under `C:/Users/pasca/AppData/Local/Temp/`. In order: the draft of step 6 (F0022, a project's own skills and agents; started 01:07), its pre-check, then the draft and pre-check of step 7 (skip known checks), then of step 7a (mutation testing per story). Briefs in `planning/overnight/briefs/`; results **For the morning**. The build of the stories always comes first: a planning agent never delays an answer, an approval or a start.
+
 ## Stop and wait for the human (log it, start nothing new)
 
 - Usage: the 5-hour window above 95 % (let the running story finish; start the next when it resets); the weekly window above 90 %.
