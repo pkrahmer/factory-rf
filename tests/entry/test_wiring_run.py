@@ -26,7 +26,6 @@ INSTANCE = "factory-7"
 WORK_ITEM = "F0001-S0001"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
-HOSTED_URL = "https://github.com/example/project.git"
 STORY = """\
 # First story
 
@@ -72,21 +71,6 @@ def settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings
         agent_home=agent_home,
         claude_executable=str(tmp_path / "no-claude"),
     )
-
-
-@pytest.fixture
-def environment(tmp_path: Path) -> dict[str, str]:
-    """Return a valid environment whose token and image identity files lie in `tmp_path`."""
-    token = tmp_path / "hosting-token"
-    token.write_text("example-value\n", encoding="utf-8")
-    image = tmp_path / "image-id"
-    image.write_text("build-7\n", encoding="utf-8")
-    return {
-        "FACTORY_REPOSITORY_URL": HOSTED_URL,
-        "FACTORY_INSTANCE": "factory-1",
-        "FACTORY_IMAGE_ID_FILE": str(image),
-        "FACTORY_TOKEN_FILE": str(token),
-    }
 
 
 def _every_tool(name: str) -> str | None:
@@ -139,11 +123,11 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
 
 
 def test_boundaries_from_environment_reads_the_settings_and_builds_their_boundaries(
-    environment: dict[str, str], hosting: FakeHostingService
+    hosted_environment: dict[str, str], hosting: FakeHostingService
 ) -> None:
-    settings, boundaries = boundaries_from_environment(environment, hosting=hosting)
+    settings, boundaries = boundaries_from_environment(hosted_environment, hosting=hosting)
 
-    assert settings == read_settings(environment, read_file=Path.read_text).model_copy(
+    assert settings == read_settings(hosted_environment, read_file=Path.read_text).model_copy(
         update={"temporary_directory": Path(tempfile.gettempdir())}
     )
     assert boundaries.settings == settings
@@ -163,7 +147,7 @@ def test_boundaries_from_environment_reads_the_settings_and_builds_their_boundar
     ],
 )
 def test_boundaries_from_environment_refuses_an_invalid_environment(
-    environment: dict[str, str],
+    hosted_environment: dict[str, str],
     hosting: FakeHostingService,
     tmp_path: Path,
     *,
@@ -171,7 +155,7 @@ def test_boundaries_from_environment_refuses_an_invalid_environment(
     with_hosting: bool,
     variable: str,
 ) -> None:
-    changed = dict(environment)
+    changed = dict(hosted_environment)
     for name, value in changes.items():
         if value is None:
             del changed[name]

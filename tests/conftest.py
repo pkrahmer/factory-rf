@@ -23,10 +23,12 @@ from factory.application.boundaries import Boundaries
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
 from factory.domain.kill_points import KillPoints
+from factory.domain.settings import InstanceSettings
 from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
 from tmp_path_support import reopen
+from wiring_support import HOSTED_URL
 
 
 @pytest.fixture(autouse=True)
@@ -101,6 +103,34 @@ def clock() -> ManualClock:
 def agent_home(tmp_path: Path) -> Path:
     """Return the test's agent home, `tmp_path / "agent-home"`; nothing is created in it."""
     return tmp_path / "agent-home"
+
+
+@pytest.fixture
+def local_settings(tmp_path: Path) -> InstanceSettings:
+    """Settings whose checkout, state directory and agent home lie in `tmp_path`."""
+    root = tmp_path.resolve()
+    return InstanceSettings(
+        repository_url="/srv/project.git",
+        instance="factory-1",
+        checkout=root / "checkout",
+        state_directory=root / "state",
+        agent_home=root / "agents-home",
+    )
+
+
+@pytest.fixture
+def hosted_environment(tmp_path: Path) -> dict[str, str]:
+    """Return a valid environment whose token and image identity files lie in `tmp_path`."""
+    token = tmp_path / "hosting-token"
+    token.write_text("example-value\n", encoding="utf-8")
+    image = tmp_path / "image-id"
+    image.write_text("build-7\n", encoding="utf-8")
+    return {
+        "FACTORY_REPOSITORY_URL": HOSTED_URL,
+        "FACTORY_INSTANCE": "factory-1",
+        "FACTORY_IMAGE_ID_FILE": str(image),
+        "FACTORY_TOKEN_FILE": str(token),
+    }
 
 
 @pytest.fixture

@@ -11,9 +11,9 @@ from factory.adapters.claude_runtime import LOGIN_VARIABLE
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from wiring_support import CREDENTIAL
 
 LOGIN = "stand-in-login"
-CREDENTIAL = "example-value"
 REPLY = json.dumps(
     {
         "type": "result",

@@ -40,10 +40,10 @@ from factory.entry.wiring import (
     repository_name,
 )
 from git_support import clone, install_agents, write_executable
+from wiring_support import CREDENTIAL
 
 GITHUB_URL = "https://github.com/owner/project.git"
 LOCAL_URL = "/srv/project.git"
-CREDENTIAL = "example-value"
 REPLY = json.dumps(
     {
         "type": "result",

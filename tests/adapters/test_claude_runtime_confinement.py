@@ -13,7 +13,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from adapters.test_claude_runtime_os_user import _without_locale
+from adapters.test_claude_runtime_os_user import REPLY, _without_locale
 from factory.adapters import claude_runtime
 from factory.adapters.claude_runtime import (
     CLEANUP_SCRIPT,
@@ -36,19 +36,6 @@ LIMIT = timedelta(seconds=30)
 SHORT_LIMIT = timedelta(seconds=3)
 WAIT_SECONDS = 30
 ELAPSED_BOUND = 20
-REPLY = json.dumps(
-    {
-        "type": "result",
-        "subtype": "success",
-        "is_error": False,
-        "num_turns": 1,
-        "total_cost_usd": 0.1,
-        "duration_ms": 100,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-        "structured_output": {"decision": "doing", "entry": "Done."},
-    }
-)
 BUDGET_REPLY = json.dumps(
     {
         "type": "result",
@@ -734,18 +721,18 @@ def test_the_removal_runs_in_the_working_directory_with_an_empty_environment(
 
 
 @pytest.mark.parametrize(
-    "names",
+    "constant",
     [pytest.param("DEVICE_FOLDERS", id="folders"), pytest.param("DEVICE_FILES", id="files")],
 )
 def test_the_rules_hold_only_the_device_targets_that_exist(
-    layout: Layout, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, names: str
+    layout: Layout, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, constant: str
 ) -> None:
     existing = tmp_path / "device"
-    if names == "DEVICE_FOLDERS":
+    if constant == "DEVICE_FOLDERS":
         existing.mkdir()
     else:
         existing.write_text("", encoding="utf-8")
-    monkeypatch.setattr(claude_runtime, names, (str(existing), str(tmp_path / "missing")))
+    monkeypatch.setattr(claude_runtime, constant, (str(existing), str(tmp_path / "missing")))
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
     confine = _write_confine(layout)
 
@@ -753,16 +740,16 @@ def test_the_rules_hold_only_the_device_targets_that_exist(
 
     [call] = read_calls(layout.stand_in)
     [confined] = _confine_calls(layout)
-    devices_folders = [existing] if names == "DEVICE_FOLDERS" else _device_folders()
-    devices_files = [existing] if names == "DEVICE_FILES" else _device_files()
+    expected_folders = [existing] if constant == "DEVICE_FOLDERS" else _device_folders()
+    expected_files = [existing] if constant == "DEVICE_FILES" else _device_files()
     assert Confinement.model_validate_json(confined.rules_text) == Confinement(
         folders=[
             layout.checkout / "src",
             layout.stand_in,
             layout.home / ".claude",
-            *devices_folders,
+            *expected_folders,
         ],
-        files=devices_files,
+        files=expected_files,
         temporary_directory=layout.temporary_root / f"factory-run-{_session(call.arguments)}",
     )
 

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T16:23:31.385660Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-10-18T16:23:31.385660Z'
   stage: tests
+- number: 41
+  speaker: tester
+  kind: result
+  at: '2026-10-18T16:27:04.281149Z'
+  stage: tests
+  run: de56ab16f4ec4c1793044d4bc04d21a7
 ---
 
 # Every agent run starts through `factory-confine`
@@ -633,3 +635,38 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     Noticed but not touched, as in entry 35: the name of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` is out of date, because the test now also covers the `/dev/shm` marker. It keeps that name because `[tool.mutmut]` deselects it by name.
 40. factory: started tests as self.
+41. tester: Tester, round 2. The human approved a test change, and entry 39 names it. I made the four changes the coder listed for the round-1 review findings (entry 37). All of them come under CLAUDE.md's standing leave to move a shared test helper. Finding 4 is in this story's own test. No source code changed.
+
+    1. `settings` and `CREDENTIAL` (finding 1):
+       - I moved the fixture to `tests/conftest.py` as `local_settings`. It has a new name so it does not clash with the many module-level `settings` fixtures whose fields differ.
+       - I moved `CREDENTIAL` to a new module, `tests/wiring_support.py`.
+       - `tests/entry/test_wiring_confinement.py::test_build_boundaries_confines_the_runtime_unless_told_not_to` and `tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory` now use `local_settings`. Their parameter changed from `settings` to `local_settings`.
+       - The copies of `CREDENTIAL` are gone from `test_wiring_confinement.py`, `test_wiring_command_records.py`, `test_wiring_login.py` and `test_wiring_boundaries.py`. Each of them now imports it from `wiring_support`.
+       - I left the near-copy `settings` fixture in `test_wiring_boundaries.py` alone. Its docstring is different and many tests in that module use it. Entry 39 did not ask for that move.
+    2. The `environment` fixture (finding 2):
+       - I moved it from `tests/entry/test_wiring_run.py` to `tests/conftest.py` as `hosted_environment`.
+       - `HOSTED_URL` moved with it into `tests/wiring_support.py`, which `conftest.py` imports. `test_wiring_run.py` no longer uses the constant.
+       - The new test spelled the URL out, but it was the same `https://github.com/example/project.git`.
+       - `test_wiring_run.py::test_boundaries_from_environment_reads_the_settings_and_builds_their_boundaries` and `::test_boundaries_from_environment_refuses_an_invalid_environment` now take `hosted_environment`.
+       - `test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime` uses it too, in place of the setup it built inline, and keeps its name.
+    3. `REPLY` (finding 3): `tests/adapters/test_claude_runtime_confinement.py` now imports `REPLY` from `tests/adapters/test_claude_runtime_os_user.py`, beside `_without_locale`. Its own copy is gone.
+    4. Renames (finding 4): in `test_the_rules_hold_only_the_device_targets_that_exist`, the parameter `names` is now `constant`, and `devices_folders`/`devices_files` are now `expected_folders`/`expected_files`.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    Files created: `tests/wiring_support.py`.
+
+    Files changed:
+    - `tests/conftest.py`
+    - `tests/adapters/test_claude_runtime_confinement.py`
+    - `tests/entry/test_wiring_confinement.py`
+    - Earlier tests' files, changed under the standing leave:
+      - `tests/entry/test_wiring_command_records.py`
+      - `tests/entry/test_wiring_run.py`
+      - `tests/entry/test_wiring_login.py`
+      - `tests/entry/test_wiring_boundaries.py`
+
+    `make test` is green: coverage is 98.67 % and every module imported. The code was already built, so green is expected. `make lint` is green. I did not run the type check. The coder's `make check` covers it.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (39.4 s)
