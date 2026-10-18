@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 210
 blocked: null
 comments_seen: 0
@@ -118,3 +118,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text
+4. coder: Changed the three shipped texts to the Interface wording, and nothing else. Commit 0bbe1608.
+      - `template/CLAUDE.md`: the `Not without asking` bullet now says "... change to a test you did not write beyond the standing leave under *Tests*, ...". The standing-leave bullet is added as the last bullet of `## Tests`, after the time-limit bullet.
+      - `claude/agents/tester.md`, `## Lessons`: the old bullet on earlier tests is replaced, in the same place, by the two new bullets. The time-limit bullet is still last.
+      - `claude/agents/coder.md`, `## Lessons`: the bullet on copied test helpers is added at the end, after `- You never change a test`.
+      Main decision: I applied each change as an exact string replacement that must match once, so no other text could move. I considered editing by hand and rejected it, because each bullet has to match the tests' constants word for word.
+      Nothing under `src/` changed. Refactor pass: the diff is three text edits, so there was nothing to refactor.
+      Checks: the demo grep prints 2/2/1. The three named test modules all pass. `make check` is green (check: green).
+      Docs for the documenter (criterion 7) are still to do: the project guide and the decision-log entry.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
