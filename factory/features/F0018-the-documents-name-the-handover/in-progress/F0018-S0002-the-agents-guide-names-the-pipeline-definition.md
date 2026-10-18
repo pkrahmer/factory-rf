@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T13:00:53.784861Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -39,6 +35,12 @@ journal:
   kind: started
   at: '2026-10-18T13:00:53.784861Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T13:01:04.040447Z'
+  stage: intake
+  run: b6e5fe0f3c554cfd8ed27bbed9a5f1cc
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -92,3 +94,9 @@ Expect: `documents ok`
    2. Reword in place, as the criterion states, keeping the pointer to v1's file (feature decision 3).
    3. Yes: criterion 1 is a process note; the reviewer checks the diff.
 5. factory: started intake as self.
+6. intake: accepted
+   Interface: "None" is stated and exact: documentation only, no module or signature, so there is no Interface comment or rule needing a criterion.
+   Criteria: the intake answers (journal 4) settled criterion 1 as a process note checked by the reviewer's diff. Criterion 2 is `make check`. Criterion 3 gives exact before and after sentences for both passages, and `documents ok` is checkable. Nothing in the story states a validation or error rule, so there is no failing side to cover.
+   Smoke test: the four commands are runnable from the repo root, and each has an `Expect:` line checkable against the output (`0`, `0`, `1`, `documents ok`).
+   Architecture: nothing under `src/` changes, so the four layers are untouched. Only `docs/project-guide.md` and `docs/decisions.md` change, which is the documenter's job.
+   Scope: `feature.md` now names both passages in its Scope and S0002 in its Stories (journal 4, answer 1), and neither is in its Out of scope. The in-place rewording matches feature decision 3. I made no edits to the story.
