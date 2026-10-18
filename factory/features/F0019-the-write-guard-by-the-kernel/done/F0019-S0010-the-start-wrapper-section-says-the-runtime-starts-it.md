@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-18T20:23:14.766419Z'
   stage: smoke-test
   run: 8c35133d8ba94818ba608db971c9d33c
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-18T20:24:00.120382Z'
+  stage: approval
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -216,3 +221,4 @@ Expect: `documents ok`
     - Criterion 3: met. In the diff of `docs/project-guide.md`, the stale sentence is replaced by one that names `ClaudeCodeRuntime`, `confine_executable`, the `build_boundaries` default and the section "The `claude -p` runtime". The removed and the added `confinement_item(abi, environment, find)` lines are identical. The moved paragraph now sits directly before `## The start wrapper`, after the *Tests* text, which is the end of *The kernel's write guard*. The diff changes no other passage.
 
     The smoke test contradicts no criterion. Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 2.4 min, 28 turns, 75229 tokens in (330969 more from cache), 6617 out, $0.62
