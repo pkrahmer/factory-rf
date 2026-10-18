@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T20:37:53.405668Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T20:37:33.638481Z'
   stage: intake
   run: 8fb816ce160042119d7fb33b78b84cad
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:37:53.405668Z'
+  stage: tests
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -128,3 +137,4 @@ Expect: `replace_process needs a program to start`
    - Smoke test: both commands run as written. Their `Expect:` lines are exact output: the `<base>`-substituted refusal text then `still writes`, and the `ValueError` text.
    - Architecture: tests only, in the layer-mirroring folders (`tests/adapters`, `tests/entry`). The system calls stay child-only, as decision 18 says. The tests need no change to an earlier test beyond the standing leave for shared helpers.
    - Scope: the story stays inside F0019's testing of the guard and is consistent with decisions 18 and 22. Nothing in it falls under the feature's Out of scope list.
+4. factory: started tests as self.
