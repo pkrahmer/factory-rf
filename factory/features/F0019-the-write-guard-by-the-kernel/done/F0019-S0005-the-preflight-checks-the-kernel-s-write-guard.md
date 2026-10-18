@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-18T17:06:31.316852Z'
   stage: smoke-test
   run: fc50d027f6e94930928fead0c851e26f
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-18T17:08:51.202859Z'
+  stage: approval
 ---
 
 # The preflight checks the kernel's write guard
@@ -345,3 +350,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     - The smoke test does not reach criteria 5 to 7. Nothing in its output contradicts them or any other criterion.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 8.5 min, 71 turns, 206113 tokens in (1212153 more from cache), 25886 out, $2.13
