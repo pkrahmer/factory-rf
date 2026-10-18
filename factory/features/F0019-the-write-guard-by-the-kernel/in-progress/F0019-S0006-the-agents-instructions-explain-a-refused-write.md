@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T17:09:40.577308Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T17:09:40.571619Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:09:40.577308Z'
+  stage: intake
+---
+
 # The agents' instructions explain a refused write
 
 ## Description
@@ -42,3 +69,6 @@ grep -c 'Make temporary files only in `$TMPDIR`' claude/agents/coder.md
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
