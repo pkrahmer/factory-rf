@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:17:02.459866Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T15:17:02.459866Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:20:37.599737Z'
+  stage: doing
+  run: b7940bb81d9d440b9701df380a2c776b
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -200,3 +202,27 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_write_targets.py - ImportError while importing test m...
 6. factory: started doing as self.
+7. coder: I added `tool_paths` to the pipeline definition and the guard settings, and added `write_targets` and `confinement_of` to the domain. `make check` is green and I left every test untouched.
+
+   Built:
+   - `src/factory/domain/pipeline_definition.py`: adds `PipelineDefinition.tool_paths: list[WritePath] = []` and a new rule `_tool_path_faults` in `_RULES`. Its fault text is `tool path <path>: must be <folder>/* or ~/<folder>/*`. Two public helpers sit beside it: `tool_path_folder` returns the folder of either form with `~/` kept, or `None`; `has_wildcard` checks for `*`, `?` or `[`. The constants `HOME_PREFIX` and `PARENT_SEGMENT` are new here too.
+   - `src/factory/domain/agent_runs.py`: adds `GuardSettings.tool_paths: list[str] = []`.
+   - `src/factory/application/write_paths.py`: `WritePathService.at` passes the definition's `tool_paths` through unchanged.
+   - `src/factory/domain/confinement.py`: adds `TargetKind`, `WriteTarget`, `write_targets` and `confinement_of`, with private helpers for one write path, one tool path, the widening of a missing file to its folder, and order-keeping de-duplication.
+   - `src/factory/domain/write_paths.py`: the private `_is_safe` is now public as `is_inside_checkout`, so `write_targets` can reuse it. Its `..` constant now comes from `pipeline_definition` instead of being a second copy. `refusal` and `is_writable` behave exactly as before.
+
+   Main design decision: `write_targets` handles every write path with one rule. It finds the first segment that holds a wildcard and uses the folder of the segments before it. With no wildcard the path is a file target; with the wildcard in the first segment there is no target, because the root would allow everything. This covers both the Interface's `<folder>/*` case and its "any other pattern" case, since `src/*` and `docs/*.md` both stop at their first wildcard segment.
+   - Rejected: a separate branch for paths ending in `/*`. It gives the same results in every case and only adds code.
+   - Rejected: a regex for the tool-path form. A `(~/)?` regex also accepts `~/*` as a checkout folder named `~`. Removing the `~/` prefix first and then requiring `/*` refuses `~/*` without a special case.
+
+   Refactor: I read the diff once and found nothing to change.
+
+   Smoke test: the second command printed exactly the five expected lines.
+
+   Noticed but not touched:
+   - `make duplicates` reports 3 new findings, all dead code. Two are `write_targets` and `confinement_of`, which nothing calls until the runtime uses them in S0004. The third, `CONFINE_COMMAND` in `src/factory/domain/agent_runs.py`, was there before this story.
+
+   The journal did not change the task's meaning, so I left `## Description` as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 3 new, 36 known, 3 gone
