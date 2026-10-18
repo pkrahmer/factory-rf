@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -162,6 +162,11 @@ journal:
   at: '2026-10-18T15:10:08.196474Z'
   stage: smoke-test
   run: 729ae0fcaf78403bb21e9e4117d8d709
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-18T15:11:26.503847Z'
+  stage: approval
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -521,3 +526,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     Against the acceptance criteria: the output agrees with criteria 3 (a write in A succeeds, a write elsewhere gets `Permission denied`), 4 (`TMPDIR` equals T and T is a folder), 7 (the usage line and exit 1), 9 (the kernel's real ABI is accepted and the command runs) and 10 (an existing temporary folder gives `File exists` and the command does not run). Nothing in the smoke test contradicts any other criterion.
 
     No findings.
+29. factory: done (pull request merged); cost: 13 runs, 15.2 min, 92 turns, 306131 tokens in (1798727 more from cache), 51929 out, $3.51
