@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 214
 blocked: null
 comments_seen: 0
@@ -156,3 +156,7 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (31.3 s)
+4. coder: nothing to build. The Interface puts every change in the tester's lane. The tester already wrote `tests/tmp_path_support.py` (`reopen`), `tests/test_tmp_path_reopening.py` and the autouse fixture `reopened_tmp_path` in `tests/conftest.py`, and those tests pass. I left everything under `tests/` alone (R9) and changed nothing under `src/`, so this stage made no commit and there was no diff to refactor. `make check` is green on the branch as the tester left it (check: green; test: green (34.0 s), coverage 99.47 %). Still open: criterion 9 (the project-guide sentence and the decision-log entry), which is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
