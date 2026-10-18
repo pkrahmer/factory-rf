@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:42:24.814329Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T23:42:07.239096Z'
+  stage: doing
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:42:24.814329Z'
   stage: doing
 ---
 
@@ -422,3 +431,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
     Noticed, not touched: the possibly flaky `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` from entry 10 is still open.
 26. 2026-10-18 human: (a): give the two records different `run` values (take `run` out of `fields`; `run="a" * 32` for `started`, `run="b" * 32` for `done`); the `Expect:` line stays. The reviewer has leave to make exactly this edit to `## Smoke test` on its next run, and nothing else; the code goes forward unchanged.
+27. factory: started doing as self.
