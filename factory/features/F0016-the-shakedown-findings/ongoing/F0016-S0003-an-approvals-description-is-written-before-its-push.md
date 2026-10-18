@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 212
 blocked: null
 comments_seen: 0
@@ -106,3 +106,27 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: all three commands met their `Expect:` lines; no findings.
+
+   1. `uv run pytest --no-header -p no:cacheprovider tests/test_approval_description.py tests/application/test_stage_run_acceptance.py tests/test_stop_table.py`
+   ```
+   ..................................                                       [100%]
+   34 passed in 11.45s
+   ```
+   Met: the last line is `34 passed`, with no failed, error or skipped count.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/application/handlers/test_hand_over.py tests/application/test_acceptance_hand_over.py tests/application/test_stage_finish.py`
+   ```
+   ........................................................................ [ 98%]
+   .                                                                        [100%]
+   73 passed in 12.40s
+   ```
+   Met: the last line is `73 passed`, with no failed, error or skipped count.
+
+   3. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met.
+
+   Against the criteria: the first command runs every test named in criteria 1 to 5, plus the moved line of criterion 6 in `tests/test_stop_table.py`. The second command runs the rest of the modules criterion 6 lists. All of them pass. The third command covers the document check in criterion 8. Nothing in the demo goes against any criterion. Criterion 7 (`make check`) is the factory's gate after this stage; I did not run it here.
