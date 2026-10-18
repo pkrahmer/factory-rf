@@ -49,10 +49,11 @@ Tests: `tests/api/test_health.py` through `TestClient`; the repository that rais
 2. `GET /health` on `create_app(service, storage="sqlite")` reports `"storage": "sqlite"`.
 3. `build_app` reports the storage the environment chose, as rows of one parametrized test: `build_app({})` and `build_app({"TODO_DB": ""})` answer `/health` with `"storage": "memory"`, and `build_app({"TODO_DB": <a path under tmp_path>})` with `"storage": "sqlite"`.
 4. `/health` does not use the repository: with a service whose repository raises on every method, it still returns 200.
-5. `/health` is in `app.openapi()["paths"]` with the tag `health`, and `/todos` and `/todos/{todo_id}` are still there.
-6. `docs/openapi.json` still equals `app.openapi()` of `app.api.main.app` (the existing test of F0001-S0003; the coder runs `make openapi`).
-7. `make check` stays green.
-8. docs: `docs/api.md` describes `/health` (the three fields and that it never touches storage); the README mentions it as the way to check a running server.
+5. `build_app` hands the todo routes the repository the environment chose, as rows of one parametrized test: a todo `POST`ed through `build_app({"TODO_DB": p})` (`p` under `tmp_path`) is listed by `GET /todos` of a second `build_app({"TODO_DB": p})`; a todo `POST`ed through `build_app({})` is listed by the same app and not by a second `build_app({})`.
+6. `/health` is in `app.openapi()["paths"]` with the tag `health`, and `/todos` and `/todos/{todo_id}` are still there.
+7. `docs/openapi.json` still equals `app.openapi()` of `app.api.main.app` (the existing test of F0001-S0003; the coder runs `make openapi`).
+8. `make check` stays green.
+9. docs: `docs/api.md` describes `/health` (the three fields and that it never touches storage); the README mentions it as the way to check a running server.
 
 ## Smoke test
 

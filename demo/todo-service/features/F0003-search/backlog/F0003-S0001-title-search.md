@@ -36,12 +36,12 @@ Tests: `tests/service/test_search.py` and `tests/api/test_search.py`.
 
 1. With todos titled `Buy Milk`, `MILK run` and `Call mum`, `list(search="milk")` returns the first two, in creation order.
 2. `list(search="  milk ")` returns the same todos as `list(search="milk")`.
-3. `list(search="")` and `list(search="   ")` return the same todos as `list()`: two rows of one parametrized test.
+3. `list(search=None)`, `list(search="")` and `list(search="   ")` return the same todos as `list()`: three rows of one parametrized test.
 4. Case folding, not just lower case: with a todo titled `Straße`, `list(search="STRASSE")` returns it.
 5. With `Buy Milk` done and `MILK run` open, `list(done=False, search="milk")` returns only `MILK run`, and `list(done=True, search="milk")` only `Buy Milk`: two rows of one parametrized test.
 6. `GET /todos?search=milk` on the data of criterion 1 returns 200 and the two matching todos, in creation order.
 7. `GET /todos?done=true&search=milk` on the data of criterion 5 returns 200 and only `Buy Milk`.
-8. The length limit on both sides, as rows of one parametrized test: `GET /todos?search=<200 characters>` returns 200 and `[]` on the data of criterion 1; `GET /todos?search=<201 characters>` returns 422 and a body whose only key is `detail`, a string starting with `query.search: `.
+8. The length limit on both sides, counted on the text as sent, as rows of one parametrized test: `GET /todos?search=<200 characters>` returns 200 and `[]` on the data of criterion 1; `GET /todos?search=<201 characters>` returns 422 and a body whose only key is `detail`, a string starting with `query.search: `; and `GET /todos?search=<197 spaces>milk` (201 characters as sent, 4 after stripping) also returns 422 with such a body.
 9. `GET /todos` without parameters still returns every todo.
 10. `docs/openapi.json` still equals `app.openapi()` of `app.api.main.app` (the existing test of F0001-S0003; the coder runs `make openapi`).
 11. `make check` stays green.

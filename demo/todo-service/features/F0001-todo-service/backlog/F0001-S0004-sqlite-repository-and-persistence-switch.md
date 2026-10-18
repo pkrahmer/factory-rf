@@ -29,7 +29,7 @@ app = create_app(TodoService(build_repository(os.environ)))
 - `TODO_DB` missing or empty: `InMemoryTodoRepository()`. Otherwise `SqliteTodoRepository.from_path(environ["TODO_DB"])`.
 - `app.api.main` stays the only `app.api` module that imports `app.repository`.
 
-Tests: by the human's leave, the tester adds one factory to the list of repository factories in `tests/repository/test_contract.py` (F0001-S0001), which returns `SqliteTodoRepository.from_path(tmp_path / "todo.db")` for the `tmp_path` the fixture passes it, so the whole contract suite runs against both repositories; nothing else in that file changes. The other tests go into `tests/repository/test_sqlite.py` and `tests/api/test_main.py`.
+Tests: by the human's leave, the tester adds one factory to the list of repository factories in `tests/repository/test_contract.py` (F0001-S0001), which returns `SqliteTodoRepository.from_path(tmp_path / "todo.db")` for the `tmp_path` the fixture passes it, so the whole contract suite runs against both repositories, and adds `SqliteTodoRepository` to that file's list of repository classes, so its no-inheritance test has a row for it; nothing else in that file changes, except a move of a shared test helper under the standing leave of `CLAUDE.md`. The other tests go into `tests/repository/test_sqlite.py` and `tests/api/test_main.py`.
 
 ## Acceptance criteria
 
@@ -42,8 +42,12 @@ Tests: by the human's leave, the tester adds one factory to the list of reposito
 7. The switch on both sides, as rows of one parametrized test: `build_repository({})` and `build_repository({"TODO_DB": ""})` each return an `InMemoryTodoRepository`; `build_repository({"TODO_DB": <a path under tmp_path>})` returns a `SqliteTodoRepository`, and the file exists afterwards.
 8. A todo created through `create_app(TodoService(build_repository({"TODO_DB": p})))` is listed by a second app built the same way on the same `p`.
 9. An app built with `build_repository({})` writes no file: after creating a todo through it, the current directory (a `tmp_path` the test changes into with `monkeypatch.chdir`) is still empty.
-10. `make check` stays green.
-11. docs: `docs/api.md` explains storage in a short section: with `TODO_DB=<path>` the todos live in that SQLite file, created on first start; without it, or with it empty, they live in memory and are gone on restart. The README's *Getting started* shows starting the server with `TODO_DB`.
+10. `SqliteTodoRepository` is not a subclass of `TodoRepository`: its row of the no-inheritance test in `tests/repository/test_contract.py`, beside the row of `InMemoryTodoRepository`.
+11. The stored format: a row of `todos` read back with a Core `select` has `id == str(todo.id)` (hyphenated); `created_at` a `str` that ends with `+00:00` and that `datetime.fromisoformat` reads back equal to the todo's `created_at`, also for a todo created with another offset; and `done` a `bool`, `True` for a completed todo and `False` for an open one (rows of one parametrized test).
+12. `from_path(path)` and `from_path(str(path))` each open the same file and see the todos written through the other, as rows of one parametrized test.
+13. `app.api.main` is still the only `app.api` module that imports `app.repository`, now that it imports `app.repository.sqlite` too: F0001-S0003's import test in `tests/api/test_imports.py` still passes.
+14. `make check` stays green.
+15. docs: `docs/api.md` explains storage in a short section: with `TODO_DB=<path>` the todos live in that SQLite file, created on first start; without it, or with it empty, they live in memory and are gone on restart. The README's *Getting started* shows starting the server with `TODO_DB`.
 
 ## Smoke test
 

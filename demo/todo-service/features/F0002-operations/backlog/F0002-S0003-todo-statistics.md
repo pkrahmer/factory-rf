@@ -47,7 +47,7 @@ def read_stats(service: Service) -> StatsRead: ...
 
 `create_app` includes the stats router beside the others.
 
-Tests: `tests/service/test_stats.py` and `tests/api/test_stats.py`.
+Tests: `tests/service/test_stats.py` (with a repository that counts its calls, a fake of `TodoRepository` in that module around `InMemoryTodoRepository`) and `tests/api/test_stats.py`.
 
 ## Acceptance criteria
 
@@ -55,11 +55,12 @@ Tests: `tests/service/test_stats.py` and `tests/api/test_stats.py`.
 2. With two open todos and one completed, `stats()` returns `open == 2`, `done == 1` and `total == 3`.
 3. `TodoStats` is frozen: assigning to `open` raises `dataclasses.FrozenInstanceError` (`setattr` with the field's name in a variable).
 4. `total` is not a dataclass field: `dataclasses.fields(TodoStats)` names exactly `open` and `done`.
-5. `GET /stats` returns 200 and exactly the counts, as rows of one parametrized test: `{"open": 2, "done": 1, "total": 3}` on the data of criterion 2, and `{"open": 0, "done": 0, "total": 0}` on an empty repository.
-6. `/stats` is in `app.openapi()["paths"]` with the tag `stats`, and `/todos`, `/todos/{todo_id}` and `/health` are still there.
-7. `docs/openapi.json` still equals `app.openapi()` of `app.api.main.app` (the existing test of F0001-S0003; the coder runs `make openapi`).
-8. `make check` stays green.
-9. docs: `docs/api.md` describes `GET /stats` and its three fields in the endpoint table, with one curl example.
+5. `stats()` reads the repository once: with a repository that counts its calls, one `stats()` call makes exactly one `list_all` call and no other call.
+6. `GET /stats` returns 200 and exactly the counts, as rows of one parametrized test: `{"open": 2, "done": 1, "total": 3}` on the data of criterion 2, and `{"open": 0, "done": 0, "total": 0}` on an empty repository.
+7. `/stats` is in `app.openapi()["paths"]` with the tag `stats`, and `/todos`, `/todos/{todo_id}` and `/health` are still there.
+8. `docs/openapi.json` still equals `app.openapi()` of `app.api.main.app` (the existing test of F0001-S0003; the coder runs `make openapi`).
+9. `make check` stays green.
+10. docs: `docs/api.md` describes `GET /stats` and its three fields in the endpoint table, with one curl example.
 
 ## Smoke test
 

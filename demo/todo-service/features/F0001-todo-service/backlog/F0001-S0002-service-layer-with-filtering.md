@@ -36,7 +36,7 @@ Tests: `tests/service/test_todo_service.py`, with a clock that returns a fixed t
 2. `create` with a blank title raises `InvalidTitle`, and `list()` is still empty afterwards.
 3. `get` with an unknown id raises `TodoNotFound` carrying that id.
 4. `list()` returns every todo, in creation order (a clock that ticks makes the order observable).
-5. The done filter, as rows of one parametrized test over two completed and two open todos created alternately: `list(done=True)` returns only the completed todos and `list(done=False)` only the open ones, each in creation order.
+5. The done filter, as rows of one parametrized test over two completed and two open todos created alternately: `list(done=True)` returns only the completed todos, `list(done=False)` only the open ones, and `list(done=None)` all four, each in creation order.
 6. `rename` returns the todo with the new title, stripped, and the same id, done flag and `created_at`; `get` returns the renamed todo afterwards.
 7. `rename` with a blank title raises `InvalidTitle`, and `get` still returns the todo with its old title.
 8. `complete` returns the todo with `done` true, and `get` returns it completed afterwards.

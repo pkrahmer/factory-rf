@@ -65,7 +65,7 @@ class InMemoryTodoRepository:   # satisfies TodoRepository structurally, no inhe
     def __init__(self) -> None: ...
 ```
 
-Tests: `tests/domain/test_model.py`, `tests/domain/test_errors.py`, `tests/domain/test_imports.py`, and the repository behaviour as one contract suite in `tests/repository/test_contract.py`, run through a `repository` fixture that is parametrized over a module-level list of repository factories, each a `Callable[[Path], TodoRepository]` that the fixture calls with the test's `tmp_path`; here the list holds one factory, which returns `InMemoryTodoRepository()`. A later repository, also one that keeps a file under `tmp_path`, joins the suite by adding its factory to that list, with no other change to the file. Fixed ids are built with `UUID(int=n)`.
+Tests: `tests/domain/test_model.py`, `tests/domain/test_errors.py`, `tests/domain/test_imports.py`, and the repository behaviour as one contract suite in `tests/repository/test_contract.py`, run through a `repository` fixture that is parametrized over a module-level list of repository factories, each a `Callable[[Path], TodoRepository]` that the fixture calls with the test's `tmp_path`; here the list holds one factory, which returns `InMemoryTodoRepository()`. A later repository, also one that keeps a file under `tmp_path`, joins the suite by adding its factory to that list and its class to a second module-level list, of repository classes, with no other change to the file but a move of a shared test helper under the standing leave of `CLAUDE.md`. Fixed ids are built with `UUID(int=n)`.
 
 ## Acceptance criteria
 
@@ -90,7 +90,7 @@ Tests: `tests/domain/test_model.py`, `tests/domain/test_errors.py`, `tests/domai
 19. Todos with equal `created_at` are ordered by id ascending (ids built with `UUID(int=n)` make it observable).
 20. `update` replaces the stored todo that has the same id; `get` afterwards returns the new version.
 21. `delete` removes the todo; `get` afterwards raises `TodoNotFound`.
-22. `InMemoryTodoRepository` is not a subclass of `TodoRepository`, and the contract suite's `repository` fixture is annotated as returning `TodoRepository`, so `make check` (mypy) proves it satisfies the protocol.
+22. No repository class inherits the protocol: `InMemoryTodoRepository` is not a subclass of `TodoRepository` (`TodoRepository` is not in its `__mro__`; `issubclass` refuses a protocol that is not `runtime_checkable`), as a row of one parametrized test in `tests/repository/test_contract.py` over the module-level list of repository classes (here one class); and the contract suite's `repository` fixture is annotated as returning `TodoRepository`, so `make check` (mypy) proves each repository satisfies the protocol.
 23. No module in `app.domain` imports `fastapi`, `pydantic`, `sqlalchemy`, or an `app` module outside `app.domain` (a test that parses the imports of every module under `src/app/domain` and names only these forbidden ones).
 24. `make check` stays green.
 25. docs: `docs/project-guide.md` explains the layers (which may import which, and that service and repository never import each other) and the domain model (the `Todo` fields, the title rule, UTC timestamps, the three errors, the repository protocol and its ordering); the README's *Where to look next* links it.

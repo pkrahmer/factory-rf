@@ -33,3 +33,6 @@ Product decisions taken while writing the stories or answering the pipeline's qu
 4. No story of its own for a shared service dependency: `app/api/dependencies.py` exists since F0001-S0003. (feature text)
 5. Only exactly `--version` prints the version; `--version` with anything after it is a usage error like any other argument. (S0002, story text)
 6. An empty `TODO_DB` reports `"storage": "memory"`, as it chooses the in-memory repository (F0001 decision 8); the health story has a criterion for it. (S0001, story text; the intake question of v1's run 4, answered in advance)
+7. `build_app` is tested with todos, not only through `/health`: the repository it chooses is the one the todo routes use. (S0001, story text; F0002's acceptance at the shakedown, 2026-10-18)
+8. `python -m app` is tested as a child process with the interpreter that runs the tests; it is a short command, not a server, so it fits the rule that tests start no server. (S0002, story text; F0002's acceptance at the shakedown)
+9. `stats` reads the repository once, with one `list_all`. (S0003, story text)

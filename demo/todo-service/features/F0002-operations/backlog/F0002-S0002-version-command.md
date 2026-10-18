@@ -19,7 +19,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-Tests: `tests/test_main.py` (the module is outside the layers), calling `main` with `capsys`.
+Tests: `tests/test_main.py` (the module is outside the layers), calling `main` with `capsys`, and running the module as a child process with the interpreter that runs the tests.
 
 ## Acceptance criteria
 
@@ -27,8 +27,9 @@ Tests: `tests/test_main.py` (the module is outside the layers), calling `main` w
 2. Every other argument list is a usage error, as rows of one parametrized test: `main([])`, `main(["--help"])`, `main(["x"])` and `main(["--version", "x"])` each return 2, write nothing to stdout, and write `usage: python -m app --version` and a newline to stderr.
 3. `main()` without an argument reads `sys.argv[1:]`: with `sys.argv` set to `["app", "--version"]` it returns 0, and with `["app"]` it returns 2.
 4. `app.__main__` imports nothing from `app.domain`, `app.service`, `app.repository` or `app.api` (a test that parses its imports and names only these forbidden ones).
-5. `make check` stays green.
-6. docs: the README's *Getting started* shows `uv run python -m app --version` and what it prints.
+5. Run as a module, as rows of one parametrized test: `subprocess.run([sys.executable, "-m", "app", "--version"], capture_output=True, text=True, check=False)` exits 0 with stdout `app <version>` and a newline and an empty stderr; without an argument it exits 2 with an empty stdout and stderr `usage: python -m app --version` and a newline.
+6. `make check` stays green.
+7. docs: the README's *Getting started* shows `uv run python -m app --version` and what it prints.
 
 ## Smoke test
 
