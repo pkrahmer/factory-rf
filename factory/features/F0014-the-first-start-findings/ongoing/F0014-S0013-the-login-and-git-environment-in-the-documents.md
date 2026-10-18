@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 204
 blocked: null
 comments_seen: 0
 round: 0
@@ -52,3 +52,10 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: "None" is right for a documentation-only story. It names the three documents the documenter changes (`docs/decisions.md`, `docs/operator-guide.md`, `README.md`), and each is inside the documenter's write path. It states no behaviour and no rule, so no criterion is owed for one and none has a failing side.
+   - Criteria: criterion 1 (nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes) is checkable by one diff. Criterion 2 is the gate. The docs criterion lists five edits, each with the section, the wording to add or replace and the text that must go. The tester and coder entries are told what to say. There is no behaviour with a failing side to cover.
+   - Demo: the first command is runnable. The grep counts are currently 1 in `docs/decisions.md` and 1 in `docs/operator-guide.md` for the two phrases, so the expected 0 and 0 are real changes. `factory-login` is not yet in the operator guide (the project guide has it), so "at least 1" is checkable. The second command's module `src/factory/entry/check_documents.py` exists, and its `documents ok` line is a checkable expectation.
+   - Architecture: nothing is placed. No module, layer or interface is touched.
+   - Scope: S0013 is listed in `FEATURE.md` as documentation only, with `README.md`, `docs/decisions.md` and `docs/operator-guide.md` as its files. Decisions 34 to 36 cover it, and decision 36 (5) is the human's yes to this story's edit 1. Nothing in it falls under "Out of scope".
+   No questions.
