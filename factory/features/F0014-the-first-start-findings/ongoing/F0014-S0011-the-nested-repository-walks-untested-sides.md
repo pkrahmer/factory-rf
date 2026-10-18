@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 202
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The nested-repository walk's untested sides
 
 <!-- proposed by feature acceptance of 2026-10-18; refine before promoting -->
@@ -66,3 +74,67 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: no new names. It pins three walk rules of `GitCli.remove_nested_repositories()` (no link followed, the root's `.git` not entered, a found `.git` not entered). It also pins the sorted, `/`-separated return and the `", "` join in three named texts (`stage.py`, `preflight.py`, `scheduler.py`). The paths and signatures are concrete.
+   - Criteria: each is testable by one test function or one row. Criteria 1 to 4 are rows of one existing parametrized test (decision 34's leave). Criteria 5 to 7 are one new function and two named rows. Each rule has its refused side (links not followed, `.git` not entered) and its passing side (the nested repositories are removed). The sorted-order comment has criterion 4, whose `a/.cache` layout makes the order independent of listing order.
+   - Demo: both blocks are runnable. The first has fixed output (`['a/.git', 'b/.git']`, then `True True True`). The second has an `<n> passed` line to check against.
+   - Architecture: the story adds tests only and touches no layer. The adapter and application texts it pins are already where `CLAUDE.md` puts them.
+   - Scope: it is inside F0014. FEATURE decisions 34 and 36 give the leave for the added rows and name S0011 as tests only. Nothing in the story is listed under "Out of scope". The link case (a link to a repository is not itself a nested one) is decided in 36 (2).
+3. tester: added the rows and the test function the criteria name. This story only pins how today's code already behaves, so the new tests pass against it. The branch has no red tests, and that is expected here, not a sign the tests are wrong: one `make test` run ended `test: green (33.6 s)` with 99.47 % coverage, and `make lint` is green.
+   - criterion 1: `tests/adapters/test_git_cli_nested.py::test_remove_nested_repositories_removes_and_reports_each_nested_git_entry`, rows `link-to-repository-beside` (link `mirror` to `outside`, a folder beside the checkout made by `git init`), `link-to-root` (link `self`) and `link-to-parent` (link `deep/up` to the checkout's parent). All three expect `[]`. The test's existing snapshot of `tmp_path` shows that the links, the target's `.git` and the parent folder are unchanged.
+   - criterion 2: same test, row `git-inside-roots-git` (`.git/extra/.git` folder), expects `[]`.
+   - criterion 3: same test, row `git-inside-found-git` (repository at `notes`, folder `notes/.git/modules/m/.git`), expects `["notes/.git"]`. The snapshot shows the whole subtree is gone.
+   - criterion 4: same test, row `sorted-dot-folder` (repositories at `a` and `a/.cache`), expects `["a/.cache/.git", "a/.git"]`.
+   - criterion 5: `tests/application/test_nested_repositories.py::test_a_stage_whose_agent_leaves_two_repositories_names_both_in_the_stall_note`. It reuses `_nesting`, plus `_launch`, `_stalled`, `_note` and `_completed` imported from `application.test_after_agent`.
+   - criterion 6: `tests/application/test_nested_repositories.py::test_a_probe_run_that_leaves_a_nested_repository_fails_the_item`, row `two-nested`.
+   - criterion 7: `tests/application/test_nested_repositories.py::test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout`, row `two-nested`. The existing body checks that the test's file stays, so the checkout was not cloned again.
+   - New helpers in that module: `_nest_two`, which makes `b` before `a` so the sort is actually exercised, and the constant `TWO_NESTED`.
+   Files changed: `tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`. No files created. No module failed to import. The type check was skipped, as the stage says. For the coder: nothing to implement unless `make check` finds a type problem in these tests.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (33.9 s)
+4. coder: nothing to implement. This story only adds tests that pin how today's code already behaves, and the tester's new rows and test function (`tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`) pass against the current `GitCli.remove_nested_repositories()` and the three texts that join its paths. I ran `make check` and it ended `check: green`: type check, layers, sast, secrets and licences all pass, `test: green (32.5 s)`, and coverage is 99.47 %. No source change and no commit of my own, so I had no diff to refactor. I left the tests and the docs alone (criterion 9: docs none). I noticed nothing outside the ticket.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Criteria 1–4: the new rows `link-to-repository-beside`, `link-to-root`, `link-to-parent`, `git-inside-roots-git`, `git-inside-found-git` and `sorted-dot-folder` are in `tests/adapters/test_git_cli_nested.py`, and the test body is unchanged. `_snapshot(tmp_path)` walks without following links and covers the checkout's parent, so it would catch each mutant the story names:
+     - With `followlinks=True`, `mirror/.git`, `self/.git` or `deep/up/<checkout>/.git` would end up in the returned list, and the target's `.git` would disappear from the snapshot.
+     - Entering the root's `.git` would remove `.git/extra/.git`, and the snapshot would show it.
+     - Entering a `.git` the walk found would add `notes/.git/modules/m/.git` to the returned list.
+     - For `a` and `a/.cache`, the walk returns `a/.git` first, so leaving out the sort fails the row.
+   - Criterion 5: `test_a_stage_whose_agent_leaves_two_repositories_names_both_in_the_stall_note` reuses `_nesting` and imports `_launch`, `_stalled`, `_note` and `_completed` from `application.test_after_agent` without copying them. `_nest_two` makes `b` before `a`, so the test checks the sorted `", "` join.
+   - Criteria 6 and 7: the `two-nested` rows of the probe test and the preparer test check the full detail text and the full log line. The preparer body still checks that the test's file stays.
+   - No source change. The coder's entry records `make check: check: green` and `duplicates: 0 new`.
+   - Assignment, criteria and log match the diff. Criterion 9 (docs: none) still holds, because no rule changed.
+6. documenter: no files changed. The docs criterion is `none`, and the diff only adds tests (`tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`), so no rule or name changed.
+   - Cross-read and found current: `docs/project-guide.md`, the `remove_nested_repositories()` row (line 149) and the sealed-run and preparer paragraphs (lines 1046 and 1048). They state the same rules the new tests pin: links not followed, no `.git` entered, paths sorted and `/`-separated, and the `", "` join in the probe detail and the log line.
+   - Cross-read and found current: `docs/operator-guide.md` line 60. It names the stall note, the probe item and the `removed nested repositories: <paths>` log line.
+   - Not run: `make check`, because I changed no file outside README and docs.
+   - Findings: none. Stale text I saw but did not touch: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: both commands met their `Expect:` lines. No findings.
+
+   Command 1 (the walk over two nested repositories plus the links `mirror` and `self`):
+   ```
+   ['a/.git', 'b/.git']
+   True True True
+   ```
+   Met: two lines, `['a/.git', 'b/.git']` and then `True True True`. The walk did not follow `mirror` into `outside`, whose `.git` stays. It did not go through `self` either, and the checkout's own `.git` and the `mirror` link both stay. The paths come back sorted and `/`-separated, even though `b` was made before `a`.
+
+   Command 2 (pytest over the four modules):
+   ```
+   .....................................................                    [100%]
+   =============================== warnings summary ===============================
+   .venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+     PytestWarning: (rm_rf) error removing /tmp/pytest-of-factory/garbage-…/test_seal_takes_the_group_and_0/checkout
+     <class 'OSError'>: [Errno 39] Directory not empty: …
+   …
+   -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+   53 passed, 6 warnings in 1.81s
+   ```
+   Met: the last line says `53 passed`, with no `failed`, `error` or `skipped` count. The 6 warnings come from pytest's own cleanup: it fails to remove leftover `garbage-*` temp folders under `/tmp/pytest-of-factory`, which an earlier run's `test_seal_takes_the_group_and_…` left behind (a sealed checkout). This story's tests do not cause them, and the `Expect:` line does not rule out warnings, so this is not a finding. It is noted here in case the human wants a story about the seal test's temp folders being hard to remove.
+
+   Criteria cross-read: the demo contradicts none of them. Criteria 1, 2 and 4 are borne out by command 1: links are not followed, the root's `.git` is kept, and the output is sorted. Criteria 1 to 7 are covered by the passing rows in command 2. Criterion 8 (`make check`) is recorded green by the coder and the documenter; the factory runs it as the gate. Criterion 9 (docs: none) holds, because no rule changed.
