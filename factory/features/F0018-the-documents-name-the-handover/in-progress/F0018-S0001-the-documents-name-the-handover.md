@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T12:48:59.563860Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,12 @@ journal:
   kind: started
   at: '2026-10-18T12:48:59.563860Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T12:49:12.104788Z'
+  stage: review
+  run: f0a9a38068c1497cbb02812662b7fe7c
 ---
 
 # The documents name the handover
@@ -167,3 +169,14 @@ Expect: `documents ok`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 39 known, 0 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    I checked `git diff main...HEAD -- . ':!factory'` and it is empty. The diff touches only the work item and its `.costs.jsonl` sidecar.
+    - Criterion 1 holds. Nothing under src/, tests/, image/, template/ or claude/ changes, and both the tester (entry 5) and the coder (entry 10) end with an entry saying so.
+    - Criterion 2: the coder's entry 10 records `check: green`, after main's umask fix (27bdaa73, from the human's entry 8) was merged into the branch. `duplicates: 0 new`.
+    - Criterion 3 is the docs criterion and the documenter writes it next. It still says what the reader must know after this story: the README passages, the operator-guide bullet and the decision-log entry, with its three reasons.
+    - The Interface is "None" and states no rule or limit, so no failing side is missing a test.
+    - Architecture, security and quality: there is no code under review.
+    - Work item hygiene: the journal explains the one decision, to hand forward unchanged, and the change it rejected, any code or test edit. The Description matches what was built, which is nothing so far.
+
+    Earlier tests: none. The diff changes, renames or deletes no test file.
