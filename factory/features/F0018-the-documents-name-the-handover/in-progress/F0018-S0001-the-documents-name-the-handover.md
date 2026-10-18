@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 216
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T12:35:00.726040Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T12:34:40.587871Z'
   stage: intake
   run: 4c3f0741d6c44c90bfc61aaa11942ec9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:35:00.726040Z'
+  stage: tests
 ---
 
 # The documents name the handover
@@ -75,3 +84,4 @@ Expect: `documents ok`
    Smoke test: four commands (three greps and `check_documents`), all runnable from the repo root. Each has an Expect line that can be compared with the output.
    Architecture: documentation only, so the layers are untouched. The documenter's write paths cover README.md and docs/*, and the feature file confirms this.
    Scope: matches feature.md's Scope. Nothing in its Out of scope is touched: no src/tests/image/template/claude change, no factory/v1/ change, no planning/ change.
+4. factory: started tests as self.
