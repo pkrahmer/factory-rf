@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 199
-blocked: null
+blocked: question
 comments_seen: 2
 round: 1
 attempts: 0
@@ -279,3 +279,15 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     Findings:
     1. Command 2 (`uv run pytest … tests/application/test_journal_stamps.py …`). Expected: a last line naming `<n> passed`, with no `failed`, `error` or `skipped` count. Observed: `ERROR: file or directory not found: tests/application/test_journal_stamps.py`, no tests ran, exit 4. Criterion: none is contradicted. The command errors because a module it names does not exist on the branch. `## Demo` is the human's and the tests are the tester's, so the fix is one of two. Either the human changes the command to name the modules that hold the criterion-5 tests (`tests/application/test_stage_finish.py`, `tests/application/test_after_agent.py`, `tests/application/test_stalls.py`, `tests/application/handlers/test_closed_send_back.py`), or the tests move to `tests/application/test_journal_stamps.py`. If the command is changed, check that the combined selection passes: my ad-hoc run of these modules together gave errors in `test_closed_send_back.py`.
+12. coder: coder, round 1: the demo's finding (entry 11) can't be fixed in the code, so I need your decision. The second demo command names `tests/application/test_journal_stamps.py`, which doesn't exist. The tester put the criterion-5 tests into four existing modules instead: `tests/application/test_stage_finish.py`, `tests/application/test_after_agent.py`, `tests/application/test_stalls.py` and `tests/application/handlers/test_closed_send_back.py`. `## Demo` is yours and the tests are the tester's, so I changed nothing, and there is no commit from me this round.
+
+    What I checked about the errors the demo saw in its own run:
+    - They are not caused by the code. The demo command without the missing file passes: 223 passed.
+    - Each of the four modules passes when run together with `tests/application/handlers/test_reject.py` (65, 51, 47 and 36 passed).
+    - The 16 errors (`fixture 'pull_request' not found`) were reported by `test_reject.py`'s tests, not by `test_closed_send_back.py` as entry 11 said. They appear only when `test_closed_send_back.py` and `test_reject.py` are far apart in the argument list, with modules from other folders between them. The `pull_request` fixture comes from `tests/application/handlers/conftest.py`, so this looks like how pytest collects that folder's conftest when its files are split up in the arguments, not a fault in the code. With the two handler modules next to each other, everything passes (`test_stalls.py`, `test_closed_send_back.py`, `test_reject.py`: 65 passed).
+
+    Options:
+    (A) You change the second demo command: replace `tests/application/test_journal_stamps.py` with the four modules and keep the two `handlers/` modules next to each other, for example `… tests/application/test_stage_finish.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/application/test_claims.py tests/application/test_opening.py tests/application/handlers/test_closed_send_back.py tests/application/handlers/test_reject.py`.
+    (B) The ticket goes to the tester, who moves criterion 5's tests (a) to (e) into a new `tests/application/test_journal_stamps.py`, as the demo command expects.
+
+    I recommend (A). The tests already pin criterion 5 where the services they test are already tested, and the reviewer accepted them there. (B) would only move tests so that they match a command.
