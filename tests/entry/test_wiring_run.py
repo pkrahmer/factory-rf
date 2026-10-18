@@ -21,6 +21,7 @@ from factory.entry.wiring import (
 )
 from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
+from wiring_support import every_tool
 
 INSTANCE = "factory-7"
 WORK_ITEM = "F0001-S0001"
@@ -73,10 +74,6 @@ def settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings
     )
 
 
-def _every_tool(name: str) -> str | None:
-    return f"/usr/bin/{name}"
-
-
 def test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance(
     boundaries: Boundaries,
     settings: InstanceSettings,
@@ -99,7 +96,7 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     ready = settings.model_copy(
         update={"pinned_agent_version": "fake", "token_file": token_file, "agent_user": "agent"}
     )
-    tick = build_tick(boundaries, ready, _every_tool)
+    tick = build_tick(boundaries, ready, every_tool)
 
     outcome = tick.run()
 
@@ -107,8 +104,8 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     assert (outcome.event.kind, outcome.dispatch) == ("run", "handled")
     request = agent_runtime.requests()[-1]
     assert request.environment == agent_run_environment(ready, production_environment())
-    assert build_tick(boundaries, ready, _every_tool) is not build_tick(
-        boundaries, ready, _every_tool
+    assert build_tick(boundaries, ready, every_tool) is not build_tick(
+        boundaries, ready, every_tool
     )
     branch = branch_name(WORK_ITEM)
     assert remote_commit(remote, branch) is not None

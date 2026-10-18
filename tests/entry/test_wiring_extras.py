@@ -14,6 +14,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_tick, machine_extras
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from wiring_support import every_tool
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\
@@ -48,10 +49,6 @@ PROBE = AgentRunResult(
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
 )
-
-
-def _every_tool(name: str) -> str | None:
-    return f"/usr/bin/{name}"
 
 
 @pytest.mark.parametrize(
@@ -93,7 +90,7 @@ def test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_us
     )
     environment = {"PATH": "/usr/bin", "HOME": str(tmp_path)}
 
-    extras = machine_extras(boundaries, settings, _every_tool, environment)
+    extras = machine_extras(boundaries, settings, every_tool, environment)
 
     assert [check().name for check in extras] == names
 
@@ -131,7 +128,7 @@ def test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_envir
         agent_user="agent",
         token_file=token_file,
     )
-    tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, _every_tool)
+    tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, every_tool)
 
     outcome = tick.run()
 

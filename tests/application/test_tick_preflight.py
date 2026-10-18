@@ -21,16 +21,13 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
+from wiring_support import every_tool
 
 INSTANCE = "factory-1"
 IMAGE = "build-7"
 MAKEFILE = "lint:\n\ttest ! -f BROKEN\n"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 BRANCH = branch_name("F0001-S0001")
-
-
-def _every_tool(name: str) -> str | None:
-    return f"/usr/bin/{name}"
 
 
 def _no_git(name: str) -> str | None:
@@ -58,7 +55,7 @@ class Machine:
             }
         )
 
-    def tick(self, which: Callable[[str], str | None] = _every_tool) -> Tick:
+    def tick(self, which: Callable[[str], str | None] = every_tool) -> Tick:
         boundaries = self.boundaries
         checks = MachineChecks(boundaries, self.settings, which)
         stamps = JsonPreflightStampFile(self.directory / "state" / "preflight-stamp.json")

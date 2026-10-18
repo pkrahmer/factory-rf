@@ -13,6 +13,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_preflight
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from wiring_support import every_tool
 
 KERNEL_ADVICE = (
     ": update the kernel (on WSL: wsl --update), or allow the Landlock system calls"
@@ -30,10 +31,6 @@ def _found(name: str, path: str) -> str | None:
 
 def _not_found(_name: str, _path: str) -> str | None:
     return None
-
-
-def _every_tool(name: str) -> str | None:
-    return f"/usr/bin/{name}"
 
 
 @pytest.mark.parametrize(
@@ -132,7 +129,7 @@ def test_a_failed_confinement_item_stops_the_machine_before_any_agent_run(
     preflight = build_preflight(
         boundaries,
         settings,
-        _every_tool,
+        every_tool,
         [lambda: confinement_item(lambda: 2, environment, _found)],
     )
 

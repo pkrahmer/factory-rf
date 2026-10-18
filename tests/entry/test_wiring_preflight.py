@@ -11,12 +11,9 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_preflight, build_tick
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from wiring_support import every_tool
 
 IMAGE = "build-7"
-
-
-def _every_tool(name: str) -> str | None:
-    return f"/usr/bin/{name}"
 
 
 def _no_git(name: str) -> str | None:
@@ -50,7 +47,7 @@ def ready(boundaries: Boundaries, *, human: HumanClone, agent_home: Path) -> Bou
 def test_the_built_preflight_writes_its_stamp_in_the_state_directory(
     ready: Boundaries, settings: InstanceSettings
 ) -> None:
-    preflight = build_preflight(ready, settings, _every_tool)
+    preflight = build_preflight(ready, settings, every_tool)
 
     preflight.run()
 

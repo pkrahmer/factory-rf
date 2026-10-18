@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T16:59:12.997870Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T16:59:12.997870Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-18T17:01:07.393306Z'
+  stage: tests
+  run: c4218b87ec974b8e94c792847961586f
 ---
 
 # The preflight checks the kernel's write guard
@@ -207,3 +209,25 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
 
     The journal did not change the meaning of the task, so `## Description` stays as it is.
 12. factory: started tests as self.
+13. tester: Round 1, a test change: I made the move named in the coder's entry 11, which answers the reviewer's finding 1. It falls under CLAUDE.md's standing leave to move a shared test helper, so it needed no answer from the human.
+
+    The helper `_every_tool` was copied word for word in six test modules. It is now in one shared place: `every_tool` in `tests/wiring_support.py`. That root module already holds the constants the wiring tests share; I widened its module docstring and gave the function a docstring. Each of the six modules now imports `every_tool` from there, and its own copy is gone. Every test keeps its name and checks the same thing; the only change in them is the name of the helper they pass.
+
+    Criterion mapping: unchanged from entry 5.
+
+    Files changed:
+    - tests/wiring_support.py: added `every_tool`.
+    - tests/application/test_confinement_item.py: this story's own test module.
+    - Earlier test files changed under the standing leave:
+      - tests/entry/test_wiring_extras.py
+      - tests/entry/test_wiring_run.py
+      - tests/entry/test_wiring_agent_user.py
+      - tests/entry/test_wiring_preflight.py
+      - tests/application/test_tick_preflight.py
+
+    No files created. Every test module imports; none failed to import.
+
+    `make test`: test: green (38.2 s). `make lint`: lint: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.5 s)
