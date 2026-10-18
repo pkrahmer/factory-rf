@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T20:26:40.088547Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   at: '2026-10-18T20:26:19.826150Z'
   stage: intake
   run: 371965e7aa6640ac9de38a58038edba9
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:26:40.088547Z'
+  stage: tests
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -136,3 +145,4 @@ Expect: `with: 0`, then `without: 2`
    - Smoke test: runnable with `uv run -q factory-guard --settings`. The `Expect:` line (`with: 0`, then `without: 2`) can be checked against the output.
    - Architecture: a domain model field, an adapter judge and the runtime adapter, each in its own layer. No new dependency, package or layer. The hook stays and the tool paths stay kernel-only (decision 8).
    - Scope: inside F0019 and not in its "Out of scope". Removing the hook is left out. The story makes the hook agree with the kernel for R14's temporary folder, which supports decision 16's cross-check.
+7. factory: started tests as self.
