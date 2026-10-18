@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182, 6256356204]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T23:14:53.486638Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-18T23:14:53.486638Z'
   stage: docs
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T23:16:33.230349Z'
+  stage: docs
+  run: 85e566ca4f1d468da1aed8d15271b1e8
 ---
 
 # The stops reach main as records
@@ -493,3 +495,24 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
     Earlier tests: none needed. `git diff --name-status main...HEAD` shows every test file as added (`A`), so no test file that `main` already holds was changed, renamed or deleted.
 27. factory: started docs as self.
+28. documenter: Round 1 docs. I wrote the documentation from the docs criterion and the source diff. The code matches the Interface, including the human's option (b) from journal entry 15, so I have no findings. I did not run `make check`, because I changed only documents; the factory runs it after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - A new section, "The stop records", under *The records*. It covers the fields and their order, an example line, when `raised` and `cleared` are written, the no-`raised`-record rule for an unreadable health status, and the `OSError` after all destinations were tried. It also says the factory never clears the file and that deleting it is safe only when `main` holds every line.
+      - A new section, "The stop records on main", under *The stops*. It covers the `stops recorded` commit, that a tick stopped before the restore publishes nothing, the log line `cannot publish the stop records: <error>`, and that you pull `main` before pushing to it.
+      - A new bullet under *The stamp and the probe of the main branch*. A `stops recorded` commit counts as a new `main`, so the probe runs again. While `preflight_failed` stands, `main_branch_failing` is cleared and a `cleared` record is written although `main` is still red. This is accepted for now.
+      - One sentence in *The stops of the tick*: the tick publishes the stop records after the restore.
+    - `docs/project-guide.md`:
+      - The tick's order now has the publish after the restore, as step 3a. It gives the reason for the place: the restore logs what a killed stage left behind before the publisher's checkout could discard it.
+      - A new paragraph under *Stops, the clock and the factory log* describes `StopRecord`, the two text functions, `Boundaries.stop_records`, the new behaviour of `raise_stop` and `clear_stop`, and `StopPublisher`.
+    - `docs/decisions.md`: a new entry, "The stops reach main as raised and cleared records". It holds the decisions, including the human's option (b), the place of the publish, and the accepted effect on the preflight's stale-stop rule.
+
+    Cross-read and found current: `README.md`. The operator guide's health status file, factory log and low disk sections. The project guide's `Boundaries` section.
+
+    For the human to check: I did not read `feature.md`, so the "Rejected" line of the new decision entry is my own wording, not the feature's. It lists the health status file or factory log as the place, a branch of its own, and an event per tick. Replace it if the feature's decisions 1 to 3 name other rejected places.
+
+    Stale text I noticed and did not touch: none. The project guide's `Boundaries` field list already left out `disk` and `disk_records` before this story, and I did not add `stop_records` there either. The new stop-records paragraph describes `stop_records`.
+
+    `check`: check: green
+    `documents`: documents ok
