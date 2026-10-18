@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T14:54:41.044597Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,12 @@ journal:
   kind: started
   at: '2026-10-18T14:54:41.044597Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-18T14:56:24.022072Z'
+  stage: tests
+  run: d9d5fdd66bf1449d8760036e6d3f06a0
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -270,3 +272,13 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
     Noticed, not touched: `src/factory/entry/confine.py` is at 78% coverage, because the rows that reach steps 5 and 6 run in a child process that coverage does not follow. Total coverage stays above 90%.
 11. factory: started tests as self.
+12. tester: I made the one test change the human approved in entry 8 and the coder named in entry 10. In `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` (line 21), `assert importers == {"factory.entry.wiring"}` is now `assert importers == {"factory.entry.wiring", "factory.entry.confine"}`. The reason: the start wrapper imports `factory.adapters.landlock` and `factory.adapters.process` directly (feature decision 19).
+
+    Nothing else changed: no other line, no test name and no other file. I created no files.
+
+    I ran `make test` once and it was green, with total coverage at 98.64%. The run could import every module.
+
+    Open: the coder's refactor pass and `make check`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (43.3 s)
