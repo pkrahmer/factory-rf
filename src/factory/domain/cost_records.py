@@ -23,7 +23,11 @@ Cost = Annotated[Decimal, Field(ge=0, allow_inf_nan=False)]
 
 
 class CostRecord(BaseModel):
-    """One agent run: started, or completed with its measures; a measure `None` is unknown."""
+    """One agent run: started, or completed with its measures; a measure `None` is unknown.
+
+    `image` and `instance` say where the run ran: the machine's image and the name of
+    the instance; either may be `None` on a record written without settings.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -41,6 +45,7 @@ class CostRecord(BaseModel):
     tokens: TokenCounts | None = None
     cost_usd: Cost | None = None
     image: str | None = None
+    instance: Name | None = None
 
     @field_validator("cost_usd", mode="before")
     @classmethod
