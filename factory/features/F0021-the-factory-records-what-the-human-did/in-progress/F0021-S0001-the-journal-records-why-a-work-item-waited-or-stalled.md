@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: [6255820784]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T22:19:04.320909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -188,6 +184,12 @@ journal:
   kind: started
   at: '2026-10-18T22:19:04.320909Z'
   stage: smoke-test
+- number: 33
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T22:19:18.911302Z'
+  stage: smoke-test
+  run: 1af5cf6e8959432fbf8c25db6a045340
 ---
 
 # The journal records why a work item waited or stalled
@@ -653,3 +655,21 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     `check`: check: green
     `documents`: documents ok
 32. factory: started smoke-test as self.
+33. smoke-tester: I ran the one smoke-test command from the repository root, exactly as the story gives it, and changed no files.
+
+    Command 1 (`uv run -q python -c '…'`, which builds `JournalRecord` with a `reason` or a `blocked` on four kinds):
+
+    ```
+    stall reason accepted
+    crash reason refused
+    question blocked accepted
+    result blocked refused
+    ```
+
+    Exit status 0.
+
+    Expect: four lines, `stall reason accepted`, `crash reason refused`, `question blocked accepted`, `result blocked refused`. **Met**: the four lines appear in that order and match exactly.
+
+    Checked against the acceptance criteria: nothing in the output contradicts any of them. It agrees with criterion 1: `reason` is accepted on a `stall` record and refused on a `crash` record, and `blocked` is accepted on a `question` record and refused on a `result` record, which raises a `ValueError`. The command does not exercise criteria 2 to 13, so it shows nothing against them. The factory runs the stage checks for criterion 12, `make check` stays green, so I did not run them in this stage.
+
+    Findings: none.
