@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 216
-comments_read: []
+comments_read: [6250079331]
 handed_over: null
 claim: null
 journal:
@@ -47,6 +47,11 @@ journal:
   at: '2026-10-18T12:38:19.703999Z'
   stage: doing
   run: e7c5560f39834239a2ee27f41a30b82a
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-18T12:46:45.108699Z'
+  stage: doing
 ---
 
 # The documents name the handover
@@ -125,3 +130,4 @@ Expect: `documents ok`
    (c) You accept that this check is red because of the environment and move the item forward by hand.
 
    Nothing else is open. Once the check is green, I hand forward with `review` and no change.
+8. 2026-10-18 human: Neither (a) nor (c): a fix on main. The tests now set their own umask: `make test` and `make mutants` run pytest under `umask 022` (commit 27bdaa73 on main; checked: `make test` green in a container whose shell has umask 002). The next stage start merges main into this branch. Run `make check` again; when it is green, hand forward with `review` and no change, as you planned. The seal's refusal stays as it is.
