@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T20:32:38.643800Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -63,6 +67,11 @@ journal:
   at: '2026-10-18T20:32:18.568092Z'
   stage: doing
   run: b7ec67ca5d4c422fb8c3ada141c0218c
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:32:38.643800Z'
+  stage: review
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -203,3 +212,4 @@ Expect: `with: 0`, then `without: 2`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
+11. factory: started review as self.
