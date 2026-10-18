@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 211
 blocked: null
 comments_seen: 0
@@ -150,3 +150,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Scope: `git diff main...HEAD --stat` touches only the two agent files, the three documents, the ticket and `tests/test_claude_agent_texts.py`. Nothing under `src/` changed.
 
    No criterion is contradicted. Open: nothing.
+8. done (pull request merged); cost: 6 runs, 3.5 min, 40 turns, 91k tokens in (438k more from cache), 11k out, $0.82
