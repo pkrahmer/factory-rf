@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T17:10:18.406142Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T17:09:58.504010Z'
   stage: intake
   run: 64e6fc2a36e84a77af5bf10a96488ff5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:10:18.406142Z'
+  stage: tests
 ---
 
 # The agents' instructions explain a refused write
@@ -80,3 +89,4 @@ Expect: `1`
    - Smoke test: the three `grep` commands can be run as written. The expected values (`7`, `7`, `1`) can be checked against the output.
    - Architecture: this is prompt text only, in the coder's `claude/*` write path. Nothing crosses a layer, and the first sentence of R14 and the other rules stay as they are.
    - Scope: matches the feature's scope line for `claude/agents/*.md` (S0006) and decision 14. It does not remove the hook, which is out of scope.
+4. factory: started tests as self.
