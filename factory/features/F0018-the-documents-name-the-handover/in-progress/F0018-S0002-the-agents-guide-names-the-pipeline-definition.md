@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T13:01:24.051747Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   at: '2026-10-18T13:01:04.040447Z'
   stage: intake
   run: b6e5fe0f3c554cfd8ed27bbed9a5f1cc
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:01:24.051747Z'
+  stage: tests
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -100,3 +109,4 @@ Expect: `documents ok`
    Smoke test: the four commands are runnable from the repo root, and each has an `Expect:` line checkable against the output (`0`, `0`, `1`, `documents ok`).
    Architecture: nothing under `src/` changes, so the four layers are untouched. Only `docs/project-guide.md` and `docs/decisions.md` change, which is the documenter's job.
    Scope: `feature.md` now names both passages in its Scope and S0002 in its Stories (journal 4, answer 1), and neither is in its Out of scope. The in-place rewording matches feature decision 3. I made no edits to the story.
+7. factory: started tests as self.
