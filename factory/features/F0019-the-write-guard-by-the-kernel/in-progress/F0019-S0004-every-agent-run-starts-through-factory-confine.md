@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:22:23.498212Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-10-18T16:22:23.498212Z'
   stage: doing
+- number: 39
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:23:11.418757Z'
+  stage: doing
+  run: 4d13914dc647485eb2914b7d38b4fb6a
 ---
 
 # Every agent run starts through `factory-confine`
@@ -603,3 +605,21 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_login.py`: changed under the human's leave. The story's Interface names `test_the_built_runtime_hands_the_login_file_s_token_to_claude` under feature decision 13. Only `confine_executable=None` was added, which is within that leave.
     - `tests/test_process_search.py`: changed under the human's answer in journal entry 14 (feature decision 21, now on CLAUDE.md's exception list), as the coder named it in entry 16. The only change is the `domain/confinement.py` marker added to the expected markers, which is within that leave.
 38. factory: started doing as self.
+39. coder: Tests: all four findings from the round-1 review (entry 37) are about test code. No source code needs to change, so I changed no code this round. The working tree has no changes of mine, and `make check` was green at the end of entry 35. These are the test changes for the tester:
+
+    1. `tests/entry/test_wiring_confinement.py`, the `settings` fixture and `CREDENTIAL`: these are word-for-word copies of the ones in `tests/entry/test_wiring_command_records.py:16-29`. A near copy of the fixture is also in `tests/entry/test_wiring_boundaries.py:62-72`, and `CREDENTIAL` is also copied in `tests/entry/test_wiring_login.py:16` and `tests/entry/test_wiring_boundaries.py:46`. Under CLAUDE.md's standing leave to move a shared test helper:
+       - Move the `settings` fixture (checkout, state directory and agent home under `tmp_path`) and `CREDENTIAL` to one shared place under `tests/`. That could be a module at the root, such as `tests/wiring_support.py` with the constant, or `tests/entry/conftest.py` or `tests/conftest.py` for the fixture.
+       - Change `test_wiring_confinement.py` and `test_wiring_command_records.py` to use them from there, and drop the copies of `CREDENTIAL`.
+       - Many other modules define their own `settings` fixture with different fields (`remote`, `agent_home`, `claude_executable`). Leave those alone, and do not create a shared fixture name that would clash with them.
+       - The other option is to import, the way `tests/entry/test_wiring_login.py` already imports from `tests/adapters/test_claude_runtime_os_user.py`.
+    2. `tests/entry/test_wiring_confinement.py`, inside `test_every_run_of_the_factory_builds_a_confined_runtime`: the token file, the image-id file and the four `FACTORY_*` variables copy the `environment` fixture in `tests/entry/test_wiring_run.py:77-89`. Move that fixture to the shared place and use it in both modules.
+       - Check the repository URL before moving it. `test_wiring_run.py` uses `HOSTED_URL`, while the new test spells `https://github.com/example/project.git`.
+       - Keep the test's name: `[tool.mutmut]` deselects it by that name.
+    3. `tests/adapters/test_claude_runtime_confinement.py:39-51`, `REPLY`: this is a copy of `REPLY` in `tests/adapters/test_claude_runtime_os_user.py:19-31`. Import it from there, the way the module already imports `_without_locale`, or move it to a shared place.
+    4. `tests/adapters/test_claude_runtime_confinement.py`, `test_the_rules_hold_only_the_device_targets_that_exist`: rename the parameter `names` to `constant`, and the locals `devices_folders` and `devices_files` to `expected_folders` and `expected_files`. This story's tester wrote the test, so the rename needs no other leave.
+
+    Every earlier test keeps its name and checks the same thing. When the tester names the earlier test files it changed, I will run `make check` against the code as it is.
+
+    Description: no rewrite needed. This round's findings change no part of the task.
+
+    Noticed but not touched, as in entry 35: the name of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` is out of date, because the test now also covers the `/dev/shm` marker. It keeps that name because `[tool.mutmut]` deselects it by name.
