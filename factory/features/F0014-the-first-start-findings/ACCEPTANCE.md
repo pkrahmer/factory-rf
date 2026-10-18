@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 201
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0014-S0001, F0014-S0002, F0014-S0003, F0014-S0004, F0014-S0005, F0014-S0006, F0014-S0007, F0014-S0008, F0014-S0009, F0014-S0010]
+outcome: accepted
 ---
 # Acceptance of The first start's findings
 
@@ -409,3 +410,4 @@ S0010 had the same kind of question: the note was compared by equality against a
    7. Slow checks: duplicates 0 new / 39 known, documents ok, and no image scan or SBOM target. The observations as `agent` are left to the shakedown.
    8. Cost: 87 runs, 87.1 min, $23.01. S0007 ($5.04, 14 runs) and S0003 ($4.16, 12 runs) stand out: both are large, and both had two questions caused by contradictions in the drafted story text. Six of the nine human answers in the feature were of that kind.
    Note: I replaced the pasted run id with `<run id>`, because `make secrets` refused it as a high-entropy hex string. The demo script is in `/tmp/f0014-acceptance/feature_demo.py` and is also pasted in the report.
+2. done (pull request merged); cost: 1 runs, 57.4 min, 92 turns, 205k tokens in (9971k more from cache), 68k out, $4.99
