@@ -26,6 +26,18 @@ from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
+from tmp_path_support import reopen
+
+
+@pytest.fixture(autouse=True)
+def reopened_tmp_path(request: pytest.FixtureRequest) -> Iterator[None]:
+    """After a test that uses `tmp_path`, give its owner back every folder and file under it."""
+    if "tmp_path" not in request.fixturenames:
+        yield
+        return
+    tmp_path: Path = request.getfixturevalue("tmp_path")
+    yield
+    reopen(tmp_path)
 
 
 @pytest.fixture

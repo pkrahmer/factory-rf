@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 214
 blocked: null
 comments_seen: 0
@@ -141,3 +141,18 @@ Expect: `documents ok`.
    - Demo: the pytest command lists existing modules plus the new one. The Python snippet is runnable and expects `0o720` then `False`. The `check_documents` command expects `documents ok`. Each Expect line can be checked against the output.
    - Architecture: the change is under `tests/` only, with the standard library only. It adds no layer, no dependency and no `src/` change. The child process uses `run_process` from `factory.adapters.process` as other tests do. The `tests/conftest.py` leave is stated in the story and in FEATURE decision 6.
    - Scope: it is within FEATURE scope and avoids everything in "Out of scope": no `Makefile`, `pyproject.toml`, `src/` or earlier-test changes.
+3. tester: wrote the helper, the fixture and their tests as the Interface states. The story makes every change in the tester's lane, so the tests are green from this stage on, not red. `make test` was green (32.3 s, coverage 99.47 %) and `make lint` and `make types` are green.
+   - criterion 1: tests/test_tmp_path_reopening.py::test_reopen_gives_the_owner_back_every_folder_and_entry_and_keeps_every_other_bit, rows sealed-git-folder, no-search, no-read, no-write, closed-inside-closed, closed-root. Each row also checks that `shutil.rmtree` then removes the tree.
+   - criterion 2: the same test, row open-with-setgid, plus the expected modes of the other rows (`.git` 0o020 → 0o720).
+   - criterion 3: tests/test_tmp_path_reopening.py::test_reopen_leaves_a_symbolic_link_and_its_target_as_they_are, rows link-to-a-folder, link-to-a-file, dangling.
+   - criterion 4: tests/test_tmp_path_reopening.py::test_reopen_of_a_missing_root_changes_nothing
+   - criterion 5: tests/test_tmp_path_reopening.py::test_a_test_that_closes_folders_in_its_tmp_path_leaves_them_open_after_its_teardown, rows with-conftest and without-conftest. It runs a child pytest through `run_process` with the argv, env and inner test text from the Interface.
+   - criterion 6: the same test; both rows assert that `base / "test_uses_no_tmp_path0"` does not exist.
+   - criterion 7: no earlier test module was touched. The whole suite passed in `make test` with the fixture in place.
+   - criteria 8 and 9: `make check` is the factory's gate. The docs belong to the documenter stage.
+   Files: created `tests/tmp_path_support.py` (`reopen`, standard library only) and `tests/test_tmp_path_reopening.py`. Changed `tests/conftest.py`: added the import of `reopen` and the autouse fixture `reopened_tmp_path`; no existing fixture changed.
+   How `reopen` works: it changes `root` first, then walks top down with `os.walk(followlinks=False)` and changes every folder in a listing before descending into it. It skips symbolic links, which `os.walk` lists among the folders when they point to one, so chmod never follows a link. It calls chmod only when a bit is missing.
+   Modules the test runner could not import: none. Nothing is left for the coder to build.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (31.3 s)
