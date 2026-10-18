@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T22:00:39.958843Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T22:00:19.888400Z'
   stage: review
   run: 49ffbc9e4efb4d90bd5b8c4ecbb0a79a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:00:39.958843Z'
+  stage: doing
 ---
 
 # The journal records why a work item waited or stalled
@@ -269,3 +278,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
    - `tests/application/test_recovery_expiry.py`: human's leave, the same way. The change only adds `blocked="crash_cap"` to the expected question record.
    - `tests/application/test_stalls.py`: human's leave, the same way. The change only adds `reason="died"` to three expected stall records.
    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`; `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
+10. factory: started doing as self.
