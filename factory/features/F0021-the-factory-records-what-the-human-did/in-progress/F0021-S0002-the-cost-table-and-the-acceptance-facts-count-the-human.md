@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:38:27.345494Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-18T22:38:27.345494Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:40:13.913077Z'
+  stage: doing
+  run: 95e29051987346d7be2854a2709e4069
 ---
 
 # The cost table and the acceptance facts count the human
@@ -353,3 +355,17 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     `lint`: lint: green (0.0 s)
     `test`: test: green (39.4 s)
 17. factory: started doing as self.
+18. coder: Round 1. The reviewer's only finding in entry 12 was a missing test on both sides of the `PositiveInt` limit on `HumanWait.question`. The tester added that test in entry 16 (`tests/domain/test_human_waits.py::test_a_wait_names_a_question_numbered_from_one`). The code already declares `question: PositiveInt` in `src/factory/domain/human_waits.py`, so it already refuses 0 and accepts 1, and no code needed to change. I ran `make check` on the committed state with the new test, and it is green (`check: green`).
+
+    What I built is unchanged from entry 10: `src/factory/domain/human_waits.py`, `src/factory/domain/bills.py` (`one_decimal`), `src/factory/domain/post_texts.py`, `src/factory/domain/acceptance.py`, `src/factory/application/handlers/hand_over.py`, `src/factory/application/acceptance.py` and `src/factory/application/acceptance_reading.py` (the public `AcceptanceReader.document`). The main choice is also unchanged. The handlers' `_show` receives the state that `handle` already checked, rather than calling `require_state` a second time.
+
+    Refactor: there was no new diff this round, so nothing needed changing.
+
+    What the journal changed: nothing in what the task means. The limit was already in the Interface. Neither the coder (entry 14) nor the tester (entry 16) added a criterion row for it, so `## Description` stays as it is. The reviewer had suggested a matching row for criterion 1 or 2. That is open for the reviewer or the human to decide.
+
+    Still open from entry 10, not touched: `_hours` and `_minutes` each turn a timedelta into a Decimal of seconds the same way. Also, `make duplicates` reports 3 baseline findings as gone, and the baseline is not mine to update.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
