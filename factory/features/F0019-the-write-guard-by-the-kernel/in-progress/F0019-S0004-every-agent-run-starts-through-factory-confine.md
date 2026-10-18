@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T16:40:48.063319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -327,6 +323,12 @@ journal:
   kind: started
   at: '2026-10-18T16:40:48.063319Z'
   stage: docs
+- number: 59
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T16:42:48.546502Z'
+  stage: docs
+  run: c193692991a944d9948e104e3e1cdc1f
 ---
 
 # Every agent run starts through `factory-confine`
@@ -911,3 +913,23 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_run.py`: the standing leave. The `environment` fixture became the shared `hosted_environment`, and `HOSTED_URL` moved to `tests/wiring_support.py`. Both tests keep their names and check the same thing.
     - `tests/test_process_search.py`: the human's answer in journal entry 14 (feature decision 21). The only change adds the `domain/confinement.py` `/dev/shm` marker to the expected markers. As entry 47 says, the test keeps its out-of-date name.
 58. factory: started docs as self.
+59. documenter: Docs, round 1. I read the story, the diff (`git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`) and the documents below. The diff matches the Interface and the criteria, so I have no findings for the coder. I changed only documents, so I did not run `make check`; the factory's run decides.
+
+    Files changed:
+    - `docs/operator-guide.md`, section *The agent runs as a second user*:
+      - The command line now shows `factory-confine --rules /state/runs/confine-<session>.json --` before the login shell. I added that the command is the same without `sudo`, `timeout` and `env -i` when there is no `FACTORY_AGENT_USER`.
+      - New subsection *The kernel refuses every other write*. It lists the write paths as targets, the tool paths, `~/.claude` with `CLAUDE_CONFIG_DIR` and the reason for it, the device files and `/dev/shm`, and `/tmp/factory-run-<session>` as `TMPDIR`. It says every other write ends with `Permission denied`, that a run without write paths is confined too, and that the temporary folder is removed after every call. It also says there is no unconfined fallback.
+      - The paragraph on a refused `sudo` now also covers a `factory-confine:` line without a reply: the error is `factory-confine refused the agent run: <line>`, `sudo:` is checked first, and a line before a good reply is ignored.
+      - Two sentences were stale, because `.claude.json` now lives in `~/.claude`, inside the `claude-home` volume. One said `/home/agent/.claude.json` stays writable. The other said it lies outside the volume. Both are corrected.
+    - `docs/project-guide.md`, section *The `claude -p` runtime*: the constructor signature gains `confine_executable` and `temporary_root`; the files list gains `confine-<session>.json`; and a new *Confinement* paragraph covers the command line, the rules file and its mode, how the rules are built, the temporary folder, `CLAUDE_CONFIG_DIR`, the removal with `CLEANUP_SCRIPT` and the refusal rule.
+    - `docs/decisions.md`: new entry *Every agent run is confined by the kernel*, dated 2026-10-18 (F0019-S0004). It carries the reasons of the feature's decisions 9, 10, 11 and 13 (and 21 for the `/dev/shm` marker), and what was rejected.
+
+    I did not run the examples; the command lines in the docs are descriptions. The coder's smoke test is the runnable one.
+
+    Cross-read and found current: `README.md`; the operator guide's sections *The agent runtime* and *`factory-guard` on the agent run's `PATH`*; and the project guide's *The start wrapper*, *The kernel's write guard* and *Landlock* sections.
+
+    Stale text I saw and did not touch (not this story's):
+    - The name `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` is out of date, as the coder noted in entry 55. Entry 47 says to leave it, because `[tool.mutmut]` names that test.
+
+    `check`: check: green
+    `documents`: documents ok
