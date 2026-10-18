@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T15:09:34.469521Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -160,6 +156,12 @@ journal:
   kind: started
   at: '2026-10-18T15:09:34.469521Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T15:10:08.196474Z'
+  stage: smoke-test
+  run: 729ae0fcaf78403bb21e9e4117d8d709
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -493,3 +495,29 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     `check`: check: green
     `documents`: documents ok
 27. factory: started smoke-test as self.
+28. smoke-tester: I ran the three smoke-test commands from the repository root, in order and as written. Each one ran in its own shell call, so each `trap 'rm -rf "$d"' EXIT` removed its own temporary folder when the call ended. My first attempt put commands 1 and 3 inside a `bash -c` wrapper, and the tool's safety check refused it (a nested script that runs `rm`). Neither command ran then. I then ran both directly, word for word, with no wrapper. None of the three commands starts a server.
+
+    Command 1 (the wrapper confines a `sh -c` command to `allowed` and its own temporary folder):
+    ```
+    allowed written
+    other refused
+    own temporary folder
+    ```
+    Met its Expect: line: three lines, `allowed written`, `other refused`, `own temporary folder`.
+
+    Command 2 (`uv run -q factory-confine -- true 2>&1; echo "status $?"`):
+    ```
+    factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]
+    status 1
+    ```
+    Met its Expect: line: the usage line, then `status 1`.
+
+    Command 3 (the temporary folder already exists):
+    ```
+    factory-confine: cannot make the temporary folder <d>/run: File exists
+    ```
+    Met its Expect: line. `started` was not printed, so the command did not run.
+
+    Against the acceptance criteria: the output agrees with criteria 3 (a write in A succeeds, a write elsewhere gets `Permission denied`), 4 (`TMPDIR` equals T and T is a folder), 7 (the usage line and exit 1), 9 (the kernel's real ABI is accepted and the command runs) and 10 (an existing temporary folder gives `File exists` and the command does not run). Nothing in the smoke test contradicts any other criterion.
+
+    No findings.
