@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T14:29:30.296920Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T14:29:30.289261Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:29:30.296920Z'
+  stage: intake
+---
+
 # The kernel restricts a process's writes (Landlock)
 
 ## Description
@@ -111,3 +138,5 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
 
 ## Journal
 
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
