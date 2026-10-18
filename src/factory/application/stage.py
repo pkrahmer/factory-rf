@@ -18,16 +18,18 @@ from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.application.undo import UndoReport, UndoService
 from factory.application.write_paths import WritePathService
+from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
-from factory.domain.errors import PushFailed
+from factory.domain.errors import HostingServiceError, PushFailed
 from factory.domain.git import CommitId
+from factory.domain.hand_over import hand_over_description
 from factory.domain.hosting import PullRequestView
-from factory.domain.identifiers import Name, WorkItemId
+from factory.domain.identifiers import Name, WorkItemId, is_acceptance
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
-from factory.domain.paths import cost_records_path
+from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import WorkItemDocument, require_state
@@ -310,7 +312,8 @@ class StageFinisher:
             document = append_entry(document, question, at=now, run=run)
         moved = self._moved(document, move, started.pull_request.number)
         subject = commit_subject(started.work_item, f"{started.stage} ends: {move.stage}")
-        commit = self._commit_and_push(started, moved, subject)
+        approval = self._definition.stages[move.stage].approval
+        commit = self._commit_and_push(started, moved, subject, describe=approval)
         self._boundaries.hosting.set_labels(
             started.pull_request.number, labels_for(require_state(moved, _no_state()))
         )
@@ -382,15 +385,34 @@ class StageFinisher:
         return self._claims.release(document.model_copy(update={"state": moved_state}))
 
     def _commit_and_push(
-        self, started: StartedStage, document: WorkItemDocument, message: str
+        self, started: StartedStage, document: WorkItemDocument, message: str, *, describe: bool
     ) -> CommitId:
         self._boundaries.work_item_writer.write(self._boundaries.checkout / started.path, document)
         git = self._boundaries.git
         commit = git.commit(message)
+        if describe:
+            self._describe(started, document)
         outcome = git.push(started.branch)
         if outcome != "pushed":
             raise PushFailed(started.branch, outcome)
         return commit
+
+    def _describe(self, started: StartedStage, moved: WorkItemDocument) -> None:
+        # The push shows the approval on the board; the description must already be complete.
+        number = started.pull_request.number
+        try:
+            self._boundaries.hosting.set_description(number, self._description(started, moved))
+        except HostingServiceError as error:
+            # The hand-over on the next tick writes the same description again.
+            self._boundaries.log.line(
+                f"pull request #{number}: description not written before the push: {error}"
+            )
+
+    def _description(self, started: StartedStage, moved: WorkItemDocument) -> str:
+        if is_acceptance(started.work_item):
+            return acceptance_description(moved, _role_of(self._definition, started.stage))
+        commits = self._boundaries.git.log("HEAD", since=f"origin/{MAIN_BRANCH}")
+        return hand_over_description(moved, commits)
 
 
 class StageRunner:
