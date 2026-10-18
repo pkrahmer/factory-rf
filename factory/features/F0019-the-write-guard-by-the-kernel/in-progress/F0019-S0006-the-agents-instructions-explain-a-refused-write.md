@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T17:20:21.756056Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-18T17:20:21.756056Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T17:20:41.171114Z'
+  stage: review
+  run: 6c0a2c707d004d9b9e707298a4910432
 ---
 
 # The agents' instructions explain a refused write
@@ -224,3 +226,18 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    - Group 1, acceptance criteria: all three criterion tests in `tests/test_claude_agent_refusal.py` are parametrized over the seven names in `SHIPPED_NAMES`.
+      - Criterion 1 checks that the Interface's R14 paragraph, word for word, is one whole line of `## Rules`.
+      - Criterion 2 checks that the old ending is gone. This is the failing side of the rule.
+      - Criterion 3 counts the lines that start with `R14. ` and expects exactly one.
+      - The factory's `make check` after the coder was green (entry 15).
+    - Group 2, architecture: no `src/` change. Each of the seven files under `claude/agents/` changes only its R14 line, and the replacement line is the same in all seven. It matches the Interface paragraph exactly.
+    - Group 3, security: no secrets and no silencing markers.
+    - Group 4, quality: the finding from round 1 is resolved. The duplicated `_body` helper is now one shared `agent_body` in `tests/shipped_agents.py`. It behaves the same: `front_matter_and_body` already returns the stripped body. No copy is left.
+    - Group 5, work item hygiene: the Description matches what was built, and the journal records the main decisions (one exact replacement; the helper named `agent_body` to avoid shadowing). The docs criterion still says what the documenter has to write in `docs/project-guide.md`.
+
+    Earlier tests:
+    - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper (entry 13). The only change is that its identical `_body` copy is gone and the tests call `agent_body` instead. Every test keeps its name and checks the same thing.
+    - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place where `agent_body` was added. Nothing that was already in it changed.
