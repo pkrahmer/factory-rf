@@ -115,11 +115,19 @@ def _merge(at: datetime | None) -> WorkItemDocument:
     return book_merge(_report(), bill([]), at=at)
 
 
+def _merge_before_approval(at: datetime | None) -> WorkItemDocument:
+    return book_merge(_report(), bill([]), before_approval=True, at=at)
+
+
 def _refuse(at: datetime | None) -> WorkItemDocument:
     return book_refusal(_report(), role=ROLE, on=date(2026, 10, 12), bill=bill([]), at=at)
 
 
-@pytest.mark.parametrize("booking", [_merge, _refuse], ids=["merge", "refusal"])
+@pytest.mark.parametrize(
+    "booking",
+    [_merge, _merge_before_approval, _refuse],
+    ids=["merge", "merge-before-approval", "refusal"],
+)
 @pytest.mark.parametrize(
     ("at", "expected"),
     [
