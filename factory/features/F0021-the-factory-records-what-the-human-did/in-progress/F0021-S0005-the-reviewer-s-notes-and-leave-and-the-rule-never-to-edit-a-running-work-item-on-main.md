@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T23:51:11.226300Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T23:50:51.439242Z'
   stage: intake
   run: c1c694801ae1425997d9639bb5ed1211
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:51:11.226300Z'
+  stage: tests
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -114,3 +123,4 @@ Expect: five lines, each `1`.
    - Smoke test: the greps are runnable. Each Expect line (`1`, or five lines of `1`) can be checked against the output.
    - Architecture: only shipped agent texts, one new test module and docs change. No layer or `src/` code is touched. The paths fit the roles' write paths: the coder writes `claude/*`, the tester writes `tests/*`, the documenter writes `docs/*`.
    - Scope: this is S0005 of F0021, listed in the feature's Scope under "The texts". Decisions 10, 11 and 12 are followed, including the smoke-test pin for the operator guide. Nothing in "Out of scope" is touched.
+4. factory: started tests as self.
