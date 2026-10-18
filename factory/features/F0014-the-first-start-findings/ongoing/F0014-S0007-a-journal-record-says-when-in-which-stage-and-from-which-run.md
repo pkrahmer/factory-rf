@@ -1,7 +1,7 @@
 ---
 stage: doing
 pr: 199
-blocked: null
+blocked: question
 comments_seen: 0
 round: 0
 attempts: 0
@@ -169,3 +169,19 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: ERROR tests/application/handlers/test_reject.py - pydantic_core._pydantic_cor...
+4. coder: Question: one test and the Interface disagree about the `stage` of the `move_back` entry. Which stage should the record carry?
+
+   The Interface says: "the `move_back` entry carries the stage the human set, since it is appended before the move back". `append_entry` takes the stage from the document's state, and "no call site changes its order". In the tests of `tests/application/handlers/test_reject.py`, the human's illegal change goes from `doing` to `approval`, so at the moment of the append the state's stage is `approval`. The test's module constant `MOVE_BACK` expects `stage="doing"` instead, which is the stage the work item is moved back to. The tester's entry calls `doing` "the stage the human set". Because of this, six tests fail with `stage='approval' != 'doing'`: `test_the_correction_appends_one_move_back_entry_by_the_factory`, `test_without_a_pull_request_nothing_is_posted_and_the_stage_is_still_moved_back`, `test_a_kill_before_the_push_leaves_the_branch_and_a_second_run_corrects_once`, `test_a_kill_after_the_post_leaves_the_branch_and_a_second_run_posts_no_second_note`, `test_an_illegal_change_followed_by_a_commit_to_another_file_is_moved_back` and `test_a_failing_label_call_raises_and_the_correction_stays_on_the_branch`. Every other test passes, and lint, types and layers are green.
+
+   Options:
+   - (A) Keep the Interface: `move_back` carries the stage the human set (`approval`). The tester changes `MOVE_BACK` in `tests/application/handlers/test_reject.py` from `stage="doing"` to `stage="approval"`. No code change. **I recommend A**: it matches the Interface's wording and reason, the "no order change" rule, and `append_entry`'s single source for the stage. It also records what the state really held when the entry was written.
+   - (B) Keep the test: `move_back` carries the stage it moves back to (`doing`). `RejectHandler._moved_back` would set the stage before appending, which breaks "no call site changes its order". The Interface sentence and the docs criterion would need rewriting.
+
+   Built so far, committed as 3fffb043:
+   - `JournalRecord` has the fields `at`, `stage` and `run` (`src/factory/domain/journal.py`).
+   - `append_entry(..., *, at, run)` checks `run`-without-`at` first, before the state check.
+   - `book_merge` and `book_refusal` take `at=` (`src/factory/domain/acceptance.py`).
+   - The writer drops unset stamps through `model_dump(exclude_none=True)` on each record (`src/factory/adapters/work_item_markdown.py`). I chose this over a list of named keys because the other fields of a record are never `None`.
+   - Every call site in the Interface table passes `at` and `run`. `StallService._stalled` now takes the `StallContext`, so it gets the stage and the cost's run from it instead of growing a sixth parameter.
+
+   Not yet done: the refactor pass and the final `make check`. I'll do both once this is answered.
