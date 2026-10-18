@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:03:50.278652Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -115,6 +111,12 @@ journal:
   kind: started
   at: '2026-10-18T16:03:50.278652Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:06:13.048205Z'
+  stage: doing
+  run: 4c0b171d60e34f77b5876cfb32c3f884
 ---
 
 # Every agent run starts through `factory-confine`
@@ -368,3 +370,27 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `lint`: lint: green (0.0 s)
     `test`: test: green (49.2 s)
 19. factory: started doing as self.
+20. coder: `make check` is green with nothing changed this round (`check: green`, coverage 98.67 %). The tester's change from entry 18 to `tests/test_process_search.py` was the only thing keeping it red.
+
+    What I built (committed in earlier rounds, described in entries 13 and 16):
+    - `src/factory/domain/confinement.py`: `DEVICE_FILES` and `DEVICE_FOLDERS`. The `/dev/shm` line carries `# noqa: S108  # nosec B108` and a comment saying why, under the human's entry 14 (feature decision 21).
+    - `src/factory/adapters/claude_runtime.py`:
+      - New constants: `CONFIG_VARIABLE`, `RUNTIME_FOLDER`, `TEMPORARY_PREFIX`, `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `CONFINE_PREFIX`.
+      - `ClaudeCodeRuntime` takes `confine_executable` and `temporary_root` and has a `confine_executable` property.
+      - `_RunFiles` now holds `rules` and `temporary`. The rules file is mode 0o640, written only when the runtime confines, and removed with the run's other files.
+      - `_confinement` builds the rules through `write_targets` and `confinement_of`. When there is no guard, it uses one with an empty `write_paths` rooted at the working directory.
+      - `_confined_argv` wraps each call, and `_config_folder` sets `CLAUDE_CONFIG_DIR` when the request has a `HOME`.
+      - `_remove_temporary_folder` runs after every confined call. It uses `SHELL_EXECUTABLE`, goes through `_sudo_prefix` when there is an `os_user`, and runs with an empty environment in the working directory.
+      - `_check_confinement` runs after the `sudo` check. `_has_usable_reply` is shared by the `sudo` and wrapper refusal checks.
+    - `src/factory/entry/wiring.py`: `build_boundaries(..., confine_executable=CONFINE_COMMAND)` passes the value on to the runtime.
+
+    Main choice: the run's paths (the rules file and the temporary folder) travel in `_RunFiles`, which `_call` and `_resume` take. I rejected passing them as separate parameters or keeping per-run state on the runtime: that adds arguments and would make the runtime stateful across runs. The removal runs right after the process ends and before the refusal checks, so it also happens after a call that then raises.
+
+    Refactor: I read the diff against main as a reviewer would. Nothing needs changing: names are clear, there is no duplication and no dead code.
+
+    Description: no rewrite needed. The journal's changes (the Interface line about `SHELL_EXECUTABLE`, and the marker exception) are already in the work item and CLAUDE.md on main.
+
+    Noticed but not touched: the test `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` now also covers the confinement line, so its name is out of date. It keeps the name because `[tool.mutmut]` deselects it by that name. Renaming it would mean changing `pyproject.toml` and the test, which is the human's decision.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
