@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 229
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T19:35:34.686997Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T19:35:34.686997Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T19:35:51.725051Z'
+  stage: intake
+  run: c1ace8f91b6048f88a055ef175a0dc58
 ---
 
 # factory-confine's steps run in the test process
@@ -104,3 +106,9 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: `factory.entry.confine.main` gains keyword-only `restrict` and `replace`, with exact types and `None` defaults. These are the adapters' `restrict_writes` and `replace_process`, which `src/factory/entry/confine.py` already imports. The call order, arguments and error texts match the code as it stands (lines 61-75), so the change is small and concrete.
+   Criteria: each is testable by one test function or one parametrized test. Criterion 1 covers the folder/file/temporary split, the `0700` mode and `parents=True`. Criterion 2 covers the command, the `TMPDIR` environment and the call order and count. Criterion 3 has both argument-count sides: 4 arguments pass and 3 fail, with the usage line. Criterion 4 has both fault rows, with exact texts. Criterion 5 covers an ABI below 3. Criterion 6 is a source check of the defaults. Every Interface rule has a criterion for its failing side. The usage text is the existing `_USAGE` constant, which the story leaves unchanged.
+   Smoke test: it is runnable as written, using `uv run -q python -c`, with `abi`, `restrict` and `replace` all injected, so nothing restricts the shell. The `Expect:` line is a single printed line that can be compared exactly.
+   Architecture: the change stays in `factory.entry`, which already imports the two adapters directly (decision 19). The new test module goes in `tests/entry/`, as `CLAUDE.md` says. `tests/entry/test_confine.py` is left unchanged, so no leave is needed for another story's test.
+   Scope: this is within F0019 as a follow-up from its acceptance. It is not under "Out of scope", and it only makes steps 3 to 6 visible to coverage and mutation testing. The docs criterion touches only `docs/project-guide.md`.
