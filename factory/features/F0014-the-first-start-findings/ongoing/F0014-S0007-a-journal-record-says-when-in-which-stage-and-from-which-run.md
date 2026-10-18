@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 199
-blocked: asked
-comments_seen: 1
+blocked: null
+comments_seen: 2
 round: 0
 attempts: 0
 ---
@@ -185,3 +185,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Every call site in the Interface table passes `at` and `run`. `StallService._stalled` now takes the `StallContext`, so it gets the stage and the cost's run from it instead of growing a sixth parameter.
 
    Not yet done: the refactor pass and the final `make check`. I'll do both once this is answered.
+5. human (pull request comment, 2026-10-18): (A): `move_back` carries the stage the human set, `approval`. FEATURE decision 27 already gives the constant exactly so: `MOVE_BACK = JournalRecord(number=2, speaker=FACTORY, kind="move_back", at=datetime(2026, 10, 12, 12, 0, tzinfo=UTC), stage="approval")`. The tester changes `stage="doing"` to `stage="approval"` there and nothing else; no code change, no call site changes its order.
