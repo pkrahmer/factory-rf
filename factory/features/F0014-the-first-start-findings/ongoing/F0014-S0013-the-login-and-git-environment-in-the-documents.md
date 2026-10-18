@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 204
 blocked: null
 comments_seen: 0
@@ -85,3 +85,30 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their `Expect:` lines and no criterion is contradicted.
+
+   Command 1, `grep -c 'not recorded in the story' docs/decisions.md; grep -c 'a session you have already logged in to' docs/operator-guide.md; grep -c 'factory-login' docs/operator-guide.md`:
+   ```
+   0
+   0
+   1
+   ```
+   Met: three lines, `0`, `0` and `1` (at least 1).
+
+   Command 2, `uv run python -m factory.entry.check_documents`:
+   ```
+   documents ok
+   ```
+   Met (exit 0).
+
+   Criteria re-read against `git diff main...HEAD`:
+   - Criterion 1: the diff touches only `README.md`, `docs/decisions.md`, `docs/operator-guide.md` and this ticket. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes, and the tester's and coder's entries both say so.
+   - Criterion 2: I did not run `make check` here. The factory runs it after this stage.
+   - Criterion 3, all five edits are in place and nothing else changed:
+     - In decisions.md, the "Left out" bullet now gives the API key's reason, cites F0014 decision 15 and FEATURE.md "Out of scope", and no longer says "not recorded".
+     - The git-hooks entry keeps its text and has the required parenthesis after "seven entries".
+     - In the operator guide, "The agent runtime" first sentence names the token file, with a session logged in by hand as the fallback, and keeps the no-API-key clause.
+     - "The agent runs as a second user" shows the call with `/bin/sh -c <script> factory-login <login file> claude ...`. It says the shell is there only when `FACTORY_CLAUDE_LOGIN_FILE` is set and that it `exec`s `claude` so `timeout`'s kill still reaches it. It names `CLAUDE_CODE_OAUTH_TOKEN`.
+     - The README status paragraph replaces the "not observed yet" clause with the first start of 2026-10-17 (two instances healthy, probe agent run included) and says the end-to-end stage agent run and a `time_limit` under `sudo` are first observed at the shakedown run.
+
+   Still open, outside this story: the documenter noted that the opening paragraph of `docs/operator-guide.md` still has the stale "not observed yet" wording. Criterion 3 says "no others", so it is a follow-up and not a finding.
