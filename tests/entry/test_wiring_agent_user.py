@@ -13,6 +13,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import agent_run_environment, build_tick
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from wiring_support import every_tool
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 BASE = {"PATH": "/usr/bin", "HOME": "/home/factory", "LANG": "C.UTF-8"}
@@ -48,10 +49,6 @@ PROBE = AgentRunResult(
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
 )
-
-
-def _every_tool(name: str) -> str | None:
-    return f"/usr/bin/{name}"
 
 
 @pytest.mark.parametrize(
@@ -105,7 +102,7 @@ def test_a_tick_with_an_agent_user_runs_the_agent_as_that_user_in_its_home(
         agent_user="agent",
         token_file=token_file,
     )
-    tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, _every_tool)
+    tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, every_tool)
 
     tick.run()
 

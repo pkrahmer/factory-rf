@@ -125,7 +125,7 @@ A request without write paths is confined too, with no path of the checkout. Eve
 
 The wrapper makes the temporary folder as the agent, with mode `0700`, and refuses to start when it exists. The runtime removes it after every call, as the same user (`chmod -R u+rwX`, then `rm -rf`, so a folder the agent closed goes too), also after a kill or an error; a resumed call gets a new one at the same path. A removal that fails changes no result. This also ends the growth of `/tmp/pytest-of-agent`, since `pytest` follows `TMPDIR`.
 
-A kernel without Landlock ABI 3, or a container profile that refuses the system calls, stops every run with the `factory-confine:` line above; there is no unconfined fallback.
+A kernel without Landlock ABI 3, or a container profile that refuses the system calls, stops every run with the `factory-confine:` line above; there is no unconfined fallback. The preflight finds this first: the item `confinement` fails, the machine stop is `preflight_failed` and no agent runs. The factory does not fall back to the hook `factory-guard` alone, which sees only `Edit` and `Write`.
 
 **The agent's login token.** The agent runs under its own login, not yours as `factory`. The login is a token, made once for all instances and the Podman machine:
 
@@ -303,7 +303,7 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 
 | Stop | Meaning | What to do |
 |---|---|---|
-| `preflight_failed` (machine) | A tool the machine needs is missing or the agent runtime does not work; the detail names it, for example `tool:make: make is not on the PATH`. | Fix the image or the login, then rebuild or restart; the stop clears when the check passes. The detail `the probe on main could not run: <message>` means the probe itself failed (git or `make` could not run, the checkout is gone): fix the machine, not `main`. |
+| `preflight_failed` (machine) | A tool the machine needs is missing or the agent runtime does not work; the detail names it, for example `tool:make: make is not on the PATH`. | Fix the image or the login, then rebuild or restart; the stop clears when the check passes. The detail `confinement: ...` is a kernel without Landlock ABI 3 or a missing `factory-confine`; there is no fallback to the hook (see "The preflight's items"). The detail `the probe on main could not run: <message>` means the probe itself failed (git or `make` could not run, the checkout is gone): fix the machine, not `main`. |
 | `main_branch_failing` (repository) | The probe ran `lint` on `origin/main` and it failed. The detail is `lint is red on main at <12 characters of the commit>: <last line of the output>`, or `lint reached its time_limit on main at <commit>`. | Push a fix to `main`. The next preflight probes the new commit and clears the stop. See "The stamp and the probe of the main branch". |
 | `checkout_restore_failed` | See "The stops of the tick". | As there. |
 | `pipeline_definition_invalid` | See "The stop `pipeline_definition_invalid`". | As there. |
@@ -312,7 +312,7 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 
 ### The preflight's items
 
-The preflight is a list of seven items, and of up to twelve with the machine's extras (`token-file`, `agent-user`, `tool:sudo` when an agent user is set, `agent-environment` and `agent-run-probe`), in the order of the table; `factory.application.preflight` builds them and `machine_extras` in `factory.entry.wiring` assembles the extras. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
+The preflight is a list of seven items, and of up to thirteen with the machine's extras (`token-file`, `agent-user`, `tool:sudo` when an agent user is set, `agent-environment`, `confinement` and `agent-run-probe`), in the order of the table; `factory.application.preflight` builds them and `machine_extras` in `factory.entry.wiring` assembles the extras. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
 
 | Item | Passes when | If it fails |
 |---|---|---|
@@ -325,6 +325,7 @@ The preflight is a list of seven items, and of up to twelve with the machine's e
 | `agent-user` | `FACTORY_AGENT_USER` is set, or no token file exists | Set `FACTORY_AGENT_USER`, or remove the token file; see "The agent runs as a second user". |
 | `tool:sudo` | `sudo` is on the `PATH`; the item exists only when `FACTORY_AGENT_USER` is set | As for the other tools. |
 | `agent-environment` | the `PATH` of the agent run's environment holds the command `factory-guard`, and its `HOME` is an existing directory | The detail names each fault: `the agent run has no PATH`, `factory-guard is not on the agent run's PATH <path>`, `the agent run has no HOME` or `the agent run's HOME <dir> is no directory`. Install `factory-guard` in the same environment as the factory, since Claude Code treats a hook that cannot start as not blocking and the guard would let every write through. Create the agent user's home (the parent of `FACTORY_CLAUDE_HOME`). |
+| `confinement` | the kernel offers Landlock ABI 3 or higher, and `factory-confine` is on the `PATH` of the agent run's environment | The detail names each fault, the kernel's first, joined by `; `: `the kernel offers Landlock ABI <n>, the write guard needs ABI 3 or higher: update the kernel (on WSL: wsl --update), or allow the Landlock system calls in the container runtime's seccomp profile`; `the agent run has no PATH`; `factory-confine is not on the agent run's PATH <path>`. Update the kernel, on WSL with `wsl --update`, or let the container runtime's seccomp profile allow `landlock_create_ruleset`, `landlock_add_rule` and `landlock_restrict_self`. Install `factory-confine` with the factory, in the same environment as `factory-guard`. |
 | `agent-run-probe` | one `claude -p` call, made as a stage makes it, ends `completed` | See "The probe of the agent run" below. |
 
 #### The probe of the agent run
