@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T17:18:21.813444Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-18T17:18:01.576220Z'
   stage: tests
   run: 89e09dd960d94aa79ebb6e081d160475
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:18:21.813444Z'
+  stage: doing
 ---
 
 # The agents' instructions explain a refused write
@@ -191,3 +200,4 @@ Expect: `1`
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (35.5 s)
+14. factory: started doing as self.
