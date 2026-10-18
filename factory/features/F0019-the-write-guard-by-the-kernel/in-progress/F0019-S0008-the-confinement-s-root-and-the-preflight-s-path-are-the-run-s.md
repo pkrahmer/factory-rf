@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T19:18:29.271098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T19:18:29.271098Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T19:21:44.488956Z'
+  stage: tests
+  run: 044d5ab146434a93a2ea87f47cba312b
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -107,3 +109,25 @@ Expect: `completed | root file refused | False`
    Architecture: tests only, in `tests/adapters` and `tests/entry`, mirroring the package. The layers are untouched, and moving the shared helpers is covered by the standing leave.
    Scope: it is inside F0019 (decision 6, the preflight items) and outside none of its "Out of scope" entries. The criteria add tests and do not change the domain rules, the wrapper or the hook.
 4. factory: started tests as self.
+5. tester: Wrote one parametrized test for each of the three testable criteria. The story only pins behaviour the code already has, so the tests pass against the code as it is. They are not red, and no module failed to import.
+
+   - criterion 1: tests/adapters/test_claude_runtime_confinement_root.py::test_a_write_path_at_the_root_never_gives_the_checkout_as_a_folder. Rows: missing-root-file, missing-file-below-the-root, existing-root-file. The stand-in confine executable records the rules, and the checkout always holds README.md.
+   - criterion 2: tests/adapters/test_claude_runtime_confinement_root.py::test_through_the_wrapper_a_missing_root_write_path_allows_no_write_at_the_root. Rows: NOTES.md, other.md. It runs the real factory-confine, with write paths ["NOTES.md"], and checks that the run ends `died` and the file does not exist.
+   - criterion 3: tests/entry/test_wiring_extras_path.py::test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s. Rows: confinement and agent-environment, each once with the command on the agent run's PATH (passes) and once with it only on the test process's PATH (fails with "<command> is not on the agent run's PATH <path>"). The test sets the process PATH with monkeypatch.setenv. HOME is an existing folder and the ABI is the kernel's real one. Items are called in order up to the named one, so the agent-run probe never starts.
+   - criterion 4 (`make check` green): the factory's check. `make lint` is green.
+   - criterion 5: docs, none.
+
+   Created: tests/adapters/test_claude_runtime_confinement_root.py, tests/entry/test_wiring_extras_path.py, tests/confine_support.py.
+
+   I moved shared test helpers under the standing leave in CLAUDE.md, because the new adapters test needed them:
+   - From tests/adapters/test_claude_runtime_confinement.py, these moved to tests/confine_support.py: CONFINE, LINE, STAND_IN_TOOL_PATH, LIMIT, CONFINE_SCRIPT, Played, ConfineCall, Layout, and the helpers write_script, read_records, write_confine, run_request (was _request) and confined_runtime (was _runtime). The `layout` fixture moved to tests/conftest.py, built by confine_support.build_layout.
+   - tests/adapters/test_claude_runtime_confinement.py now imports them from there. Every test in it keeps its name and checks the same thing.
+   - tests/conftest.py gained the `layout` fixture. tests/test_agent_home_ownership.py keeps its own module-level `layout` fixture, which overrides the shared one in that module.
+   - tests/entry/test_wiring_extras.py is unchanged: the new entry test needed nothing from it except every_tool, which already lives in wiring_support.
+
+   `make test`: green, with 98.67 % coverage. `make lint`: green.
+
+   Open: none. The coder should change nothing in src/ unless `make check` shows a fault.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (41.2 s)

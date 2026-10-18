@@ -1,12 +1,9 @@
 """The `claude -p` runtime starts every call through `factory-confine` with the run's rules."""
 
 import json
-import sys
 import tempfile
 import time
-from dataclasses import dataclass
 from datetime import timedelta
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -15,24 +12,31 @@ from pydantic import BaseModel, ConfigDict
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from adapters.test_claude_runtime_login import BUDGET_STOP
 from adapters.test_claude_runtime_os_user import REPLY, _without_locale
+from confine_support import (
+    CONFINE,
+    LIMIT,
+    LINE,
+    STAND_IN_TOOL_PATH,
+    ConfineCall,
+    Layout,
+    Played,
+    confined_runtime,
+    read_records,
+    run_request,
+    write_confine,
+    write_script,
+)
 from factory.adapters import claude_runtime
 from factory.adapters.claude_runtime import (
     CLEANUP_SCRIPT,
     CONFIG_VARIABLE,
-    SUDO_EXECUTABLE,
     SWITCHES,
     ClaudeCodeRuntime,
 )
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, GuardSettings
 from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
 
-# The installed wrapper, beside the interpreter that runs the tests.
-CONFINE = str(Path(sys.executable).parent / "factory-confine")
-LINE = "factory-confine: the kernel offers Landlock ABI 2, the write guard needs ABI 3 or higher"
 SUDO_LINE = "sudo: a password is required"
-STAND_IN_TOOL_PATH = "stand-in/*"
-LIMIT = timedelta(seconds=30)
 # A few seconds, so the child has room to start; the stand-ins wait far longer.
 SHORT_LIMIT = timedelta(seconds=3)
 WAIT_SECONDS = 30
@@ -75,39 +79,6 @@ sys.stdout.flush()
 time.sleep(step["wait_seconds"])
 sys.stdout.write(step["stdout"])
 sys.stdout.flush()
-"""
-
-# A confine executable that records its arguments and the rules file's text and mode, then
-# plays its line or runs what follows `--`.
-CONFINE_SCRIPT = r"""
-import json
-import os
-import stat
-import sys
-import time
-from pathlib import Path
-
-here = Path(__file__).resolve().parent
-arguments = sys.argv[1:]
-rules = Path(arguments[arguments.index("--rules") + 1])
-record = {
-    "arguments": arguments,
-    "rules_text": rules.read_text(encoding="utf-8"),
-    "rules_mode": stat.S_IMODE(rules.stat().st_mode),
-}
-with (here / "confine-calls.jsonl").open("a", encoding="utf-8") as out:
-    out.write(json.dumps(record) + "\n")
-played = here / "played.json"
-if played.exists():
-    play = json.loads(played.read_text(encoding="utf-8"))
-    sys.stderr.write(play["stderr"])
-    sys.stderr.flush()
-    sys.stdout.write(play["stdout"])
-    sys.stdout.flush()
-    time.sleep(play["wait_seconds"])
-    sys.exit(play["exit_status"])
-rest = arguments[arguments.index("--") + 1 :]
-os.execvp(rest[0], rest)
 """
 
 # A `sudo` that records each call, refuses the removal or plays a refusal when told, and
@@ -191,27 +162,6 @@ class ProbeCall(BaseModel):
     rules: list[str]
 
 
-class Played(BaseModel):
-    """What the stand-in confine executable plays instead of running the call."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    stderr: str = f"{LINE}\n"
-    stdout: str = ""
-    wait_seconds: float = 0
-    exit_status: int = 1
-
-
-class ConfineCall(BaseModel):
-    """What the stand-in confine executable saw: its arguments and the rules file."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    arguments: list[str]
-    rules_text: str
-    rules_mode: int
-
-
 class Recorded(BaseModel):
     """One call a recording `sudo` or shell saw: arguments, environment, directory."""
 
@@ -222,116 +172,18 @@ class Recorded(BaseModel):
     working_directory: Path
 
 
-@dataclass(frozen=True)
-class Layout:
-    """The folders of one run: checkout, home, state, temporary root and the stand-ins'."""
-
-    checkout: Path
-    home: Path
-    state: Path
-    temporary_root: Path
-    stand_in: Path
-    confine_bin: Path
-    sudo_bin: Path
-    shell_bin: Path
-
-
-@pytest.fixture
-def layout(tmp_path: Path) -> Layout:
-    """A checkout with `src` and `other`, a home and a temporary root under `tmp_path`."""
-    checkout = tmp_path / "checkout"
-    for folder in (checkout / "src", checkout / "other", tmp_path / "home", tmp_path / "tmp"):
-        folder.mkdir(parents=True)
-    return Layout(
-        checkout=checkout,
-        home=tmp_path / "home",
-        state=tmp_path / "state",
-        temporary_root=tmp_path / "tmp",
-        stand_in=checkout / "stand-in",
-        confine_bin=tmp_path / "confine-bin",
-        sudo_bin=tmp_path / "sudo-bin",
-        shell_bin=tmp_path / "shell-bin",
-    )
-
-
-def _write_script(path: Path, script: str) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f"#!{sys.executable}\n{script}", encoding="utf-8")
-    path.chmod(0o755)
-    return path
-
-
 def _write_probe(layout: Layout, steps: list[ProbeStep]) -> Path:
     plan = {"state": str(layout.state), "steps": [step.model_dump() for step in steps]}
     layout.stand_in.mkdir(parents=True, exist_ok=True)
     (layout.stand_in / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
-    return _write_script(layout.stand_in / "agent", PROBE_SCRIPT)
-
-
-def _read_records[M: BaseModel](path: Path, model: type[M]) -> list[M]:
-    if not path.exists():
-        return []
-    return [
-        model.model_validate_json(line) for line in path.read_text(encoding="utf-8").splitlines()
-    ]
-
-
-def _write_confine(layout: Layout, played: Played | None = None) -> Path:
-    path = _write_script(layout.confine_bin / "factory-confine", CONFINE_SCRIPT)
-    if played is not None:
-        (layout.confine_bin / "played.json").write_text(played.model_dump_json(), encoding="utf-8")
-    return path
+    return write_script(layout.stand_in / "agent", PROBE_SCRIPT)
 
 
 def _write_sudo(layout: Layout, *, refuse_removal: bool = False, stderr: str = "") -> Path:
-    path = _write_script(layout.sudo_bin / "sudo", SUDO_SCRIPT)
+    path = write_script(layout.sudo_bin / "sudo", SUDO_SCRIPT)
     plan = {"refuse_removal": refuse_removal, "stderr": stderr}
     (layout.sudo_bin / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
     return path
-
-
-def _request(
-    layout: Layout,
-    *,
-    write_paths: tuple[str, ...] = ("src/*",),
-    tool_paths: tuple[str, ...] = (STAND_IN_TOOL_PATH,),
-    with_home: bool = True,
-    os_user: str | None = None,
-    time_limit: timedelta = LIMIT,
-) -> AgentRunRequest:
-    return AgentRunRequest(
-        agent=AgentDefinition(
-            name="coder",
-            model="sonnet",
-            tools=["Bash"],
-            budget_usd=Decimal("1"),
-            instructions="Write the code.",
-        ),
-        prompt="Stage: doing",
-        allowed_decisions=["doing", "question"],
-        time_limit=time_limit,
-        working_directory=layout.checkout,
-        environment={"HOME": str(layout.home)} if with_home else {},
-        guard=GuardSettings(
-            root=layout.checkout,
-            write_paths=list(write_paths),
-            protected_paths=[],
-            tool_paths=list(tool_paths),
-        ),
-        os_user=os_user,
-    )
-
-
-def _runtime(
-    layout: Layout, executable: Path, confine: str = CONFINE, sudo: Path | None = None
-) -> ClaudeCodeRuntime:
-    return ClaudeCodeRuntime(
-        str(executable),
-        layout.state,
-        sudo_executable=SUDO_EXECUTABLE if sudo is None else str(sudo),
-        confine_executable=confine,
-        temporary_root=layout.temporary_root,
-    )
 
 
 def _session(arguments: list[str]) -> str:
@@ -356,12 +208,12 @@ def test_without_a_confine_executable_a_call_starts_as_before_and_writes_no_rule
     agent = _write_probe(layout, [ProbeStep(stdout=REPLY)])
     sudo = _write_sudo(layout)
     runtime = ClaudeCodeRuntime(str(agent), layout.state, sudo_executable=str(sudo))
-    request = _request(layout, os_user="agent")
+    request = run_request(layout, os_user="agent")
 
     runtime.run(request)
 
-    [sudo_call] = _read_records(layout.sudo_bin / "calls.jsonl", Recorded)
-    [call] = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
+    [sudo_call] = read_records(layout.sudo_bin / "calls.jsonl", Recorded)
+    [call] = read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     expected = {**request.environment, **SWITCHES}
     count = len(expected)
     head = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
@@ -380,12 +232,12 @@ def test_a_call_starts_through_the_confine_executable_with_its_rules_file(
     layout: Layout,
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
+    confine = write_confine(layout)
 
-    result = _runtime(layout, claude, str(confine)).run(_request(layout))
+    result = confined_runtime(layout, claude, str(confine)).run(run_request(layout))
 
     [call] = read_calls(layout.stand_in)
-    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
+    [confined] = read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     rules = layout.state / f"confine-{_session(call.arguments)}.json"
     assert confined.arguments == ["--rules", str(rules), "--", str(claude), *call.arguments]
     assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")
@@ -395,13 +247,13 @@ def test_with_a_user_sudo_starts_the_confine_executable_after_env_i_with_the_con
     layout: Layout,
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
+    confine = write_confine(layout)
     sudo = _write_sudo(layout)
 
-    _runtime(layout, claude, str(confine), sudo).run(_request(layout, os_user="agent"))
+    confined_runtime(layout, claude, str(confine), sudo).run(run_request(layout, os_user="agent"))
 
     [call] = read_calls(layout.stand_in)
-    sudo_call = _read_records(layout.sudo_bin / "calls.jsonl", Recorded)[0]
+    sudo_call = read_records(layout.sudo_bin / "calls.jsonl", Recorded)[0]
     arguments = sudo_call.arguments
     head = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
     start = arguments.index(str(confine))
@@ -418,16 +270,16 @@ def test_the_rules_file_holds_the_confinement_while_the_call_runs_and_is_gone_af
     layout: Layout, *, refused: bool
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout, Played() if refused else None)
-    runtime = _runtime(layout, claude, str(confine))
+    confine = write_confine(layout, Played() if refused else None)
+    runtime = confined_runtime(layout, claude, str(confine))
 
     if refused:
         with pytest.raises(AgentRuntimeError):
-            runtime.run(_request(layout))
+            runtime.run(run_request(layout))
     else:
-        runtime.run(_request(layout))
+        runtime.run(run_request(layout))
 
-    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
+    [confined] = read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     session = _session_of_rules(confined.arguments[1])
     expected = Confinement(
         folders=[
@@ -449,17 +301,17 @@ def test_the_rules_hold_the_targets_of_write_and_tool_paths_the_home_s_runtime_f
 ) -> None:
     (layout.checkout / "README.md").write_text("# Project\n", encoding="utf-8")
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
-    request = _request(
+    confine = write_confine(layout)
+    request = run_request(
         layout,
         write_paths=("src/*", "README.md", "docs/openapi.json"),
         tool_paths=(".venv/*", "~/.cache/*"),
     )
 
-    _runtime(layout, claude, str(confine)).run(request)
+    confined_runtime(layout, claude, str(confine)).run(request)
 
     [call] = read_calls(layout.stand_in)
-    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
+    [confined] = read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     checkout = layout.checkout
     assert Confinement.model_validate_json(confined.rules_text) == Confinement(
         folders=[
@@ -488,7 +340,7 @@ def test_through_the_wrapper_only_a_write_the_rules_allow_is_made(
     path = layout.checkout / target
     claude = write_stand_in(layout.stand_in, [Step(writes={str(path): "x\n"}, stdout=REPLY)])
 
-    result = _runtime(layout, claude).run(_request(layout))
+    result = confined_runtime(layout, claude).run(run_request(layout))
 
     assert result.end_reason == end_reason
     assert path.exists() == written
@@ -501,11 +353,13 @@ def test_the_agent_sees_its_temporary_folder_the_config_folder_and_the_switches(
     layout: Layout, *, with_home: bool
 ) -> None:
     agent = _write_probe(layout, [ProbeStep(stdout=REPLY)])
-    request = _request(layout, tool_paths=(STAND_IN_TOOL_PATH, "~/.cache/*"), with_home=with_home)
+    request = run_request(
+        layout, tool_paths=(STAND_IN_TOOL_PATH, "~/.cache/*"), with_home=with_home
+    )
 
-    _runtime(layout, agent).run(request)
+    confined_runtime(layout, agent).run(request)
 
-    [call] = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
+    [call] = read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     folder = layout.temporary_root / f"factory-run-{_session(call.arguments)}"
     [rules] = call.rules
     names = {folder.name for folder in Confinement.model_validate_json(rules).folders}
@@ -524,9 +378,9 @@ def test_a_request_without_guard_settings_is_confined_with_no_path_of_the_checko
         layout.home / ".claude" / "stand-in",
         [Step(writes={str(layout.checkout / "c.txt"): "x\n"}, stdout=REPLY)],
     )
-    request = _request(layout).model_copy(update={"guard": None})
+    request = run_request(layout).model_copy(update={"guard": None})
 
-    result = _runtime(layout, claude).run(request)
+    result = confined_runtime(layout, claude).run(request)
 
     assert result.end_reason == "died"
     assert not (layout.checkout / "c.txt").exists()
@@ -561,10 +415,10 @@ def test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run(
     agent = _write_probe(layout, steps)
     started = time.monotonic()
 
-    result = _runtime(layout, agent).run(_request(layout, time_limit=time_limit))
+    result = confined_runtime(layout, agent).run(run_request(layout, time_limit=time_limit))
 
     elapsed = time.monotonic() - started
-    calls = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
+    calls = read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     assert result.end_reason == end_reason
     assert elapsed < ELAPSED_BOUND
     assert len(calls) == len(steps)
@@ -580,14 +434,16 @@ def test_with_a_user_the_removal_runs_through_sudo_and_its_failure_changes_no_re
     layout: Layout, *, removal_fails: bool
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
+    confine = write_confine(layout)
     sudo = _write_sudo(layout, refuse_removal=removal_fails)
 
-    result = _runtime(layout, claude, str(confine), sudo).run(_request(layout, os_user="agent"))
+    result = confined_runtime(layout, claude, str(confine), sudo).run(
+        run_request(layout, os_user="agent")
+    )
 
     [call] = read_calls(layout.stand_in)
     folder = layout.temporary_root / f"factory-run-{_session(call.arguments)}"
-    sudo_calls = _read_records(layout.sudo_bin / "calls.jsonl", Recorded)
+    sudo_calls = read_records(layout.sudo_bin / "calls.jsonl", Recorded)
     assert len(sudo_calls) == 2
     assert sudo_calls[-1].arguments == [
         "-n",
@@ -610,15 +466,15 @@ def test_a_wrapper_line_without_a_reply_is_a_runtime_error_and_before_a_reply_is
     layout: Layout, *, reply: str
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout, Played(stdout=reply, exit_status=0 if reply else 1))
-    runtime = _runtime(layout, claude, str(confine))
+    confine = write_confine(layout, Played(stdout=reply, exit_status=0 if reply else 1))
+    runtime = confined_runtime(layout, claude, str(confine))
 
     if not reply:
         with pytest.raises(AgentRuntimeError) as raised:
-            runtime.run(_request(layout))
+            runtime.run(run_request(layout))
         assert raised.value.detail == f"{confine} refused the agent run: {LINE}"
         return
-    result = runtime.run(_request(layout))
+    result = runtime.run(run_request(layout))
 
     assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")
 
@@ -632,20 +488,20 @@ def test_without_a_temporary_root_the_run_s_folder_lies_in_the_system_temporary_
     agent = _write_probe(layout, [ProbeStep(stdout=REPLY)])
     runtime = ClaudeCodeRuntime(str(agent), layout.state, confine_executable=CONFINE)
 
-    runtime.run(_request(layout))
+    runtime.run(run_request(layout))
 
-    [call] = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
+    [call] = read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     assert call.environment["TMPDIR"] == str(root / f"factory-run-{_session(call.arguments)}")
 
 
 def test_a_sudo_refusal_is_reported_before_a_wrapper_line(layout: Layout) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
+    confine = write_confine(layout)
     sudo = _write_sudo(layout, stderr=f"{SUDO_LINE}\n{LINE}\n")
-    runtime = _runtime(layout, claude, str(confine), sudo)
+    runtime = confined_runtime(layout, claude, str(confine), sudo)
 
     with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(layout, os_user="agent"))
+        runtime.run(run_request(layout, os_user="agent"))
 
     assert raised.value.detail == f"{sudo} refused the agent run: {SUDO_LINE}"
 
@@ -654,12 +510,12 @@ def test_a_wrapper_line_of_a_call_killed_at_its_time_limit_is_a_runtime_error(
     layout: Layout,
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout, Played(wait_seconds=WAIT_SECONDS, exit_status=0))
-    runtime = _runtime(layout, claude, str(confine))
+    confine = write_confine(layout, Played(wait_seconds=WAIT_SECONDS, exit_status=0))
+    runtime = confined_runtime(layout, claude, str(confine))
     started = time.monotonic()
 
     with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(layout, time_limit=SHORT_LIMIT))
+        runtime.run(run_request(layout, time_limit=SHORT_LIMIT))
 
     assert time.monotonic() - started < ELAPSED_BOUND
     assert raised.value.detail == f"{confine} refused the agent run: {LINE}"
@@ -672,17 +528,17 @@ def test_the_removal_runs_in_the_working_directory_with_an_empty_environment(
     layout: Layout, monkeypatch: pytest.MonkeyPatch, *, os_user: str | None
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
+    confine = write_confine(layout)
     sudo = _write_sudo(layout)
     if os_user is None:
-        shell = _write_script(layout.shell_bin / "sh", SHELL_SCRIPT)
+        shell = write_script(layout.shell_bin / "sh", SHELL_SCRIPT)
         monkeypatch.setattr(claude_runtime, "SHELL_EXECUTABLE", str(shell))
-    request = _request(layout, os_user=os_user)
+    request = run_request(layout, os_user=os_user)
 
-    _runtime(layout, claude, str(confine), sudo).run(request)
+    confined_runtime(layout, claude, str(confine), sudo).run(request)
 
     recorder = layout.sudo_bin if os_user is not None else layout.shell_bin
-    removal = _read_records(recorder / "calls.jsonl", Recorded)[-1]
+    removal = read_records(recorder / "calls.jsonl", Recorded)[-1]
     assert CLEANUP_SCRIPT in removal.arguments
     assert removal.working_directory == request.working_directory
     assert _without_locale(removal.environment) == {}
@@ -702,12 +558,12 @@ def test_the_rules_hold_only_the_device_targets_that_exist(
         existing.write_text("", encoding="utf-8")
     monkeypatch.setattr(claude_runtime, constant, (str(existing), str(tmp_path / "missing")))
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
+    confine = write_confine(layout)
 
-    _runtime(layout, claude, str(confine)).run(_request(layout))
+    confined_runtime(layout, claude, str(confine)).run(run_request(layout))
 
     [call] = read_calls(layout.stand_in)
-    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
+    [confined] = read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     expected_folders = [existing] if constant == "DEVICE_FOLDERS" else _device_folders()
     expected_files = [existing] if constant == "DEVICE_FILES" else _device_files()
     assert Confinement.model_validate_json(confined.rules_text) == Confinement(
@@ -726,13 +582,13 @@ def test_a_removal_that_outlasts_its_time_limit_is_ended_and_changes_no_result(
     layout: Layout, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    confine = _write_confine(layout)
-    shell = _write_script(layout.shell_bin / "sh", HANGING_SHELL_SCRIPT)
+    confine = write_confine(layout)
+    shell = write_script(layout.shell_bin / "sh", HANGING_SHELL_SCRIPT)
     monkeypatch.setattr(claude_runtime, "SHELL_EXECUTABLE", str(shell))
     monkeypatch.setattr(claude_runtime, "CLEANUP_TIME_LIMIT", SHORT_LIMIT)
     started = time.monotonic()
 
-    result = _runtime(layout, claude, str(confine)).run(_request(layout))
+    result = confined_runtime(layout, claude, str(confine)).run(run_request(layout))
 
     assert time.monotonic() - started < ELAPSED_BOUND
     assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")

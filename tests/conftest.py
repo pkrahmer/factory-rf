@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import AcceptanceWalk
+from confine_support import Layout, build_layout
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.clock import ManualClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -189,3 +190,9 @@ def world(tmp_path: Path, remote_template: Path) -> World:
 def work_item(world: World) -> WorkItemId:
     """Return a story started in the world, its work item on its branch."""
     return start_story(world)
+
+
+@pytest.fixture
+def layout(tmp_path: Path) -> Layout:
+    """A checkout with `src` and `other`, a home and a temporary root under `tmp_path`."""
+    return build_layout(tmp_path)
