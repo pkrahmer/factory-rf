@@ -1,0 +1,35 @@
+# factory-rf's pipeline definition: v1.1 builds this repository since the handover.
+# Its predecessor is v1's stage table, kept as history in factory/v1/stages.yml: the same
+# stages, write paths, caps and project commands, in v1.1's names. Every time is in minutes.
+contract: "1.0"
+attempts_cap: 2             # v1's max_attempts: agent runs that end without a result before the factory asks
+crash_cap: 2
+acceptance_stage: acceptance
+project_commands:
+  check: {time_limit: 15}       # the gate; two to five minutes here (pytest on every core)
+  lint: {time_limit: 5}
+  test: {time_limit: 10}
+  duplicates: {time_limit: 5}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
+  documents: {time_limit: 5}    # the four documents against the document check: a check of the docs stage only
+# The write paths keep v1's lanes. Every stage's own work item is written by the factory
+# (the journal, the state, the cost records); a role names it only when its agent edits the text.
+# A role's time_limit plus the time_limits of its stage's checks and reports stay within its lease_duration.
+roles:
+  intake: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
+  tester: {write_paths: ["tests/*"], time_limit: 40, lease_duration: 60}
+  coder: {write_paths: ["src/*", "image/*", "template/*", "claude/*"], time_limit: 40, lease_duration: 60}
+  reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
+  documenter: {write_paths: ["README.md", "docs/*"], time_limit: 40, lease_duration: 60}
+  smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
+  # make mutants over a feature's modules runs inside this agent run (F0014 and F0016 took 46 to 57 minutes).
+  acceptance-reviewer: {write_paths: ["{work_item}", "{feature}/backlog/*"], time_limit: 90, lease_duration: 100}
+stages:
+  intake: {role: intake, next: [tests]}
+  tests: {role: tester, next: [doing], checks: [lint], reports: [test]}     # the new tests are red on purpose
+  doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates]}
+  review: {role: reviewer, next: [docs, doing], round_cap: 2}
+  docs: {role: documenter, next: [smoke-test, doing], checks: [check, documents], round_cap: 2}
+  smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 2}
+  acceptance: {role: acceptance-reviewer, next: [approval]}
+  approval: {approval: true, next: [done, doing]}   # the human: a merge accepts, a close sends back
+  done: {}

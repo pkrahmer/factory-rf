@@ -90,8 +90,9 @@ documents:
 
 # Mutation testing of the modules under src/factory that one feature's commits changed:
 # `make mutants FEATURE=F0012`. Slow, so not part of `check`; the feature acceptance runs it.
-# v1's acceptance stage runs plain `make mutants` on the branch acceptance/<feature id>-<slug>.
-FEATURE ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | sed -n 's|^acceptance/\(F[0-9]\{4\}\)-.*|\1|p')
+# Plain `make mutants` takes the feature from the acceptance's branch: v1.1's
+# work-item/<feature id>-A<n>, or v1's acceptance/<feature id>-<slug> (kept for a rollback).
+FEATURE ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | sed -n -e 's|^acceptance/\(F[0-9]\{4\}\)-.*|\1|p' -e 's|^work-item/\(F[0-9]\{4\}\)-A[0-9]\{4\}$$|\1|p')
 MUTANTS_SECONDS ?= 540
 MUTATED = $(wildcard $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' | sort -u))
 mutants:
