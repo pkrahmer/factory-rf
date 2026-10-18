@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:30:30.680153Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-18T23:30:30.680153Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-18T23:30:47.973393Z'
+  stage: doing
+  run: f9bda80d1fd44fe881302a37e0ff4779
 ---
 
 # The run record counts the refused tool calls
@@ -212,3 +214,16 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 11. 2026-10-18 human: 1. (a): the tester gives the rows `completed` and `completed-none` of `test_completed_record_counts_the_denials_and_their_paths_once_each_in_order` a valid `decision` and `entry` (e.g. `decision="review", entry="done"`).
     2. (a): leave, in the form of decisions 13 and 14: in `tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo`, the expected completed `CostRecord` gains `denials=0, denied_paths=[]`, and nothing else. Any other expected completed `CostRecord` of an earlier test gains the two fields in the same way; the tester names each file in its entry.
 12. factory: started doing as self.
+13. coder: The human's answer in entry 11 calls for test changes. I may not make those, so I'm handing back to the tester with nothing new in code. The implementation from entry 10 is already committed on the branch: `src/factory/domain/agent_runs.py`, `src/factory/adapters/claude_runtime.py`, `src/factory/domain/cost_records.py`, `src/factory/application/costs.py` and `src/factory/adapters/cost_records_jsonl.py`. I did not rerun `make check` this round, because nothing in `src/` changed.
+
+    Test changes for the tester:
+    1. `tests/application/test_costs_denials.py::test_completed_record_counts_the_denials_and_their_paths_once_each_in_order`: rows `completed` and `completed-none` each get a valid `decision` and `entry` (e.g. `decision="review", entry="done"`) in their `AgentRunResult`. Nothing else changes.
+    2. `tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo`: the expected completed `CostRecord` gains `denials=0, denied_paths=[]`. Nothing else changes.
+
+    Per the same answer, any other earlier test that expects a completed `CostRecord` produced by `CostRecorder.complete` gains the two fields the same way. The tester names each file it changes.
+
+    Earlier test modules that build completed records, for the tester to check: `tests/application/test_recovery_crash.py`, `tests/domain/test_bills.py`, `tests/domain/test_bills_model_time.py`, `tests/adapters/test_cost_records_jsonl.py` and `tests/bill_support.py`. The ones that build a record by hand rather than through `complete` stay valid as they are, since both fields default to `None`.
+
+    What the journal changed: no task meaning. It only changed the test data, so I left the Description as it is.
+
+    Still open from entry 10 and not touched: the possibly flaky `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]`.
