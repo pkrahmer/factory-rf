@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 203
 blocked: null
 comments_seen: 0
@@ -112,3 +112,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    Met: the last line reports `67 passed` with no `failed`, `error` or `skipped` count. The 6 warnings come from pytest's cleanup of old temporary directories under /tmp (rm_rf on `garbage-*`), not from these tests. The Expect line does not mention warnings.
 
    Criteria check: criterion 1 holds. Command 1 shows that `before_approval=True` with `at` gives a `done` entry with that `at` and `stage` `done`. Criteria 2 and 3 are covered by the tests in command 2, all of which pass. The demo contradicts nothing in criteria 4 and 5: the coder and the documenter report `make check` green, and this story needs no docs. The plain branch (`False`) still stamps too, so no behaviour changed, as the assignment says.
+8. done (pull request merged); cost: 6 runs, 3.0 min, 29 turns, 90k tokens in (368k more from cache), 7k out, $0.74
