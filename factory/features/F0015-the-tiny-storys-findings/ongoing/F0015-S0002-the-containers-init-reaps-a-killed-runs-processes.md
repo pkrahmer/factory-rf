@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 207
 blocked: null
 comments_seen: 0
@@ -64,3 +64,11 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process
+4. coder: added `init: true` to the service `factory` in `image/compose.yml`, right after `restart: unless-stopped`, with one comment line above it: the runtime's init is the first process and reaps what a killed run leaves, and the factory reaps only its own children. Commit b740a261.
+      - Design: I used the runtime's own init, as the Interface and FEATURE decision 6 call for. I rejected making the factory the reaper and installing tini in the image, for the reasons the feature gives. `image/entrypoint.sh` and `image/Dockerfile` are unchanged, and the entrypoint's last line is still `exec python -m factory.entry.run`.
+      - Refactor: there was nothing to clean up. The diff outside the tests and the ticket is two lines of YAML.
+      - Tests: both tests in tests/test_compose_init.py pass, and the existing compose tests still pass. `make check`: check: green.
+      - Open: the docs criterion (operator guide paragraph, step 4 of the entrypoint, the `time_limit` under `sudo` observation, the decision log entry) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
