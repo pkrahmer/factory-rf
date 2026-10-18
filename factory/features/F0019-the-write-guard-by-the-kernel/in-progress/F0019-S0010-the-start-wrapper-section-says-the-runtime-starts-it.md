@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T20:21:30.744170Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T20:21:10.273517Z'
   stage: review
   run: 87ab110ee72440c498ea3b63646257b2
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:21:30.744170Z'
+  stage: docs
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -141,3 +150,4 @@ Expect: `documents ok`
      - The stale sentence is at `docs/project-guide.md:1335`, and the paragraph to move is at `:1337`. The target sections exist: *The kernel's write guard* at `:1300` and *The `claude -p` runtime* at `:302`.
    - Work item hygiene: entry 7 gives the main choice, no code change, and what it rejected, the coder editing the guide itself. The Description matches what was built, which is nothing yet.
    - Earlier tests: no test file that `main` holds is changed, renamed or deleted.
+10. factory: started docs as self.
