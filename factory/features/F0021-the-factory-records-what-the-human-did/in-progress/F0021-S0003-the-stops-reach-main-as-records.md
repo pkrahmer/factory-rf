@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:54:51.522529Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-18T22:54:51.522529Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:58:46.457824Z'
+  stage: doing
+  run: 6b4701134d7d4c3f8feaa0508449ca57
 ---
 
 # The stops reach main as records
@@ -242,3 +244,29 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_stop_records.py - ImportError while importing t...
 9. factory: started doing as self.
+10. coder: I built the stop records and their publish to `main`. The tester's tests were not changed, and `make check` is green (lint, types, layers, sast, secrets, licenses, test). `make duplicates` reports 0 new, 36 known and 3 gone.
+
+    What I changed:
+    - `src/factory/domain/stops.py`: added `StopEvent`, `StopRecord`, `stop_records_text` and `parse_stop_records`. The scope-for-reason rule is now one private function, `_require_scope_of_reason`, and the validators of both `RepositoryStop` and `StopRecord` call it. `parse_stop_records` skips any line that raises `ValidationError`, which also covers blank lines and lines that are not JSON.
+    - `src/factory/domain/paths.py`: added `STOP_RECORDS_FILE`.
+    - `src/factory/application/boundaries.py`: added `stop_records` as the new last field.
+    - `src/factory/application/stops.py`:
+      - `StopService.raise_stop` appends a `raised` record only when the health status it read held no stop of that reason. The append is tried like the log line and the health status, and the first `OSError` is raised after all three were tried.
+      - `clear_stop` appends a `cleared` record, with the standing stop's scope and the clock's time, after the health status and the log line.
+      - One private helper, `_record`, builds both records. It takes the instance from the settings, or `None` without settings.
+      - Added the new `StopPublisher`. It reads `origin/main`'s file with `git.show_file`, works out the missing records (local order, each once) and makes no git call when there is nothing to publish. Otherwise it checks out `main` through `WorkItemRecorder.check_out`, writes the file (creating `factory/` and adding a newline the old text lacked) and calls `WorkItemRecorder.publish(MAIN_BRANCH, "stops recorded")`.
+    - `src/factory/application/tick.py`: added `_publish_stop_records`, which runs between `_restore()` and `_run_preflight()`. On `GitError`, `PushFailed` or `OSError` it writes `cannot publish the stop records: <error>` to the log and the tick goes on. The module docstring now names the step.
+    - `src/factory/entry/wiring.py`: `stop_records` is now a `JsonLinesRecordLog` at `<state>/records/stops.jsonl`.
+
+    Main choice: I put `StopPublisher` in `factory.application.stops` and had it reuse `WorkItemRecorder` from `factory.application.handlers.recording`, as the Interface says. The alternative I rejected was a new module for the publisher, or copying `WorkItemRecorder`'s checkout and commit-and-push steps. The new module would split the stop code across two places, and the copy would be a second copy of an existing helper. The import causes no cycle, because `handlers/recording.py` imports neither `stops` nor the handlers.
+
+    Refactor pass: the only change was folding the `show_file` read and its `or ""` into one line. Nothing else needed changing.
+
+    Noticed but not touched:
+    - When `raise_stop` cannot read the health status, it appends no `raised` record. It cannot tell whether the stop is new, and recording it anyway could give a duplicate `raised` line. No criterion covers this case.
+    - `make duplicates` lists three findings as gone: the unused `close` methods in `fake_hosting.py`, `pygithub_hosting.py` and `application/hosting.py`. They come from earlier work on `main`, not this story.
+
+    The journal did not change the meaning of the task, so I left `## Description` as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone

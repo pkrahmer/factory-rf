@@ -18,6 +18,7 @@ from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStat
 from factory.application.project_commands import ProjectCommands
 from factory.domain.disk import DiskRecord
 from factory.domain.settings import InstanceSettings
+from factory.domain.stops import StopRecord
 
 
 # Keyword-only so that a field added later never shifts the meaning of an argument.
@@ -43,3 +44,4 @@ class Boundaries:
     settings: InstanceSettings | None = None
     disk: DiskSpace | None = None
     disk_records: RecordLog[DiskRecord] | None = None
+    stop_records: RecordLog[StopRecord] | None = None
