@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 199
 blocked: null
 comments_seen: 2
@@ -197,3 +197,21 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (30.6 s)
+8. coder: The implementation is finished and `make check` passes (`check: green`, coverage 99.47 %). The feature work is in 3fffb043 and the refactor is in 3f7b85b8. The human's answer in entry 5 needed no code change: the `move_back` entry already got the stage the human set from the state, and the tester's one-value change in entry 7 makes the six reject tests pass.
+
+   What I built:
+   - `src/factory/domain/journal.py`: `JournalRecord` gains `at` (`UtcDatetime | None`), `stage` (`Name | None`) and `run` (`RunId | None`), each defaulting to `None`. `append_entry(document, entry, *, at=None, run=None)` checks for a `run` without an `at` before anything else, so it raises that `ValueError` even for a document with no state. A private `_record` stamps `at`, the state's `stage` and `run` only when `at` is given.
+   - `src/factory/domain/acceptance.py`: `book_merge` and `book_refusal` take `at=` and pass it through `_booked`. `_booked` sets the stage to `done` before it appends.
+   - `src/factory/adapters/work_item_markdown.py`: `render` writes each journal record with `model_dump(exclude_none=True)`.
+   - Every call site in the Interface's table now passes `at` from `self._boundaries.clock.now()`, or the claim's `started_at` for the `started` entry, and `run` where the table gives one. The files are in `src/factory/application/`: `opening.py`, `claims.py`, `stage.py` (AfterAgent's `form_invalid` and both StageFinisher paths), `stalls.py`, `recovery.py`, `acceptance.py`, and `handlers/closed.py`, `comments.py`, `merged.py`, `questions.py`, `reject.py`. No call site changes its order.
+
+   Design decisions:
+   - The writer leaves out unset stamps with `exclude_none` on each record, not with a list of named keys. The other fields of a record are never `None`, so the effect is the same and a later optional field gets the same treatment.
+   - `StallService._stalled` now takes the `StallContext` instead of the stage alone, so it gets both the stage and `context.cost` from one argument rather than gaining a sixth parameter.
+
+   Refactor pass: I read the diff as a reviewer would. The only change is in `recovery.py`, where I gave the crash cap's `question` entry a name like the crash entry above it. Behaviour is unchanged. Nothing else needed changing.
+
+   Noticed but not touched: `CommentCopier.append` reads the clock once per comment. Under the real clock, comments copied in one tick can therefore carry slightly different times. That matches the Interface's table (`clock.now()` per entry).
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
