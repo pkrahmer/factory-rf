@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 212
 blocked: null
 comments_seen: 0
 round: 0
@@ -63,3 +63,9 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: names `StageFinisher` in `src/factory/application/stage.py`, the exact call (`hosting.set_description`), its position (after `git.commit`, before `git.push`), the text for a story (`hand_over_description(moved, commits)`) and for an acceptance (`acceptance_description(moved, role)`), the caught `HostingServiceError`, the exact log line, and what stays unchanged. The split between `finish` and `_commit_and_push` is left to the coder, and the order is fixed.
+   - Criteria: criteria 1 to 5 each map to one named test (criteria 1 and 2 are rows of one parametrized test). Every rule has its failing side: the non-approval moves (rework, forward, question) write no description, and a failing write is logged and does not stop the push. Criterion 6 pins the existing tests that must still pass. Criterion 8 (docs) is specific.
+   - Demo: the three commands are runnable. Each `Expect:` line is checkable (`<n> passed` with no failed, error or skipped count; `documents ok`).
+   - Architecture: the change sits in the application layer and calls the hosting-service interface, the `Git` wrapper and the `FactoryLog`. It reaches `factory.domain` for `hand_over_description` and `acceptance_description`. No new dependency, package or `factory/` change.
+   - Scope: within F0016's scope item 3 and its decisions 7, 8 and 9. The changes to earlier tests (`tests/test_stop_table.py` and one new test in `tests/application/test_stage_run_acceptance.py`) have the human's leave, given in FEATURE decision 9. Nothing in "Out of scope" is touched.
