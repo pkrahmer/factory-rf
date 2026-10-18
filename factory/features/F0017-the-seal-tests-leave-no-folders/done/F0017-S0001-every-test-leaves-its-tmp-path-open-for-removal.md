@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 214
 blocked: null
 comments_seen: 0
@@ -209,3 +209,4 @@ Expect: `documents ok`.
    - Criterion 8 (`make check`): I did not run it here; it is the factory's gate after this stage.
 
    Nothing in the demo contradicts any criterion. Nothing is open.
+8. done (pull request merged); cost: 6 runs, 4.5 min, 37 turns, 170k tokens in (516k more from cache), 17k out, $1.55
