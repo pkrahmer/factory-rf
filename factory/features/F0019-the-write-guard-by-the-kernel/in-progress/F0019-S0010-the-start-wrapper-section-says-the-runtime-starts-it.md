@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T20:18:48.606730Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T20:18:48.606730Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T20:20:28.394991Z'
+  stage: doing
+  run: 20d938c08bf146b8acd211fc4284fa11
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -107,3 +109,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (42.5 s)
 6. factory: started doing as self.
+7. coder: Nothing to build. This story only changes documentation, and the documenter edits `docs/project-guide.md` in a later stage.
+   - criterion 1: I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester added no tests, so no test was failing. `git status --short` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   - criterion 2: `make check` is green (`check: green`, coverage 98.80 %).
+   - Main choice: I made no code change. The other option was to edit `docs/project-guide.md` myself, and I rejected it: CLAUDE.md gives the docs to the documenter stage, and the story's Interface names the documenter as the only one who changes that file.
+   - Refactor: no diff, so nothing to refactor.
+   - The journal did not change what the task means, so the Description stays as it is.
+   - Noticed but did not touch: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
