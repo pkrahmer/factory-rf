@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T20:43:38.734954Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T20:43:38.734954Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T20:44:44.557684Z'
+  stage: review
+  run: 9d5561ead7204d84a317021895d46365
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -190,3 +192,18 @@ Expect: `replace_process needs a program to start`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff (only tests, no change under `src/factory/`) against the criteria and against `src/factory/adapters/landlock.py`, `src/factory/adapters/process.py` and `src/factory/entry/confine.py`.
+   - Criterion 1: `tests/adapters/test_landlock_checks.py` has nine rows, one for each listed case. Every row holds a path that cannot be opened. Each row checks `detail` exactly, then writes in `<base>/A`.
+   - Criterion 2: `tests/adapters/test_process_replace_faults.py` has three rows. The PermissionError row fails if `env` is not passed, because the program is not on the test process's own `PATH` (the test asserts this).
+   - Criterion 3: `tests/entry/test_confine_defaults.py` has five default rows, each with `stderr` None and read through `capsys`. In the abi row, `calls == ["restrict", "replace"]` proves `restrict` was called once.
+   - Criteria 4 and 5: the existing-folder row fails if `exist_ok` is dropped (it expects `Replaced` and empty stderr). The folder fault and both rules-file faults are checked as exact lines.
+   - Criterion 6: the coder's journal entry 7 records `check: green`.
+   - Architecture and security: the diff touches only test files and adds no suppression markers.
+   - Work item: the Description and the docs criterion match what was built.
+
+   Earlier test files the diff changes:
+   - tests/confine_support.py: standing leave to move a shared test helper. It only gains the moved `USAGE`, `write_rules`, `Replaced` and `Steps`; nothing it held before changed.
+   - tests/entry/test_confine.py: standing leave to move a shared test helper. `USAGE` and `_rules` moved to tests/confine_support.py, and `_rules` is now `write_rules` with the same body. Every test keeps its name and its assertions.
+   - tests/entry/test_confine_steps.py: standing leave to move a shared test helper. `USAGE`, `Replaced` and `Steps` moved word for word. Every test keeps its name and its assertions.
