@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T17:18:21.813444Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-18T17:18:21.813444Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-18T17:20:01.479645Z'
+  stage: doing
+  run: d390589ce2a940f18e9e6e69031dbc33
 ---
 
 # The agents' instructions explain a refused write
@@ -201,3 +203,14 @@ Expect: `1`
     `lint`: lint: green (0.0 s)
     `test`: test: green (35.5 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's helper move. I made no change in this round.
+    - The reviewer had one finding: `_body` was copied in two test files. The tester fixed it in entry 13. `tests/shipped_agents.py::agent_body` is now the shared helper, and `tests/test_claude_agent_refusal.py` and `tests/test_claude_agent_texts.py` both use it. No code or agent change was left for me.
+    - What I built: in round 0, the R14 ending in the seven `claude/agents/*.md` files. It is unchanged since then, and the reviewer found it matches the Interface.
+    - Main choice: hand back to review without touching anything, because there was nothing left to fix. I rejected any extra edit, because it would go beyond the findings.
+    - Refactor: nothing to change. The working tree holds only the factory's costs sidecar.
+    - Description: the journal did not change the meaning of the task.
+    - Checks: `make check` is green (`check: green`, coverage 98.67 %).
+    - Noticed, not touched: the docs criterion (`docs/project-guide.md`) is for the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
