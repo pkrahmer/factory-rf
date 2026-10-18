@@ -1334,6 +1334,8 @@ The tests (`tests/adapters/test_landlock.py`, `tests/domain/test_confinement_abi
 
 `factory-confine --rules <file> -- <command> [<argument>...]` applies the kernel's write guard and becomes the command. It must run after `sudo` has made the process the agent's user (Landlock needs `no_new_privs`, which `sudo` cannot run under) and before the runtime starts, so that the runtime and everything it starts inherit the restriction. `pyproject.toml` registers it as `factory-confine = "factory.entry.confine:main"`; `python -m factory.entry.confine` does the same; `CONFINE_COMMAND` in `factory.domain.agent_runs` is its name. Nothing starts it yet: the runtime will.
 
+`confinement_item(abi, environment, find)` (`factory.application.preflight`) is the preflight item `confinement`. It has two faults: the kernel's (`abi_fault(abi())`, followed by `: ` and the advice to update the kernel, on WSL with `wsl --update`, or to allow the Landlock system calls in the container runtime's seccomp profile) and `factory-confine` missing from the agent run's `PATH` (or no `PATH` at all). When both occur, the detail joins them with `; `, the kernel's first; with neither, the item passes. The wiring (`factory.entry.wiring`) passes `abi_version` and a search on the agent run's `PATH`, so the item runs against what the agent run will see.
+
 ### The arguments and the rules file
 
 The arguments are exactly `--rules`, a file, `--` and at least one word of the command. Anything else writes `factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]` and returns 1.
