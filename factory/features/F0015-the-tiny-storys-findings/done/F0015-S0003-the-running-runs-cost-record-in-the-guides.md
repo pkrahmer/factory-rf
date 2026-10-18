@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 208
 blocked: null
 comments_seen: 0
@@ -107,3 +107,4 @@ Expect: `documents ok`.
      - All three passages say "the running run's". No other document changed.
 
    Open: nothing.
+8. done (pull request merged); cost: 6 runs, 2.0 min, 28 turns, 66k tokens in (309k more from cache), 6k out, $0.55
