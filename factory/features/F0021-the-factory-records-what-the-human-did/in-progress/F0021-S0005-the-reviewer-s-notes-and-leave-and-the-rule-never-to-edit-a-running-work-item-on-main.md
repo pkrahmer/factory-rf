@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:53:31.880702Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T23:53:11.509869Z'
   stage: tests
   run: 03f208f9b840403d8b1103af6dc68852
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:53:31.880702Z'
+  stage: doing
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -148,3 +157,4 @@ Expect: five lines, each `1`.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_review_leave.py::test_agent_section_holds_the_review_leave_text[acceptance]
+6. factory: started doing as self.
