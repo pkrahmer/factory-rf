@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T17:12:31.498808Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T17:12:11.482586Z'
   stage: tests
   run: ccb4ccde93db446b86296049af820e1b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:12:31.498808Z'
+  stage: doing
 ---
 
 # The agents' instructions explain a refused write
@@ -103,3 +112,4 @@ Expect: `1`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line[intake]
+6. factory: started doing as self.
