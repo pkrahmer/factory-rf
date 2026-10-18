@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T14:31:26.615271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   at: '2026-10-18T14:31:06.574450Z'
   stage: intake
   run: 64d0427494bf44c4bd869b6fc77849e8
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:31:26.615271Z'
+  stage: tests
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -176,3 +185,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
    - Smoke test: the three commands are runnable. Each `Expect:` line is checkable against the output.
    - Architecture: the constant, the fault text and the error are in `domain`. The `ctypes` calls are in `adapters`. Nothing in `application` or `entry` is touched. No new dependency.
    - Scope: matches S0001 in `feature.md`. Nothing from "Out of scope" is touched.
+7. factory: started tests as self.
