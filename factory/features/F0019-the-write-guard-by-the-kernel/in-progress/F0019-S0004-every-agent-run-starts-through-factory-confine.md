@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T15:42:19.260308Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   at: '2026-10-18T15:41:58.976296Z'
   stage: intake
   run: 552491052c8649a6ac61cb6d17fc0f56
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:42:19.260308Z'
+  stage: tests
 ---
 
 # Every agent run starts through `factory-confine`
@@ -180,3 +189,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
    - Smoke test: runnable with the installed `factory-confine`. The `Expect:` line is checkable: two exact output lines.
    - Architecture: constants in domain, runtime changes in adapters, wiring in entry. Layers are respected, and the process and cleanup calls go through `run_process`.
    - Scope: within F0019 S0004 of the feature's scope list. Nothing from "Out of scope" is touched. The leave to change the two earlier wiring tests is named, with the human's decision 13.
+7. factory: started tests as self.
