@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T19:15:55.532665Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T19:15:55.532665Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T19:16:18.096349Z'
+  stage: smoke-test
+  run: 8ec0d14b59a54f6bb44e179b15946d38
 ---
 
 # The documents describe the live write guard
@@ -169,3 +171,43 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran the four commands from the repository root, as written and in order. All four met their `Expect:` line. No findings.
+
+    1. Command `grep -c "once the runtime uses it" README.md docs/operator-guide.md`
+    ```
+    README.md:0
+    docs/operator-guide.md:0
+    ```
+    Met: the output is `README.md:0` and `docs/operator-guide.md:0`.
+
+    2. Command `grep -c "Seven commands exist" README.md; grep -c "Once the kernel's write guard is live" docs/operator-guide.md`
+    ```
+    1
+    0
+    ```
+    Met: `1`, then `0`.
+
+    3. Command `grep -c "licenses-requirements.txt" docs/operator-guide.md; grep -c "confinement_item(abi, environment, find)" docs/project-guide.md`
+    ```
+    1
+    1
+    ```
+    Met: at least `1`, then `1`.
+
+    4. Command `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Met.
+
+    Acceptance criteria, read again against the branch:
+    - Criterion 1: `git diff --stat origin/main...HEAD` touches only `README.md`, `docs/operator-guide.md`, `docs/project-guide.md` and the work item with its `.costs.jsonl`. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. The tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2: the factory's `make check` was green after the docs stage (entry 11).
+    - Criterion 3:
+      - `README.md:12` says "Seven commands exist" and still names all seven: factory-run, factory-check-story, factory-bill, factory-watch, factory-health, factory-guard and factory-confine.
+      - `docs/operator-guide.md:706` begins "An agent run can write only its stage's write paths and these folders".
+      - `docs/operator-guide.md:708` is the new template/demo paragraph. It names `.licenses-requirements.txt` and `.coverage` at the root, the move into `.reports/` (`data_file` under `[tool.coverage.run]`, the `licenses` recipe), naming `tool_paths`, and `Permission denied` until then.
+      - `docs/project-guide.md:1337` describes `confinement_item(abi, environment, find)`. It covers the item `confinement`, its two faults (the kernel's first, joined by `; `), the advice text, and the wiring passing `abi_version` and a search on the agent run's `PATH`.
+      - The smoke test contradicts no criterion.
+
+    Open, outside this story: the documenter (entry 11) found a stale line in `docs/project-guide.md`, "Nothing starts it yet: the runtime will." This criterion forbids changing other passages, so it needs a follow-up story. It is not a finding here.
