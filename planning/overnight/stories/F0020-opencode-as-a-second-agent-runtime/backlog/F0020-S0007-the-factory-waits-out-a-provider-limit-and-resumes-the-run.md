@@ -1,0 +1,177 @@
+# The factory waits out a provider limit and resumes the run
+
+## Description
+
+After S0005 and S0006, a run that meets the provider's spend limit ends `provider_limit` with its session kept, on either runtime, but the stage still stalls it, counts an attempt, and asks the human at the cap. At the human's work the limit passes by itself within minutes, and the factory must run unattended around the clock. This story adds the shared part, in the application layer behind the agent-runtime interface: `PatientRuns` runs a stage's agent and, after a `provider_limit`, waits out a cool-down (an operator setting, default 10 minutes, or the wait the provider's message names), with no agent process running and without asking anyone, then resumes the same session with a short continue prompt, the budget that is left and the time limit that is left. Repeated limits keep waiting; the waits count toward neither the stage's `time_limit` nor its attempts. Only when the waits reach a long ceiling (an operator setting, default 2 hours) does the run end `provider_limit`, and the stage stalls it with its note on the pull request, which reaches the human. Each runtime only maps its own signal to the end reason (S0005, S0006); the waiting is the same for both. The waiting itself is an interface, `Waiter`, so that tests advance a manual clock instead of sleeping. The preflight's probe does not wait: a limit there is a failed probe, as today.
+
+## Interface
+
+`factory.application.machine` (`application`):
+
+```python
+class Waiter(ABC):
+    """Waits for a time without holding anything; the factory has no sleep of its own."""
+
+    @abstractmethod
+    def wait(self, duration: timedelta) -> None:
+        """Return after `duration`; a negative one raises `ValueError`."""
+```
+
+`factory.adapters.clock` (`adapters`):
+
+```python
+class SleepingWaiter(Waiter): ...                      # time.sleep
+class ManualWaiter(Waiter):
+    def __init__(self, clock: ManualClock) -> None: ...
+    @property
+    def waits(self) -> list[timedelta]: ...
+```
+
+- `SleepingWaiter.wait` sleeps for the duration; `ManualWaiter.wait` advances its clock by it and records it, returning at once. Both raise `ValueError` for a negative duration; zero returns at once.
+
+`factory.application.boundaries` (`application`):
+
+- `Boundaries` gains `waiter: Waiter | None = None`, last.
+
+`factory.domain.provider_limits` (`domain`):
+
+```python
+DEFAULT_COOLDOWN = timedelta(minutes=10)
+DEFAULT_CEILING = timedelta(minutes=120)
+
+class ProviderLimit(BaseModel):
+    ...                                   # S0005's status and message
+    cooldown: timedelta = DEFAULT_COOLDOWN
+    ceiling: timedelta = DEFAULT_CEILING
+```
+
+- `cooldown` is at least one minute; `ceiling` is at least the `cooldown` (`the ceiling is shorter than the cool-down` otherwise).
+
+`factory.domain.settings` (`domain`):
+
+```python
+PROVIDER_LIMIT_COOLDOWN_VARIABLE = "FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES"
+PROVIDER_LIMIT_CEILING_VARIABLE = "FACTORY_PROVIDER_LIMIT_CEILING_MINUTES"
+```
+
+- `read_settings`: each, unset or blank, gives its default; a whole number of minutes of at least 1 in ASCII digits gives that; any other raises `SettingsInvalid` naming the variable with `is not a whole number of minutes of at least 1`. A ceiling below the cool-down raises `SettingsInvalid` naming the ceiling's variable with `is shorter than the cool-down`.
+
+`factory.application.provider_limits` (`application`, new):
+
+```python
+CONTINUE_PROMPT = (
+    "The provider's spend limit stopped your run. Continue the work where you stopped, "
+    "then end as your instructions say."
+)
+
+class PatientRuns:
+    def __init__(self, boundaries: Boundaries) -> None: ...
+    def run(self, request: AgentRunRequest) -> AgentRunResult: ...
+```
+
+- `run` calls `boundaries.agent_runtime.run(request)` and returns a result whose end reason is not `provider_limit` as it is.
+- Without a waiter (`boundaries.waiter` is `None`), a `provider_limit` result is returned as it is, after one call.
+- The limit's settings are `boundaries.settings.provider_limit`, or `ProviderLimit()` without settings.
+- After a `provider_limit`, in this order:
+  1. The budget left is the agent's `budget_usd` less the run's cost so far (`None` counts 0); at or below zero, the run ends `budget` (the result so far with that end reason and no `limit_wait`), without a wait.
+  2. The time left is the request's `time_limit` less the sum of the calls' durations so far (the waits do not count); at or below zero, the run ends `time_limit` in the same way.
+  3. The waits so far reach the ceiling: the run ends `provider_limit`, and the factory log gets `provider limit: <agent> waited <s> s, the ceiling of <c> s; the run ends provider_limit`.
+  4. Otherwise it waits the result's `limit_wait`, or the cool-down without one, at most what is left of the ceiling; the factory log gets `provider limit: <agent> waits <w> s before it resumes <session>` (`a new run` when the result has no session) before the wait.
+  5. It calls the runtime again with `request.model_copy(update=...)`: with a session, `prompt` `CONTINUE_PROMPT` and `resume_session` the session; without one, the request's own prompt and no `resume_session`; in both, the agent's `budget_usd` the budget left and `time_limit` the time left.
+  6. The run so far and the new call are joined by `resumed_result` (S0002, S0005): the costs, turns, tokens and durations summed, the new call's end, session and wait.
+- Seconds in the log lines are whole seconds (`int(...)`).
+- It builds no `AgentRunRequest` of its own (`tests/test_agent_run_request_search.py` passes unchanged): every resumed request is a `model_copy` of the stage's.
+
+`factory.application.sealed_runs` (`application`):
+
+```python
+def run_sealed(boundaries: Boundaries, request: AgentRunRequest, *,
+               run: Callable[[AgentRunRequest], AgentRunResult] | None = None) -> SealedRun: ...
+```
+
+- With `run`, the sealed run calls it instead of `boundaries.agent_runtime.run`; the seal, its check and the removal of nested repositories are unchanged.
+
+`factory.application.stage` (`application`):
+
+- `StageLauncher.launch` runs the agent through `run_sealed(..., run=PatientRuns(boundaries).run)`; its cost record is begun before and completed after the whole patient run, so a run resumed after a limit is one record. A run that ends `provider_limit` stalls with that reason (S0005's sentence), one attempt counted, as every early end does.
+- The preflight's probe keeps `run_sealed` without `run`.
+
+`factory.entry.wiring` (`entry`):
+
+- `build_boundaries` gives the boundaries a `SleepingWaiter()`.
+
+Tests (the tester writes them): `tests/adapters/test_waiters.py`, `tests/domain/test_provider_limit_wait.py`, `tests/domain/test_settings_provider_limit_wait.py`, `tests/application/test_patient_runs.py` (with `FakeAgentRuntime`, `ManualClock` and `ManualWaiter`, the boundaries fixture of `tests/conftest.py` given a waiter and settings by `dataclasses.replace`), `tests/application/test_sealed_runs_runner.py`, `tests/application/test_stage_provider_limit.py` (a stage launched and processed as `tests/application/test_stage_launch.py` and `tests/application/test_stalls.py` do, their helpers imported, not copied), `tests/entry/test_wiring_waiter.py`. No earlier test changes.
+
+## Acceptance criteria
+
+1. `ManualWaiter.wait(timedelta(minutes=10))` advances its clock by ten minutes and records the wait; `SleepingWaiter` and `ManualWaiter` return at once for zero and raise `ValueError` for minus one second (rows).
+2. `ProviderLimit` takes the defaults of 10 and 120 minutes, accepts a cool-down of one minute and a ceiling equal to it, and refuses a cool-down of 59 seconds and a ceiling below the cool-down (rows).
+3. `read_settings` gives 10 and 120 minutes without the variables or with blank ones, 5 and 60 for `5` and `60`; it raises `SettingsInvalid` naming the variable for `0`, `-1`, `abc` and `1.5`, and naming the ceiling's variable for a cool-down of 30 and a ceiling of 20 (rows).
+4. A completed result, and a `died` one, come back as the runtime gave them, after one call and no wait (rows).
+5. A `provider_limit` result with session `ses_a`, cost 0.20, duration 5 seconds and no `limit_wait`, then a completed one of cost 0.30 and 5 seconds, under a budget of 1 and a time limit of 60 seconds: one wait of 600 seconds; the second request has the prompt `CONTINUE_PROMPT`, `resume_session` `ses_a`, a budget of 0.80 and a time limit of 55 seconds, and keeps every other field of the first; the result is `completed` with cost 0.50, a duration of 10 seconds and the second call's decision and entry.
+6. A `limit_wait` of 420 seconds is waited instead of the cool-down; one of 3 hours is cut to the ceiling of 2 hours (rows).
+7. Under a cool-down of 10 and a ceiling of 30 minutes, a runtime that ends `provider_limit` on every call is called four times with three waits of 600 seconds, and the run ends `provider_limit`; the factory log holds three wait lines and then `provider limit: coder waited 1800 s, the ceiling of 1800 s; the run ends provider_limit`.
+8. A limit with a named wait of 25 minutes under a ceiling of 30 minutes waits 1500 seconds, then 300 seconds after a second limit, then ends at the third (rows of waits recorded).
+9. A `provider_limit` result without a session is followed by a call with the request's own prompt and no `resume_session`, and the log line ends `before it resumes a new run`.
+10. A `provider_limit` result whose cost is 1.00 or more under a budget of 1 ends the run `budget`, and one whose duration has used the whole time limit ends it `time_limit`, each without a wait and after one call, with no `limit_wait` (rows).
+11. Without a waiter, a `provider_limit` result comes back after one call; without settings, the defaults of 600 and 7200 seconds apply (rows).
+12. `run_sealed` with `run` calls it and not the runtime, and seals and checks as without it (rows).
+13. A stage whose fake runtime gives a `provider_limit` and then a completed run with the decision `doing` moves on as for a completed run: the work item's attempts are unchanged, its sidecar holds one completed cost record with both calls' costs, and the waiter recorded 600 seconds.
+14. A stage under a cool-down and a ceiling of one minute whose runtime ends `provider_limit` twice stalls with the reason `provider_limit`: attempt 1 of 2, the note `Stalled (attempt 1 of 2): the provider's spend limit lasted past the waiting ceiling. Retrying on the next tick.` on the pull request.
+15. The preflight's probe whose fake run ends `provider_limit` fails `agent-run-probe` after one call, with no wait (`the probe run ended provider_limit; ...`).
+16. `build_boundaries` gives a `SleepingWaiter`.
+17. `make check` stays green.
+18. docs: `docs/operator-guide.md`: a section *A provider's spend limit*: what a limit is (HTTP 428 behind a gateway, or the operator's pattern), that the factory waits the named wait or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) and resumes the same session with what is left of the budget and the time limit, without counting an attempt; that it stalls after `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120) of waiting, and what to do then; the two log lines; that the claim stays held while waiting. The configuration table gets both variables, and the stall reasons `provider_limit` gets what to do. `docs/project-guide.md`: `PatientRuns`, the `Waiter` interface and its two implementations, `run_sealed`'s `run`. `docs/decisions.md`: an entry *The factory waits out a provider limit around a stage's run*, dated with the story, with the reasons of the feature's decision 14.
+
+## Smoke test
+
+```bash
+d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+mkdir "$d/work"
+uv run -q python - "$d" <<'EOF'
+import sys
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
+from pathlib import Path
+from factory.adapters.clock import ManualClock, ManualWaiter
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.application.boundaries import Boundaries
+from factory.application.machine import FactoryLog
+from factory.application.provider_limits import CONTINUE_PROMPT, PatientRuns
+from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+
+
+class Lines(FactoryLog):
+    def __init__(self) -> None:
+        self.lines: list[str] = []
+
+    def line(self, text: str) -> None:
+        self.lines.append(text)
+
+
+d = Path(sys.argv[1])
+clock = ManualClock(datetime(2026, 10, 18, tzinfo=UTC))
+runtime = FakeAgentRuntime()
+second = timedelta(seconds=5)
+runtime.queue(ScriptedRun(result=AgentRunResult(end_reason="provider_limit", duration=second, cost_usd=Decimal("0.2"), session="ses_smoke", limit_wait=timedelta(minutes=7))))
+runtime.queue(ScriptedRun(result=AgentRunResult(end_reason="provider_limit", duration=second, cost_usd=Decimal("0.1"), session="ses_smoke")))
+runtime.queue(ScriptedRun(result=AgentRunResult(end_reason="completed", decision="question", entry="Done.", duration=second, cost_usd=Decimal("0.3"), session="ses_smoke")))
+waiter = ManualWaiter(clock)
+log = Lines()
+unused = None
+boundaries = Boundaries(git=unused, hosting=unused, agent_runtime=runtime, project_commands=unused, work_item_reader=unused, work_item_writer=unused, cost_reader=unused, cost_writer=unused, pipeline_reader=unused, agent_definitions=unused, clock=clock, log=log, health=unused, checkout=d, waiter=waiter)
+agent = AgentDefinition(name="coder", model="sonnet", tools=["Read"], budget_usd=Decimal("1"), instructions="Smoke.")
+request = AgentRunRequest(agent=agent, prompt="Smoke.", allowed_decisions=["question"], time_limit=timedelta(seconds=60), working_directory=d / "work")
+result = PatientRuns(boundaries).run(request)
+print(result.end_reason, result.cost_usd, result.duration.total_seconds())
+print([wait.total_seconds() for wait in waiter.waits], clock.now().isoformat())
+resumed = runtime.requests()[1]
+print(resumed.prompt == CONTINUE_PROMPT, resumed.resume_session, resumed.agent.budget_usd, resumed.time_limit.total_seconds())
+print(log.lines[0])
+EOF
+```
+Expect: four lines, `completed 0.6 15.0`, `[420.0, 600.0] 2026-10-18T00:17:00+00:00`, `True ses_smoke 0.8 55.0`, `provider limit: coder waits 420 s before it resumes ses_smoke`
+
+## Journal
+
+Empty in the backlog. The factory writes entry 1 when the story starts.
