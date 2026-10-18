@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T13:01:24.051747Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -50,6 +46,12 @@ journal:
   kind: started
   at: '2026-10-18T13:01:24.051747Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T13:02:48.753069Z'
+  stage: tests
+  run: 64b62336d28d449d8a44aae8a36e352e
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -110,3 +112,11 @@ Expect: `documents ok`
    Architecture: nothing under `src/` changes, so the four layers are untouched. Only `docs/project-guide.md` and `docs/decisions.md` change, which is the documenter's job.
    Scope: `feature.md` now names both passages in its Scope and S0002 in its Stories (journal 4, answer 1), and neither is in its Out of scope. The in-place rewording matches feature decision 3. I made no edits to the story.
 7. factory: started tests as self.
+8. tester: No tests written. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changes. The story is documentation only: its Interface is "None", and criterion 1 asks the tester to change nothing.
+   criterion 1: no test. It is a process note (journal 4, answer 3), and the reviewer checks it on the diff.
+   criterion 2: covered by `make check` itself; no new test.
+   criterion 3: no test. It is the documenter's change to `docs/project-guide.md` and `docs/decisions.md`. The smoke test checks it, as does `python -m factory.entry.check_documents` (`documents ok`).
+   Files created: none. Modules the test run could not import: none. `make test` is green (coverage 99.44%), so the branch has no red tests, which is intended for this story. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (35.4 s)
