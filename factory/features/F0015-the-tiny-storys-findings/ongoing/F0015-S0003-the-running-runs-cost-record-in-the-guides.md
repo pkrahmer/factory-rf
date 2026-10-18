@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 208
 blocked: null
 comments_seen: 0
 round: 0
@@ -37,3 +37,9 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted. Documentation-only story, accepted as written.
+   - Interface: it states "None" and names the three documents the documenter changes (`docs/project-guide.md`, `docs/operator-guide.md`, `docs/decisions.md`). There is no module or signature to check and no behaviour comment that needs a criterion. The anchors it cites exist: the project guide's "When a record is created, completed and committed" with its bullets "Created at the start" and "Rewritten after every undo"; the operator guide's "What a stage run shows"; the decision log's "The sidecar is rewritten from memory after every undo, and a crashed stage's records are discarded with it".
+   - Criteria: criterion 1 (nothing under src/image/template/claude/tests changes) can be checked by a diff. Criterion 3 names the exact text for each of the three documents. It has no rule with a failing side. The guard against an unwanted change is criterion 1 plus the document check.
+   - Demo: both commands are runnable. The grep counts "the running run's" in the three files and gives 0 in each today, so the expectation (`:n` with n ≥ 1 in all three) can be checked. `check_documents` must print `documents ok`.
+   - Architecture: nothing in the code layers is touched, and the story adds no rule to the shipped agents (FEATURE decision 9).
+   - Scope: the story matches FEATURE.md's third scope item and decision 9. Its dependency is met: S0001 is in `done/`, and `template/Makefile` and `demo/todo-service/project/Makefile` already carry the `.costs.jsonl` filter, so the project-guide claim about the secrets scan is true.
