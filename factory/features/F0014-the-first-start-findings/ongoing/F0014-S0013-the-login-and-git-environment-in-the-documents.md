@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 204
 blocked: null
 comments_seen: 0
@@ -59,3 +59,11 @@ Expect: `documents ok`.
    - Architecture: nothing is placed. No module, layer or interface is touched.
    - Scope: S0013 is listed in `FEATURE.md` as documentation only, with `README.md`, `docs/decisions.md` and `docs/operator-guide.md` as its files. Decisions 34 to 36 cover it, and decision 36 (5) is the human's yes to this story's edit 1. Nothing in it falls under "Out of scope".
    No questions.
+3. tester: no tests written, as criterion 1 requires. This story only changes documentation, and its Interface is "None". Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes.
+   - criterion 1: no test. It is checked by the diff, and the coder's entry says so too. This stage changed none of those paths, and `git status` is clean.
+   - criterion 2: no test. `make check` is the gate the factory runs.
+   - criterion 3 (docs): no test. It is the documenter's work, and the demo checks it with its grep counts and `check_documents`.
+   I created no files, so the test runner has no unimportable modules. I did not run `make test` because no test was added that could fail. `make lint` is green. Nothing is open for the coder: the coder has no code to write and ends with an entry saying nothing changed.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (33.2 s)
