@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T20:35:10.212920Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   at: '2026-10-18T20:34:49.659242Z'
   stage: docs
   run: a3b90922fe5740009ac97ac15fef4c49
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:35:10.212920Z'
+  stage: smoke-test
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -258,3 +267,4 @@ Expect: `with: 0`, then `without: 2`
 
     `check`: check: green
     `documents`: documents ok
+15. factory: started smoke-test as self.
