@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: [6255820784]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T22:16:03.601110Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -156,6 +160,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T22:15:46.023853Z'
+  stage: review
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:16:03.601110Z'
   stage: review
 ---
 
@@ -572,3 +581,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
 26. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 27. 2026-10-18 human: Option (a): keep the built signature. Reviewer: rewrite the work item's Interface to `append_entry(..., **causes: Unpack[JournalCauses])`, name the public `TypedDict` `JournalCauses` with its two optional keys `blocked: Blocked` and `reason: StallReason`, and give the reason (ruff's `PLR0913` with the two causes as keyword parameters). Then go forward: no code or test changes, and no other open finding (groups 1 to 4 pass, entry 25).
+28. factory: started review as self.
