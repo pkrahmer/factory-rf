@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-18T13:11:55.465569Z'
   stage: acceptance
   run: a7fff4266a4b4201a64c443f0547de28
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-18T13:13:13.658368Z'
+  stage: done
 stories: [F0018-S0001, F0018-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents name the handover
@@ -181,3 +186,4 @@ None. The feature's promises hold, `make mutants` has nothing to mutate, and the
    6 Decisions for the human: feature decisions 1 to 3, the Scope widening for S0002, criterion 1 as a process note, the three items carried from F0018-A0001 (umask, the inferred *Rejected* bullet, "its stages"), and the open shakedown question. No earlier test was changed.
    7 Slow checks: nothing beyond the make targets; `duplicates` 0 new. Disk is unchanged against F0018-A0001's record (/work 0.4 GB). `/tmp/pytest-of-agent` is still 114 MB from pytest's rotation, not from the feature. Slowest test: the resume time-limit test, 5.0 s.
    8 Cost: 14 runs, $1.71 (S0001 $1.10, S0002 $0.60). Nothing stands out. In S0002, the tester, coder and reviewer runs ($0.34) confirmed that a docs-only story changes nothing in their lanes; that is the pipeline's fixed shape, noted for the human.
+3. factory: done (pull request merged); cost: 1 runs, 2.8 min, 17 turns, 44890 tokens in (518439 more from cache), 10699 out, $0.68
