@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T14:37:55.065164Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -63,6 +67,11 @@ journal:
   at: '2026-10-18T14:37:34.939289Z'
   stage: doing
   run: ee04707d4eac4468b2d554045cb67307
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:37:55.065164Z'
+  stage: review
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -247,3 +256,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
 
     `check`: check: green
     `duplicates`: duplicates: 3 new, 36 known, 3 gone
+11. factory: started review as self.
