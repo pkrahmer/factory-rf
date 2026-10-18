@@ -16,6 +16,19 @@ from factory.domain.pipeline_definition import (
 from factory.domain.write_paths import is_inside_checkout
 
 LANDLOCK_MINIMUM_ABI = 3
+# The devices a shell and its tools write to; a run allows those of them that exist.
+DEVICE_FILES: tuple[str, ...] = (
+    "/dev/null",
+    "/dev/zero",
+    "/dev/full",
+    "/dev/random",
+    "/dev/urandom",
+    "/dev/tty",
+)
+DEVICE_FOLDERS: tuple[str, ...] = (
+    # A device folder the kernel is told to allow (shared memory), not a temporary file.
+    "/dev/shm",  # noqa: S108  # nosec B108
+)
 
 
 def abi_fault(abi: int) -> str | None:

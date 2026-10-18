@@ -11,9 +11,9 @@ from factory.adapters.claude_runtime import LOGIN_VARIABLE
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from wiring_support import CREDENTIAL
 
 LOGIN = "stand-in-login"
-CREDENTIAL = "example-value"
 REPLY = json.dumps(
     {
         "type": "result",
@@ -49,7 +49,9 @@ def test_the_built_runtime_hands_the_login_file_s_token_to_claude(
         claude_executable=str(executable),
         claude_login_file=login if configured else None,
     )
-    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
+    boundaries = build_boundaries(
+        settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=None
+    )
 
     boundaries.agent_runtime.run(_request(tmp_path, None))
 

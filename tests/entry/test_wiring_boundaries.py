@@ -40,10 +40,10 @@ from factory.entry.wiring import (
     repository_name,
 )
 from git_support import clone, install_agents, write_executable
+from wiring_support import CREDENTIAL
 
 GITHUB_URL = "https://github.com/owner/project.git"
 LOCAL_URL = "/srv/project.git"
-CREDENTIAL = "example-value"
 REPLY = json.dumps(
     {
         "type": "result",
@@ -331,6 +331,7 @@ def test_the_built_agent_runtime_keeps_its_run_files_under_runs(
         settings.model_copy(update={"claude_executable": str(executable)}),
         CREDENTIAL,
         hosting=FakeHostingService(),
+        confine_executable=None,
     )
 
     boundaries.agent_runtime.run(request)
