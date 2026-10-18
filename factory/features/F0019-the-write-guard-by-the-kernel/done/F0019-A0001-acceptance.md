@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -50,8 +50,13 @@ journal:
   at: '2026-10-18T19:07:42.240521Z'
   stage: acceptance
   run: 9020bd0e3e124c348c5fbbdf582f38c2
+- number: 9
+  speaker: factory
+  kind: done
+  at: '2026-10-18T19:08:59.856005Z'
+  stage: done
 stories: [F0019-S0001, F0019-S0002, F0019-S0003, F0019-S0004, F0019-S0005, F0019-S0006]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The write guard by the kernel
@@ -353,3 +358,4 @@ It was also the story with the most moving parts: the wrapper on the command lin
    6. Decisions: the report lists the feature's 21 decisions and the journal answers. Still open for the human: the hook fallback offered as the alternative in decision 12, the cross-check of decision 16, the template and demo of decision 17, change 3, and the test rename. Every changed earlier test names its leave.
    7. Slow checks: none exist beyond the make targets. The slowest test takes 5.0 s; the feature's 115 tests take 17.3 s together. The disk shows no growth to explain (0.5 GB used, as at the previous record).
    8. Cost: $23.19 over 77 runs. S0004 stands out with $10.47 and 25 runs. Its journal names three questions to the human, a criterion-numbering conflict that needed a retry, and review rounds up to the cap for helper copies.
+9. factory: done (pull request merged); cost: 1 runs, 28.6 min, 62 turns, 139697 tokens in (4680381 more from cache), 51199 out, $3.08
