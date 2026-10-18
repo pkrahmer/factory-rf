@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 210
 blocked: null
 comments_seen: 0
@@ -129,3 +129,8 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+      - Acceptance criteria: I checked the diff word for word against the Interface. In `template/CLAUDE.md`, the `Not without asking` line is the exact new text, and the standing-leave bullet is the last bullet of `## Tests`, after the time-limit bullet. In `claude/agents/tester.md`, the old bullet on earlier tests is replaced in its place by the two new bullets, and `_TIME_LIMIT_LESSON` is still last. In `claude/agents/coder.md`, the new bullet comes last, after `- You never change a test`. No other line in the three files changes.
+      - Tests: the tester changed only the constants the Interface names. `TEMPLATE_RULES_LINES` in `tests/test_claude_files.py` has the new `Not without asking` line and the new bullet before the empty line that ends `## Tests`. `LESSONS["tester"]` and `LESSONS["coder"]` in `tests/test_claude_agent_texts.py` match the Interface. Neither test function changed. These constants pin criteria 1 to 4: the two exact-text tests leave no room for the old tester bullet to stay or for another agent's lessons to drift. The coder's entry reports `make check` green and `duplicates: 0 new`.
+      - Architecture and security: text files and test constants only. Nothing under `src/` changes, and the diff adds no markers or secrets.
+      - Quality and ticket hygiene: the log gives the coder's main decision (exact single-match replacements) and what it rejected. `Assignment` matches what was built. Criterion 7 still describes what the documenter must write.
