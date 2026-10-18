@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379, 6251729450]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T15:34:36.963158Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -134,6 +138,11 @@ journal:
   at: '2026-10-18T15:34:16.872451Z'
   stage: review
   run: 81849e1759b94edfa8ac0329f64ae22d
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:34:36.963158Z'
+  stage: docs
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -439,3 +448,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     Open, not a finding: `make duplicates` lists `write_targets` and `confinement_of` as dead code until S0004 uses them.
     Earlier tests:
     - `tests/application/test_write_paths.py`: changed under the standing leave to move a shared test helper. `_stage_start`, `_push_definition` and `PIPELINE_FILE` moved to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
+24. factory: started docs as self.
