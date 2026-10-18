@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: [6255820784]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T22:19:04.320909Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -179,6 +183,11 @@ journal:
   at: '2026-10-18T22:18:44.144721Z'
   stage: docs
   run: 73790245164d41cca2baccead9b8e32b
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:19:04.320909Z'
+  stage: smoke-test
 ---
 
 # The journal records why a work item waited or stalled
@@ -643,3 +652,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 
     `check`: check: green
     `documents`: documents ok
+32. factory: started smoke-test as self.
