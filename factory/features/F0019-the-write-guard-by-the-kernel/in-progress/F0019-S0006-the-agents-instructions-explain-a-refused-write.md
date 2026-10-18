@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T17:16:18.720421Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T17:15:58.715122Z'
   stage: doing
   run: 782bdc28dbe04ee6a25cb42762ccaff0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:16:18.720421Z'
+  stage: tests
 ---
 
 # The agents' instructions explain a refused write
@@ -163,3 +172,4 @@ Expect: `1`
     - I confirmed the two copies are identical, word for word. A search of `tests/` found no other `_body` that wraps `front_matter_and_body`. The `_body` helpers in `tests/application/test_acceptance_merged.py`, `tests/domain/test_hand_over.py` and `tests/domain/test_story_form.py` do something else. They are not copies and are not part of the move.
     - Main choice: end with `tests` and name the move, as the role requires. I rejected editing the test files myself: the coder never edits tests.
     - Not touched: the seven agent files under `claude/agents/` stay as round 0 left them. The reviewer found they match the Interface. No `src/` change. The docs criterion (`docs/project-guide.md`) is left to the documenter.
+12. factory: started tests as self.
