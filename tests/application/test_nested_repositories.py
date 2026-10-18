@@ -47,6 +47,7 @@ PROBE_DETAIL = (
     "notes/sub/.git"
 )
 REMOVED_LINE = "removed nested repositories: notes/sub/.git"
+TWO_NESTED = "a/.git, b/.git"
 
 Act = Callable[[Path], None]
 
@@ -82,6 +83,11 @@ def _init(folder: Path) -> None:
 
 def _nest(checkout: Path) -> None:
     _init(checkout / "notes" / "sub")
+
+
+def _nest_two(checkout: Path) -> None:
+    _init(checkout / "b")
+    _init(checkout / "a")
 
 
 def _leave(_checkout: Path) -> None:
@@ -207,6 +213,28 @@ def test_a_stage_whose_agent_leaves_a_nested_repository_stalls(
     assert marker.read_text(encoding="utf-8") == ""
 
 
+def test_a_stage_whose_agent_leaves_two_repositories_names_both_in_the_stall_note(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    hosting: FakeHostingService,
+) -> None:
+    launched = _launch(
+        _nesting(boundaries, _nest_two, agent_runtime),
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        run=ScriptedRun(result=_completed("doing")),
+    )
+
+    stalled = _stalled(boundaries, launched)
+
+    assert stalled.reason == "nested_repository"
+    assert f"which the factory removed: {TWO_NESTED}" in _note(hosting, stalled)
+
+
 def _probe_settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
     return InstanceSettings(
         repository_url="/srv/project.git",
@@ -223,6 +251,13 @@ def _probe_settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
     [
         pytest.param(_nest, COMPLETED, PROBE_DETAIL, id="nested-and-completed"),
         pytest.param(_leave, COMPLETED, None, id="nothing-nested"),
+        pytest.param(
+            _nest_two,
+            COMPLETED,
+            "the probe run left a git repository in the work tree, which the factory removed: "
+            + TWO_NESTED,
+            id="two-nested",
+        ),
         pytest.param(
             _nest,
             AgentRunResult(end_reason="died", duration=COMPLETED.duration),
@@ -278,6 +313,9 @@ def directory(tmp_path: Path) -> Path:
         pytest.param(_nest, True, [REMOVED_LINE], id="nested"),
         pytest.param(_nest, False, [], id="nested-without-log"),
         pytest.param(_leave, True, [], id="nothing-nested"),
+        pytest.param(
+            _nest_two, True, [f"removed nested repositories: {TWO_NESTED}"], id="two-nested"
+        ),
     ],
 )
 def test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout(

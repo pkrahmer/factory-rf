@@ -82,6 +82,34 @@ def _in_venv(checkout: Path) -> None:
     _init(checkout / ".venv" / "lib" / "x")
 
 
+def _link_to_a_repository_beside(checkout: Path) -> None:
+    _init(checkout.parent / "outside")
+    (checkout / "mirror").symlink_to(checkout.parent / "outside", target_is_directory=True)
+
+
+def _link_to_the_root(checkout: Path) -> None:
+    (checkout / "self").symlink_to(checkout, target_is_directory=True)
+
+
+def _link_to_the_parent(checkout: Path) -> None:
+    (checkout / "deep").mkdir()
+    (checkout / "deep" / "up").symlink_to(checkout.parent, target_is_directory=True)
+
+
+def _git_inside_the_roots_git(checkout: Path) -> None:
+    (checkout / ".git" / "extra" / ".git").mkdir(parents=True)
+
+
+def _git_inside_a_found_git(checkout: Path) -> None:
+    _init(checkout / "notes")
+    (checkout / "notes" / ".git" / "modules" / "m" / ".git").mkdir(parents=True)
+
+
+def _repository_in_a_dot_folder(checkout: Path) -> None:
+    _init(checkout / "a")
+    _init(checkout / "a" / ".cache")
+
+
 def _closed_folder(checkout: Path) -> None:
     _init(checkout / "closed" / "inner")
     (checkout / "closed").chmod(0o000)
@@ -97,6 +125,14 @@ def _closed_folder(checkout: Path) -> None:
         pytest.param(_two_levels, ["a/.git", "a/b/.git"], id="two-levels"),
         pytest.param(_lookalikes, [], id="lookalikes"),
         pytest.param(_in_venv, [".venv/lib/x/.git"], id="venv"),
+        pytest.param(_link_to_a_repository_beside, [], id="link-to-repository-beside"),
+        pytest.param(_link_to_the_root, [], id="link-to-root"),
+        pytest.param(_link_to_the_parent, [], id="link-to-parent"),
+        pytest.param(_git_inside_the_roots_git, [], id="git-inside-roots-git"),
+        pytest.param(_git_inside_a_found_git, ["notes/.git"], id="git-inside-found-git"),
+        pytest.param(
+            _repository_in_a_dot_folder, ["a/.cache/.git", "a/.git"], id="sorted-dot-folder"
+        ),
         pytest.param(_closed_folder, [], id="closed-folder", marks=AS_ROOT),
     ],
 )

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 202
 blocked: null
 comments_seen: 0
@@ -80,3 +80,16 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both blocks are runnable. The first has fixed output (`['a/.git', 'b/.git']`, then `True True True`). The second has an `<n> passed` line to check against.
    - Architecture: the story adds tests only and touches no layer. The adapter and application texts it pins are already where `CLAUDE.md` puts them.
    - Scope: it is inside F0014. FEATURE decisions 34 and 36 give the leave for the added rows and name S0011 as tests only. Nothing in the story is listed under "Out of scope". The link case (a link to a repository is not itself a nested one) is decided in 36 (2).
+3. tester: added the rows and the test function the criteria name. This story only pins how today's code already behaves, so the new tests pass against it. The branch has no red tests, and that is expected here, not a sign the tests are wrong: one `make test` run ended `test: green (33.6 s)` with 99.47 % coverage, and `make lint` is green.
+   - criterion 1: `tests/adapters/test_git_cli_nested.py::test_remove_nested_repositories_removes_and_reports_each_nested_git_entry`, rows `link-to-repository-beside` (link `mirror` to `outside`, a folder beside the checkout made by `git init`), `link-to-root` (link `self`) and `link-to-parent` (link `deep/up` to the checkout's parent). All three expect `[]`. The test's existing snapshot of `tmp_path` shows that the links, the target's `.git` and the parent folder are unchanged.
+   - criterion 2: same test, row `git-inside-roots-git` (`.git/extra/.git` folder), expects `[]`.
+   - criterion 3: same test, row `git-inside-found-git` (repository at `notes`, folder `notes/.git/modules/m/.git`), expects `["notes/.git"]`. The snapshot shows the whole subtree is gone.
+   - criterion 4: same test, row `sorted-dot-folder` (repositories at `a` and `a/.cache`), expects `["a/.cache/.git", "a/.git"]`.
+   - criterion 5: `tests/application/test_nested_repositories.py::test_a_stage_whose_agent_leaves_two_repositories_names_both_in_the_stall_note`. It reuses `_nesting`, plus `_launch`, `_stalled`, `_note` and `_completed` imported from `application.test_after_agent`.
+   - criterion 6: `tests/application/test_nested_repositories.py::test_a_probe_run_that_leaves_a_nested_repository_fails_the_item`, row `two-nested`.
+   - criterion 7: `tests/application/test_nested_repositories.py::test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout`, row `two-nested`. The existing body checks that the test's file stays, so the checkout was not cloned again.
+   - New helpers in that module: `_nest_two`, which makes `b` before `a` so the sort is actually exercised, and the constant `TWO_NESTED`.
+   Files changed: `tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`. No files created. No module failed to import. The type check was skipped, as the stage says. For the coder: nothing to implement unless `make check` finds a type problem in these tests.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (33.9 s)
