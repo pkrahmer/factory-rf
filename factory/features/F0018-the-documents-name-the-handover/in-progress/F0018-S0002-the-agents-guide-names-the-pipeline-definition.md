@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T13:03:08.654443Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   at: '2026-10-18T13:02:48.753069Z'
   stage: tests
   run: 64b62336d28d449d8a44aae8a36e352e
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:03:08.654443Z'
+  stage: doing
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -120,3 +129,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (35.4 s)
+9. factory: started doing as self.
