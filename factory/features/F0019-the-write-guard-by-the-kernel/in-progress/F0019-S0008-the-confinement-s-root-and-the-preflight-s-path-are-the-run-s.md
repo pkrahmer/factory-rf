@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T19:26:00.492193Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T19:26:00.492193Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-18T19:26:22.296719Z'
+  stage: doing
+  run: 9e5dc291252c49b094c4d9f1f1b54690
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -188,3 +190,14 @@ Expect: `completed | root file refused | False`
    - tests/adapters/test_claude_runtime_confinement.py: the standing leave to move a shared test helper. Its constants, models, `Layout` and helpers moved to tests/confine_support.py and the `layout` fixture to tests/conftest.py. The private helpers were renamed (`_request` to `run_request`, `_runtime` to `confined_runtime`). Every test keeps its name, and no assertion changed.
    - tests/conftest.py: the standing leave to move a shared test helper. It only gains the moved `layout` fixture.
 10. factory: started doing as self.
+11. coder: In this round I changed nothing. The one finding in the review is about a test, and I don't edit tests (R9).
+
+    The test change: in `tests/entry/test_wiring_extras_path.py`, drop the private helper `_bin_with`. In its place, make the folder, and when there is a command, call `write_script(folder / command, "")` from `tests/confine_support.py`.
+
+    I checked the finding against the file. `_bin_with`, at `tests/entry/test_wiring_extras_path.py:13`, makes the folder, writes an executable `#!/bin/sh` script and runs `chmod(0o755)` on it. That is the same job as the shared `write_script` at `tests/confine_support.py:106`, which this diff moved there. `write_script` writes a script with the test interpreter's shebang, so an empty script exits 0. That is enough for both the `shutil.which`-style search and the pass rows.
+
+    Main choice: I send the work item back to the tester rather than asking the human. The helper copy is the reviewer's finding, and the standing leave in `CLAUDE.md` covers this kind of move. The rejected alternative was to edit the test myself, which R9 forbids.
+
+    Nothing under `src/` changes: `git diff main -- . ':!factory' ':!tests'` is still empty. I had nothing of my own to refactor. No journal entry changed the meaning of the task, so the Description stays as it is.
+
+    Noticed, not touched: `src/factory/entry/confine.py` is still at 78 % coverage, as I noted in round 0. That is outside this story.
