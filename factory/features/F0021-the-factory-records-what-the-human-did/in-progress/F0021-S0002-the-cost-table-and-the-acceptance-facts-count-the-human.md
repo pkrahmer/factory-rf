@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T22:24:48.782669Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-18T22:24:48.782669Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T22:25:05.816617Z'
+  stage: intake
+  run: 4f4ceead4423435e87ed35c2e6076a22
 ---
 
 # The cost table and the acceptance facts count the human
@@ -129,6 +131,7 @@ Test modules (new): `tests/domain/test_human_waits.py`, `tests/domain/test_accep
     - `question` with `blocked` but no `at`: no wait.
     - `question` with `blocked`, then a human `comment` without `at`, then a human `comment` at 12:00: answered at 12:00.
     - Two blocking questions, each followed by a human comment: two waits, in journal order.
+    - A human `comment` at 09:00 before a `question` with `blocked` at 10:00, and no later human record: one wait with `answered_at` `None` (a human record before the question does not end it).
 2. `human_line`, rows of one parametrized test:
     - no waits: `0 questions answered, 0.0 h waited`;
     - one answered `crash_cap` wait of 1 h 30 min: `1 questions answered (crash_cap 1), 1.5 h waited`;
@@ -138,7 +141,7 @@ Test modules (new): `tests/domain/test_human_waits.py`, `tests/domain/test_accep
 3. `cost_table_post("T")` is `Cost of this work item so far\n\nT`, and `cost_table_post("T", human="0 questions answered, 0.0 h waited")` is `Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0 h waited` (rows of one parametrized test).
 4. The hand-over of a story at its approval, and the hand-over of an acceptance at its approval (rows of one parametrized test), post the cost table with the line `Human: <human_line>` of the work item's own journal on its branch: a journal with one blocking question answered after 1 h 30 min gives `Human: 1 questions answered (question 1), 1.5 h waited`.
 5. `AcceptanceFacts.lines()`, rows of one parametrized test: with `human_line` and without a disk, four lines, the last `Human interventions of the stories: <line>`, right after `Cost of the stories: ...`; with `human_line` and a disk, that line fourth and the two disk lines after it; without `human_line`, the lines as today. `acceptance_facts(files, cost_line, human_line="x")` passes the value on.
-6. `AcceptanceService.facts` of a feature whose `done/` on `origin/main` holds two stories, one with a blocking question answered after 1 h and one with a blocking question answered after 30 min, plus an acceptance report with an answered blocking question of its own: `human_line` is `2 questions answered (question 1, crash_cap 1), 1.5 h waited` for the stories' causes `question` and `crash_cap`, the acceptance report not counted. A story in the feature's `backlog/` with a blocking question is not counted either, and a done story file without front matter adds nothing (rows of one parametrized test: the counted stories, a backlog story, a file without front matter).
+6. `AcceptanceService.facts` of a feature whose `done/` on `origin/main` holds two stories, one with a blocking question answered after 1 h and one with a blocking question answered after 30 min, plus an acceptance report with an answered blocking question of its own: `human_line` is `2 questions answered (question 1, crash_cap 1), 1.5 h waited` for the stories' causes `question` and `crash_cap`, the acceptance report not counted. A story in the feature's `backlog/` with a blocking question is not counted either, and a done story file without front matter adds nothing, and neither does a done story whose front matter fails validation (rows of one parametrized test: the counted stories, a backlog story, a file without front matter, a file whose front matter fails validation).
 7. `make check` stays green.
 8. docs:
     - `docs/project-guide.md`: a new subsection *The human's waits* under *Bills*: `human_waits` and `human_line`, with the rules of a wait and its end (the feature's decisions 5 and 6), including that a comment's record carries the time the factory copied it, so a wait ends up to one tick late; `one_decimal` as the one rounding of the minutes and the hours.
@@ -190,3 +193,9 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
    Everything else is testable by one test function. The smoke test commands are runnable and their Expect lines can be checked against the output.
 4. 2026-10-18 human: Yes to both: add the fourth row to criterion 6 (a done story whose front matter fails validation adds nothing) and the row to criterion 1 (a human `comment` at 09:00 before a blocking question at 10:00 and no later human record gives `answered_at` `None`).
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`factory.domain.bills.one_decimal`, `factory.domain.human_waits`, `cost_table_post`, `AcceptanceFacts`/`acceptance_facts`, the two handlers, `AcceptanceService.facts`). Every comment's behaviour has a criterion.
+   - Criteria: each is testable by one parametrized test. Each rule has its failing side: unanswered waits, no `blocked`, no `at`, a human record without `at`, no waits, a backlog story, an acceptance report, a file without front matter. Carried in from the human's answer (journal entry 4): criterion 1 gained the row "a human comment at 09:00 before the blocking question gives `answered_at` None", and criterion 6 gained the row "a done story whose front matter fails validation adds nothing", plus the matching row list.
+   - Smoke test: both commands are runnable, and each `Expect:` line is an exact output to compare.
+   - Architecture: the pure rules are in `domain`, the posting and reading are in `application` and reuse `git.show_file` and `parse`, and no layer is crossed.
+   - Scope: within the feature's S0002 bullets (the human line on the cost table and the acceptance facts). The changes to earlier tests are covered by decision 13.
