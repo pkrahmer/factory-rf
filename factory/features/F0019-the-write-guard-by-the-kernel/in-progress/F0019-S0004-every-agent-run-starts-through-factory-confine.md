@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 223
-comments_read: []
+comments_read: [6251814997]
 handed_over: null
 claim: null
 journal:
@@ -25,6 +25,11 @@ journal:
   at: '2026-10-18T15:40:08.426822Z'
   stage: intake
   run: 55978e7abfd14267856b1a40b2b090df
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T15:41:23.957800Z'
+  stage: intake
 ---
 
 # Every agent run starts through `factory-confine`
@@ -149,3 +154,8 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
    2. The Interface says the removal runs "in the request's working directory with an empty environment". No criterion checks the working directory or the environment of the removal. Criterion 10 checks only the command line. Option A: add a criterion that the stand-in `sudo` and the no-`os_user` removal see the request's working directory and an empty environment. Option B: drop the clause. I would choose A.
 
    3. The Interface says the callers of `build_boundaries` in the package (`factory.entry.run` and `boundaries_from_environment`) pass no `confine_executable`, "so every run of the factory is confined". Decision 13 says "a test pins the default". Criterion 12 tests only `build_boundaries` itself. Option A: add a criterion that `boundaries_from_environment` yields a runtime whose `confine_executable` is `factory-confine`, and that `factory.entry.run` passes no `confine_executable` (a source check). Option B: say in the Interface that only the default is tested. I would choose A.
+4. 2026-10-18 human: A on all three:
+   1. Add the criterion: a call killed at its time limit with a `factory-confine:` line on standard error raises the wrapper's `AgentRuntimeError`.
+   2. Add the criterion: the stand-in `sudo` and the no-`os_user` removal each see the request's working directory and an empty environment.
+   3. Add the criterion: `boundaries_from_environment` yields a runtime whose `confine_executable` is `factory-confine`, and `factory.entry.run` passes no `confine_executable` (a source check).
+   Each before the two closing criteria.
