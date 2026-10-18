@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -190,6 +190,11 @@ journal:
   at: '2026-10-18T22:19:18.911302Z'
   stage: smoke-test
   run: 1af5cf6e8959432fbf8c25db6a045340
+- number: 34
+  speaker: factory
+  kind: done
+  at: '2026-10-18T22:20:36.374413Z'
+  stage: approval
 ---
 
 # The journal records why a work item waited or stalled
@@ -673,3 +678,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     Checked against the acceptance criteria: nothing in the output contradicts any of them. It agrees with criterion 1: `reason` is accepted on a `stall` record and refused on a `crash` record, and `blocked` is accepted on a `question` record and refused on a `result` record, which raises a `ValueError`. The command does not exercise criteria 2 to 13, so it shows nothing against them. The factory runs the stage checks for criterion 12, `make check` stays green, so I did not run them in this stage.
 
     Findings: none.
+34. factory: done (pull request merged); cost: 15 runs, 20.0 min, 160 turns, 494762 tokens in (4638210 more from cache), 71893 out, $6.04
