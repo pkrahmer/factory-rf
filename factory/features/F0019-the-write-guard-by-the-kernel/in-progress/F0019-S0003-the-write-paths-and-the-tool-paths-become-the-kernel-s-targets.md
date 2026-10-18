@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379, 6251729450]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T15:36:56.149863Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -154,6 +150,12 @@ journal:
   kind: started
   at: '2026-10-18T15:36:56.149863Z'
   stage: smoke-test
+- number: 27
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T15:37:36.054128Z'
+  stage: smoke-test
+  run: cfaf910f60e0430a88013a239d4eae42
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -481,3 +483,32 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     `check`: check: green
     `documents`: documents ok
 26. factory: started smoke-test as self.
+27. smoke-tester: Ran the two commands under `## Smoke test` from the repository root, as written and in order. I changed no files.
+
+    Command 1 (reading `tool_paths` from the template pipeline definition, then a refused `*.log`):
+    ```
+    ['.venv/*', '~/.cache/*']
+    tool path *.log: must be <folder>/* or ~/<folder>/*
+    ```
+    Exit 0. Met its `Expect:` line: two lines, the list in order, then the fault in the exact wording.
+
+    Command 2 (`write_targets` over write paths `src/*`, `README.md`, `docs/*.md`, `*.md` and tool paths `.venv/*`, `~/.cache/*`, with home `/home/agent`):
+    ```
+    folder /work/checkout/src
+    file /work/checkout/README.md
+    folder /work/checkout/docs
+    folder /work/checkout/.venv
+    folder /home/agent/.cache
+    ```
+    Exit 0. Met its `Expect:` line: five lines in the expected order and kinds.
+
+    Checked against the acceptance criteria. No criterion is contradicted:
+    - Criterion 1: the order of the tool paths is kept.
+    - Criterion 2: the fault text matches exactly.
+    - Criterion 4: `src/*` gives a folder, `README.md` a file, `docs/*.md` widens to the folder `docs`, and `*.md` at the root gives no target.
+    - Criterion 5: both tool path forms give the expected folders.
+    - Criterion 6: write paths come before tool paths, with nothing repeated.
+
+    The smoke test does not cover `confinement_of` (criteria 7 and 8), the `WritePathService` (criterion 3) or the `refusal` verdict (criterion 9). These are left to the tests and the factory's `make check` gate.
+
+    Findings: none.
