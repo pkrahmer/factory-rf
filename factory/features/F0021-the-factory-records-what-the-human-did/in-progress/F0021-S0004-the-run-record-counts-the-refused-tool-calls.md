@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T23:31:08.929129Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-18T23:30:47.973393Z'
   stage: doing
   run: f9bda80d1fd44fe881302a37e0ff4779
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:31:08.929129Z'
+  stage: tests
 ---
 
 # The run record counts the refused tool calls
@@ -227,3 +236,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     What the journal changed: no task meaning. It only changed the test data, so I left the Description as it is.
 
     Still open from entry 10 and not touched: the possibly flaky `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]`.
+14. factory: started tests as self.
