@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:52:53.675786Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -77,6 +73,12 @@ journal:
   kind: started
   at: '2026-10-18T15:52:53.675786Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-18T15:56:06.838179Z'
+  stage: doing
+  run: 4a97ec9da00b41cf93d4c0f3e9e67bb7
 ---
 
 # Every agent run starts through `factory-confine`
@@ -282,3 +284,28 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `lint`: lint: green (0.0 s)
     `test`: ERROR tests/adapters/test_claude_runtime_confinement.py - ImportError while i...
 12. factory: started doing as self.
+13. coder: Question: the `"/dev/shm"` literal that the Interface requires in `DEVICE_FOLDERS` (`src/factory/domain/confinement.py`) fails two security checks in `make check`: ruff `S108` in `make lint`, and bandit `B108` (hardcoded_tmp_directory, Medium) in `make sast`. Everything else is green. I ran `make types`, `make layers`, `make secrets`, `make licenses` and `make test` one by one: all green, coverage 98.67 %. All the new tests pass, the two changed wiring tests too. The value is a device folder that the kernel is told to allow, not a temporary file the factory makes. But silencing either check needs your leave under "Not without asking".
+
+    The options I see:
+    - A (my choice): put `# noqa: S108  # nosec B108` on that one line, with a comment that says why.
+    - B: put a per-file ignore for `S108` in `pyproject.toml` and a bandit skip for that file. This follows the precedent of the `PLR0913` ignore for `claude_runtime.py`. It is a config change, so it is yours to make, and it silences more than one line.
+    - C: leave `/dev/shm` out of `DEVICE_FOLDERS`. That changes the Interface and criteria 4 and 5, and agents lose the shared-memory folder (Python multiprocessing uses it).
+    I reject building the string so that the scanners miss it (for example `str(Path("/dev") / "shm")`): that hides the finding rather than deciding it.
+
+    Stopped here; the implementation is otherwise complete in the working tree:
+    - `src/factory/domain/confinement.py`: `DEVICE_FILES`, `DEVICE_FOLDERS`.
+    - `src/factory/adapters/claude_runtime.py`:
+      - New constants: `CONFIG_VARIABLE`, `RUNTIME_FOLDER`, `TEMPORARY_PREFIX`, `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `CONFINE_PREFIX`.
+      - `ClaudeCodeRuntime` gains `confine_executable` and `temporary_root` (the default is read from `tempfile.gettempdir()` when the runtime is built), and the `confine_executable` property.
+      - `_RunFiles` gains `rules` (`confine-<session>.json`, written with mode 0o640 only when confining, removed with the other files) and `temporary`.
+      - `_confinement()` builds the rules from `write_targets`/`confinement_of`; the extras are `~/.claude`, then the device folders and device files that exist.
+      - `_confined_argv` wraps the call, and `_config_folder` adds `CLAUDE_CONFIG_DIR` when there is a `HOME`.
+      - `_remove_temporary_folder` runs after every confined call through `_start`, which turns an `OSError` into `AgentRuntimeError`. It uses `SHELL_EXECUTABLE`, as the human's answer in entry 9 says, and goes through `_sudo_prefix` for an `os_user`. `_sudo_prefix` is now shared with the call's own `sudo` prefix.
+      - `_check_confinement` runs after the `sudo` check. `_has_usable_reply` is now shared by the `sudo` and wrapper refusals.
+    - `src/factory/entry/wiring.py`: `build_boundaries(..., confine_executable=CONFINE_COMMAND)` passes it to the runtime.
+
+    Main choice: I threaded the run's paths (rules file and temporary folder) through `_RunFiles`, which `_call` and `_resume` now take. The alternative was separate parameters or per-run state on the runtime. I rejected it: it means more arguments, and state on the runtime would break its statelessness across runs. The removal runs right after the process ends, before the refusal checks, so it also follows a call that then raises.
+
+    Refactor: I read the diff and nothing needs changing beyond the two shared helpers above.
+
+    Not done: entry 9 asks for the Interface line "the removal's shell is `SHELL_EXECUTABLE`". The guard refused my edit of the work item, because it is outside the doing stage's write paths. The line still needs adding by whoever may write there.

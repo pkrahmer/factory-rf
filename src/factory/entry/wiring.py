@@ -59,7 +59,7 @@ from factory.application.project_commands import RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
-from factory.domain.agent_runs import scrub_environment
+from factory.domain.agent_runs import CONFINE_COMMAND, scrub_environment
 from factory.domain.command_records import CommandRecord
 from factory.domain.disk import DiskRecord
 from factory.domain.errors import SettingsInvalid
@@ -228,10 +228,12 @@ def build_boundaries(
     *,
     hosting: HostingService | None = None,
     which: Callable[[str], str | None] = shutil.which,
+    confine_executable: str | None = CONFINE_COMMAND,
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
-    The agent runtime starts the `sudo` that `which` finds, the one the preflight checks.
+    The agent runtime starts the `sudo` that `which` finds, the one the preflight checks,
+    and every call through `confine_executable`, unless it is `None`.
     """
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
@@ -247,6 +249,7 @@ def build_boundaries(
             state / RUNS_DIRECTORY_NAME,
             sudo_executable=which("sudo") or SUDO_EXECUTABLE,
             login_file=settings.claude_login_file,
+            confine_executable=confine_executable,
         ),
         project_commands=RecordingProjectCommands(
             MakeProjectCommands(settings.checkout),
