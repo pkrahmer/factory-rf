@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -96,6 +96,11 @@ journal:
   at: '2026-10-18T14:41:21.376877Z'
   stage: smoke-test
   run: bed651d0e724473c99ef140104652bf9
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-18T14:42:38.961470Z'
+  stage: approval
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -346,3 +351,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
     Not covered by the smoke test, and not run by me: criteria 6, 7 and 9 (stacking, closed descriptors, ordering), the file-rule rows of criterion 3, and criteria 10 and 11 (`make check`, docs). For these I rely on the earlier stages' entries: the tests named in entry 8, and `check: green` in entries 10 and 14.
 
     Open: nothing.
+17. factory: done (pull request merged); cost: 7 runs, 6.4 min, 45 turns, 212146 tokens in (599240 more from cache), 27079 out, $1.94
