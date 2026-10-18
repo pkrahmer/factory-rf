@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:00:39.958843Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T22:00:39.958843Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:00:59.871617Z'
+  stage: doing
+  run: f5dcf02c01a345fe88ea6820e8113a52
 ---
 
 # The journal records why a work item waited or stalled
@@ -279,3 +281,31 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
    - `tests/application/test_stalls.py`: human's leave, the same way. The change only adds `reason="died"` to three expected stall records.
    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`; `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
 10. factory: started doing as self.
+11. coder: Round 1: both of the reviewer's findings are copies of test helpers. Under the standing leave in `CLAUDE.md`, moving them is the tester's job, so I changed no code and end with `tests`.
+
+    I checked the copies with grep, and they match the findings. `tests/crash_support.py` holds none of these names yet, and all three modules below already import from it.
+
+    Moves for the tester, all to `tests/crash_support.py`:
+    1. `_pull_request(hosting)`. It is now in three places:
+       - `tests/application/test_question_causes_recorded.py:44`
+       - `tests/application/test_recovery_cap.py:49`
+       - `tests/application/test_recovery_expiry.py:46`
+
+       Move it to one shared public helper and have the three modules use it. The reviewer also names the matching `pull_request` fixture in `tests/application/handlers/conftest.py:64`. Whether that fixture should use the shared helper is the tester's choice under the leave.
+    2. These are copied from `tests/application/test_recovery_expiry.py` into `tests/application/test_question_causes_recorded.py`:
+       - the constants `OTHER_INSTANCE` and `LEASE` (expiry module lines 39-40; new module lines 36-37);
+       - the other instance's recovery handler `_other` (line 67);
+       - the expired event `_expired` (line 73);
+       - the clock advance in `_expired_claim` (line 52), which the new module inlines.
+
+       Move them to the shared module, and have both modules use them there.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    Rejected: changing the tests myself. The coder never edits tests (R9), and the leave belongs to the tester.
+
+    Noticed, not touched: the reviewer stopped at group 4, so group 5 is still open. That is the `append_entry` signature, which takes `**causes: Unpack[JournalCauses]` instead of the two keyword-only parameters the Interface shows. The reason is in entry 7: ruff's `PLR0913` refuses the function, and a per-file ignore would mean editing `pyproject.toml`, which the write guard refused. It may come back as a finding once the tests are green.
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+
+    I did not run `make check` this round because nothing changed. It was green at the end of round 0.
