@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T15:52:53.675786Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -68,6 +72,11 @@ journal:
   at: '2026-10-18T15:52:33.637482Z'
   stage: tests
   run: c629908e90e944c0a7f39182829adc0d
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:52:53.675786Z'
+  stage: doing
 ---
 
 # Every agent run starts through `factory-confine`
@@ -272,3 +281,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     `lint`: lint: green (0.0 s)
     `test`: ERROR tests/adapters/test_claude_runtime_confinement.py - ImportError while i...
+12. factory: started doing as self.
