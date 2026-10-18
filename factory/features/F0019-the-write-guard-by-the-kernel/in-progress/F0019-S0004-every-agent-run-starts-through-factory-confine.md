@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:17:19.954568Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-18T16:17:19.954568Z'
   stage: doing
+- number: 35
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:19:54.009511Z'
+  stage: doing
+  run: 29cb9cd4474343be82408ad849a243d9
 ---
 
 # Every agent run starts through `factory-confine`
@@ -537,3 +539,27 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `lint`: lint: green (0.0 s)
     `test`: test: green (50.3 s)
 34. factory: started doing as self.
+35. coder: `make check` is green and I changed no code this round (`check: green`, coverage 98.67 %). The tester's two new tests for criteria 18 and 19 (entry 33) pass against the code as it was already built. They are `tests/adapters/test_claude_runtime_confinement.py::test_the_rules_hold_only_the_device_targets_that_exist` and `::test_a_removal_that_outlasts_its_time_limit_is_ended_and_changes_no_result`. The code reads `DEVICE_FOLDERS`, `DEVICE_FILES`, `SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT` from the module each time it uses them, so `monkeypatch` reaches all four. That answers both of the reviewer's round-0 findings (entry 22) now that the human added the criteria (entries 25 and 29).
+
+    What I built (committed in earlier rounds, described in entries 13, 16 and 20):
+    - `src/factory/domain/confinement.py`: `DEVICE_FILES` and `DEVICE_FOLDERS`. The `/dev/shm` line carries the marker the human allowed under feature decision 21.
+    - `src/factory/adapters/claude_runtime.py`:
+      - The new constants.
+      - `confine_executable` and `temporary_root` on `ClaudeCodeRuntime`.
+      - `_RunFiles` now carries the rules file and the temporary folder.
+      - `_confinement` and `_existing_devices` build the rules.
+      - `_confined_argv` and `_config_folder` set up each call.
+      - `_remove_temporary_folder` runs after every confined call, through `SHELL_EXECUTABLE`, with an empty environment in the working directory and `CLEANUP_TIME_LIMIT` as its limit.
+      - `_check_confinement` runs after the `sudo` check.
+    - `src/factory/entry/wiring.py`: `build_boundaries(..., confine_executable=CONFINE_COMMAND)`.
+
+    Main choice: the run's paths travel in `_RunFiles`. I rejected extra parameters and per-run state on the runtime, because the runtime has to stay stateless across runs.
+
+    Refactor: nothing to change. The code is the same as the diff I read in entry 20, and this round added no code.
+
+    Description: no rewrite needed. Criteria 18 and 19 and the renumbered 20 and 21 are already in the work item, from main.
+
+    Noticed but not touched: `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` now also covers the confinement marker, so its name is out of date. It keeps that name because `[tool.mutmut]` deselects it by name.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
