@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T19:28:47.533312Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-18T19:28:47.533312Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-18T19:30:33.041099Z'
+  stage: doing
+  run: 9e4ae7d971844437a670c04b12b3a376
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -238,3 +240,17 @@ Expect: `completed | root file refused | False`
     `lint`: lint: green (0.0 s)
     `test`: test: green (35.9 s)
 14. factory: started doing as self.
+15. coder: I built nothing in this round, and nothing under `src/` changed: `git diff main -- . ':!factory' ':!tests'` is empty. The tester made the one review finding's change in entry 13. I checked it: the private `_bin_with` is gone from `tests/entry/test_wiring_extras_path.py`, which now calls the shared `write_script` from `tests/confine_support.py` (line 49). With nothing left to fix, I ran `make check` in the foreground. It ended `check: green`, with `test: green` and coverage at 98.67 %.
+
+    Main choice: I hand the work item forward to review with no `src/` change, as the Description asks when no test shows a fault. The alternative I rejected was touching `ClaudeCodeRuntime._confinement` or `_which_on` in `factory.entry.wiring`. Nothing calls for it, and it would be scope the story does not ask for.
+
+    Refactor: I have no diff of my own, so nothing needed changing.
+
+    Description: no journal entry changed the meaning of the task, so it stays as it is.
+
+    Noticed, not touched: `src/factory/entry/confine.py` is still at 78 % coverage (lines 67-75, 80-83 and 95 are not covered). That is outside this story.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
