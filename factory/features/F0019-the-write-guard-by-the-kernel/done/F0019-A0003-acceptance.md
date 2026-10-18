@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-18T21:14:01.624045Z'
   stage: acceptance
   run: 05d3735f1f5743a585205783d3ea7f5c
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-18T21:15:19.161909Z'
+  stage: done
 stories: [F0019-S0001, F0019-S0002, F0019-S0003, F0019-S0004, F0019-S0005, F0019-S0006, F0019-S0007, F0019-S0008, F0019-S0009, F0019-S0010, F0019-S0011, F0019-S0012]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The write guard by the kernel
@@ -401,3 +406,4 @@ The three follow-ups of the second acceptance cost $3.91 together, with no rewor
       No earlier test was changed without a named leave.
    7. Slow checks: none exist beyond the make targets. The slowest test takes 5.0 s, and the 35 new tests take 1.7 s together. Disk usage is unchanged at 0.5 GB used.
    8. Cost: $31.60 over 118 runs. S0004 stands out with $10.47, as before. S0010 to S0012 cost $3.91 together with no rework round; S0011's one extra run was its intake question.
+3. factory: done (pull request merged); cost: 1 runs, 25.2 min, 38 turns, 111497 tokens in (2616245 more from cache), 32496 out, $2.06
