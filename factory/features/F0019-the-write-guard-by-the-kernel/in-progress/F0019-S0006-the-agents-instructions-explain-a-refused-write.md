@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T17:14:44.213731Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T17:14:44.213731Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T17:15:21.082615Z'
+  stage: review
+  run: 13fd501ffaf7403e928f60972e35612c
 ---
 
 # The agents' instructions explain a refused write
@@ -134,3 +136,13 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: 1. `tests/test_claude_agent_refusal.py:29` (`_body`): this is a second copy of the `_body` helper at `tests/test_claude_agent_texts.py:140`. Both wrap `front_matter_and_body(name)` and return the body, word for word. Fix: under the standing leave, the tester moves `_body` into `tests/shipped_agents.py`, next to `front_matter_and_body`, as a public helper (for example `body(name)`). Both modules then import it. Every earlier test in `tests/test_claude_agent_texts.py` keeps its name and what it checks. Since the coder never edits tests, the coder ends with `tests` and names this change.
+
+   Groups 1 to 3 pass:
+   - The three criterion tests are rows over `SHIPPED_NAMES`. The test for criterion 1 pins the Interface's paragraph exactly, as one line under `## Rules`. Criterion 2 covers the failing side. The factory's `make check` was green after the coder (entry 7).
+   - The seven agent files change only the R14 line, and the new text matches the Interface's paragraph exactly.
+   - No `src/` change and no check is silenced.
+
+   Group 4 fails on the item above, so group 5 was not reviewed.
+
+   Earlier tests: none. The diff changes no test file that `main` already holds; `tests/test_claude_agent_refusal.py` is new (status `A`).
