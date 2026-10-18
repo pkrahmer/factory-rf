@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T23:47:56.319602Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-18T23:47:56.319602Z'
   stage: smoke-test
+- number: 34
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T23:48:19.109388Z'
+  stage: smoke-test
+  run: 9bda4782d7dd4c1ea8dcf7df8eb08ac8
 ---
 
 # The run record counts the refused tool calls
@@ -518,3 +520,19 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     `check`: check: green
     `documents`: documents ok
 33. factory: started smoke-test as self.
+34. smoke-tester: Ran the one command under `## Smoke test` from the repository root, as written. Fixed nothing.
+
+    Command 1: the `uv run -q python -c '...'` script, which renders a `started` record and a `completed` record (`denials=2`, `denied_paths=["src/a.py"]`) through `JsonLinesCostRecordWriter().render` and prints each line's `denials` and `denied_paths`, or `absent` where the key is missing.
+
+    ```
+    absent absent
+    2 ['src/a.py']
+    ```
+
+    Exit status 0. This meets its `Expect:` line ("two lines, `absent absent` and `2 ['src/a.py']`"). The `started` record has neither key, as it does today, and the `completed` record carries both values.
+
+    Checked against the acceptance criteria: the output agrees with criterion 4, which says a record with both fields `None` is written without the keys and a record with `denials` 2 and `denied_paths` `["src/a.py"]` is written with both. It also agrees with criterion 2, which says a `completed` record with `denials=2` and `denied_paths=["src/a.py"]` is accepted. Nothing in the output contradicts a criterion.
+
+    Not covered by the smoke test: the key order (after `instance`), the read-back, the `_denials` path extraction (criterion 1) and `CostRecorder.complete` (criterion 3). The tests check these, and the factory's `make check` gate checks criterion 5.
+
+    Findings: none.
