@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T23:44:53.209340Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-18T23:44:53.209340Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T23:46:09.463951Z'
+  stage: review
+  run: f17497177a3a41d0a89fb021f8927576
 ---
 
 # The run record counts the refused tool calls
@@ -223,12 +225,12 @@ from factory.adapters.cost_records_jsonl import JsonLinesCostRecordWriter
 from factory.domain.cost_records import CostRecord
 
 fields = dict(
-    run="a" * 32, work_item="F0001-S0001", stage="doing", role="coder", attempt=0,
+    work_item="F0001-S0001", stage="doing", role="coder", attempt=0,
     started_at=datetime(2026, 10, 18, 10, 0, tzinfo=UTC),
 )
-started = CostRecord(status="started", **fields)
+started = CostRecord(run="a" * 32, status="started", **fields)
 done = CostRecord(
-    status="completed", duration_seconds=1.0, end_reason="completed",
+    run="b" * 32, status="completed", duration_seconds=1.0, end_reason="completed",
     denials=2, denied_paths=["src/a.py"], **fields,
 )
 for line in JsonLinesCostRecordWriter().render([started, done]).splitlines():
@@ -463,3 +465,19 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 29. factory: started review as self.
+30. reviewer: no findings
+
+    What I checked, from the code and not from the journal's account of it:
+    - Criterion 1: `tests/adapters/test_claude_runtime_denial_paths.py` is one parametrized test with all seven rows, including the human's row from entry 4 (`{"file_path": 3, "notebook_path": "n.ipynb"}` gives `n.ipynb`). Every row also checks that `detail` is unchanged. `_denied_path` in `src/factory/adapters/claude_runtime.py` gives `None` for a `tool_input` that is not an object. Otherwise it tries `file_path` and then `notebook_path`, and takes each only when it is a string.
+    - Criterion 2: `tests/domain/test_cost_record_denials.py` tests `NonNegativeInt` on both sides of its limit (0 accepted, -1 refused). A `started` record is refused both with `denials=0` and with `denied_paths=[]`, so the started-record rule is tested against `None` and not truthiness. The test builds the record through a variable typed `type[BaseModel]`.
+    - Criterion 3: `tests/application/test_costs_denials.py` has all six end-reason rows and checks both the returned record and the sidecar read back. The four denials collapse to `["src/a.py", "docs/b.md"]`, which pins both "each path once" and the report order. `_denied_paths` does this with `dict.fromkeys`, so no helper is hand-written. I found no existing helper in `src/factory` that groups the "no reply" end reasons (`died`, `time_limit`), so the inline check in `_completed` copies nothing.
+    - Criterion 4: `tests/adapters/test_cost_records_jsonl_denials.py` has all four rows, including the two the human added in entry 4. Each row checks that the keys come after a set `instance` and that the line reads back equal to its record. `_line_of_record` now leaves out all three optional keys in one loop, so the `instance` branch is not copied.
+    - Criterion 5: entry 28 records `check: green` after the merge from `origin/main`, and `duplicates: 0 new`.
+    - Architecture: `path` is on the domain DTO; the runtime-specific parsing stays in the adapter; the counting is in the application layer; no dict crosses a function boundary. Security: no suppression markers, and no commands built from strings. The docstrings of `PermissionDenial` and `CostRecord` describe the new fields.
+    - Work item: the Description matches the code. The journal states the main choice (deciding "no reply" from the end reason) and what was rejected. The docs criterion still says what the two guides must cover, and the documenter's changes in `docs/` match it.
+
+    Smoke test: I made the edit the human gave the reviewer leave for in entry 26, and nothing else. In `## Smoke test`, `run` is taken out of `fields`; `started` gets `run="a" * 32` and `done` gets `run="b" * 32`. The `Expect:` line is unchanged. I did not run the script; the smoke-test stage runs it.
+
+    Earlier tests:
+    - tests/adapters/test_claude_runtime_resume.py: the story's Interface names it under the feature's decision 14. The only change is that the expected `Write` denial gains `path="x"`.
+    - tests/application/test_costs.py: the human's answer in journal entry 11, point 2. The only change is that the expected completed `CostRecord` in `test_the_sidecar_is_written_again_after_the_undo` gains `denials=0, denied_paths=[]`.
