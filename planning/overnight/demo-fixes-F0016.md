@@ -12,11 +12,11 @@ Why: the "no inheritance" rule holds for every repository, and S0004 had to ask 
 
 - Interface, the `Tests:` paragraph: the sentence "A later repository, also one that keeps a file under `tmp_path`, joins the suite by adding its factory to that list, with no other change to the file." becomes:
 
-  > A later repository, also one that keeps a file under `tmp_path`, joins the suite by adding its factory to that list and its class to a second module-level list, of repository classes, with no other change to the file.
+  > A later repository, also one that keeps a file under `tmp_path`, joins the suite by adding its factory to that list and its class to a second module-level list, of repository classes, with no other change to the file but a move of a shared test helper under the standing leave of `CLAUDE.md`.
 
 - Criterion 22 becomes:
 
-  > 22. No repository class inherits the protocol: `InMemoryTodoRepository` is not a subclass of `TodoRepository`, as a row of one parametrized test in `tests/repository/test_contract.py` over the module-level list of repository classes (here one class); and the contract suite's `repository` fixture is annotated as returning `TodoRepository`, so `make check` (mypy) proves each repository satisfies the protocol.
+  > 22. No repository class inherits the protocol: `InMemoryTodoRepository` is not a subclass of `TodoRepository` (`TodoRepository` is not in its `__mro__`; `issubclass` refuses a protocol that is not `runtime_checkable`), as a row of one parametrized test in `tests/repository/test_contract.py` over the module-level list of repository classes (here one class); and the contract suite's `repository` fixture is annotated as returning `TodoRepository`, so `make check` (mypy) proves each repository satisfies the protocol.
 
 ### F0001-S0002 Service layer with filtering
 
@@ -35,7 +35,7 @@ Why: the intake question of 08:16 (the run's decision 12): the Interface rejects
 
   > 12. `PATCH /todos/{id}` with `{}`, `{"title": null}`, `{"done": null}` and `{"title": null, "done": null}` (four rows of one parametrized test) returns 422 and a body whose only key is `detail`, a string; a `GET` of the todo afterwards shows it as before.
 
-- A new criterion 14, after criterion 13 (the old 14 to 24 become 15 to 25, and criterion 20, the old 19, still names "the bodies of criteria 2, 4, 7, 9 and 16"):
+- A new criterion 14, after criterion 13 (the old 14 to 24 become 15 to 25, and criterion 20, the old 19, then names "the bodies of criteria 2, 4, 7, 9 and 16" in place of "... and 15", since the old 15 is now 16):
 
   > 14. `PATCH /todos/{id}` with `{"title": " New title ", "done": true}` on an open todo returns 200 and the todo titled `New title` and completed, with the same id and `created_at`; a `GET` afterwards shows both changes.
 
@@ -47,13 +47,13 @@ Why: the three intake questions of 08:33 and the review question of 08:36 (the r
 
 - Interface, the `Tests:` paragraph: "the tester adds one factory to the list of repository factories in `tests/repository/test_contract.py` (F0001-S0001), which returns `SqliteTodoRepository.from_path(tmp_path / "todo.db")` for the `tmp_path` the fixture passes it, so the whole contract suite runs against both repositories; nothing else in that file changes." becomes:
 
-  > the tester adds one factory to the list of repository factories in `tests/repository/test_contract.py` (F0001-S0001), which returns `SqliteTodoRepository.from_path(tmp_path / "todo.db")` for the `tmp_path` the fixture passes it, so the whole contract suite runs against both repositories, and adds `SqliteTodoRepository` to that file's list of repository classes, so its no-inheritance test has a row for it; nothing else in that file changes.
+  > the tester adds one factory to the list of repository factories in `tests/repository/test_contract.py` (F0001-S0001), which returns `SqliteTodoRepository.from_path(tmp_path / "todo.db")` for the `tmp_path` the fixture passes it, so the whole contract suite runs against both repositories, and adds `SqliteTodoRepository` to that file's list of repository classes, so its no-inheritance test has a row for it; nothing else in that file changes, except a move of a shared test helper under the standing leave of `CLAUDE.md`.
 
 - Four new criteria after criterion 9, so that `make check` becomes 14 and docs 15:
 
   > 10. `SqliteTodoRepository` is not a subclass of `TodoRepository`: its row of the no-inheritance test in `tests/repository/test_contract.py`, beside the row of `InMemoryTodoRepository`.
   >
-  > 11. The stored format: a row of `todos` read back with a Core `select` has `id == str(todo.id)` (hyphenated), `created_at` the ISO 8601 text of the UTC time with the offset `+00:00`, also for a todo created with another offset, and `done` a `bool`, `True` for a completed todo and `False` for an open one (rows of one parametrized test).
+  > 11. The stored format: a row of `todos` read back with a Core `select` has `id == str(todo.id)` (hyphenated); `created_at` a `str` that ends with `+00:00` and that `datetime.fromisoformat` reads back equal to the todo's `created_at`, also for a todo created with another offset; and `done` a `bool`, `True` for a completed todo and `False` for an open one (rows of one parametrized test).
   >
   > 12. `from_path(path)` and `from_path(str(path))` each open the same file and see the todos written through the other, as rows of one parametrized test.
   >
