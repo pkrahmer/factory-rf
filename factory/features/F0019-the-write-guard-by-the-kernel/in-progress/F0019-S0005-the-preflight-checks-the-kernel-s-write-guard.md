@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T16:51:44.503697Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T16:51:44.503697Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T16:54:11.240795Z'
+  stage: tests
+  run: 35b230ec5d9a4e51aa5b440502f0c3a2
 ---
 
 # The preflight checks the kernel's write guard
@@ -106,3 +108,20 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
    Architecture: the item sits in `application`. The ABI reader and `which` are injected from `entry`, so `application` knows no tool. Layering is respected.
    Scope: it is within the feature's S0005 scope (preflight item and wiring). The fallback to the hook is out of scope and not added.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the `confinement` preflight item and changed the extras-order test as the Interface allows under the feature's decision 12.
+
+   - criterion 1: tests/application/test_confinement_item.py::test_the_item_passes_with_landlock_abi_3_and_the_wrapper_on_path_and_names_each_fault (rows abi-3, abi-7)
+   - criterion 2: the same test (rows abi-0, abi-2)
+   - criterion 3: the same test (rows not-on-path, no-path)
+   - criterion 4: tests/application/test_confinement_item.py::test_the_kernels_fault_comes_before_the_wrappers
+   - criterion 5: tests/application/test_confinement_item.py::test_the_wrapper_is_looked_for_on_the_environments_path
+   - criterion 6: tests/entry/test_wiring_extras.py::test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user (both rows now have "confinement" between "agent-environment" and "agent-run-probe")
+   - criterion 7: tests/application/test_confinement_item.py::test_a_failed_confinement_item_stops_the_machine_before_any_agent_run. It uses `build_preflight` with the one extra the criterion names. It checks four things: the return value is `preflight_failed`; there is one machine stop with that reason; the stop's detail holds `confinement: ` and the ABI 2 detail; the fake agent runtime received no requests.
+   - criteria 8 and 9 (`make check`, docs) are not test criteria.
+
+   Files: created tests/application/test_confinement_item.py. Changed tests/entry/test_wiring_extras.py, an earlier story's test, only in the two rows of names that the work item's Interface lists under decision 12.
+
+   `make test` result: test_confinement_item.py does not collect, with an ImportError, because `confinement_item` does not exist yet in `factory.application.preflight`. Both rows of the extras-order test fail because `machine_extras` does not list `confinement` yet. After that run I renamed the unused arguments of the not-found fake to `_name` and `_path` and gave `split` a `maxsplit`; this was only to satisfy lint. `make lint` is green. I skipped the type check, as the stage says to.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/application/test_confinement_item.py - ImportError while importin...
