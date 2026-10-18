@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T17:12:31.498808Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T17:12:31.498808Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T17:14:24.190370Z'
+  stage: doing
+  run: ad57b57cace84bcaa14cc48e2ffe84aa
 ---
 
 # The agents' instructions explain a refused write
@@ -113,3 +115,12 @@ Expect: `1`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line[intake]
 6. factory: started doing as self.
+7. coder: Replaced the ending of R14 in all seven shipped agents. The files are `claude/agents/acceptance-reviewer.md`, `coder.md`, `documenter.md`, `intake.md`, `reviewer.md`, `smoke-tester.md` and `tester.md`. Everything after "nothing else: " is now the Interface's paragraph word for word, still on one line. Nothing else in the files changed, and no module under `src/` changed.
+   - Main choice: I made the change with one exact string replacement. The script checked that the old ending appeared exactly once in each file before it replaced it. That way all seven files get identical text, and a file that had drifted would have stopped the change. I rejected editing each file by hand, because seven copies of a long paragraph typed separately can drift apart.
+   - Refactor: I read the diff and found nothing to change. It is the same one-line replacement in seven files.
+   - Description: the journal did not change the meaning of the task, so I did not rewrite it.
+   - Checks: `make check` is green (`check: green`). The tests in `tests/test_claude_agent_refusal.py` pass. The first smoke-test grep (`A refused write fails with \`Permission denied\``) finds 7 files.
+   - Noticed, not touched: nothing outside the work item. The docs criterion (`docs/project-guide.md`) is left to the documenter.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
