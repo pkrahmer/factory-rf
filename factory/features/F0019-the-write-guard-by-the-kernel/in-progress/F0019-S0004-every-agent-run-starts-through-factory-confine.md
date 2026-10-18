@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 223
-comments_read: [6251814997]
+comments_read: [6251814997, 6251898687]
 handed_over: null
 claim: null
 journal:
@@ -52,6 +52,11 @@ journal:
   at: '2026-10-18T15:48:37.426477Z'
   stage: tests
   run: b99dfcfb64b74437bd231ab9a9f2527e
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-18T15:49:53.969287Z'
+  stage: tests
 ---
 
 # Every agent run starts through `factory-confine`
@@ -224,3 +229,5 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
    Not importable by the test run: `tests/adapters/test_claude_runtime_confinement.py` fails at collection with ImportError (`CLEANUP_SCRIPT`, `CONFIG_VARIABLE` in `factory.adapters.claude_runtime`; `DEVICE_FILES`, `DEVICE_FOLDERS` in `factory.domain.confinement`). The wiring tests fail on the missing `confine_executable` keyword and property. `make lint` is green.
 
    Open for the coder: the source check in criterion 17 reads `factory.entry.run` and may need adding to the structural tests that mutmut leaves out in `pyproject.toml`. That is outside my write paths.
+9. 2026-10-18 human: A: the removal builds its command from `SHELL_EXECUTABLE`, the test patches it with a recording script, and the Interface gets the line "the removal's shell is `SHELL_EXECUTABLE`"; criterion 10's `sudo` row keeps the literal `/bin/sh`.
+   Your open note: done on main (`84c9bde9`): `[tool.mutmut]` now deselects `tests/entry/test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime`; keep that test's name.
