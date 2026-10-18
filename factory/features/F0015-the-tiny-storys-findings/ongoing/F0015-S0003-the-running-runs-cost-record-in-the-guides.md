@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 208
 blocked: null
 comments_seen: 0
@@ -54,3 +54,13 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (31.9 s)
+4. coder: no code written or changed. This story only changes documentation: the Interface says "None", and criterion 1 says nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes. Following criterion 1, I am ending with this entry to say I changed nothing under those paths. There were no failing tests to make pass, because the tester added none.
+      - Commits: none of my own. The branch holds only the factory's stage commits.
+      - Refactor: none. There is no diff of mine to clean up.
+      - Rejected: writing the three doc passages here. The coder does not write `docs/` (CLAUDE.md, Docs), so the documenter stage writes them from criterion 3.
+      - Open: the documenter writes the passages that the demo's grep for "the running run's" and `check_documents` check.
+
+      `make check`: check: green (test: green, 33.2 s, coverage 99.47 %)
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
