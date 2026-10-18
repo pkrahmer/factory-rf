@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 215
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0017-S0001]
+outcome: accepted
 ---
 # Acceptance of The seal tests leave no folders
 
@@ -152,3 +153,4 @@ The project has no slow check beyond `make check` and `make mutants`: no image s
    6. Decisions: FEATURE decisions 1–10 are gathered in the report. Decision 6 (the leave for `tests/conftest.py`) is marked to confirm. Decision 9 (the 58 leftover folders) looks settled, because `/tmp/pytest-of-factory` was empty at 12:03 UTC.
    7. Slow checks: the project has none beyond `make check` and `make mutants`. I ran `make mutants FEATURE=F0014` to check `/tmp` before and after.
    8. Cost: 6 runs, 4.5 min, $1.55. Nothing stands out: there was no rework round, and the coder had nothing to build.
+2. done (pull request merged); cost: 1 runs, 12.6 min, 29 turns, 68k tokens in (1188k more from cache), 18k out, $1.14
