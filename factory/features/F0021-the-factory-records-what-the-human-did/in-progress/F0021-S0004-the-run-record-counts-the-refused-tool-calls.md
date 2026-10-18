@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T23:22:24.094146Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T23:22:06.368183Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:22:24.094146Z'
   stage: intake
 ---
 
@@ -108,3 +117,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
    2. Criterion 4 / Interface: the writer leaves `denials` out when `None` and `denied_paths` out when `None`, each on its own. No row has one set and the other `None`, so a coder who ties the two together passes. I would add rows: `denials=2` with `denied_paths=None` (only `"denials":2` written) and `denials=0` with `denied_paths=[]` (written as `"denials":0,"denied_paths":[]`, so an empty list is kept and not left out). Please confirm or reword.
 4. 2026-10-18 human: 1. Yes: `file_path` is used only when it is a string, otherwise fall back to `notebook_path` (`n.ipynb` in your row); add that row.
    2. Yes: add both rows (`denials=2` with `denied_paths=None` writes only `"denials":2`; `denials=0` with `denied_paths=[]` writes `"denials":0,"denied_paths":[]`).
+5. factory: started intake as self.
