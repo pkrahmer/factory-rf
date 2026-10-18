@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 216
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T12:34:27.216318Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T12:34:27.216318Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T12:34:40.587871Z'
+  stage: intake
+  run: 4c3f0741d6c44c90bfc61aaa11942ec9
 ---
 
 # The documents name the handover
@@ -67,3 +69,9 @@ Expect: `documents ok`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is stated and consistent: no module, signature or comment-stated behaviour exists, so no Interface rule lacks a criterion. The documenter's three files (README.md, docs/operator-guide.md, docs/decisions.md) are named.
+   Criteria: 1 (nothing under src/, tests/, image/, template/, claude/ changes) is checkable from the diff. 2 is the standing `make check` criterion. 3 is the docs criterion. It names exact passages to replace or add, the decision entry's title, date, commit and its three reasons, and the `check_documents` result. No rules with a failing side are stated, since this is documentation only.
+   Smoke test: four commands (three greps and `check_documents`), all runnable from the repo root. Each has an Expect line that can be compared with the output.
+   Architecture: documentation only, so the layers are untouched. The documenter's write paths cover README.md and docs/*, and the feature file confirms this.
+   Scope: matches feature.md's Scope. Nothing in its Out of scope is touched: no src/tests/image/template/claude change, no factory/v1/ change, no planning/ change.
