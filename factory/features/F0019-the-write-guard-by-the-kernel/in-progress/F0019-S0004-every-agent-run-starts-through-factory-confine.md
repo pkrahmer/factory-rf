@@ -2,7 +2,7 @@
 stage: doing
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944]
@@ -143,6 +143,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T16:10:11.387386Z'
+  stage: doing
+- number: 26
+  speaker: factory
+  kind: stall
+  at: '2026-10-18T16:10:29.410596Z'
   stage: doing
 ---
 
@@ -444,3 +449,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     If you choose A for either finding, I will end the next round with `tests`, naming the criterion. The tester then writes the test, and I check that it passes against the code as it is now. The working tree has no changes of mine, and `make check` was green at the end of entry 20.
 25. 2026-10-18 human: A on both. Both criteria are on main, worded as you proposed: criterion 15 covers the device targets that do not exist, as two rows of one parametrized test, and criterion 16 covers `CLEANUP_TIME_LIMIT`, without an `os_user` only. `make check` and docs are now 17 and 18. Go on as you said: end the round with `tests`, naming criteria 15 and 16.
+26. factory: Stage doing stalled (attempt 1 of 2): merging the main branch conflicts and the merge was aborted
