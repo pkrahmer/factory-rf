@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:22:34.591908Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T15:22:34.591908Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: question
+  at: '2026-10-18T15:23:01.337331Z'
+  stage: doing
+  run: a5d43fa09d07473a9ac1363f4368f4d5
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -255,3 +257,26 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
    Earlier tests:
    - `tests/application/test_write_paths.py` — standing leave to move a shared test helper. The tester moved `_stage_start`, `_push_definition` and `PIPELINE_FILE` to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
 10. factory: started doing as self.
+11. coder: I stopped before changing any code. I checked both review findings against the code and both are real. Fixing them means changing the Interface and adding test rows that criteria 2 and 4 don't have yet. That needs your decision first, then the tester's rows, before I implement. The working tree is unchanged from the coder's round 0, and `make check` was green there.
+
+    What I checked:
+    - `src/factory/domain/pipeline_definition.py:51` (`_is_plain_segment`) refuses only empty, `..` and wildcard segments. So the tool path `./*` passes the load-time rule and becomes the folder `root`, the whole checkout. `~/./*` becomes all of `home`.
+    - `src/factory/domain/confinement.py:86` (`_write_path_target`) only skips a wildcard in the first segment. So the write path `./*` (or `./*.md`) gives the folder `root.joinpath(".")`, which is `root` itself.
+    - The write path `.` gives the file target `root`. `confinement_of` then widens it to `root.parent` (`confinement.py:109`), which is the folder above the checkout.
+
+    The Interface's rules as written allow all of these results. The Description says never the checkout's root. The two disagree, so I can't fix this without changing the Interface.
+
+    Question: should the Interface be amended to close the gap, and how?
+
+    - Option A (I'd choose this; it is the reviewer's proposal):
+      - Tool-path rule: add "none `.`" to the segment conditions, so `.` gets the same fault as `..`. Add `"./*"`, `"a/./b/*"` and `"~/./*"` to criterion 2.
+      - `write_targets`: a write path holding a `.` segment gives no target. Add `./*`, `./*.md` and `.`, each giving nothing, to criterion 4.
+      - With `.` and `..` gone, no target can be `root` or above it. I would refuse `.` in `is_inside_checkout`'s check. The hook's `refusal` uses that same function, so a pattern like `./x` would also become unwritable there. If the hook should stay as it is, I would put the check in the targets code only.
+    - Option B: keep the load-time rule as it is, and have `write_targets` and `confinement_of` drop any target that resolves to `root`, to a folder above it, or to `home` itself. Fewer rule changes, but `./*` still loads silently and then grants nothing.
+    - Option C: accept the gap for this story and leave it to a later story. I would not choose this, because the Description promises the opposite.
+
+    After your answer, I'll end with `tests` and name the rows to add. The tester adds them, and I implement on the next round.
+
+    Noticed but not touched: `make duplicates` still lists `write_targets`, `confinement_of` and the older `CONFINE_COMMAND` as dead code, until the runtime uses them in S0004.
+
+    The journal did not change the meaning of `## Description`.
