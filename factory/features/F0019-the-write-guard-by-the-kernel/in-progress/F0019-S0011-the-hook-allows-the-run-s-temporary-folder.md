@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T20:30:12.250594Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   at: '2026-10-18T20:29:51.896966Z'
   stage: tests
   run: 64ff27c3ae124cd0b90806c9d89e63d3
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:30:12.250594Z'
+  stage: doing
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -170,3 +179,4 @@ Expect: `with: 0`, then `without: 2`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/adapters/test_claude_runtime_guard_temporary.py::test_the_guard_settings_file_names_the_run_s_temporary_folder_when_confined[unconfined]
+9. factory: started doing as self.
