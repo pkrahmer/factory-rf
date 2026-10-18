@@ -26,7 +26,7 @@ from factory.domain.send_back import (
     send_back_cap,
     send_back_target,
 )
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
+from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, require_state
 
 _KIND = "closed"
 
@@ -109,11 +109,11 @@ class ClosedHandler(Handler):
         send_back = NewEntry(speaker=FACTORY, kind="send_back", text=text)
         decided = append_entry(closed, send_back, at=now)
         question = send_back_question(new_round, cap, reason_given(closed))
-        blocked = None
+        blocked: Blocked | None = None
         if question is not None:
             entry = NewEntry(speaker=FACTORY, kind="question", text=question)
-            decided = append_entry(decided, entry, at=now)
             blocked = "send_back"
+            decided = append_entry(decided, entry, at=now, blocked=blocked)
         # Released here, not through the claim service, which needs an instance name.
         decided = _with_state(decided, stage=stage, round=new_round, claim=None, blocked=blocked)
         subject = commit_subject(snapshot.id, "sent back")

@@ -223,7 +223,7 @@ class RecoveryHandler(Handler):
         # One commit holds the crash and the question, so neither is ever recorded alone.
         question = crash_cap_question(stage, state.crashes, crash_cap)
         asked = NewEntry(speaker=FACTORY, kind="question", text=question)
-        return append_entry(document, asked, at=now)
+        return append_entry(document, asked, at=now, blocked="crash_cap")
 
 
 def _stop_title(work_item: WorkItemSnapshot) -> str:
