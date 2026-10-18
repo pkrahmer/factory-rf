@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 207
 blocked: null
 comments_seen: 0
 round: 0
@@ -48,3 +48,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: concrete. It names the file (`image/compose.yml`, key `init: true` after `restart: unless-stopped`, which I confirmed is at line 10), the unchanged entrypoint (its last line is already `exec python -m factory.entry.run`) and the new test module with both test names and what each asserts. Its one behaviour is the boolean `true`, and the criteria check it with `is True`.
+   - Criteria: 1 and 2 are each one test function with no open decision. Criterion 3 is a list of existing tests that must still pass. The rules' failing sides are covered: criterion 1 fails on a missing key or the string "true", and criterion 2 fails on any other last line. Criteria 4 and 5 are the closing and docs criteria.
+   - Demo: both commands are runnable. The first expects `True`, and the second expects a `<n> passed` line with no failed, error or skipped count. Both can be checked against the output.
+   - Architecture: nothing under `src/` changes. This is a compose-file setting plus a test at the `tests/` root, next to `test_compose_project.py`. That fits the layout, since the module is outside the layers.
+   - Scope: this is S0002 of F0015, finding 2, as the feature's Scope lists it. Out of scope are the factory acting as reaper, tini in the image, and v1's own compose file. Decisions 6 to 8 cover the choices, and no earlier test changes.
