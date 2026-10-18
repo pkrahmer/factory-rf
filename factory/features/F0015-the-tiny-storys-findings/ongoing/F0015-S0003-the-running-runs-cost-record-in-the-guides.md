@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 208
 blocked: null
 comments_seen: 0
@@ -43,3 +43,14 @@ Expect: `documents ok`.
    - Demo: both commands are runnable. The grep counts "the running run's" in the three files and gives 0 in each today, so the expectation (`:n` with n ≥ 1 in all three) can be checked. `check_documents` must print `documents ok`.
    - Architecture: nothing in the code layers is touched, and the story adds no rule to the shipped agents (FEATURE decision 9).
    - Scope: the story matches FEATURE.md's third scope item and decision 9. Its dependency is met: S0001 is in `done/`, and `template/Makefile` and `demo/todo-service/project/Makefile` already carry the `.costs.jsonl` filter, so the project-guide claim about the secrets scan is true.
+3. tester: no tests written or changed. This story only changes documentation: the Interface says "None", and criterion 1 says nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes. Following criterion 1, I am ending with this entry to say I changed nothing under those paths.
+   - criterion 1: no test. A diff checks it, and none of my changes are under `tests/` or the other paths.
+   - criterion 2: no test of its own. The factory runs `make check` as the gate.
+   - criterion 3 (docs): no test. The documenter writes the text, and the demo's grep and `python -m factory.entry.check_documents` check it.
+   - Files created: none. There are no modules the test runner cannot import, because no new tests exist.
+   - I did not run `make test`: with no new tests there is nothing red to confirm. `make lint` is green, and the working tree was clean before this entry.
+   - Rejected: a test that greps the docs for "the running run's". Criterion 1 forbids changes under `tests/`, and a test that pins document wording is not in the Interface.
+   - Next stage: the coder also changes nothing and ends with an entry saying so, then the documenter writes the three passages.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (31.9 s)
