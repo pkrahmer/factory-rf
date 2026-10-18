@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T19:13:45.040066Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T19:13:25.116104Z'
   stage: doing
   run: 485c7896a08e4b12be8e1cf96d6eb420
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:13:45.040066Z'
+  stage: review
 ---
 
 # The documents describe the live write guard
@@ -121,3 +130,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
