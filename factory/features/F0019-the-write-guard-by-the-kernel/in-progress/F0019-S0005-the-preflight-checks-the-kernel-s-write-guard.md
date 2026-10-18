@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T16:51:06.362329Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T16:51:06.362329Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T16:51:24.594049Z'
+  stage: intake
+  run: 9c0192c99dee48378d0af712964229e3
 ---
 
 # The preflight checks the kernel's write guard
@@ -88,3 +90,9 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.application.preflight.confinement_item(abi, environment, find)`, `machine_extras` in `factory.entry.wiring`). The helpers it relies on exist: `abi_fault` (domain/confinement.py), `abi_version` (adapters/landlock.py), `CONFINE_COMMAND` (domain/agent_runs.py) and `_which_on` (entry/wiring.py). The detail texts are exact and the join order is stated.
+   Criteria: each is testable by one test function. Every rule has both sides. The pass side is criterion 1. The kernel fault is criterion 2, with ABI 0 and 2. The wrapper-not-found fault and the no-`PATH` fault are criterion 3. Both faults together, in order, are criterion 4. The `find` call arguments are criterion 5. The extras order is criterion 6, and the `preflight_failed` stop with no agent run is criterion 7. `make check` and `docs:` are the last two. The test-change leave for `tests/entry/test_wiring_extras.py` is named and backed by feature decision 12.
+   Smoke test: the command is runnable. Both `Expect:` lines are checkable against the output: `True`, then the exact joined fault text.
+   Architecture: the item sits in `application`. The ABI reader and `which` are injected from `entry`, so `application` knows no tool. Layering is respected.
+   Scope: it is within the feature's S0005 scope (preflight item and wiring). The fallback to the hook is out of scope and not added.
