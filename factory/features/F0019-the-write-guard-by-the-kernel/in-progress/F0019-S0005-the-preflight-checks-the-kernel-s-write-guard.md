@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T16:58:36.274663Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T16:58:16.111360Z'
   stage: review
   run: b1ac36990f9a4160b5f4fde14a7f1a04
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:58:36.274663Z'
+  stage: doing
 ---
 
 # The preflight checks the kernel's write guard
@@ -170,3 +179,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
 
    Earlier tests:
    - tests/entry/test_wiring_extras.py: the human's leave, named in the story's Interface under the feature's decision 12. Only the two rows of names in `test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user` changed, each gaining "confinement" between "agent-environment" and "agent-run-probe". This is within the leave.
+10. factory: started doing as self.
