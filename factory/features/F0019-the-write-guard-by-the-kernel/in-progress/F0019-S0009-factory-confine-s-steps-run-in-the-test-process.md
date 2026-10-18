@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T19:36:11.594575Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T19:36:11.594575Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T19:38:31.251108Z'
+  stage: tests
+  run: d3c4bffad1994515a8ac07399a64c3b2
 ---
 
 # factory-confine's steps run in the test process
@@ -122,3 +124,16 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
    Architecture: the change stays in `factory.entry`, which already imports the two adapters directly (decision 19). The new test module goes in `tests/entry/`, as `CLAUDE.md` says. `tests/entry/test_confine.py` is left unchanged, so no leave is needed for another story's test.
    Scope: this is within F0019 as a follow-up from its acceptance. It is not under "Out of scope", and it only makes steps 3 to 6 visible to coverage and mutation testing. The docs criterion touches only `docs/project-guide.md`.
 4. factory: started tests as self.
+5. tester: Wrote the in-process tests for `factory.entry.confine.main`. They pass a `Steps` recorder for `restrict` and `replace`. When the recorder records `restrict` it also snapshots the watched folders' modes. When it records `replace` it raises the test-local `Replaced`, or the fault a row sets.
+   criterion 1: tests/entry/test_confine_steps.py::test_restrict_gets_the_folders_the_temporary_folder_and_the_files_once_they_exist
+   criterion 2: tests/entry/test_confine_steps.py::test_replace_gets_the_command_and_the_environment_with_tmpdir_after_restrict
+   criterion 3: tests/entry/test_confine_steps.py::test_four_arguments_reach_the_command_and_three_print_the_usage (rows four-arguments, three-arguments)
+   criterion 4: tests/entry/test_confine_steps.py::test_a_fault_of_restrict_or_replace_stops_the_wrapper_with_one_line (rows restrict, replace)
+   criterion 5: tests/entry/test_confine_steps.py::test_a_kernel_below_abi_3_makes_no_folder_and_calls_neither_step (rows ABI 0 and 2 refused, ABI 3 accepted for the other side of the limit)
+   criterion 6: tests/entry/test_confine_steps.py::test_restrict_and_replace_left_none_are_the_adapters_functions. It checks that the module imports `restrict_writes` from `factory.adapters.landlock` and `replace_process` from `factory.adapters.process`. It checks that both new parameters default to `None`. It also checks that `main` holds `restrict_writes if restrict is None else restrict` and the matching expression for `replace`, the way `main` already takes `abi`. The child-process half of the criterion is the unchanged tests/entry/test_confine.py.
+   criteria 7 and 8: no test; they are `make check` and the docs stage.
+   Files created: tests/entry/test_confine_steps.py. No earlier test file changed.
+   `make test` fails as intended on the new module only. Every one of its tests fails because `main` does not take `restrict` or `replace` yet (a TypeError for an unexpected keyword argument). The test runner could import every module. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/entry/test_confine_steps.py::test_restrict_and_replace_left_none_are_the_adapters_functions
