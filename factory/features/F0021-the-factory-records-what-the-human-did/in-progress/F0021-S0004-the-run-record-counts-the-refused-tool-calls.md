@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:40:26.274674Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-10-18T23:40:05.972198Z'
   stage: smoke-test
   run: 06b62efc8d6049c3a237611fbb471364
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:40:26.274674Z'
+  stage: doing
 ---
 
 # The run record counts the refused tool calls
@@ -389,3 +398,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     - (b) Render each record in its own `render` call.
 
     The coder should probably ask the human (R8) rather than change code.
+24. factory: started doing as self.
