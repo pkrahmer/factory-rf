@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 237
-comments_read: [6256126020]
+comments_read: [6256126020, 6256259182]
 handed_over: null
 claim: null
 journal:
@@ -87,6 +87,11 @@ journal:
   stage: doing
   run: 1cd3c380014e4e4391ea7a5b39933061
   blocked: question
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-10-18T23:02:25.486970Z'
+  stage: doing
 ---
 
 # The stops reach main as records
@@ -324,3 +329,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     The intake stage then puts it into the story, and the tester writes the test. If you choose (a), I change `raise_stop` to append whenever the read failed.
 
     **Noticed, not touched:** nothing new beyond entry 10.
+15. 2026-10-18 human: (b): without a readable health status no record is appended. Change the Interface sentence as you propose, and add the new criterion before 16 as rows of one parametrized test (log line raises: record appended, OSError raised; status write raises: record appended, OSError raised; status read raises: no record, OSError raised).
