@@ -1,3 +1,103 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 216
+comments_read: [6250079331]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T12:34:27.210869Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:34:27.216318Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T12:34:40.587871Z'
+  stage: intake
+  run: 4c3f0741d6c44c90bfc61aaa11942ec9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:35:00.726040Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T12:36:01.202329Z'
+  stage: tests
+  run: 9905dc3280b04639bcad08c06ff24a0e
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:36:21.250017Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-18T12:38:19.703999Z'
+  stage: doing
+  run: e7c5560f39834239a2ee27f41a30b82a
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-18T12:46:45.108699Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:47:02.694787Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T12:48:39.632953Z'
+  stage: doing
+  run: 7ee6492fe9794a9cad2e1446bc0bcc80
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:48:59.563860Z'
+  stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T12:49:12.104788Z'
+  stage: review
+  run: f0a9a38068c1497cbb02812662b7fe7c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:49:32.053320Z'
+  stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T12:50:45.869333Z'
+  stage: docs
+  run: 4950acbfcc0849b3964aca31310f0da7
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:51:06.752799Z'
+  stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T12:51:31.798033Z'
+  stage: smoke-test
+  run: a48865b644864153a0fa16e6bea18c93
+---
+
 # The documents name the handover
 
 ## Description
@@ -37,3 +137,129 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is stated and consistent: no module, signature or comment-stated behaviour exists, so no Interface rule lacks a criterion. The documenter's three files (README.md, docs/operator-guide.md, docs/decisions.md) are named.
+   Criteria: 1 (nothing under src/, tests/, image/, template/, claude/ changes) is checkable from the diff. 2 is the standing `make check` criterion. 3 is the docs criterion. It names exact passages to replace or add, the decision entry's title, date, commit and its three reasons, and the `check_documents` result. No rules with a failing side are stated, since this is documentation only.
+   Smoke test: four commands (three greps and `check_documents`), all runnable from the repo root. Each has an Expect line that can be compared with the output.
+   Architecture: documentation only, so the layers are untouched. The documenter's write paths cover README.md and docs/*, and the feature file confirms this.
+   Scope: matches feature.md's Scope. Nothing in its Out of scope is touched: no src/tests/image/template/claude change, no factory/v1/ change, no planning/ change.
+4. factory: started tests as self.
+5. tester: No tests written. This story only changes documentation, and its Interface says no test changes. Criterion 1 says the tester changes nothing, so this entry confirms that.
+   criterion 1: no test function. Nothing under src/, tests/, image/, template/ or claude/ was changed in this stage. `git status` shows only the factory's own `.costs.jsonl` sidecar of the work item.
+   criterion 2: no test function. `make check` is the factory's own gate. `make lint` is green here, and the existing suite is unchanged.
+   criterion 3 (docs): no test function. It is the documenter's work. Its executable checks are the smoke test's greps and `python -m factory.entry.check_documents`.
+   Files created: none. Modules the test runner could not import: none, because no new test refers to a missing module. I skipped the `make test` run: no test was added, so none can fail for the right reason, and the factory runs `make test` after this stage anyway.
+   Open: nothing. Next, the coder also changes nothing and ends with an entry saying so.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed]
+6. factory: started doing as self.
+7. coder: I built nothing. Criterion 1 holds: nothing under src/, tests/, image/, template/ or claude/ changes, and `git diff main -- src tests` is empty. I stopped before handing forward because `make check` is red in this stage's environment for a reason outside this story.
+
+   The failing tests are 8 in total. Under umask 0002:
+   - 4 rows of `test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout` and `test_a_nested_repository_the_preparer_cannot_remove_makes_it_clone_again`, in tests/application/test_nested_repositories.py.
+   - `test_an_existing_clone_is_kept_without_calling_git`, in tests/application/test_scheduler.py.
+   - `test_a_ready_checkout_is_not_fetched_and_leaves_no_stop` and the `_deleted_after_clone` row of `test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error`, in tests/application/test_repository_waiter.py. This last row is the failure the tester's entry also shows.
+
+   The cause is the shell this stage runs in, which has umask `0002`. New checkouts in `tmp_path` come out group-writable, and the repository seal refuses them: `RepositoryUnsealed: seal failed ... checkout/.git is writable by its group or by others`.
+
+   With `umask 022` and the same tree, `make check` ends `check: green`. So the code is fine, but the factory's own run of `make check` after this stage will probably be red and hold the work item here.
+
+   The options I see:
+   (a) The operator runs the factory under umask 022, and this stage runs again unchanged. This is the one I would choose: the seal's refusal is intended behaviour, and the story is documentation only.
+   (b) A separate story makes the affected tests set their own umask, or makes the seal tolerate a group-writable tmp checkout. That is out of scope here, and it would change tests and code other stories wrote.
+   (c) You accept that this check is red because of the environment and move the item forward by hand.
+
+   Nothing else is open. Once the check is green, I hand forward with `review` and no change.
+8. 2026-10-18 human: Neither (a) nor (c): a fix on main. The tests now set their own umask: `make test` and `make mutants` run pytest under `umask 022` (commit 27bdaa73 on main; checked: `make test` green in a container whose shell has umask 002). The next stage start merges main into this branch. Run `make check` again; when it is green, hand forward with `review` and no change, as you planned. The seal's refusal stays as it is.
+9. factory: started doing as self.
+10. coder: I built nothing, as criterion 1 requires. Nothing under src/, tests/, image/, template/ or claude/ changes: `git diff main --stat -- src tests image template claude` is empty. The working tree holds only the factory's `.costs.jsonl` sidecar.
+
+    The human's answer (entry 8) put the umask fix on main (27bdaa73), and that commit is now merged into this branch. This stage's shell still has umask 0002. Even so, `make check` now ends `check: green` (`test: green`, total coverage 99.44 %). The eight seal failures from my earlier entry are gone.
+
+    Main choice: hand forward with no change, as entry 8 said. The alternative I rejected was any code or test change here. That would be out of scope for a documentation-only story, and the fix now lives on main.
+
+    The journal did not change what the task means, so I left the Description as it was.
+
+    Refactor: there is no diff to refactor.
+
+    Noticed, not touched: nothing. The documenter does criterion 3 (README.md, docs/operator-guide.md, docs/decisions.md).
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. factory: started review as self.
+12. reviewer: no findings
+
+    I checked `git diff main...HEAD -- . ':!factory'` and it is empty. The diff touches only the work item and its `.costs.jsonl` sidecar.
+    - Criterion 1 holds. Nothing under src/, tests/, image/, template/ or claude/ changes, and both the tester (entry 5) and the coder (entry 10) end with an entry saying so.
+    - Criterion 2: the coder's entry 10 records `check: green`, after main's umask fix (27bdaa73, from the human's entry 8) was merged into the branch. `duplicates: 0 new`.
+    - Criterion 3 is the docs criterion and the documenter writes it next. It still says what the reader must know after this story: the README passages, the operator-guide bullet and the decision-log entry, with its three reasons.
+    - The Interface is "None" and states no rule or limit, so no failing side is missing a test.
+    - Architecture, security and quality: there is no code under review.
+    - Work item hygiene: the journal explains the one decision, to hand forward unchanged, and the change it rejected, any code or test edit. The Description matches what was built, which is nothing so far.
+
+    Earlier tests: none. The diff changes, renames or deletes no test file.
+13. factory: started docs as self.
+14. documenter: Documentation only; I changed no code, test or comment in code. I did not run `make check`, because every changed file is a document and the factory runs it after this stage.
+
+    Files changed:
+    - `README.md`: the opening paragraph now says the repository was built by the first implementation (github.com/pkrahmer/factory) until the handover of 2026-10-18 and is built by v1.1 itself since then. The sentence saying a stage's agent run and a `time_limit` under `sudo` are first observed at the shakedown run now says both were observed on 2026-10-18, on the todo demo. The section *How it is built* now says v1.1's instance builds the repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, and that v1's history lies in `factory/v1/`. I wrote "its stages" there, not "stage table" or `stages.yml`, because `check_documents` rejects those v1 words in the README.
+    - `docs/operator-guide.md`: the bullet "This repository's own `factory/` tree is v1's" is replaced as the criterion says. It names `factory/v1/` and its contents, says nothing reads it and `factory-check-story` does not apply to it, and says v1.1 builds from `factory/pipeline.yml`, `factory/story-form.md` and `factory/features/` since the handover. The intro paragraph (line 3) had the same "first observed at the shakedown run" sentence, so I made it match the README.
+    - `docs/decisions.md`: new last entry, *factory-rf is built by v1.1 since the handover*, dated 2026-10-18 (commit `3bcee441`). It gives the three reasons from the criterion: v1's features left `factory/features/` because v1.1 reads no v1 work item and v1's `done/` folders would have counted each as due for an acceptance; the numbers continue from F0018 because `make mutants` finds a feature's modules by its id in commit subjects; v1 is stopped, not removed, as the fallback. It also lists the two alternatives I rejected: leaving v1's features in place, and restarting the numbers at F0001. Those two rejections are my inference from the stated reasons, not the human's words. Please check them.
+
+    Checked: `uv run python -m factory.entry.check_documents` prints `documents ok`. `grep -c "until this repository moves"` on the operator guide gives 0. `grep -c "factory-rf is built by v1.1 since the handover"` on the decision log gives 1. `grep -c "factory/v1/"` on the README gives 1.
+
+    Cross-read and found current: `docs/project-guide.md`, and the rest of `README.md` and `docs/operator-guide.md`. `docs/decisions.md` has no other mention of the handover in this sense.
+
+    Stale text I saw and left alone: `docs/decisions.md` lines 462 and 504, and `docs/operator-guide.md` line 259 ("Under Podman this is first observed at the shakedown"), still say some things are observed only at the shakedown run. They are about the second user and PID 1 reaping under Podman, not about this story's passages, and I could not tell whether those were observed on 2026-10-18.
+
+    No findings.
+
+    `check`: check: green
+    `documents`: documents ok
+15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test: I ran all four commands from the repository root in order, exactly as written. Each one met its Expect line. I changed nothing.
+
+    1. `grep -c "until this repository moves to v1.1's layout" docs/operator-guide.md`
+    ```
+    0
+    ```
+    Met (`0`). grep exits 1 when it counts zero matches, which is expected for this check.
+
+    2. `grep -c "factory-rf is built by v1.1 since the handover" docs/decisions.md`
+    ```
+    1
+    ```
+    Met (`1`).
+
+    3. `grep -c "factory/v1/" README.md`
+    ```
+    1
+    ```
+    Met (at least `1`).
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Met (`documents ok`).
+
+    Re-read of the acceptance criteria against the branch:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `README.md`, `docs/decisions.md`, `docs/operator-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under src/, tests/, image/, template/ or claude/ changed. The tester (entry 5) and the coder (entry 10) each said so.
+    - Criterion 2: I did not run `make check` myself. The documenter's entry records `check: green`, and the factory runs the gate.
+    - Criterion 3, `README.md`:
+      - The opening paragraph says the repository was built by the first implementation (github.com/pkrahmer/factory) until the handover of 2026-10-18 and by v1.1 itself since then.
+      - It says the agent run and the `time_limit` under `sudo` were observed on 2026-10-18, on the todo demo. `shakedown` no longer appears in the README.
+      - *How it is built* (line 26) names `factory/pipeline.yml`, `factory/features/` and `factory/v1/`.
+    - Criterion 3, `docs/operator-guide.md` (line 1162): the bullet names `factory/v1/` and what it holds. It says nothing reads it, that `factory-check-story` does not apply to it, and that v1.1 builds this repository from `factory/pipeline.yml`, `factory/story-form.md` and `factory/features/`.
+    - Criterion 3, `docs/decisions.md`: the last section (line 545), *factory-rf is built by v1.1 since the handover*, is dated 2026-10-18 with commit `3bcee441`. It gives all three reasons the criterion asks for.
+    - No command or document contradicts any criterion.
+
+    Findings: none.
+
+    Still open from the documenter's entry, outside this story's criteria:
+    - The two rejected alternatives in the decision-log entry are the documenter's inference and need the human to check them.
+    - Some stale "first observed at the shakedown" wording remains: decisions.md lines 462 and 504, and operator-guide line 259.

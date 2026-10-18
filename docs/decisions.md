@@ -541,3 +541,13 @@ Date: 2026-10-18 (F0017, the human's change 1; F0017 decision 7).
 - Cause: mutmut stops a mutant's pytest at its time limit; a stopped process runs no teardown and leaves its numbered folder's `.lock`, and pytest removes a locked folder only when the lock is older than three days. On 2026-10-18 v1's container held 58 such folders, 2.4 GB.
 - Decision: the `mutants` recipe runs mutmut with `TMPDIR` set to a folder made by `mktemp -d`, and the recipe's `EXIT` trap opens that folder for its owner and removes it when the recipe ends, also after `mutants: stopped after ...` and after a failed run.
 - Rejected: `-o tmp_path_retention_policy=none` in mutmut's pytest arguments (each run's cleanup removes the numbered folders of the other workers still running); `--basetemp` (each run removes the given folder at its start, so parallel workers remove each other's); a sweep of `/tmp/pytest-of-<user>` at the start of a session (it works outside `tmp_path` and cannot tell a stopped run's locked folder from a running session's); `PYTEST_DEBUG_TEMPROOT` (pytest's debug variable, not a documented setting; `TMPDIR` is what `tempfile.gettempdir()` reads).
+
+## factory-rf is built by v1.1 since the handover
+
+Date: 2026-10-18 (commit `3bcee441`; F0018). Until then v1 built this repository from `factory/` in v1's layout. Since the handover v1.1 builds it from `factory/pipeline.yml`, `factory/story-form.md` and the features under `factory/features/`.
+
+- Decision: v1's `stages.yml`, forms and features F0001 to F0017 moved to `factory/v1/`, and v1.1's features continue the numbers from F0018.
+- Why v1's features left `factory/features/`: v1.1 reads no v1 work item, and v1's `done/` folders would have made each of v1's features count as due for an acceptance.
+- Why the numbers continue from F0018: `make mutants` finds a feature's modules by its id in the commit subjects, and a reused id would match v1's commits.
+- v1 is stopped, not removed, as the fallback.
+- Rejected: leaving v1's features in place (each would be due for an acceptance); restarting the numbers at F0001 (the ids would clash with v1's commit subjects).
