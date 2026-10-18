@@ -138,9 +138,12 @@ def expiry_note(crashes: int, crash_cap: int) -> str:
     )
 
 
-def cost_table_post(table: str) -> str:
-    """The post that shows the human the cost table at the approval."""
-    return f"Cost of this work item so far\n\n{table}"
+def cost_table_post(table: str, human: str | None = None) -> str:
+    """The post that shows the human the cost table at the approval, and their line under it."""
+    post = f"Cost of this work item so far\n\n{table}"
+    if human is None:
+        return post
+    return f"{post}\n\nHuman: {human}"
 
 
 def done_entry_text(bill: Bill) -> str:

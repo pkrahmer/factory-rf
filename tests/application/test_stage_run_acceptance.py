@@ -89,7 +89,7 @@ def test_the_reviewer_prompt_ends_with_the_feature_facts_at_main(
 
     prompt = agent_runtime.requests()[0].prompt
 
-    assert prompt.split("\n")[-3:] == facts.lines()
+    assert prompt.split("\n")[-4:] == facts.lines()
 
 
 def test_the_protocol_opens_the_acceptance_pull_request_and_records_it(

@@ -112,9 +112,14 @@ def total(stage_bills: Sequence[StageBill]) -> Bill:
     return _sum([stage_bill.bill for stage_bill in stage_bills])
 
 
+def one_decimal(value: Decimal) -> str:
+    """`value` with one decimal, rounded half up."""
+    return str(value.quantize(_ONE_DECIMAL, rounding=ROUND_HALF_UP))
+
+
 def _minutes(duration: timedelta) -> str:
     seconds = Decimal(str(duration.total_seconds()))
-    return str((seconds / _SECONDS_PER_MINUTE).quantize(_ONE_DECIMAL, rounding=ROUND_HALF_UP))
+    return one_decimal(seconds / _SECONDS_PER_MINUTE)
 
 
 def _dollars(bill: Bill) -> str:

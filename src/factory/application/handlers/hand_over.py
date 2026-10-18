@@ -12,10 +12,16 @@ from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
 from factory.domain.hand_over import cost_table_key, hand_over_description
+from factory.domain.human_waits import human_line, human_waits
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
+from factory.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    require_state,
+)
 
 _KIND = "hand_over"
 
@@ -49,7 +55,7 @@ class HandOverHandler(Handler):
             raise CannotHandle(_KIND, f"stage {state.stage} of {snapshot.id} is not an approval")
         if state.handed_over == state.stage:
             return
-        self._show(number, snapshot, document)
+        self._show(number, snapshot, document, state)
         handed_over = state.model_copy(update={"handed_over": state.stage})
         recorder.record(
             snapshot.branch,
@@ -58,7 +64,13 @@ class HandOverHandler(Handler):
             commit_subject(snapshot.id, f"handed over at {state.stage}"),
         )
 
-    def _show(self, number: int, snapshot: WorkItemSnapshot, document: WorkItemDocument) -> None:
+    def _show(
+        self,
+        number: int,
+        snapshot: WorkItemSnapshot,
+        document: WorkItemDocument,
+        state: WorkItemState,
+    ) -> None:
         sidecar = self._boundaries.checkout / cost_records_path(snapshot.path)
         records = self._boundaries.cost_reader.read(sidecar)
         commits = self._boundaries.git.log(
@@ -67,5 +79,6 @@ class HandOverHandler(Handler):
         hosting = self._boundaries.hosting
         hosting.set_description(number, hand_over_description(document, commits))
         hosting.set_draft(number, False)
-        table = cost_table_post(cost_table(bills_by_stage(records)))
+        human = human_line(human_waits(state.journal))
+        table = cost_table_post(cost_table(bills_by_stage(records)), human=human)
         hosting.post_comment(number, table, cost_table_key(snapshot.id, document))

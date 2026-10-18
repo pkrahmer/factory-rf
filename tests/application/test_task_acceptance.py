@@ -133,7 +133,7 @@ def test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended(
 
     facts = AcceptanceService(boundaries, definition).facts("F0002")
     assert prompt == acceptance_prompt(_base_prompt(definition, context), facts)
-    assert prompt.split("\n")[-4:] == ["", *facts.lines()]
+    assert prompt.split("\n")[-5:] == ["", *facts.lines()]
 
 
 @pytest.mark.usefixtures("todo")

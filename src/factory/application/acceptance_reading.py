@@ -232,11 +232,15 @@ class AcceptanceReader:
         _, state = self._document(ref, path)
         return ReportFacts(id=work_item, folder=folder, state=state, on_branch=ref != _MAIN_REF)
 
-    def _document(self, ref: str, path: str) -> tuple[WorkItemDocument, AcceptanceState]:
+    def document(self, ref: str, path: str) -> WorkItemDocument:
+        """The work item at `path` on `ref`; `WorkItemFormatError` when missing or unreadable."""
         text = self._git.show_file(ref, path)
         if text is None:
             raise WorkItemFormatError(f"missing on {ref}", path)
-        document = parse_at(self._reader.parse, text, path)
+        return parse_at(self._reader.parse, text, path)
+
+    def _document(self, ref: str, path: str) -> tuple[WorkItemDocument, AcceptanceState]:
+        document = self.document(ref, path)
         if not isinstance(document.state, AcceptanceState):
             raise WorkItemFormatError("not an acceptance's state", path)
         return document, document.state
