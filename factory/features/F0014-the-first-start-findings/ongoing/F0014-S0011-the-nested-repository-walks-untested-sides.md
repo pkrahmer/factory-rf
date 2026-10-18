@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 202
 blocked: null
 comments_seen: 0
@@ -97,3 +97,13 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+   - Criteria 1–4: the new rows `link-to-repository-beside`, `link-to-root`, `link-to-parent`, `git-inside-roots-git`, `git-inside-found-git` and `sorted-dot-folder` are in `tests/adapters/test_git_cli_nested.py`, and the test body is unchanged. `_snapshot(tmp_path)` walks without following links and covers the checkout's parent, so it would catch each mutant the story names:
+     - With `followlinks=True`, `mirror/.git`, `self/.git` or `deep/up/<checkout>/.git` would end up in the returned list, and the target's `.git` would disappear from the snapshot.
+     - Entering the root's `.git` would remove `.git/extra/.git`, and the snapshot would show it.
+     - Entering a `.git` the walk found would add `notes/.git/modules/m/.git` to the returned list.
+     - For `a` and `a/.cache`, the walk returns `a/.git` first, so leaving out the sort fails the row.
+   - Criterion 5: `test_a_stage_whose_agent_leaves_two_repositories_names_both_in_the_stall_note` reuses `_nesting` and imports `_launch`, `_stalled`, `_note` and `_completed` from `application.test_after_agent` without copying them. `_nest_two` makes `b` before `a`, so the test checks the sorted `", "` join.
+   - Criteria 6 and 7: the `two-nested` rows of the probe test and the preparer test check the full detail text and the full log line. The preparer body still checks that the test's file stays.
+   - No source change. The coder's entry records `make check: check: green` and `duplicates: 0 new`.
+   - Assignment, criteria and log match the diff. Criterion 9 (docs: none) still holds, because no rule changed.
