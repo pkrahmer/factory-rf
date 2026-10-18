@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T19:33:02.205721Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-18T19:32:42.218105Z'
   stage: docs
   run: e4248610a4544a7197dd891c285a6798
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:33:02.205721Z'
+  stage: smoke-test
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -306,3 +315,4 @@ Expect: `completed | root file refused | False`
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
