@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T16:57:14.321024Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T16:56:54.256196Z'
   stage: doing
   run: 1555ecbf28c74389ad68e2629da26e77
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:57:14.321024Z'
+  stage: review
 ---
 
 # The preflight checks the kernel's write guard
@@ -154,3 +163,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
