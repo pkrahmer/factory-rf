@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 210
 blocked: null
 comments_seen: 0
 round: 0
@@ -90,3 +90,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: names concrete files (`template/CLAUDE.md`, `claude/agents/tester.md`, `claude/agents/coder.md`) with the exact old and new text, position and order of every bullet, and the two constants of the earlier tests to change (`TEMPLATE_RULES_LINES`, `LESSONS`). Nothing is left to decide, and it states no behaviour that lacks a criterion.
+   - Criteria: 1 to 4 are each decided by an existing test (`test_template_rules_file_is_the_python_project_text`, `test_lessons_section_is_last_and_holds_exactly_the_role_bullets` by row). The failing side of each rule is covered: the old tester bullet must be gone (criterion 2), the other five agents must be unchanged (criterion 4), and the time-limit bullet must stay last. Criterion 5 pins what must still hold, 6 is `make check`, and 7 is the docs criterion with its content spelled out.
+   - Demo: three runnable commands, and each `Expect:` line is checkable (grep counts 2/2/1, count 0, pytest with only passed).
+   - Architecture: text-only change to the template and shipped agents. Nothing under `src/` changes, and no layer is touched.
+   - Scope: within FEATURE findings 1 and 2 and decisions 1 to 3 and 9. The earlier-test changes are named and carry the human's leave (decision 9). The prompt line and the intake agent stay as they are, as the FEATURE's out-of-scope list says.
