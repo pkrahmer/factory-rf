@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T19:31:49.781142Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-18T19:31:29.398280Z'
   stage: review
   run: e97a141acb74483e8ee04c27e414b87d
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:31:49.781142Z'
+  stage: docs
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -280,3 +289,4 @@ Expect: `completed | root file refused | False`
     Earlier tests:
     - tests/adapters/test_claude_runtime_confinement.py (M): changed under the standing leave to move a shared test helper. Its constants, `Played`, `ConfineCall`, `Layout`, `CONFINE_SCRIPT` and helpers moved to tests/confine_support.py, and the private `_request`/`_runtime`/`_write_script`/`_read_records`/`_write_confine` became shared `run_request`/`confined_runtime`/`write_script`/`read_records`/`write_confine`. The `layout` fixture moved to tests/conftest.py. Every test keeps its name and its assertions; only the call sites changed.
     - tests/conftest.py (M): changed under the same standing leave. Its only change is the moved `layout` fixture, built by `confine_support.build_layout`. tests/test_agent_home_ownership.py keeps its own module-level `layout`, which overrides the shared one there.
+18. factory: started docs as self.
