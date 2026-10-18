@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T23:23:05.284248Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-18T23:22:44.679907Z'
   stage: intake
   run: e86c73b195fc495ea203ad5b02c50d3f
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:23:05.284248Z'
+  stage: tests
 ---
 
 # The run record counts the refused tool calls
@@ -126,3 +135,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
    - Smoke test: runnable. It uses `JsonLinesCostRecordWriter().render`, and its `Expect:` line (`absent absent` and `2 ['src/a.py']`) can be checked against the output. I did not run it. The record fields in it match the Interface.
    - Architecture: the changes sit in the right layers (domain DTOs, application recorder, adapters for the runtime and the JSONL writer). The runtime-specific parsing stays in the adapter.
    - Scope: within the feature's S0004 and decision 8. The stop records and F0020's items are not touched. The change to the earlier test `test_claude_runtime_resume.py` is covered by decision 14.
+7. factory: started tests as self.
