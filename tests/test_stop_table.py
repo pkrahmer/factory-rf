@@ -203,9 +203,9 @@ def test_hand_over_that_fails_every_time_is_reported_once_after_the_error_cap(
     world: World, work_item: WorkItemId
 ) -> None:
     drive_to(world, work_item, "smoke-test")
-    world.hosting.fail_next("set_description", times=3)
     world.agent_runtime.queue(completed("approval", "Accepted."))
     run_ticks(world)
+    world.hosting.fail_next("set_description", times=3)
 
     run_ticks(world, 2)
     after_second = _error_posts(world)

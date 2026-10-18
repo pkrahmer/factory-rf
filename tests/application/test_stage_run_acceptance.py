@@ -10,6 +10,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
+from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemState
@@ -103,3 +104,18 @@ def test_the_protocol_opens_the_acceptance_pull_request_and_records_it(
     assert pull_request.number == report.pull_request
     assert state.stage == "approval"
     assert state.pull_request == pull_request.number
+
+
+def test_an_acceptance_that_ends_with_approval_has_its_report_in_the_description_at_once(
+    boundaries: Boundaries, report: StageReport, report_path: str, hosting: FakeHostingService
+) -> None:
+    boundaries.git.fetch()
+    text = boundaries.git.show_file(f"origin/{BRANCH}", report_path)
+    assert text is not None
+    document = boundaries.work_item_reader.parse(text)
+
+    assert hosting.get_pull_request(report.pull_request).draft
+    assert _pushed_state(boundaries, report_path).handed_over is None
+    assert hosting.description(report.pull_request) == acceptance_description(
+        document, "acceptance-reviewer"
+    )

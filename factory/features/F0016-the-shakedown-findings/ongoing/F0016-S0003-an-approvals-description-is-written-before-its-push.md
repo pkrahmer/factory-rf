@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 212
 blocked: null
 comments_seen: 0
@@ -69,3 +69,15 @@ Expect: `documents ok`.
    - Demo: the three commands are runnable. Each `Expect:` line is checkable (`<n> passed` with no failed, error or skipped count; `documents ok`).
    - Architecture: the change sits in the application layer and calls the hosting-service interface, the `Git` wrapper and the `FactoryLog`. It reaches `factory.domain` for `hand_over_description` and `acceptance_description`. No new dependency, package or `factory/` change.
    - Scope: within F0016's scope item 3 and its decisions 7, 8 and 9. The changes to earlier tests (`tests/test_stop_table.py` and one new test in `tests/application/test_stage_run_acceptance.py`) have the human's leave, given in FEATURE decision 9. Nothing in "Out of scope" is touched.
+3. tester: Tests written from the Interface and the criteria; red on purpose for the approval path.
+   - criterion 1: tests/test_approval_description.py::test_the_description_is_written_before_the_result_push_only_for_a_move_to_an_approval[approval]
+   - criterion 2: the same test, rows [rework], [forward], [question] (these pass today and must keep passing)
+   - criterion 3: tests/test_approval_description.py::test_a_work_item_at_its_approval_shows_the_full_description_before_its_hand_over
+   - criterion 4: tests/application/test_stage_run_acceptance.py::test_an_acceptance_that_ends_with_approval_has_its_report_in_the_description_at_once
+   - criterion 5: tests/test_approval_description.py::test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it
+   - criterion 6: tests/test_stop_table.py::test_hand_over_that_fails_every_time_is_reported_once_after_the_error_cap, its `fail_next("set_description", times=3)` moved to right after the first `run_ticks(world)` (human's leave, FEATURE decision 9); it still passes, and so do the other listed modules.
+   Files: created tests/test_approval_description.py (private helper `_pushed` reads the document and `log(origin/<branch>, since=origin/main)`); changed tests/test_stop_table.py (one line moved) and tests/application/test_stage_run_acceptance.py (one new test plus the import of `acceptance_description`; nothing existing changed).
+   Run of make test: 4 failures, all wrong results (the description is not yet written before the push): the [approval] row, the two other new tests in tests/test_approval_description.py, and the new acceptance test. No import or collection errors: every name the tests use already exists. make lint green; type check skipped per the stage.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_approval_description.py::test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it
