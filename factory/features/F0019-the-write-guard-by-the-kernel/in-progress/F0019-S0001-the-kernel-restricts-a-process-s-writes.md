@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T14:40:59.655074Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   at: '2026-10-18T14:40:39.661134Z'
   stage: docs
   run: d340de66ef3d40e8b70d85b3dba6c02f
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:40:59.655074Z'
+  stage: smoke-test
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -299,3 +308,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
 
     `check`: check: green
     `documents`: documents ok
+15. factory: started smoke-test as self.
