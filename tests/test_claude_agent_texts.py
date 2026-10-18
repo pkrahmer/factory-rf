@@ -112,6 +112,8 @@ ROLE_AND_STAGE_ANCHORS = {
     "reviewer": [
         "You review a diff against a work item.",
         "You do not edit code, and you do not write any",
+        "Item 6 is part of every review, whichever group failed.",
+        "6. **Earlier tests**: every test file that `main` already holds",
     ],
     "documenter": [
         "You write for the reader who was not there",
@@ -121,7 +123,11 @@ ROLE_AND_STAGE_ANCHORS = {
         "You run the smoke test, record what happened and judge it against the work item. "
         "You do not fix anything."
     ],
-    "acceptance-reviewer": ["You judge and you propose; you build nothing.", "Do the eight checks"],
+    "acceptance-reviewer": [
+        "You judge and you propose; you build nothing.",
+        "Do the eight checks",
+        "Add the earlier tests the reviewers' entries name as changed",
+    ],
 }
 
 _BANNED_WORDS = re.compile(
@@ -261,6 +267,10 @@ def test_smoke_tester_compares_with_expect_and_records_trimmed_output(phrase: st
 )
 def test_coder_sends_a_wrong_test_back_to_the_tester(phrase: str) -> None:
     assert phrase in _body("coder")
+
+
+def test_the_reviewer_no_longer_stops_before_the_earlier_tests() -> None:
+    assert "Stop at the first failing group and report it" not in _body("reviewer")
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)

@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 211
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The reviewer names every earlier test it sees changed
 
 ## Assignment (as of log entry 1)
@@ -67,3 +75,78 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted.
+   - Interface: names concrete files and sections (`claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md`, each `## Role`) and gives the old and new text of every changed line word for word. I checked the old texts against the files: the reviewer's line 51 and the acceptance reviewer's check 6 (line 56) match. The test anchors (`ROLE_AND_STAGE_ANCHORS`, one new test) are named. S0001 is merged: the template and the tester and coder lessons already carry the standing leave that item 6 cites.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 are rows of the existing anchor test, criterion 3 is a new named test, and criterion 4 is the existing tests passing. Every behaviour stated in the Interface has a criterion. The Interface states no limit or validation, so no rule has a failing side that needs its own criterion. The old-sentence-gone check (criterion 3) is the failing side of the sentence change.
+   - Demo: both commands are runnable. Against the current files the grep counts are all 0, which is right before the change. The expected counts (reviewer 1 and acceptance reviewer 0 for "Earlier tests"; the reverse for the second phrase) follow from the new texts. The pytest `Expect:` line is checkable.
+   - Architecture: the change is text in the shipped agent files, which the coder's lane (`claude/*`) covers. Nothing under `src/` changes, and no layer is touched.
+   - Scope: it is within FEATURE scope (S0002) and not in Out of scope. The test leaves match FEATURE decision 9. The story starts after S0001, as decision 10 requires.
+3. tester: Tests written in `tests/test_claude_agent_texts.py`. The human gave leave to change this file (FEATURE decision 9), and nothing else in it changed.
+   - criterion 1: tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]. `ROLE_AND_STAGE_ANCHORS["reviewer"]` gains "Item 6 is part of every review, whichever group failed." and "6. **Earlier tests**: every test file that `main` already holds". Its two old anchors stay.
+   - criterion 2: tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role[acceptance-reviewer]. `ROLE_AND_STAGE_ANCHORS["acceptance-reviewer"]` gains "Add the earlier tests the reviewers' entries name as changed". Its two old anchors stay. The dict entry is split over several lines to fit the line length.
+   - criterion 3: tests/test_claude_agent_texts.py::test_the_reviewer_no_longer_stops_before_the_earlier_tests (new).
+   - criterion 4: the existing tests in tests/test_claude_agent_texts.py, tests/test_claude_files.py and tests/adapters/test_shipped_agents_effect.py. No new test.
+   - criteria 5 and 6: `make check` and docs. No test.
+   Files: no new file; tests/test_claude_agent_texts.py changed. The test function `test_role_and_stage_sections_carry_the_texts_of_the_role` itself is unchanged.
+   `make test` fails as intended, with the three tests above: the agent texts are not changed yet. There were no import or collection errors. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_the_reviewer_no_longer_stops_before_the_earlier_tests
+4. coder: Built in 44f95b1c. Only text changed.
+   - `claude/agents/reviewer.md`, `## Role`: the sentence before the checklist is replaced with the Interface's new sentence, and item 6 (**Earlier tests**) is added as one line after item 5. Both are copied word for word from the Interface.
+   - `claude/agents/acceptance-reviewer.md`, `## Role`: check 6 gains the Interface's added sentence and stays on one line.
+   - Nothing else in the two files changed, and nothing under `src/` or `tests/` changed.
+   Main decision: I copied the Interface text exactly, with no rewording, because the anchor tests and FEATURE decision 5 pin it. I made the edits with a script that asserts each old line occurs exactly once, so nothing else could move. I rejected rewording the item to match the reviewer's other items, which would have broken the exact-text contract.
+   Refactor: none needed. The diff is three lines of prose and has nothing to rename, simplify or deduplicate.
+   Checks: `make check` is green (check: green). Both demo greps give the expected counts: reviewer 1 / acceptance-reviewer 0 for "Earlier tests", then acceptance-reviewer 1 / reviewer 0 for the second phrase.
+   Noticed, not touched: the docs criterion (project guide, operator guide, decision log) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: No findings.
+      - Acceptance criteria: the three changed lines in `claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md` match the Interface word for word. Nothing else in either file changed, so the boundary sentence, the entry sentence, `## Rules`, `## Stage` and `## Lessons` are untouched. Criteria 1 and 2 are the new anchors in `ROLE_AND_STAGE_ANCHORS`, and the old anchors are still there. Criterion 3 is `test_the_reviewer_no_longer_stops_before_the_earlier_tests`, which checks that the old sentence is gone. Criterion 4 is held by the existing tests. The new text uses none of the words `_BANNED_WORDS` refuses. The coder's entry says `make check` was green.
+      - Architecture and security: nothing under `src/` changed. The diff adds no marker and no secret.
+      - Quality and hygiene: the coder's entry gives the main decision, copying the Interface text exactly, and what was rejected. The docs criterion still describes what the documenter must write.
+      Earlier tests:
+      - `tests/test_claude_agent_texts.py` (M): changed with the human's leave, FEATURE decision 9 as the story's Interface names it. The change stays within that leave: three anchors are added to `ROLE_AND_STAGE_ANCHORS`, the acceptance-reviewer list is reflowed with the same text, and criterion 3 adds its new test. `test_role_and_stage_sections_carry_the_texts_of_the_role` is unchanged.
+6. documenter: no findings. The code matches the Interface (the two agent files and the three anchors).
+   Files changed:
+   - `docs/project-guide.md`, *The seven agents*: the sentence that v1's texts are renamed but not rewritten now names the exception (the sentence before the reviewer's checklist, item 6, and the acceptance reviewer's added sentence in check 6). Under `## Role` a paragraph describes item 6 *Earlier tests*: it is done in every review, lists each test file changed, renamed or deleted, gives the leave for each, and a change under none is a finding. It also says that check 6 gathers the lists and that the acceptance reviewer does not repeat the diff check.
+   - `docs/operator-guide.md`, *The hand-over at the approval*: one sentence says the reviewer's entry under Review ends with the earlier tests the story changed and the leave for each.
+   - `docs/decisions.md`: new entry "The reviewer names every earlier test the diff changes", with the reason (the shakedown of 2026-10-18) and the three rejected alternatives with their reasons.
+   Checks: `python -m factory.entry.check_documents` prints `documents ok`. I ran no `make check`, because I changed documents only.
+   Cross-read and found current: the rest of `docs/project-guide.md` on the agents, settings and template; the table under "Replaced from v1"; the `README.md` (it names no agent text).
+   Stale but not touched: none seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: no findings. I ran the commands under `## Demo` from the repository root, in order.
+
+   1. `grep -c "Earlier tests" claude/agents/reviewer.md claude/agents/acceptance-reviewer.md`
+   ```text
+   claude/agents/reviewer.md:1
+   claude/agents/acceptance-reviewer.md:0
+   ```
+   This met its Expect line.
+
+   2. `grep -c "earlier tests the reviewers' entries name" claude/agents/acceptance-reviewer.md claude/agents/reviewer.md`
+   ```text
+   claude/agents/acceptance-reviewer.md:1
+   claude/agents/reviewer.md:0
+   ```
+   This met its Expect line.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_agent_texts.py tests/test_claude_files.py`
+   ```text
+   ........................................................................ [ 62%]
+   ...........................................                              [100%]
+   115 passed in 0.09s
+   ```
+   This met its Expect line: the last line names `115 passed`, with no failed, error or skipped count.
+
+   I also checked the criteria against the branch:
+   - Criterion 3: `grep -c "Stop at the first failing group and report it" claude/agents/reviewer.md` gives 0, so the old sentence is gone.
+   - Criterion 4: `tests/adapters/test_shipped_agents_effect.py` passes as well.
+   - Scope: `git diff main...HEAD --stat` touches only the two agent files, the three documents, the ticket and `tests/test_claude_agent_texts.py`. Nothing under `src/` changed.
+
+   No criterion is contradicted. Open: nothing.
