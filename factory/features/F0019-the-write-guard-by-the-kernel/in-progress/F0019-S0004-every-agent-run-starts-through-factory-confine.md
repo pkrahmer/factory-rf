@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T16:34:42.059421Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -294,6 +290,12 @@ journal:
   kind: started
   at: '2026-10-18T16:34:42.059421Z'
   stage: tests
+- number: 53
+  speaker: tester
+  kind: result
+  at: '2026-10-18T16:36:36.483890Z'
+  stage: tests
+  run: fc92e0324ce4401b9dcedba853a9de79
 ---
 
 # Every agent run starts through `factory-confine`
@@ -815,3 +817,12 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     Noticed but not touched: as entry 47 says, the out-of-date name `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` stays as it is.
 52. factory: started tests as self.
+53. tester: Tester, a test change the human approved. The human approved it in entry 47 and the coder named it in entry 51. I changed only `tests/adapters/test_claude_runtime_confinement.py`, the module this story wrote:
+
+    1. I dropped `BUDGET_REPLY`. The module now imports `BUDGET_STOP` from `adapters.test_claude_runtime_login`, and the budget-stop row of the probe steps uses it. The only difference from the old copy is `num_turns` (3 instead of 5), and no test reads that field.
+    2. I replaced `_probe_calls`, `_confine_calls` and `_recorded` with one generic `_read_records[M: BaseModel](path: Path, model: type[M]) -> list[M]`. It returns `[]` when the file is missing and validates each JSON Lines line into `model`. Every call site now passes the same file it read before: `layout.stand_in / "probe-calls.jsonl"` with `ProbeCall`, `layout.confine_bin / "confine-calls.jsonl"` with `ConfineCall`, and `<dir> / "calls.jsonl"` with `Recorded`.
+
+    Every test keeps its name and checks the same thing. No other test file changed. The criterion → test mapping is unchanged from the earlier tests entry. `make lint` is green. One run of `make test` is green (coverage 98.67 %), because the code under test already exists. No module failed to import.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (42.0 s)

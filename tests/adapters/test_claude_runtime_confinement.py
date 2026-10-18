@@ -13,6 +13,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from adapters.test_claude_runtime_login import BUDGET_STOP
 from adapters.test_claude_runtime_os_user import REPLY, _without_locale
 from factory.adapters import claude_runtime
 from factory.adapters.claude_runtime import (
@@ -36,17 +37,6 @@ LIMIT = timedelta(seconds=30)
 SHORT_LIMIT = timedelta(seconds=3)
 WAIT_SECONDS = 30
 ELAPSED_BOUND = 20
-BUDGET_REPLY = json.dumps(
-    {
-        "type": "result",
-        "subtype": "error_max_budget_usd",
-        "is_error": True,
-        "num_turns": 5,
-        "total_cost_usd": 1.0,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-    }
-)
 
 # An agent that records what it sees of its temporary folder and of the run's rules files,
 # then leaves things in that folder, waits and prints as its plan says.
@@ -278,13 +268,11 @@ def _write_probe(layout: Layout, steps: list[ProbeStep]) -> Path:
     return _write_script(layout.stand_in / "agent", PROBE_SCRIPT)
 
 
-def _probe_calls(layout: Layout) -> list[ProbeCall]:
-    calls = layout.stand_in / "probe-calls.jsonl"
-    if not calls.exists():
+def _read_records[M: BaseModel](path: Path, model: type[M]) -> list[M]:
+    if not path.exists():
         return []
     return [
-        ProbeCall.model_validate_json(line)
-        for line in calls.read_text(encoding="utf-8").splitlines()
+        model.model_validate_json(line) for line in path.read_text(encoding="utf-8").splitlines()
     ]
 
 
@@ -295,31 +283,11 @@ def _write_confine(layout: Layout, played: Played | None = None) -> Path:
     return path
 
 
-def _confine_calls(layout: Layout) -> list[ConfineCall]:
-    calls = layout.confine_bin / "confine-calls.jsonl"
-    if not calls.exists():
-        return []
-    return [
-        ConfineCall.model_validate_json(line)
-        for line in calls.read_text(encoding="utf-8").splitlines()
-    ]
-
-
 def _write_sudo(layout: Layout, *, refuse_removal: bool = False, stderr: str = "") -> Path:
     path = _write_script(layout.sudo_bin / "sudo", SUDO_SCRIPT)
     plan = {"refuse_removal": refuse_removal, "stderr": stderr}
     (layout.sudo_bin / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
     return path
-
-
-def _recorded(directory: Path) -> list[Recorded]:
-    calls = directory / "calls.jsonl"
-    if not calls.exists():
-        return []
-    return [
-        Recorded.model_validate_json(line)
-        for line in calls.read_text(encoding="utf-8").splitlines()
-    ]
 
 
 def _request(
@@ -392,8 +360,8 @@ def test_without_a_confine_executable_a_call_starts_as_before_and_writes_no_rule
 
     runtime.run(request)
 
-    [sudo_call] = _recorded(layout.sudo_bin)
-    [call] = _probe_calls(layout)
+    [sudo_call] = _read_records(layout.sudo_bin / "calls.jsonl", Recorded)
+    [call] = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     expected = {**request.environment, **SWITCHES}
     count = len(expected)
     head = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
@@ -417,7 +385,7 @@ def test_a_call_starts_through_the_confine_executable_with_its_rules_file(
     result = _runtime(layout, claude, str(confine)).run(_request(layout))
 
     [call] = read_calls(layout.stand_in)
-    [confined] = _confine_calls(layout)
+    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     rules = layout.state / f"confine-{_session(call.arguments)}.json"
     assert confined.arguments == ["--rules", str(rules), "--", str(claude), *call.arguments]
     assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")
@@ -433,7 +401,7 @@ def test_with_a_user_sudo_starts_the_confine_executable_after_env_i_with_the_con
     _runtime(layout, claude, str(confine), sudo).run(_request(layout, os_user="agent"))
 
     [call] = read_calls(layout.stand_in)
-    sudo_call = _recorded(layout.sudo_bin)[0]
+    sudo_call = _read_records(layout.sudo_bin / "calls.jsonl", Recorded)[0]
     arguments = sudo_call.arguments
     head = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
     start = arguments.index(str(confine))
@@ -459,7 +427,7 @@ def test_the_rules_file_holds_the_confinement_while_the_call_runs_and_is_gone_af
     else:
         runtime.run(_request(layout))
 
-    [confined] = _confine_calls(layout)
+    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     session = _session_of_rules(confined.arguments[1])
     expected = Confinement(
         folders=[
@@ -491,7 +459,7 @@ def test_the_rules_hold_the_targets_of_write_and_tool_paths_the_home_s_runtime_f
     _runtime(layout, claude, str(confine)).run(request)
 
     [call] = read_calls(layout.stand_in)
-    [confined] = _confine_calls(layout)
+    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     checkout = layout.checkout
     assert Confinement.model_validate_json(confined.rules_text) == Confinement(
         folders=[
@@ -537,7 +505,7 @@ def test_the_agent_sees_its_temporary_folder_the_config_folder_and_the_switches(
 
     _runtime(layout, agent).run(request)
 
-    [call] = _probe_calls(layout)
+    [call] = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     folder = layout.temporary_root / f"factory-run-{_session(call.arguments)}"
     [rules] = call.rules
     names = {folder.name for folder in Confinement.model_validate_json(rules).folders}
@@ -580,7 +548,7 @@ def test_a_request_without_guard_settings_is_confined_with_no_path_of_the_checko
             id="time-limit",
         ),
         pytest.param(
-            [ProbeStep(leave_file=True, stdout=BUDGET_REPLY), ProbeStep(stdout=REPLY)],
+            [ProbeStep(leave_file=True, stdout=BUDGET_STOP), ProbeStep(stdout=REPLY)],
             LIMIT,
             "completed",
             id="budget-and-resume",
@@ -596,7 +564,7 @@ def test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run(
     result = _runtime(layout, agent).run(_request(layout, time_limit=time_limit))
 
     elapsed = time.monotonic() - started
-    calls = _probe_calls(layout)
+    calls = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     assert result.end_reason == end_reason
     assert elapsed < ELAPSED_BOUND
     assert len(calls) == len(steps)
@@ -619,7 +587,7 @@ def test_with_a_user_the_removal_runs_through_sudo_and_its_failure_changes_no_re
 
     [call] = read_calls(layout.stand_in)
     folder = layout.temporary_root / f"factory-run-{_session(call.arguments)}"
-    sudo_calls = _recorded(layout.sudo_bin)
+    sudo_calls = _read_records(layout.sudo_bin / "calls.jsonl", Recorded)
     assert len(sudo_calls) == 2
     assert sudo_calls[-1].arguments == [
         "-n",
@@ -666,7 +634,7 @@ def test_without_a_temporary_root_the_run_s_folder_lies_in_the_system_temporary_
 
     runtime.run(_request(layout))
 
-    [call] = _probe_calls(layout)
+    [call] = _read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     assert call.environment["TMPDIR"] == str(root / f"factory-run-{_session(call.arguments)}")
 
 
@@ -714,7 +682,7 @@ def test_the_removal_runs_in_the_working_directory_with_an_empty_environment(
     _runtime(layout, claude, str(confine), sudo).run(request)
 
     recorder = layout.sudo_bin if os_user is not None else layout.shell_bin
-    removal = _recorded(recorder)[-1]
+    removal = _read_records(recorder / "calls.jsonl", Recorded)[-1]
     assert CLEANUP_SCRIPT in removal.arguments
     assert removal.working_directory == request.working_directory
     assert _without_locale(removal.environment) == {}
@@ -739,7 +707,7 @@ def test_the_rules_hold_only_the_device_targets_that_exist(
     _runtime(layout, claude, str(confine)).run(_request(layout))
 
     [call] = read_calls(layout.stand_in)
-    [confined] = _confine_calls(layout)
+    [confined] = _read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
     expected_folders = [existing] if constant == "DEVICE_FOLDERS" else _device_folders()
     expected_files = [existing] if constant == "DEVICE_FILES" else _device_files()
     assert Confinement.model_validate_json(confined.rules_text) == Confinement(
