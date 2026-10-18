@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T16:32:46.714823Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -262,6 +266,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T16:32:28.854598Z'
+  stage: review
+- number: 48
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:32:46.714823Z'
   stage: review
 ---
 
@@ -755,3 +764,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     2. Replace `_probe_calls`, `_confine_calls` and `_recorded` with one generic `_read_records(path, model)`.
 
     No other change. Leave the name of `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` as it is: `[tool.mutmut]` names that test, so a rename needs the human's change to `pyproject.toml`, and it is logged for later. If the next review finds only quality points of this size, it may let them go forward to docs.
+48. factory: started review as self.
