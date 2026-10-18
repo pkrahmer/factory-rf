@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T15:12:15.858536Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T15:12:15.852400Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:12:15.858536Z'
+  stage: intake
+---
+
 # The write paths and the tool paths become the kernel's targets
 
 ## Description
@@ -112,3 +139,6 @@ for target in write_targets(guard, home=Path("/home/agent")):
 Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`, `folder /work/checkout/docs`, `folder /work/checkout/.venv` and `folder /home/agent/.cache`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
