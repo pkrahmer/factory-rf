@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T14:34:47.333817Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,12 @@ journal:
   kind: started
   at: '2026-10-18T14:34:47.333817Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T14:37:34.939289Z'
+  stage: doing
+  run: ee04707d4eac4468b2d554045cb67307
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -224,3 +226,24 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_confinement_abi.py - ImportError while importing test...
 9. factory: started doing as self.
+10. coder: Built the Landlock adapter, the minimum ABI and the error. The new tests pass and `make check` is green (`check: green`, total coverage 98.81 %).
+
+    - `src/factory/domain/confinement.py` (new): `LANDLOCK_MINIMUM_ABI = 3` and `abi_fault(abi)`, with the fault text built from the constant.
+    - `src/factory/domain/errors.py`: `ConfinementError(FactoryError)`. Its message is `detail` itself.
+    - `src/factory/adapters/landlock.py` (new): `WRITE_RIGHTS`, `FILE_RIGHTS`, `abi_version()` and `restrict_writes(folders, files)`, built on `ctypes.CDLL(None, use_errno=True)` with `syscall` and `prctl`.
+      - `_check_path` checks every path with `os.lstat` before the first system call, folders before files, each in the given order.
+      - It then creates the ruleset (attribute `_RulesetAttr`, 8 bytes), adds one rule per path (`_PathBeneathAttr` with `_pack_ = 1`, 12 bytes; descriptor opened `O_PATH | O_CLOEXEC` and closed in a `finally`), sets `PR_SET_NO_NEW_PRIVS` and calls `landlock_restrict_self`.
+      - An outer `finally` closes the ruleset's descriptor. `_raise_on_failure` turns a negative result into `ConfinementError("<call> failed: <strerror>")`.
+
+    Main choice: every argument to the variadic `syscall` and `prctl` is passed as an explicit ctypes type (`c_long`, `c_int`, `c_uint32`, `c_size_t`, `c_void_p`, `c_ulong`). Rejected: passing bare Python ints. ctypes passes those as C `int`, which leaves the upper half of a 64-bit system-call argument undefined in a variadic call.
+
+    Refactor: read the diff once and found nothing to change. The "cannot open" text is built twice: in `_check_path`, and in `_add_rule`'s guard for a path that vanishes between the check and the rule. Left as is.
+
+    Noticed, not touched:
+    - `landlock.py` shows 35 % in the coverage table. The tests call `restrict_writes` only in child processes, as the work item requires, and coverage does not measure children; the total stays above 90 %.
+    - The failing system-call branches are uncovered; the Interface says no test can trigger them.
+    - `make sast` passed on the ctypes use without any suppression marker.
+    - The journal did not change what the task means, so the `## Description` stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 36 known, 3 gone
