@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 223
-comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
+comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
 claim: null
 journal:
@@ -258,6 +258,11 @@ journal:
   at: '2026-10-18T16:31:12.553659Z'
   stage: review
   run: 01aed8addf424b46b4025cca9b988aa7
+- number: 47
+  speaker: human
+  kind: comment
+  at: '2026-10-18T16:32:28.854598Z'
+  stage: review
 ---
 
 # Every agent run starts through `factory-confine`
@@ -745,3 +750,8 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_run.py`: the standing leave. The `environment` fixture moved to `hosted_environment` and `HOSTED_URL` to `tests/wiring_support.py`. Both tests keep their names and check the same thing.
     - `tests/test_process_search.py`: the human's answer in journal entry 14 (feature decision 21), as the coder named it in entry 16. The only change is the `domain/confinement.py` marker added to the expected markers.
 46. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+47. 2026-10-18 human: One more round, for the reviewer's two findings of round 2 (entry 45) only. Both are in this story's own test module:
+    1. Drop `BUDGET_REPLY` and import `BUDGET_STOP` from `adapters.test_claude_runtime_login`, as the module already imports `REPLY`.
+    2. Replace `_probe_calls`, `_confine_calls` and `_recorded` with one generic `_read_records(path, model)`.
+
+    No other change. Leave the name of `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` as it is: `[tool.mutmut]` names that test, so a rename needs the human's change to `pyproject.toml`, and it is logged for later. If the next review finds only quality points of this size, it may let them go forward to docs.
