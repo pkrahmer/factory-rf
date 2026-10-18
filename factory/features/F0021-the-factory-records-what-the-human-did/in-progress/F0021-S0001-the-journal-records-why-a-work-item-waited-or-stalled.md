@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T22:08:44.109543Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-18T22:08:23.912378Z'
   stage: doing
   run: 4101b6fd5da240bf98ff7cd326c930d4
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:08:44.109543Z'
+  stage: tests
 ---
 
 # The journal records why a work item waited or stalled
@@ -451,3 +460,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     Noticed, not touched: `AskHandler` still writes the literal `"attempts_cap"` twice, once on the record and once on the state.
 
     The journal did not change the meaning of the task, so the Description stays as it is.
+20. factory: started tests as self.
