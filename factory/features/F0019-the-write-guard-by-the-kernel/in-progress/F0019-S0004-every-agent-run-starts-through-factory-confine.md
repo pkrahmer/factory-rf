@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T16:32:46.714823Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -272,6 +268,12 @@ journal:
   kind: started
   at: '2026-10-18T16:32:46.714823Z'
   stage: review
+- number: 49
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T16:33:32.134298Z'
+  stage: review
+  run: e6e0151e0c4347e8840fed149ea62baf
 ---
 
 # Every agent run starts through `factory-confine`
@@ -765,3 +767,15 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     No other change. Leave the name of `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` as it is: `[tool.mutmut]` names that test, so a rename needs the human's change to `pyproject.toml`, and it is logged for later. If the next review finds only quality points of this size, it may let them go forward to docs.
 48. factory: started review as self.
+49. reviewer: Review, round 0 (the count restarted after the human's entry 47). I read the work item and `git diff main...HEAD -- . ':!factory'`. After entry 47, the factory went straight back to review: no doing or tests stage ran. The commits since entry 45 are only the pull request's comments and a merge of main. So the two round-2 findings that the human asked to have fixed in entry 47 are still in the code. Groups 1 to 3 pass, as in entry 45. The review stops at group 4 (quality), on exactly those two findings. Both are in this story's own test module, so the tester can fix them without a new leave, and no source code changes.
+
+    1. `tests/adapters/test_claude_runtime_confinement.py:39-49`, `BUDGET_REPLY`: what is wrong: it is still a copy of `BUDGET_STOP` in `tests/adapters/test_claude_runtime_login.py:45-55`. The only difference is `num_turns` (5 instead of 3), and no test reads that field. Fix (entry 47, item 1): drop `BUDGET_REPLY`, import `BUDGET_STOP` from `adapters.test_claude_runtime_login` as the module already imports `REPLY`, and use it at line 583.
+    2. `tests/adapters/test_claude_runtime_confinement.py:281-288` `_probe_calls`, `:298-305` `_confine_calls` and `:315-322` `_recorded`: what is wrong: the three functions still have the same body (read a JSON Lines file, return `[]` when it is missing, validate each line). Only the path and the model differ. Fix (entry 47, item 2): replace them with one generic `_read_records(path, model)` and call it at lines 395, 396, 420, 436, 462, 494, 540, 599, 622, 669, 717 and 742.
+
+    Earlier tests changed:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It only gains `local_settings` (moved from `tests/entry/test_wiring_command_records.py`) and `hosted_environment` (moved from `tests/entry/test_wiring_run.py`).
+    - `tests/entry/test_wiring_boundaries.py`: two leaves. The human's leave (feature decision 13, named in the Interface) covers `confine_executable=None` in `test_the_built_agent_runtime_keeps_its_run_files_under_runs`. The standing leave covers `CREDENTIAL`, now imported from `tests/wiring_support.py`.
+    - `tests/entry/test_wiring_command_records.py`: the standing leave. The `settings` fixture became the shared `local_settings`, and `CREDENTIAL` is imported. The test keeps its name and checks the same thing.
+    - `tests/entry/test_wiring_login.py`: two leaves. The human's leave (feature decision 13, named in the Interface) covers `confine_executable=None` in `test_the_built_runtime_hands_the_login_file_s_token_to_claude`. The standing leave covers `CREDENTIAL`, now imported.
+    - `tests/entry/test_wiring_run.py`: the standing leave. The `environment` fixture became the shared `hosted_environment`, and `HOSTED_URL` moved to `tests/wiring_support.py`. Both tests keep their names and check the same thing.
+    - `tests/test_process_search.py`: the human's answer in journal entry 14 (feature decision 21). The only change adds the `domain/confinement.py` `/dev/shm` marker to the expected markers.
