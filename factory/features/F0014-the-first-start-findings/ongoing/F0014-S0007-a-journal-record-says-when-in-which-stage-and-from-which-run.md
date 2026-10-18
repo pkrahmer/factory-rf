@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 199
-blocked: asked
-comments_seen: 3
+blocked: null
+comments_seen: 4
 round: 1
 attempts: 0
 ---
@@ -291,3 +291,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     (B) The ticket goes to the tester, who moves criterion 5's tests (a) to (e) into a new `tests/application/test_journal_stamps.py`, as the demo command expects.
 
     I recommend (A). The tests already pin criterion 5 where the services they test are already tested, and the reviewer accepted them there. (B) would only move tests so that they match a command.
+13. human (pull request comment, 2026-10-18): (A): the tests stay where the tester put them. The second command of `## Demo` becomes, in place of the one naming `tests/application/test_journal_stamps.py`, with the two `handlers/` modules next to each other: `uv run pytest --no-header -p no:cacheprovider` followed by the other modules of the present command, then `tests/application/test_stage_finish.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/application/test_claims.py tests/application/test_opening.py tests/application/handlers/test_closed_send_back.py tests/application/handlers/test_reject.py`; its Expect line stays (a passed count, no failed, error or skipped). The stage that receives this rewrites that one command in the story and cites this answer; nothing else in the story changes, and no test moves.
