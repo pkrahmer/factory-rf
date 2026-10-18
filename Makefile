@@ -106,7 +106,9 @@ mutants:
 	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.
 	temporary=$$(mktemp -d)
 	umask 022   # as for make test: the seal refuses a group-writable checkout
-	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true' EXIT
+	# A mutant that drops a working folder can make a test's repository in mutants/ itself; the
+	# factory cannot remove the agent's folder there and stops, so the run removes it.
+	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true; find mutants -name .git -prune -exec rm -rf {} + 2>/dev/null || true' EXIT
 	# An agent's shell command ends after 10 minutes: stop mutmut before that and report what it
 	# reached; its results stay in mutants/, so the next run goes on from there.
 	TMPDIR="$$temporary" timeout $(MUTANTS_SECONDS) uv run mutmut run $(foreach module,$(MUTATED),"$(subst /,.,$(patsubst src/%.py,%,$(module))).*") || { status=$$?; [ $$status -eq 124 ] && echo "mutants: stopped after $(MUTANTS_SECONDS) s; the results below are partial, run it again to go on"; [ $$status -eq 124 ]; }
