@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T16:22:23.498212Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-10-18T16:22:02.988017Z'
   stage: review
   run: 00c98dfac1684a408d80c68302b89a85
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:22:23.498212Z'
+  stage: doing
 ---
 
 # Every agent run starts through `factory-confine`
@@ -593,3 +602,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_boundaries.py`: changed under the human's leave. The story's Interface names `test_the_built_agent_runtime_keeps_its_run_files_under_runs` under feature decision 13. Only `confine_executable=None` was added, which is within that leave.
     - `tests/entry/test_wiring_login.py`: changed under the human's leave. The story's Interface names `test_the_built_runtime_hands_the_login_file_s_token_to_claude` under feature decision 13. Only `confine_executable=None` was added, which is within that leave.
     - `tests/test_process_search.py`: changed under the human's answer in journal entry 14 (feature decision 21, now on CLAUDE.md's exception list), as the coder named it in entry 16. The only change is the `domain/confinement.py` marker added to the expected markers, which is within that leave.
+38. factory: started doing as self.
