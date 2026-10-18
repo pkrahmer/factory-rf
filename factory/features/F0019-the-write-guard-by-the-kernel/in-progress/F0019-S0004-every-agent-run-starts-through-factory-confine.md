@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T16:20:14.131943Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-10-18T16:20:14.131943Z'
   stage: review
+- number: 37
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T16:22:02.988017Z'
+  stage: review
+  run: 00c98dfac1684a408d80c68302b89a85
 ---
 
 # Every agent run starts through `factory-confine`
@@ -573,3 +575,21 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 36. factory: started review as self.
+37. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`.
+
+    Groups 1 to 3 pass:
+    - Group 1, acceptance criteria: each of criteria 1 to 19 has a test that is named after it and checks it. The sides of each rule are rows of one parametrized test. The stated limit `CLEANUP_TIME_LIMIT` is tested on both sides: criterion 19 for a removal that hangs, every other confined run for one that ends in time. The coder's `make check` was green (entry 35).
+    - Group 2, architecture: the constants are pure domain data. The rules are built in the adapter, through `write_targets` and `confinement_of`, and every process starts through `run_process`.
+    - Group 3, security: the removal passes the folder as `$1`, so no command is built from a string. The only new marker is the `/dev/shm` line that CLAUDE.md allows, with its comment.
+
+    The review stopped at group 4 (quality): the new test modules hold copies of existing test helpers. The tester can fix all of them under the standing leave to move a shared test helper, or by importing them as `tests/entry/test_wiring_login.py` already imports from `tests/adapters/test_claude_runtime_os_user.py`. No source code needs to change. Group 5 was not reached.
+
+    1. `tests/entry/test_wiring_confinement.py:20-30`, the `settings` fixture: a word-for-word copy of the `settings` fixture in `tests/entry/test_wiring_command_records.py:19-29`, and almost the same as `tests/entry/test_wiring_boundaries.py:62-72`. `CREDENTIAL` at line 17 is a copy too. Fix: reuse the existing fixture and constant, either by moving them to one shared place under `tests/` with the standing leave, or by importing them; do not keep a third copy.
+    2. `tests/entry/test_wiring_confinement.py:67-75`, in `test_every_run_of_the_factory_builds_a_confined_runtime`: this setup (the token file, the image-id file and the four `FACTORY_*` variables) copies the `environment` fixture in `tests/entry/test_wiring_run.py:77-89`. Fix: use that fixture, moved to a shared place or imported, instead of building the environment again inline.
+    3. `tests/adapters/test_claude_runtime_confinement.py:39-51`, `REPLY`: a copy of `REPLY` in `tests/adapters/test_claude_runtime_os_user.py:19-31`. This module already imports `_without_locale` from there. Fix: import `REPLY` from that module, or from a shared place, instead of copying it.
+    4. `tests/adapters/test_claude_runtime_confinement.py:736-757`, in `test_the_rules_hold_only_the_device_targets_that_exist`: the parameter `names: str` holds the name of one constant, and the locals `devices_folders` and `devices_files` do not read as what they hold. Fix: rename them, for example to `constant`, `expected_folders` and `expected_files`.
+
+    Earlier tests changed:
+    - `tests/entry/test_wiring_boundaries.py`: changed under the human's leave. The story's Interface names `test_the_built_agent_runtime_keeps_its_run_files_under_runs` under feature decision 13. Only `confine_executable=None` was added, which is within that leave.
+    - `tests/entry/test_wiring_login.py`: changed under the human's leave. The story's Interface names `test_the_built_runtime_hands_the_login_file_s_token_to_claude` under feature decision 13. Only `confine_executable=None` was added, which is within that leave.
+    - `tests/test_process_search.py`: changed under the human's answer in journal entry 14 (feature decision 21, now on CLAUDE.md's exception list), as the coder named it in entry 16. The only change is the `domain/confinement.py` marker added to the expected markers, which is within that leave.
