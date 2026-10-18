@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T20:26:05.402243Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -29,6 +33,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T20:25:47.742152Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:26:05.402243Z'
   stage: intake
 ---
 
@@ -117,3 +126,4 @@ Expect: `with: 0`, then `without: 2`
    - The architecture fits: domain model, adapter and runtime, and no new layer or dependency.
    - The scope is inside F0019 and not in its "Out of scope". The hook stays.
 4. 2026-10-18 human: (a): add the row to criterion 1 yourself. A checkout `<R>` beneath `<T>`, write paths `["docs/*"]`, and a `Write` to `<R>/src/a.py` is refused with the text `refusal` gives for `src/a.py`. The Interface clause stays.
+5. factory: started intake as self.
