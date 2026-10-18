@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 208
 blocked: null
 comments_seen: 0
@@ -64,3 +64,9 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty, so nothing outside the ticket changed. Criterion 1 holds: nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed, and the tester's entry (3) and the coder's entry (4) both say so.
+      - Criterion 2: the factory's `make check` after the coder was green (`check: green`, coverage 99.47 %). `make duplicates` reports 0 new findings.
+      - Criterion 3 is the docs criterion, and the documenter writes it next. It still describes what the reader must know, and it names the three passages and the phrase "the running run's" that the demo's grep looks for.
+      - Architecture, security, quality: there is no diff, so there is nothing to judge.
+      - Ticket hygiene: `Assignment` matches what was built, which is nothing so far, as the story intends. The tester's and the coder's entries say what each rejected: a test that pins document wording, and writing `docs/` in the coder stage.
