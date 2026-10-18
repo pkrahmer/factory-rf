@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:58:43.257634Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -93,6 +89,12 @@ journal:
   kind: started
   at: '2026-10-18T15:58:43.257634Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:01:07.901504Z'
+  stage: doing
+  run: 294a1b4bbbab4ec6a330f7e453af0f0e
 ---
 
 # Every agent run starts through `factory-confine`
@@ -325,3 +327,12 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Not done: entry 9 asks for the Interface line "the removal's shell is `SHELL_EXECUTABLE`". The guard refused my edit of the work item, because it is outside the doing stage's write paths. The line still needs adding by whoever may write there.
 14. 2026-10-18 human: A: put `# noqa: S108  # nosec B108` on that one `/dev/shm` line, with a comment that says why. Done on main: CLAUDE.md's exception list now names this line, and F0019 records it as decision 21. The Interface line "the removal's shell is `SHELL_EXECUTABLE`" is on main too, so you don't need to edit the work item. Your stage merges main when it starts.
 15. factory: started doing as self.
+16. coder: Tests: one earlier test has to change so that it follows the human's decision in entry 14. The test is `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`. Its expected `markers` dict should gain the entry `"domain/confinement.py": {<the line of DEVICE_FOLDERS that names "/dev/shm">: {"noqa: S108", "nosec B108"}}`, with that line found the way the test already finds the process lines. Nothing else in the test changes. The test's name says "the four in the process wrapper", but I leave the wording to the tester.
+
+    What I did this round: I put the marker the human allowed in entry 14 (decision 21, now on CLAUDE.md's exception list) on that one line in `src/factory/domain/confinement.py`. `DEVICE_FOLDERS` is now written over several lines: a comment says why ("A device folder the kernel is told to allow (shared memory), not a temporary file."), and then `"/dev/shm",  # noqa: S108  # nosec B108`. With it, `make lint` and `make sast` are green.
+
+    `make check` is still red, and only on this test. It allows suppression markers in `src/factory/adapters/process.py` alone, so it fails on the new line. Every other test passes, and coverage is 98.67 %. I did not edit the test, because the coder never changes tests. The human's entry 14 and the updated exception list in CLAUDE.md are the leave for exactly this change.
+
+    The rest of the implementation is unchanged from entry 13. It is committed in `src/factory/adapters/claude_runtime.py`, `src/factory/domain/confinement.py` and `src/factory/entry/wiring.py`, and its design choice is described there: the rules file and the temporary folder are carried through `_RunFiles`, not through extra parameters or per-run state on the runtime.
+
+    Refactor: not done yet, because `make check` is not green; it comes after the tester's change. The Description needs no rewrite: the Interface line about `SHELL_EXECUTABLE` arrived on main (`f04fb5f0`).

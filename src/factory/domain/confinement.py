@@ -25,7 +25,10 @@ DEVICE_FILES: tuple[str, ...] = (
     "/dev/urandom",
     "/dev/tty",
 )
-DEVICE_FOLDERS: tuple[str, ...] = ("/dev/shm",)
+DEVICE_FOLDERS: tuple[str, ...] = (
+    # A device folder the kernel is told to allow (shared memory), not a temporary file.
+    "/dev/shm",  # noqa: S108  # nosec B108
+)
 
 
 def abi_fault(abi: int) -> str | None:
