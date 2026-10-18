@@ -306,10 +306,11 @@ class StageFinisher:
         now = self._boundaries.clock.now()
         run = aftermath.cost.run
         entry = _with_command_lines(aftermath.entry, ran)
-        document = append_entry(aftermath.document, entry, at=now, run=run)
+        agent_block = move.blocked if entry.kind == "question" else None
+        document = append_entry(aftermath.document, entry, at=now, run=run, blocked=agent_block)
         if move.question is not None:
             question = NewEntry(speaker=FACTORY, kind="question", text=move.question)
-            document = append_entry(document, question, at=now, run=run)
+            document = append_entry(document, question, at=now, run=run, blocked=move.blocked)
         moved = self._moved(document, move, started.pull_request.number)
         subject = commit_subject(started.work_item, f"{started.stage} ends: {move.stage}")
         approval = self._definition.stages[move.stage].approval

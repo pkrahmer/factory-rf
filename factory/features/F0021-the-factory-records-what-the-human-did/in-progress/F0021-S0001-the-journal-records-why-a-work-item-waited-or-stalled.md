@@ -1,3 +1,197 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 235
+comments_read: [6255820784]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T21:47:49.397840Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:47:49.404190Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T21:48:05.945446Z'
+  stage: intake
+  run: 7589b9ea023b4c5a82537dfe3cb5c7b5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:48:26.171210Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T21:53:39.863063Z'
+  stage: tests
+  run: e712012ae52341c1a14bfaf0619ff2d2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:53:59.940064Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T21:58:48.441392Z'
+  stage: doing
+  run: edbfd0d70b2a42538d5d911df4eb91f2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:59:08.759637Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:00:19.888400Z'
+  stage: review
+  run: 49ffbc9e4efb4d90bd5b8c4ecbb0a79a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:00:39.958843Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:00:59.871617Z'
+  stage: doing
+  run: f5dcf02c01a345fe88ea6820e8113a52
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:01:19.948537Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:03:59.269344Z'
+  stage: tests
+  run: dd7576238bcc4c4d97efa53225f6a120
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:04:19.606918Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:06:14.850575Z'
+  stage: doing
+  run: 6028236c8542446db8b27d735dffaef5
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:06:34.896070Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:07:36.237070Z'
+  stage: review
+  run: a159fa682ab14573ac9c5a2d026dc71b
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:07:56.260090Z'
+  stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:08:23.912378Z'
+  stage: doing
+  run: 4101b6fd5da240bf98ff7cd326c930d4
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:08:44.109543Z'
+  stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:10:47.952722Z'
+  stage: tests
+  run: 7c53f0d7f8264210ac9a551496b92899
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:11:08.456869Z'
+  stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:13:00.329356Z'
+  stage: doing
+  run: 7b3cca3d2c3146bdbbb2462c58fc0367
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:13:21.001106Z'
+  stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:14:29.730767Z'
+  stage: review
+  run: 71863775d1e14e369eaed67c3c444c34
+- number: 26
+  speaker: factory
+  kind: question
+  at: '2026-10-18T22:14:29.730767Z'
+  stage: review
+  run: 71863775d1e14e369eaed67c3c444c34
+- number: 27
+  speaker: human
+  kind: comment
+  at: '2026-10-18T22:15:46.023853Z'
+  stage: review
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:16:03.601110Z'
+  stage: review
+- number: 29
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:17:02.697568Z'
+  stage: review
+  run: 178cec908ca5407f9c00fdf2badc3eaf
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:17:23.046555Z'
+  stage: docs
+- number: 31
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T22:18:44.144721Z'
+  stage: docs
+  run: 73790245164d41cca2baccead9b8e32b
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:19:04.320909Z'
+  stage: smoke-test
+- number: 33
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T22:19:18.911302Z'
+  stage: smoke-test
+  run: 1af5cf6e8959432fbf8c25db6a045340
+---
+
 # The journal records why a work item waited or stalled
 
 ## Description
@@ -27,16 +221,22 @@ class JournalRecord(BaseModel):
     reason: StallReason | None = None
 
 
+class JournalCauses(TypedDict, total=False):
+    blocked: Blocked | None
+    reason: StallReason | None
+
+
 def append_entry(
     document: WorkItemDocument,
     entry: NewEntry,
     *,
     at: datetime | None = None,
     run: RunId | None = None,
-    blocked: Blocked | None = None,
-    reason: StallReason | None = None,
+    **causes: Unpack[JournalCauses],
 ) -> WorkItemDocument: ...
 ```
+
+- `JournalCauses` is a public `TypedDict` with two optional keys, `blocked` and `reason`. `append_entry` takes them as `**causes: Unpack[JournalCauses]` instead of two keyword parameters: with those two, ruff's `PLR0913` refuses the function (six arguments, more than five). Callers still write `append_entry(document, entry, at=..., blocked="round_cap")`, and mypy checks the values against `Blocked` and `StallReason`.
 
 - `blocked` is allowed only on a record of kind `question`, `reason` only on a record of kind `stall`; either on any other kind raises a `ValueError` (Pydantic's validation error). A value outside its type is refused.
 - `append_entry` puts `blocked` and `reason` into the new record as given, with or without `at`; the rules above apply to the record it builds.
@@ -93,3 +293,383 @@ for kind, field, value in (
 Expect: four lines, `stall reason accepted`, `crash reason refused`, `question blocked accepted`, `result blocked refused`.
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.journal` types, `JournalRecord` fields, `append_entry` parameters) and the five application writers, each with its module and method. The aliases kept by assignment in `work_item` and `decisions` are stated. The validation rule (`blocked` only on `question`, `reason` only on `stall`, otherwise `ValueError`) and the writer behaviour (omit when `None`) are explicit.
+   - Criteria: each is testable by one parametrized test with no open decision. Both sides of each rule are covered. Criterion 1 covers `blocked` and `reason` accepted on their kind and refused on others. Criterion 2 covers values outside the types and every value of both types. Criterion 4 covers `append_entry` with and without `at`, and `blocked` on a `result` entry. Criterion 5 covers the round trip and omission when unset. Criteria 6 to 11 cover every writer, including the `result` record having no `blocked` and the crash and expiry records having no `reason`. Criterion 3 covers the alias identity. Earlier tests changed are named and match the feature's decision 13.
+   - Smoke test: the command runs as written with `uv run -q python -c`. Its `Expect:` line gives four exact output lines that can be compared with the output.
+   - Architecture: the causes move into `domain` and are re-exported upward. The writers sit in `application`, in the modules that already make the `append_entry` calls. No layer is crossed and no new dependency is added. The writer in `adapters` needs no change because it already uses `exclude_none`.
+   - Scope: within the feature's S0001 scope (the cause on the record). It leaves the computation to S0002, the stops to S0003, refusals to S0004 and agent texts to S0005. It adds no reason on `crash` or `expiry`, which matches decision 4 and the out-of-scope list.
+4. factory: started tests as self.
+5. tester: I wrote one test for each acceptance criterion. All of them are red, and each fails for the right reason: the module and attribute that are missing (`Blocked`/`StallReason` in `factory.domain.journal`, `JournalRecord.blocked`/`.reason`) or an unknown field (`extra_forbidden`). Nothing fails on a setup fault. `make lint` is green.
+
+   - criterion 1: tests/domain/test_journal_causes.py::test_a_cause_is_accepted_only_on_its_own_kind
+   - criterion 2: tests/domain/test_journal_causes.py::test_a_cause_outside_its_type_is_refused_and_every_value_of_it_accepted
+   - criterion 3: tests/domain/test_journal_causes.py::test_the_cause_types_kept_in_work_item_and_decisions_are_the_journals
+   - criterion 4: tests/domain/test_journal_causes.py::test_append_entry_puts_the_cause_into_the_new_record and ::test_append_entry_refuses_a_blocked_on_a_result_entry
+   - criterion 5: tests/adapters/test_journal_causes_file.py::test_the_writer_writes_a_records_cause_only_when_set_and_reads_it_back
+   - criterion 6: tests/application/test_stage_finish_causes.py::test_a_stage_end_records_the_block_its_question_opened (rows rule-2, rule-1, rule-4, rule-6; driven through `StageRunner.run`, which ends in `StageFinisher.finish`)
+   - criterion 7: tests/application/test_stall_reasons_recorded.py::test_a_stall_records_its_reason (one row per value of `StallReason`)
+   - criterion 8: tests/application/test_stall_reasons_recorded.py::test_a_stage_run_that_stalls_records_the_reason (rows red-check at `doing`, merge-conflict)
+   - criterion 9: tests/application/test_question_causes_recorded.py::test_the_ask_handler_at_the_attempts_cap_records_the_question_with_its_block
+   - criterion 10: tests/application/test_question_causes_recorded.py::test_the_recovery_at_the_crash_cap_records_the_question_with_its_block (rows crash, expiry)
+   - criterion 11: tests/application/test_question_causes_recorded.py::test_a_close_that_sends_back_without_a_reason_records_the_question_with_its_block
+   - criteria 12 and 13: not tested here (the `make check` gate and the docs stage).
+
+   Files created: tests/domain/test_journal_causes.py, tests/adapters/test_journal_causes_file.py, tests/application/test_stage_finish_causes.py, tests/application/test_stall_reasons_recorded.py, tests/application/test_question_causes_recorded.py, tests/stage_run_support.py.
+
+   Earlier tests changed under the feature's decision 13, which the Interface names. Each change only adds the new field to an expected record:
+   - tests/application/handlers/test_questions.py: `blocked="attempts_cap"` in two expected question records.
+   - tests/application/test_stalls.py: `reason="died"` in three expected stall records.
+   - tests/application/test_recovery_cap.py and tests/application/test_recovery_expiry.py: `blocked="crash_cap"` in the expected question record.
+
+   Earlier test changed under the standing leave to move a shared test helper:
+   - tests/application/test_stage_run.py: its constants and its open/Makefile/run/head/state helpers moved to tests/stage_run_support.py as `open_story`, `stage_makefile`, `completed`, `run_stage`, `branch_head` and `pushed_state`.
+   - `open_story` gained the optional `state`, `body` and `roles` parameters. Their defaults keep the old behaviour.
+   - Every test there keeps its name and checks the same thing, and that module stayed green in the run.
+
+   Modules the test run could not import: tests/domain/test_journal_causes.py and tests/adapters/test_journal_causes_file.py both fail at collection on the new names in `factory.domain.journal` and the new fields.
+
+   Rejected: copying test_stage_finish.py's large helper set for criteria 6 and 8. The whole stage run reaches every rule with less setup.
+
+   Small helpers deliberately repeated in tests/application/test_question_causes_recorded.py:
+   - `_pull_request`, which several handler tests already have.
+   - An expired event built inline, as test_recovery_expiry.py does.
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_journal_causes.py - ImportError while importing test ...
+6. factory: started doing as self.
+7. coder: I made the tester's tests pass without changing them. `make check` is green.
+
+   Built:
+   - `src/factory/domain/journal.py`:
+     - `Blocked` and `StallReason` now live here.
+     - `JournalRecord` gains optional `blocked` and `reason`. An after-validator refuses `blocked` on any kind but `question` and `reason` on any kind but `stall`, with a `ValueError`.
+     - `append_entry` takes the two causes and puts them into the record as given.
+     - The private `_record` helper is gone; the record is built inline (`stage` only when `at` is given, as before).
+   - `src/factory/domain/work_item.py` keeps `Blocked = journal.Blocked`, and `src/factory/domain/decisions.py` keeps `StallReason = journal.StallReason`, both by assignment.
+   - Writers, one argument more each:
+     - `StageFinisher.finish` (`src/factory/application/stage.py`): the agent's entry gets `move.blocked` only when its kind is `question`; the factory's question gets `move.blocked`.
+     - `StallService._stalled` (`src/factory/application/stalls.py`): `reason=reason`.
+     - `AskHandler` (`src/factory/application/handlers/questions.py`): `blocked="attempts_cap"`.
+     - `RecoveryHandler._crash_recorded` (`src/factory/application/recovery.py`): `blocked="crash_cap"` on the cap question only.
+     - `ClosedHandler._record_decision` (`src/factory/application/handlers/closed.py`): `blocked="send_back"`; its local `blocked` is now typed `Blocked | None` and set before the append, so the value is written once.
+   - The work item writer needed no change: `exclude_none` already leaves unset causes out.
+
+   Main decision: `append_entry` takes the causes as `**causes: Unpack[JournalCauses]`, a `TypedDict` (`total=False`) with `blocked` and `reason`, rather than the two plain keyword-only parameters the Interface shows.
+   - Why: with two more parameters ruff's `PLR0913` refuses the function (6 > 5).
+   - What I rejected:
+     - A per-file ignore in `pyproject.toml`, as `claude_runtime.py` already has: the file is outside my write paths (the write was refused).
+     - A `# noqa`: the source has none.
+   - Effect on callers: they call it exactly as the Interface says (`append_entry(doc, entry, at=..., blocked="round_cap")`), and mypy checks the values against `Blocked` and `StallReason`.
+   - For the reviewer: if the plain signature is wanted, the human would need to add the `pyproject.toml` ignore.
+
+   Refactor pass: besides the `closed.py` change above, I renamed `own_block` to `agent_block` in `stage.py`. Nothing else needed changing.
+
+   Noticed, not touched:
+   - `AskHandler` writes the literal `"attempts_cap"` twice: once on the record, once on the state.
+   - Running pytest directly in this sandbox fails 8 tests in `test_scheduler`, `test_nested_repositories` and `test_repository_waiter` with `RepositoryUnsealed` ("`.git` is writable by its group"). It comes from this sandbox's folder permissions, not from this change: they pass under `make test`.
+
+   The journal did not change the meaning of the task, so I left the Description as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item.
+
+   Groups 1 to 3 pass:
+   - Each criterion from 1 to 11 has a test that checks what the criterion says.
+   - The refused sides are tested: wrong kind, value outside the type, `blocked` through `append_entry` on a `result` entry.
+   - The coder's journal entry reports `make check` green.
+   - The layers hold: the cause types live in `factory.domain.journal` and are kept by assignment in `work_item` and `decisions`.
+   - No markers, no secrets.
+
+   Group 4 (quality) fails on helpers the new test module copies from earlier tests:
+
+   1. `tests/application/test_question_causes_recorded.py:44` `_pull_request` is a third copy of `_pull_request` in `tests/application/test_recovery_cap.py:49` and `tests/application/test_recovery_expiry.py:46`, and of the `pull_request` fixture in `tests/application/handlers/conftest.py:64`. Fix: under the standing leave, the tester moves it to `tests/crash_support.py`, which all three modules already import, and has the earlier modules use it from there.
+   2. `tests/application/test_question_causes_recorded.py:36-37,88-95` copies three things from `tests/application/test_recovery_expiry.py`:
+      - `OTHER_INSTANCE` and `LEASE` (lines 39-40);
+      - the other instance's recovery handler, `_other` (line 67);
+      - the expired event, `_expired` (line 73).
+      It also inlines `_expired_claim`'s clock advance (line 52). Fix: the tester moves these constants and helpers to `tests/crash_support.py` under the standing leave and uses them in both modules. Every earlier test keeps its name and checks the same thing.
+
+   The tester's entry 5 names both copies as "deliberately repeated", but the standing leave in `CLAUDE.md` is meant for exactly this case. These are test changes, so the coder ends with `tests` and names the moves for the tester.
+
+   Not reported because the stop is at the first failing group (group 5): `append_entry`'s built signature is `**causes: Unpack[JournalCauses]` (`src/factory/domain/journal.py:174-188`), not the two keyword-only parameters the Interface shows. The coder's entry 7 explains this.
+
+   Earlier tests (item 6):
+   - `tests/application/handlers/test_questions.py`: human's leave. The story's Interface names it under the feature's decision 13. The change only adds `blocked="attempts_cap"` to two expected records.
+   - `tests/application/test_recovery_cap.py`: human's leave, the same way. The change only adds `blocked="crash_cap"` to the expected question record.
+   - `tests/application/test_recovery_expiry.py`: human's leave, the same way. The change only adds `blocked="crash_cap"` to the expected question record.
+   - `tests/application/test_stalls.py`: human's leave, the same way. The change only adds `reason="died"` to three expected stall records.
+   - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`; `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
+10. factory: started doing as self.
+11. coder: Round 1: both of the reviewer's findings are copies of test helpers. Under the standing leave in `CLAUDE.md`, moving them is the tester's job, so I changed no code and end with `tests`.
+
+    I checked the copies with grep, and they match the findings. `tests/crash_support.py` holds none of these names yet, and all three modules below already import from it.
+
+    Moves for the tester, all to `tests/crash_support.py`:
+    1. `_pull_request(hosting)`. It is now in three places:
+       - `tests/application/test_question_causes_recorded.py:44`
+       - `tests/application/test_recovery_cap.py:49`
+       - `tests/application/test_recovery_expiry.py:46`
+
+       Move it to one shared public helper and have the three modules use it. The reviewer also names the matching `pull_request` fixture in `tests/application/handlers/conftest.py:64`. Whether that fixture should use the shared helper is the tester's choice under the leave.
+    2. These are copied from `tests/application/test_recovery_expiry.py` into `tests/application/test_question_causes_recorded.py`:
+       - the constants `OTHER_INSTANCE` and `LEASE` (expiry module lines 39-40; new module lines 36-37);
+       - the other instance's recovery handler `_other` (line 67);
+       - the expired event `_expired` (line 73);
+       - the clock advance in `_expired_claim` (line 52), which the new module inlines.
+
+       Move them to the shared module, and have both modules use them there.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    Rejected: changing the tests myself. The coder never edits tests (R9), and the leave belongs to the tester.
+
+    Noticed, not touched: the reviewer stopped at group 4, so group 5 is still open. That is the `append_entry` signature, which takes `**causes: Unpack[JournalCauses]` instead of the two keyword-only parameters the Interface shows. The reason is in entry 7: ruff's `PLR0913` refuses the function, and a per-file ignore would mean editing `pyproject.toml`, which the write guard refused. It may come back as a finding once the tests are green.
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+
+    I did not run `make check` this round because nothing changed. It was green at the end of round 0.
+12. factory: started tests as self.
+13. tester: Mode: a test change the human approved. I moved the copied test helpers that the reviewer found (entry 9) and the coder listed (entry 11). I did this under the standing leave in `CLAUDE.md` for moving a shared test helper. No acceptance criterion was added or changed, so the criterion-to-test mapping from entry 5 still holds.
+
+    New in `tests/crash_support.py` (none of these names were there before):
+    - `OTHER_INSTANCE`, `LEASE`: the constants from `test_recovery_expiry.py`.
+    - `open_pull_request(hosting)`: was the `_pull_request` copy. It is now the one shared helper, and the title is `f"{WORK_ITEM}: {STORY_TITLE}"`.
+    - `expired_claim(...)`: was `_expired_claim`. It claims as `INSTANCE`, then advances the clock by `LEASE`.
+    - `expired_event(work_item)`: was `_expired`.
+    - `other_handler(boundaries, claimed, run)`: was `_other`, the other instance's `RecoveryHandler`.
+
+    Earlier test files I changed under the standing leave (every test keeps its name and checks the same thing):
+    - `tests/application/test_recovery_expiry.py`:
+      - Removed its local `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired`.
+      - It now imports them from `crash_support` under the new names.
+      - `CAP`, `UNTRACKED` and `COMMITTED` stay in the module.
+    - `tests/application/test_recovery_cap.py`: removed its `_pull_request` and uses `open_pull_request`.
+
+    This story's test changed: `tests/application/test_question_causes_recorded.py`.
+    - Its own `OTHER_INSTANCE`, `LEASE` and `_pull_request` are removed.
+    - The expiry row of `test_the_recovery_at_the_crash_cap_records_the_question_with_its_block` now uses `expired_claim` (with `crashes=1`), `other_handler` and `expired_event` instead of the inlined copies.
+    - Its pull request title is now `"<id>: First story"` instead of `"<id>: first"`. None of its assertions read the title.
+
+    Rejected: changing the `pull_request` fixture in `tests/application/handlers/conftest.py` to use the shared helper. That was left to me (entry 11). The fixture belongs to the handler tests and has its own `WORK_ITEM`/`BRANCH` constants and its own title (`"…: first"`). `test_closed_send_back.py:420` uses the same title inline. Switching would change the pull request title for every handler test, which goes beyond moving a copy.
+
+    Results:
+    - `make test`: `test: green (40.3 s)`. The tests are green because the code was already built in round 0.
+    - `make lint`: `lint: green`.
+    - No module failed to import.
+
+    Files changed: `tests/crash_support.py`, `tests/application/test_recovery_expiry.py`, `tests/application/test_recovery_cap.py`, `tests/application/test_question_causes_recorded.py`.
+
+    Still open, from entry 11: group 5. `append_entry`'s signature is `**causes: Unpack[JournalCauses]`, not the two keyword-only parameters in the Interface.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.7 s)
+14. factory: started doing as self.
+15. coder: Round 1, after the tester's move. The reviewer's two findings (entries 9 and 11) were test-helper copies. The tester moved them into `tests/crash_support.py` under the standing leave (entry 13), so no finding is left for the code, and I changed nothing in this round.
+
+    `make check` is green on the committed state (`check: green`). The working tree holds only the factory's costs sidecar.
+
+    What was built is unchanged from entry 7:
+    - `src/factory/domain/journal.py`: the `Blocked` and `StallReason` types, the `blocked` and `reason` fields on `JournalRecord` with their kind validator, and the causes in `append_entry`.
+    - The aliases kept by assignment in `src/factory/domain/work_item.py` and `src/factory/domain/decisions.py`.
+    - The five writers: `src/factory/application/stage.py`, `stalls.py`, `recovery.py`, `handlers/questions.py` and `handlers/closed.py`.
+
+    Main decision, still open for the review's group 5: `append_entry` takes the causes as `**causes: Unpack[JournalCauses]`, a `total=False` `TypedDict`, instead of the two plain keyword-only parameters the Interface shows.
+    - Why: with two more parameters, ruff's `PLR0913` refuses the function.
+    - Rejected: a per-file ignore in `pyproject.toml`, because that file is outside my write paths and the write was refused. Also rejected: a `# noqa`.
+    - Callers still call it exactly as the Interface writes it, and mypy checks the values against `Blocked` and `StallReason`.
+    - If the human wants the plain signature, they need to add the `PLR0913` ignore to `pyproject.toml`. I would then switch the signature.
+
+    Refactor pass: nothing changed this round, so there was nothing to refactor.
+
+    Noticed, not touched:
+    - `AskHandler` writes the literal `"attempts_cap"` twice, once on the record and once on the state.
+    - The handler tests' `pull_request` fixture in `tests/application/handlers/conftest.py` is still separate from `crash_support.open_pull_request`. The tester kept it separate on purpose (entry 13).
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+16. factory: started review as self.
+17. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read the source changes in `src/factory/domain/journal.py`, `work_item.py`, `decisions.py` and the five writers, plus every new and changed test.
+
+    Group 1 (acceptance criteria) fails, so I stopped there and did not judge groups 2 to 5. Criteria 1 to 3 and 5 to 11 each have a test that checks what the criterion says. The refused sides of the kind rule and of the type rule are rows of their parametrized tests. The rule-4 row (docs, round 3, round_cap 3) does go past the cap. The coder's entry 15 reports `make check` green.
+
+    1. `tests/domain/test_journal_causes.py:89-119`: criterion 4 has its accepted side and its refused side in two separate test functions. The accepted side, a cause on its own kind through `append_entry`, is in `test_append_entry_puts_the_cause_into_the_new_record`. The refused side, `blocked` on a `result` entry, is in `test_append_entry_refuses_a_blocked_on_a_result_entry`. Both are sides of one rule (Interface: "the rules above apply to the record it builds"), and `CLAUDE.md` *Tests* says the sides of one rule are rows of one parametrized test, not separate test functions. Fix: the tester merges them into one parametrized test with an `accepted` column, as `test_a_cause_is_accepted_only_on_its_own_kind` already does, keeping every current row (question/round_cap and stall/merge_conflict, each with and without `at`, plus result/blocked refused). The coder ends with `tests` and names this change.
+
+    Earlier tests (item 6):
+    - `tests/application/handlers/test_questions.py`: human's leave. The story's Interface names it under the feature's decision 13. The change only adds `blocked="attempts_cap"` to two expected records.
+    - `tests/application/test_stalls.py`: human's leave, the same way. The change only adds `reason="died"` to three expected stall records.
+    - `tests/application/test_recovery_cap.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record.
+      - Standing leave to move a shared test helper: `_pull_request` is replaced by `crash_support.open_pull_request`, and every test keeps its name and what it checks.
+    - `tests/application/test_recovery_expiry.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record.
+      - Standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py` and are used from there. Every test keeps its name and what it checks.
+    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and its open/Makefile/run/head/state helpers moved to `tests/stage_run_support.py`. `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
+    - `tests/crash_support.py`: none needed. The change only adds shared helpers and constants and leaves every existing one as it was.
+18. factory: started doing as self.
+19. coder: Round 2. The reviewer's only finding (entry 17) is a change to a test, and the tester makes those, so I changed nothing.
+
+    The test change: in `tests/domain/test_journal_causes.py`, merge `test_append_entry_puts_the_cause_into_the_new_record` and `test_append_entry_refuses_a_blocked_on_a_result_entry` into one parametrized test with an `accepted` column, the way `test_a_cause_is_accepted_only_on_its_own_kind` already is. Keep every current row: question with `round_cap` and stall with `merge_conflict`, each with and without `at`, are accepted; result with `blocked` is refused with `ValueError`.
+
+    Code: nothing changed this round. What was built is the same as in entries 7 and 15:
+    - `src/factory/domain/journal.py`
+    - the aliases in `src/factory/domain/work_item.py` and `src/factory/domain/decisions.py`
+    - the five writers in `src/factory/application/stage.py`, `stalls.py`, `recovery.py`, `handlers/questions.py` and `handlers/closed.py`
+
+    I did not run `make check` this round, because the working tree did not change. It was green in entry 15.
+
+    Still open from entries 11 and 15 (review group 5, not judged yet):
+    - `append_entry` takes the causes as `**causes: Unpack[JournalCauses]` instead of the two keyword-only parameters the Interface shows. The reason is ruff's `PLR0913`.
+    - The plain signature needs a per-file ignore in `pyproject.toml`, which is outside my write paths.
+
+    Noticed, not touched: `AskHandler` still writes the literal `"attempts_cap"` twice, once on the record and once on the state.
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+20. factory: started tests as self.
+21. tester: Round 2: the approved test change from the coder's entry 19, which carries the reviewer's finding in entry 17.
+
+    What I changed in `tests/domain/test_journal_causes.py`:
+    - I merged `test_append_entry_puts_the_cause_into_the_new_record` and `test_append_entry_refuses_a_blocked_on_a_result_entry` into one parametrized test, `test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind`.
+    - It has an `accepted` column, the way `test_a_cause_is_accepted_only_on_its_own_kind` does.
+    - It keeps every earlier row:
+      - accepted: question with `round_cap`, with `at` and without it;
+      - accepted: stall with `merge_conflict`, with `at` and without it;
+      - refused with `ValueError`: result from the tester with `blocked="question"` and `at`.
+    - The accepted rows check the same things as before: kind, blocked, reason and at on the new record; stage and run are None without `at`, and the stage is `tests` with it.
+
+    Mapping change: criterion 4 now maps to `tests/domain/test_journal_causes.py::test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind`. Every other criterion keeps the test it had.
+
+    Results:
+    - `make test`: `test: green (38.0 s)`. The tests pass because the code was built in round 0.
+    - `make lint`: `lint: green`.
+    - No module failed to import.
+
+    File changed: `tests/domain/test_journal_causes.py`. This test file was written in this story's tests stage, so the change needs no further leave.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.3 s)
+22. factory: started doing as self.
+23. coder: Round 2, after the tester's change. The reviewer had one finding (entry 17): two test functions that are sides of one rule. The tester merged them into `tests/domain/test_journal_causes.py::test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind` (entry 21). No finding is left for the code, so I changed nothing this round. I ran `make check` on the committed state and it ends with `check: green`. The working tree holds only the factory's costs sidecar.
+
+    What was built is the same as in entries 7 and 15:
+    - `src/factory/domain/journal.py`: the `Blocked` and `StallReason` types, the `blocked` and `reason` fields on `JournalRecord` with their kind validator, and the causes in `append_entry`.
+    - The aliases kept by assignment in `src/factory/domain/work_item.py` and `src/factory/domain/decisions.py`.
+    - The five writers: `src/factory/application/stage.py`, `stalls.py`, `recovery.py`, `handlers/questions.py` and `handlers/closed.py`.
+
+    Main decision, which the review has not judged yet (group 5): `append_entry` takes the causes as `**causes: Unpack[JournalCauses]`, a `total=False` `TypedDict`, not as the two keyword-only parameters the Interface shows.
+    - Why: with two more parameters, ruff's `PLR0913` refuses the function.
+    - Rejected: a per-file ignore in `pyproject.toml`, because the file is outside my write paths. Also rejected: a `# noqa`.
+    - Callers still call it exactly as the Interface writes it, and mypy checks the values against `Blocked` and `StallReason`.
+    - If the human wants the plain signature, they need to add the ignore to `pyproject.toml`.
+
+    Refactor pass: nothing changed this round, so there was nothing to refactor.
+
+    Noticed, not touched:
+    - `AskHandler` writes the literal `"attempts_cap"` twice, once on the record and once on the state.
+    - The handler tests' `pull_request` fixture is still separate from `crash_support.open_pull_request`. The tester kept it that way on purpose (entry 13).
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+24. factory: started review as self.
+25. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item: the source changes in `src/factory/domain/journal.py`, `work_item.py`, `decisions.py` and the five writers, and every new and changed test.
+
+    The round-1 finding is resolved. In `tests/domain/test_journal_causes.py`, criterion 4 is now one parametrized test, `test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind`. It has an `accepted` column and keeps every earlier row.
+
+    Groups 1 to 4 pass:
+    - Criteria 1 to 11 each have a test that checks what the criterion says.
+    - The refused sides of the kind rule and of the type rule are rows of their parametrized tests.
+    - Entry 23 reports `make check` green.
+    - The layers hold: the cause types are in `domain` and are kept by assignment in `work_item` and `decisions`.
+    - No markers and no secrets.
+    - No new copy of a shared helper. The module-local `_definition` in `tests/application/test_question_causes_recorded.py:38` follows the per-module pattern that about 20 earlier modules use; there is no shared helper for it.
+
+    Group 5 (work item hygiene) fails:
+
+    1. Work item `## Interface`, the `append_entry` signature, against `src/factory/domain/journal.py:174-188`: the Interface says `append_entry` takes two keyword-only parameters, `blocked: Blocked | None = None` and `reason: StallReason | None = None`. The code takes `**causes: Unpack[JournalCauses]` instead, and `JournalCauses` is a new public `TypedDict` that the Interface does not name. The coder's entries 7, 15 and 23 say "the journal did not change the meaning of the task" and leave the mismatch for the review. Fix: the coder ends with `question` and gives the human two options. (a) Rewrite the Interface to the built signature, naming `JournalCauses` and the reason (ruff's `PLR0913`). (b) The human adds a `PLR0913` per-file ignore in `pyproject.toml`, and the coder switches to the plain signature. I would choose (a): every caller is written the same way, and mypy checks the values.
+
+    Earlier tests (item 6):
+    - `tests/application/handlers/test_questions.py`: human's leave (the story's Interface names it under the feature's decision 13). It only adds `blocked="attempts_cap"` to two expected records.
+    - `tests/application/test_stalls.py`: human's leave, the same way. It only adds `reason="died"` to three expected stall records.
+    - `tests/application/test_recovery_cap.py`:
+      - human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record;
+      - standing leave to move a shared test helper: `_pull_request` is replaced by `crash_support.open_pull_request`. The test names are unchanged.
+    - `tests/application/test_recovery_expiry.py`:
+      - human's leave, the same way: it adds `blocked="crash_cap"`;
+      - standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py` with the same bodies. The test names are unchanged.
+    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`. The test names are unchanged, and the new `open_story` parameters default to the old behaviour.
+    - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
+26. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+27. 2026-10-18 human: Option (a): keep the built signature. Reviewer: rewrite the work item's Interface to `append_entry(..., **causes: Unpack[JournalCauses])`, name the public `TypedDict` `JournalCauses` with its two optional keys `blocked: Blocked` and `reason: StallReason`, and give the reason (ruff's `PLR0913` with the two causes as keyword parameters). Then go forward: no code or test changes, and no other open finding (groups 1 to 4 pass, entry 25).
+28. factory: started review as self.
+29. reviewer: no findings
+
+    Round 0, after the human's answer in entry 27, which picked option (a): keep the built signature, rewrite the Interface, then go forward.
+
+    - Work item `## Interface`: I rewrote the `append_entry` signature to match the code in `src/factory/domain/journal.py`. It now takes `**causes: Unpack[JournalCauses]`.
+    - I added the public `TypedDict` `JournalCauses` (`total=False`) to the Interface, with its two optional keys `blocked: Blocked | None` and `reason: StallReason | None`.
+    - I added one line under the Interface's code block. It gives the reason: ruff's `PLR0913` refuses the function with the two causes as keyword parameters, six arguments where five are allowed. Callers still write `append_entry(document, entry, at=..., blocked="round_cap")`, and mypy checks the values.
+    - The key types say `| None`, as the code does. The human's answer wrote `Blocked` and `StallReason` without it, and I followed the code, because the Interface has to match what was built.
+
+    That was the only open finding (entry 25, group 5). I checked that no file under `src/` or `tests/` changed between the last review commit (86b1bac2) and HEAD; the only commits since then are a merge from `main` and the factory's own commits. So groups 1 to 4 still pass as entry 25 found. The Description and the docs criterion still match what was built.
+
+    Earlier tests (item 6):
+    - `tests/application/handlers/test_questions.py`: human's leave. The story's Interface names it under the feature's decision 13. It only adds `blocked="attempts_cap"` to two expected records.
+    - `tests/application/test_stalls.py`: human's leave, the same way. It only adds `reason="died"` to three expected stall records.
+    - `tests/application/test_recovery_cap.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record.
+      - Standing leave to move a shared test helper: `_pull_request` was replaced by `crash_support.open_pull_request`.
+    - `tests/application/test_recovery_expiry.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"`.
+      - Standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py`.
+    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`, and the new `open_story` parameters default to the old behaviour.
+    - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
+30. factory: started docs as self.
+31. documenter: No findings. The diff matches the Interface and the criteria. Round 0, after the human's answer in entry 27 (the built `append_entry` signature stays).
+
+    Files changed:
+    - `docs/project-guide.md`, *The journal's data*:
+      - The field table gains the rows `blocked` (on a `question` record only) and `reason` (on a `stall` record only). The lead-in now says five fields.
+      - A new paragraph on both fields. It says where the types are defined, that a wrong kind or value is refused with a `ValueError`, and that an unset field is left out of the front matter.
+      - A second new paragraph on who writes them. It says `crash` and `expiry` records carry no reason, and why (the feature's decision 4).
+    - `docs/project-guide.md`, *The journal's entries*: the `append_entry` description now names `blocked` and `reason`, and the `JournalCauses` `TypedDict` behind `**causes`, with the `PLR0913` reason.
+    - `docs/project-guide.md`, the `StallReason` line: it now says the type is defined in `factory.domain.journal`.
+    - `docs/decisions.md`: a new entry, "A question records the block it opened, a stall its reason". It gives the reason (the status map reads the front matter and never parses prose) and the rejected alternatives (parsing the entry texts, a reason on crash records).
+
+    I did not run `make check`: I changed only documents. I did not run the examples either, because I added none.
+
+    Cross-read and found current: README.md and `docs/operator-guide.md` say nothing about journal record fields. The other *Journal* sections of the project guide are unaffected by the diff.
+
+    Stale text noticed and left alone: none.
+
+    `check`: check: green
+    `documents`: documents ok
+32. factory: started smoke-test as self.
+33. smoke-tester: I ran the one smoke-test command from the repository root, exactly as the story gives it, and changed no files.
+
+    Command 1 (`uv run -q python -c '…'`, which builds `JournalRecord` with a `reason` or a `blocked` on four kinds):
+
+    ```
+    stall reason accepted
+    crash reason refused
+    question blocked accepted
+    result blocked refused
+    ```
+
+    Exit status 0.
+
+    Expect: four lines, `stall reason accepted`, `crash reason refused`, `question blocked accepted`, `result blocked refused`. **Met**: the four lines appear in that order and match exactly.
+
+    Checked against the acceptance criteria: nothing in the output contradicts any of them. It agrees with criterion 1: `reason` is accepted on a `stall` record and refused on a `crash` record, and `blocked` is accepted on a `question` record and refused on a `result` record, which raises a `ValueError`. The command does not exercise criteria 2 to 13, so it shows nothing against them. The factory runs the stage checks for criterion 12, `make check` stays green, so I did not run them in this stage.
+
+    Findings: none.

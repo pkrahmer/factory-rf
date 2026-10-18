@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
+from factory.domain import journal
 from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.identifiers import Name
 from factory.domain.journal import JournalKind, NewEntry
@@ -13,18 +14,7 @@ from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import Blocked, WorkItemState
 
-StallReason = Literal[
-    "died",
-    "time_limit",
-    "budget",
-    "no_result",
-    "decision_not_allowed",
-    "left_branch",
-    "form_invalid",
-    "check_red",
-    "merge_conflict",
-    "nested_repository",
-]
+StallReason = journal.StallReason
 
 _UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
 

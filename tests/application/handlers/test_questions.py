@@ -223,7 +223,12 @@ def test_at_the_attempts_cap_the_question_is_recorded_in_one_pushed_commit(
     assert recorded.state is not None
     assert recorded.state.blocked == "attempts_cap"
     assert recorded.state.journal[-1] == JournalRecord(
-        number=5, speaker=FACTORY, kind="question", at=clock.now(), stage="doing"
+        number=5,
+        speaker=FACTORY,
+        kind="question",
+        at=clock.now(),
+        stage="doing",
+        blocked="attempts_cap",
     )
     assert entry_text(recorded, 5) == attempts_cap_question("doing", 2, LAST_STALL.text)
 
@@ -314,7 +319,12 @@ def test_the_attempts_cap_question_is_recorded_before_a_failing_post(
     assert recorded.state is not None
     assert recorded.state.blocked == "attempts_cap"
     assert recorded.state.journal[-1] == JournalRecord(
-        number=4, speaker=FACTORY, kind="question", at=clock.now(), stage="doing"
+        number=4,
+        speaker=FACTORY,
+        kind="question",
+        at=clock.now(),
+        stage="doing",
+        blocked="attempts_cap",
     )
     assert hosting.factory_posts(pull_request) == []
 

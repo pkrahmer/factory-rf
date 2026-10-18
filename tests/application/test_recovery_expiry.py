@@ -9,14 +9,19 @@ import pytest
 from crash_support import (
     BRANCH,
     INSTANCE,
+    LEASE,
+    OTHER_INSTANCE,
     STAGE,
     STORY,
     STORY_TITLE,
     WORK_ITEM,
-    Claimed,
     Rerun,
     claim,
     document_at,
+    expired_claim,
+    expired_event,
+    open_pull_request,
+    other_handler,
     remote_head,
     remote_state,
     snapshot,
@@ -27,7 +32,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.recovery import RecoveryHandler
 from factory.domain.errors import CannotHandle, HostingServiceError
-from factory.domain.events import Event
 from factory.domain.hosting import PostKey
 from factory.domain.journal import FACTORY, JournalRecord, entry_text, last_record
 from factory.domain.post_texts import crash_cap_question, expiry_note
@@ -36,43 +40,9 @@ from factory.domain.work_item import WorkItemSnapshot
 from git_support import remote_commit, write_files
 from human_clone import HumanClone
 
-OTHER_INSTANCE = "factory-2"
-LEASE = timedelta(minutes=60)
 CAP = 2
 UNTRACKED = "src/dead.py"
 COMMITTED = "src/committed.py"
-
-
-def _pull_request(hosting: FakeHostingService) -> int:
-    return hosting.create_pull_request(
-        BRANCH, f"{WORK_ITEM}: {STORY_TITLE}", "body", draft=True
-    ).number
-
-
-def _expired_claim(
-    boundaries: Boundaries,
-    human: HumanClone,
-    clock: ManualClock,
-    *,
-    crashes: int = 0,
-    pull_request: int | None = None,
-    body: str = STORY,
-) -> Claimed:
-    """Claim the stage as `INSTANCE` and let its lease run out."""
-    claimed = claim(boundaries, human, crashes=crashes, pull_request=pull_request, body=body)
-    clock.advance(LEASE)
-    return claimed
-
-
-def _other(boundaries: Boundaries, claimed: Claimed, run: Rerun) -> RecoveryHandler:
-    """A recovery handler of another instance than the one that claimed the stage."""
-    claims = ClaimService(boundaries, OTHER_INSTANCE, claimed.definition)
-    return RecoveryHandler(boundaries, claimed.definition, claims, run)
-
-
-def _expired(work_item: WorkItemSnapshot) -> Event:
-    assert work_item.branch_commit is not None
-    return Event(kind="expired", work_item=work_item, remote_state=work_item.branch_commit)
 
 
 def _expiry(boundaries: Boundaries) -> JournalRecord:
@@ -96,11 +66,11 @@ def test_an_expired_event_is_handled_only_once_the_lease_has_run_out(
     age: timedelta,
     handled: bool,
 ) -> None:
-    claimed = claim(boundaries, human, crashes=0, pull_request=_pull_request(hosting))
+    claimed = claim(boundaries, human, crashes=0, pull_request=open_pull_request(hosting))
     clock.advance(age)
     rerun = Rerun()
-    recovery = _other(boundaries, claimed, rerun)
-    event = _expired(snapshot(boundaries))
+    recovery = other_handler(boundaries, claimed, rerun)
+    event = expired_event(snapshot(boundaries))
 
     if not handled:
         with pytest.raises(CannotHandle) as raised:
@@ -149,7 +119,7 @@ def test_an_expired_event_on_an_own_claim_or_no_claim_is_refused_and_pushes_noth
     minutes: int,
     change: Callable[[WorkItemSnapshot], WorkItemSnapshot],
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, crashes=0, pull_request=number)
     clock.advance(timedelta(minutes=minutes))
     rerun = Rerun()
@@ -157,7 +127,7 @@ def test_an_expired_event_on_an_own_claim_or_no_claim_is_refused_and_pushes_noth
     recovery = RecoveryHandler(boundaries, claimed.definition, claims, rerun)
 
     with pytest.raises(CannotHandle) as raised:
-        recovery.handle(_expired(change(snapshot(boundaries))))
+        recovery.handle(expired_event(change(snapshot(boundaries))))
 
     assert raised.value.kind == "expired"
     assert remote_commit(remote, BRANCH) == claimed.start.commit
@@ -168,12 +138,12 @@ def test_an_expired_event_on_an_own_claim_or_no_claim_is_refused_and_pushes_noth
 def test_an_expiry_counts_one_crash_clears_the_claim_and_charges_no_attempt(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, pull_request=_pull_request(hosting))
+    claimed = expired_claim(boundaries, human, clock, pull_request=open_pull_request(hosting))
     work_item = snapshot(boundaries)
     before = work_item.document.state
     assert before is not None
 
-    _other(boundaries, claimed, Rerun()).handle(_expired(work_item))
+    other_handler(boundaries, claimed, Rerun()).handle(expired_event(work_item))
 
     after = remote_state(boundaries)
     assert after.crashes == before.crashes + 1
@@ -186,12 +156,12 @@ def test_an_expiry_counts_one_crash_clears_the_claim_and_charges_no_attempt(
 def test_the_journal_ends_with_a_factory_expiry_entry_naming_the_stage_start(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, pull_request=_pull_request(hosting))
+    claimed = expired_claim(boundaries, human, clock, pull_request=open_pull_request(hosting))
     work_item = snapshot(boundaries)
     before = work_item.document.state
     assert before is not None
 
-    _other(boundaries, claimed, Rerun()).handle(_expired(work_item))
+    other_handler(boundaries, claimed, Rerun()).handle(expired_event(work_item))
 
     after = remote_state(boundaries)
     assert after.journal[-1] == JournalRecord(
@@ -210,13 +180,13 @@ def test_the_journal_ends_with_a_factory_expiry_entry_naming_the_stage_start(
 def test_the_checkout_is_discarded_before_the_expiry_is_recorded(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, pull_request=_pull_request(hosting))
+    claimed = expired_claim(boundaries, human, clock, pull_request=open_pull_request(hosting))
     write_files(boundaries.checkout, {COMMITTED: "y = 2\n"})
     boundaries.git.commit("work never pushed")
     write_files(boundaries.checkout, {UNTRACKED: "x = 1\n"})
     work_item = snapshot(boundaries)
 
-    _other(boundaries, claimed, Rerun()).handle(_expired(work_item))
+    other_handler(boundaries, claimed, Rerun()).handle(expired_event(work_item))
 
     git = boundaries.git
     assert git.status().changes == []
@@ -229,10 +199,10 @@ def test_the_checkout_is_discarded_before_the_expiry_is_recorded(
 def test_the_expiry_note_is_posted_once_under_the_expiry_entrys_key(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    number = _pull_request(hosting)
-    claimed = _expired_claim(boundaries, human, clock, pull_request=number)
+    number = open_pull_request(hosting)
+    claimed = expired_claim(boundaries, human, clock, pull_request=number)
 
-    _other(boundaries, claimed, Rerun()).handle(_expired(snapshot(boundaries)))
+    other_handler(boundaries, claimed, Rerun()).handle(expired_event(snapshot(boundaries)))
 
     expiry = _expiry(boundaries)
     [post] = hosting.factory_posts(number)
@@ -243,10 +213,10 @@ def test_the_expiry_note_is_posted_once_under_the_expiry_entrys_key(
 def test_below_the_cap_the_handling_instance_reruns_the_stage_once(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, pull_request=_pull_request(hosting))
+    claimed = expired_claim(boundaries, human, clock, pull_request=open_pull_request(hosting))
     rerun = Rerun()
 
-    _other(boundaries, claimed, rerun).handle(_expired(snapshot(boundaries)))
+    other_handler(boundaries, claimed, rerun).handle(expired_event(snapshot(boundaries)))
 
     [event] = rerun.events
     assert event.kind == "run"
@@ -261,13 +231,13 @@ def test_below_the_cap_the_handling_instance_reruns_the_stage_once(
 def test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    number = _pull_request(hosting)
-    claimed = _expired_claim(boundaries, human, clock, crashes=1, pull_request=number)
+    number = open_pull_request(hosting)
+    claimed = expired_claim(boundaries, human, clock, crashes=1, pull_request=number)
     before = snapshot(boundaries).document.state
     assert before is not None
     rerun = Rerun()
 
-    _other(boundaries, claimed, rerun).handle(_expired(snapshot(boundaries)))
+    other_handler(boundaries, claimed, rerun).handle(expired_event(snapshot(boundaries)))
 
     assert rerun.events == []
     after = remote_state(boundaries)
@@ -279,7 +249,12 @@ def test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns
             number=last + 1, speaker=FACTORY, kind="expiry", at=clock.now(), stage=before.stage
         ),
         JournalRecord(
-            number=last + 2, speaker=FACTORY, kind="question", at=clock.now(), stage=before.stage
+            number=last + 2,
+            speaker=FACTORY,
+            kind="question",
+            at=clock.now(),
+            stage=before.stage,
+            blocked="crash_cap",
         ),
     ]
     note, question = hosting.factory_posts(number)
@@ -295,12 +270,12 @@ def test_at_the_cap_the_note_and_then_the_question_are_posted_and_nothing_reruns
 def test_a_failed_note_raises_after_the_expiry_is_pushed_and_nothing_reruns(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, pull_request=_pull_request(hosting))
+    claimed = expired_claim(boundaries, human, clock, pull_request=open_pull_request(hosting))
     hosting.fail_next("post_comment")
     rerun = Rerun()
 
     with pytest.raises(HostingServiceError):
-        _other(boundaries, claimed, rerun).handle(_expired(snapshot(boundaries)))
+        other_handler(boundaries, claimed, rerun).handle(expired_event(snapshot(boundaries)))
 
     after = remote_state(boundaries)
     assert after.crashes == 1
@@ -325,10 +300,10 @@ def test_without_a_pull_request_the_note_opens_a_draft_whose_number_is_recorded_
     body: str,
     title: str,
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, body=body)
+    claimed = expired_claim(boundaries, human, clock, body=body)
     rerun = Rerun()
 
-    _other(boundaries, claimed, rerun).handle(_expired(snapshot(boundaries)))
+    other_handler(boundaries, claimed, rerun).handle(expired_event(snapshot(boundaries)))
 
     [pull_request] = hosting.pull_requests()
     assert pull_request.branch == BRANCH
@@ -348,10 +323,10 @@ def test_without_a_pull_request_the_note_opens_a_draft_whose_number_is_recorded_
 def test_at_the_cap_without_a_pull_request_both_posts_land_on_one_new_draft(
     boundaries: Boundaries, *, human: HumanClone, clock: ManualClock, hosting: FakeHostingService
 ) -> None:
-    claimed = _expired_claim(boundaries, human, clock, crashes=1)
+    claimed = expired_claim(boundaries, human, clock, crashes=1)
     before = len(hosting.pull_requests())
 
-    _other(boundaries, claimed, Rerun()).handle(_expired(snapshot(boundaries)))
+    other_handler(boundaries, claimed, Rerun()).handle(expired_event(snapshot(boundaries)))
 
     pull_requests = hosting.pull_requests()
     assert len(pull_requests) == before + 1

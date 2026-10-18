@@ -219,6 +219,7 @@ def test_the_agents_rewrite_of_the_state_and_journal_is_put_back(
         kind="stall",
         at=clock.now(),
         stage="tests",
+        reason="died",
     )
     assert state.stage == "tests"
     assert state.attempts == 2
@@ -310,7 +311,12 @@ def test_the_journal_gains_one_stall_entry_of_the_factory_naming_the_cause(
     assert document.state is not None
     assert len(document.state.journal) == before + 1
     assert document.state.journal[-1] == JournalRecord(
-        number=before + 1, speaker="factory", kind="stall", at=clock.now(), stage="tests"
+        number=before + 1,
+        speaker="factory",
+        kind="stall",
+        at=clock.now(),
+        stage="tests",
+        reason="died",
     )
     text = entry_text(document, before + 1)
     assert text.startswith(STALL_PREFIX)
@@ -533,7 +539,12 @@ def test_a_given_document_keeps_its_entries_above_the_stall_entry(
         number=before + 1, speaker="tester", kind="result"
     )
     assert pushed.state.journal[-1] == JournalRecord(
-        number=before + 2, speaker="factory", kind="stall", at=clock.now(), stage="tests"
+        number=before + 2,
+        speaker="factory",
+        kind="stall",
+        at=clock.now(),
+        stage="tests",
+        reason="died",
     )
     assert entry_text(pushed, before + 1) == "the agent's entry."
 

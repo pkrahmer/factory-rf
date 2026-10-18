@@ -604,3 +604,11 @@ Date: 2026-10-18 (F0019-S0011). R14 sends every agent to `$TMPDIR` for temporary
 - Decision: `GuardSettings` carries the run's temporary folder (`temporary_directory`, `None` by default), and `judge` allows a real path strictly beneath it, after the checkout is judged: a link into the checkout, or a checkout beneath the temporary folder, is still decided by the write paths. The runtime sets it only when it confines the run; without it the hook judges as before.
 - Decision: the tool paths stay kernel-only.
 - Rejected: telling the agents to write temporary files through the shell only (it contradicts R14's intent and leaves the hook and the kernel disagreeing); counting these refusals as expected in the cross-check (it hides real disagreements behind a known one).
+
+## A question records the block it opened, a stall its reason
+
+Date: 2026-10-18 (F0021-S0001). A journal record said that a question was asked or that a stage stalled, but not why; the cause was only in the entry's text, which no code reads. The human's waits and the status map need the cause.
+
+- Decision: a `question` record carries an optional `blocked` (`question`, `attempts_cap`, `round_cap`, `crash_cap`, `send_back`) and a `stall` record an optional `reason` (the stall reasons). Every place that records a blocking question or a stall writes the field; a record without it, every record written before this, stays valid and is written back without it. The model refuses `blocked` on any other kind and `reason` on any other kind.
+- Reasons: the status map reads the front matter and never parses prose, so the cause has to be data; the types already existed (`Blocked`, `StallReason`) and moved to `factory.domain.journal` so that the record can name them without a circular import, kept by assignment where they were.
+- Rejected: parsing the entry texts (a change of wording would change what the map reads); a reason on `crash` and `expiry` records (they are not stalls, and the question that follows the crash cap already carries `blocked: crash_cap`; the feature's decision 4).

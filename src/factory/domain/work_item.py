@@ -1,6 +1,6 @@
 """The state of a work item, its claim, its document and how the remote shows it."""
 
-from typing import Literal, Self
+from typing import Self
 
 from pydantic import (
     BaseModel,
@@ -11,13 +11,14 @@ from pydantic import (
     model_validator,
 )
 
+from factory.domain import journal
 from factory.domain.git import CommitId
 from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.journal import JournalRecord
 from factory.domain.paths import LifecycleFolder
 from factory.domain.times import UtcDatetime
 
-Blocked = Literal["question", "attempts_cap", "round_cap", "crash_cap", "send_back"]
+Blocked = journal.Blocked
 
 
 class Claim(BaseModel):

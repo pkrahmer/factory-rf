@@ -57,7 +57,9 @@ class AskHandler(Handler):
         last_stall = entry_text(document, stall.number)
         text = attempts_cap_question(state.stage, state.attempts, last_stall)
         question = NewEntry(speaker=FACTORY, kind="question", text=text)
-        appended = append_entry(document, question, at=self._boundaries.clock.now())
+        appended = append_entry(
+            document, question, at=self._boundaries.clock.now(), blocked="attempts_cap"
+        )
         blocked = require_state(appended, _no_state()).model_copy(
             update={"blocked": "attempts_cap"}
         )

@@ -125,7 +125,9 @@ class StallService:
         text = f"Stage {context.stage} stalled (attempt {attempts} of {cap}): {cause}"
         entry = NewEntry(speaker=FACTORY, kind="stall", text=text)
         run = None if context.cost is None else context.cost.run
-        return append_entry(released, entry, at=self._boundaries.clock.now(), run=run)
+        return append_entry(
+            released, entry, at=self._boundaries.clock.now(), run=run, reason=reason
+        )
 
     def _commit_and_push(self, context: StallContext, document: WorkItemDocument) -> CommitId:
         self._boundaries.work_item_writer.write(self._boundaries.checkout / context.path, document)

@@ -17,6 +17,7 @@ from crash_support import (
     crash_event,
     document_at,
     handler,
+    open_pull_request,
     remote_head,
     remote_state,
     snapshot,
@@ -44,12 +45,6 @@ from git_support import PIPELINE_YAML, remote_commit
 from human_clone import HumanClone
 
 CAP = 2
-
-
-def _pull_request(hosting: FakeHostingService) -> int:
-    return hosting.create_pull_request(
-        BRANCH, f"{WORK_ITEM}: {STORY_TITLE}", "body", draft=True
-    ).number
 
 
 def _state_of(work_item: WorkItemSnapshot) -> WorkItemState:
@@ -94,7 +89,7 @@ def test_the_handler_asks_exactly_when_the_crash_reaches_the_cap(
     cap: int,
     asks: bool,
 ) -> None:
-    claimed = claim(boundaries, human, crashes=crashes, pull_request=_pull_request(hosting))
+    claimed = claim(boundaries, human, crashes=crashes, pull_request=open_pull_request(hosting))
     definition = claimed.definition.model_copy(update={"crash_cap": cap})
     rerun = Rerun()
 
@@ -113,7 +108,7 @@ def test_the_handler_asks_exactly_when_the_crash_reaches_the_cap(
 def test_at_the_cap_the_stage_is_not_rerun_and_the_crash_commit_is_the_remote_head(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    claimed = claim(boundaries, human, pull_request=_pull_request(hosting))
+    claimed = claim(boundaries, human, pull_request=open_pull_request(hosting))
     rerun = Rerun()
 
     handler(boundaries, claimed.definition, rerun).handle(crash_event(snapshot(boundaries)))
@@ -129,7 +124,7 @@ def test_at_the_cap_the_stage_is_not_rerun_and_the_crash_commit_is_the_remote_he
 def test_at_the_cap_the_work_item_is_blocked_with_the_crashes_counted_and_no_claim(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    claimed = claim(boundaries, human, attempts=1, pull_request=_pull_request(hosting))
+    claimed = claim(boundaries, human, attempts=1, pull_request=open_pull_request(hosting))
 
     handler(boundaries, claimed.definition, Rerun()).handle(crash_event(snapshot(boundaries)))
 
@@ -143,7 +138,7 @@ def test_at_the_cap_the_work_item_is_blocked_with_the_crashes_counted_and_no_cla
 def test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothing_else(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService, clock: ManualClock
 ) -> None:
-    claimed = claim(boundaries, human, pull_request=_pull_request(hosting))
+    claimed = claim(boundaries, human, pull_request=open_pull_request(hosting))
     before = _state_of(snapshot(boundaries))
 
     handler(boundaries, claimed.definition, Rerun()).handle(crash_event(snapshot(boundaries)))
@@ -156,7 +151,12 @@ def test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothin
             number=last + 1, speaker=FACTORY, kind="crash", at=clock.now(), stage=before.stage
         ),
         JournalRecord(
-            number=last + 2, speaker=FACTORY, kind="question", at=clock.now(), stage=before.stage
+            number=last + 2,
+            speaker=FACTORY,
+            kind="question",
+            at=clock.now(),
+            stage=before.stage,
+            blocked="crash_cap",
         ),
     ]
     assert len(boundaries.git.log(f"origin/{BRANCH}", since=claimed.start.commit)) == 1
@@ -165,7 +165,7 @@ def test_the_crash_commit_at_the_cap_holds_the_crash_and_the_question_and_nothin
 def test_the_question_entry_is_the_crash_cap_question(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    claimed = claim(boundaries, human, pull_request=_pull_request(hosting))
+    claimed = claim(boundaries, human, pull_request=open_pull_request(hosting))
 
     handler(boundaries, claimed.definition, Rerun()).handle(crash_event(snapshot(boundaries)))
 
@@ -177,7 +177,7 @@ def test_the_question_entry_is_the_crash_cap_question(
 def test_the_question_is_posted_once_on_the_pull_request_under_its_key(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, pull_request=number)
 
     handler(boundaries, claimed.definition, Rerun()).handle(crash_event(snapshot(boundaries)))
@@ -191,7 +191,7 @@ def test_the_question_is_posted_once_on_the_pull_request_under_its_key(
 def test_the_question_is_recorded_and_pushed_before_it_is_posted(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, pull_request=number)
     hosting.fail_next("post_comment")
 
@@ -208,7 +208,7 @@ def test_the_question_is_recorded_and_pushed_before_it_is_posted(
 def test_asking_again_posts_nothing(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, pull_request=number)
     recovery = handler(boundaries, claimed.definition, Rerun())
     recovery.handle(crash_event(snapshot(boundaries)))
@@ -304,7 +304,7 @@ def test_asking_for_a_work_item_not_blocked_on_the_crash_cap_is_refused(
     hosting: FakeHostingService,
     blocked: Blocked | None,
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, pull_request=number)
     question = NewEntry(speaker=FACTORY, kind="question", text="Try again?")
     work_item = _with(snapshot(boundaries), blocked, question)
@@ -328,7 +328,7 @@ def test_asking_without_a_recorded_factory_question_is_refused(
     hosting: FakeHostingService,
     question: NewEntry | None,
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, pull_request=number)
     work_item = _with(snapshot(boundaries), "crash_cap", question)
 
@@ -342,7 +342,7 @@ def test_asking_without_a_recorded_factory_question_is_refused(
 def test_a_boundary_error_after_a_pushed_claim_repeats_into_the_crash_cap(
     boundaries: Boundaries, *, human: HumanClone, hosting: FakeHostingService
 ) -> None:
-    number = _pull_request(hosting)
+    number = open_pull_request(hosting)
     claimed = claim(boundaries, human, crashes=0, pull_request=number)
     run = _ClaimsAndFails(ClaimService(boundaries, INSTANCE, claimed.definition))
 

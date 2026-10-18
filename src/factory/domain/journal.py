@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self, TypedDict, Unpack
 
 from pydantic import BaseModel, ConfigDict, PositiveInt, field_validator, model_validator
 
@@ -43,13 +43,28 @@ JournalKind = Literal[
     "send_back",
     "done",
 ]
+Blocked = Literal["question", "attempts_cap", "round_cap", "crash_cap", "send_back"]
+StallReason = Literal[
+    "died",
+    "time_limit",
+    "budget",
+    "no_result",
+    "decision_not_allowed",
+    "left_branch",
+    "form_invalid",
+    "check_red",
+    "merge_conflict",
+    "nested_repository",
+]
 
 
 class JournalRecord(BaseModel):
     """One journal entry as the state lists it: its number, who spoke and what kind it is.
 
     `at` (when it was written, in UTC), `stage` (the work item's stage then) and `run` (the
-    agent run it came from) are optional, so a record written without them stays valid.
+    agent run it came from) are optional, so a record written without them stays valid. So are
+    the causes: `blocked`, the block a `question` record opened, and `reason`, the reason of a
+    `stall` record.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -60,6 +75,16 @@ class JournalRecord(BaseModel):
     at: UtcDatetime | None = None
     stage: Name | None = None
     run: RunId | None = None
+    blocked: Blocked | None = None
+    reason: StallReason | None = None
+
+    @model_validator(mode="after")
+    def _cause_on_its_own_kind(self) -> Self:
+        if self.blocked is not None and self.kind != "question":
+            raise ValueError(f"a record of kind {self.kind!r} carries no blocked")
+        if self.reason is not None and self.kind != "stall":
+            raise ValueError(f"a record of kind {self.kind!r} carries no reason")
+        return self
 
 
 class NewEntry(BaseModel):
@@ -146,14 +171,11 @@ def _joined(lines: Sequence[str], like: str) -> str:
     return "\n".join(lines) + final_newline
 
 
-def _record(
-    number: int, entry: NewEntry, state: WorkItemState, at: datetime | None, run: RunId | None
-) -> JournalRecord:
-    if at is None:
-        return JournalRecord(number=number, speaker=entry.speaker, kind=entry.kind)
-    return JournalRecord(
-        number=number, speaker=entry.speaker, kind=entry.kind, at=at, stage=state.stage, run=run
-    )
+class JournalCauses(TypedDict, total=False):
+    """The causes `append_entry` puts into a new record: the block opened, the stall reason."""
+
+    blocked: Blocked | None
+    reason: StallReason | None
 
 
 def append_entry(
@@ -162,17 +184,27 @@ def append_entry(
     *,
     at: datetime | None = None,
     run: RunId | None = None,
+    **causes: Unpack[JournalCauses],
 ) -> WorkItemDocument:
     """The document with the entry rendered into its journal section and recorded in its state.
 
-    Given `at`, the record carries it, the stage of the document's state and `run`.
+    Given `at`, the record carries it, the stage of the document's state and `run`; the causes
+    go into the record as given.
     """
     if run is not None and at is None:
         raise ValueError("an entry with a run needs the time it was written")
     state = _state_of(document)
     section = _journal_section(document.body)
     number = len(state.journal) + 1
-    record = _record(number, entry, state, at, run)
+    record = JournalRecord(
+        number=number,
+        speaker=entry.speaker,
+        kind=entry.kind,
+        at=at,
+        stage=None if at is None else state.stage,
+        run=run,
+        **causes,
+    )
     lines = split_lines(document.body)
     last = _last_text_line(lines, section)
     rendered = split_lines(render_entry(number, entry))
