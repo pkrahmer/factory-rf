@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:34:33.079295Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-18T23:34:33.079295Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-18T23:36:27.814298Z'
+  stage: doing
+  run: 039b355ce7fa42399fb0a408535647c4
 ---
 
 # The run record counts the refused tool calls
@@ -270,3 +272,22 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     `lint`: lint: green (0.0 s)
     `test`: test: green (41.6 s)
 16. factory: started doing as self.
+17. coder: This round needed no code change. The tester's changes from entry 15 make the implementation committed in entry 10 pass, and `make check` is green (`check: green`, coverage 99.08 %).
+
+    What was built, already on the branch:
+    - `src/factory/domain/agent_runs.py`: adds `PermissionDenial.path: str | None = None`.
+    - `src/factory/adapters/claude_runtime.py`: `_denied_path` returns `file_path` if it is a string, otherwise `notebook_path` if that is a string, otherwise `None`. `_denials` fills `path` from it; `detail` is unchanged.
+    - `src/factory/domain/cost_records.py`: adds `denials: NonNegativeInt | None` and `denied_paths: list[str] | None` after `instance`. Both are on the list of measures a `started` record refuses.
+    - `src/factory/application/costs.py`: `_completed` sets `denials=len(result.permission_denials)`. `denied_paths` comes from `_denied_paths`, which keeps each path once in the order reported. For a run that ended `died` or `time_limit` both stay `None`.
+    - `src/factory/adapters/cost_records_jsonl.py`: a single loop drops `instance`, `denials` and `denied_paths` from the line when they are `None`.
+
+    Main choice: `_completed` decides whether the runtime replied by looking at the end reason (`died`, `time_limit`), which is what the Interface says. I rejected building the two fields in a separate `dict` helper and merging it into the record, because CLAUDE.md does not allow a dict to cross a function boundary.
+
+    Refactor pass: I read the whole diff against `main` again and found nothing to change.
+
+    What the journal changed: entries 11 and 15 changed only test data, not what the task means, so the Description stays as it is.
+
+    Noticed, not touched: in an earlier round, `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` failed once under the full parallel run and then passed alone. It did not fail this time. It may be a flaky test that depends on load, and it is unrelated to this work item.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
