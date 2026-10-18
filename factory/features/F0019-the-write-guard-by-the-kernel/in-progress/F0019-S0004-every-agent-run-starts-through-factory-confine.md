@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T16:23:31.385660Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -219,6 +223,11 @@ journal:
   at: '2026-10-18T16:23:11.418757Z'
   stage: doing
   run: 4d13914dc647485eb2914b7d38b4fb6a
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:23:31.385660Z'
+  stage: tests
 ---
 
 # Every agent run starts through `factory-confine`
@@ -623,3 +632,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Description: no rewrite needed. This round's findings change no part of the task.
 
     Noticed but not touched, as in entry 35: the name of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` is out of date, because the test now also covers the `/dev/shm` marker. It keeps that name because `[tool.mutmut]` deselects it by name.
+40. factory: started tests as self.
