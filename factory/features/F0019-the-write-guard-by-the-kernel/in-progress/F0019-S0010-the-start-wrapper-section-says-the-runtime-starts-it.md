@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T20:18:48.606730Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T20:18:28.252181Z'
   stage: tests
   run: 7e234a1e2ba042ac917e23bcaa186b42
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:18:48.606730Z'
+  stage: doing
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -97,3 +106,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (42.5 s)
+6. factory: started doing as self.
