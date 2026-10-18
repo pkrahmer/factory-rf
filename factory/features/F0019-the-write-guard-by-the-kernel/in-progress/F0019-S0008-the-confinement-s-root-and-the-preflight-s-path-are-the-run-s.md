@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T19:30:53.186695Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-18T19:30:53.186695Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T19:31:29.398280Z'
+  stage: review
+  run: e97a141acb74483e8ee04c27e414b87d
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -264,3 +266,17 @@ Expect: `completed | root file refused | False`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: No findings.
+
+    Groups 1 to 5 hold:
+    - Criterion 1: `tests/adapters/test_claude_runtime_confinement_root.py::test_a_write_path_at_the_root_never_gives_the_checkout_as_a_folder` has three rows: missing root file, missing file below the root, existing root file. Every row asserts that the checkout is not a folder and that `NOTES.md` is not a file. The missing-file-below-the-root row also asserts the folder `<checkout>/docs`, and the existing-root-file row the file `<checkout>/README.md`. If `root` is dropped, the missing-root-file row fails, because the target widens to the checkout.
+    - Criterion 2: `test_through_the_wrapper_a_missing_root_write_path_allows_no_write_at_the_root` has the rows `NOTES.md` and `other.md`. Each runs the real wrapper with write paths `("NOTES.md",)` and asserts that the run ends `died` and leaves no file.
+    - Criterion 3: `tests/entry/test_wiring_extras_path.py::test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s` has a pass row and a fail row for `confinement` and for `agent-environment`. The process `PATH` (`monkeypatch.setenv`) always differs from the agent run's, so dropping `path=path` fails both kinds of row. The fail detail matches `src/factory/application/preflight.py:171`. `HOME` is an existing folder.
+    - Criterion 4: the coder's entry 15 shows the factory's `check: green`, and `duplicates` reports 0 new.
+    - Architecture and security: no file under `src/` changed, and no silencing marker was added.
+    - Quality: entry 9's finding is fixed. `_bin_with` is gone, and the test uses the shared `write_script` in `tests/confine_support.py`. I found no other copy of an existing helper.
+    - Hygiene: the Description matches what was built (tests only). `docs: none` still holds, because the story adds only tests.
+
+    Earlier tests:
+    - tests/adapters/test_claude_runtime_confinement.py (M): changed under the standing leave to move a shared test helper. Its constants, `Played`, `ConfineCall`, `Layout`, `CONFINE_SCRIPT` and helpers moved to tests/confine_support.py, and the private `_request`/`_runtime`/`_write_script`/`_read_records`/`_write_confine` became shared `run_request`/`confined_runtime`/`write_script`/`read_records`/`write_confine`. The `layout` fixture moved to tests/conftest.py. Every test keeps its name and its assertions; only the call sites changed.
+    - tests/conftest.py (M): changed under the same standing leave. Its only change is the moved `layout` fixture, built by `confine_support.build_layout`. tests/test_agent_home_ownership.py keeps its own module-level `layout`, which overrides the shared one there.
