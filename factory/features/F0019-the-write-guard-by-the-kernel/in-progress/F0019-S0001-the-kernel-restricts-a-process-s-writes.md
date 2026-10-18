@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T14:40:59.655074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-18T14:40:59.655074Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T14:41:21.376877Z'
+  stage: smoke-test
+  run: bed651d0e724473c99ef140104652bf9
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -309,3 +311,38 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
     `check`: check: green
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test passed: all three commands met their `Expect:` lines. No findings.
+
+    I ran each command under `## Smoke test` from the repository root, exactly as written, each in its own shell. The `trap` in commands 2 and 3 removed their temporary folders. I added `; echo "exit=$?"` after each command only to record its exit status; the commands themselves were not changed.
+
+    Command 1 (`abi_version() >= 3`):
+    ```
+    True
+    exit=0
+    ```
+    Met `Expect: True`.
+
+    Command 2 (`restrict_writes([allowed], [])`, then a write in `allowed` and one in `other`):
+    ```
+    allowed/a.txt written
+    other/b.txt refused
+    exit=0
+    ```
+    Met `Expect:` (two lines: `allowed/a.txt written`, then `other/b.txt refused`).
+
+    Command 3 (`restrict_writes([missing], [])`, then a write in the base folder):
+    ```
+    cannot open <d>/missing: No such file or directory
+    still unrestricted
+    exit=0
+    ```
+    Met `Expect:` (two lines: `cannot open <d>/missing: No such file or directory`, then `still unrestricted`).
+
+    Checked against the acceptance criteria: nothing in the output contradicts any of them.
+    - Command 1 fits criterion 2 (ABI of at least 3 on this machine).
+    - Command 2 fits criteria 3 and 5: a write beneath the allowed folder succeeds, a write elsewhere fails with `PermissionError`.
+    - Command 3 fits criterion 4: the exact message for a missing folder, and nothing is restricted after the refusal.
+
+    Not covered by the smoke test, and not run by me: criteria 6, 7 and 9 (stacking, closed descriptors, ordering), the file-rule rows of criterion 3, and criteria 10 and 11 (`make check`, docs). For these I rely on the earlier stages' entries: the tests named in entry 8, and `check: green` in entries 10 and 14.
+
+    Open: nothing.
