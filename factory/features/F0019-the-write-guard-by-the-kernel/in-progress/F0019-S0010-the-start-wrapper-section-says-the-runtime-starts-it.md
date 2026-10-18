@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T20:22:51.436219Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T20:22:31.353363Z'
   stage: docs
   run: 2c1bfc39bd9949c8b163cd8ef741832c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:22:51.436219Z'
+  stage: smoke-test
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -171,3 +180,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
