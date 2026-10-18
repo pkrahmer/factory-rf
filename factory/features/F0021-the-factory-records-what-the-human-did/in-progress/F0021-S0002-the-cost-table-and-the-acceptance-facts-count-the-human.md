@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T22:36:16.863129Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-18T22:36:16.863129Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:38:07.076533Z'
+  stage: tests
+  run: d0b58d36f47a4f519d5c02ed94228694
 ---
 
 # The cost table and the acceptance facts count the human
@@ -326,3 +328,18 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
 
     Not run: `make check`, because nothing changed since entry 10, where it was green.
 15. factory: started tests as self.
+16. tester: Round 1, test change (step 0). Entry 14 (coder) names this change, which comes from the reviewer's finding in entry 12: no test checked either side of the `PositiveInt` limit on `HumanWait.question`. CLAUDE.md *Tests* asks for a test on both sides of every limit the Interface states.
+
+    What I changed, only in `tests/domain/test_human_waits.py`:
+    - Added `test_a_wait_names_a_question_numbered_from_one`, one parametrized test that builds `HumanWait` through a variable typed `type[BaseModel]`. Each row also passes `blocked="question"` and a UTC `asked_at`.
+      - `zero`: `question=0` raises `ValidationError`.
+      - `one`: `question=1` is accepted and keeps the value.
+    - Imported `BaseModel` and `ValidationError` from pydantic.
+    - Ran `ruff format` on the file to add the blank line that `make lint` asked for.
+
+    No other test changed. I did not add a criterion row to `## Description`. Entry 14 left it open, and the limit was already stated in the Interface.
+
+    Test run: `make test` is green (`test: green (40.8 s)`), so the code already refuses 0 and accepts 1. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (39.4 s)

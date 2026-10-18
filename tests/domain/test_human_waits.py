@@ -3,6 +3,7 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from pydantic import BaseModel, ValidationError
 
 from factory.domain.human_waits import HumanWait, human_line, human_waits
 from factory.domain.journal import HUMAN, JournalRecord
@@ -130,6 +131,19 @@ def test_each_blocking_question_waits_until_the_next_human_record_with_a_time(
     journal: list[JournalRecord], expected: list[HumanWait]
 ) -> None:
     assert human_waits(journal) == expected
+
+
+@pytest.mark.parametrize(("question", "accepted"), [(0, False), (1, True)], ids=["zero", "one"])
+def test_a_wait_names_a_question_numbered_from_one(question: int, accepted: bool) -> None:
+    model: type[BaseModel] = HumanWait
+
+    if not accepted:
+        with pytest.raises(ValidationError):
+            model(question=question, blocked="question", asked_at=_at(10))
+        return
+    wait = model(question=question, blocked="question", asked_at=_at(10))
+    assert isinstance(wait, HumanWait)
+    assert wait.question == question
 
 
 def _answered(blocked: str, duration: timedelta) -> HumanWait:
