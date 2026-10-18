@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 213
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0016-S0001, F0016-S0002, F0016-S0003]
+outcome: accepted
 ---
 # Acceptance of The shakedown's findings
 
@@ -250,3 +251,4 @@ Each story passed every stage at its first run: six runs, one per stage, no rewo
    7. Slow checks: none beyond `make check` and `make mutants`. `make documents` → `documents ok`; `make duplicates` → `0 new, 39 known, 0 gone`. The new test module adds about 12 s of the suite's 508 s.
    8. Cost: 18 runs, 13.0 min, $3.25. Each story took six runs, one per stage, with no rework; S0003 cost most ($1.28) as the only code story.
    The demo's scratch directories under `/tmp` (`/tmp/f0016-demo`, the worlds' `tmp*` directories) are left behind: the command to remove them was denied.
+2. done (pull request merged); cost: 1 runs, 46.4 min, 71 turns, 143k tokens in (5974k more from cache), 40k out, $3.14
