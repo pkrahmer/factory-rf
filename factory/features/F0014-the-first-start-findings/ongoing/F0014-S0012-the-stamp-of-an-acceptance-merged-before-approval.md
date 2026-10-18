@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 203
 blocked: null
 comments_seen: 0
 round: 0
@@ -54,3 +54,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted.
+   - Interface: no new names. It pins the existing `book_merge(document, bill, *, before_approval=False, at=None)` in `src/factory/domain/acceptance.py` (signature read and matches) and the `AcceptanceMerged` call in `src/factory/application/acceptance.py`. Its one behaviour comment, the `done` text with `before_approval`, is covered by criterion 3. The stamp (`at`, `stage="done"`) on both branches is covered by criteria 1 and 2. The rule has no limit or rejected input, so no failing side is missing. The `without at` side is criterion 2.
+   - Criteria: each is testable by one function or one row. Criteria 1 and 2 are the `merge-before-approval` `booking` row of `test_booking_records_the_done_entry_with_the_time_and_the_done_stage`. The test exists in `tests/domain/test_journal_stamps.py` with `with-at` and `without-at` rows, and the new `booking` function is `book_merge(_report(), bill([]), before_approval=True, at=at)`. FEATURE decision 35 gives the leave for that row. Criterion 3 is a new function in `tests/application/test_acceptance_merged_before_approval.py`. Its fixtures `publish` and `merge` and its helper `_booked` exist there.
+   - Demo: both commands are runnable, and each Expect line is checkable (two named output lines; a pytest summary with `<n> passed` and no `failed`, `error` or `skipped`).
+   - Architecture: tests only, with a domain test and an application test, in the layer folders the tests mirror. No source change is needed or asked for.
+   - Scope: within F0014. FEATURE.md lists S0012 and the leave of decisions 35 and 36 (4). Nothing in "Out of scope" is touched.
