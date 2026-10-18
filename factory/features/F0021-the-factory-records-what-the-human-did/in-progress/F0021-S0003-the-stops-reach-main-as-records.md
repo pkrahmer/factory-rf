@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T22:59:06.989398Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-18T22:59:06.989398Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T23:00:20.925662Z'
+  stage: review
+  run: 2c05376bbe2f4030bc177027c09b4058
 ---
 
 # The stops reach main as records
@@ -280,3 +282,9 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 11. factory: started review as self.
+12. reviewer: Group 1 (acceptance criteria) fails. I read every new test against its criterion. Criteria 1 to 15 each have a test, and each test checks what its criterion says. The coder's entry 10 reports the factory's `make check` as green. One rule the Interface states has no criterion for its failing side, and the code reads that rule in a way the human has not decided.
+
+    1. Story, criterion 7, against the Interface clause of `StopService.raise_stop`. The Interface says "an `OSError` of any of the three is raised after all three were tried", but criterion 7 only covers the record log's `append` failing. When the log line raises, or the health status read or write raises, nothing tests that a `raised` record is still appended and the `OSError` raised after it. Fix: the human adds a criterion with those rows: the log line raises, the health status write raises, the health status read raises. Until then the coder can only ask, under R9.
+    2. `src/factory/application/stops.py`, `raise_stop`. `standing = True` sits before `health.read()`, so a failed read skips the append. That stop then never reaches the records, and the Interface's "all three were tried" does not hold. The coder noted this in entry 10 but no criterion settles it. Fix: the coder asks the human (R8) whether a failed read should still append the `raised` record, at the risk of a second `raised` line, or append nothing. The answer goes into the criterion of finding 1, and the code follows it.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`), so no test that `main` already holds was changed, renamed or deleted.
