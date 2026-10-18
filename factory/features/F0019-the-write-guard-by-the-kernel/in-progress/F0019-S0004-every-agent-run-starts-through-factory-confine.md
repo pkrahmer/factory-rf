@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T15:50:11.558909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -66,6 +62,12 @@ journal:
   kind: started
   at: '2026-10-18T15:50:11.558909Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-18T15:52:33.637482Z'
+  stage: tests
+  run: c629908e90e944c0a7f39182829adc0d
 ---
 
 # Every agent run starts through `factory-confine`
@@ -241,3 +243,32 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 9. 2026-10-18 human: A: the removal builds its command from `SHELL_EXECUTABLE`, the test patches it with a recording script, and the Interface gets the line "the removal's shell is `SHELL_EXECUTABLE`"; criterion 10's `sudo` row keeps the literal `/bin/sh`.
    Your open note: done on main (`84c9bde9`): `[tool.mutmut]` now deselects `tests/entry/test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime`; keep that test's name.
 10. factory: started tests as self.
+11. tester: The human picked A in entry 9. The test I wrote last round already follows it, so no test changed this round. For the row without an `os_user`, `tests/adapters/test_claude_runtime_confinement.py::test_the_removal_runs_in_the_working_directory_with_an_empty_environment[shell]` uses `monkeypatch` to set `factory.adapters.claude_runtime.SHELL_EXECUTABLE` to a script that records each call and then runs `/bin/sh`. It reads the last call it recorded, which is the removal: that call holds `CLEANUP_SCRIPT`, runs in the request's working directory, and has an empty environment apart from the locale. Criterion 10's `sudo` row still expects the literal `/bin/sh`.
+
+    Not done: the work item is outside the tests stage's write paths (the guard refused the edit), so I could not add the Interface line the human asked for, "the removal's shell is `SHELL_EXECUTABLE`". The coder should build the removal's command from `SHELL_EXECUTABLE` as entry 9 says, and the line still has to go into the Interface.
+
+    Criterion to test (all in tests/adapters/test_claude_runtime_confinement.py unless noted):
+    criterion 1: test_without_a_confine_executable_a_call_starts_as_before_and_writes_no_rules
+    criterion 2: test_a_call_starts_through_the_confine_executable_with_its_rules_file
+    criterion 3: test_with_a_user_sudo_starts_the_confine_executable_after_env_i_with_the_config_folder
+    criterion 4: test_the_rules_file_holds_the_confinement_while_the_call_runs_and_is_gone_after
+    criterion 5: test_the_rules_hold_the_targets_of_write_and_tool_paths_the_home_s_runtime_folder_and_devices
+    criterion 6: test_through_the_wrapper_only_a_write_the_rules_allow_is_made
+    criterion 7: test_the_agent_sees_its_temporary_folder_the_config_folder_and_the_switches
+    criterion 8: test_a_request_without_guard_settings_is_confined_with_no_path_of_the_checkout
+    criterion 9: test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run
+    criterion 10: test_with_a_user_the_removal_runs_through_sudo_and_its_failure_changes_no_result
+    criterion 11: test_a_wrapper_line_without_a_reply_is_a_runtime_error_and_before_a_reply_is_ignored
+    criterion 12: tests/entry/test_wiring_confinement.py::test_build_boundaries_confines_the_runtime_unless_told_not_to
+    criterion 13: test_without_a_temporary_root_the_run_s_folder_lies_in_the_system_temporary_folder
+    criterion 14: test_a_sudo_refusal_is_reported_before_a_wrapper_line
+    criterion 15: test_a_wrapper_line_of_a_call_killed_at_its_time_limit_is_a_runtime_error
+    criterion 16: test_the_removal_runs_in_the_working_directory_with_an_empty_environment (rows sudo, shell)
+    criterion 17: tests/entry/test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime (name kept, because `[tool.mutmut]` on main deselects it, 84c9bde9)
+
+    Files created (last round): tests/adapters/test_claude_runtime_confinement.py, tests/entry/test_wiring_confinement.py. Earlier tests changed under feature decision 13, as the description names them: in tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_keeps_its_run_files_under_runs and tests/entry/test_wiring_login.py::test_the_built_runtime_hands_the_login_file_s_token_to_claude, the `build_boundaries` call gained `confine_executable=None` and nothing else changed.
+
+    `make test` is red as intended. tests/adapters/test_claude_runtime_confinement.py fails at collection with an ImportError: `CLEANUP_SCRIPT` and `CONFIG_VARIABLE` are not yet in `factory.adapters.claude_runtime`, and `DEVICE_FILES` and `DEVICE_FOLDERS` are not yet in `factory.domain.confinement`. The two changed wiring tests fail on the `confine_executable` keyword, which `build_boundaries` does not have yet. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: ERROR tests/adapters/test_claude_runtime_confinement.py - ImportError while i...
