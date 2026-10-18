@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T20:20:48.217591Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T20:20:48.217591Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T20:21:10.273517Z'
+  stage: review
+  run: 87ab110ee72440c498ea3b63646257b2
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -129,3 +131,13 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item's `.md` and adds its `.costs.jsonl` sidecar. Criterion 1 holds: nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - Criterion 2: entry 7 records `check: green` after the coder, and `duplicates` reports 0 new findings.
+   - Criterion 3, the docs criterion: it is still the documenter's work, and it matches the code and the guide as they stand.
+     - `ClaudeCodeRuntime` starts each call through `confine_executable` when it is given (`src/factory/adapters/claude_runtime.py:454-465`, `:561`, `:577`).
+     - `build_boundaries` defaults it to `CONFINE_COMMAND` (`src/factory/entry/wiring.py:233`).
+     - The stale sentence is at `docs/project-guide.md:1335`, and the paragraph to move is at `:1337`. The target sections exist: *The kernel's write guard* at `:1300` and *The `claude -p` runtime* at `:302`.
+   - Work item hygiene: entry 7 gives the main choice, no code change, and what it rejected, the coder editing the guide itself. The Description matches what was built, which is nothing yet.
+   - Earlier tests: no test file that `main` holds is changed, renamed or deleted.
