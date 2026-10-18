@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 204
 blocked: null
 comments_seen: 0
@@ -112,3 +112,4 @@ Expect: `documents ok`.
      - The README status paragraph replaces the "not observed yet" clause with the first start of 2026-10-17 (two instances healthy, probe agent run included) and says the end-to-end stage agent run and a `time_limit` under `sudo` are first observed at the shakedown run.
 
    Still open, outside this story: the documenter noted that the opening paragraph of `docs/operator-guide.md` still has the stale "not observed yet" wording. Criterion 3 says "no others", so it is a follow-up and not a finding.
+8. done (pull request merged); cost: 6 runs, 2.1 min, 27 turns, 90k tokens in (288k more from cache), 6k out, $0.67
