@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 238
-comments_read: [6256436044, 6256513714]
+comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
 claim: null
 journal:
@@ -148,6 +148,11 @@ journal:
   stage: doing
   run: 20db31ba2cae4443be179bf0c4dfaa4c
   blocked: question
+- number: 26
+  speaker: human
+  kind: comment
+  at: '2026-10-18T23:42:07.239096Z'
+  stage: doing
 ---
 
 # The run record counts the refused tool calls
@@ -416,3 +421,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     If you choose (a) or (b), the Description itself is unaffected. Only the `## Smoke test` block changes, and nothing in `src/` or `tests/` does.
 
     Noticed, not touched: the possibly flaky `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` from entry 10 is still open.
+26. 2026-10-18 human: (a): give the two records different `run` values (take `run` out of `fields`; `run="a" * 32` for `started`, `run="b" * 32` for `done`); the `Expect:` line stays. The reviewer has leave to make exactly this edit to `## Smoke test` on its next run, and nothing else; the code goes forward unchanged.
