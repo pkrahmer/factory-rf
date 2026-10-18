@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 223
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T15:39:43.738533Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T15:39:43.738533Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-18T15:40:08.426822Z'
+  stage: intake
+  run: 55978e7abfd14267856b1a40b2b090df
 ---
 
 # Every agent run starts through `factory-confine`
@@ -140,3 +142,10 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: Questions. The format check passed, so there are no form findings. Three Interface clauses have no criterion. The smoke test, the architecture and the scope are fine.
+
+   1. The Interface says a call "cut short by the time limit" whose standard error holds a `factory-confine:` line raises `AgentRuntimeError`. Criterion 11 covers only "no reply" and "line before a usable reply". The time-limit branch of that "or" has no criterion. Option A: add a criterion that a call killed at its time limit with a `factory-confine:` line on standard error raises the wrapper's `AgentRuntimeError`. Option B: remove the clause from the Interface. I would choose A.
+
+   2. The Interface says the removal runs "in the request's working directory with an empty environment". No criterion checks the working directory or the environment of the removal. Criterion 10 checks only the command line. Option A: add a criterion that the stand-in `sudo` and the no-`os_user` removal see the request's working directory and an empty environment. Option B: drop the clause. I would choose A.
+
+   3. The Interface says the callers of `build_boundaries` in the package (`factory.entry.run` and `boundaries_from_environment`) pass no `confine_executable`, "so every run of the factory is confined". Decision 13 says "a test pins the default". Criterion 12 tests only `build_boundaries` itself. Option A: add a criterion that `boundaries_from_environment` yields a runtime whose `confine_executable` is `factory-confine`, and that `factory.entry.run` passes no `confine_executable` (a source check). Option B: say in the Interface that only the default is tested. I would choose A.
