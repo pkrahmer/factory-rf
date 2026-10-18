@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 207
 blocked: null
 comments_seen: 0
@@ -72,3 +72,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria: criterion 1 is pinned by tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process. It uses `YAML(typ="safe")` and `factory.get("init") is True`, so it fails both for a missing key and for the string "true", which is the rule's failing side. Criterion 2 is pinned by test_the_entrypoint_hands_over_to_the_factory_with_exec: the last non-blank line must equal `exec python -m factory.entry.run`, and any other line fails it. Criterion 3 relies on the existing compose and image tests, and the diff does not touch them. The coder's entry records `make check`: check: green, and `make duplicates`: 0 new.
+      - Interface: `image/compose.yml` gains only `init: true`, placed right after `restart: unless-stopped`. One comment line above it says that the runtime's init is the first process and reaps what a killed run leaves, and that the factory reaps only its own children. `image/entrypoint.sh` and `image/Dockerfile` do not appear in the diff. The new test module sits at the `tests/` root, reads both files from `Path(__file__).parent.parent` as the Interface says, and imports nothing under `src/`.
+      - Architecture and security: nothing under `src/` changes, and there are no suppression markers or secrets.
+      - Quality: the module docstring is present and the names say what they hold. There is no dead or duplicated code.
+      - Ticket hygiene: the Assignment matches what was built. The coder's entry names the design choice and the rejected alternatives (the factory as the reaper, tini in the image). The docs criterion is still current for the documenter.
