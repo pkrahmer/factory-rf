@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T20:21:30.744170Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T20:21:30.744170Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T20:22:31.353363Z'
+  stage: docs
+  run: 2c1bfc39bd9949c8b163cd8ef741832c
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -151,3 +153,21 @@ Expect: `documents ok`
    - Work item hygiene: entry 7 gives the main choice, no code change, and what it rejected, the coder editing the guide itself. The Description matches what was built, which is nothing yet.
    - Earlier tests: no test file that `main` holds is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Changed one file: `docs/project-guide.md`.
+    - *The start wrapper*, first paragraph: "Nothing starts it yet: the runtime will." now says that `ClaudeCodeRuntime` starts every agent run through `factory-confine` when it is built with `confine_executable`, which `build_boundaries` passes by default, and that the command line is in "The `claude -p` runtime".
+    - The `confinement_item(abi, environment, find)` paragraph moved word for word from *The start wrapper* to the end of *The kernel's write guard*, after its *Tests* subsection.
+
+    No other passage changed.
+
+    Checks I ran:
+    - `uv run python -m factory.entry.check_documents` prints `documents ok`.
+    - `grep -c "Nothing starts it yet" docs/project-guide.md` gives 0.
+    - I did not run the smoke test's other three commands. The moved paragraph is a single line that begins with the quoted text, and I saw it at the end of the write guard section.
+    - I did not run `make check`, because I changed only a document. The factory's check after this stage is the gate.
+
+    Cross-read and found current: the first paragraph of *The kernel's write guard*, which already says the runtime starts every agent run through the wrapper. I did not re-read `docs/operator-guide.md` or `README.md`: the story says they already agree, and the diff changes no code. I made no code-versus-docs comparison, because the diff has no code.
+
+    Findings for the coder: none. Stale text noticed but not touched: nothing.
+
+    `check`: check: green
+    `documents`: documents ok
