@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T17:04:36.277337Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-18T17:04:36.277337Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T17:05:57.176881Z'
+  stage: docs
+  run: 21496aabca96477080e0ba67329f5daa
 ---
 
 # The preflight checks the kernel's write guard
@@ -298,3 +300,19 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     - tests/application/test_tick_preflight.py: the standing leave to move a shared test helper, with the same helper-only change.
     - tests/wiring_support.py: the shared place the helper moved to, under the same leave. It gained `every_tool` and a wider module docstring, and its constants are unchanged.
 18. factory: started docs as self.
+19. documenter: No findings. The code matches the Interface and the criteria. I ran the code's output against the doc text only by reading; I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The preflight's items*: the intro now says "up to thirteen" and lists `confinement` among the extras (the reviewer's note for line 315). A new `confinement` row sits between `agent-environment` and `agent-run-probe`. It gives what the item checks, its three faults with their exact texts, and what to do: update the kernel, on WSL with `wsl --update`, or let the seccomp profile allow `landlock_create_ruleset`, `landlock_add_rule` and `landlock_restrict_self`; install `factory-confine` with the factory.
+    - `docs/operator-guide.md`, the `preflight_failed` row in the stops table: it now names the `confinement: ...` detail and says there is no fallback to the hook.
+    - `docs/operator-guide.md`, the paragraph on a kernel without ABI 3 (the end of the confinement section): it says the preflight finds this first, the stop is `preflight_failed`, no agent runs, and the factory does not fall back to the hook.
+    - `docs/decisions.md`: new entry *No agent runs without the kernel's write guard* (2026-10-18, F0019-S0005). It holds the decision, the reasons of the feature's decision 12 and the alternative left to the human (an operator setting that falls back to the hook alone).
+
+    Cross-read and found current against the diff: `docs/operator-guide.md` on the probe, the guard and the `factory-confine:` line; `docs/decisions.md` entries for S0001 to S0004; `docs/project-guide.md` on the ABI check (`abi_fault`, `LANDLOCK_MINIMUM_ABI`) and the wrapper's steps.
+
+    Stale, not mine to fix:
+    - `docs/project-guide.md:1302` says "the agent runtime does not start the wrapper yet". S0004 made it start the wrapper. This is S0004's text and should be corrected by a later docs pass. `docs/project-guide.md:1223` ("Nothing calls them yet; the runtime does") may be stale in the same way.
+    - `docs/project-guide.md` has no description of the `confinement_item` function or the `_path_fault` parameter. The docs criterion asks only for the operator guide and the decision log, so I did not add it. This is a gap, not an error.
+
+    `check`: check: green
+    `documents`: documents ok
