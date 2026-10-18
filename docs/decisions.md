@@ -569,3 +569,13 @@ Date: 2026-10-18 (F0019-S0002). The kernel's restriction must be applied by the 
 - Decision: every fault before the replacement is one line starting `factory-confine:` and exit status 1; the command never starts (fail closed).
 - Decision: the exception in `CLAUDE.md` widens by `os.execvpe` in `process.py`, with `noqa: S606` and `nosec B606` on that one line: six markers there in all. `factory.entry.confine` imports the landlock and process adapters directly (feature decision 19).
 - Rejected: a child process under the wrapper (the group kill would need the wrapper to survive and pass on its signals, and the wrapper's own process would stay unrestricted beside it).
+
+## The kernel's targets of the write paths and the tool paths
+
+Date: 2026-10-18 (F0019-S0003). The kernel allows writes beneath folders and on existing files; a write path is an `fnmatch` pattern, and a run also writes tool state that no write path names.
+
+- Decision: a pattern or a file still to be made is widened to the nearest folder the kernel can name, and never to the checkout's root, which would allow every write; the undo after the run narrows what the pattern does not match. A pattern at the root, and a new file at the root, have no target.
+- Decision: the project's tool state is the optional key `tool_paths` of the pipeline definition, in two forms only, `<folder>/*` in the checkout and `~/<folder>/*` in the agent's home. It is read at the stage-start commit with the write paths and passed on unchanged. It reaches the kernel's targets only: the hook and the undo judge the write paths, so a tool path never lets a change into the work item.
+- Decision: the functions are pure and in the domain (`write_targets`, `confinement_of`); the files that exist and the runtime's own paths are arguments, so the tests need no kernel. A path with a `.` or `..` segment gives no target, because pathlib would collapse it into the root or the folder above.
+- Rejected: widening a missing root file to the root; a tool path with a wildcard in the middle or at the root (the kernel cannot name it); reading the tool paths from the work tree (an agent could widen its own run).
+

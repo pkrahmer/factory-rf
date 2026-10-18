@@ -1099,6 +1099,7 @@ The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.
 | `attempts_cap` | attempts before the human is asked | 2 |
 | `crash_cap` | crashes before the human is asked | 2 |
 | `acceptance_stage` | the stage of the feature acceptance | none |
+| `tool_paths` | folders every role's agent run writes besides its write paths (the project's tool state); each is `<folder>/*` in the checkout or `~/<folder>/*` in the agent's home | `[]` |
 
 A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward move), `approval` (the human decides), `checks` (project commands run after the agent), `reports` (project commands run after green, recorded only) and `round_cap` (none: no cap). A role has `write_paths` (required; `{work_item}` is the work item's own file and `{feature}` its feature directory, the constants `WORK_ITEM_PLACEHOLDER` and `FEATURE_PLACEHOLDER`), `lease_duration` (60 minutes) and `time_limit` (40 minutes, the agent run's). A project command has `time_limit` (10 minutes). Every limit is a positive integer; stage, role and command names match `^[a-z][a-z0-9-]*$`.
 
@@ -1116,7 +1117,7 @@ A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward
 
 ### The rules of the definition
 
-`PipelineDefinition` has one validator that applies eleven rules, so every reader and every ref gets them. It collects the faults of all rules and refuses once, with the faults joined by `; ` in the order of the rules and, inside a rule, in the order of the stages or roles in the text. The reader reports the validator's message as the `fault`, without pydantic's `Value error, ` prefix.
+`PipelineDefinition` has one validator that applies twelve rules, so every reader and every ref gets them. It collects the faults of all rules and refuses once, with the faults joined by `; ` in the order of the rules and, inside a rule, in the order of the stages or roles in the text. The reader reports the validator's message as the `fault`, without pydantic's `Value error, ` prefix.
 
 **The contract.** `contract` is `<digits>.<digits>`. The major, compared as an integer, must be `CONTRACT_MAJOR` (1): `01.0` is read, `2.0`, `0.9` and `10.0` are not. Any minor is read (`1.0`, `1.7`, `1.10`).
 
@@ -1137,6 +1138,9 @@ The faults, in the order of the rules (`<s>` a stage, `<t>` a stage name, `<r>` 
 | 9 | `acceptance_stage <t> is not a stage with a role` |
 | 10 | `stage <s>: next is empty` |
 | 11 | `stage <s>: has neither a role nor approval` |
+| 12 | `tool path <path>: must be <folder>/* or ~/<folder>/*`, once for each such path |
+
+Rule 12: `<folder>` is one or more `/`-separated segments, each non-empty, none `.` or `..`, none holding `*`, `?` or `[`, and it does not start with `/`. `*.log`, `.venv`, `/var/cache/*`, `a/*/b/*`, `~/*` and `a/./b/*` are refused; `.venv/*`, `a/b/*` and `~/.cache/*` pass. The helper `tool_path_folder` (`factory.domain.pipeline_definition`) returns the folder of a valid tool path, `~/` kept, and `None` for any other form. A `tool_paths` that is not a list is refused by the model (`invalid tool_paths: Input should be a valid list`).
 
 Rules 10 and 11 apply to every stage except `done`, and only when the stage `done` exists. Without it the end of the pipeline is unknown, and rule 3's fault is the one that matters. A stage with an empty `next` has nowhere to send a forward outcome or an approval; a stage with neither a role nor `approval: true` runs no agent and waits for no human. Rule 10's faults come before rule 11's, each in the order of the stages. A stage no `next` names (such as `acceptance`) is accepted: there is no rule on reachability.
 
@@ -1204,6 +1208,30 @@ Errors: `ValueError` when `work_item_path` is not `factory/features/<feature dir
 The guard hook resolves the path it judges to a real path relative to the root (see "The guard command"); the undo takes git's paths as they are.
 
 Tests: `tests/domain/test_write_paths.py`, `tests/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
+
+### The kernel's targets
+
+The kernel (Landlock, see `factory.adapters.landlock` and the decision log) allows writes beneath a folder and on a file that exists. A write path is an `fnmatch` pattern and a run also writes the project's tool state, so two pure functions in `factory.domain.confinement` turn the settings into what the kernel can name. Nothing calls them yet; the runtime does.
+
+`GuardSettings.tool_paths` carries the definition's `tool_paths` as `WritePathService.at` reads them at the stage-start commit, unchanged: no placeholder is expanded in them. `refusal`, which the hook and the undo share, ignores them: with write paths `["src/*"]` and tool paths `[".venv/*"]`, `.venv/x` is refused as outside the write paths. The tool paths widen only what the kernel allows, never what the hook or the undo accept.
+
+`write_targets(guard, *, home)` returns `WriteTarget(path, kind)` values (`kind` is `folder` or `file`), the write paths first and then the tool paths, in order, a repeated target left out. For each write path, relative to `guard.root`:
+
+| Write path | Target |
+|---|---|
+| empty, starting with `/`, or holding a `.` or `..` segment | none |
+| `src/*` (ends in `/*`, no wildcard before it) | the folder `root/src` |
+| no `*`, `?` or `[` (`README.md`) | the file `root/README.md` |
+| any other: `docs/*.md`, `a/b?/c`, `a/[bc]/d` | the folder of the segments before the first segment with a wildcard (`root/docs`, `root/a`, `root/a`) |
+| a wildcard in the first segment (`*.md`, `*`) | none |
+
+`~/<folder>/*` in a tool path is the folder `home/<folder>` (none when `home` is `None`); `<folder>/*` is the folder `root/<folder>`; any other form gives none.
+
+`confinement_of(targets, *, root, existing_files, extras, temporary_directory)` returns the `Confinement`: a folder target goes to `folders`; a file target in `existing_files` goes to `files`; a file target that does not exist yet puts its parent folder in `folders` (`docs/openapi.json` gives `docs`), and at the root gives nothing, because the root would be the whole checkout. The `extras` (the runtime's own paths) are taken as given, never widened and never checked against `existing_files`, after the targets' folders and files respectively. A path repeated in one list is left out; `temporary_directory` is passed through.
+
+So a pattern or a missing file is widened to the nearest folder the kernel can name, never to the root, and the undo after the run narrows the rest: whatever the run wrote in such a folder outside the write paths is reverted as it is today. A write path that only matches at the root (`*.md`) or a new file at the root has no target, and the run cannot write it under the kernel.
+
+Tests: `tests/domain/test_tool_paths.py`, `tests/domain/test_write_targets.py`, `tests/domain/test_confinement_of.py`, `tests/application/test_write_paths_tool_paths.py`.
 
 ## The guard command
 

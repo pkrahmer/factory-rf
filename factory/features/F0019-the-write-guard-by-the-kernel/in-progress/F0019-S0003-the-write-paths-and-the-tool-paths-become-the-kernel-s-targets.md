@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379, 6251729450]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T15:34:36.963158Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -143,6 +139,12 @@ journal:
   kind: started
   at: '2026-10-18T15:34:36.963158Z'
   stage: docs
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T15:36:36.069607Z'
+  stage: docs
+  run: 087824e6f80e4c4280a4bda1cdc53b72
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -449,3 +451,23 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     Earlier tests:
     - `tests/application/test_write_paths.py`: changed under the standing leave to move a shared test helper. `_stage_start`, `_push_definition` and `PIPELINE_FILE` moved to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
 24. factory: started docs as self.
+25. documenter: I wrote the docs criterion (11) and found no finding for the coder. The code and the tests match the Interface and the amended Description. I changed only documents, so I did not run `make check`; the factory's check after this stage decides. I ran the second smoke command and it printed the five expected lines.
+
+    Files changed:
+    - `docs/project-guide.md`:
+      - *The pipeline definition*: `tool_paths` is in the key table.
+      - *The rules of the definition*: it now says twelve rules, with rule 12 in the fault table, the form of `<folder>`, accepted and refused examples, `tool_path_folder`, and the string-instead-of-list fault.
+      - *The write paths*: a new subsection *The kernel's targets*, placed before *The guard command*. It covers `GuardSettings.tool_paths`, the `write_targets` table, `confinement_of` with the widening of a missing file or pattern to a folder and never the root, the undo narrowing the rest, and that `refusal` ignores the tool paths.
+    - `docs/operator-guide.md`, *The pipeline definition*: a `tool_paths` row in the key table, a paragraph with the example `[".venv/*", ".reports/*", "~/.cache/*"]`, the fault text, and the statement that a tool writing elsewhere is refused once the guard is live.
+    - `docs/decisions.md`: a new entry *The kernel's targets of the write paths and the tool paths*, dated 2026-10-18 (F0019-S0003).
+
+    For the decisions entry I did not read `feature.md` (the stage forbids it). I took the reasons for the feature's decisions 6, 8 and 15 from this story's Description, the criteria and the journal. I did not check the entry's wording against the numbered decisions. The human may want to check that.
+
+    Cross-read and found current: `README.md`, and the other sections of `docs/operator-guide.md` and `docs/project-guide.md` that name the write paths, the guard hook and the undo. None names a changed identifier. `_is_safe` became the public `is_inside_checkout`, and no document named it.
+
+    Stale text I noticed and did not touch:
+    - The operator guide's opening paragraph says `factory-confine` is used "once the runtime uses it". That is still true until S0004.
+    - `make duplicates` lists `write_targets` and `confinement_of` as dead code until S0004 uses them. This is already known from the earlier entries.
+
+    `check`: check: green
+    `documents`: documents ok
