@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T15:24:34.948620Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -73,6 +77,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T15:24:17.469940Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:24:34.948620Z'
   stage: doing
 ---
 
@@ -290,3 +299,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     - `write_targets`: a write path with a `.` segment gives no target; add `./*`, `./*.md` and `.`, each giving nothing, to criterion 4.
     - Leave `is_inside_checkout` as it is, so the hook's refusal does not change in this story.
     Amend the Interface's rules accordingly (feature decision 20, on main). End with `tests` naming the rows.
+13. factory: started doing as self.
