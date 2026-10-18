@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T19:14:24.972263Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T19:14:04.907241Z'
   stage: review
   run: b35b7aa00aaa4360b4062c331c386c45
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:14:24.972263Z'
+  stage: docs
 ---
 
 # The documents describe the live write guard
@@ -136,3 +145,4 @@ Expect: `documents ok`
 9. reviewer: no findings
    The diff outside `factory/` is empty, which is what criterion 1 asks for a documents-only story. The coder's entry 7 reports the factory's `make check` as green, and `make duplicates` reports 0 new findings. I checked the docs criterion against the code and the documents, and it still describes what the documenter must write. The stale passages are still in place: "Six commands" at `README.md:12`, which names seven; "once the runtime uses it" at `README.md:12` and `docs/operator-guide.md:3`; and "Once the kernel's write guard is live" at `docs/operator-guide.md:706`. `template/Makefile:74` still writes `.licenses-requirements.txt` at the checkout's root. This repository moved both files into `.reports/` (`pyproject.toml:108` `data_file`, `Makefile:66`). `confinement_item(abi, environment, find)` at `src/factory/application/preflight.py:184` joins its kernel and `PATH` faults with `; ` under the item `confinement`. The Description matches what was built, which is nothing outside the documents.
    Earlier tests: the diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as self.
