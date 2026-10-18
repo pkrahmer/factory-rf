@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T15:01:36.150704Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -116,6 +112,12 @@ journal:
   kind: started
   at: '2026-10-18T15:01:36.150704Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-18T15:03:31.195086Z'
+  stage: tests
+  run: 84e26c4f33e249988e003a3b7a65f293
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -374,3 +376,18 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
     Noticed, not touched (as in entry 14): coverage is 78% for `src/factory/entry/confine.py` and 35% for `src/factory/adapters/landlock.py`, because the rows that restrict and exec run in a child that coverage does not follow. `CONFINE_COMMAND` is still unused until S0004, and `make duplicates` reports it as a new dead-code record.
 19. factory: started tests as self.
+20. tester: I made the one test change from the review finding in entry 16, as the coder named it in entry 18. In `tests/adapters/test_process_replace.py`, I merged `test_replace_process_becomes_the_command_with_the_given_environment` and `test_replace_process_that_cannot_start_raises_and_this_process_goes_on` into one parametrized test, `test_replace_process_becomes_the_command_or_raises_and_this_process_goes_on`. It has three rows:
+    - `becomes-the-command`: runs `CHILD` in a child through `sys.executable -c` and expects `("replaced\n", 7)` as stdout and exit status.
+    - `not-on-the-path`: calls `replace_process(["no-such-program"], {"PATH": str(tmp_path)})` in-process, expects `FileNotFoundError`, then checks that the test goes on.
+    - `empty-argv`: calls `replace_process([], {"PATH": "/usr/bin:/bin"})` in-process, expects `ValueError`, then checks that the test goes on.
+
+    Each row checks exactly what the two earlier functions checked; `CHILD` is unchanged. This module belongs to this story, so no leave was needed. I changed no other test or file and created no files.
+
+    Criterion 2 now maps to `tests/adapters/test_process_replace.py::test_replace_process_becomes_the_command_or_raises_and_this_process_goes_on`. The other criteria's mappings are unchanged.
+
+    `make lint` is green. I ran `make test` once and it was green, with total coverage at 98.64%. The run could import every module.
+
+    Open: the coder's next doing run confirms `make check` is green, which includes the type check of this test.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (43.2 s)
