@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T23:39:30.592537Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-18T23:39:10.311507Z'
   stage: docs
   run: 141d889a390d4e4f9b19b90f91cb624a
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:39:30.592537Z'
+  stage: smoke-test
 ---
 
 # The run record counts the refused tool calls
@@ -348,3 +357,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
     `check`: check: green
     `documents`: documents ok
+22. factory: started smoke-test as self.
