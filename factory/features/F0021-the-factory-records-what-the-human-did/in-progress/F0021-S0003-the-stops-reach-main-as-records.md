@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T22:49:15.553197Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-18T22:49:15.553197Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:54:31.153953Z'
+  stage: tests
+  run: bd9ecdf01ed346f3b2c348090b7ca8c1
 ---
 
 # The stops reach main as records
@@ -196,3 +198,37 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
    - Architecture: `domain` holds the record and the pure text functions. `application` holds the service and the publisher, which reach git only through `WorkItemRecorder` and the boundaries. `entry` holds the wiring. The layering is respected.
    - Scope: the story is inside the feature's decisions 1 to 3. It leaves out `factory-run`'s invalid-settings stop, the health status and S0004's refused calls, as the feature's "Out of scope" requires.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 15. Each criterion is one test function, and a criterion with rows is one parametrized test. `make lint` is green. One `make test` run fails as it should: the new test modules hit an ImportError at collection, because `StopRecord`, `stop_records_text`, `parse_stop_records`, `StopPublisher`, `STOP_RECORDS_FILE` and `Boundaries.stop_records` do not exist yet. The tail of the output named four of the modules; `test_stop_publisher.py` imports the same missing names.
+
+   - criterion 1: tests/domain/test_stop_records.py::test_a_stop_record_accepts_a_known_event_and_the_scope_of_its_reason
+   - criterion 2: tests/domain/test_stop_records.py::test_the_records_text_is_one_json_line_per_record_in_field_order
+   - criterion 3: tests/domain/test_stop_records.py::test_parsing_keeps_the_records_that_validate_in_order
+   - criterion 4: tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands
+   - criterion 5: tests/application/test_stop_records_service.py::test_a_clear_of_a_standing_stop_appends_a_cleared_record_at_the_clock_time
+   - criterion 6: tests/application/test_stop_records_service.py::test_without_stop_records_a_raise_and_a_clear_write_only_the_log_and_the_health_status
+   - criterion 7: tests/application/test_stop_records_service.py::test_an_unwritable_record_log_raises_after_the_log_and_the_health_status_were_written
+   - criterion 8: tests/application/test_stop_publisher.py::test_the_local_records_reach_a_new_file_on_main_in_local_order
+   - criterion 9: tests/application/test_stop_publisher.py::test_only_the_missing_records_are_added_after_the_lines_main_holds
+   - criterion 10: tests/application/test_stop_publisher.py::test_nothing_to_publish_makes_no_commit
+   - criterion 11: tests/application/test_stop_publisher.py::test_a_main_moved_on_after_the_fetch_refuses_the_push_and_the_next_call_publishes_once
+   - criterion 12: tests/application/test_tick_stop_records.py::test_a_tick_publishes_the_records_only_once_it_got_past_the_restore
+   - criterion 13: tests/application/test_tick_stop_records.py::test_a_failed_publish_is_logged_and_the_tick_goes_on
+   - criterion 14: tests/application/test_stop_publisher.py::test_a_main_that_does_not_resolve_raises_git_error_and_keeps_the_records
+   - criterion 15: tests/entry/test_wiring_stop_records.py::test_the_built_stop_records_read_back_a_record_from_the_state_directory
+
+   How I set up the harder cases:
+   - **Criterion 12, fetch row:** the fetch fails because the checkout's `origin` URL is pointed at a path that does not exist, and the next step points it back.
+   - **Criterion 12, restore row:** a read-only folder makes the restore fail, as in `test_tick.py`. The row is skipped when the tests run as root.
+   - **Criterion 13, refused push:** a `pre-receive` hook in the bare remote refuses `refs/heads/main`.
+   - **Criterion 13, `GitError` row:** a tick that gets past the restore always has a resolvable `origin/main`. So this row uses `_UnresolvableMainForStopRecords`, a `GitCli` subclass that is real git throughout. Only while `factory/stops.jsonl` is read does it delete `refs/remotes/origin/main` and then put it back, so the `GitError` comes from real git.
+   - **Criterion 14:** this one needs no subclass. The test deletes `main` in the bare remote and fetches with prune, so `origin/main` really does not resolve.
+   - **Reading the remote:** the tests read `main:factory/stops.jsonl` straight from the bare remote.
+
+   I changed no earlier test file. Criteria 16 and 17 have no test: they are `make check` and the docs.
+
+   Files created: tests/domain/test_stop_records.py, tests/application/test_stop_records_service.py, tests/application/test_stop_publisher.py, tests/application/test_tick_stop_records.py, tests/entry/test_wiring_stop_records.py.
+
+   Modules the test run could not import: `factory.domain.stops` lacks `StopRecord`, `stop_records_text` and `parse_stop_records`; `factory.application.stops` lacks `StopPublisher`; `factory.domain.paths` lacks `STOP_RECORDS_FILE`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_wiring_stop_records.py - ImportError while importing t...
