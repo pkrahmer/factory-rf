@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T21:59:08.759637Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T21:58:48.441392Z'
   stage: doing
   run: edbfd0d70b2a42538d5d911df4eb91f2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T21:59:08.759637Z'
+  stage: review
 ---
 
 # The journal records why a work item waited or stalled
@@ -229,3 +238,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
