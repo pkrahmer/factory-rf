@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T17:06:17.149210Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-18T17:05:57.176881Z'
   stage: docs
   run: 21496aabca96477080e0ba67329f5daa
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:06:17.149210Z'
+  stage: smoke-test
 ---
 
 # The preflight checks the kernel's write guard
@@ -316,3 +325,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
