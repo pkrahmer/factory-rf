@@ -178,6 +178,18 @@ with (here / "calls.jsonl").open("a", encoding="utf-8") as out:
 os.execv("/bin/sh", ["/bin/sh", *sys.argv[1:]])
 """
 
+# A shell that waits far longer than the removal's time limit when it is started for the
+# removal, and otherwise lets `/bin/sh` run the call.
+HANGING_SHELL_SCRIPT = f"""
+import os
+import sys
+import time
+
+if sys.argv[1:4] == ["-c", {CLEANUP_SCRIPT!r}, "factory-cleanup"]:
+    time.sleep({WAIT_SECONDS})
+os.execv("/bin/sh", ["/bin/sh", *sys.argv[1:]])
+"""
+
 
 class ProbeStep(BaseModel):
     """What the probe agent does on one call."""
@@ -719,3 +731,53 @@ def test_the_removal_runs_in_the_working_directory_with_an_empty_environment(
     assert CLEANUP_SCRIPT in removal.arguments
     assert removal.working_directory == request.working_directory
     assert _without_locale(removal.environment) == {}
+
+
+@pytest.mark.parametrize(
+    "names",
+    [pytest.param("DEVICE_FOLDERS", id="folders"), pytest.param("DEVICE_FILES", id="files")],
+)
+def test_the_rules_hold_only_the_device_targets_that_exist(
+    layout: Layout, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, names: str
+) -> None:
+    existing = tmp_path / "device"
+    if names == "DEVICE_FOLDERS":
+        existing.mkdir()
+    else:
+        existing.write_text("", encoding="utf-8")
+    monkeypatch.setattr(claude_runtime, names, (str(existing), str(tmp_path / "missing")))
+    claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
+    confine = _write_confine(layout)
+
+    _runtime(layout, claude, str(confine)).run(_request(layout))
+
+    [call] = read_calls(layout.stand_in)
+    [confined] = _confine_calls(layout)
+    devices_folders = [existing] if names == "DEVICE_FOLDERS" else _device_folders()
+    devices_files = [existing] if names == "DEVICE_FILES" else _device_files()
+    assert Confinement.model_validate_json(confined.rules_text) == Confinement(
+        folders=[
+            layout.checkout / "src",
+            layout.stand_in,
+            layout.home / ".claude",
+            *devices_folders,
+        ],
+        files=devices_files,
+        temporary_directory=layout.temporary_root / f"factory-run-{_session(call.arguments)}",
+    )
+
+
+def test_a_removal_that_outlasts_its_time_limit_is_ended_and_changes_no_result(
+    layout: Layout, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
+    confine = _write_confine(layout)
+    shell = _write_script(layout.shell_bin / "sh", HANGING_SHELL_SCRIPT)
+    monkeypatch.setattr(claude_runtime, "SHELL_EXECUTABLE", str(shell))
+    monkeypatch.setattr(claude_runtime, "CLEANUP_TIME_LIMIT", SHORT_LIMIT)
+    started = time.monotonic()
+
+    result = _runtime(layout, claude, str(confine)).run(_request(layout))
+
+    assert time.monotonic() - started < ELAPSED_BOUND
+    assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")

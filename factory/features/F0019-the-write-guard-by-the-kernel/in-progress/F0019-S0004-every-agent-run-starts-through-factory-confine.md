@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T16:14:18.754869Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-18T16:14:18.754869Z'
   stage: tests
+- number: 33
+  speaker: tester
+  kind: result
+  at: '2026-10-18T16:16:59.746169Z'
+  stage: tests
+  run: 0981d624959f470ca7d3a2e567396333
 ---
 
 # Every agent run starts through `factory-confine`
@@ -507,3 +509,21 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     Noticed but not touched, as in entry 20: `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` keeps a name that is out of date, because `[tool.mutmut]` deselects it by that name.
 32. factory: started tests as self.
+33. tester: Test change the human approved (entries 25 and 29), as the coder named it in entry 31. I wrote tests for the two new criteria in `tests/adapters/test_claude_runtime_confinement.py`. No other test changed.
+
+    - criterion 18: tests/adapters/test_claude_runtime_confinement.py::test_the_rules_hold_only_the_device_targets_that_exist
+      - Two rows, `folders` and `files`.
+      - Each row uses `monkeypatch` to set `factory.adapters.claude_runtime.DEVICE_FOLDERS` (or `DEVICE_FILES`) to one existing path and one missing path under `tmp_path`.
+      - It checks that the rules recorded by the stand-in confine executable hold only the existing path. The other device tuple is left as the real one.
+    - criterion 19: tests/adapters/test_claude_runtime_confinement.py::test_a_removal_that_outlasts_its_time_limit_is_ended_and_changes_no_result
+      - No `os_user`. `CLEANUP_TIME_LIMIT` is set to `SHORT_LIMIT` (3 s).
+      - `SHELL_EXECUTABLE` is set to a new script, `HANGING_SHELL_SCRIPT`. It waits `WAIT_SECONDS` (30 s) only when its arguments are `-c CLEANUP_SCRIPT factory-cleanup`; for every other call it runs `/bin/sh` straight away, so the login shell around the call does not hang.
+      - The test checks that the result is `completed`/`doing`/`Done.` and that the whole run takes less than `ELAPSED_BOUND` (20 s).
+      - It uses the stand-in confine executable, as the existing removal test does, because the shell's folder is outside the rules.
+
+    Files changed: tests/adapters/test_claude_runtime_confinement.py (added the two tests and `HANGING_SHELL_SCRIPT`). No files created.
+
+    `make test` is green, and that is expected: the code was already built, and entry 31 confirmed that it reads all three names from the module when it uses them. So these tests are not red. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (50.3 s)
