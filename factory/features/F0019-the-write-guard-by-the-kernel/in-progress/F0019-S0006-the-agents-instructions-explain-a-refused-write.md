@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T17:09:40.577308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T17:09:40.577308Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T17:09:58.504010Z'
+  stage: intake
+  run: 64e6fc2a36e84a77af5bf10a96488ff5
 ---
 
 # The agents' instructions explain a refused write
@@ -72,3 +74,9 @@ Expect: `1`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names the seven concrete files under `claude/agents/` and gives the full R14 paragraph verbatim, as one line. No `src/` module changes. `tests/shipped_agents.py` exists, and each agent has exactly one `R14. ` line today.
+   - Criteria: 1 pins the full paragraph exactly, so every clause of it is covered: the kernel refusing, the hook staying, the undo, `Permission denied` and its three spellings, no retry by another route, `question` naming the path, `$TMPDIR`, and `/tmp` refused. 2 covers the failing side: the old ending is gone. 3 says R14 appears exactly once. Each of the three is a parametrized test over seven agents. 4 is `make check` and 5 is the docs criterion. Each is testable by one test function.
+   - Smoke test: the three `grep` commands can be run as written. The expected values (`7`, `7`, `1`) can be checked against the output.
+   - Architecture: this is prompt text only, in the coder's `claude/*` write path. Nothing crosses a layer, and the first sentence of R14 and the other rules stay as they are.
+   - Scope: matches the feature's scope line for `claude/agents/*.md` (S0006) and decision 14. It does not remove the hook, which is out of scope.
