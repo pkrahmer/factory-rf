@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 199
 blocked: null
 comments_seen: 0
 round: 0
@@ -118,3 +118,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-17 human: created.
+2. intake: accepted. I read the story and the feature's FEATURE.md. The format check passed.
+   - Interface: it names concrete modules and signatures. These are the three `JournalRecord` fields with their types and defaults, `append_entry(document, entry, *, at, run)`, the `book_merge` and `book_refusal` `at` parameter, and the writer's omission rule with a YAML example. It also has a table of 14 call sites that gives the `at`, `stage` and `run` of each. The ordering notes (`move_back`, the story's `done`, the acceptance's `done`) are stated precisely. Each behaviour in an Interface comment has a criterion: UTC storage and naive refusal in 1, the stage taken from the state in 2, the `Z` text and the single-quoted numeric-looking `run` in 3, and the call-site stamps in 5.
+   - Criteria: each is testable by named tests, and the parametrized rows are listed. Every rule has its failing side. Criterion 1 refuses a naive `at`, `Tests` as a stage, and runs of 31 chars, 33 chars, uppercase and `g`, and accepts 32 hex chars. Criterion 2 has `run` without `at`, also on a document without a state. Criterion 4 covers the old files. Criterion 5 pins each call site, with five new named tests (a) to (e) for the paths the changed tests do not cover. Criterion 5 is long, but each of its parts names its own test. I did not change it.
+   - Demo: both commands run. Expect lines are checkable: ten named lines, with the first record having no new keys, and the pytest command ends in `<n> passed` with no failures or skips.
+   - Architecture: domain gets the record and `append_entry`, adapters get the writer, and application gets the call sites, with the clock reached through `Boundaries`. The domain gets no clock because `at` is a parameter. This matches the layers in CLAUDE.md.
+   - Scope: the story is within the feature's scope (the status-map data, decisions 25 to 27, and the stories S0007 and S0008). The cost record's `instance`, the body markers, any change to the pull request and a `run` on `crash` and `expiry` are out of scope and are not touched. The 26 changed earlier tests are covered by the human's leave in decision 27, which gives every line.
