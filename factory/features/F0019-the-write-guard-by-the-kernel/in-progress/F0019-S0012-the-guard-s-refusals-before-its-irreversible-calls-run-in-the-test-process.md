@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T20:37:14.090747Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T20:37:14.085991Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:37:14.090747Z'
+  stage: intake
+---
+
 # The guard's refusals before its irreversible calls run in the test process
 
 <!-- proposed by feature acceptance of 2026-10-18; refine before starting -->
@@ -90,3 +117,6 @@ except ValueError as error:
 Expect: `replace_process needs a program to start`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
