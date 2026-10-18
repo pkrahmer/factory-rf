@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 227
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T19:09:49.246877Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T19:09:49.246877Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T19:10:11.438468Z'
+  stage: intake
+  run: a6162620299f48c7a53788148423930e
 ---
 
 # The documents describe the live write guard
@@ -73,3 +75,9 @@ Expect: `documents ok`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is stated and fits a documents-only story. It names the three documents the documenter changes. `confinement_item(abi, environment, find)` exists in `src/factory/application/preflight.py:184`, so the project-guide paragraph has a real function to describe.
+   Criteria: each docs bullet is checkable by one grep or by `check_documents`. They are the "Seven commands exist" count, the dropped "once the runtime uses it" in two files, the reworded `tool_paths` paragraph, the new template/demo paragraph, and the `confinement_item` paragraph. The Interface states no rule with a failing side, so there is none to cover.
+   Smoke test: four commands. The greps are runnable, and `grep -c` over two files prints `file:count`, which matches the first Expect line. Every Expect line has a concrete value, and the last is `documents ok`.
+   Architecture: documents only, so the layering is not touched. The `confinement_item` paragraph correctly places it in `factory.application.preflight`, with the wiring passing `abi_version` and a search on the agent run's PATH.
+   Scope: F0019's acceptance proposed the story. It is documentation for the feature, and `feature.md` lists the three documents under Scope. The template and demo stay untouched, as its Out of scope and decision 17 say.
