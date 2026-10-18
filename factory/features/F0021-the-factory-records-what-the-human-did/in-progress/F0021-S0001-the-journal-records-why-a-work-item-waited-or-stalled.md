@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:04:19.606918Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-18T22:04:19.606918Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:06:14.850575Z'
+  stage: doing
+  run: 6028236c8542446db8b27d735dffaef5
 ---
 
 # The journal records why a work item waited or stalled
@@ -365,3 +367,28 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.7 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's move. The reviewer's two findings (entries 9 and 11) were test-helper copies. The tester moved them into `tests/crash_support.py` under the standing leave (entry 13), so no finding is left for the code, and I changed nothing in this round.
+
+    `make check` is green on the committed state (`check: green`). The working tree holds only the factory's costs sidecar.
+
+    What was built is unchanged from entry 7:
+    - `src/factory/domain/journal.py`: the `Blocked` and `StallReason` types, the `blocked` and `reason` fields on `JournalRecord` with their kind validator, and the causes in `append_entry`.
+    - The aliases kept by assignment in `src/factory/domain/work_item.py` and `src/factory/domain/decisions.py`.
+    - The five writers: `src/factory/application/stage.py`, `stalls.py`, `recovery.py`, `handlers/questions.py` and `handlers/closed.py`.
+
+    Main decision, still open for the review's group 5: `append_entry` takes the causes as `**causes: Unpack[JournalCauses]`, a `total=False` `TypedDict`, instead of the two plain keyword-only parameters the Interface shows.
+    - Why: with two more parameters, ruff's `PLR0913` refuses the function.
+    - Rejected: a per-file ignore in `pyproject.toml`, because that file is outside my write paths and the write was refused. Also rejected: a `# noqa`.
+    - Callers still call it exactly as the Interface writes it, and mypy checks the values against `Blocked` and `StallReason`.
+    - If the human wants the plain signature, they need to add the `PLR0913` ignore to `pyproject.toml`. I would then switch the signature.
+
+    Refactor pass: nothing changed this round, so there was nothing to refactor.
+
+    Noticed, not touched:
+    - `AskHandler` writes the literal `"attempts_cap"` twice, once on the record and once on the state.
+    - The handler tests' `pull_request` fixture in `tests/application/handlers/conftest.py` is still separate from `crash_support.open_pull_request`. The tester kept it separate on purpose (entry 13).
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
