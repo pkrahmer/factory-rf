@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 216
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T12:35:00.726040Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T12:35:00.726040Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T12:36:01.202329Z'
+  stage: tests
+  run: 9905dc3280b04639bcad08c06ff24a0e
 ---
 
 # The documents name the handover
@@ -85,3 +87,12 @@ Expect: `documents ok`
    Architecture: documentation only, so the layers are untouched. The documenter's write paths cover README.md and docs/*, and the feature file confirms this.
    Scope: matches feature.md's Scope. Nothing in its Out of scope is touched: no src/tests/image/template/claude change, no factory/v1/ change, no planning/ change.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes documentation, and its Interface says no test changes. Criterion 1 says the tester changes nothing, so this entry confirms that.
+   criterion 1: no test function. Nothing under src/, tests/, image/, template/ or claude/ was changed in this stage. `git status` shows only the factory's own `.costs.jsonl` sidecar of the work item.
+   criterion 2: no test function. `make check` is the factory's own gate. `make lint` is green here, and the existing suite is unchanged.
+   criterion 3 (docs): no test function. It is the documenter's work. Its executable checks are the smoke test's greps and `python -m factory.entry.check_documents`.
+   Files created: none. Modules the test runner could not import: none, because no new test refers to a missing module. I skipped the `make test` run: no test was added, so none can fail for the right reason, and the factory runs `make test` after this stage anyway.
+   Open: nothing. Next, the coder also changes nothing and ends with an entry saying so.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed]
