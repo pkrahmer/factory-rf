@@ -30,6 +30,7 @@ HOME_PREFIX = "~/"
 _FOLDER_SUFFIX = "/*"
 _WILDCARDS = "*?["
 PARENT_SEGMENT = ".."
+CURRENT_SEGMENT = "."
 
 
 def has_wildcard(pattern: str) -> bool:
@@ -49,7 +50,11 @@ def tool_path_folder(tool_path: str) -> str | None:
 
 
 def _is_plain_segment(segment: str) -> bool:
-    return bool(segment) and segment != PARENT_SEGMENT and not has_wildcard(segment)
+    return (
+        bool(segment)
+        and segment not in (CURRENT_SEGMENT, PARENT_SEGMENT)
+        and not has_wildcard(segment)
+    )
 
 
 class RoleDefinition(BaseModel):

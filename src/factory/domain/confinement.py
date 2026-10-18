@@ -7,7 +7,12 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from factory.domain.agent_runs import AbsolutePath, GuardSettings
-from factory.domain.pipeline_definition import HOME_PREFIX, has_wildcard, tool_path_folder
+from factory.domain.pipeline_definition import (
+    CURRENT_SEGMENT,
+    HOME_PREFIX,
+    has_wildcard,
+    tool_path_folder,
+)
 from factory.domain.write_paths import is_inside_checkout
 
 LANDLOCK_MINIMUM_ABI = 3
@@ -73,9 +78,10 @@ def confinement_of(
 
 
 def _write_path_target(write_path: str, root: Path) -> WriteTarget | None:
-    if not is_inside_checkout(write_path):
-        return None
     segments = write_path.split("/")
+    # pathlib collapses a `.` segment, so it could name the root or the folder above it.
+    if not is_inside_checkout(write_path) or CURRENT_SEGMENT in segments:
+        return None
     first_wildcard = next(
         (index for index, segment in enumerate(segments) if has_wildcard(segment)), None
     )

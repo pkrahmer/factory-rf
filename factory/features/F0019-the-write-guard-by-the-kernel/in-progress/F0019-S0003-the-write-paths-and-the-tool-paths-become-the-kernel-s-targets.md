@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:28:01.669311Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -105,6 +101,12 @@ journal:
   kind: started
   at: '2026-10-18T15:28:01.669311Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:30:25.141105Z'
+  stage: doing
+  run: f3179daf20394fa38160c702bed6d038
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -358,3 +360,25 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     `lint`: lint: green (0.0 s)
     `test`: FAILED tests/domain/test_write_targets.py::test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name[.-expected16]
 17. factory: started doing as self.
+18. coder: I fixed both review findings the way the human decided in entry 12 (option A, with the check in the targets code only). The six rows the tester added in entry 16 now pass, no test changed, and `make check` is green.
+
+    Built:
+    - `src/factory/domain/pipeline_definition.py`: there is a new constant `CURRENT_SEGMENT = "."` beside `PARENT_SEGMENT`. `_is_plain_segment` now refuses `.` as well as `..`. So the tool paths `./*`, `a/./b/*` and `~/./*` are refused at load time with the usual `tool path <path>: must be <folder>/* or ~/<folder>/*` fault, and `tool_path_folder` returns `None` for them.
+    - `src/factory/domain/confinement.py`: `_write_path_target` now gives no target for a write path that holds a `.` segment. That covers `./*`, `./*.md` and `.`. Without this, pathlib would collapse the `.`, and these paths would name the checkout's root or, through the widening of a missing file, the folder above it.
+
+    Main choice: I check for `.` segments in `_write_path_target`, using the segments it already splits. I rejected putting the check in `is_inside_checkout`: the human ruled that out, because the hook's `refusal` uses that function and must not change in this story. I also rejected a check after the fact that compares the resolved path with `root` (option B in entry 11). The human chose to refuse `.` by its segment.
+
+    Refactor: I read the diff once (two small changes) and found nothing to change.
+
+    Description: entry 14 rewrote `## Description` with the amended Interface and the new rows for criteria 2 and 4, but the factory undid that edit, because the work item is outside the doing stage's write paths. So `## Description` still holds the text from before entry 12. The meaning changed by entry 12 is:
+    - the tool-path rule's segments are now "none `.` or `..`";
+    - `write_targets` gives no target for a write path with a `.` or `..` segment;
+    - criterion 2 gains `"./*"`, `"a/./b/*"` and `"~/./*"`;
+    - criterion 4 gains `./*`, `./*.md` and `.`, each giving nothing.
+
+    The human or a stage with the work item in its write paths needs to carry this into the Description.
+
+    Noticed but not touched: `make duplicates` still lists `write_targets`, `confinement_of` and the older `CONFINE_COMMAND` as dead code, until the runtime uses them in S0004.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 36 known, 3 gone
