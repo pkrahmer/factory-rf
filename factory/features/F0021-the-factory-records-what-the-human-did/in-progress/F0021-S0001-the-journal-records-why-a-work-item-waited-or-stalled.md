@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T22:01:19.948537Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T22:00:59.871617Z'
   stage: doing
   run: f5dcf02c01a345fe88ea6820e8113a52
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:01:19.948537Z'
+  stage: tests
 ---
 
 # The journal records why a work item waited or stalled
@@ -309,3 +318,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     The journal did not change the meaning of the task, so the Description stays as it is.
 
     I did not run `make check` this round because nothing changed. It was green at the end of round 0.
+12. factory: started tests as self.
