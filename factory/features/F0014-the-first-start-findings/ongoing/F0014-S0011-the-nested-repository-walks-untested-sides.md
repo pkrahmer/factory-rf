@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 202
 blocked: null
 comments_seen: 0
@@ -93,3 +93,7 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (33.9 s)
+4. coder: nothing to implement. This story only adds tests that pin how today's code already behaves, and the tester's new rows and test function (`tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`) pass against the current `GitCli.remove_nested_repositories()` and the three texts that join its paths. I ran `make check` and it ended `check: green`: type check, layers, sast, secrets and licences all pass, `test: green (32.5 s)`, and coverage is 99.47 %. No source change and no commit of my own, so I had no diff to refactor. I left the tests and the docs alone (criterion 9: docs none). I noticed nothing outside the ticket.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
