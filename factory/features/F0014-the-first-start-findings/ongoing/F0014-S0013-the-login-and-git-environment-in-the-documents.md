@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 204
 blocked: null
 comments_seen: 0
@@ -71,3 +71,8 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Diff: `git diff main...HEAD -- . ':!factory'` is empty. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed, so criterion 1 holds. The tester's and the coder's entries both say so, as the criterion asks.
+      - Criterion 2: the coder's entry records `make check` green on the branch (`check: green`), and `make duplicates` shows 0 new findings.
+      - Criterion 3 (docs) is the documenter's work. It names five edits, and for each one the section, the wording to add or replace and the text that must go. It still says what the reader needs to know after this story. Architecture, security and quality had nothing to check because no code changed.
+      - Ticket hygiene: the Assignment matches what was built, which is nothing so far, as a documentation-only story intends. The log explains why each stage made no change.
