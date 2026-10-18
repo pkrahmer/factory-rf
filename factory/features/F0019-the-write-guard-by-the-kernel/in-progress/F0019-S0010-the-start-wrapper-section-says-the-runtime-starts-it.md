@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T20:22:51.436219Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T20:22:51.436219Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T20:23:14.766419Z'
+  stage: smoke-test
+  run: 8c35133d8ba94818ba608db971c9d33c
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -181,3 +183,36 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: I ran all four commands from the repository root as written, in order, and all four met their `Expect:` lines. There are no findings. I fixed nothing.
+
+    1. `grep -c "Nothing starts it yet" docs/project-guide.md`
+    ```
+    0
+    ```
+    Expect `0`: met.
+
+    2. `sed -n '/^## The start wrapper/,/^### /p' docs/project-guide.md | grep -c "confine_executable"`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    3. `sed -n '/^## The start wrapper/,$p' ... | grep -c "^\`confinement_item(abi, environment, find)\`"; sed -n '/^## The kernel.s write guard/,/^## The start wrapper/p' ... | grep -c ...`
+    ```
+    0
+    1
+    ```
+    Expect `0`, then `1`: met.
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Expect `documents ok`: met.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: met. `git diff --stat main...HEAD` lists only three files: `docs/project-guide.md`, the work item's `.md` and its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+    - Criterion 2: I did not run `make check` in this stage. Entries 7 and 11 record `check: green`, and the factory runs the check itself.
+    - Criterion 3: met. In the diff of `docs/project-guide.md`, the stale sentence is replaced by one that names `ClaudeCodeRuntime`, `confine_executable`, the `build_boundaries` default and the section "The `claude -p` runtime". The removed and the added `confinement_item(abi, environment, find)` lines are identical. The moved paragraph now sits directly before `## The start wrapper`, after the *Tests* text, which is the end of *The kernel's write guard*. The diff changes no other passage.
+
+    The smoke test contradicts no criterion. Open: nothing.
