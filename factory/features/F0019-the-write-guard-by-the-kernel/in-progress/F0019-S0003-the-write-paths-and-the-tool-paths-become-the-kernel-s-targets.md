@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T15:28:01.669311Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -96,6 +100,11 @@ journal:
   at: '2026-10-18T15:27:41.490839Z'
   stage: tests
   run: e305ced144d14044b5bc80ec5082dbb4
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:28:01.669311Z'
+  stage: doing
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -348,3 +357,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
     `lint`: lint: green (0.0 s)
     `test`: FAILED tests/domain/test_write_targets.py::test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name[.-expected16]
+17. factory: started doing as self.
