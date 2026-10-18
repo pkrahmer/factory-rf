@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T15:41:41.723498Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -39,6 +35,12 @@ journal:
   kind: started
   at: '2026-10-18T15:41:41.723498Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T15:41:58.976296Z'
+  stage: intake
+  run: 552491052c8649a6ac61cb6d17fc0f56
 ---
 
 # Every agent run starts through `factory-confine`
@@ -116,8 +118,11 @@ Tests (the tester writes them): `tests/adapters/test_claude_runtime_confinement.
 12. `build_boundaries` called without `confine_executable` builds a `ClaudeCodeRuntime` whose `confine_executable` is `factory-confine`, and called with `confine_executable=None` one whose `confine_executable` is `None` (rows of one parametrized test).
 13. A runtime built without `temporary_root` makes the run's temporary folder in `tempfile.gettempdir()`: with `tempfile.tempdir` set to a folder under `tmp_path` (`monkeypatch`) before the runtime is built, the stand-in sees `TMPDIR` equal to `<that folder>/factory-run-<session>`.
 14. With an `os_user`, a call with no reply whose standard error holds a `sudo:` line and a `factory-confine:` line raises the `AgentRuntimeError` of the `sudo` refusal (`<sudo> refused the agent run: sudo: ...`), not the wrapper's.
-15. `make check` stays green.
-16. docs: `docs/operator-guide.md`, section *The agent runs as a second user*, shows the new command line (`sudo -n -u agent -- timeout --signal=KILL <limit>s env -i ... factory-confine --rules /state/runs/confine-<session>.json -- /bin/sh -c ... claude ...`) and says what the wrapper does, which writes the kernel allows (the write paths as targets, the tool paths, `~/.claude`, the device files, `/tmp/factory-run-<session>` as `TMPDIR`) and that every other write is refused with `Permission denied`; that a `factory-confine:` line without a reply stops the run with an error, as a `sudo:` line does; that the temporary folder is removed after every call; and that `CLAUDE_CONFIG_DIR` moves `.claude.json` into `~/.claude`. `docs/project-guide.md`, section *The `claude -p` runtime*, the same for agents. `docs/decisions.md` gets an entry *Every agent run is confined by the kernel*, dated 2026-10-18 (F0019-S0004), with the reasons of the feature's decisions 9, 10, 11 and 13.
+15. A call killed at its time limit (a limit of a few seconds, the stand-in confine executable playing a `factory-confine:` line and then waiting longer) raises `AgentRuntimeError` whose detail is `<confine executable> refused the agent run: <that line>`.
+16. The removal of the temporary folder runs in the request's working directory with an empty environment: the stand-in `sudo` (with an `os_user`) and a recording `/bin/sh` path without an `os_user` each see the request's working directory and an empty environment for it (rows of one parametrized test).
+17. `boundaries_from_environment` yields a runtime whose `confine_executable` is `factory-confine`, and the source of `factory.entry.run` passes no `confine_executable` to `build_boundaries` (a source check).
+18. `make check` stays green.
+19. docs: `docs/operator-guide.md`, section *The agent runs as a second user*, shows the new command line (`sudo -n -u agent -- timeout --signal=KILL <limit>s env -i ... factory-confine --rules /state/runs/confine-<session>.json -- /bin/sh -c ... claude ...`) and says what the wrapper does, which writes the kernel allows (the write paths as targets, the tool paths, `~/.claude`, the device files, `/tmp/factory-run-<session>` as `TMPDIR`) and that every other write is refused with `Permission denied`; that a `factory-confine:` line without a reply stops the run with an error, as a `sudo:` line does; that the temporary folder is removed after every call; and that `CLAUDE_CONFIG_DIR` moves `.claude.json` into `~/.claude`. `docs/project-guide.md`, section *The `claude -p` runtime*, the same for agents. `docs/decisions.md` gets an entry *Every agent run is confined by the kernel*, dated 2026-10-18 (F0019-S0004), with the reasons of the feature's decisions 9, 10, 11 and 13.
 
 ## Smoke test
 
@@ -169,3 +174,9 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
    3. Add the criterion: `boundaries_from_environment` yields a runtime whose `confine_executable` is `factory-confine`, and `factory.entry.run` passes no `confine_executable` (a source check).
    Each before the two closing criteria.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`factory.domain.confinement` constants, `ClaudeCodeRuntime.__init__` and `confine_executable`, `build_boundaries`). Each comment-level behaviour now has a criterion. Writing the removal's working directory and empty environment into the Interface was not needed: criterion 16 covers it.
+   - Criteria: each is testable by one parametrized test function. Both sides of each rule are covered: wrapper line with no reply (11), before a usable reply (11), cut short by the time limit (new 15), `sudo` before wrapper (14), failing removal (10), allowed and refused writes (6), with and without `HOME` (7). I carried in the human's answer (journal entry 4, A on all three) as new criteria 15 (time-limit branch), 16 (removal's working directory and empty environment) and 17 (`boundaries_from_environment` and the source check of `factory.entry.run`), before the two closing criteria. The closing ones are now 18 (`make check`) and 19 (`docs:`).
+   - Smoke test: runnable with the installed `factory-confine`. The `Expect:` line is checkable: two exact output lines.
+   - Architecture: constants in domain, runtime changes in adapters, wiring in entry. Layers are respected, and the process and cleanup calls go through `run_process`.
+   - Scope: within F0019 S0004 of the feature's scope list. Nothing from "Out of scope" is touched. The leave to change the two earlier wiring tests is named, with the human's decision 13.
