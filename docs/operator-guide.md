@@ -502,6 +502,8 @@ One stage run leaves these traces on the remote and the pull request, in this or
 4. **One commit by the factory**, above the stage-start commit (or above the agent's last commit, when the agent committed): the result commit, or the stall commit after a stall. It holds the whole work tree.
 5. **The label** `stage:<stage>` (written so, for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
 
+While an agent runs, the work item's `.costs.jsonl` is modified in the work tree and not committed: it holds the running run's record, which the result commit or the stall commit carries. An agent that mentions it in its entry has seen the factory's file, not made a change of its own (seen by the coder of the tiny story, 2026-10-18).
+
 If the push of the result commit fails, no label is written. If the hosting service fails at the label, the commit stays pushed.
 
 ## A stall: the stall note

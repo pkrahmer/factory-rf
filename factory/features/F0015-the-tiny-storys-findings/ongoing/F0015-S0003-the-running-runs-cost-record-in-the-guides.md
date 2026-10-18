@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 208
 blocked: null
 comments_seen: 0
@@ -70,3 +70,14 @@ Expect: `documents ok`.
       - Criterion 3 is the docs criterion, and the documenter writes it next. It still describes what the reader must know, and it names the three passages and the phrase "the running run's" that the demo's grep looks for.
       - Architecture, security, quality: there is no diff, so there is nothing to judge.
       - Ticket hygiene: `Assignment` matches what was built, which is nothing so far, as the story intends. The tester's and the coder's entries say what each rejected: a test that pins document wording, and writing `docs/` in the coder stage.
+6. documenter: wrote the three passages of criterion 3; no code, test or comment touched.
+   - `docs/project-guide.md`: new bullet after *Created at the start* under *When a record is created, completed and committed*. It covers the uncommitted `started` record, the modified or untracked `.costs.jsonl` in `git status`, why that is expected (the undo reverts it, the factory rewrites it from memory, the agent cannot commit it, the agent leaves it alone), and the agent's own `make check` scanning it, which is why a project's secrets scan leaves the cost records out.
+   - `docs/operator-guide.md`: one paragraph after the list in *What a stage run shows*.
+   - `docs/decisions.md`: one sentence at the end of the sidecar entry, tied to the rejected alternative of pushing the started record before the run.
+   - Each passage uses "the running run's". The demo grep gives 1 in each file. `python -m factory.entry.check_documents` prints `documents ok`.
+   - I did not run `make check`, since only documents changed. The factory's run after this stage is the gate.
+   - Cross-read: the project guide's *Rewritten after every undo* bullet and the operator guide's stall section agree with the new text. Nothing stale seen.
+   - No findings.
+
+   `make check`: check: green
+   `make documents`: documents ok
