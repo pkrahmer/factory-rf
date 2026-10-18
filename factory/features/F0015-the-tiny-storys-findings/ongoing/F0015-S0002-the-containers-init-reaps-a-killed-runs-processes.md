@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 207
 blocked: null
 comments_seen: 0
@@ -89,3 +89,24 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: ran both commands under `## Demo` from the repository root, in order. Both met their `Expect:` line. No findings.
+
+   1. Reading `services.factory.init` from `image/compose.yml` with `YAML(typ='safe')`:
+   ```
+   True
+   ```
+   Met: expected `True`.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/test_compose_init.py tests/test_compose.py tests/test_compose_project.py tests/test_claude_token_mount.py tests/test_token_folder.py tests/test_image_credentials.py`:
+   ```
+   ...................                                                      [100%]
+   19 passed in 0.05s
+   ```
+   Met: the last line says `19 passed` with no failed, error or skipped count.
+
+   Criteria cross-check:
+   - Criterion 1: `init: true` is present as a boolean. The diff of `image/compose.yml` against `origin/main` adds only the comment line and `init: true`, right after `restart: unless-stopped`.
+   - Criterion 2: the entrypoint's last line is still `exec python -m factory.entry.run`, and `image/` shows no other change.
+   - Criterion 3: the five earlier test modules pass in command 2.
+
+   The demo contradicts no criterion. The real reaping inside a running container is not shown here, as decision 7 and the Assignment expect: it is a morning observation for the shakedown.
