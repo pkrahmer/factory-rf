@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T23:09:36.870902Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,13 @@ journal:
   kind: started
   at: '2026-10-18T23:09:36.870902Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: question
+  at: '2026-10-18T23:11:43.155277Z'
+  stage: review
+  run: c661d758aeb347b29204bedfc0bd085f
+  blocked: question
 ---
 
 # The stops reach main as records
@@ -432,3 +435,17 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 22. factory: started review as self.
+23. reviewer: Round 1 review. I read the source diff and the five new test modules against the criteria. Groups 1 to 4 pass. Criteria 1 to 15 each have a test that checks what the criterion says, and the human's entry 15 has its three-row test, `tests/application/test_stop_records_service.py::test_a_raise_whose_log_or_health_status_fails_records_only_with_a_readable_status`. The factory's `make check` after the coder was green (entry 21). The layers hold: `StopPublisher` reaches git only through the boundaries and `WorkItemRecorder`. The scope rule is one shared function, and nothing silences a check. Group 5 fails:
+
+    1. Work item, `## Interface`, the `StopService.raise_stop` clause: it lacks the human's option (b) from entry 15, which the code (`src/factory/application/stops.py`, `raise_stop`) and the new test implement. Fix: change the sentence to the one entry 17 proposes: "…tried like the log line and the health status (the decision "Both destinations of a stop are tried"), except that without a readable health status no record is appended: an `OSError` of any of the three is raised after all three were tried."
+    2. Work item, `## Acceptance criteria`: no criterion matches that new test, although entry 15 asked for one before the closing two. Fix: add criterion 16, "`StopService.raise_stop` when a destination fails, rows of one parametrized test: the log line raises: one `raised` record is appended and the `OSError` is raised; the health status write raises: the same; the health status read raises: no record is appended and the `OSError` is raised". `make check` becomes 17 and docs becomes 18.
+    3. Work item, the docs criterion, `docs/operator-guide.md` *The records*: "when each event is written" leaves out the option (b) exception, so the documenter would not write it. Fix: add "a raise whose health status cannot be read writes no `raised` record; the next raise that can read it does".
+
+    **Question for the human.** Nobody in the `doing` loop can make these edits. In `factory/pipeline.yml` the coder's write paths are `src/*`, `image/*`, `template/*` and `claude/*`. Its edit of the work item was refused (entry 17). Sending the work item back to `doing` would only stall it. The reviewer's write paths do include `{work_item}`, but my role is to find problems, not fix them. The options I see:
+    - (a) You commit the three edits to the work item's Description yourself. The next review then checks them and passes to `docs`.
+    - (b) You give the reviewer leave to make exactly these three edits on the next review run, and nothing else. It then reviews again and passes to `docs`.
+    - (c) You accept the Description as it is, with entry 15 as the record. In that case the operator guide will probably not mention the read-failure case.
+
+    I would choose (b). It keeps the edits inside the pipeline, and the wording is already fixed by entries 15 and 17.
+
+    Earlier tests: none needed. `git diff --name-status main...HEAD` shows every test file as added (`A`), so no test file that `main` already holds was changed, renamed or deleted.
