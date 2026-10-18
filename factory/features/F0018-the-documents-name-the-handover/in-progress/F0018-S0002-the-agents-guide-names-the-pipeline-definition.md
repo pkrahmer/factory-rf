@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T13:05:05.880952Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -63,6 +67,11 @@ journal:
   at: '2026-10-18T13:04:46.063101Z'
   stage: doing
   run: 75d4b0dc9386473a8bd4056402964a70
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:05:05.880952Z'
+  stage: review
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -141,3 +150,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. factory: started review as self.
