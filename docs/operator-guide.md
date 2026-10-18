@@ -859,6 +859,14 @@ One row per stage, in the order the stage first ran; a stage that runs again (`d
 
 Figures are rounded half up.
 
+When the factory posts the table on the pull request (see "The hand-over at the approval"), a line follows it after an empty line:
+
+```
+Human: 2 questions answered (question 1, crash_cap 1), 1.5 h waited
+```
+
+It counts the questions that stopped the work item for you: the agent's question and the stops `round_cap`, `send_back` and `crash_cap`. A question counts once you have answered it, by a comment or by closing the pull request; the close counts as an answer too. The parenthesis names each cause and how many were answered, and is left out when none was. The hours are the time from each question to your next record in the journal, summed. A question you have not answered yet counts in neither figure. The wait can be up to one tick too long, because a comment is dated when the factory copied it from the pull request, not when you wrote it. `1 questions answered` is the wording for one as well. `factory-bill` prints the table only, without this line.
+
 ### The cost line
 
 The line under the table sums the same figures: `3 runs, 3.5 min, 12 turns, 72 tokens in (1500 more from cache), 400 out, $1.55 + 1 unknown`.
@@ -914,6 +922,8 @@ A remote branch `work-item/F0001-A0001` without a report file in `in-progress/`,
 
 The acceptance reviewer cannot read the factory's state directory, so the factory tells it the disk in its prompt. When an acceptance's prompt is composed, the factory records the disk with occasion `acceptance` and adds two lines after the cost line: `Disk now: ...` and `Disk at the previous record: ...`. The second is the latest earlier record of any occasion (the instance's start or an earlier acceptance; a rerun of the acceptance compares with its own earlier record), or `none`. The report compares them and names growth that the feature's changes do not explain. Without the disk, the record log or the settings the lines are left out.
 
+The prompt also carries the line `Human interventions of the stories: ...` right after `Cost of the stories: ...`: the human's line (see "The cost table") summed over the archived stories, not over earlier acceptances or stories still in `backlog`. A damaged archived story file adds nothing.
+
 The next acceptance id of a feature is one above the highest acceptance id among its reports on `main` and on remote acceptance branches. The reader exists as `AcceptanceReader` in `factory.application.acceptance_reading`; the watcher's evaluation and the board command use it.
 
 A running acceptance is a work item like a story and is picked by the same order, by id. A due acceptance is not started before the feature's own stories: the next event is `acceptance_due:<feature>` only when no story of that feature (or of an earlier feature) can run; it still comes before the stories of a later feature. A waiting work item and a held claim come first, as for stories. `factory-watch` shows the event as `event: acceptance_due:F0002  acceptance of F0002 is due`.
@@ -928,7 +938,7 @@ It does these things, in this order:
 
 1. **Replaces the pull request description.** What you or the factory wrote there before is gone. The new description has these sections, in this order, each headed `## <name>`: Description and Acceptance criteria (the story's own sections, verbatim), Tests, Review, Documentation and Smoke test (the text of the latest `result` entry of the tester, reviewer, documenter and smoke tester), and Commits (a code block with one line per commit beyond `main`: the first seven characters of the id and the subject). A story section that is missing or empty, and a report whose role never recorded a `result`, show `none`. The reviewer's entry under Review ends with the earlier tests the story changed and the leave for each. The reports are found by the journal's data (speaker and kind), never by the text of an entry. The description ends with a paragraph saying that a merge accepts the story and that a close with a comment sends it back.
 2. **Marks the pull request ready for review.** A draft says the factory works; ready says you decide.
-3. **Posts the cost table**, headed `Cost of this work item so far`, read from the cost records committed on the work item's branch (see "What a work item cost"). The post is keyed by the number of the latest `result` entry, so a repeat does not post it twice.
+3. **Posts the cost table**, headed `Cost of this work item so far`, read from the cost records committed on the work item's branch (see "What a work item cost"), followed by the `Human:` line (see "The cost table"). The post is keyed by the number of the latest `result` entry, so a repeat does not post it twice.
 4. **Records `handed_over = <stage>`** in the work item and pushes, in one commit with the subject `work item <id>: handed over at <stage>`. This comes last.
 
 A work item whose `handed_over` already equals its stage is left alone: no description change, no post, no commit. A stage that is not an approval, or a work item without a pull request, is a `CannotHandle` for `hand_over` and changes nothing.

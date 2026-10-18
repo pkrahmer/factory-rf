@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T22:41:56.493614Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-18T22:41:56.493614Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T22:43:18.500621Z'
+  stage: docs
+  run: b5186e19f7234c70b9e0c4aff96c3a03
 ---
 
 # The cost table and the acceptance facts count the human
@@ -418,3 +420,15 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     - `tests/application/test_stage_run_acceptance.py`: changed under the feature's decision 13, fifth bullet (the compared prompt tail grows from `[-3:]` to `[-4:]`). Nothing else changed.
     - `tests/application/test_task_acceptance.py`: changed under the feature's decision 13, fifth bullet (the compared prompt tail grows from `[-4:]` to `[-5:]`). Nothing else changed.
 21. factory: started docs as self.
+22. documenter: Docs round 1. No findings: the code matches the Interface and the criteria.
+
+    Files changed (documents only, so I did not run `make check`; the factory's run after this stage decides):
+    - `docs/project-guide.md`: a new subsection *The human's waits* under *Bills*. It covers `human_waits`, `human_line` and the rules of a wait and its end, including that a comment's record carries the time the factory copied it, so a wait ends up to one tick late. It also covers `cost_table_post(..., human=)` and how the two hand-overs and `AcceptanceService.facts` use it. In *Bills* I added `one_decimal` as the one rounding of the minutes and the hours. I updated the `AcceptanceFacts` paragraph (new field `human_line`, the extra line in `lines()`, the new `acceptance_facts` signature) and the line in the request section that lists the fact lines.
+    - `docs/operator-guide.md`: *The cost table* now describes the `Human:` line (what it counts, that a close counts as an answer, the one-tick lateness, `factory-bill` unchanged). *When a feature acceptance is due* now describes the `Human interventions of the stories` line. *The hand-over at the approval* now mentions the `Human:` line after the cost table.
+
+    Cross-read and found current: `README.md`, `docs/decisions.md` (nothing about this story), and the rest of both guides against the diff. I did not run the Smoke test commands; the new text is taken from the code and the criteria.
+
+    Stale text noticed and left alone: none. From the earlier entries: `_hours` repeats a one-line conversion from `bills._minutes`, which the reviewer accepted. The `make duplicates` baseline has 3 findings reported as gone; the baseline is not mine to update.
+
+    `check`: check: green
+    `documents`: documents ok
