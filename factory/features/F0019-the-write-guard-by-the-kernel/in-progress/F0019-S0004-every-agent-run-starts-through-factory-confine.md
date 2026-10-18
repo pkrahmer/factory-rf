@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T16:14:18.754869Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-18T16:13:58.910471Z'
   stage: doing
   run: 30882c73ba05487083be63c5629f89b9
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:14:18.754869Z'
+  stage: tests
 ---
 
 # Every agent run starts through `factory-confine`
@@ -497,3 +506,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Description: no rewrite is needed. Criteria 18 and 19 and the renumbered closing criteria 20 and 21 are already in the work item, from main.
 
     Noticed but not touched, as in entry 20: `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` keeps a name that is out of date, because `[tool.mutmut]` deselects it by that name.
+32. factory: started tests as self.
