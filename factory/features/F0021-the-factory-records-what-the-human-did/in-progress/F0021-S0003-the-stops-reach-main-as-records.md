@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T22:48:35.785156Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T22:48:18.289456Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:48:35.785156Z'
   stage: intake
 ---
 
@@ -162,3 +171,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
    2. Yes: add rows for `pipeline_definition_invalid`, `agent_definition_invalid` and `checkout_restore_failed` to criterion 12, each with a local record present, origin/main gains nothing.
    3. Yes: add the row to criterion 8 where origin/main has no `factory/` folder; keep the clause.
    4. Yes: add "instance is the settings' instance" to criterion 5.
+5. factory: started intake as self.
