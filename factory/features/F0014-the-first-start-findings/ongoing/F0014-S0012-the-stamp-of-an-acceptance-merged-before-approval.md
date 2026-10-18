@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 203
 blocked: null
 comments_seen: 0
@@ -69,3 +69,7 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (32.1 s)
+4. coder: no source change. The story pins behaviour that already exists, and the tester's new tests pass against the current `book_merge` in `src/factory/domain/acceptance.py` and the `AcceptanceMerged` call in `src/factory/application/acceptance.py`: tests/domain/test_journal_stamps.py (the `merge-before-approval` rows `with-at` and `without-at`) and tests/application/test_acceptance_merged_before_approval.py (the new stamp test). I ran `make check` on the branch as it stands, and it ends with `check: green` (test: green, 33.1 s; coverage 99.47 %). I made no commit, because there was no code to write and nothing in this ticket's source diff to refactor. I saw nothing in the code that needed changing.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
