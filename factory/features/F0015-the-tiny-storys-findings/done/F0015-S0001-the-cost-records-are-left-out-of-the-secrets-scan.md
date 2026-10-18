@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 206
 blocked: null
 comments_seen: 0
@@ -131,3 +131,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    Met: the last line says `48 passed` and has no `failed`, `error` or `skipped` count. The 15 warnings come from pytest's own cleanup of old basetemp folders in `/tmp`, which earlier runs of another test (`test_seal_takes_the_group_and_0`) left behind. They are not from this story, and the Expect line does not exclude warnings.
 
    Criteria check: the `secrets` recipes in the two Makefiles (lines 59–70) are identical when diffed. `git diff origin/main --stat -- template/` shows one changed line in `template/Makefile`, which fits "nothing else in the file changes". Criteria 1–6 are covered by the passing rows and the passing equality test. Criteria 7 and 8 (`make check`, docs) were recorded green by the coder and the documenter, and nothing in the demo contradicts them.
+8. done (pull request merged); cost: 6 runs, 3.6 min, 33 turns, 150k tokens in (402k more from cache), 11k out, $1.24
