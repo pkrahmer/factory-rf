@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-18T22:44:01.276012Z'
   stage: smoke-test
   run: 1c63b55c8de1447aafb84c15b0f42026
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-18T22:45:18.705628Z'
+  stage: approval
 ---
 
 # The cost table and the acceptance facts count the human
@@ -470,3 +475,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     The smoke test contradicts none of the criteria. It does not touch criteria 4 to 8 (the hand-over posts, `AcceptanceFacts.lines()`, `AcceptanceService.facts`, `make check`, docs); those are for the tests, the factory's checks and the docs stage.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 12.4 min, 100 turns, 314963 tokens in (2830840 more from cache), 48357 out, $3.74
