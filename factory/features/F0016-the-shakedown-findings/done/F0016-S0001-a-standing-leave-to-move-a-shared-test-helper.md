@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 210
 blocked: null
 comments_seen: 0
@@ -173,3 +173,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Scope: the branch diff touches only the three shipped texts, the two named test modules, the two documents and the ticket. Nothing under `src/` changes.
 
    Nothing contradicts a criterion. Nothing is open.
+8. done (pull request merged); cost: 6 runs, 3.9 min, 31 turns, 139k tokens in (336k more from cache), 10k out, $1.15
