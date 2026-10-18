@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T16:34:42.059421Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -285,6 +289,11 @@ journal:
   at: '2026-10-18T16:34:21.731530Z'
   stage: doing
   run: 99fc6a08101e47768cb66510a0bf01c6
+- number: 52
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:34:42.059421Z'
+  stage: tests
 ---
 
 # Every agent run starts through `factory-confine`
@@ -805,3 +814,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Description: no rewrite. Entry 47 changes no part of the task.
 
     Noticed but not touched: as entry 47 says, the out-of-date name `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` stays as it is.
+52. factory: started tests as self.
