@@ -73,6 +73,9 @@ licenses:
 test:
 	$(start)
 	mkdir -p .reports
+	# The tests' checkouts must not come out group-writable, or the seal refuses them; v1.1's
+	# container runs with umask 002 for its shared checkout, so the tests set their own.
+	umask 022
 	uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist load 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered
 	$(green)
 
@@ -101,6 +104,7 @@ mutants:
 	# mutmut stops a mutant's pytest at its time limit, which leaves that run's folder locked for
 	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.
 	temporary=$$(mktemp -d)
+	umask 022   # as for make test: the seal refuses a group-writable checkout
 	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true' EXIT
 	# An agent's shell command ends after 10 minutes: stop mutmut before that and report what it
 	# reached; its results stay in mutants/, so the next run goes on from there.
