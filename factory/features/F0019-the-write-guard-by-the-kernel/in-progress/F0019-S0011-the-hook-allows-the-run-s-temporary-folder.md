@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T20:24:50.436693Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T20:24:50.431093Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:24:50.436693Z'
+  stage: intake
+---
+
 # The hook allows an edit in the run's own temporary folder
 
 <!-- proposed by feature acceptance of 2026-10-18; refine before starting -->
@@ -70,3 +97,6 @@ echo "$p" | uv run -q factory-guard --settings "$d/without.json" 2>/dev/null; ec
 Expect: `with: 0`, then `without: 2`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
