@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T23:58:24.836865Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T23:58:24.836865Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T23:58:54.159393Z'
+  stage: smoke-test
+  run: 78a960933e3240a0a477ce7d77d59cad
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -242,3 +244,49 @@ Expect: five lines, each `1`.
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed. I ran both commands from the repository root exactly as written, and both met their `Expect:` lines.
+
+    Command 1:
+
+    ```bash
+    grep -cx '### Never edit a running work item on main' docs/operator-guide.md
+    ```
+
+    ```
+    1
+    ```
+
+    Met: `Expect: 1`.
+
+    Command 2 (five greps):
+
+    ```bash
+    grep -c 'From round 1 on (your prompt names the round; the first review, at round 0, still sends such a point back), a point that is only about the quality of a test file the diff adds' claude/agents/reviewer.md
+    grep -c 'criterion <n> added: it needs its test' claude/agents/reviewer.md
+    grep -c 'When the reviewer.s latest entry adds a criterion that needs only its test, change no code' claude/agents/coder.md
+    grep -c 'there is no test to edit: write the test of that criterion' claude/agents/tester.md
+    grep -c 'Human interventions of the stories' claude/agents/acceptance-reviewer.md
+    ```
+
+    ```
+    1
+    1
+    1
+    1
+    1
+    ```
+
+    Met: `Expect: five lines, each 1`.
+
+    Checked against the acceptance criteria:
+    - **Criterion 2:** `grep -c 'Never both, never "pass with remarks"' claude/agents/reviewer.md` gives `0`, so the old sentence is gone.
+    - **Docs criterion, operator guide (stage changed by hand):** `docs/operator-guide.md:1136` has the new subsection. It says:
+      - do not edit an `in-progress/` work item on `main`, but answer in its pull request;
+      - the agents amend the story on its branch;
+      - an edit on `main` conflicts at the next stage start and stalls with `merge_conflict` (F0019-S0004);
+      - when it has happened, revert the edit on `main`.
+    - **Docs criterion, operator guide (the factory's own questions):** `docs/operator-guide.md:632` explains `Notes:` from round 1 on and `criterion <n> added`. It also says an added criterion is a send-back that counts a round, so the round cap may still ask the human.
+    - **Docs criterion, decision log:** `docs/decisions.md:628` has the decision entry with the stated title.
+    - **Other criteria:** nothing in the smoke test contradicts criteria 1, 3 or 4. I did not run `make check`, because it is not part of the smoke test; the factory runs it as the stage's check.
+
+    Findings: none.
