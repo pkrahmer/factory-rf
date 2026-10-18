@@ -183,13 +183,14 @@ def _recorded_outcome(
 
 
 class AcceptanceFacts(BaseModel):
-    """What the acceptance reviewer is told: the stories, the next number, the cost, the disk."""
+    """What the acceptance reviewer is told: stories, next number, cost, human's waits, disk."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     archived: list[WorkItemId]
     next_story: WorkItemId
     cost_line: str
+    human_line: str | None = None
     disk_now: str | None = None
     disk_before: str | None = None
 
@@ -201,12 +202,17 @@ class AcceptanceFacts(BaseModel):
         return next_story
 
     def lines(self) -> list[str]:
-        """The lines of the facts, as the reviewer's prompt holds them; two more with a disk."""
+        """The lines of the facts, as the reviewer's prompt holds them.
+
+        One more with the human's waits, and two more with a disk.
+        """
         lines = [
             f"Archived stories: {', '.join(self.archived)}",
             f"Next free story number: {self.next_story}",
             f"Cost of the stories: {self.cost_line}",
         ]
+        if self.human_line is not None:
+            lines.append(f"Human interventions of the stories: {self.human_line}")
         if self.disk_now is None:
             return lines
         return [
@@ -220,6 +226,7 @@ def acceptance_facts(
     files: FeatureFiles,
     cost_line: str,
     *,
+    human_line: str | None = None,
     disk_now: str | None = None,
     disk_before: str | None = None,
 ) -> AcceptanceFacts:
@@ -232,6 +239,7 @@ def acceptance_facts(
         archived=story_file_ids(files.done),
         next_story=f"{files.feature}-S{number:04d}",
         cost_line=cost_line,
+        human_line=human_line,
         disk_now=disk_now,
         disk_before=disk_before,
     )

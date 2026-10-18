@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:30:28.113455Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-18T22:30:28.113455Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:33:49.317029Z'
+  stage: doing
+  run: f2da7d2ed3f94db4b7f39dd494b8794a
 ---
 
 # The cost table and the acceptance facts count the human
@@ -248,3 +250,26 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_human_waits.py - ImportError while importing test mod...
 9. factory: started doing as self.
+10. coder: I implemented the human's waits and their line, and wired the line into both cost-table posts and the acceptance facts. `make check` is green, `make duplicates` reports `0 new, 36 known, 3 gone`, and both smoke-test commands print their Expect lines.
+
+    What I built:
+    - `src/factory/domain/human_waits.py` (new): `HumanWait`, `human_waits` and `human_line`. A wait ends at the `at` of the first later human record that has an `at`, whatever its kind. The causes are listed in the order of `get_args(Blocked)`. The hours are summed over the answered waits only.
+    - `src/factory/domain/bills.py`: the public `one_decimal` (half up). `_minutes` now calls it, and `human_line` uses it for the hours, so there is one rounding.
+    - `src/factory/domain/post_texts.py`: `cost_table_post(table, human=None)` adds an empty line and `Human: <human>` when `human` is given.
+    - `src/factory/domain/acceptance.py`: `AcceptanceFacts.human_line` and the `human_line` keyword of `acceptance_facts`. `lines()` puts `Human interventions of the stories: ...` after the cost line and before the disk lines.
+    - `src/factory/application/handlers/hand_over.py` and `src/factory/application/acceptance.py` (`AcceptanceHandOver`): `_show` now receives the state that `handle` already checked, and posts `human_line(human_waits(state.journal))` under the table. The post's key is unchanged.
+    - `src/factory/application/acceptance.py` (`AcceptanceService.facts`): in the same loop that reads the cost records, it reads each archived story's waits through the new `_waits`. A `WorkItemFormatError` means that story adds nothing. Acceptance reports in `done/` are skipped, as the cost loop already did.
+    - `src/factory/application/acceptance_reading.py`: I split the private `_document` into a public `AcceptanceReader.document(ref, path)` (`show_file` plus `parse_at`). `_document` keeps its own check that the state is an acceptance's. `AcceptanceService` calls `document` through its existing `_reader`, so the file reading at a ref is not copied a third time.
+
+    Main choice: I gave the handlers' `_show` the already-checked `WorkItemState` as one more parameter. The alternative I rejected was calling `require_state` again inside `_show`, which repeats a check and a `CannotHandle` that `handle` has already made.
+
+    Refactor: I read my diff once. The only change I made was to replace the walrus count in `_causes` with a plain list count; nothing else needed changing.
+
+    The journal did not change what the task means, so I left the Description as it is.
+
+    Noticed, not touched:
+    - `_hours` and `_minutes` each turn a timedelta into a `Decimal` of seconds the same way (two lines each). I did not share that step, to keep the change inside the Interface's `one_decimal`.
+    - `make duplicates` reports 3 baseline findings as gone, among them the unused `close` methods in `pygithub_hosting.py` and `application/hosting.py`. The baseline is not mine to update.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone

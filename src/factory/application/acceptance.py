@@ -38,6 +38,7 @@ from factory.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
 from factory.domain.events import Event
 from factory.domain.git import CommitId
 from factory.domain.hand_over import cost_table_key
+from factory.domain.human_waits import HumanWait, human_line, human_waits
 from factory.domain.identifiers import (
     FeatureId,
     WorkItemId,
@@ -56,7 +57,12 @@ from factory.domain.paths import (
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
 from factory.domain.sections import title
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, require_state
+from factory.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    require_state,
+)
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 _KIND = "acceptance_due"
@@ -132,13 +138,20 @@ class AcceptanceService:
         directory = self._acceptance(feature).directory
         files = self._reader.feature_files(feature)
         records: list[CostRecord] = []
+        waits: list[HumanWait] = []
         for file_name in files.done:
             parsed = parse_work_item_file_name(file_name)
             if parsed is not None and not is_acceptance(parsed.id):
-                records.extend(self._records(work_item_path(directory, "done", file_name)))
+                story_path = work_item_path(directory, "done", file_name)
+                records.extend(self._records(story_path))
+                waits.extend(self._waits(story_path))
         disk_now, disk_before = self._disk_lines()
         return acceptance_facts(
-            files, cost_line(bill(records)), disk_now=disk_now, disk_before=disk_before
+            files,
+            cost_line(bill(records)),
+            human_line=human_line(waits),
+            disk_now=disk_now,
+            disk_before=disk_before,
         )
 
     def _disk_lines(self) -> tuple[str | None, str | None]:
@@ -165,6 +178,14 @@ class AcceptanceService:
         if feature_title is None:
             raise WorkItemFormatError("the feature file has no title line", path)
         return feature_title
+
+    def _waits(self, story_path: str) -> list[HumanWait]:
+        # One damaged archived story must not stop the acceptance of the whole feature.
+        try:
+            document = self._reader.document(_MAIN_REF, story_path)
+        except WorkItemFormatError:
+            return []
+        return [] if document.state is None else human_waits(document.state.journal)
 
     def _records(self, story_path: str) -> list[CostRecord]:
         sidecar = cost_records_path(story_path)
@@ -220,7 +241,7 @@ class AcceptanceHandOver(Handler):
         state = require_state(document, no_state)
         if state.handed_over == state.stage:
             return
-        self._show(number, snapshot, document, role)
+        self._show(number, snapshot, document, state, role)
         handed_over = state.model_copy(update={"handed_over": state.stage})
         recorder.record(
             snapshot.branch,
@@ -236,14 +257,20 @@ class AcceptanceHandOver(Handler):
             raise CannotHandle(kind=_HAND_OVER, reason=f"stage {name} is not an approval")
 
     def _show(
-        self, number: int, snapshot: WorkItemSnapshot, document: WorkItemDocument, role: str
+        self,
+        number: int,
+        snapshot: WorkItemSnapshot,
+        document: WorkItemDocument,
+        state: WorkItemState,
+        role: str,
     ) -> None:
         sidecar = self._boundaries.checkout / cost_records_path(snapshot.path)
         records = self._boundaries.cost_reader.read(sidecar)
         hosting = self._boundaries.hosting
         hosting.set_description(number, acceptance_description(document, role))
         hosting.set_draft(number, False)
-        table = cost_table_post(cost_table(bills_by_stage(records)))
+        human = human_line(human_waits(state.journal))
+        table = cost_table_post(cost_table(bills_by_stage(records)), human=human)
         hosting.post_comment(number, table, cost_table_key(snapshot.id, document))
 
 
