@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 211
 blocked: null
 comments_seen: 0
@@ -92,3 +92,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_claude_agent_texts.py::test_the_reviewer_no_longer_stops_before_the_earlier_tests
+4. coder: Built in 44f95b1c. Only text changed.
+   - `claude/agents/reviewer.md`, `## Role`: the sentence before the checklist is replaced with the Interface's new sentence, and item 6 (**Earlier tests**) is added as one line after item 5. Both are copied word for word from the Interface.
+   - `claude/agents/acceptance-reviewer.md`, `## Role`: check 6 gains the Interface's added sentence and stays on one line.
+   - Nothing else in the two files changed, and nothing under `src/` or `tests/` changed.
+   Main decision: I copied the Interface text exactly, with no rewording, because the anchor tests and FEATURE decision 5 pin it. I made the edits with a script that asserts each old line occurs exactly once, so nothing else could move. I rejected rewording the item to match the reviewer's other items, which would have broken the exact-text contract.
+   Refactor: none needed. The diff is three lines of prose and has nothing to rename, simplify or deduplicate.
+   Checks: `make check` is green (check: green). Both demo greps give the expected counts: reviewer 1 / acceptance-reviewer 0 for "Earlier tests", then acceptance-reviewer 1 / reviewer 0 for the second phrase.
+   Noticed, not touched: the docs criterion (project guide, operator guide, decision log) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
