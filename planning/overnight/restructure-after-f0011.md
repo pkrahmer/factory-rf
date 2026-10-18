@@ -217,6 +217,7 @@ Once v1.1 has run on the real machine and gone through the shakedown run on the 
 
 ## For the human, outside the build (collected 2026-10-16)
 
+- Added 2026-10-18 (the human's word): the first run at the human's work, on the company's opencode build with its single sign-on, is a separate, later step, done by the human at work with opencode's help (direct Claude access is blocked there); no feature waits for it. Before it, the session writes a self-contained guide that opencode can follow there: install and pin, the one-time login as the agent user, the folders the SSO login writes (`FACTORY_OPENCODE_FOLDERS`), proxy and CA variables, what the build prints on a 428, the rootless Podman setup.
 - Added 2026-10-18: review `planning/operator-playbook.md`; once it holds, a documents story moves it into `docs/` beside the operator guide (and the operator guide links it).
 
 - The machine: drive C: ran full on 2026-10-15 and again on 2026-10-16 (the root cause of three Docker hangs and the corrupt checkout). The disk image `docker_data.vhdx` is 340 GB on C: while Docker uses about 50 GB (`docker system df` on 2026-10-17): compact it (quit Docker Desktop, `wsl --shutdown`, then in an administrator PowerShell `Optimize-VHD -Path $env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx -Mode Full`), set a virtual disk limit, and move it to D: (Settings → Resources → Advanced). Update Docker Desktop (4.38.0) and WSL (`wsl --update`). Windows Update's active hours or a pause while a run goes; Docker Desktop's "Start when you sign in".
