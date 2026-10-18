@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T16:59:12.997870Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T16:58:52.318179Z'
   stage: doing
   run: b9eb4d54b5ab47dd981d00a60658e887
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:59:12.997870Z'
+  stage: tests
 ---
 
 # The preflight checks the kernel's write guard
@@ -197,3 +206,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     What I built in round 0 stands unchanged (src/factory/application/preflight.py `confinement_item`, src/factory/entry/wiring.py `machine_extras`). I made no source change this round and did not run `make check` again; it was green at the end of round 0.
 
     The journal did not change the meaning of the task, so `## Description` stays as it is.
+12. factory: started tests as self.
