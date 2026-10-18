@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 200
 blocked: null
 comments_seen: 0
@@ -60,3 +60,17 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both commands are runnable. The expected line ends are checkable against the output, and the pytest run names the new modules and the earlier ones.
    - Architecture: the domain model, the adapter writer and the application recorder each stay in their layer, and the instance comes from the settings through `Boundaries`, as `image` does. Nothing new is wired.
    - Scope: this is S0008 of the feature (FEATURE scope bullet and decision 28). It follows S0007 and changes no earlier test (decision 28, "S0008 needs no leave"). Its docs criterion completes the decision-log entry S0007 writes.
+3. tester: I wrote red tests for the cost record's `instance`. Each new criterion has one parametrized test:
+   - criterion 1: tests/domain/test_cost_record_instance.py::test_a_cost_record_carries_an_optional_instance_name. Rows: without it (None), a started record with `shakedown-podman`, a completed record with `shakedown-podman`, and `Shakedown` refused with ValidationError. Every row is built through a `type[BaseModel]` variable.
+   - criterion 2: tests/adapters/test_cost_records_jsonl_instance.py::test_the_writer_writes_the_instance_last_only_when_it_is_set. Rows: `_completed()` and `_started()` render exactly to `COMPLETED_LINE` and `STARTED_LINE`. The same two records with `model_copy(update={"instance": "shakedown"})` render to those lines with `,"instance":"shakedown"` before the closing brace. Both rows also check `parse(render(records)) == records`. The helpers and constants are imported from `adapters.test_cost_records_jsonl`, not copied.
+   - criterion 3: tests/adapters/test_cost_records_jsonl_instance.py::test_the_reader_reads_the_instance_or_refuses_one_that_is_not_a_name. Rows: no key gives None; `"instance":null` gives None; `"shakedown"` gives the name; `"Shakedown"` raises CostRecordFormatError with a fault starting `invalid instance: `. The lines are built from the imported `REQUIRED`.
+   - criterion 4: tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed. Rows: `_settings("build-7")` (instance `factory-1`) and no settings (None). Each row checks the `begin` record, the `complete` record and `launched.cost.records[-1]`. `_launch` and `_settings` are imported from `application.test_cost_image`.
+   - criterion 5: no new test. It is held by the existing modules it names, which I left unchanged.
+   - criteria 6 and 7: the gate and the docs. They get no tests.
+
+   Files created: tests/domain/test_cost_record_instance.py, tests/adapters/test_cost_records_jsonl_instance.py, tests/application/test_cost_instance.py.
+
+   Every module imports, so there were no collection errors. The new tests fail for the right reason: `CostRecord` has no `instance` field yet, so constructing it is refused or reading `.instance` fails. The writer and recorder rows fail the same way. `make lint` is green. I skipped the type check, as this stage allows. No criterion needed interpreting.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/domain/test_cost_record_instance.py::test_a_cost_record_carries_an_optional_instance_name[completed-with]
