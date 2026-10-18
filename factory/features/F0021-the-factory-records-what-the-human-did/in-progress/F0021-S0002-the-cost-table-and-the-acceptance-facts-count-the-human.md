@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T22:34:09.457636Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-18T22:34:09.457636Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:35:19.926532Z'
+  stage: review
+  run: 1d62b2f5c2664b57aa086aa73088877d
 ---
 
 # The cost table and the acceptance facts count the human
@@ -283,3 +285,11 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 11. factory: started review as self.
+12. reviewer: 1. `src/factory/domain/human_waits.py` `HumanWait.question` (`tests/domain/test_human_waits.py`): the Interface types `question` as `PositiveInt`, but no test checks either side of that limit. Every row uses 2, 3 or 4, so nothing shows that 0 is refused or that 1 is accepted. CLAUDE.md *Tests* says a stated limit is tested on both sides even when no criterion names the refused side. This is also a gap in the story: no criterion covers the refused side, so I am naming it for the human. Fix: the tester adds one parametrized test that builds `HumanWait` through a variable typed `type[BaseModel]`, with a row for `question=0` (raises `ValidationError`) and a row for `question=1` (accepted). Criterion 1 or 2 should gain that row so the Description matches the tests.
+
+    Groups 2 to 5 were not reviewed because group 1 failed. I did not run `make check`; the coder's entry 10 reports it green.
+
+    Earlier tests:
+    - `tests/application/handlers/test_hand_over.py`: changed under the feature's decision 13, which the Interface cites (`_expected_post` passes the human line). Only the expected value changed.
+    - `tests/application/test_stage_run_acceptance.py`: changed under the feature's decision 13. The compared prompt tail grows by one line (`[-3:]` → `[-4:]`), nothing else.
+    - `tests/application/test_task_acceptance.py`: changed under the feature's decision 13. The compared prompt tail grows by one line (`[-4:]` → `[-5:]`), nothing else.
