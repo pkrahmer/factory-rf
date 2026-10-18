@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T23:37:48.935842Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-18T23:37:48.935842Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T23:39:10.311507Z'
+  stage: docs
+  run: 141d889a390d4e4f9b19b90f91cb624a
 ---
 
 # The run record counts the refused tool calls
@@ -327,3 +329,22 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     - tests/adapters/test_claude_runtime_resume.py: the story's Interface names it with the human's word (the feature's decision 14). The only change is the expected `Write` denial gaining `path="x"`.
     - tests/application/test_costs.py: the human's answer in journal entry 11, point 2. The only change is the expected completed `CostRecord` in `test_the_sidecar_is_written_again_after_the_undo` gaining `denials=0, denied_paths=[]`.
 20. factory: started docs as self.
+21. documenter: Docs written from the docs criterion; no findings. The code matches the Interface and the criteria.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section "Refused tool calls in the sidecar", between *An unknown cost* and *The cost line*. It covers `denials` and `denied_paths`, when they are absent, and that only tool calls the runtime reports as refused are counted, not a refusal that is only text in a tool's output. It also says `factory-bill` does not print them. I took that from the cost table section, which lists no such column; I did not check the code.
+    - `docs/project-guide.md`, *Cost records*:
+      - the field list, the `started` rule, a `denials` >= 0 rule and the "complete" bullet now name the two fields. The bullet says how `complete` fills them, including `died` and `time_limit` giving `None` and a replied run without denials giving `0` and `[]`.
+      - the line-format paragraph says the writer leaves out `instance`, `denials` and `denied_paths` when each is `None`.
+      - the runtime section (`detail` sentence) now says how a denial's `path` is chosen: `file_path` if it is a string, else `notebook_path`, else `None`.
+
+    Cross-read and found current: the README, the `AgentRunResult` paragraph in `docs/project-guide.md` (it only mentions `permission_denials`), the guard section (it reads `tool_input.file_path` by its own rules, unrelated), and `docs/decisions.md` (nothing about the cost record fields).
+
+    I ran no examples, because I wrote none. I ran no `make check`, because I changed only documents; the factory's run after this stage is the gate.
+
+    The sidecar `.costs.jsonl` of this work item shows as modified in the working tree. That is the factory's own file, not mine.
+
+    Stale text that is not mine: none seen. The coder's note about `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]`, which failed once under load, is still open and unrelated to this work item.
+
+    `check`: check: green
+    `documents`: documents ok
