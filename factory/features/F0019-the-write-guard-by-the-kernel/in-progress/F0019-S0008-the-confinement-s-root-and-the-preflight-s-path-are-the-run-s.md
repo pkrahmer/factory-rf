@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T19:18:29.271098Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T19:18:09.078104Z'
   stage: intake
   run: 618320dcf8ac4b9da9a4f3cc9e9dd7aa
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:18:29.271098Z'
+  stage: tests
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -97,3 +106,4 @@ Expect: `completed | root file refused | False`
    Smoke test: it is runnable as written. It uses a stand-in `claude` and a temporary directory. The `Expect:` line `completed | root file refused | False` can be checked against the printed output.
    Architecture: tests only, in `tests/adapters` and `tests/entry`, mirroring the package. The layers are untouched, and moving the shared helpers is covered by the standing leave.
    Scope: it is inside F0019 (decision 6, the preflight items) and outside none of its "Out of scope" entries. The criteria add tests and do not change the domain rules, the wrapper or the hook.
+4. factory: started tests as self.
