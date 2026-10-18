@@ -2,9 +2,9 @@
 
 import os
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import TextIO
+from typing import NoReturn, TextIO
 
 from pydantic import ValidationError
 
@@ -21,6 +21,10 @@ _FAILED = 1
 _TEMPORARY_FOLDER_MODE = 0o700
 
 
+_Restrict = Callable[[Sequence[Path], Sequence[Path]], None]
+_Replace = Callable[[Sequence[str], Mapping[str, str]], NoReturn]
+
+
 class _Stop(Exception):
     """A fault before the command starts; its message is the line to write."""
 
@@ -30,14 +34,19 @@ def main(
     *,
     stderr: TextIO | None = None,
     abi: Callable[[], int] | None = None,
+    restrict: _Restrict | None = None,
+    replace: _Replace | None = None,
 ) -> int:
     """Confine this process's writes to the rules, then become the command; 1 when it cannot."""
     arguments = sys.argv[1:] if argv is None else list(argv)
     errors = sys.stderr if stderr is None else stderr
     kernel_abi = abi_version if abi is None else abi
+    restrict_step = restrict_writes if restrict is None else restrict
+    replace_step = replace_process if replace is None else replace
     try:
         rules_file, command = _parse(arguments)
-        _confine_and_start(_read_rules(rules_file), command, kernel_abi)
+        rules = _read_rules(rules_file)
+        _confine_and_start(rules, command, kernel_abi, restrict_step, replace_step)
     except _Stop as stop:
         errors.write(f"{_PREFIX}{stop}\n")
     return _FAILED
@@ -58,19 +67,25 @@ def _read_rules(rules_file: Path) -> Confinement:
         raise _Stop(f"cannot read the rules {rules_file}: {fault}") from error
 
 
-def _confine_and_start(rules: Confinement, command: list[str], abi: Callable[[], int]) -> None:
+def _confine_and_start(
+    rules: Confinement,
+    command: list[str],
+    abi: Callable[[], int],
+    restrict: _Restrict,
+    replace: _Replace,
+) -> None:
     fault = abi_fault(abi())
     if fault is not None:
         raise _Stop(fault)
     _make_folders(rules.folders)
     _make_temporary_folder(rules.temporary_directory)
     try:
-        restrict_writes([*rules.folders, rules.temporary_directory], rules.files)
+        restrict([*rules.folders, rules.temporary_directory], rules.files)
     except ConfinementError as error:
         raise _Stop(error.detail) from error
     environment = {**os.environ, "TMPDIR": str(rules.temporary_directory)}
     try:
-        replace_process(command, environment)
+        replace(command, environment)
     except OSError as error:
         raise _Stop(f"cannot start {command[0]}: {error.strerror}") from error
 

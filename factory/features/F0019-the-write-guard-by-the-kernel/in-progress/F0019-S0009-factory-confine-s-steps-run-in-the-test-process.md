@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T19:38:51.427202Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T19:38:51.427202Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T19:41:06.174485Z'
+  stage: doing
+  run: f43a412ab89343a58a361b4481305b8c
 ---
 
 # factory-confine's steps run in the test process
@@ -147,3 +149,19 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/entry/test_confine_steps.py::test_restrict_and_replace_left_none_are_the_adapters_functions
 6. factory: started doing as self.
+7. coder: Built: `src/factory/entry/confine.py`. `main` now takes two keyword-only arguments, `restrict` and `replace`, typed by the private aliases `_Restrict` and `_Replace`. When they are `None` they default to `restrict_writes` and `replace_process`, using the same `<default> if x is None else x` form as `abi`. `main` passes them to `_confine_and_start`, which calls them where it used to call the adapters directly. The steps, their order, the texts and the exit status are unchanged. The console script and `python -m` pass neither argument.
+
+   Main choice: I pass the two callables as plain parameters to `_confine_and_start`, next to `abi`. I rejected bundling the three injected steps into a small frozen dataclass: for three callables in one private function it adds a type without making anything clearer. To keep the line short, I moved `_read_rules(rules_file)` out of the call into a local `rules`.
+
+   Checks: all six new tests in `tests/entry/test_confine_steps.py` pass, and `tests/entry/test_confine.py` is untouched and green. `make check` is green, and coverage of `confine.py` rose from 78 % to 95 %. The story's smoke test prints exactly `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`.
+
+   Refactor: I read the diff and nothing needed changing.
+
+   Description: the journal did not change the meaning of the task, so I did not rewrite it.
+
+   Noticed but did not touch:
+   - Three lines of `confine.py` are still not covered: 97-98 (the `mkdir` fault in `_make_folders`) and 110 (`if __name__ == "__main__"`). The story does not ask for them.
+   - I did not run `make duplicates` or `make mutants`.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
