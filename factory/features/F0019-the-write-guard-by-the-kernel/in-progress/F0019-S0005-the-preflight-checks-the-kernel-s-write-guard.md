@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T17:01:27.861049Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-18T17:01:27.861049Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-18T17:03:13.528700Z'
+  stage: doing
+  run: 2c937d5ed2ff4d74953ec6ded8a05402
 ---
 
 # The preflight checks the kernel's write guard
@@ -241,3 +243,19 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     `lint`: lint: green (0.0 s)
     `test`: test: green (40.5 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's move. The tester moved the shared helper into `tests/wiring_support.py` as `every_tool` (entry 13). That closes the reviewer's finding 1, so this round needed no source change from me.
+
+    The code from round 0 stands as it was:
+    - `src/factory/application/preflight.py`: `confinement_item` and its private `_kernel_fault`.
+    - `src/factory/entry/wiring.py`: `machine_extras` now has the `confinement` item between `agent-environment` and `agent-run-probe`.
+
+    Main choice, unchanged from round 0: `confinement_item` reuses the existing `_path_fault` helper with the command passed in as a parameter. I rejected writing a second PATH check for the wrapper, because it would duplicate that helper.
+
+    Refactor pass: no new source diff this round, so nothing to change.
+
+    I ran `make check` and it is green: `test: green (37.7 s)`, coverage 98.67 %, `check: green`.
+
+    Noticed but not touched: the docs criterion is left to the documenter. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
