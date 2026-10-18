@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -96,6 +96,11 @@ journal:
   at: '2026-10-18T13:07:39.808777Z'
   stage: smoke-test
   run: 026a46f995f243668c3aa1d4663de3e0
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-18T13:08:25.641908Z'
+  stage: approval
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -237,3 +242,4 @@ Expect: `documents ok`
       - No other passage of either document changed, and `documents ok` was printed.
 
     The smoke test contradicts no criterion. Nothing is open.
+17. factory: done (pull request merged); cost: 7 runs, 3.0 min, 31 turns, 67046 tokens in (319767 more from cache), 6688 out, $0.60
