@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T15:09:34.469521Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -151,6 +155,11 @@ journal:
   at: '2026-10-18T15:09:14.078395Z'
   stage: docs
   run: 4e62e8a442b94b94a80a799cf534116e
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:09:34.469521Z'
+  stage: smoke-test
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -483,3 +492,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
     `check`: check: green
     `documents`: documents ok
+27. factory: started smoke-test as self.
