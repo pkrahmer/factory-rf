@@ -7,8 +7,17 @@ crashes: 0
 pull_request: null
 comments_read: []
 handed_over: null
-claim: null
-journal: []
+claim:
+  instance: self
+  stage: acceptance
+  started_at: '2026-10-18T17:31:19.105372Z'
+  lease_duration: 100
+journal:
+- number: 1
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:31:19.105372Z'
+  stage: acceptance
 stories: [F0019-S0001, F0019-S0002, F0019-S0003, F0019-S0004, F0019-S0005, F0019-S0006]
 outcome: null
 ---
@@ -16,3 +25,5 @@ outcome: null
 # Acceptance of The write guard by the kernel
 
 ## Journal
+
+1. factory: started acceptance as self.
