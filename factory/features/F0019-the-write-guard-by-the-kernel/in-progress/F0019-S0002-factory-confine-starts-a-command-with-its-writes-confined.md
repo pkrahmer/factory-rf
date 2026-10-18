@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T15:06:28.797986Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -138,6 +134,12 @@ journal:
   kind: started
   at: '2026-10-18T15:06:28.797986Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T15:07:25.203037Z'
+  stage: review
+  run: 1642e75f778c4b06beda2e5661c52709
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -429,3 +431,26 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     `check`: check: green
     `duplicates`: duplicates: 1 new, 36 known, 3 gone
 23. factory: started review as self.
+24. reviewer: no findings
+
+    What I checked:
+    - **Acceptance criteria.** I read each of criteria 1 to 14 against its test. Criterion 2 is now one test with three rows in `tests/adapters/test_process_replace.py`, which fixes the round-1 finding. Every failing side of the Interface has a test:
+      - Usage: the seven rows, including the case with no command word against the one-word commands of criteria 12 and 13.
+      - Step 1: a missing file (`OSError`), `UnicodeDecodeError`, and `ValidationError` from bad JSON, a relative path and an unknown key. The test checks the message is one line and that the temporary folder is not made.
+      - Step 2: ABI 0 and 2. ABI 3 passes step 2 in the criterion 10 rows, and `tests/domain/test_confinement_abi.py` covers the boundary.
+      - Step 3: a folder under a file.
+      - Step 4: an existing folder and a symbolic link.
+      - Step 5: a missing file and a linked folder.
+      - Step 6: a program that is not on the `PATH`.
+      - `replace_process`: `ValueError` and `FileNotFoundError`.
+      - The success sides: `TMPDIR`, mode `0o700`, `EXTRA` passed through, and the exit status and output of the command.
+      Entry 22 records `make check` green.
+    - **Architecture.** `factory.entry.confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly, which the human allowed in entry 8 (feature decision 19). `Confinement` is in the domain and reuses `AbsolutePath`. `os.execvpe` is used only in `src/factory/adapters/process.py`.
+    - **Security.** The only new suppression marker is `# noqa: S606  # nosec B606` on the one `os.execvpe` line, which is the exception `CLAUDE.md` allows. No shell command is built from strings. The `# noqa: S603` markers in the tests carry their reason beside them, as earlier tests do.
+    - **Quality.** `src/factory/entry/confine.py` runs the six steps in the Interface's order. It never uses `exist_ok` for the temporary folder and its comment says why. The private `_Stop` writes each fault line in one place. I found no copy of an existing helper: `_confine` and `tree` in `tests/entry/test_confine.py` differ from `_child` and `tree` in `tests/adapters/test_landlock.py`. The one new `make duplicates` record is the `CONFINE_COMMAND` constant, which is unused until S0004. The Interface asks for it, so it is not a finding.
+    - **Work item hygiene.** The Description matches what was built. The journal records the main choice (`_Stop`) and the option it rejected. The docs criterion covers what the documenter must write.
+
+    Earlier tests:
+    - `tests/test_process_search.py`: the human's leave. The story's Interface names `test_no_module_uses_another_route_to_a_process` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` under feature decision 7, and the change stays inside those two tests.
+    - `tests/test_wrapper_search.py`: the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7, and the change adds one importer.
+    - `tests/entry/test_wiring.py`: the human's leave, journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
