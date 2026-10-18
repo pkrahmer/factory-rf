@@ -11,6 +11,9 @@ project_commands:
   test: {time_limit: 10}
   duplicates: {time_limit: 5}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
   documents: {time_limit: 5}    # the four documents against the document check: a check of the docs stage only
+# What every agent run may write for the project's tools, besides its write paths: git-ignored
+# state in the checkout, and caches in the agent's home (~/). The kernel refuses every other write.
+tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "mutants/*", "~/.cache/*", "~/.semgrep/*"]
 # The write paths keep v1's lanes. Every stage's own work item is written by the factory
 # (the journal, the state, the cost records); a role names it only when its agent edits the text.
 # A role's time_limit plus the time_limits of its stage's checks and reports stay within its lease_duration.
