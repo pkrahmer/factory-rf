@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 212
 blocked: null
 comments_seen: 0
@@ -81,3 +81,12 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_approval_description.py::test_a_failing_description_write_before_the_push_is_logged_and_the_hand_over_writes_it
+4. coder: the finisher now writes an approval's description before the push that shows the approval. Commit 5adbe416.
+   - `src/factory/application/stage.py`, `StageFinisher`: `finish` reads `self._definition.stages[move.stage].approval` and passes it to `_commit_and_push(..., describe=approval)`. When that is true, `_commit_and_push` calls the new private `_describe(started, moved)` after `git.commit` and before `git.push`. `_describe` calls `hosting.set_description` with the text from `_description`. For an acceptance (`is_acceptance`) that text is `acceptance_description(moved, _role_of(definition, started.stage))`. For a story it is `hand_over_description(moved, git.log("HEAD", since="origin/main"))`. A `HostingServiceError` is caught and the line `pull request #<n>: description not written before the push: <error>` goes to `self._boundaries.log`; the push and the label go on as before. `_stall_red`, `HandOverHandler` and `AcceptanceHandOver` are unchanged, and `handed_over` stays unset by the finisher.
+   - Main decision: the description is written inside `_commit_and_push`, which keeps the order commit → description → push in one place. I rejected splitting the commit and the push into two methods called from `finish`: that spreads the push sequence over more code and adds nothing. `_role_of` is reused for the acceptance role, and `MAIN_BRANCH` is reused the same way `HandOverHandler` uses it.
+   - Refactor: I read my diff once and found nothing to change, so there is no refactor commit.
+   - Checks: `make check` is green (lint, types, layers, sast, secrets, licenses, test). Every module named in the demo passes.
+   - Noticed, not touched: the description text is now built in two places, the finisher and the hand-over handlers, from the same domain functions. Only the `git.log` ref differs (`HEAD` before the push, `origin/<branch>` after it).
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
