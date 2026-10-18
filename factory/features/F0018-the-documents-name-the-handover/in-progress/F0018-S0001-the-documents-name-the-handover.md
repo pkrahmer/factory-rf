@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T12:49:32.053320Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   at: '2026-10-18T12:49:12.104788Z'
   stage: review
   run: f0a9a38068c1497cbb02812662b7fe7c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:49:32.053320Z'
+  stage: docs
 ---
 
 # The documents name the handover
@@ -180,3 +189,4 @@ Expect: `documents ok`
     - Work item hygiene: the journal explains the one decision, to hand forward unchanged, and the change it rejected, any code or test edit. The Description matches what was built, which is nothing so far.
 
     Earlier tests: none. The diff changes, renames or deletes no test file.
+13. factory: started docs as self.
