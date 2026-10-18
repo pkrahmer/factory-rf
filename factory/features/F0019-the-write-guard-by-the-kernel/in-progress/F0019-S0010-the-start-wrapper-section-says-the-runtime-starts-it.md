@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T20:20:48.217591Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T20:20:28.394991Z'
   stage: doing
   run: 20d938c08bf146b8acd211fc4284fa11
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:20:48.217591Z'
+  stage: review
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -119,3 +128,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
