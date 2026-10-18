@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T13:05:05.880952Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,12 @@ journal:
   kind: started
   at: '2026-10-18T13:05:05.880952Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T13:05:31.904794Z'
+  stage: review
+  run: 8b52df4e900c4dc693661a6229230f03
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -151,3 +153,10 @@ Expect: `documents ok`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 39 known, 0 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    Read: the work item, `git diff --stat main...HEAD -- . ':!factory'` and the diff itself. Both are empty, so the branch changes nothing outside `factory/`. `git diff --name-status main...HEAD` lists only the work item's `.md` (M) and its `.costs.jsonl` sidecar (A).
+    1. Acceptance criteria: criterion 1 holds on the diff. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changes, and the tester's entry (8) and the coder's entry (10) each say so. Criterion 2: the coder's entry records `check: green` (coverage 99.44 %) and `duplicates: 0 new, 39 known, 0 gone`. The Interface is "None", so there is no rule whose failing side needs a test.
+    2.–4. Architecture, security, quality: nothing to judge, because no code changed and no silencing marker was added.
+    5. Work item hygiene: entry 10 states the main decision (leave both passages to the documenter) and the rejected alternative. The Description matches the empty diff. The docs criterion is still accurate against the committed state. `docs/project-guide.md:1710` still has the sentence "v1's pipeline configuration for this repository runs it…". `docs/decisions.md:11` still has "The coder's write paths in `factory/stages.yml` name them". `factory/pipeline.yml:31` (docs stage, `checks: [check, documents]`) and `factory/pipeline.yml:20` (coder write paths `src/*`, `image/*`, `template/*`, `claude/*`) back the new wording the criterion asks for.
+    6. Earlier tests: no test file on `main` is changed, renamed or deleted.
