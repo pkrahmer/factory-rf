@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T14:54:03.797155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,12 @@ journal:
   kind: started
   at: '2026-10-18T14:54:03.797155Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T14:54:20.339121Z'
+  stage: doing
+  run: 6c9127f8efb745268e4ddba292f880dc
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -245,3 +247,16 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
    No refactor pass yet; it waits until `make check` is green.
 8. 2026-10-18 human: A. You have my leave: the tester widens `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` to expect `{"factory.entry.wiring", "factory.entry.confine"}`, that one line and nothing else. The start wrapper imports `factory.adapters.landlock` and `factory.adapters.process` directly, as the Interface and criterion 14 say: it picks no adapter behind an interface; it is the process-level step before `exec`. Recorded as feature decision 19 (on main). End with `tests` naming that change.
 9. factory: started doing as self.
+10. coder: The human chose A in entry 8, so this goes to the tester for one change. In `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`, change the line `assert importers == {"factory.entry.wiring"}` to `assert importers == {"factory.entry.wiring", "factory.entry.confine"}`. Change that one line and nothing else.
+
+    What I built is already committed on the branch, as entry 7 describes:
+    - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`.
+    - `src/factory/domain/confinement.py`: the model `Confinement`.
+    - `src/factory/adapters/process.py`: `replace_process`, with the one `# noqa: S606  # nosec B606` line.
+    - `src/factory/entry/confine.py`: `main`, which runs the six steps in order. `confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly, as the human's answer allows.
+
+    Main choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes that line once and returns 1. I rejected having every step return a status, which would repeat the write-and-return at each of the six faults.
+
+    Open: when the tester sends the work item back, the next doing run checks that `make check` is green and does the refactor pass. Neither has happened yet; this run changed no code.
+
+    Noticed, not touched: `src/factory/entry/confine.py` is at 78% coverage, because the rows that reach steps 5 and 6 run in a child process that coverage does not follow. Total coverage stays above 90%.
