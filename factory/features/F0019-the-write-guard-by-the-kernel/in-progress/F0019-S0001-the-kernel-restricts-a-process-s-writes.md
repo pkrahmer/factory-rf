@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 220
-comments_read: []
+comments_read: [6251100326]
 handed_over: null
 claim: null
 journal:
@@ -25,6 +25,11 @@ journal:
   at: '2026-10-18T14:29:47.102570Z'
   stage: intake
   run: 1255cbef6d9b490183b8668bc55ae5c0
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T14:30:30.950183Z'
+  stage: intake
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -149,3 +154,5 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
    2. The Interface says a folder rule allows all twelve write rights beneath the folder. Criterion 3 shows only some of them: create file, make folder, delete file, append and truncate. Making a symbolic link inside A and renaming a file between two folders both under A are not shown. Rename is the `refer` right, and it is the only one of the twelve that crosses folders. Proposed: add two rows to criterion 3, "a symbolic link made in A is created" and "a file in A renamed to another folder in A succeeds". I would choose to add them. If you would rather leave the other rights untested, say so and I accept as is.
 
    Everything else is fine: the Interface is concrete, the smoke test is runnable with checkable Expect lines, the architecture fits (`domain` holds the constant, the fault text and the error; `adapters` holds `ctypes`) and the scope matches S0001 in `feature.md`.
+4. 2026-10-18 human: 1. Yes: add the ordering criterion with its three rows (folder before file; first of two folders; first of two files), before the two closing criteria.
+   2. Yes: add the two rows to criterion 3 (a symbolic link made in A is created; a file renamed between two folders under A succeeds). The rename row is the one that proves the refer right.
