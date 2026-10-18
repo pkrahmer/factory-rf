@@ -198,7 +198,7 @@ def test_completed_resume_adds_up_the_measures_and_joins_the_denials(tmp_path: P
     assert result.tokens == TokenCounts(input=110, output=55, cache_read=77, cache_creation=22)
     assert result.permission_denials == [
         PermissionDenial(tool="Bash", detail='{"command": "git push"}'),
-        PermissionDenial(tool="Write", detail='{"file_path": "x"}'),
+        PermissionDenial(tool="Write", detail='{"file_path": "x"}', path="x"),
     ]
 
 

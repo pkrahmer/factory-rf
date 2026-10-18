@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T23:23:05.284248Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-18T23:23:05.284248Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T23:25:28.838357Z'
+  stage: tests
+  run: 16f9f49dddac449ba375c31e7aab49a2
 ---
 
 # The run record counts the refused tool calls
@@ -136,3 +138,19 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
    - Architecture: the changes sit in the right layers (domain DTOs, application recorder, adapters for the runtime and the JSONL writer). The runtime-specific parsing stays in the adapter.
    - Scope: within the feature's S0004 and decision 8. The stop records and F0020's items are not touched. The change to the earlier test `test_claude_runtime_resume.py` is covered by decision 14.
 7. factory: started tests as self.
+8. tester: Wrote one parametrized test per acceptance criterion, from the Interface and the criteria. Every row the criteria list is a row of its test, including the two rows the human added in entry 4.
+
+   - criterion 1: tests/adapters/test_claude_runtime_denial_paths.py::test_a_denial_names_the_file_or_notebook_path_of_its_call. It runs the `claude -p` stand-in with one denial per row. It reuses `_reply`, `_request` and `_runtime` from tests/adapters/test_claude_runtime_resume.py, as earlier jsonl tests import helpers from test_cost_records_jsonl. Every row's expected `detail` is `json.dumps(tool_input, sort_keys=True)`, as today.
+   - criterion 2: tests/domain/test_cost_record_denials.py::test_only_a_completed_record_carries_a_non_negative_denial_count_and_paths. It builds the record through a variable typed `type[BaseModel]`. Accepted rows: completed with 0, and with 2 plus `["src/a.py"]`. Refused rows: -1, started with `denials=0`, started with `denied_paths=[]`.
+   - criterion 3: tests/application/test_costs_denials.py::test_completed_record_counts_the_denials_and_their_paths_once_each_in_order. Rows: completed, budget and no_result with the four denials; completed with none; died; time_limit. It checks both the returned record and the sidecar read back.
+   - criterion 4: tests/adapters/test_cost_records_jsonl_denials.py::test_the_writer_writes_the_denials_after_the_instance_only_when_set. Each record has `instance` set, so the test can check that the denial keys come after it. Rows: neither key, both, count only, 0 with `[]`. Each rendered line is parsed back and must equal its record.
+   - criteria 5 and 6 (make check, docs): no test, by their nature.
+
+   Files created: the four test modules above. Earlier test changed, under the feature's decision 14 as the Interface names it: tests/adapters/test_claude_runtime_resume.py, where the expected `Write` denial gains `path="x"`. Nothing else in that file changed.
+
+   `make test`: tests/application/test_costs_denials.py could not be collected, because `PermissionDenial` has no `path` field yet. That module builds the denials at module level. The other new tests fail on the missing `path`, `denials` and `denied_paths` fields. No module failed to import. `make lint` is green. The type check was skipped, as this stage allows.
+
+   Nothing open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/application/test_costs_denials.py - pydantic_core._pydantic_core....
