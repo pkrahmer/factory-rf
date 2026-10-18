@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T13:03:08.654443Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,12 @@ journal:
   kind: started
   at: '2026-10-18T13:03:08.654443Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T13:04:46.063101Z'
+  stage: doing
+  run: 75d4b0dc9386473a8bd4056402964a70
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -130,3 +132,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (35.4 s)
 9. factory: started doing as self.
+10. coder: Nothing built. No file under `src/`, `tests/`, `image/`, `template/` or `claude/` changes. The story is documentation only: its Interface is "None", and criterion 1 asks the coder to change nothing. The rewording in `docs/project-guide.md` and `docs/decisions.md` is the documenter's job, and the coder does not write those documents.
+    Main choice: I left the two stale passages for the docs stage. The alternative was to fix them here, since they are two sentences, but I rejected it because the coder does not write the docs and criterion 1 forbids it.
+    Refactor: there is no diff to refactor.
+    The journal changed nothing in the Description. The intake answers (journal 4) were already reflected in it, so it is not rewritten.
+    Noticed, not touched: nothing.
+    `make check`: check: green (test: green, coverage 99.44%).
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 39 known, 0 gone
