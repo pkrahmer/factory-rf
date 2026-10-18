@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:07:18.146766Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-18T23:06:58.219503Z'
   stage: tests
   run: bcbfa723bba04dd3b3bae392a4097d65
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:07:18.146766Z'
+  stage: doing
 ---
 
 # The stops reach main as records
@@ -389,3 +398,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (39.6 s)
+20. factory: started doing as self.
