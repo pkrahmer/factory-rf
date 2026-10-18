@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T20:45:04.504297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T20:45:04.504297Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T20:46:10.253551Z'
+  stage: docs
+  run: fbbf9fcfc46040dd99c1d8f2c75f66e8
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -217,3 +219,17 @@ Expect: `replace_process needs a program to start`
    - tests/entry/test_confine.py: standing leave to move a shared test helper. `USAGE` and `_rules` moved to tests/confine_support.py, and `_rules` is now `write_rules` with the same body. Every test keeps its name and its assertions.
    - tests/entry/test_confine_steps.py: standing leave to move a shared test helper. `USAGE`, `Replaced` and `Steps` moved word for word. Every test keeps its name and its assertions.
 10. factory: started docs as self.
+11. documenter: Docs for S0012. Only documents changed, so I did not run `make check`; the factory's run decides.
+
+    Changed:
+    - `docs/project-guide.md`, *The kernel's write guard*, tests paragraph. It said `restrict_writes` is called only in child processes. It now says the refusals before the first system call also run in the test process (`tests/adapters/test_landlock_checks.py`). It says every row there names a path that cannot be opened, so a broken check still fails before anything binds the worker. It says the system calls themselves (`_create_ruleset`, `_add_rule`, `_restrict_self`) run only in child processes.
+    - `docs/project-guide.md`, *The start wrapper*, Tests paragraph. It now names `tests/entry/test_confine_defaults.py` for the in-process rows (`main`'s defaults, a folder that exists or cannot be made, the fault text of an unreadable rules file). It names `tests/adapters/test_process_replace_faults.py` for `replace_process`'s refusals, and `tests/confine_support.py` for the shared helpers.
+
+    Cross-read and found current: the `replace_process` paragraph in the project guide (empty `argv` gives `ValueError`, program searched on `env`'s `PATH`, `FileNotFoundError`), the start wrapper's steps 1 to 6, and the README. No source diff exists; the diff is tests only.
+
+    Stale text I saw: none.
+
+    Findings for the coder: none.
+
+    `check`: check: green
+    `documents`: documents ok
