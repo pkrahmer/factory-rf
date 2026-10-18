@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 218
 comments_read: [6250212284]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T13:05:52.091852Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -83,6 +79,12 @@ journal:
   kind: started
   at: '2026-10-18T13:05:52.091852Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T13:07:01.074966Z'
+  stage: docs
+  run: 1afc899dd1ae43e9ba155bc9da227519
 ---
 
 # The agents' guide names v1.1's pipeline definition
@@ -170,3 +172,19 @@ Expect: `documents ok`
     5. Work item hygiene: entry 10 states the main decision (leave both passages to the documenter) and the rejected alternative. The Description matches the empty diff. The docs criterion is still accurate against the committed state. `docs/project-guide.md:1710` still has the sentence "v1's pipeline configuration for this repository runs it…". `docs/decisions.md:11` still has "The coder's write paths in `factory/stages.yml` name them". `factory/pipeline.yml:31` (docs stage, `checks: [check, documents]`) and `factory/pipeline.yml:20` (coder write paths `src/*`, `image/*`, `template/*`, `claude/*`) back the new wording the criterion asks for.
     6. Earlier tests: no test file on `main` is changed, renamed or deleted.
 13. factory: started docs as self.
+14. documenter: Files changed:
+    - `docs/project-guide.md` (section *The document check*): the sentence now begins "This repository's pipeline definition (`factory/pipeline.yml`) runs it as a check of the docs stage through `make documents`". The rest of the paragraph is unchanged. `factory/pipeline.yml` does run it: the docs stage has `checks: [check, documents]`.
+    - `docs/decisions.md` (entry *Three top-level paths for the product beyond `src/` and `tests/`*): the sentence now reads "The coder's write paths in the pipeline definition (`factory/pipeline.yml`; v1's `factory/stages.yml` until the handover of 2026-10-18) name them". I reworded it in place, as the criterion and the human's answer in journal 4 ask.
+
+    Run: `python -m factory.entry.check_documents` prints `documents ok`. `grep -c` for the old project-guide phrase prints 0.
+
+    I did not run `make check`, because I changed only documents. The factory runs it after this stage.
+
+    Cross-read and found current: the diff against `main` outside `factory/` and the docs is empty, so no name or behaviour changed. The rest of `docs/project-guide.md` *The document check* and the neighbouring text in the `docs/decisions.md` entry agree with `factory/pipeline.yml`. I did not cross-read the README or the operator guide beyond that, because S0001 covered them.
+
+    No findings for the coder.
+
+    Stale text I noticed and did not touch: none.
+
+    `check`: check: green
+    `documents`: documents ok
