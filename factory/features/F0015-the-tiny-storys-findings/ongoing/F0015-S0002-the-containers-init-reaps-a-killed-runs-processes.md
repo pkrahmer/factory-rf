@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 207
 blocked: null
 comments_seen: 0
@@ -54,3 +54,13 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both commands are runnable. The first expects `True`, and the second expects a `<n> passed` line with no failed, error or skipped count. Both can be checked against the output.
    - Architecture: nothing under `src/` changes. This is a compose-file setting plus a test at the `tests/` root, next to `test_compose_project.py`. That fits the layout, since the module is outside the layers.
    - Scope: this is S0002 of F0015, finding 2, as the feature's Scope lists it. Out of scope are the factory acting as reaper, tini in the image, and v1's own compose file. Decisions 6 to 8 cover the choices, and no earlier test changes.
+3. tester: wrote the tests from the Interface and the criteria.
+   - criterion 1: tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process. It loads `image/compose.yml` with `YAML(typ="safe")` and checks `services.factory.get("init") is True`. A missing key or the string "true" fails it.
+   - criterion 2: tests/test_compose_init.py::test_the_entrypoint_hands_over_to_the_factory_with_exec. The last line of `image/entrypoint.sh` that is not blank must equal `exec python -m factory.entry.run`. It already passes because the entrypoint stays unchanged; it guards against a later change.
+   - criterion 3: no new test. The tests already in tests/test_compose.py, test_compose_project.py, test_claude_token_mount.py, test_token_folder.py and test_image_credentials.py cover it.
+   - criteria 4 and 5: the closing and docs criteria, which need no test.
+   Files created: tests/test_compose_init.py.
+   Modules the runner could not import: none, because the module imports nothing under src/. Red for the right reason: the only failure in `make test` is test_the_container_runs_the_runtimes_init_as_its_first_process, since compose.yml has no `init` key yet. `make lint` is green. No criterion needed interpreting.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process
