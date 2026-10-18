@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T23:19:33.251788Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T23:19:33.245967Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:19:33.251788Z'
+  stage: intake
+---
+
 # The run record counts the refused tool calls
 
 ## Description
@@ -63,3 +90,6 @@ for line in JsonLinesCostRecordWriter().render([started, done]).splitlines():
 Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
