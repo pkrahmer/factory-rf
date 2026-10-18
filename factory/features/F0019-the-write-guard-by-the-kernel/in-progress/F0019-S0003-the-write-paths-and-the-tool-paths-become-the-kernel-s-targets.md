@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 222
-comments_read: []
+comments_read: [6251638379]
 handed_over: null
 claim: null
 journal:
@@ -69,6 +69,11 @@ journal:
   at: '2026-10-18T15:23:01.337331Z'
   stage: doing
   run: a5d43fa09d07473a9ac1363f4368f4d5
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-10-18T15:24:17.469940Z'
+  stage: doing
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -280,3 +285,8 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     Noticed but not touched: `make duplicates` still lists `write_targets`, `confinement_of` and the older `CONFINE_COMMAND` as dead code, until the runtime uses them in S0004.
 
     The journal did not change the meaning of `## Description`.
+12. 2026-10-18 human: A, with the check in the targets code only:
+    - Tool paths: `.` refused at load time with the same fault as `..`; add `"./*"`, `"a/./b/*"` and `"~/./*"` to criterion 2.
+    - `write_targets`: a write path with a `.` segment gives no target; add `./*`, `./*.md` and `.`, each giving nothing, to criterion 4.
+    - Leave `is_inside_checkout` as it is, so the hook's refusal does not change in this story.
+    Amend the Interface's rules accordingly (feature decision 20, on main). End with `tests` naming the rows.
