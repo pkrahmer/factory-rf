@@ -56,7 +56,12 @@ LESSONS = {
         "valid under the readers and validators already built, unless the test is about that "
         "rule.",
         "- You change a test another story wrote only when the story names that test and the "
-        "human has given their word; you make that change, the coder never does.",
+        "human has given their word, or to move a shared test helper under a standing leave "
+        "that `CLAUDE.md` gives; you make that change, the coder never does, and your entry "
+        "names each earlier test file you changed and the leave for it.",
+        "- When the prompt says `Mode: a test change the human approved` and the coder's entry "
+        "names a move of a shared test helper under that standing leave instead of an answer of "
+        "the human's, make exactly that move, as step 0 of the stage says for an approved change.",
         _TIME_LIMIT_LESSON,
     ],
     "coder": [
@@ -66,6 +71,10 @@ LESSONS = {
         "extend it; the reviewer counts a second copy of an existing helper as a finding.",
         "- You never change a test, not even one the story names as changed with the human's "
         "word: the tester makes that change.",
+        "- A reviewer's finding of a copied test helper is a change to tests: when `CLAUDE.md` "
+        "gives a standing leave to move a shared test helper, end with `tests` and an entry "
+        "naming the move (the helper, the shared place, the earlier test files), and the tester "
+        "makes it; without that leave, it is a question.",
     ],
     "reviewer": [
         _FIRST_LESSON,

@@ -68,3 +68,4 @@ You make the failing tests pass without changing them, inside the architecture `
 - Give a project command that can take minutes, such as `make check`, the shell tool's largest timeout (600000 ms), so that the tool does not move it to the background.
 - Before you write a helper, search the code for one that does the same, and reuse or extend it; the reviewer counts a second copy of an existing helper as a finding.
 - You never change a test, not even one the story names as changed with the human's word: the tester makes that change.
+- A reviewer's finding of a copied test helper is a change to tests: when `CLAUDE.md` gives a standing leave to move a shared test helper, end with `tests` and an entry naming the move (the helper, the shared place, the earlier test files), and the tester makes it; without that leave, it is a question.

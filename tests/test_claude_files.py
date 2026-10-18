@@ -83,6 +83,14 @@ TEMPLATE_RULES_LINES = [
     "may run on every core at once, so a child can need more than a second before it does "
     "anything. Give it a limit of a few seconds and an upper bound on the elapsed time with "
     "room above it; never check that a one-second limit is met to the tenth.",
+    "- The standing leave to move a shared test helper: a helper, constant or fixture that a new "
+    "test would copy from another story's test module, or that an earlier test module still "
+    "holds as a copy of a shared one, may be moved to one shared place under `tests/` (a module "
+    "at its root, or `tests/conftest.py` for a fixture), and the earlier tests that held it "
+    "changed to use it from there, without asking, as long as every earlier test keeps its name "
+    "and checks the same thing. The tester makes the move, never the coder, and its entry names "
+    "each earlier test file it changed. Any other change to a test another story wrote still "
+    "needs the human's leave.",
     "",
     "## Docs",
     "- `README.md` is for the newcomer: what it is, how to run it, where to look next. "
@@ -117,8 +125,9 @@ TEMPLATE_RULES_LINES = [
     "",
     "## Not without asking (end the stage with `question`)",
     "- New dependency, new top-level package, change to `factory/`, change to a test you did not "
-    "write, a new entry in `.secrets.baseline` or a `pragma: allowlist secret`, a `nosemgrep` or "
-    "`nosec` marker, a licence outside the allow list.",
+    "write beyond the standing leave under *Tests*, a new entry in `.secrets.baseline` or a "
+    "`pragma: allowlist secret`, a `nosemgrep` or `nosec` marker, a licence outside the allow "
+    "list.",
 ]
 
 
