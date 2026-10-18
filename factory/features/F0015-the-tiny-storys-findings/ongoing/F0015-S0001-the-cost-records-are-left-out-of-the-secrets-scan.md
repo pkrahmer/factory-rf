@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 206
 blocked: null
 comments_seen: 0
@@ -108,3 +108,26 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their `Expect:` lines, and nothing contradicts a criterion.
+
+   Command 1: `grep -cF '.*\.costs\.jsonl' template/Makefile demo/todo-service/project/Makefile`
+   ```
+   template/Makefile:1
+   demo/todo-service/project/Makefile:1
+   ```
+   Met: two lines, each count 1.
+
+   Command 2: `uv run pytest --no-header -p no:cacheprovider tests/test_template_makefile.py tests/test_demo_makefile_secrets.py`
+   ```
+   ................................................                         [100%]
+   =============================== warnings summary ===============================
+   .venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+     …: PytestWarning: (rm_rf) error removing /tmp/pytest-of-factory/garbage-…/test_seal_takes_the_group_and_0/checkout
+     <class 'OSError'>: [Errno 39] Directory not empty: …
+   …
+   -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+   48 passed, 15 warnings in 2.35s
+   ```
+   Met: the last line says `48 passed` and has no `failed`, `error` or `skipped` count. The 15 warnings come from pytest's own cleanup of old basetemp folders in `/tmp`, which earlier runs of another test (`test_seal_takes_the_group_and_0`) left behind. They are not from this story, and the Expect line does not exclude warnings.
+
+   Criteria check: the `secrets` recipes in the two Makefiles (lines 59–70) are identical when diffed. `git diff origin/main --stat -- template/` shows one changed line in `template/Makefile`, which fits "nothing else in the file changes". Criteria 1–6 are covered by the passing rows and the passing equality test. Criteria 7 and 8 (`make check`, docs) were recorded green by the coder and the documenter, and nothing in the demo contradicts them.
