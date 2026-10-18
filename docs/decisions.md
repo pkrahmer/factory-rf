@@ -596,3 +596,11 @@ Date: 2026-10-18 (F0019-S0005). Every run starts through `factory-confine`, so a
 - Decision: the item's failure is the existing machine stop `preflight_failed`, naming `confinement` and each fault, so no agent runs and no new stop reason exists. The factory does not fall back to the hook (feature decision 12).
 - Reasons: the hook covers only `Edit` and `Write`, so a fallback would drop the guard for every other route on exactly the machine that lacks it; the hook is to go after the cross-check, and a fallback would keep it as a second code path; the kernels the factory runs on offer ABI 3 or higher (6.18 offers 7; WSL2 kernels are 6.6 or later, `wsl --update`).
 - Alternative left to the human: an operator setting that falls back to the hook alone, with a warning on every tick.
+
+## The hook allows the run's temporary folder
+
+Date: 2026-10-18 (F0019-S0011). R14 sends every agent to `$TMPDIR` for temporary files, and the kernel allows that folder, but the hook `factory-guard` refused an `Edit` or `Write` there with `<path> is outside the checkout.`. The agent then wrote the file through the shell, which R14 also forbids, and the cross-check of the hook against the kernel would have counted each such refusal as a disagreement.
+
+- Decision: `GuardSettings` carries the run's temporary folder (`temporary_directory`, `None` by default), and `judge` allows a real path strictly beneath it, after the checkout is judged: a link into the checkout, or a checkout beneath the temporary folder, is still decided by the write paths. The runtime sets it only when it confines the run; without it the hook judges as before.
+- Decision: the tool paths stay kernel-only.
+- Rejected: telling the agents to write temporary files through the shell only (it contradicts R14's intent and leaves the hook and the kernel disagreeing); counting these refusals as expected in the cross-check (it hides real disagreements behind a known one).

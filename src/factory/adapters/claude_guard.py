@@ -50,6 +50,8 @@ def judge(payload: str, settings: GuardSettings) -> GuardVerdict:
         return _ALLOWED
     relative = _relative_real_path(file_path, settings.root)
     if relative is None:
+        if _beneath_temporary_directory(file_path, settings):
+            return _ALLOWED
         return GuardVerdict(allowed=False, message=f"{file_path} is outside the checkout.")
     message = refusal(relative, settings)
     if message is None:
@@ -67,11 +69,25 @@ def _file_path(payload: str) -> str | None:
 
 
 def _relative_real_path(file_path: str, root: Path) -> str | None:
-    try:
-        real_root = Path(os.path.realpath(root))
-        real_path = Path(os.path.realpath(root / file_path))
-    except (ValueError, OSError):
-        return None
-    if not real_path.is_relative_to(real_root):
+    real_root = _real_path(root)
+    real_path = _real_path(root / file_path)
+    if real_root is None or real_path is None or not real_path.is_relative_to(real_root):
         return None
     return real_path.relative_to(real_root).as_posix()
+
+
+def _beneath_temporary_directory(file_path: str, settings: GuardSettings) -> bool:
+    if settings.temporary_directory is None:
+        return False
+    real_folder = _real_path(settings.temporary_directory)
+    real_path = _real_path(settings.root / file_path)
+    if real_folder is None or real_path is None:
+        return False
+    return real_path != real_folder and real_path.is_relative_to(real_folder)
+
+
+def _real_path(path: Path) -> Path | None:
+    try:
+        return Path(os.path.realpath(path))
+    except (ValueError, OSError):
+        return None
