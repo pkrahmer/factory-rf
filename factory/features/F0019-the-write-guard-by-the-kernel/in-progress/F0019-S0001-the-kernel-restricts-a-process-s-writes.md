@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T14:37:55.065164Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,12 @@ journal:
   kind: started
   at: '2026-10-18T14:37:55.065164Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T14:38:54.221370Z'
+  stage: review
+  run: 589bbc15d5414ce795d6e92f229326ef
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -257,3 +259,15 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
     `check`: check: green
     `duplicates`: duplicates: 3 new, 36 known, 3 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    I read `git diff main...HEAD -- . ':!factory'` (`src/factory/adapters/landlock.py`, `src/factory/domain/confinement.py`, `src/factory/domain/errors.py`, `tests/adapters/test_landlock.py`, `tests/domain/test_confinement_abi.py`) against the work item.
+
+    - Acceptance criteria: each of criteria 1 to 9 has a test that checks what the criterion says. Criterion 3 has all 15 rows, each in its own child, including the symbolic-link row and the rename-within-A row the human added. Criterion 4 has 6 rows and checks that the child can still write in O afterwards. Criterion 9 has 3 rows for the ordering. The ABI limit is tested on both sides (2 and 3). Each rule's sides are rows of one parametrized test. Every `restrict_writes` call runs in a child process. The work item says which paths are left untested (the failing system calls, a negative `abi_version`) and why. The coder's journal entry 10 reports `check: green`.
+    - Architecture: the domain module is pure (the constant and the fault text built from it). `ConfinementError` follows the `detail` pattern of the other errors. The adapter imports only `domain`. No command-line tool is called. No new dependency: the adapter uses the standard library's `ctypes`.
+    - Implementation against the Interface: every path is checked with `os.lstat` before the first system call, folders before files, each in the given order. The ruleset attribute is 8 bytes. The rule struct is packed to 12 bytes, as the kernel declares it. Each rule's descriptor is opened `O_PATH | O_CLOEXEC` and closed in a `finally`, and the ruleset's descriptor in an outer `finally`. `PR_SET_NO_NEW_PRIVS` is set before `landlock_restrict_self`. Each failing call has the error text the Interface gives. `abi_version` turns a negative result into 0. Every argument to the variadic `syscall` and `prctl` is passed as an explicit ctypes type, which is correct.
+    - Security: no shell or SQL is built from strings, and `src` has no suppression marker. The test's `# noqa: S603` on `subprocess.run` gives its reason beside it, as the existing tests do (`tests/test_layers.py:22`, `tests/domain/test_journal.py:398`).
+    - Quality: `make duplicates` has 3 new findings. All are vulture's "unused function" for `abi_version`, `restrict_writes` and `abi_fault`, which is expected: the Description says nothing calls the adapter until S0002. The "cannot open" text appears in both `_check_path` and the `_add_rule` guard (for a path that disappears between the check and the rule). That is two lines with one meaning each, so I do not count it as duplicated logic.
+    - Work item hygiene: the journal names the main choice (explicit ctypes argument types) and what was rejected (bare Python ints). The Description matches what was built. Criterion 11 (docs) still covers what the reader must know.
+
+    Earlier tests: none. The diff only adds test files (`A` for both); it changes, renames or deletes no test file that `main` holds.
