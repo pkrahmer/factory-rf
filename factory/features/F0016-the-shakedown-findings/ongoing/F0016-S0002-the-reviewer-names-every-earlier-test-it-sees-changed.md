@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 211
 blocked: null
 comments_seen: 0
 round: 0
@@ -75,3 +75,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted.
+   - Interface: names concrete files and sections (`claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md`, each `## Role`) and gives the old and new text of every changed line word for word. I checked the old texts against the files: the reviewer's line 51 and the acceptance reviewer's check 6 (line 56) match. The test anchors (`ROLE_AND_STAGE_ANCHORS`, one new test) are named. S0001 is merged: the template and the tester and coder lessons already carry the standing leave that item 6 cites.
+   - Criteria: each is testable by one test function. Criteria 1 and 2 are rows of the existing anchor test, criterion 3 is a new named test, and criterion 4 is the existing tests passing. Every behaviour stated in the Interface has a criterion. The Interface states no limit or validation, so no rule has a failing side that needs its own criterion. The old-sentence-gone check (criterion 3) is the failing side of the sentence change.
+   - Demo: both commands are runnable. Against the current files the grep counts are all 0, which is right before the change. The expected counts (reviewer 1 and acceptance reviewer 0 for "Earlier tests"; the reverse for the second phrase) follow from the new texts. The pytest `Expect:` line is checkable.
+   - Architecture: the change is text in the shipped agent files, which the coder's lane (`claude/*`) covers. Nothing under `src/` changes, and no layer is touched.
+   - Scope: it is within FEATURE scope (S0002) and not in Out of scope. The test leaves match FEATURE decision 9. The story starts after S0001, as decision 10 requires.
