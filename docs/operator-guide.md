@@ -131,7 +131,7 @@ That login is kept in the volume `claude-home` (`/home/agent/.claude/.credential
 | WE3.3: it cannot read the token file | `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` | `Permission denied` for both |
 | The token's folder is the factory's | `docker exec <container> ls -lnd /home/factory/.secrets` | `drwx------` and uid 1000 |
 | WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
-| The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `775` for the directory, `664` for the file |
+| The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `2775` for the directory, `664` for the file; `/work` is setgid, so a folder made in it keeps the bit and the group `factory-work` (seen at the first start of 2026-10-17 under Docker Desktop and Podman) |
 | The agent can read its token | `docker exec -u agent <container> test -r /home/agent/.claude-token && echo readable` | `readable` |
 | The probe needs no login | start a new instance (a new `claude-home` volume) with the token file in place and read the health status | the preflight item `agent-run-probe` passes, with no login made by hand |
 | The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
@@ -341,6 +341,8 @@ For a team, the setup is one shared Linux host (Docker Engine, or rootless Podma
 ### Podman: the commands
 
 Every `docker` command of this guide works with `podman` in its place: `podman build`, `podman exec`, `podman compose -f image/compose.yml up -d`. Inside the container the users, groups, modes and the token's folder are the image's. On the machine the named volumes belong to sub-ids that are invisible inside.
+
+On Windows a shell may not see the Podman machine's saved connection, and a command then fails with `connection "podman-machine-default" not found` (seen at the first start in PowerShell). Run `podman system connection list` where the connection is seen: it shows its URI and identity file. Give them on each command with `podman --url <URI> --identity <identity file> ...`, for example `podman --url <URI> --identity <identity file> ps`. Whether `podman compose` hands them on to its Compose provider is not observed, so run `compose` from a shell that sees the connection.
 
 ### Podman: the Compose provider
 
