@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T17:10:18.406142Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T17:10:18.406142Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T17:12:11.482586Z'
+  stage: tests
+  run: ccb4ccde93db446b86296049af820e1b
 ---
 
 # The agents' instructions explain a refused write
@@ -90,3 +92,14 @@ Expect: `1`
    - Architecture: this is prompt text only, in the coder's `claude/*` write path. Nothing crosses a layer, and the first sentence of R14 and the other rules stay as they are.
    - Scope: matches the feature's scope line for `claude/agents/*.md` (S0006) and decision 14. It does not remove the hook, which is out of scope.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the new R14 paragraph. Each test is parametrized over the seven shipped agents, using `SHIPPED_NAMES` and `front_matter_and_body` from `tests/shipped_agents.py`.
+   - criterion 1: tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line. It checks that the Interface's R14 paragraph is one line under `## Rules`, read with `factory.domain.sections.section_text`.
+   - criterion 2: tests/test_claude_agent_refusal.py::test_old_ending_of_the_write_paths_rule_is_gone
+   - criterion 3: tests/test_claude_agent_refusal.py::test_write_paths_rule_appears_once
+   - criterion 4: `make check`, run by the factory. No test of its own.
+   - criterion 5: the docs criterion, for the documenter stage. No test.
+   Files created: tests/test_claude_agent_refusal.py. I changed no earlier test file. No earlier test pins the old R14 text.
+   Import errors: none. No module under `src/` is new, so all modules imported. `make test` failed as intended: the tests for criteria 1 and 2 fail on all seven agents because the agents still hold the old text. The test for criterion 3 already passes: each agent has exactly one `R14. ` line today, and the coder's change must keep it that way. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line[intake]
