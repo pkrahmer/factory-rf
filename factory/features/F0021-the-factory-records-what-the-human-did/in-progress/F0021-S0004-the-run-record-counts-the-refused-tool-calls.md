@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T23:39:30.592537Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-18T23:39:30.592537Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T23:40:05.972198Z'
+  stage: smoke-test
+  run: 06b62efc8d6049c3a237611fbb471364
 ---
 
 # The run record counts the refused tool calls
@@ -358,3 +360,32 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     `check`: check: green
     `documents`: documents ok
 22. factory: started smoke-test as self.
+23. smoke-tester: Ran the one command under `## Smoke test` exactly as written, from the repository root. I fixed nothing.
+
+    Command 1 (`uv run -q python -c '…'`, which renders a `started` and a `completed` record and prints `denials` and `denied_paths` for each line):
+
+    ```
+    Traceback (most recent call last):
+      File "<string>", line 16, in <module>
+      File "/work/checkout/src/factory/adapters/cost_records_jsonl.py", line 90, in render
+        _check_new_run(record, number, seen_runs)
+      File "/work/checkout/src/factory/adapters/cost_records_jsonl.py", line 39, in _check_new_run
+        raise CostRecordFormatError(number, f"duplicate run: {record.run}")
+    factory.domain.errors.CostRecordFormatError: line 2: duplicate run: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    exit: 1
+    ```
+
+    Expect: two lines, `absent absent` and `2 ['src/a.py']`. **Not met.** The command exits 1 and prints neither line.
+
+    Why it fails: the script gives both records the same `run` (`"a" * 32`, from the shared `fields`). `JsonLinesCostRecordWriter.render` refuses a second line for the same run in `_check_new_run`, because a run's line is replaced when it completes. That check is already on `origin/main` (`git show origin/main:src/factory/adapters/cost_records_jsonl.py`, lines 36–39 and 89). This story's diff to the module only changes `_line_of_record`, which now leaves out `instance`, `denials` and `denied_paths` when each is `None`. So the error comes from the smoke test's data, not from this story's code.
+
+    I checked the acceptance criteria against what the smoke test showed. It contradicts none of them, because the error happens before any line is written. It shows nothing about criterion 4 either way.
+
+    Findings:
+    1. Command 1. Expected: two lines, `absent absent` and `2 ['src/a.py']`. Observed: `CostRecordFormatError: line 2: duplicate run: aaaa…`, exit 1, no output lines. Criterion: none is contradicted; the command errors.
+
+    For the next stage: the code can't fix this without dropping the duplicate-run check, which is already on `main` and outside this story. Two ways out need the human, because `## Smoke test` is theirs:
+    - (a) Give the two records in the smoke test different `run` values (for example `"b" * 32` for `done`). This is the one I would choose.
+    - (b) Render each record in its own `render` call.
+
+    The coder should probably ask the human (R8) rather than change code.
