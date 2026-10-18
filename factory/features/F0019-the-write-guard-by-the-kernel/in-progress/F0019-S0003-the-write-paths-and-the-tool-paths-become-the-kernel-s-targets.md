@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T15:22:34.591908Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T15:22:14.550608Z'
   stage: review
   run: e9141c98e5d449cc8d426ad9b3971f3a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:22:34.591908Z'
+  stage: doing
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -245,3 +254,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
    Earlier tests:
    - `tests/application/test_write_paths.py` — standing leave to move a shared test helper. The tester moved `_stage_start`, `_push_definition` and `PIPELINE_FILE` to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
+10. factory: started doing as self.
