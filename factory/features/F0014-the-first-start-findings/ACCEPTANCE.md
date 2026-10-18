@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 205
 blocked: null
 comments_seen: 1
 round: 0
 attempts: 1
 stories: [F0014-S0001, F0014-S0002, F0014-S0003, F0014-S0004, F0014-S0005, F0014-S0006, F0014-S0007, F0014-S0008, F0014-S0009, F0014-S0010, F0014-S0011, F0014-S0012, F0014-S0013]
+outcome: accepted
 ---
 # Acceptance of The first start's findings
 
@@ -316,3 +317,4 @@ None stands out. Each took the minimum of six runs with no question, because the
       6. Decisions: 34–36 are new (S0011's and S0012's leaves, and the human's five pre-check answers). 5–33 and the answers from the story logs, which the first acceptance listed, are still open for the human to confirm. S0011–S0013 asked no question.
       7. Slow checks: `make check` green (99.47 %), duplicates 0 new / 39 known, documents ok. There is no image scan or SBOM target. The observations as `agent` are left to the shakedown run.
       8. Cost: 105 runs, 95.7 min, $25.65. S0011–S0013 cost $2.64 together, six runs each with no question. No story stands out beyond S0007 and S0003, which the first acceptance already explained.
+3. done (pull request merged); cost: 2 runs, 74.6 min, 130 turns, 297k tokens in (12273k more from cache), 88k out, $6.59
