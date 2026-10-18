@@ -88,19 +88,30 @@ def test_the_cause_types_kept_in_work_item_and_decisions_are_the_journals() -> N
 
 
 @pytest.mark.parametrize(
-    ("kind", "blocked", "reason"),
-    [("question", "round_cap", None), ("stall", None, "merge_conflict")],
-    ids=["question-round-cap", "stall-merge-conflict"],
+    ("speaker", "kind", "blocked", "reason", "at", "accepted"),
+    [
+        pytest.param(FACTORY, "question", "round_cap", None, AT, True, id="question-with-at"),
+        pytest.param(FACTORY, "question", "round_cap", None, None, True, id="question-without-at"),
+        pytest.param(FACTORY, "stall", None, "merge_conflict", AT, True, id="stall-with-at"),
+        pytest.param(FACTORY, "stall", None, "merge_conflict", None, True, id="stall-without-at"),
+        pytest.param("tester", "result", "question", None, AT, False, id="result-blocked"),
+    ],
 )
-@pytest.mark.parametrize("at", [AT, None], ids=["with-at", "without-at"])
-def test_append_entry_puts_the_cause_into_the_new_record(
-    kind: typing.Literal["question", "stall"],
+def test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind(
+    speaker: str,
+    kind: typing.Literal["question", "stall", "result"],
     blocked: Blocked | None,
     reason: StallReason | None,
     at: datetime | None,
+    *,
+    accepted: bool,
 ) -> None:
-    entry = NewEntry(speaker=FACTORY, kind=kind, text="Why it waits.")
+    entry = NewEntry(speaker=speaker, kind=kind, text="Why it waits.")
 
+    if not accepted:
+        with pytest.raises(ValueError):
+            append_entry(_document(), entry, at=at, blocked=blocked, reason=reason)
+        return
     appended = append_entry(_document(), entry, at=at, blocked=blocked, reason=reason)
 
     assert appended.state is not None
@@ -110,10 +121,3 @@ def test_append_entry_puts_the_cause_into_the_new_record(
         assert (record.stage, record.run) == (None, None)
     else:
         assert record.stage == "tests"
-
-
-def test_append_entry_refuses_a_blocked_on_a_result_entry() -> None:
-    entry = NewEntry(speaker="tester", kind="result", text="tests written.")
-
-    with pytest.raises(ValueError):
-        append_entry(_document(), entry, at=AT, blocked="question")

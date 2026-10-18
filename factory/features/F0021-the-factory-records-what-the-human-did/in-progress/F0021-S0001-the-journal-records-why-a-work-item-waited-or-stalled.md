@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T22:08:44.109543Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-18T22:08:44.109543Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:10:47.952722Z'
+  stage: tests
+  run: 7c53f0d7f8264210ac9a551496b92899
 ---
 
 # The journal records why a work item waited or stalled
@@ -461,3 +463,25 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 
     The journal did not change the meaning of the task, so the Description stays as it is.
 20. factory: started tests as self.
+21. tester: Round 2: the approved test change from the coder's entry 19, which carries the reviewer's finding in entry 17.
+
+    What I changed in `tests/domain/test_journal_causes.py`:
+    - I merged `test_append_entry_puts_the_cause_into_the_new_record` and `test_append_entry_refuses_a_blocked_on_a_result_entry` into one parametrized test, `test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind`.
+    - It has an `accepted` column, the way `test_a_cause_is_accepted_only_on_its_own_kind` does.
+    - It keeps every earlier row:
+      - accepted: question with `round_cap`, with `at` and without it;
+      - accepted: stall with `merge_conflict`, with `at` and without it;
+      - refused with `ValueError`: result from the tester with `blocked="question"` and `at`.
+    - The accepted rows check the same things as before: kind, blocked, reason and at on the new record; stage and run are None without `at`, and the stage is `tests` with it.
+
+    Mapping change: criterion 4 now maps to `tests/domain/test_journal_causes.py::test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind`. Every other criterion keeps the test it had.
+
+    Results:
+    - `make test`: `test: green (38.0 s)`. The tests pass because the code was built in round 0.
+    - `make lint`: `lint: green`.
+    - No module failed to import.
+
+    File changed: `tests/domain/test_journal_causes.py`. This test file was written in this story's tests stage, so the change needs no further leave.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.3 s)
