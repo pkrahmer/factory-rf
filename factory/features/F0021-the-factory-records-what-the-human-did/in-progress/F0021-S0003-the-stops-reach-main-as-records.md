@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T23:04:38.186578Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-18T23:04:17.888582Z'
   stage: doing
   run: b95fd51aa7ff4e6b83a0357ad17941d8
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:04:38.186578Z'
+  stage: tests
 ---
 
 # The stops reach main as records
@@ -358,3 +367,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     - A new criterion 16 should hold the three rows above, so that `make check` becomes 17 and docs becomes 18.
 
     Noticed, not touched: nothing beyond entry 10.
+18. factory: started tests as self.
