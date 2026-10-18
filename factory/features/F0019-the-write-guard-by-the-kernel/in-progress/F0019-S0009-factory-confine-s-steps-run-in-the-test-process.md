@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T19:42:16.509322Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T19:41:56.522818Z'
   stage: review
   run: b8b72b47a87e47b4b35d24d965cf52b5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:42:16.509322Z'
+  stage: docs
 ---
 
 # factory-confine's steps run in the test process
@@ -195,3 +204,4 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
    - Hygiene: journal entry 7 names the main choice (plain parameters) and the rejected alternative (a dataclass bundling the steps). The Description matches what was built. Criterion 8 still describes the docs change.
 
    Earlier tests: none. The diff only adds `tests/entry/test_confine_steps.py`, and no test file on `main` is changed, renamed or deleted.
+10. factory: started docs as self.
