@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T22:36:16.863129Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-18T22:35:56.627584Z'
   stage: doing
   run: baa0eae1398b4abc8231fe6aed8bebc7
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:36:16.863129Z'
+  stage: tests
 ---
 
 # The cost table and the acceptance facts count the human
@@ -316,3 +325,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     What the journal changed: nothing in what the task means. `PositiveInt` was already in the Interface, and CLAUDE.md *Tests* asks for a test on both sides of every limit the Interface states. The reviewer also suggests that criterion 1 gain a matching row. I left `## Description` as it is because no journal entry changed the meaning of the task. If that row should be written into the Description, the tester can add it with the test.
 
     Not run: `make check`, because nothing changed since entry 10, where it was green.
+15. factory: started tests as self.
