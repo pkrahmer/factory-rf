@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T14:54:41.044597Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -63,6 +67,11 @@ journal:
   at: '2026-10-18T14:54:20.339121Z'
   stage: doing
   run: 6c9127f8efb745268e4ddba292f880dc
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:54:41.044597Z'
+  stage: tests
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -260,3 +269,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     Open: when the tester sends the work item back, the next doing run checks that `make check` is green and does the refactor pass. Neither has happened yet; this run changed no code.
 
     Noticed, not touched: `src/factory/entry/confine.py` is at 78% coverage, because the rows that reach steps 5 and 6 run in a child process that coverage does not follow. Total coverage stays above 90%.
+11. factory: started tests as self.
