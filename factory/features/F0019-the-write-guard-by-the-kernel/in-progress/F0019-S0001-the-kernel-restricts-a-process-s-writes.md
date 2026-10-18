@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T14:30:48.929141Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -29,6 +33,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T14:30:30.950183Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:30:48.929141Z'
   stage: intake
 ---
 
@@ -156,3 +165,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
    Everything else is fine: the Interface is concrete, the smoke test is runnable with checkable Expect lines, the architecture fits (`domain` holds the constant, the fault text and the error; `adapters` holds `ctypes`) and the scope matches S0001 in `feature.md`.
 4. 2026-10-18 human: 1. Yes: add the ordering criterion with its three rows (folder before file; first of two folders; first of two files), before the two closing criteria.
    2. Yes: add the two rows to criterion 3 (a symbolic link made in A is created; a file renamed between two folders under A succeeds). The rename row is the one that proves the refer right.
+5. factory: started intake as self.
