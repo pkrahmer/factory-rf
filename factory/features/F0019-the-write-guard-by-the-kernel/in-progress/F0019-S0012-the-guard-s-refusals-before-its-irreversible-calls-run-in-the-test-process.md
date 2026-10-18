@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 233
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T20:37:14.090747Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T20:37:14.090747Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T20:37:33.638481Z'
+  stage: intake
+  run: 8fb816ce160042119d7fb33b78b84cad
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -120,3 +122,9 @@ Expect: `replace_process needs a program to start`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete functions and signatures (`restrict_writes`, `replace_process`, `confine.main` with its keyword parameters) and three new test modules. It states that no `src/factory/` module changes, and that matches the criteria, which only pin behaviour already there.
+   - Criteria: each one fits a parametrized test with exact strings. Every Interface rule has both sides. The check order has rows: folders before files, and each list in its order. Each of the four fault texts has a row. The `argv` empty / `PATH`-of-`env` clauses are covered by the PermissionError and FileNotFoundError rows. Every `main` default has a row. An existing folder (no fault) and an unmakeable folder (fault) both have rows. The rules-file fault has rows for a missing file and for invalid JSON. The usage line is the existing `_USAGE` in `src/factory/entry/confine.py`, so the tester can read it.
+   - Smoke test: both commands run as written. Their `Expect:` lines are exact output: the `<base>`-substituted refusal text then `still writes`, and the `ValueError` text.
+   - Architecture: tests only, in the layer-mirroring folders (`tests/adapters`, `tests/entry`). The system calls stay child-only, as decision 18 says. The tests need no change to an earlier test beyond the standing leave for shared helpers.
+   - Scope: the story stays inside F0019's testing of the guard and is consistent with decisions 18 and 22. Nothing in it falls under the feature's Out of scope list.
