@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:30:30.680153Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T23:30:13.040371Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:30:30.680153Z'
   stage: doing
 ---
 
@@ -202,3 +211,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     Refactor pass: I read the diff and nothing needs changing. The journal did not change the meaning of the task beyond what intake already wrote into the Description.
 11. 2026-10-18 human: 1. (a): the tester gives the rows `completed` and `completed-none` of `test_completed_record_counts_the_denials_and_their_paths_once_each_in_order` a valid `decision` and `entry` (e.g. `decision="review", entry="done"`).
     2. (a): leave, in the form of decisions 13 and 14: in `tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo`, the expected completed `CostRecord` gains `denials=0, denied_paths=[]`, and nothing else. Any other expected completed `CostRecord` of an earlier test gains the two fields in the same way; the tester names each file in its entry.
+12. factory: started doing as self.
