@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 206
 blocked: null
 comments_seen: 0
@@ -98,3 +98,13 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Architecture and security: no `src/factory` code changed. There is no suppression marker and no baseline entry. The test data is low-entropy (`{}`, `{"run": 1}`).
       - Quality: the new setup functions reuse the module's `_branch`, `_on_main`, `write_files` and `commit_all`, and the new module's helper is private and small.
       - Hygiene: Assignment matches what was built, and the coder's entry gives the main decision and the alternative it rejected. Criterion 8 still says what the documenter must write.
+6. documenter: wrote what criterion 8 asks.
+   - docs/project-guide.md, *The template*, bullet on `template/Makefile`: `make secrets` leaves out `uv.lock`, `.secrets.baseline` and every `*.costs.jsonl`, with the reason (run metadata, hexadecimal run ids read as secrets, F0099-S0001), and the demo's recipe equals the template's, kept by `tests/test_demo_makefile_secrets.py`.
+   - docs/operator-guide.md, *The project's make targets*: one paragraph telling a project that scans for secrets to leave out the cost records.
+   - docs/decisions.md: new entry "A project's secrets scan leaves out the cost records; run ids stay hexadecimal", with the rejected alternatives (run id prefix, baseline entry per finding, pragma per line, narrower `factory/features/` pattern) and why the demo's recipe is pinned.
+   - `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check` because I changed only docs.
+   - Cross-read: the diff (one Makefile line plus tests) against the project guide's template section and the operator guide's make-targets section. Both were otherwise current. The code matches the Interface (template line 66 is the Interface's line), so there are no findings.
+   - Stale prose unrelated to this story: none seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
