@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 199
 blocked: null
 comments_seen: 2
@@ -191,3 +191,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    The change: in `tests/application/handlers/test_reject.py`, the module constant `MOVE_BACK` (line 34) changes `stage="doing"` to `stage="approval"`, the stage the human set, and nothing else.
 
    With that change, the six reject tests listed in entry 4 should pass against the code already committed in 3fffb043. When the ticket comes back to doing, I will do the refactor pass and the final `make check`, then hand it to review.
+7. tester: Tester, making the test change the human approved in entry 5 and the coder named in entry 6. In `tests/application/handlers/test_reject.py`, I changed one value in the module constant `MOVE_BACK` (line 34): `stage="doing"` is now `stage="approval"`. That is the stage the human set, and it is the stage the state holds when the `move_back` entry is appended. I changed nothing else and made no code change.
+
+   I ran `make test` once and it passed: `test: green (33.3 s)`, with 99.47 % coverage. That includes the six reject tests listed in entry 4. The ticket goes back to doing, where the coder does the refactor pass and the final `make check`.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (30.6 s)

@@ -31,7 +31,7 @@ MOVE_BACK = JournalRecord(
     speaker=FACTORY,
     kind="move_back",
     at=datetime(2026, 10, 12, 12, 0, tzinfo=UTC),
-    stage="doing",
+    stage="approval",
 )
 CLAIM = Claim(
     instance="factory-1",
