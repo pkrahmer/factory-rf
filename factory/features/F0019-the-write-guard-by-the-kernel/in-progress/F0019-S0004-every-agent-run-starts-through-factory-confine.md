@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:36:56.739500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -305,6 +301,12 @@ journal:
   kind: started
   at: '2026-10-18T16:36:56.739500Z'
   stage: doing
+- number: 55
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:38:57.995849Z'
+  stage: doing
+  run: d2331ab9874148aaaf91c542b0fcff65
 ---
 
 # Every agent run starts through `factory-confine`
@@ -836,3 +838,34 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `lint`: lint: green (0.0 s)
     `test`: test: green (42.0 s)
 54. factory: started doing as self.
+55. coder: Coder, round 1 (after the tester's entry 53). `make check` is green (`check: green`, coverage 98.67 %), and I changed no code this round. The working tree has no changes of mine.
+
+    The human approved two findings in entry 47, and the reviewer named them again in entry 49. The tester settled both in entry 53, in `tests/adapters/test_claude_runtime_confinement.py` only:
+    - `BUDGET_REPLY` is gone. The module now imports `BUDGET_STOP` from `adapters.test_claude_runtime_login`.
+    - `_probe_calls`, `_confine_calls` and `_recorded` are replaced by one generic `_read_records(path, model)`.
+
+    The source code as it was passes the whole of `make check` against those tests, including `make types`, which the tester did not run.
+
+    What I built (unchanged since entry 20):
+    - `src/factory/adapters/claude_runtime.py`:
+      - the confined command line;
+      - the rules file `confine-<session>.json`;
+      - `CLAUDE_CONFIG_DIR`;
+      - the temporary folder for each run as `TMPDIR`;
+      - removing that folder through `SHELL_EXECUTABLE` and `CLEANUP_SCRIPT`;
+      - handling a `factory-confine:` refusal after the `sudo` check.
+    - `src/factory/domain/confinement.py`: `DEVICE_FILES` and `DEVICE_FOLDERS`, with the allowed `/dev/shm` marker.
+    - `src/factory/entry/wiring.py`: `build_boundaries(..., confine_executable=CONFINE_COMMAND)`.
+
+    Main choice (unchanged): the run's paths travel in `_RunFiles`, and the rules are built through the existing `write_targets` and `confinement_of`. Every process starts through `run_process`. I rejected two alternatives: keeping state for each run on the runtime, and writing a second command builder for the confined path.
+
+    Refactor: nothing to change. This round added no source code.
+
+    Description: no rewrite. Entry 47 changes no part of the task.
+
+    Noticed but not touched: the name `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` is out of date. Entry 47 says to leave it, because `[tool.mutmut]` names that test.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
