@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T19:36:11.594575Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T19:35:51.725051Z'
   stage: intake
   run: c1ace8f91b6048f88a055ef175a0dc58
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:36:11.594575Z'
+  stage: tests
 ---
 
 # factory-confine's steps run in the test process
@@ -112,3 +121,4 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
    Smoke test: it is runnable as written, using `uv run -q python -c`, with `abi`, `restrict` and `replace` all injected, so nothing restricts the shell. The `Expect:` line is a single printed line that can be compared exactly.
    Architecture: the change stays in `factory.entry`, which already imports the two adapters directly (decision 19). The new test module goes in `tests/entry/`, as `CLAUDE.md` says. `tests/entry/test_confine.py` is left unchanged, so no leave is needed for another story's test.
    Scope: this is within F0019 as a follow-up from its acceptance. It is not under "Out of scope", and it only makes steps 3 to 6 visible to coverage and mutation testing. The docs criterion touches only `docs/project-guide.md`.
+4. factory: started tests as self.
