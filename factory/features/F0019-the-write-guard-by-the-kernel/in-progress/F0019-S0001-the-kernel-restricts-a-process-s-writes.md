@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T14:31:26.615271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -50,6 +46,12 @@ journal:
   kind: started
   at: '2026-10-18T14:31:26.615271Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T14:34:27.381014Z'
+  stage: tests
+  run: 60db87c4e3874528a2a4a109e9db68b5
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -186,3 +188,29 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
    - Architecture: the constant, the fault text and the error are in `domain`. The `ctypes` calls are in `adapters`. Nothing in `application` or `entry` is touched. No new dependency.
    - Scope: matches S0001 in `feature.md`. Nothing from "Out of scope" is touched.
 7. factory: started tests as self.
+8. tester: Wrote the tests from the Interface and the acceptance criteria. Every call of `restrict_writes`, including the ones expected to raise, runs in a child process (`sys.executable -c <code>`) on a tree under `tmp_path`. The `tree` fixture builds folders A (with subfolder d), B, O and P, the file F = P/f.txt, existing files in A and O, and two symbolic links (one to A, one to F). A refused write shows up in the child as `PermissionError` with errno 13. `abi_version` runs in-process as well as in a child.
+
+   - criterion 1: tests/domain/test_confinement_abi.py::test_a_kernel_below_abi_3_has_a_fault (rows 0, 2, 3, 7)
+   - criterion 2: tests/adapters/test_landlock.py::test_abi_version_reports_at_least_3_and_restricts_nothing
+   - criterion 3: tests/adapters/test_landlock.py::test_a_restricted_process_writes_only_beneath_its_folders_and_on_its_files (15 rows, one child each)
+   - criterion 4: tests/adapters/test_landlock.py::test_a_refused_path_raises_and_restricts_nothing (6 rows)
+   - criterion 5: tests/adapters/test_landlock.py::test_empty_rules_refuse_every_write_and_leave_reading_open
+   - criterion 6: tests/adapters/test_landlock.py::test_a_second_restriction_stacks_on_the_first (rows A, B)
+   - criterion 7: tests/adapters/test_landlock.py::test_restricting_leaves_no_descriptor_open
+   - criterion 8: tests/domain/test_confinement_abi.py::test_confinement_error_carries_its_detail_as_the_message
+   - criterion 9: tests/adapters/test_landlock.py::test_the_first_failing_path_names_the_error (3 rows)
+   - criteria 10 and 11 (`make check`, docs): no test; they belong to the coder and the documenter.
+
+   Files created: tests/domain/test_confinement_abi.py, tests/adapters/test_landlock.py. No earlier test file was changed.
+
+   The single `make test` run stopped at collection: neither test module could be imported, because `factory.domain.confinement`, `factory.domain.errors.ConfinementError` and `factory.adapters.landlock` do not exist yet. `make lint` is green after I wrapped two lines that were too long.
+
+   How the criteria were written into tests:
+   - In the criterion 3 row "F is opened for writing and truncated", the child opens F with `r+` and calls `truncate(0)`.
+   - In the shell row, the child prints whether the exit status is non-zero and whether `O/c` exists; the test expects `True False`.
+   - The criterion 4 and 9 tests replace the `tmp_path` root in the message with `<base>`, then compare the whole message.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_confinement_abi.py - ImportError while importing test...
