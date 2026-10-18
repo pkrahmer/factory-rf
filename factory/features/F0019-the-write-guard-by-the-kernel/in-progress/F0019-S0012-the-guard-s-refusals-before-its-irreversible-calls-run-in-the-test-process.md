@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T20:46:30.228519Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T20:46:30.228519Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T20:46:48.837695Z'
+  stage: smoke-test
+  run: dd1a0d66be5844398da7b70c7589e4b4
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -243,3 +245,23 @@ Expect: `replace_process needs a program to start`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran both commands exactly as written from the repository root, in order. Both met their `Expect:` lines and there are no findings.
+
+    Command 1 (`restrict_writes` with a dangling link among the folders, then a write by the same process):
+    ```
+    <base>/dangling is a symbolic link
+    still writes
+    exit=0
+    ```
+    Met: `<base>/dangling is a symbolic link`, then `still writes`. The process could still write after the refusal, so nothing bound it.
+
+    Command 2 (`replace_process([], {})`):
+    ```
+    replace_process needs a program to start
+    exit=0
+    ```
+    Met: `replace_process needs a program to start`.
+
+    Checked against the acceptance criteria: the output contradicts none of them. The first command's text is the exact text criterion 1 gives for a link among the folders (`folders [dangling]`). The write after the refusal is the check that criterion 1 asks for after each row. The second command's text is the exact `ValueError` text in criterion 2. The smoke test does not exercise criteria 3 to 5 (`main`'s defaults, the wrapper's folders, the rules file's fault), and nothing in it contradicts them. I did not run `make check` (criterion 6) because the stage does not ask for it. The journal records it green after the docs stage (entry 11).
+
+    Findings: none.
