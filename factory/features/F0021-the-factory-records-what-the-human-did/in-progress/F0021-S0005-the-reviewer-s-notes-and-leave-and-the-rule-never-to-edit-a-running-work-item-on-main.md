@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 239
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T23:50:32.869781Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T23:50:32.869781Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T23:50:51.439242Z'
+  stage: intake
+  run: c1c694801ae1425997d9639bb5ed1211
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -106,3 +108,9 @@ Expect: five lines, each `1`.
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names four agent files and sections, the exact replacement paragraph and the exact new paragraphs and sentences, the new test module `tests/test_claude_agent_texts_review_leave.py` that reads bodies through `agent_body`, and the docs file. The old reviewer paragraph exists at `claude/agents/reviewer.md:62`. The new texts use none of the words that `_BANNED_WORDS` in `tests/test_claude_agent_texts.py` bans.
+   - Criteria: each is testable by one parametrized test function. Criterion 1 pins every stated text exactly, with its agent and section. Criterion 2 covers both sides of the replacement: the old sentence is gone, and the three paragraphs follow in order. Criterion 3 keeps the earlier text tests and the lessons unchanged. Criterion 4 is `make check`. The docs criterion lists three items. The Interface states no limit, validation or error whose failing side needs a separate criterion. Its behaviours (notes from round 1 on, the added criterion) are the texts criterion 1 pins.
+   - Smoke test: the greps are runnable. Each Expect line (`1`, or five lines of `1`) can be checked against the output.
+   - Architecture: only shipped agent texts, one new test module and docs change. No layer or `src/` code is touched. The paths fit the roles' write paths: the coder writes `claude/*`, the tester writes `tests/*`, the documenter writes `docs/*`.
+   - Scope: this is S0005 of F0021, listed in the feature's Scope under "The texts". Decisions 10, 11 and 12 are followed, including the smoke-test pin for the operator guide. Nothing in "Out of scope" is touched.
