@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 200
 blocked: null
 comments_seen: 0
@@ -91,3 +91,20 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Security: no markers, secrets or string-built commands. The reader still validates through Pydantic at the boundary.
       - Quality: `begin` folds the private `_image()` into one `settings` local, so there is no `_instance()` twin. No dead code is left. The `CostRecord` docstring names both `image` and `instance`. `make duplicates` reports 0 new.
       - Ticket hygiene: the coder's entry names the main decision (drop the key in the writer) and the rejected alternative (a model-wide `exclude_none`, which would also drop `image` and the null measures). The Assignment matches what was built. Criterion 7 still describes what the documenter must write.
+6. documenter: Docs for criterion 7 are written. I found no findings: the diff matches the Interface.
+   - `docs/project-guide.md`, *Cost records*:
+     - The field list now names `instance`: a `Name`, optional when read, set by `begin` from the settings, kept by `complete`, `None` without settings, and either status may carry it.
+     - The line-format paragraph says `instance` is the last key and that the writer leaves it out when it is `None`, while every other unset field is written `null`.
+     - A third example line carries `instance`.
+   - `docs/project-guide.md`, *Created at the start*: `begin` now sets `image` and `instance` from the settings. The old text said `image` was `None` there, which was already wrong. The *Completed at the end* bullet says `complete` keeps both and that both are `None` without settings.
+   - `docs/decisions.md`: the S0007 entry gets three bullets for the cost record's part:
+     - why `instance` comes from the settings, like `image`;
+     - why its key is left out when unset: `begin` rewrites the whole sidecar, so a `null` would change every old line;
+     - that an instance built before this story refuses a line with the key (`unknown key: instance`), so the instances of one project are upgraded together.
+     - I also changed the entry's intro sentence, "The cost record's `instance` is S0008.", to point at those bullets.
+   - Checks: I ran the three-line example through the reader and writer, and it renders back unchanged. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only docs.
+   - Cross-read: the project guide's *Bills* and the journal section, and the README. No stale text found.
+   - Stale and unrelated: none seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
