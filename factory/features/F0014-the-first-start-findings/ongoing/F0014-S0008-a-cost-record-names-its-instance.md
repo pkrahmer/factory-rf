@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 200
 blocked: null
 comments_seen: 0
@@ -85,3 +85,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria 1–4: each has one parametrized test that tests what it is named after. 1 (`tests/domain/test_cost_record_instance.py`): rows for no instance, a started record with it, a completed record with it, and `Shakedown` refused, all built through `type[BaseModel]`. 2 (`tests/adapters/test_cost_records_jsonl_instance.py`): `_completed`, `_started`, `COMPLETED_LINE` and `STARTED_LINE` are imported, not copied; the line without an instance is exactly today's line, the line with one ends `,"instance":"shakedown"}`, and both rows round-trip. 3: rows for no key, `null`, a name, and `Shakedown` refused with `CostRecordFormatError` and the fault `invalid instance: `. 4 (`tests/application/test_cost_instance.py`): `_launch` and `_settings` are imported from `application.test_cost_image`, and `INSTANCE` there is `factory-1`; each row checks the `begin` record, the `complete` record and `launched.cost.records[-1]`, with settings and without. Criterion 5 is held by the earlier modules, which the diff leaves unchanged. The coder's entry records `make check` as green.
+      - Architecture: the field is `Name | None` in the domain. The omit-when-`None` rule sits in the adapter's `_line_of_record`, and the comment beside it says why. `begin` reads `Boundaries.settings` in the application layer. No new import crosses a layer.
+      - Security: no markers, secrets or string-built commands. The reader still validates through Pydantic at the boundary.
+      - Quality: `begin` folds the private `_image()` into one `settings` local, so there is no `_instance()` twin. No dead code is left. The `CostRecord` docstring names both `image` and `instance`. `make duplicates` reports 0 new.
+      - Ticket hygiene: the coder's entry names the main decision (drop the key in the writer) and the rejected alternative (a model-wide `exclude_none`, which would also drop `image` and the null measures). The Assignment matches what was built. Criterion 7 still describes what the documenter must write.
