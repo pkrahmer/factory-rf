@@ -1,53 +1,70 @@
 ---
-stage: done
-pr: 201
+stage: accept
+pr: 205
 blocked: null
-comments_seen: 0
+comments_seen: 1
 round: 0
-attempts: 0
-stories: [F0014-S0001, F0014-S0002, F0014-S0003, F0014-S0004, F0014-S0005, F0014-S0006, F0014-S0007, F0014-S0008, F0014-S0009, F0014-S0010]
-outcome: accepted
+attempts: 1
+stories: [F0014-S0001, F0014-S0002, F0014-S0003, F0014-S0004, F0014-S0005, F0014-S0006, F0014-S0007, F0014-S0008, F0014-S0009, F0014-S0010, F0014-S0011, F0014-S0012, F0014-S0013]
 ---
 # Acceptance of The first start's findings
 
 ## Verdict
 
-**Accepted with drafts.** Every scope item of `FEATURE.md` has a story that built it. The feature demo is green: a hostile agent run went through the real wiring, `run_sealed`, `ClaudeCodeRuntime` and `GitCli`. The factory's git ran no hook and no `core.fsmonitor`. The nested repository was removed, an opened `.git` was refused, and the token reached `claude` through no argument. The new records carry their stamps. No finding breaks a promise. One rule was promised and no test pins it: the nested-repository walk does not follow symbolic links. There is one stamp no test pins: the done entry of an acceptance merged before approval. And four places in the documents are stale. Each of these has a draft.
+**Accepted.** Every scope item of `FEATURE.md` has its story, and the ten stories the first acceptance found sound still stand. The feature demo is green against the real wiring again, now with the cases S0011 pinned: two nested repositories, and links to an outside repository and to the checkout itself. The three follow-up stories closed what that acceptance found. The nested walk's link and `.git` survivors are dead or equivalent, `book_merge`'s `before_approval` stamp is pinned, and the five stale document places are fixed. What is left is one stale sentence in the operator guide's opening, which S0013's documenter saw and was not allowed to touch. I wrote one small documentation draft for it.
 
 ## 1 Scope
 
-None. Each scope bullet maps to a story:
-- the hooks (S0001);
-- the `.git` seal, in its git half (S0006) and its run half (S0009);
-- the nested repositories (S0010);
-- the image's trust (S0002);
-- the token file, in its factory half (S0003) and its image half (S0004);
-- the guide (S0004's docs criterion, S0005);
-- the stamps (S0007, S0008).
+None. The first acceptance (merged in pull request 201) mapped every scope bullet to S0001–S0010 and checked FEATURE.md's "Done when" against the code. Since then only three stories have been added, and they changed no source:
+- S0011 added rows and one test function for the nested-repository walk (`tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`).
+- S0012 added a row and one test function for the `before_approval` stamp (`tests/domain/test_journal_stamps.py`, `tests/application/test_acceptance_merged_before_approval.py`).
+- S0013 changed `README.md`, `docs/decisions.md` and `docs/operator-guide.md` only.
 
-No story is outside the scope. I checked FEATURE.md's "Done when" against the code:
-- `git_environment()` returns nine entries: `core.sharedRepository=0640`, `core.hooksPath=/dev/null` and `core.fsmonitor=false` (`src/factory/entry/wiring.py:138`).
-- `run_sealed` seals, runs, then calls `check_seal()` and `remove_nested_repositories()` in its `finally` (`src/factory/application/sealed_runs.py`).
-- `image/gitconfig` holds exactly `safe.directory=/work/checkout`, and the Dockerfile copies it to `/etc/gitconfig` with mode `0644`.
-- `ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token` is set, and the compose file mounts `./secrets/claude-token` there.
-- Every `append_entry`, `book_merge` and `book_refusal` call in `src/factory` passes `at=`. I grepped all 21 call sites.
-- `CostRecorder.begin` sets `instance`.
-
-The out-of-scope items stayed out. These are the API key, the gitlink refusal, the clone's parent folder, the project commands, the status map itself and a `run` on `crash` and `expiry`. One change came from outside the stories. The human took `planning/` out of ruff (a5c2f55a) to unblock S0001's tests stage. It is not a story, and it is not in scope.
+All three are named under "Stories" in FEATURE.md and covered by decisions 34–36. Nothing out of scope was built.
 
 ## 2 The feature demo
 
-The walk-through is a single script, `/tmp/f0014-acceptance/feature_demo.py`, outside the repository. It goes through the real entry points:
-- the settings come from `read_settings`, as an instance reads its environment, with `checkout` and `state_directory` moved to a temporary folder;
-- the boundaries come from `factory.entry.wiring.build_boundaries`, with the `FakeHostingService` in place of PyGithub;
-- the remote is a real bare one.
+Green. This is the first acceptance's script (`/tmp/f0014-acceptance/feature_demo.py`), copied to `/tmp/f0014-acceptance-2/feature_demo.py`. In S0011's cases, the hostile stand-in agent now does three more things. It makes a second repository at `b` after the one at `notes`, so the sort is exercised. It links `mirror` to a repository outside the checkout. And it links `self` to `.`. Everything goes through the real entry points:
+- settings from `read_settings`;
+- boundaries from `build_boundaries`, with the fake hosting service;
+- a real bare remote, `run_sealed`, `ClaudeCodeRuntime` and `GitCli`.
 
-The agent is a stand-in `claude` executable that behaves like a hostile agent:
-- It records whether `CLAUDE_CODE_OAUTH_TOKEN` is in its environment and whether the token is in its argument list.
-- It writes `.git/hooks/pre-commit`, sets `core.fsmonitor` in `.git/config`, and makes a repository at `notes` with its own `core.fsmonitor`. Every one of these commands leaves a marker file when it runs.
-- In a second run it opens `.git` to its group.
+```
+$ uv run python /tmp/f0014-acceptance-2/feature_demo.py
+1. run_sealed: the agent writes a hook, core.fsmonitor and a nested repository
+   end: completed doing
+   agent saw: {"token": "demo-login-token", "token_in_argv": false}
+   nested repositories removed: ['b/.git', 'notes/.git']
+   outside repository kept: True | own .git kept: True | links kept: True True
+   .git entries open to group or others after the seal: 0
+2. the factory's git commits the agent's work
+   status paths: ['mirror', 'notes/a.txt', 'result.txt', 'self']
+   committed: ['mirror', 'notes/a.txt', 'result.txt', 'self']
+   markers after the factory's git: []
+   markers after a plain git commit: ['fsmonitor-2', 'hook-pre-commit']
+3. an agent that opens .git to its group
+   RepositoryUnsealed: seal failed (no exit status): /tmp/f0014-demo-btueqrnh/checkout/.git is writable by its group or by others
+4. a login file written as UTF-16
+   AgentRuntimeError: agent runtime failed: cannot read the agent's login file /tmp/f0014-demo-btueqrnh/claude-token: not ASCII text
+5. the cost record names its instance; the journal record its time, stage and run
+   {"run":"<run id>","work_item":"F0099-S0001","stage":"doing","role":"coder","attempt":0,"status":"started","started_at":"2026-10-18T03:34:11.236887Z","duration_seconds":null,"model_seconds":null,"end_reason":null,"turns":null,"tokens":null,"cost_usd":null,"image":null,"instance":"demo-instance"}
+   journal:
+   - number: 1
+     speaker: coder
+     kind: result
+     at: '2026-10-18T03:34:11.237091Z'
+     stage: doing
+     run: <run id>
+```
 
-The request's own `CLAUDE_CODE_OAUTH_TOKEN=from-request` must be dropped. The demo runs as one user, so the agent can write `.git` as the owner. The second user is the image's and plan step 4's. What the demo shows is everything the factory does around the run.
+I replaced the run id, a random hex string, with `<run id>` so that `make secrets` stays green. Here is what each step shows:
+- **The token** reached `claude` from the file and in no argument, and the request's own `CLAUDE_CODE_OAUTH_TOKEN=from-request` was dropped.
+- **The walk.** Both nested repositories were removed, sorted and `/`-separated. The walk did not follow `mirror` (the outside `.git` is kept) or `self` (the checkout's own `.git` is kept). The links themselves stay and are committed as links.
+- **The factory's git** ran neither the agent's hook nor its `core.fsmonitor`. A plain `git commit` afterwards ran both, so the attack was real.
+- **The seal.** An opened `.git` raised `RepositoryUnsealed`, and a UTF-16 login file raised "not ASCII text".
+- **The records.** The cost record carries `instance`, and the journal record carries `at`, `stage` and `run`.
+
+The demo runs as one user. The second user, and the observations as `agent`, belong to the shakedown run.
 
 <details><summary>The script</summary>
 
@@ -99,6 +116,8 @@ git("add", ".", cwd=root / "seed")
 git("commit", "-q", "-m", "seed", cwd=root / "seed")
 git("push", "-q", "origin", "main", cwd=root / "seed")
 
+git("init", "-q", str(root / "outside"))
+
 # A command that leaves a marker when something runs it.
 probe = root / "bin" / "leave-marker"
 probe.parent.mkdir()
@@ -126,6 +145,9 @@ else:
     subprocess.run(["git", "init", "-q", str(work / "notes")], check=True)
     subprocess.run(["git", "-C", str(work / "notes"), "config", "core.fsmonitor", "{root}/bin/nested-fsmonitor"], check=True)
     (work / "notes" / "a.txt").write_text("a\\n")
+    subprocess.run(["git", "init", "-q", str(work / "b")], check=True)
+    os.symlink("{root}/outside", work / "mirror")
+    os.symlink(".", work / "self")
     (work / "result.txt").write_text("the agent's work\\n")
 print({json.dumps(REPLY)!r})
 """, encoding="utf-8")
@@ -161,6 +183,8 @@ sealed = run_sealed(boundaries, request("write"))
 print("   end:", sealed.result.end_reason, sealed.result.decision)
 print("   agent saw:", (markers / "agent-saw.json").read_text())
 print("   nested repositories removed:", sealed.nested_repositories)
+print("   outside repository kept:", (root / "outside" / ".git").is_dir(), "| own .git kept:", (checkout / ".git").is_dir(),
+      "| links kept:", (checkout / "mirror").is_symlink(), (checkout / "self").is_symlink())
 open_bits = [p for p in [checkout / ".git", *(checkout / ".git").rglob("*")] if p.lstat().st_mode & 0o022]
 print("   .git entries open to group or others after the seal:", len(open_bits))
 
@@ -202,212 +226,93 @@ stamped = append_entry(document, entry, at=boundaries.clock.now(), run=cost_run.
 text = boundaries.work_item_writer.render(stamped)
 print("  ", text[text.index("journal:"):text.index("---", 4)].strip().replace("\n", "\n   "))
 ```
+
 </details>
-
-```
-$ uv run python /tmp/f0014-acceptance/feature_demo.py
-1. run_sealed: the agent writes a hook, core.fsmonitor and a nested repository
-   end: completed doing
-   agent saw: {"token": "demo-login-token", "token_in_argv": false}
-   nested repositories removed: ['notes/.git']
-   .git entries open to group or others after the seal: 0
-2. the factory's git commits the agent's work
-   status paths: ['notes/a.txt', 'result.txt']
-   committed: ['notes/a.txt', 'result.txt']
-   markers after the factory's git: []
-   markers after a plain git commit: ['fsmonitor-2', 'hook-pre-commit']
-3. an agent that opens .git to its group
-   RepositoryUnsealed: seal failed (no exit status): /tmp/f0014-demo-ytvjpdce/checkout/.git is writable by its group or by others
-4. a login file written as UTF-16
-   AgentRuntimeError: agent runtime failed: cannot read the agent's login file /tmp/f0014-demo-ytvjpdce/claude-token: not ASCII text
-5. the cost record names its instance; the journal record its time, stage and run
-   {"run":"<run id>","work_item":"F0099-S0001","stage":"doing","role":"coder","attempt":0,"status":"started","started_at":"2026-10-18T01:32:51.391530Z","duration_seconds":null,"model_seconds":null,"end_reason":null,"turns":null,"tokens":null,"cost_usd":null,"image":null,"instance":"demo-instance"}
-   journal:
-   - number: 1
-     speaker: coder
-     kind: result
-     at: '2026-10-18T01:32:51.391735Z'
-     stage: doing
-     run: <run id>
-```
-
-Green. The run id, 32 hex digits, is shown as `<run id>`, since `make secrets` refuses it as a high-entropy string. What each step shows:
-- The token comes from the file and is in no argument. The request's own value is dropped.
-- The nested repository is gone, and its file `notes/a.txt` is committed as an ordinary file, as decision 31 says.
-- The factory's `status` and `commit` started neither the hook nor either `core.fsmonitor`. A plain git commit in the same checkout then ran both the hook and the checkout's `core.fsmonitor`, so the attack was real.
-- An opened `.git` raises `RepositoryUnsealed` after the run.
-- A UTF-16 login file stops the run with the guide's message.
-- The cost line ends with `"instance":"demo-instance"`, and the journal record carries `at`, `stage` and the run's id.
-
-The image half:
-```
-$ git config --file image/gitconfig --list
-safe.directory=/work/checkout
-$ grep -n 'gitconfig\|CLAUDE_LOGIN_FILE\|claude-token' image/Dockerfile image/compose.yml
-image/Dockerfile:41:COPY image/gitconfig /etc/gitconfig
-image/Dockerfile:42:RUN sed -i 's/\r$//' /etc/gitconfig && chmod 0644 /etc/gitconfig
-image/Dockerfile:50:ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token
-image/compose.yml:27:        source: ./secrets/claude-token
-image/compose.yml:28:        target: /home/agent/.claude-token
-```
-
-`make check` was green as I found it (`check: green`, total coverage 99.47 %).
 
 ## 3 Mutation score
 
-`make mutants FEATURE=F0014` selects 30 modules with 6,996 mutants. It ran twice, and both runs ended with `mutants: stopped after 540 s; the results below are partial, run it again to go on`:
-- The first run checked mutants up to `4007/12230` (12,230 is mutmut's count over the whole package).
-- The second run spent its 540 s on one mutant (`4008/12230`). This is the same stall F0012's acceptance reported.
+I ran `make mutants` (FEATURE=F0014, from the branch name). It selects the 30 modules that F0014's story commits changed, 6,996 mutants in all. It went on from the results kept in `mutants/` and ran for its 540 s (`real 9m0.7s`). These are the counts from mutmut's `.meta` files over the 30 modules:
+- **5,179 killed, 263 survived, 4 timeouts and 1,550 unchecked.** That is 95.1 % of the 5,446 checked. The first acceptance had 4,487 killed of 4,735 checked.
+- The unchecked mutants are in the large modules the whole suite reaches: `git_cli` 685, `claude_runtime` 260, `stage` 138, `domain.acceptance` 123, `acceptance` 116 and `wiring` 111.
 
-So I ran `uv run mutmut run` on F0014's own module selections, within 520 s each:
-- `domain.journal`, `adapters.cost_records_jsonl` and `adapters.work_item_markdown`: completed.
-- `domain.decisions`, `domain.errors`, `application.costs` and `application.opening`: completed.
-- the handlers, `claims`, `stalls`, `recovery` and both `acceptance` modules: stopped by the timeout.
+What became of the survivors the first acceptance named, and what S0011 and S0012 were written to kill:
+- **The walk following links** (`os.walk(root, followlinks=True)`) and **entering `.git`** (`"XX.gitXX"`) are no longer in the survivor list. The two `_nested_repositories` survivors that are left, `mutmut_3` (`followlinks=None`) and `mutmut_5` (the keyword dropped, so the default `False` applies), are **equivalent**: both mean "do not follow".
+- **The `", "` path list.** The probe detail's (`preflight`) and the preparer log line's (`scheduler`) mutants are no longer in the list. Five `AfterAgent._early_stall` mutants still show as survived, but mutmut's test map for that function is stale, as the first acceptance found. I re-ran each one in the mutated tree with `MUTANT_UNDER_TEST=<id> PYTHONPATH=src pytest tests/application/test_after_agent.py tests/application/test_nested_repositories.py` from `mutants/`. Mutants 6, 7, 9 and 12 fail a test, for example `KeyError: 'XXleft_branchXX'` in `test_a_checkout_left_on_another_branch_stalls_as_left_branch`.
+- **`_early_stall__mutmut_8`** survives the whole `tests/application/` run as well (`1210 passed`): `return "left_branch", ""` → `"XXXX"`. The left-branch stall's empty detail is pinned by no test. The rule comes from F0005-S0005 (blame `48b1e27d`) and S0010 only moved it into `_early_stall`. It is small and older than F0014, so I wrote no draft.
+- **`book_merge`'s `at` on the `before_approval` branch** (`domain.acceptance`) is no longer in the survivor list. S0012 killed it.
+- **Near-equivalent, as before, no draft:**
+  - `claude_runtime._login_refusal__mutmut_1`;
+  - `git_cli.discard__mutmut_5` and `_11` (the error's detail);
+  - `cost_records_jsonl._line_of_record__mutmut_2` to `_4`.
 
-The counts come from mutmut's `.meta` files over the 30 modules:
-- **4,487 killed, 244 survived and 4 timeouts, out of 4,735 checked (94.8 %).**
-- 2,261 are unchecked. Most are in modules the whole suite reaches: `git_cli` 705, `stage` 552, `claude_runtime` 393, `claims` 139, `domain.acceptance` 123, `acceptance` 116, `wiring` 116 and `recovery` 58.
+The other survivors are in lines older than F0014; I checked the blame of the samples. Examples are `claude_runtime._resume`'s budget comparison `<=` → `<` and `_resumed_result`'s `permission_denials` update (F0001-S0010, `ae7e0dfe`). They fall into the groups earlier acceptances named: no-state messages in the handlers, wiring pass-throughs, the `settings` helpers, and the stall context. No draft.
 
-**The survivors overstate the gaps.** Mutmut kept its cached test map in `mutants/mutmut-stats.json` and re-collected it only for new tests. A function that S0010 split out of an older one, `AfterAgent._early_stall`, is mapped to 5 tests, and the older tests that call it are missing. Three of its "survivors" (`_early_stall__mutmut_6`, `_9` and `_12`) die in the mutated tree when I run `PYTHONPATH=src MUTANT_UNDER_TEST=<id> pytest tests/application/test_after_agent.py` from `mutants/`. I therefore re-ran each survivor in a function F0014 wrote or changed this way, against its test modules. These survive for real:
-- **The nested-repository walk** (`git_cli._nested_repositories`, S0010):
-  - `os.walk(root, followlinks=True)` and dropping `followlinks` both survive. Decision 31 says the walk "does not follow symbolic links", and no row has a symbolic link to a folder that holds a `.git`. If the walk followed such a link, it would remove that repository's `.git` through the link, even the checkout's own `.git` through a link to `.`.
-  - Pruning `.git` from the walk (`".git" in folders` → `"XX.gitXX"`) also survives: no row has a `.git` inside a `.git`.
-- **The list of paths in three messages** (S0010): `", ".join(...)` → `"XX, XX".join(...)` survives in the stage's stall detail (`stage.AfterAgent._early_stall`), the probe item's detail (`preflight.agent_run_probe_item`) and the preparer's log line (`scheduler.CheckoutPreparer._keep_or_clone_again`). Every test removes exactly one repository.
-- **The stamp of an acceptance merged before approval** (S0007): in `domain.acceptance.book_merge`, `at` → `None` survives on the `before_approval` branch. Criterion 6 of S0007 was tested only on the plain branch, so that done entry could lose its `at` and `stage` unnoticed.
-- **Near-equivalent, no draft:**
-  - `_login_refusal`'s `_parse_reply(None)` (S0003). It differs only for a run that printed a good reply and also a `factory-login:` line, which the login shell prints only when it does not start `claude`.
-  - `discard`'s error detail `str(error)` → `None` (S0006).
-  - `cost_records_jsonl._line_of_record`'s `model_dump(mode=...)` (S0008). Every field that is not JSON is overwritten on the next lines.
-
-The other survivors are in lines older than F0014; I checked the blame of the samples. They fall into the groups earlier acceptances named:
-- no-state messages (`require_state(..., None)`, `ValueError(None)`): the handlers, `costs.begin` and `merged._archived`;
-- wiring pass-throughs (`build_boundaries`, `run_instance`);
-- `settings` helpers;
-- the stall context's `pull_request` and `undo`.
-
-No new draft for these.
-
-A finding for the human, not a story, because the `Makefile` and `mutants/` are outside the stage's lane. As it stands, `make mutants` reuses a test map that is stale for functions split out of older ones, and it stalls on one mutant. The F0013 acceptance moved `mutants/` aside to get a true count. A fresh `mutants/` per feature acceptance would give true survivors. So would a target that sets mutmut to re-collect its stats. It still would not finish 30 modules in 540 s.
+The first acceptance's note for the human still holds. `mutants/` keeps a test map that is stale for functions split out of older ones. One run of 540 s does not finish 30 modules. Both are matters of the `Makefile` and `mutants/`, which are outside this stage's lane.
 
 ## 4 What the stories noticed
 
-- S0003, the documenter: "the criterion asks the entry to give the API key's reason for being left out, and the story records none". FEATURE.md's "Out of scope" does give it. → Draft S0013.
-- S0006, the coder: `scheduler.py` in `factory.application` now imports `os` for `os.path.lexists`, so that a dangling link at `.git` counts as existing. The reviewer accepted it. There is no layer rule against `os`, so no draft.
-- S0007, the coder: `CommentCopier.append` reads the clock once per comment, so comments copied in one tick may differ in `at` by microseconds. This matches the Interface. No draft.
-- S0003, intake: no row for a login file without read permission, because root ignores permissions. The folder row takes the same branch of the script.
-- FEATURE decision 22: `test_an_existing_clone_is_kept_without_calling_git` clones under the test run's umask. Under `0002` (inside the container) the preparer would clone again. Whoever runs `make test` in the image should know this.
-- Mine: a row of `tests/adapters/test_git_cli_seal.py::test_seal_takes_the_group_and_others_write_bits_and_keeps_every_other_bit` leaves a `.git` of mode `020`. pytest cannot remove it, and each run leaves a `garbage-*` folder under `/tmp/pytest-of-<user>` with an `rm_rf` `PytestWarning`. I saw it in the mutation runs. It is harmless and small. A fixture that restores the mode would end it, and it could ride along with the next story that touches that module. No draft of its own.
-- S0001: `make lint` was red over the human's `planning/` scripts. The human fixed it. The S0003 and S0010 coders noted the human's `docs/runs/` night log arriving with a merge. Nothing further.
+- **S0013, the documenter** (entry 6), repeated by the demo (entry 7): the opening paragraph of `docs/operator-guide.md` (line 3) still says "a run against a real repository with a token is not observed yet". The criterion said "no others", so it was left. → Draft S0014.
+- **S0011's and S0012's demos**, and every `make test` today: pytest prints `PytestWarning: (rm_rf) error removing /tmp/pytest-of-factory/garbage-…/test_seal_takes_the_group_and_0`. The first acceptance blamed a test row for this, and I correct that here. The leftover `.git` folders have mode `020`. Only a mutated `seal` writes that (for example `mode & 0o022` in place of `& ~0o022`), and today's folders are dated with today's mutation run. The plain test run leaves none. pytest only fails to clean what mutmut's runs left. This is harmless, and the operator can clear it with `chmod -R u+rwx /tmp/pytest-of-factory/garbage-* && rm -rf /tmp/pytest-of-factory/garbage-*`. No draft.
+- **The coders, reviewers and documenters of S0011 and S0012** noticed nothing else. The items from S0001–S0010 were collected by the first acceptance: `os.path.lexists` in the application layer, `CommentCopier`'s clock read per comment, and the umask note of decision 22. They need nothing new.
 
 ## 5 The documentation as a whole
 
-`make documents` prints `documents ok`. Reading as a newcomer, I found four stale places, none of which misleads an operator into a wrong action. → Draft S0013.
-- `docs/decisions.md`, "The agent's login is a token from a file": "the reason for the API key's absence is not recorded in the story". FEATURE.md gives it: subscription against usage billing, and Claude Code prefers an API key it finds, so a stray key file would change who pays.
-- `docs/decisions.md`, "The factory's git runs no hooks": "Now `git_environment` returns seven entries … `GIT_CONFIG_COUNT=3`". Since S0006 and S0010 it returns nine and `4`. The F0010-S0003 entry got a "since F0014-S0006" note; this one did not. The project guide is right ("exactly nine entries").
-- `docs/operator-guide.md`, "The agent runtime", first sentence: "it needs the `claude` program and a session you have already logged in to". Since S0004 the login is the token file, and a session is only the fallback when the file is empty. The section's second paragraph says so, so the first sentence contradicts it.
-- `docs/operator-guide.md`, "The agent runs as a second user": the command line is still `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i NAME=value ... claude ...`. Since S0003 a login shell (`/bin/sh -c <script> factory-login <file>`) stands before `claude`. `docs/project-guide.md:300` has it right.
-- `README.md`'s status paragraph still ends with the Podman probe "up to the stop `repository_unavailable`; a run against a real repository with a token is not observed yet". The first start of 2026-10-17 (both instances healthy on the todo demo's project, as FEATURE.md's Goal records) is not mentioned. This is small and goes in the same draft.
+`make documents` prints `documents ok`. All five edits of S0013 are in place:
+- the API key's reason in `docs/decisions.md`;
+- the hooks entry's "(nine with `GIT_CONFIG_COUNT=4` …)";
+- the agent runtime's first sentence;
+- the login shell in the `sudo` call;
+- the README's status paragraph.
+
+The token steps (`docs/operator-guide.md`, "The agent runtime") and the fallback login now read as one account. The project guide's `remove_nested_repositories()` row states the link and `.git` rules that S0011 pinned. One finding remains: the README's status and the operator guide's opening paragraph now disagree. The README says that the first start brought two instances up healthy, the probe agent run included. The guide still stops at the Podman probe's `repository_unavailable`, with "a run against a real repository with a token is not observed yet". This is stale rather than misleading, because nothing an operator does depends on it. → Draft S0014. The guide's other "not observed yet" notes, the build with the pins and the Linux host's restart service, are still true and stay.
 
 ## 6 Decisions taken for the human
 
-To accept or revisit. These are from FEATURE.md, "taken by the session for the human, to confirm":
-- 5 and 29: the story count and build order (ten stories); S0007 and S0008 split for size.
-- 6: `/dev/null` as the hooks path, kept in `git_environment` and not in `GitCli`.
-- 7, 14, 23, 27 and 32: the leaves to change earlier tests in S0001, S0004, S0006, S0007 and S0010.
-- 8: `image/gitconfig`, `root:root` `0644`, one `safe.directory` entry.
-- 9 as changed by 30 (c): the token is read by the call's own shell, the allow list keeps six names, and a request's value is dropped.
-- 10 and 33: the file's states; the ASCII rule refuses UTF-16; an empty host file keeps the manual login.
-- 12: the variable's name and the container path; `1001:1002` `0440` on Linux.
-- 13: the probe's detail names the file, with no preflight item of its own.
-- 16 and 18: S0005 is docs only, and S0002 and S0003 need no leave.
-- 20, 21 and 22: `0640` plus a seal that does not rest on git's internals; the seal at every iteration and around every run; a failed check removes and clones again rather than stopping; tests without a second user, and the real check left to step 4.
-- 24: S0006 split into S0006 and S0009.
-- 26: `at` and `run` are optional keywords of `append_entry`; the stage is read from the state; unset fields are left out.
-- 28: `instance` is set by `CostRecorder.begin` from the settings; the key is left out when unset, while `image` stays `null`.
-- 31: the removal is one `Git` operation with no git process; it stalls `nested_repository`, and the probe fails its item.
+New since the first acceptance, from FEATURE.md, "taken by the session for the human, to confirm":
+- 34: the leave for S0011's tester to add rows to three tests of S0010. A symbolic link to a folder that holds a repository is not itself a nested repository, and the walk keeps both.
+- 35: the leave for S0012's tester to add the `merge-before-approval` row to S0007's test.
+- 36: the human's five answers to the pre-check of S0011–S0013. These are the leave, the link rule, the `a` and `a/.cache` row, the domain row, and S0013's README wording.
 
-These are from the story logs:
-- S0001 entry 5: `planning/` is out of ruff (the human's change).
-- S0003 entry 5: the probe test builds a `completed` result with its decision.
-- S0003 entry 9: `PLR0913` is ignored per file for `claude_runtime.py` in `pyproject.toml`, in place of a `noqa`.
-- S0006 entry 3: a criterion for `GIT_CEILING_DIRECTORIES` that no `GitOptions.environment` can lift, and the per-entry owner rule dropped from the Interface.
-- S0006 entry 7: the `cloned` test helper takes `group_umask`.
-- S0007 entry 5: a `move_back` entry carries the stage the human set (`approval`).
-- S0007 entry 13: the demo's second command was rewritten.
-- S0009 entry 5: `outcome: str` in the dispatcher test.
-- S0010 entries 3 and 7: eight test rows, and the note checked with `in`.
+The decisions the first acceptance listed are still open for the human to accept or revisit:
+- 5–33 in FEATURE.md, among them the story split, `/dev/null`, `0640` plus the seal, removing and cloning again, the login shell and its ASCII rule, and the stamps as optional keywords;
+- the answers from the story logs;
+- the two choices agents made without asking: `exclude_none` for every future journal field, and the "not recorded" that S0013 has since fixed.
 
-These were taken by agents without asking, and they are recorded in the decision log:
-- The S0007 coder wrote the journal records with `model_dump(exclude_none=True)`, so every future optional field of a record is also left out when unset. The decision log says so.
-- The S0003 documenter wrote "not recorded" for the API key's reason (see 5).
+The story logs of S0011–S0013 record no new answer or default: each went from intake to demo without a question.
 
 ## 7 The slow checks
 
+- `make check`: `check: green`, with `test: green (32.4 s)` and coverage 99.47 %, as I found it.
 - `make duplicates`: `duplicates: 0 new, 39 known, 0 gone`.
 - `make documents`: `documents ok`.
 - The project offers no image scan or SBOM target.
-- The observations F0014 left for plan step 4 cannot run here, because they need the real image and two users:
-  - `git status` as `agent`;
-  - the `.git` seal as `agent`, with three `Permission denied`;
-  - the probe passing on a new instance with only the token file;
-  - `grep "cloning the checkout again" /state/factory.log` once after the upgrade.
-
-  They are in the operator guide's morning observations, for the human's shakedown.
+- The observations as `agent` are left to the shakedown run, as the operator guide's morning observations write them: `git status`, the `.git` seal with its three `Permission denied`, the probe with only the token file, and `grep "cloning the checkout again" /state/factory.log`.
 
 ## 8 Cost
 
-The feature cost 87 runs, 87.1 min and $23.01 in total. Per story:
+105 runs, 95.7 min, $25.65 for the feature's thirteen stories. The first ten cost 87 runs, 87.1 min and $23.01, and the first acceptance discussed them: S0007 ($5.04) and S0003 ($4.16) stood out, by size and by questions caused by their drafted text. The three follow-up stories cost little:
 
 | Story | Runs | Minutes | Cost |
 |---|---|---|---|
-| S0001 | 8 | 6.3 | $1.39 |
-| S0002 | 6 | 3.5 | $0.97 |
-| S0003 | 12 | 13.1 | $4.16 |
-| S0004 | 6 | 3.4 | $1.04 |
-| S0005 | 6 | 1.6 | $0.54 |
-| S0006 | 10 | 14.1 | $3.18 |
-| S0007 | 14 | 18.8 | $5.04 |
-| S0008 | 6 | 4.3 | $1.10 |
-| S0009 | 9 | 7.2 | $1.74 |
-| S0010 | 10 | 14.8 | $3.85 |
+| S0011 | 6 | 3.5 | $1.23 |
+| S0012 | 6 | 3.0 | $0.74 |
+| S0013 | 6 | 2.1 | $0.67 |
 
-S0007 stands out, and S0003 next. Both are large by design: S0007 changed 14 source modules and 26 earlier tests. Both also went through two questions that came from the story text, not from the work:
-- S0007's Interface and a test disagreed on the `move_back` stage, and its demo named a test module that the tester never made.
-- S0003's demo row built a `completed` result the domain refuses. The `noqa` that FEATURE decision 33's story text accepted then broke a structural test, which the human solved in `pyproject.toml`.
-
-S0010 had the same kind of question: the note was compared by equality against a post that always carries the marker. Six of the feature's nine human answers fixed a contradiction in the drafted text. A pre-check that runs the drafted tests and demos against pinned behaviour would have saved about a run or two each. S0001's extra two runs were the `planning/` lint block.
+None stands out. Each took the minimum of six runs with no question, because their pre-checks had already settled the text (decision 36). The acceptances cost more than the stories that came from them. The first used 57.4 min and $4.99 in one run. This one's first attempt stalled at 60 min, mostly on `make mutants` and re-checking survivors. That is the cost of the mutation finding in 3.
 
 ## Proposed stories
 
-- `drafts/F0014-S0011-the-nested-repository-walks-untested-sides.md`: decision 31's "does not follow symbolic links" and "does not enter a `.git`", and the list of two or more paths in the stall, probe and log texts. These are real survivors, one of them a removal through a link.
-- `drafts/F0014-S0012-the-stamp-of-an-acceptance-merged-before-approval.md`: the `before_approval` branch of `book_merge` drops `at` unnoticed, which is S0007's criterion 6 on its other branch.
-- `drafts/F0014-S0013-the-login-and-git-environment-in-the-documents.md`: documentation only. It covers the API key's recorded reason, the hooks entry's stale count, the operator guide's "a session you have already logged in to" and the `sudo` command line without the login shell, and README's status paragraph.
+- `drafts/F0014-S0014-the-operator-guides-opening-after-the-first-start.md`: documentation only. It brings the operator guide's opening paragraph up to the first start, in the README's words, which S0013's documenter saw stale and was not allowed to touch.
 
 ## Log (append only)
 
-1. acceptor: accepted with drafts; 3 drafts proposed; make mutants 4487/6996 (partial: 4735 checked, 244 survived, 4 timeouts, 2261 unchecked)
-   1. Scope: none. Every scope bullet has its story, and FEATURE.md's "Done when" is in the code: nine git environment entries, `run_sealed`, `image/gitconfig`, the token mount, all 21 `append_entry`/`book_*` calls passing `at=`, and `instance` set in `CostRecorder.begin`. Nothing out of scope was built.
-   2. Feature demo: green. One script uses the real wiring (`read_settings` and `build_boundaries` with the fake hosting service) and a hostile stand-in `claude`:
-      - The token came from the file, in no argument, and the request's own token was dropped.
-      - The hook and both `core.fsmonitor` commands did not run under the factory's git. A plain git commit afterwards ran them, so the attack was real.
-      - The nested `.git` was removed.
-      - An opened `.git` raised `RepositoryUnsealed`, and a UTF-16 login file raised "not ASCII text".
-      - The cost line carries `instance`, and the journal record carries `at`, `stage` and `run`.
-   3. Mutants: `make mutants` stopped twice at 540 s. The second run stalled on one mutant, as in F0012. I ran the rest on module selections by hand. mutmut's cached test map is stale for functions split out of older ones: three `_early_stall` "survivors" die when re-run by hand. Re-run that way, the real F0014 survivors are:
-      - the nested walk following symbolic links, and entering `.git` (→ S0011);
-      - the `", "` path list in three texts (→ S0011);
-      - `book_merge`'s `before_approval` branch dropping `at` (→ S0012);
-      - three near-equivalent ones.
-      The Makefile and cache finding is for the human.
-   4. Noticed: the S0003 documenter wrote that the API key's reason was "not recorded", but FEATURE.md gives it (→ S0013). `os.path.lexists` in the application layer and the per-comment clock reads are accepted and need no draft. New: a seal test row leaves an unremovable mode-`020` `.git` in pytest's temporary folder, which gives an `rm_rf` warning; no draft.
-   5. Docs: `documents ok`, but five places are stale (→ S0013):
-      - the API key's reason in `decisions.md`;
-      - the hooks entry's "seven entries";
-      - the operator guide's "a session you have already logged in to";
-      - the `sudo` command line without the login shell;
-      - the README's status paragraph, which predates the first start.
-   6. Decisions: FEATURE decisions 5–33 that are marked "to confirm", ten answers from the story logs, and two choices agents made without asking (`exclude_none` for every future field; "not recorded").
-   7. Slow checks: duplicates 0 new / 39 known, documents ok, and no image scan or SBOM target. The observations as `agent` are left to the shakedown.
-   8. Cost: 87 runs, 87.1 min, $23.01. S0007 ($5.04, 14 runs) and S0003 ($4.16, 12 runs) stand out: both are large, and both had two questions caused by contradictions in the drafted story text. Six of the nine human answers in the feature were of that kind.
-   Note: I replaced the pasted run id with `<run id>`, because `make secrets` refused it as a high-entropy hex string. The demo script is in `/tmp/f0014-acceptance/feature_demo.py` and is also pasted in the report.
-2. done (pull request merged); cost: 1 runs, 57.4 min, 92 turns, 205k tokens in (9971k more from cache), 68k out, $4.99
+1. stage feature stalled: timed out after 60 min; partial work committed
+2. acceptor: accepted; 1 draft proposed; make mutants 5179/6996 (partial: 5446 checked, 263 survived, 4 timeouts, 1550 unchecked)
+      1. Scope: none. S0001–S0010 were mapped by the first acceptance (pull request 201). S0011 and S0012 added tests only, S0013 changed documents only, and all three are covered by FEATURE.md decisions 34–36. Nothing out of scope was built.
+      2. Feature demo: green. I re-ran the first acceptance's script through `read_settings`, `build_boundaries`, `run_sealed`, `ClaudeCodeRuntime` and `GitCli`, extended with S0011's cases. Both nested repositories were removed, sorted (`b/.git`, `notes/.git`). The links to an outside repository and to `.` were not followed, and both `.git` folders were kept. The token came from the file and was in no argument. Neither the hook nor `core.fsmonitor` ran under the factory's git. An opened `.git` and a UTF-16 login file were each refused. The cost record carries `instance`, and the journal record carries `at`, `stage` and `run`.
+      3. Mutants: one 540 s run, partial, 95.1 % of the checked mutants killed. S0011 and S0012 killed what they were written for. The two `_nested_repositories` survivors left (`followlinks=None` and the keyword dropped) are equivalent. Four of the five `_early_stall` "survivors" die when re-run by hand, because mutmut's test map for that function is stale. One real survivor remains, the left-branch stall's empty detail, which is older than F0014 (F0005-S0005); no draft. The stale map and the run that cannot finish in 540 s remain a note for the human.
+      4. Noticed: S0013's documenter left the operator guide's opening line stale (→ S0014). Correcting the first acceptance: the pytest `rm_rf` garbage warnings come from mutmut runs, whose mutated `seal` leaves a `.git` of mode `020`, not from a test row. They are harmless, so no draft.
+      5. Docs: `documents ok`, and all five of S0013's edits are in place. The operator guide's opening still says "a run against a real repository with a token is not observed yet", while the README now records the first start (→ S0014).
+      6. Decisions: 34–36 are new (S0011's and S0012's leaves, and the human's five pre-check answers). 5–33 and the answers from the story logs, which the first acceptance listed, are still open for the human to confirm. S0011–S0013 asked no question.
+      7. Slow checks: `make check` green (99.47 %), duplicates 0 new / 39 known, documents ok. There is no image scan or SBOM target. The observations as `agent` are left to the shakedown run.
+      8. Cost: 105 runs, 95.7 min, $25.65. S0011–S0013 cost $2.64 together, six runs each with no question. No story stands out beyond S0007 and S0003, which the first acceptance already explained.
