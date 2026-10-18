@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T15:12:58.703444Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T15:12:38.591046Z'
   stage: intake
   run: 75a6e89899c444468bee01e3aa970eba
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:12:58.703444Z'
+  stage: tests
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -150,3 +159,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
    Smoke test: both commands are runnable against existing modules and `template/factory/pipeline.yml`. Each `Expect:` line gives exact output that can be compared.
    Architecture: the pure functions and DTOs are in `domain`, the settings pass-through is in `application.write_paths`, and the key is read by the existing YAML reader. No layer rule is broken, and the story adds no adapter, dependency or wrapper.
    Scope: it matches the feature's S0003 scope. Nothing here belongs to its Out of scope list; the runtime use is left to S0004.
+4. factory: started tests as self.
