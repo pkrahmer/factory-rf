@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -175,6 +175,11 @@ journal:
   at: '2026-10-18T23:17:23.884792Z'
   stage: smoke-test
   run: 4f80cfdae10f4e8b988630607f22689b
+- number: 31
+  speaker: factory
+  kind: done
+  at: '2026-10-18T23:18:42.488096Z'
+  stage: approval
 ---
 
 # The stops reach main as records
@@ -549,3 +554,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     The smoke test contradicts no criterion. It only covers the domain layer. Criteria 4 to 16 (the service, the publisher, the tick, the wiring) and 17 (`make check`) are outside what it touches. Those are covered by the test modules and the factory's checks, not judged here.
 
     Findings: none.
+31. factory: done (pull request merged); cost: 13 runs, 18.8 min, 133 turns, 433806 tokens in (3630697 more from cache), 69937 out, $5.13
