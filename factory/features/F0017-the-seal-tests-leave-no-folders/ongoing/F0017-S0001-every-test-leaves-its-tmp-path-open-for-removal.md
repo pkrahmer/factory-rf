@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 214
 blocked: null
 comments_seen: 0
@@ -170,3 +170,11 @@ Expect: `documents ok`.
       - Architecture, security, quality: the helper uses the standard library only; the test reaches the child process through `run_process`, as other tests do; there are no suppression markers and no secrets. The module and the public function have docstrings, and the one comment explains why links are skipped. I found no existing helper that does the same job; `_close` in `git_cli.py` is the seal's private opposite, not a duplicate. Branches the fixture never reaches, a symlink root or a file root, are defensive and match the Interface's rule for links and other entries; they are not dead code that breaks a rule.
       - Checks: I did not run `make check` myself. The coder's entry reports `check: green` and `duplicates: 0 new`.
       - Ticket: `Assignment` matches what was built. The coder had nothing to build and made no commit, as the Assignment says. Criterion 9 still describes what the documenter must write: the project-guide sentence and the decision-log entry with the rejected ways.
+6. documenter: wrote criterion 9; no findings.
+   - `docs/project-guide.md`: added the sentence on `reopened_tmp_path` / `reopen(tmp_path)` after the "Tests use real git" paragraph, as the criterion words it.
+   - `docs/decisions.md`: added "The tests reopen their tmp_path after every test", with the cause (pytest's removal handler, the `_close` mutant closing `.git` to `0o020`, the `garbage-*` folders), the decision, and the rejected ways (a fixture on the seal tests alone, sealing a copy in each test, `sudo` or a second user, a sweep of `/tmp/pytest-of-<user>`).
+   - Cross-read: README, operator guide and the rest of the project guide hold nothing about tmp_path cleanup that the diff makes stale. The diff touches only `tests/`.
+   - `uv run python -m factory.entry.check_documents` printed `documents ok`. I did not run `make check`, since I changed only documents. Nothing stale seen outside this story.
+
+   `make check`: check: green
+   `make documents`: documents ok
