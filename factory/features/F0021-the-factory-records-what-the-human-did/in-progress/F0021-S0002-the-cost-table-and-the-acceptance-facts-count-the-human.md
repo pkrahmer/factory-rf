@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T22:25:25.776032Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-18T22:25:25.776032Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T22:30:07.250495Z'
+  stage: tests
+  run: 09babd471f6240a996849cc227a1eb6b
 ---
 
 # The cost table and the acceptance facts count the human
@@ -209,3 +211,30 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
    - Architecture: the pure rules are in `domain`, the posting and reading are in `application` and reuse `git.show_file` and `parse`, and no layer is crossed.
    - Scope: within the feature's S0002 bullets (the human line on the cost table and the acceptance facts). The changes to earlier tests are covered by decision 13.
 7. factory: started tests as self.
+8. tester: I wrote the red tests for every acceptance criterion. Nothing needed interpreting, so there is no question.
+
+   Criteria → tests:
+   - criterion 1: tests/domain/test_human_waits.py::test_each_blocking_question_waits_until_the_next_human_record_with_a_time. It has 9 rows, including the human comment before the question from journal entry 4.
+   - criterion 2: tests/domain/test_human_waits.py::test_the_human_line_counts_the_answered_waits_by_cause_and_their_hours. Its rows: no waits, one answered, mixed causes with 1.75 rounding half up, 0.04 h, 0.05 h, only unanswered.
+   - criterion 3: tests/domain/test_human_waits.py::test_the_cost_table_post_ends_with_the_human_line_when_given. Its rows are without human and with human.
+   - criterion 4: tests/application/test_human_line_posts.py::test_the_hand_over_posts_the_cost_table_with_the_human_line_of_the_journal. Its rows are story (HandOverHandler) and acceptance (AcceptanceHandOver). Each expects the post `render_post(cost_table_post(table, human="1 questions answered (question 1), 1.5 h waited"), cost_table_key(...))`.
+   - criterion 5: tests/domain/test_acceptance_facts_human.py::test_the_human_line_follows_the_cost_line_and_precedes_the_disk_lines covers the human line with and without a disk, and no human line with and without a disk. tests/domain/test_acceptance_facts_human.py::test_acceptance_facts_pass_the_human_line_on covers the passing on.
+   - criterion 6: tests/application/test_acceptance_facts_human.py::test_the_facts_carry_the_waits_of_the_archived_stories_only. Its rows: counted-stories, backlog-story, no-front-matter, invalid-front-matter. The invalid file has front matter with an unknown key. The acceptance report in `done/` carries a round_cap wait of 2 h, which must not be counted.
+   - criterion 7: no test. It is `make check`.
+   - criterion 8: no test. It is the docs stage's.
+
+   Files created: tests/domain/test_human_waits.py, tests/domain/test_acceptance_facts_human.py, tests/application/test_human_line_posts.py, tests/application/test_acceptance_facts_human.py.
+
+   Earlier tests changed, each only to add the new line to an expected value, under the feature's decision 13 as the Interface names them:
+   - tests/application/handlers/test_hand_over.py: `_expected_post` now passes `human="0 questions answered, 0.0 h waited"`. That journal has no blocking question.
+   - tests/application/test_stage_run_acceptance.py: the prompt's tail slice goes from `[-3:]` to `[-4:]`.
+   - tests/application/test_task_acceptance.py: the slice goes from `[-4:]` to `[-5:]`.
+
+   The last two slices grow because the facts now always carry the human line. The done files in those tests have no front matter, so the line is `0 questions answered, 0.0 h waited`.
+
+   The tests stay off one thing the criteria don't name: `one_decimal` gets no test of its own. Criterion 2 checks the rounding only through `human_line`.
+
+   Test run: `make test` is red as intended. The test runner could not import `factory.domain.human_waits`, which does not exist yet. The tests of `AcceptanceFacts.human_line`, of `cost_table_post(..., human=...)` and the two prompt-slice tests fail with wrong results. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_human_waits.py - ImportError while importing test mod...

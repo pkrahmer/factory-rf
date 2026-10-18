@@ -143,7 +143,9 @@ def _branch_commits(checkout: GitCli) -> list[CommitInfo]:
 
 
 def _expected_post(records: list[CostRecord]) -> str:
-    return cost_table_post(cost_table(bills_by_stage(records)))
+    return cost_table_post(
+        cost_table(bills_by_stage(records)), human="0 questions answered, 0.0 h waited"
+    )
 
 
 def _cost_table_posts(hosting: FakeHostingService, number: int) -> list[PullRequestComment]:
