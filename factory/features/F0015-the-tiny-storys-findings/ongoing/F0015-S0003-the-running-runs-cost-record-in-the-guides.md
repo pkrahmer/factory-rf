@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 208
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The running run's cost record, in the guides
 
 ## Assignment (as of log entry 1)
@@ -29,3 +37,73 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted. Documentation-only story, accepted as written.
+   - Interface: it states "None" and names the three documents the documenter changes (`docs/project-guide.md`, `docs/operator-guide.md`, `docs/decisions.md`). There is no module or signature to check and no behaviour comment that needs a criterion. The anchors it cites exist: the project guide's "When a record is created, completed and committed" with its bullets "Created at the start" and "Rewritten after every undo"; the operator guide's "What a stage run shows"; the decision log's "The sidecar is rewritten from memory after every undo, and a crashed stage's records are discarded with it".
+   - Criteria: criterion 1 (nothing under src/image/template/claude/tests changes) can be checked by a diff. Criterion 3 names the exact text for each of the three documents. It has no rule with a failing side. The guard against an unwanted change is criterion 1 plus the document check.
+   - Demo: both commands are runnable. The grep counts "the running run's" in the three files and gives 0 in each today, so the expectation (`:n` with n ≥ 1 in all three) can be checked. `check_documents` must print `documents ok`.
+   - Architecture: nothing in the code layers is touched, and the story adds no rule to the shipped agents (FEATURE decision 9).
+   - Scope: the story matches FEATURE.md's third scope item and decision 9. Its dependency is met: S0001 is in `done/`, and `template/Makefile` and `demo/todo-service/project/Makefile` already carry the `.costs.jsonl` filter, so the project-guide claim about the secrets scan is true.
+3. tester: no tests written or changed. This story only changes documentation: the Interface says "None", and criterion 1 says nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes. Following criterion 1, I am ending with this entry to say I changed nothing under those paths.
+   - criterion 1: no test. A diff checks it, and none of my changes are under `tests/` or the other paths.
+   - criterion 2: no test of its own. The factory runs `make check` as the gate.
+   - criterion 3 (docs): no test. The documenter writes the text, and the demo's grep and `python -m factory.entry.check_documents` check it.
+   - Files created: none. There are no modules the test runner cannot import, because no new tests exist.
+   - I did not run `make test`: with no new tests there is nothing red to confirm. `make lint` is green, and the working tree was clean before this entry.
+   - Rejected: a test that greps the docs for "the running run's". Criterion 1 forbids changes under `tests/`, and a test that pins document wording is not in the Interface.
+   - Next stage: the coder also changes nothing and ends with an entry saying so, then the documenter writes the three passages.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (31.9 s)
+4. coder: no code written or changed. This story only changes documentation: the Interface says "None", and criterion 1 says nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes. Following criterion 1, I am ending with this entry to say I changed nothing under those paths. There were no failing tests to make pass, because the tester added none.
+      - Commits: none of my own. The branch holds only the factory's stage commits.
+      - Refactor: none. There is no diff of mine to clean up.
+      - Rejected: writing the three doc passages here. The coder does not write `docs/` (CLAUDE.md, Docs), so the documenter stage writes them from criterion 3.
+      - Open: the documenter writes the passages that the demo's grep for "the running run's" and `check_documents` check.
+
+      `make check`: check: green (test: green, 33.2 s, coverage 99.47 %)
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` is empty, so nothing outside the ticket changed. Criterion 1 holds: nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed, and the tester's entry (3) and the coder's entry (4) both say so.
+      - Criterion 2: the factory's `make check` after the coder was green (`check: green`, coverage 99.47 %). `make duplicates` reports 0 new findings.
+      - Criterion 3 is the docs criterion, and the documenter writes it next. It still describes what the reader must know, and it names the three passages and the phrase "the running run's" that the demo's grep looks for.
+      - Architecture, security, quality: there is no diff, so there is nothing to judge.
+      - Ticket hygiene: `Assignment` matches what was built, which is nothing so far, as the story intends. The tester's and the coder's entries say what each rejected: a test that pins document wording, and writing `docs/` in the coder stage.
+6. documenter: wrote the three passages of criterion 3; no code, test or comment touched.
+   - `docs/project-guide.md`: new bullet after *Created at the start* under *When a record is created, completed and committed*. It covers the uncommitted `started` record, the modified or untracked `.costs.jsonl` in `git status`, why that is expected (the undo reverts it, the factory rewrites it from memory, the agent cannot commit it, the agent leaves it alone), and the agent's own `make check` scanning it, which is why a project's secrets scan leaves the cost records out.
+   - `docs/operator-guide.md`: one paragraph after the list in *What a stage run shows*.
+   - `docs/decisions.md`: one sentence at the end of the sidecar entry, tied to the rejected alternative of pushing the started record before the run.
+   - Each passage uses "the running run's". The demo grep gives 1 in each file. `python -m factory.entry.check_documents` prints `documents ok`.
+   - I did not run `make check`, since only documents changed. The factory's run after this stage is the gate.
+   - Cross-read: the project guide's *Rewritten after every undo* bullet and the operator guide's stall section agree with the new text. Nothing stale seen.
+   - No findings.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: both commands met their expectations, no findings.
+
+   1. `grep -c "the running run's" docs/project-guide.md docs/operator-guide.md docs/decisions.md`
+   ```
+   docs/project-guide.md:1
+   docs/operator-guide.md:1
+   docs/decisions.md:1
+   ```
+   Met: three lines in the expected order, and none ends `:0`.
+
+   2. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met (exit 0).
+
+   Criteria read against the demo and the branch:
+   - Criterion 1: `git diff --stat main...HEAD` lists only `docs/decisions.md`, `docs/operator-guide.md`, `docs/project-guide.md` and this ticket. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed, and the tester's entry (3) and the coder's entry (4) both say so.
+   - Criterion 2: the factory's `make check` after the documenter was green (entry 6). It is the gate again after this stage.
+   - Criterion 3:
+     - Project guide: the new bullet is right after *Created at the start* (docs/project-guide.md:869). It says the record is uncommitted from `begin` to the commit, and that `git status`/`git diff` shows the file as modified, or untracked on the first run. It says this is expected because the undo reverts the file and the factory rewrites it from memory (it cites *Rewritten after every undo*), the agent cannot commit it, and the agent leaves it alone. It also says the agent's `make check` scans the file, which is why the secrets scan leaves it out.
+     - Operator guide: the passage follows the list in *What a stage run shows* (docs/operator-guide.md:505). It is written as two sentences, not one; the content matches the criterion, and I don't count the split as a finding.
+     - Decision log: the sidecar entry ends with the required sentence, which ties the rejected alternative to the pushed-started-record option (docs/decisions.md:165).
+     - All three passages say "the running run's". No other document changed.
+
+   Open: nothing.
