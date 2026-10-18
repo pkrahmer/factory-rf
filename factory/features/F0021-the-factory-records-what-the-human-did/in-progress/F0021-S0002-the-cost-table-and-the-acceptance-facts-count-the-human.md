@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T22:41:56.493614Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-18T22:41:36.048994Z'
   stage: review
   run: 8f2015ac74b24879a2737b0416ff75f4
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:41:56.493614Z'
+  stage: docs
 ---
 
 # The cost table and the acceptance facts count the human
@@ -408,3 +417,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     - `tests/application/handlers/test_hand_over.py`: changed under the feature's decision 13, fourth bullet (`_expected_post` passes the human line). Only the expected value changed.
     - `tests/application/test_stage_run_acceptance.py`: changed under the feature's decision 13, fifth bullet (the compared prompt tail grows from `[-3:]` to `[-4:]`). Nothing else changed.
     - `tests/application/test_task_acceptance.py`: changed under the feature's decision 13, fifth bullet (the compared prompt tail grows from `[-4:]` to `[-5:]`). Nothing else changed.
+21. factory: started docs as self.
