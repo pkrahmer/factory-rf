@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T19:14:24.972263Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T19:14:24.972263Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T19:15:35.587716Z'
+  stage: docs
+  run: 82d54191c96a46c5b7f9ddc6a8b60182
 ---
 
 # The documents describe the live write guard
@@ -146,3 +148,14 @@ Expect: `documents ok`
    The diff outside `factory/` is empty, which is what criterion 1 asks for a documents-only story. The coder's entry 7 reports the factory's `make check` as green, and `make duplicates` reports 0 new findings. I checked the docs criterion against the code and the documents, and it still describes what the documenter must write. The stale passages are still in place: "Six commands" at `README.md:12`, which names seven; "once the runtime uses it" at `README.md:12` and `docs/operator-guide.md:3`; and "Once the kernel's write guard is live" at `docs/operator-guide.md:706`. `template/Makefile:74` still writes `.licenses-requirements.txt` at the checkout's root. This repository moved both files into `.reports/` (`pyproject.toml:108` `data_file`, `Makefile:66`). `confinement_item(abi, environment, find)` at `src/factory/application/preflight.py:184` joins its kernel and `PATH` faults with `; ` under the item `confinement`. The Description matches what was built, which is nothing outside the documents.
    Earlier tests: the diff changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as self.
+11. documenter: Wrote the five passages the docs criterion names. Changed no code, test, image, template, demo or agent file.
+    Files changed:
+    - `README.md`: "Six commands exist" is now "Seven commands exist", and ", once the runtime uses it" is gone from the `factory-confine` clause.
+    - `docs/operator-guide.md`: the opening paragraph drops "once the runtime uses it" (the clause now ends "confined by the kernel"). The `tool_paths` paragraph now begins "An agent run can write only its stage's write paths and these folders". After it, a new paragraph says a project made from `template/`, or the todo demo, writes `.licenses-requirements.txt` and `.coverage` at the checkout's root, where the kernel allows no write. It says to move both into a tool path folder, as this repository did into `.reports/`, and to name `tool_paths`. Until then `make check` ends with `Permission denied`.
+    - `docs/project-guide.md`, *The kernel's write guard*: one paragraph on `confinement_item(abi, environment, find)`. It covers the item `confinement`, its two faults (the kernel's first, joined by `; `), the kernel advice text, and the wiring passing `abi_version` and a search on the agent run's `PATH`. I read this against `src/factory/application/preflight.py` and `src/factory/entry/wiring.py`.
+    Checks: `grep` finds no "once the runtime uses it" in either file. `python -m factory.entry.check_documents` prints `documents ok`. I ran no `make check`, because I changed only documents.
+    Cross-read and found current: the other passages of the operator guide and the project guide that name `tool_paths` and the kernel's write guard.
+    Stale text I saw and did not touch, because the criterion says no other passage changes: `docs/project-guide.md`, *The kernel's write guard*, the line "Nothing starts it yet: the runtime will." This is stale, since the runtime has started every agent run through `factory-confine` since S0004. It needs a small follow-up story.
+
+    `check`: check: green
+    `documents`: documents ok
