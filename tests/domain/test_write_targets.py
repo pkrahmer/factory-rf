@@ -43,6 +43,9 @@ def _file(path: Path) -> WriteTarget:
         ("/etc/*", []),
         ("../x/*", []),
         ("src/../x", []),
+        ("./*", []),
+        ("./*.md", []),
+        (".", []),
     ],
 )
 def test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name(

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T15:25:18.294131Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-18T15:25:18.294131Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-18T15:27:41.490839Z'
+  stage: tests
+  run: e305ced144d14044b5bc80ec5082dbb4
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -333,3 +335,16 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
     The factory undid changes outside the write paths: factory/features/F0019-the-write-guard-by-the-kernel/in-progress/F0019-S0003-the-write-paths-and-the-tool-paths-become-the-kernel-s-targets.md.
 15. factory: started tests as self.
+16. tester: I made the test change the human approved in entry 12, as the coder named it in entry 14. No other test changed.
+
+    - criterion 2: `tests/domain/test_tool_paths.py::test_a_tool_path_of_neither_folder_form_is_refused`. I added `"./*"`, `"a/./b/*"` and `"~/./*"` to the `REFUSED` list, which feeds this test's rows. Each one expects the fault `tool path <path>: must be <folder>/* or ~/<folder>/*`.
+    - criterion 4: `tests/domain/test_write_targets.py::test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name`. I added the rows `./*`, `./*.md` and `.`, each expecting no target.
+
+    Files changed: `tests/domain/test_tool_paths.py` and `tests/domain/test_write_targets.py`, both written by this story. No files created.
+
+    One run of `make test`: exactly the six new rows fail, for the right reason. The current code still loads `.` in a tool path and still gives a target for a write path with a `.` segment. Every module imported. `make lint` is green.
+
+    Open: entry 14 says the factory undid the coder's edit to the work item. If so, the `## Description` may not yet have the amended Interface and the new rows for criteria 2 and 4. The coder should check that on the next round.
+
+    `lint`: lint: green (0.0 s)
+    `test`: FAILED tests/domain/test_write_targets.py::test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name[.-expected16]
