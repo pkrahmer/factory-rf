@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 pr: 199
 blocked: null
 comments_seen: 2
@@ -186,3 +186,8 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    Not yet done: the refactor pass and the final `make check`. I'll do both once this is answered.
 5. human (pull request comment, 2026-10-18): (A): `move_back` carries the stage the human set, `approval`. FEATURE decision 27 already gives the constant exactly so: `MOVE_BACK = JournalRecord(number=2, speaker=FACTORY, kind="move_back", at=datetime(2026, 10, 12, 12, 0, tzinfo=UTC), stage="approval")`. The tester changes `stage="doing"` to `stage="approval"` there and nothing else; no code change, no call site changes its order.
+6. coder: The human answered with option (A) in entry 5. That calls for one test change and no code change, so I am handing it to the tester.
+
+   The change: in `tests/application/handlers/test_reject.py`, the module constant `MOVE_BACK` (line 34) changes `stage="doing"` to `stage="approval"`, the stage the human set, and nothing else.
+
+   With that change, the six reject tests listed in entry 4 should pass against the code already committed in 3fffb043. When the ticket comes back to doing, I will do the refactor pass and the final `make check`, then hand it to review.
