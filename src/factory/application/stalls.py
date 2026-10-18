@@ -77,7 +77,7 @@ class StallService:
             context.work_item, document
         )
         cap = self._definition.attempts_cap
-        stalled = self._stalled(document, context.stage, pull_request.number, reason, detail)
+        stalled = self._stalled(document, context, pull_request.number, reason, detail)
         state = require_state(stalled, _no_state())
         commit = self._commit_and_push(context, stalled)
         key = PostKey(work_item=context.work_item, kind="stall", n=str(len(state.journal)))
@@ -109,7 +109,7 @@ class StallService:
     def _stalled(
         self,
         document: WorkItemDocument,
-        stage: str,
+        context: StallContext,
         pull_request: int,
         reason: StallReason,
         detail: str,
@@ -121,8 +121,11 @@ class StallService:
         )
         released = self._claims.release(document.model_copy(update={"state": counted_state}))
         cap = self._definition.attempts_cap
-        text = f"Stage {stage} stalled (attempt {attempts} of {cap}): {stall_cause(reason, detail)}"
-        return append_entry(released, NewEntry(speaker=FACTORY, kind="stall", text=text))
+        cause = stall_cause(reason, detail)
+        text = f"Stage {context.stage} stalled (attempt {attempts} of {cap}): {cause}"
+        entry = NewEntry(speaker=FACTORY, kind="stall", text=text)
+        run = None if context.cost is None else context.cost.run
+        return append_entry(released, entry, at=self._boundaries.clock.now(), run=run)
 
     def _commit_and_push(self, context: StallContext, document: WorkItemDocument) -> CommitId:
         self._boundaries.work_item_writer.write(self._boundaries.checkout / context.path, document)

@@ -70,7 +70,8 @@ class RejectHandler(Handler):
 
     def _moved_back(self, document: WorkItemDocument, change: StageChange) -> WorkItemDocument:
         text = move_back_entry_text(change.from_stage, change.to_stage)
-        appended = append_entry(document, NewEntry(speaker=FACTORY, kind="move_back", text=text))
+        entry = NewEntry(speaker=FACTORY, kind="move_back", text=text)
+        appended = append_entry(document, entry, at=self._boundaries.clock.now())
         # A claim is for the stage at the branch's head, so it never outlives the move back.
         state = require_state(appended, _no_state()).model_copy(
             update={"stage": change.from_stage, "claim": None}

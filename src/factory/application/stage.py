@@ -197,7 +197,10 @@ class AfterAgent:
         new = _new_findings(started.findings, findings)
         if new:
             detail = "; ".join(finding.message for finding in new)
-            return self._stall(launched, "form_invalid", detail, append_entry(document, entry))
+            appended = append_entry(
+                document, entry, at=self._boundaries.clock.now(), run=launched.cost.run
+            )
+            return self._stall(launched, "form_invalid", detail, appended)
         return AgentAftermath(
             started=started,
             request=launched.request,
@@ -298,10 +301,13 @@ class StageFinisher:
             ran, red = self._run_checks_and_reports(started.stage)
             if red is not None:
                 return self._stall_red(aftermath, ran, red)
-        document = append_entry(aftermath.document, _with_command_lines(aftermath.entry, ran))
+        now = self._boundaries.clock.now()
+        run = aftermath.cost.run
+        entry = _with_command_lines(aftermath.entry, ran)
+        document = append_entry(aftermath.document, entry, at=now, run=run)
         if move.question is not None:
             question = NewEntry(speaker=FACTORY, kind="question", text=move.question)
-            document = append_entry(document, question)
+            document = append_entry(document, question, at=now, run=run)
         moved = self._moved(document, move, started.pull_request.number)
         subject = commit_subject(started.work_item, f"{started.stage} ends: {move.stage}")
         commit = self._commit_and_push(started, moved, subject)
@@ -339,7 +345,12 @@ class StageFinisher:
         self, aftermath: AgentAftermath, green: list[CheckResult], red: CheckResult
     ) -> StageReport:
         started = aftermath.started
-        document = append_entry(aftermath.document, _with_command_lines(aftermath.entry, green))
+        document = append_entry(
+            aftermath.document,
+            _with_command_lines(aftermath.entry, green),
+            at=self._boundaries.clock.now(),
+            run=aftermath.cost.run,
+        )
         context = StallContext(
             work_item=started.work_item,
             stage=started.stage,

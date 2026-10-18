@@ -4,11 +4,12 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import date
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, PositiveInt, field_validator, model_validator
 
+from factory.domain.cost_records import RunId
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.identifiers import Name
 from factory.domain.sections import (
@@ -19,6 +20,7 @@ from factory.domain.sections import (
     sections,
     split_lines,
 )
+from factory.domain.times import UtcDatetime
 
 if TYPE_CHECKING:
     from factory.domain.work_item import WorkItemDocument, WorkItemState
@@ -44,13 +46,20 @@ JournalKind = Literal[
 
 
 class JournalRecord(BaseModel):
-    """One journal entry as the state lists it: its number, who spoke and what kind it is."""
+    """One journal entry as the state lists it: its number, who spoke and what kind it is.
+
+    `at` (when it was written, in UTC), `stage` (the work item's stage then) and `run` (the
+    agent run it came from) are optional, so a record written without them stays valid.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     number: PositiveInt
     speaker: Speaker
     kind: JournalKind
+    at: UtcDatetime | None = None
+    stage: Name | None = None
+    run: RunId | None = None
 
 
 class NewEntry(BaseModel):
@@ -137,12 +146,33 @@ def _joined(lines: Sequence[str], like: str) -> str:
     return "\n".join(lines) + final_newline
 
 
-def append_entry(document: WorkItemDocument, entry: NewEntry) -> WorkItemDocument:
-    """The document with the entry rendered into its journal section and recorded in its state."""
+def _record(
+    number: int, entry: NewEntry, state: WorkItemState, at: datetime | None, run: RunId | None
+) -> JournalRecord:
+    if at is None:
+        return JournalRecord(number=number, speaker=entry.speaker, kind=entry.kind)
+    return JournalRecord(
+        number=number, speaker=entry.speaker, kind=entry.kind, at=at, stage=state.stage, run=run
+    )
+
+
+def append_entry(
+    document: WorkItemDocument,
+    entry: NewEntry,
+    *,
+    at: datetime | None = None,
+    run: RunId | None = None,
+) -> WorkItemDocument:
+    """The document with the entry rendered into its journal section and recorded in its state.
+
+    Given `at`, the record carries it, the stage of the document's state and `run`.
+    """
+    if run is not None and at is None:
+        raise ValueError("an entry with a run needs the time it was written")
     state = _state_of(document)
     section = _journal_section(document.body)
     number = len(state.journal) + 1
-    record = JournalRecord(number=number, speaker=entry.speaker, kind=entry.kind)
+    record = _record(number, entry, state, at, run)
     lines = split_lines(document.body)
     last = _last_text_line(lines, section)
     rendered = split_lines(render_entry(number, entry))

@@ -215,12 +215,16 @@ class RecoveryHandler(Handler):
             text = expiry_entry_text(stage, state.crashes, head)
         else:
             text = crash_entry_text(stage, state.crashes, head)
-        document = append_entry(document, NewEntry(speaker=FACTORY, kind=entry_kind, text=text))
+        now = self._boundaries.clock.now()
+        entry = NewEntry(speaker=FACTORY, kind=entry_kind, text=text)
+        document = append_entry(document, entry, at=now)
         if not capped:
             return document
         # One commit holds the crash and the question, so neither is ever recorded alone.
         question = crash_cap_question(stage, state.crashes, crash_cap)
-        return append_entry(document, NewEntry(speaker=FACTORY, kind="question", text=question))
+        return append_entry(
+            document, NewEntry(speaker=FACTORY, kind="question", text=question), at=now
+        )
 
 
 def _stop_title(work_item: WorkItemSnapshot) -> str:
