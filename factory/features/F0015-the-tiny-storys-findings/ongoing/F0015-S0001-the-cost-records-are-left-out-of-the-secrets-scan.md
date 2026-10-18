@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 206
 blocked: null
 comments_seen: 0
 round: 0
@@ -65,3 +65,9 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: names the exact one-line change to the `secrets` target of `template/Makefile`, the two new constants and four setup functions in `tests/test_template_makefile.py` (with their helpers `_on_main`, `_branch`, `write_files` and `commit_all`), and the new test module and function. I checked the repo: the template has 0 matches of the new pattern and the demo has 1, so the human's change 1 is in. `secrets:` is at line 59 in both Makefiles. `_branch` and `_on_main` exist. The Interface states no behaviour that lacks a criterion.
+   - Criteria: each one is covered by one row or one test function. Rows: `sidecar-on-main`, `sidecars-on-branch`, `sidecar-only`, `look-alikes`. Test: `test_the_todo_demos_secrets_target_is_the_templates`. Both sides of the rule are covered. The excluded side is the sidecar rows. The scanned side is `look-alikes` (`costs.jsonl`, `docs/a.costs.jsonl.txt`) and the five existing rows. The "nothing left" case is the `sidecar-only` row. Criterion 8 (docs) is specific enough to check.
+   - Demo: both commands are runnable. Each `Expect:` line is checkable. The `grep` expectation is `template/Makefile:1` and `demo/todo-service/project/Makefile:1`, and the pytest expectation is a `<n> passed` last line with no `failed`, `error` or `skipped` count.
+   - Architecture: the change is only in the template Makefile, tests and docs. No layer or interface is touched.
+   - Scope: it is within FEATURE scope (finding 1, S0001). It does not touch the Out of scope items (run id form, `template/CLAUDE.md`). The edit to the earlier test F0012-S0029 has the human's leave (FEATURE decision 4).
