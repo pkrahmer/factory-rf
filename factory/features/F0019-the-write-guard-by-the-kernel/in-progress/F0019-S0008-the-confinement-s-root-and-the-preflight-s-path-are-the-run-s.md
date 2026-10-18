@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T19:31:49.781142Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-18T19:31:49.781142Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T19:32:42.218105Z'
+  stage: docs
+  run: e4248610a4544a7197dd891c285a6798
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -290,3 +292,17 @@ Expect: `completed | root file refused | False`
     - tests/adapters/test_claude_runtime_confinement.py (M): changed under the standing leave to move a shared test helper. Its constants, `Played`, `ConfineCall`, `Layout`, `CONFINE_SCRIPT` and helpers moved to tests/confine_support.py, and the private `_request`/`_runtime`/`_write_script`/`_read_records`/`_write_confine` became shared `run_request`/`confined_runtime`/`write_script`/`read_records`/`write_confine`. The `layout` fixture moved to tests/conftest.py. Every test keeps its name and its assertions; only the call sites changed.
     - tests/conftest.py (M): changed under the same standing leave. Its only change is the moved `layout` fixture, built by `confine_support.build_layout`. tests/test_agent_home_ownership.py keeps its own module-level `layout`, which overrides the shared one there.
 18. factory: started docs as self.
+19. documenter: I changed no files. The docs criterion is `none`, because the story only adds tests (`git diff main...HEAD` outside `factory/`, `docs/` and the README touches only files under `tests/`).
+
+    Cross-read and found current:
+    - `docs/operator-guide.md` line 118, on the kernel rules: a write path at the checkout's root has no target, and the root is never allowed whole. That matches what the new runtime tests pin.
+    - `docs/operator-guide.md`, `factory-guard` on the agent run's `PATH` (line 170): this section and the preflight items agree with the new `PATH` tests, which pin that `confinement` and `agent-environment` search the agent run's `PATH`.
+
+    Findings for the coder: none. Nothing under `src/` changed, so no docstring or Interface contradiction is possible.
+
+    Stale text noticed and left alone: none.
+
+    I did not run `make check`, because I changed no file. The factory's check after this stage decides.
+
+    `check`: check: green
+    `documents`: documents ok
