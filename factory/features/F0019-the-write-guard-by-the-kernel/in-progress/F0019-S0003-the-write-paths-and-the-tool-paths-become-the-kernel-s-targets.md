@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379, 6251729450]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T15:33:25.944461Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -132,6 +128,12 @@ journal:
   kind: started
   at: '2026-10-18T15:33:25.944461Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T15:34:16.872451Z'
+  stage: review
+  run: 81849e1759b94edfa8ac0329f64ae22d
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -150,7 +152,7 @@ class PipelineDefinition(BaseModel):
     tool_paths: list[WritePath] = []
 ```
 
-- A new load-time rule in `_RULES`: every tool path must match `<folder>/*` or `~/<folder>/*`, where `<folder>` is one or more `/`-separated segments, each non-empty, none `..`, none holding `*`, `?` or `[`, and `<folder>` does not start with `/`. A tool path that does not is the fault `f"tool path {path}: must be <folder>/* or ~/<folder>/*"`, one per such path, joined with the other rules' faults as today.
+- A new load-time rule in `_RULES`: every tool path must match `<folder>/*` or `~/<folder>/*`, where `<folder>` is one or more `/`-separated segments, each non-empty, none `.` or `..`, none holding `*`, `?` or `[`, and `<folder>` does not start with `/`. A tool path that does not is the fault `f"tool path {path}: must be <folder>/* or ~/<folder>/*"`, one per such path, joined with the other rules' faults as today.
 - An absent key is `[]`; the key is strict like the others (a string instead of a list is refused by the model).
 
 `factory.domain.agent_runs` (`domain`):
@@ -193,7 +195,7 @@ def confinement_of(
 ```
 
 - `write_targets`, for each write path `p` of `guard.write_paths`, in order, relative to `guard.root`:
-  - `p` empty, starting with `/`, or holding a `..` segment: no target.
+  - `p` empty, starting with `/`, or holding a `.` or `..` segment: no target.
   - `p` ending in `/*` with no `*`, `?` or `[` before it: the folder `root / p[:-2]`.
   - `p` holding none of `*`, `?`, `[`: the file `root / p`.
   - any other `p`: the folder of the segments before the first segment that holds `*`, `?` or `[`; no target when there is none (a pattern at the root, such as `*.md`).
@@ -206,9 +208,9 @@ Tests (the tester writes them): `tests/domain/test_tool_paths.py` (the rule, thr
 ## Acceptance criteria
 
 1. A pipeline definition with `tool_paths: [".venv/*", "a/b/*", "~/.cache/*"]` loads with those three in order, and one without the key loads with `tool_paths == []` (rows of one parametrized test).
-2. Each of `"*.log"`, `".venv"`, `"/var/cache/*"`, `"../x/*"`, `"a/../b/*"`, `"a/*/b/*"`, `"a/b?/*"`, `"a/[b]/*"`, `"~/*"`, `"~/../x/*"` and `"a//b/*"` alone in `tool_paths` makes the definition invalid with the fault `tool path <path>: must be <folder>/* or ~/<folder>/*`; two of them give two faults; and `tool_paths: ".venv/*"`, a string instead of a list, makes it invalid with `invalid tool_paths: Input should be a valid list` (rows of one parametrized test).
+2. Each of `"*.log"`, `".venv"`, `"/var/cache/*"`, `"../x/*"`, `"a/../b/*"`, `"a/*/b/*"`, `"a/b?/*"`, `"a/[b]/*"`, `"~/*"`, `"~/../x/*"`, `"a//b/*"`, `"./*"`, `"a/./b/*"` and `"~/./*"` alone in `tool_paths` makes the definition invalid with the fault `tool path <path>: must be <folder>/* or ~/<folder>/*`; two of them give two faults; and `tool_paths: ".venv/*"`, a string instead of a list, makes it invalid with `invalid tool_paths: Input should be a valid list` (rows of one parametrized test).
 3. `WritePathService.at` returns the definition's `tool_paths` at the stage-start commit, `[".venv/*", "~/.cache/*"]`, unchanged, and `[]` for a definition without the key; a `tool_paths` pushed after the stage-start commit is not in the result (rows of one parametrized test).
-4. With `root` `/work/checkout` and `home` `/home/agent`, `write_targets` gives for each write path (rows of one parametrized test): `src/*` the folder `/work/checkout/src`; `a/b/*` the folder `/work/checkout/a/b`; `README.md` the file `/work/checkout/README.md`; `factory/features/F0001-x/in-progress/F0001-S0001-y.md` that file; `docs/*.md` the folder `/work/checkout/docs`; `a/b*/c` the folder `/work/checkout/a`; `a/b?/c` the folder `/work/checkout/a`; `a/[bc]/d` the folder `/work/checkout/a`; `*.md` nothing; `*` nothing; `""` nothing; `/etc/*` nothing; `../x/*` nothing; `src/../x` nothing.
+4. With `root` `/work/checkout` and `home` `/home/agent`, `write_targets` gives for each write path (rows of one parametrized test): `src/*` the folder `/work/checkout/src`; `a/b/*` the folder `/work/checkout/a/b`; `README.md` the file `/work/checkout/README.md`; `factory/features/F0001-x/in-progress/F0001-S0001-y.md` that file; `docs/*.md` the folder `/work/checkout/docs`; `a/b*/c` the folder `/work/checkout/a`; `a/b?/c` the folder `/work/checkout/a`; `a/[bc]/d` the folder `/work/checkout/a`; `*.md` nothing; `*` nothing; `""` nothing; `/etc/*` nothing; `../x/*` nothing; `src/../x` nothing; `./*` nothing; `./*.md` nothing; `.` nothing.
 5. With the same `root`, `write_targets` gives for each tool path (rows of one parametrized test): `.venv/*` the folder `/work/checkout/.venv`; `~/.cache/*` with `home` `/home/agent` the folder `/home/agent/.cache`; `~/.cache/*` with `home` `None` nothing; `*.log`, of neither form, nothing.
 6. `write_targets` keeps the order write paths first, then tool paths, and leaves out a repeated target: write paths `["src/*", "docs/*", "src/*"]` and tool paths `[".venv/*", "src/*"]` give the folders `src`, `docs`, `.venv`, in that order.
 7. `confinement_of` with `root` `/w` (rows of one parametrized test): a folder target `/w/src` is in `folders`; a file target `/w/README.md` that is in `existing_files` is in `files`; a file target `/w/docs/openapi.json` that is not gives the folder `/w/docs`; a file target `/w/NEW.md` that is not gives nothing; a file target `/w/a/b/c.md` that is not gives the folder `/w/a/b`.
@@ -421,3 +423,19 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     - `tests/application/test_write_paths.py`: changed under the standing leave to move a shared test helper. `_stage_start`, `_push_definition` and `PIPELINE_FILE` moved to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
 21. 2026-10-18 human: A: you amend the Description. Rewrite the Interface's two rules and criteria 2 and 4 exactly as finding 1 lists them (`.` beside `..` in both rules; the three rows each in criteria 2 and 4), change nothing else, and end with `docs` if nothing else is found.
 22. factory: started review as self.
+23. reviewer: No findings. I read the whole diff again rather than relying on the earlier rounds. The merge from `main` at 8b8c7b4a only brought in `docs/runs/`, so the code and tests are the ones entry 18 described.
+    Groups 1 to 5:
+    - Criteria: criteria 1 to 9 each have a parametrized test that checks what it is named after. That includes the `.` rows that entry 12 added: `tests/domain/test_tool_paths.py` `REFUSED` and `tests/domain/test_write_targets.py`. Every rule is tested on both sides: each refused segment form, a wildcard in the first segment versus a later one, `home` `None`, and a missing file at the root versus deeper. Entry 18 reports `check: green`.
+    - Architecture: the new code is in `domain`, with only a pass-through in `application`. No new tool, interface or dependency.
+    - Security: nothing to report, and no marker that silences a check.
+    - Quality: I found no second copy of an existing helper. The coder made the private `_is_safe` public as `is_inside_checkout` and reused it, and `PARENT_SEGMENT` now has a single definition.
+    - Hygiene: done on the human's instruction in entry 21 (option A).
+    Description change (entry 21): I changed only the places that finding 1 of entry 20 names, and nothing else:
+    - The Interface's tool-path rule now reads "none `.` or `..`".
+    - The `write_targets` rule now reads "holding a `.` or `..` segment: no target".
+    - Criterion 2 gains `"./*"`, `"a/./b/*"` and `"~/./*"`.
+    - Criterion 4 gains `./*`, `./*.md` and `.`, each giving nothing.
+    The Description now matches the code and tests. The docs criterion (11) is still right for the documenter.
+    Open, not a finding: `make duplicates` lists `write_targets` and `confinement_of` as dead code until S0004 uses them.
+    Earlier tests:
+    - `tests/application/test_write_paths.py`: changed under the standing leave to move a shared test helper. `_stage_start`, `_push_definition` and `PIPELINE_FILE` moved to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
