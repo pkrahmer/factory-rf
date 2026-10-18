@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T17:22:24.606593Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-18T17:22:24.606593Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T17:22:44.156226Z'
+  stage: smoke-test
+  run: 25d1e1284fce4070a44a17a7cbdfcb37
 ---
 
 # The agents' instructions explain a refused write
@@ -281,3 +283,30 @@ Expect: `1`
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test round 1: I ran all three commands from the repository root, exactly as written. All three met their `Expect:` lines. No findings.
+
+    1. `grep -l 'A refused write fails with \`Permission denied\`' claude/agents/*.md | wc -l`
+    ```
+    7
+    ```
+    Expect `7`: met.
+
+    2. `grep -L 'a hook refuses an edit outside the write paths, and the factory undoes any other write after the stage' claude/agents/*.md | wc -l`
+    ```
+    7
+    ```
+    Expect `7`: met. None of the seven agents still holds the old ending.
+
+    3. `grep -c 'Make temporary files only in \`$TMPDIR\`' claude/agents/coder.md`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    I also checked the acceptance criteria against the files to see whether anything contradicts them:
+    - Criterion 1: the seven agents share one distinct `R14. ` line. It is identical to the Interface's R14 paragraph in the work item (`diff` reports no difference), and it is a single line.
+    - Criterion 3: `grep -c '^R14\. '` gives 1 for each of the seven agents.
+    - Criterion 5: `docs/project-guide.md:1440`, in the `## Rules` bullet of the shipped-agents section, has the sentence on `Permission denied`, the guard, `question` and `$TMPDIR`.
+    - Criterion 4 (`make check`): I did not run it here. The factory's run after the docs stage reported `check: green` (entry 19).
+
+    Nothing contradicts a criterion. Nothing is open.
