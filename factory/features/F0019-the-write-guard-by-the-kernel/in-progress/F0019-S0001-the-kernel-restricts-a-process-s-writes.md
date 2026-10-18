@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T14:39:14.245727Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   at: '2026-10-18T14:38:54.221370Z'
   stage: review
   run: 589bbc15d5414ce795d6e92f229326ef
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:39:14.245727Z'
+  stage: docs
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -271,3 +280,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
     - Work item hygiene: the journal names the main choice (explicit ctypes argument types) and what was rejected (bare Python ints). The Description matches what was built. Criterion 11 (docs) still covers what the reader must know.
 
     Earlier tests: none. The diff only adds test files (`A` for both); it changes, renames or deletes no test file that `main` holds.
+13. factory: started docs as self.
