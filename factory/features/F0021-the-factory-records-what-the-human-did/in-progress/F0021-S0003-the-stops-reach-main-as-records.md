@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T23:00:41.938784Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-18T23:00:20.925662Z'
   stage: review
   run: 2c05376bbe2f4030bc177027c09b4058
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:00:41.938784Z'
+  stage: doing
 ---
 
 # The stops reach main as records
@@ -288,3 +297,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     2. `src/factory/application/stops.py`, `raise_stop`. `standing = True` sits before `health.read()`, so a failed read skips the append. That stop then never reaches the records, and the Interface's "all three were tried" does not hold. The coder noted this in entry 10 but no criterion settles it. Fix: the coder asks the human (R8) whether a failed read should still append the `raised` record, at the risk of a second `raised` line, or append nothing. The answer goes into the criterion of finding 1, and the code follows it.
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`), so no test that `main` already holds was changed, renamed or deleted.
+13. factory: started doing as self.
