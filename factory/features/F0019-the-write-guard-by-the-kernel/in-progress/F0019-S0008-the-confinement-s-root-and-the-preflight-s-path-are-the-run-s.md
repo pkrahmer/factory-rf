@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T19:17:54.648362Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T19:17:54.648362Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T19:18:09.078104Z'
+  stage: intake
+  run: 618320dcf8ac4b9da9a4f3cc9e9dd7aa
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -89,3 +91,9 @@ Expect: `completed | root file refused | False`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`ClaudeCodeRuntime.run` with `confine_executable` and `GuardSettings.root`; `machine_extras(boundaries, settings, which, environment)` in `factory.entry.wiring`), plus the two new test modules and the helper move under the standing leave. No `src/` change is expected.
+   Criteria: each is testable by one parametrized test. Criterion 1 has a row for each of the three Interface cases: a missing root file, a missing file below the root, and an existing root file. Criterion 2 runs the real wrapper, with a step that writes the missing root file and one that writes another root file, so the refused side is covered. Criterion 3 has a pass row and a fail row for `confinement` and for `agent-environment`, and the failing detail is given. There is no rule without a failing side.
+   Smoke test: it is runnable as written. It uses a stand-in `claude` and a temporary directory. The `Expect:` line `completed | root file refused | False` can be checked against the printed output.
+   Architecture: tests only, in `tests/adapters` and `tests/entry`, mirroring the package. The layers are untouched, and moving the shared helpers is covered by the standing leave.
+   Scope: it is inside F0019 (decision 6, the preflight items) and outside none of its "Out of scope" entries. The criteria add tests and do not change the domain rules, the wrapper or the hook.
