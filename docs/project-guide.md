@@ -1220,7 +1220,7 @@ Tests: `tests/domain/test_write_paths.py`, `tests/application/test_write_paths.p
 
 ### The kernel's targets
 
-The kernel (Landlock, see `factory.adapters.landlock` and the decision log) allows writes beneath a folder and on a file that exists. A write path is an `fnmatch` pattern and a run also writes the project's tool state, so two pure functions in `factory.domain.confinement` turn the settings into what the kernel can name. Nothing calls them yet; the runtime does.
+The kernel (Landlock, see `factory.adapters.landlock` and the decision log) allows writes beneath a folder and on a file that exists. A write path is an `fnmatch` pattern and a run also writes the project's tool state, so two pure functions in `factory.domain.confinement` turn the settings into what the kernel can name. The agent runtime calls them when it builds a run's rules (see "The `claude -p` runtime").
 
 `GuardSettings.tool_paths` carries the definition's `tool_paths` as `WritePathService.at` reads them at the stage-start commit, unchanged: no placeholder is expanded in them. `refusal`, which the hook and the undo share, ignores them: with write paths `["src/*"]` and tool paths `[".venv/*"]`, `.venv/x` is refused as outside the write paths. The tool paths widen only what the kernel allows, never what the hook or the undo accept.
 
@@ -1299,7 +1299,7 @@ Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.ch
 
 ## The kernel's write guard
 
-`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"); the agent runtime does not start the wrapper yet. The guard in "The guard command" sees two tools and the undo reverts the rest afterwards; the kernel refuses a write by any route, a shell command included.
+`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"); the agent runtime starts every agent run through it. The guard in "The guard command" sees two tools and the undo reverts the rest afterwards; the kernel refuses a write by any route, a shell command included.
 
 ### What Landlock is
 
