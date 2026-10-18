@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 214
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # Every test leaves its tmp_path open for removal
 
 ## Assignment (as of log entry 1)
@@ -127,3 +135,77 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: names the new module `tests/tmp_path_support.py` with the signature `reopen(root: Path) -> None`, and the fixture `reopened_tmp_path` in `tests/conftest.py` with its signature. The mode changes, the walk order and the handling of links and of a missing root are all stated concretely.
+   - Criteria: criteria 1–6 each map to named test functions and rows with exact expected modes, so one test function can check each without further decisions. Every behaviour in the Interface comments has a criterion: the owner bits added, the setgid and other bits kept (`open-with-setgid`), links not followed, the fixture doing nothing without `tmp_path`, and the teardown order. The rule with a failing side is the missing root: no error and nothing created (criterion 4). The fixture's refused side is covered by criterion 6 and the `without-conftest` row.
+   - Demo: the pytest command lists existing modules plus the new one. The Python snippet is runnable and expects `0o720` then `False`. The `check_documents` command expects `documents ok`. Each Expect line can be checked against the output.
+   - Architecture: the change is under `tests/` only, with the standard library only. It adds no layer, no dependency and no `src/` change. The child process uses `run_process` from `factory.adapters.process` as other tests do. The `tests/conftest.py` leave is stated in the story and in FEATURE decision 6.
+   - Scope: it is within FEATURE scope and avoids everything in "Out of scope": no `Makefile`, `pyproject.toml`, `src/` or earlier-test changes.
+3. tester: wrote the helper, the fixture and their tests as the Interface states. The story makes every change in the tester's lane, so the tests are green from this stage on, not red. `make test` was green (32.3 s, coverage 99.47 %) and `make lint` and `make types` are green.
+   - criterion 1: tests/test_tmp_path_reopening.py::test_reopen_gives_the_owner_back_every_folder_and_entry_and_keeps_every_other_bit, rows sealed-git-folder, no-search, no-read, no-write, closed-inside-closed, closed-root. Each row also checks that `shutil.rmtree` then removes the tree.
+   - criterion 2: the same test, row open-with-setgid, plus the expected modes of the other rows (`.git` 0o020 → 0o720).
+   - criterion 3: tests/test_tmp_path_reopening.py::test_reopen_leaves_a_symbolic_link_and_its_target_as_they_are, rows link-to-a-folder, link-to-a-file, dangling.
+   - criterion 4: tests/test_tmp_path_reopening.py::test_reopen_of_a_missing_root_changes_nothing
+   - criterion 5: tests/test_tmp_path_reopening.py::test_a_test_that_closes_folders_in_its_tmp_path_leaves_them_open_after_its_teardown, rows with-conftest and without-conftest. It runs a child pytest through `run_process` with the argv, env and inner test text from the Interface.
+   - criterion 6: the same test; both rows assert that `base / "test_uses_no_tmp_path0"` does not exist.
+   - criterion 7: no earlier test module was touched. The whole suite passed in `make test` with the fixture in place.
+   - criteria 8 and 9: `make check` is the factory's gate. The docs belong to the documenter stage.
+   Files: created `tests/tmp_path_support.py` (`reopen`, standard library only) and `tests/test_tmp_path_reopening.py`. Changed `tests/conftest.py`: added the import of `reopen` and the autouse fixture `reopened_tmp_path`; no existing fixture changed.
+   How `reopen` works: it changes `root` first, then walks top down with `os.walk(followlinks=False)` and changes every folder in a listing before descending into it. It skips symbolic links, which `os.walk` lists among the folders when they point to one, so chmod never follows a link. It calls chmod only when a bit is missing.
+   Modules the test runner could not import: none. Nothing is left for the coder to build.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (31.3 s)
+4. coder: nothing to build. The Interface puts every change in the tester's lane. The tester already wrote `tests/tmp_path_support.py` (`reopen`), `tests/test_tmp_path_reopening.py` and the autouse fixture `reopened_tmp_path` in `tests/conftest.py`, and those tests pass. I left everything under `tests/` alone (R9) and changed nothing under `src/`, so this stage made no commit and there was no diff to refactor. `make check` is green on the branch as the tester left it (check: green; test: green (34.0 s), coverage 99.47 %). Still open: criterion 9 (the project-guide sentence and the decision-log entry), which is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` changes three files under `tests/`: `tests/tmp_path_support.py` (new), `tests/test_tmp_path_reopening.py` (new) and `tests/conftest.py`. That file gains only the `reopen` import and the autouse fixture `reopened_tmp_path`; no existing fixture changed. Nothing under `src/` changed and no earlier test module changed, as the Interface and criterion 7 require.
+      - Criteria 1–2: each row of `test_reopen_gives_the_owner_back_every_folder_and_entry_and_keeps_every_other_bit` builds the tree the Interface describes and compares each mode exactly. It then checks that `shutil.rmtree` removes the tree. Row `open-with-setgid` shows that the setgid bit and the group and others bits stay, and `0o020` → `0o720` shows the same for a closed row.
+      - Criterion 3: the three link rows check that the link stays, that `readlink` returns the same text, and that the target's mode is unchanged. In `reopen`, `os.walk` lists a link to a folder among the folders, and `is_symlink()` skips it there and among the files, so `chmod` never follows a link.
+      - Criterion 4: `test_reopen_of_a_missing_root_changes_nothing` checks that the root is not created and that `tmp_path` holds no new entry.
+      - Criteria 5–6: the child-pytest test runs the argv, env and inner test text from the Interface. With `-p conftest` it expects `0o720`/`0o700`/`0o700`, which includes a folder closed in a fixture's teardown for a test that asks for `tmp_path` only through that fixture. Without it, it expects `0o020`/`0o000`/`0o000`. Both rows check that `test_uses_no_tmp_path0` is absent; the with-conftest row also checks that `rmtree(base)` succeeds. Asking for `tmp_path` through `getfixturevalue` in an autouse fixture makes the reopen run after the teardowns of the test's other fixtures, which the `closing` row exercises.
+      - Order of the walk: `root` is opened before `os.walk`, and each folder in a listing is opened in the loop body, before `os.walk` (top down) descends into it. This matches the Interface.
+      - Architecture, security, quality: the helper uses the standard library only; the test reaches the child process through `run_process`, as other tests do; there are no suppression markers and no secrets. The module and the public function have docstrings, and the one comment explains why links are skipped. I found no existing helper that does the same job; `_close` in `git_cli.py` is the seal's private opposite, not a duplicate. Branches the fixture never reaches, a symlink root or a file root, are defensive and match the Interface's rule for links and other entries; they are not dead code that breaks a rule.
+      - Checks: I did not run `make check` myself. The coder's entry reports `check: green` and `duplicates: 0 new`.
+      - Ticket: `Assignment` matches what was built. The coder had nothing to build and made no commit, as the Assignment says. Criterion 9 still describes what the documenter must write: the project-guide sentence and the decision-log entry with the rejected ways.
+6. documenter: wrote criterion 9; no findings.
+   - `docs/project-guide.md`: added the sentence on `reopened_tmp_path` / `reopen(tmp_path)` after the "Tests use real git" paragraph, as the criterion words it.
+   - `docs/decisions.md`: added "The tests reopen their tmp_path after every test", with the cause (pytest's removal handler, the `_close` mutant closing `.git` to `0o020`, the `garbage-*` folders), the decision, and the rejected ways (a fixture on the seal tests alone, sealing a copy in each test, `sudo` or a second user, a sweep of `/tmp/pytest-of-<user>`).
+   - Cross-read: README, operator guide and the rest of the project guide hold nothing about tmp_path cleanup that the diff makes stale. The diff touches only `tests/`.
+   - `uv run python -m factory.entry.check_documents` printed `documents ok`. I did not run `make check`, since I changed only documents. Nothing stale seen outside this story.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: I ran all three demo commands from the repository root, in order. Each one met its `Expect:` line. No findings.
+
+   1. The pytest run over the new module and the six seal and nesting modules:
+      ```
+      ........................................................................ [ 78%]
+      ....................                                                     [100%]
+      92 passed in 3.47s
+      ```
+      Met: the last line says `92 passed`, with no `failed`, `error` or `skipped` count.
+
+   2. The `reopen` snippet on a `.git` closed to `0o020`:
+      ```
+      0o720
+      False
+      ```
+      Met: it printed exactly two lines, `0o720` and then `False`. Exit status 0.
+
+   3. `uv run python -m factory.entry.check_documents`:
+      ```
+      documents ok
+      ```
+      Met.
+
+   The acceptance criteria, read against the demo:
+   - Criteria 1 and 2: command 2 shows the `.git` ending at `0o720`, with the group bit kept, and `rmtree` then removing the tree.
+   - Criteria 1–7: command 1 shows their tests passing, together with every module criterion 7 names.
+   - Criterion 7: `git diff --stat main...HEAD -- . ':!factory'` lists only `tests/conftest.py`, `tests/tmp_path_support.py`, `tests/test_tmp_path_reopening.py`, `docs/project-guide.md` and `docs/decisions.md`. No earlier test module changed and nothing under `src/` changed.
+   - Criterion 9: command 3 shows the documents are consistent.
+   - Criterion 8 (`make check`): I did not run it here; it is the factory's gate after this stage.
+
+   Nothing in the demo contradicts any criterion. Nothing is open.
