@@ -51,6 +51,7 @@ class CostRecorder:
         earlier = self._boundaries.cost_reader.read(self._boundaries.checkout / path)
         error = ValueError(f"the work item {started.work_item} has no state")
         state = require_state(started.document, error)
+        settings = self._boundaries.settings
         record = CostRecord(
             run=uuid.uuid4().hex,
             work_item=started.work_item,
@@ -59,7 +60,8 @@ class CostRecorder:
             attempt=state.attempts,
             status="started",
             started_at=self._boundaries.clock.now(),
-            image=self._image(),
+            image=None if settings is None else settings.image,
+            instance=None if settings is None else settings.instance,
         )
         run = CostRun(path=path, run=record.run, records=[*earlier, record])
         self.write(run)
@@ -74,10 +76,6 @@ class CostRecorder:
         completed = run.model_copy(update={"records": records})
         self.write(completed)
         return completed
-
-    def _image(self) -> str | None:
-        settings = self._boundaries.settings
-        return None if settings is None else settings.image
 
     def write(self, run: CostRun) -> None:
         """Write the records of `run` to its sidecar, replacing whatever the file held."""
