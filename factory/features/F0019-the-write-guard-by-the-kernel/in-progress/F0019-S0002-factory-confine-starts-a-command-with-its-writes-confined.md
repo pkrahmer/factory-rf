@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T14:44:12.838261Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T14:43:52.992737Z'
   stage: intake
   run: cad48beb6b314869ba93ca927c4f1470
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:44:12.838261Z'
+  stage: tests
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -146,3 +155,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
    Smoke test: three runnable blocks. Each `Expect:` line can be checked against the output.
    Architecture: the model is in domain, `replace_process` in the one process module, and the wrapper in entry, which imports adapters and domain. This is consistent with the layers and wrapper rules, and the structural-test changes are covered by criterion 14 and decision 7.
    Scope: within F0019 S0002's scope list. Nothing from Out of scope is touched. The runtime wiring is left to S0004.
+4. factory: started tests as self.
