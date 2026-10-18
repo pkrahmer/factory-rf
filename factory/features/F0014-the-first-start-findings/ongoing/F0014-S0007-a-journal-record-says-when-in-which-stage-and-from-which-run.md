@@ -1,9 +1,9 @@
 ---
-stage: demo
+stage: doing
 pr: 199
 blocked: null
 comments_seen: 2
-round: 0
+round: 1
 attempts: 0
 ---
 # A journal record says when, in which stage and from which run
@@ -250,3 +250,32 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     `make check`: check: green
     `make documents`: documents ok
+11. demo: Ran the two commands under `## Demo` from the repository root, in order, exactly as written.
+
+    Command 1 (rendering a document with an old-style record and a stamped record):
+    ```
+    journal:
+    - number: 1
+      speaker: human
+      kind: created
+    - number: 2
+      speaker: tester
+      kind: result
+      at: '2026-10-17T20:31:00Z'
+      stage: tests
+      run: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    ```
+    Exit 0. Met its `Expect:` line: ten lines in the stated order. The first record has no `at`, `stage` or `run` line. `at` is single-quoted and ends in `Z`, and the three keys come after `kind` (criteria 2 and 3).
+
+    Command 2 (pytest over eight modules):
+    ```
+    ERROR: file or directory not found: tests/application/test_journal_stamps.py
+
+    no tests ran in 0.00s
+    ```
+    Exit 4. Did not meet its `Expect:` line: there is no `<n> passed`, and no tests ran.
+
+    Context, not part of the demo: the tester did not create `tests/application/test_journal_stamps.py`. The new criterion-5 tests went into existing modules: `tests/application/test_stage_finish.py`, `tests/application/test_after_agent.py`, `tests/application/test_stalls.py` and `tests/application/handlers/test_closed_send_back.py`. I made one run of my own: command 2 without the missing file, plus those four modules. It gave `334 passed, 16 errors`, every error in `handlers/test_closed_send_back.py`. That module passes when it runs with its own folder (`tests/application/handlers/`: all passed). So those errors seem to come from how my selection collected the modules, not from the code. This run is not the demo and I am not judging it as one. No command contradicted any acceptance criterion.
+
+    Findings:
+    1. Command 2 (`uv run pytest … tests/application/test_journal_stamps.py …`). Expected: a last line naming `<n> passed`, with no `failed`, `error` or `skipped` count. Observed: `ERROR: file or directory not found: tests/application/test_journal_stamps.py`, no tests ran, exit 4. Criterion: none is contradicted. The command errors because a module it names does not exist on the branch. `## Demo` is the human's and the tests are the tester's, so the fix is one of two. Either the human changes the command to name the modules that hold the criterion-5 tests (`tests/application/test_stage_finish.py`, `tests/application/test_after_agent.py`, `tests/application/test_stalls.py`, `tests/application/handlers/test_closed_send_back.py`), or the tests move to `tests/application/test_journal_stamps.py`. If the command is changed, check that the combined selection passes: my ad-hoc run of these modules together gave errors in `test_closed_send_back.py`.
