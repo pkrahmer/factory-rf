@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 221
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T14:49:22.854312Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T14:49:22.854312Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-18T14:51:28.590007Z'
+  stage: doing
+  run: bd772f32133f4b0ea5bf2b0cbe30e51b
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -201,3 +203,29 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_confine.py - ImportError while importing test module '...
 6. factory: started doing as self.
+7. coder: Two tests contradict each other, so `make check` cannot go green. Which one should change?
+
+   - `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module` was changed by the tester under decision 7. Criterion 14 and the Interface back it. It requires `factory.entry.confine` to import `factory.adapters.process` directly.
+   - `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` is an earlier story's test. It requires that `factory.entry.wiring` is the only entry module importing anything from `factory.adapters`. So `factory.entry.confine` must not import `factory.adapters.process` or `factory.adapters.landlock`.
+
+   No import layout satisfies both. Decision 7 gave leave to change only `tests/test_process_search.py` and `tests/test_wrapper_search.py`, not `tests/test_wiring.py`.
+
+   Options:
+   A) The tester widens `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` to expect `{"factory.entry.wiring", "factory.entry.confine"}`. The start wrapper then imports `landlock` and `process` directly, as the Interface and criterion 14 say. Its justification: the wrapper picks no adapter behind an interface. It is itself the process-level step before `exec`.
+   B) `factory.entry.confine` takes `abi_version`, `restrict_writes` and `replace_process` through `factory.entry.wiring`, as `factory.entry.guard` takes `judge` and `read_guard_settings`. The tester changes `test_only_the_three_wrappers_import_the_process_module` to expect `factory.entry.wiring` in place of `factory.entry.confine`, and criterion 14 changes with it. This follows the guard's precedent and the "nothing else wires" rule in `CLAUDE.md`. But it makes the wiring module an importer of the process module.
+
+   I would choose A. It keeps criterion 14 and the Interface as written, and changes one line of one test. After your answer I end with `tests` and name that change.
+
+   Where I stopped: the implementation is complete in the working tree, following option A's layout. The three new test files, `tests/test_process_search.py` and `tests/test_wrapper_search.py` all pass. `make lint`, `make types`, `make layers`, `make sast`, `make secrets` and `make licenses` are green. `make test` fails only on the `test_wiring` test above.
+
+   What I built:
+   - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`.
+   - `src/factory/domain/confinement.py`: the model `Confinement`, using the `AbsolutePath` of `agent_runs`.
+   - `src/factory/adapters/process.py`: `replace_process`. An empty `argv` raises `ValueError` before `os.execvpe`. Without that check, `argv[0]` would raise `IndexError`. The one marker line is `# noqa: S606  # nosec B606`.
+   - `src/factory/entry/confine.py`: `main`, with the six steps in order.
+
+   Main choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes it once and returns 1. I rejected returning a status code from every step, which would repeat the write-and-return at each of the six faults.
+
+   Not touched: `src/factory/entry/confine.py` has 78% coverage, because the rows that reach steps 5 and 6 run in a child that coverage does not follow. The total coverage is still 98.6%.
+
+   No refactor pass yet; it waits until `make check` is green.

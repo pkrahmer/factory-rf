@@ -23,6 +23,9 @@ QUESTION = "question"
 # The console script the Claude Code hook starts to judge a write.
 GUARD_COMMAND = "factory-guard"
 
+# The console script that confines a run's writes and then becomes the agent runtime.
+CONFINE_COMMAND = "factory-confine"
+
 # Claude Code ignores an agent file in print mode, so the runner applies these keys itself;
 # any other key would read as if it did something and do nothing.
 APPLIED_AGENT_KEYS: frozenset[str] = frozenset({"model", "tools", "effort", "budget_usd"})
