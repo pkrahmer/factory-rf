@@ -29,6 +29,9 @@ TRACKED = {
     "uv.lock": "version = 1\n",
 }
 
+SIDECAR = "factory/features/F0001-todo/in-progress/F0001-S0001-add.costs.jsonl"
+SECOND_SIDECAR = "factory/features/F0001-todo/in-progress/F0001-S0002-list.costs.jsonl"
+
 
 def _lines() -> list[str]:
     return MAKEFILE.read_text(encoding="utf-8").splitlines()
@@ -223,6 +226,27 @@ def _branch_with_code(folder: Path) -> None:
     _branch(folder, {"src/todo/a.py": "x = 2\n"})
 
 
+def _on_main_with_a_sidecar(folder: Path) -> None:
+    write_files(folder, {SIDECAR: "{}\n"})
+    commit_all(folder, "sidecar")
+    _on_main(folder)
+
+
+def _branch_with_code_and_sidecars(folder: Path) -> None:
+    write_files(folder, {SIDECAR: "{}\n"})
+    commit_all(folder, "sidecar")
+    _branch(folder, {"src/todo/a.py": "x = 2\n"})
+    write_files(folder, {SIDECAR: '{"run": 1}\n', SECOND_SIDECAR: "{}\n"})
+
+
+def _branch_with_a_sidecar_only(folder: Path) -> None:
+    _branch(folder, {SIDECAR: "{}\n"})
+
+
+def _branch_with_look_alikes(folder: Path) -> None:
+    _branch(folder, {"costs.jsonl": "{}\n", "docs/a.costs.jsonl.txt": "{}\n"})
+
+
 @pytest.mark.parametrize(
     ("setup", "status", "files"),
     [
@@ -238,6 +262,20 @@ def _branch_with_code(folder: Path) -> None:
         ),
         pytest.param(_branch_with_lock_only, 0, None, id="lock-only"),
         pytest.param(_branch_with_code, 1, ["src/todo/a.py"], id="secret-found"),
+        pytest.param(
+            _on_main_with_a_sidecar,
+            0,
+            ["Makefile", "README.md", "src/todo/a.py"],
+            id="sidecar-on-main",
+        ),
+        pytest.param(_branch_with_code_and_sidecars, 0, ["src/todo/a.py"], id="sidecars-on-branch"),
+        pytest.param(_branch_with_a_sidecar_only, 0, None, id="sidecar-only"),
+        pytest.param(
+            _branch_with_look_alikes,
+            0,
+            ["costs.jsonl", "docs/a.costs.jsonl.txt"],
+            id="look-alikes",
+        ),
     ],
 )
 def test_secrets_scans_the_changed_files_or_every_tracked_file(

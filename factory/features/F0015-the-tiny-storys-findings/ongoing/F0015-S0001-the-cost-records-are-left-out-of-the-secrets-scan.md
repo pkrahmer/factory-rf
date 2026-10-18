@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 206
 blocked: null
 comments_seen: 0
@@ -71,3 +71,18 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both commands are runnable. Each `Expect:` line is checkable. The `grep` expectation is `template/Makefile:1` and `demo/todo-service/project/Makefile:1`, and the pytest expectation is a `<n> passed` last line with no `failed`, `error` or `skipped` count.
    - Architecture: the change is only in the template Makefile, tests and docs. No layer or interface is touched.
    - Scope: it is within FEATURE scope (finding 1, S0001). It does not touch the Out of scope items (run id form, `template/CLAUDE.md`). The edit to the earlier test F0012-S0029 has the human's leave (FEATURE decision 4).
+3. tester: the red tests for the coder are written.
+   - criterion 1: tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file[sidecar-on-main]
+   - criterion 2: tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file[sidecars-on-branch]
+   - criterion 3: tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file[sidecar-only]
+   - criterion 4: tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file[look-alikes]
+   - criterion 5: tests/test_demo_makefile_secrets.py::test_the_todo_demos_secrets_target_is_the_templates
+   - criterion 6: the five existing rows (main, no-origin, branch, lock-only, secret-found) and the other tests of tests/test_template_makefile.py, all unchanged.
+   - criteria 7 and 8: the factory's `make check` and the docs stage cover these. No test.
+
+   Files: I changed tests/test_template_makefile.py, with the human's leave (FEATURE decision 4). It gains the constants `SIDECAR` and `SECOND_SIDECAR`, four setup functions (`_on_main_with_a_sidecar`, `_branch_with_code_and_sidecars`, `_branch_with_a_sidecar_only`, `_branch_with_look_alikes`) and four rows after the five existing ones. The test's name, signature and body did not change. I created tests/test_demo_makefile_secrets.py. It has a private `_secrets_recipe` helper that reads the recipe of `secrets:` and asserts there is exactly one head line, and a `FILTER` constant that holds the Interface's line with its leading tab.
+
+   `make test`: as the Interface predicts, four tests fail: the rows sidecar-only, sidecar-on-main and sidecars-on-branch, and the demo/template equality test. Row look-alikes is already green. There were no import errors, because no new module is under test. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file[sidecars-on-branch]
