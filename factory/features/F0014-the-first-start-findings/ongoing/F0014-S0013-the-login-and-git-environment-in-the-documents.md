@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 204
 blocked: null
 comments_seen: 0
@@ -67,3 +67,7 @@ Expect: `documents ok`.
 
    `make lint`: lint: green (0.0 s)
    `make test`: test: green (33.2 s)
+4. coder: no code written and no commit made, as criterion 1 requires. This story only changes documentation and its Interface is "None", so nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changes, and the working tree is clean. There is no diff, so the refactor step had nothing to do. `make check` is green on the branch as committed (`check: green`, coverage 99.47 %). The five document edits in criterion 3 are the documenter's work. Nothing is open for review apart from confirming the diff is empty.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
