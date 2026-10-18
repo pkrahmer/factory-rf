@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 212
 blocked: null
 comments_seen: 0
@@ -130,3 +130,4 @@ Expect: `documents ok`.
    Met.
 
    Against the criteria: the first command runs every test named in criteria 1 to 5, plus the moved line of criterion 6 in `tests/test_stop_table.py`. The second command runs the rest of the modules criterion 6 lists. All of them pass. The third command covers the document check in criterion 8. Nothing in the demo goes against any criterion. Criterion 7 (`make check`) is the factory's gate after this stage; I did not run it here.
+8. done (pull request merged); cost: 6 runs, 5.6 min, 51 turns, 129k tokens in (718k more from cache), 16k out, $1.28
