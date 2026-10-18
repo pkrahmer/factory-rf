@@ -1,11 +1,12 @@
 ---
-stage: accept
+stage: done
 pr: 209
 blocked: null
 comments_seen: 0
 round: 0
 attempts: 0
 stories: [F0015-S0001, F0015-S0002, F0015-S0003]
+outcome: accepted
 ---
 # Acceptance of The tiny story's findings
 
@@ -245,3 +246,4 @@ S0001 cost the most, about half the total. Its log shows why: its tester wrote n
    6. Decisions: 11 listed. Still open: the human's change 3 (factory-rf's own `Makefile` `secrets` filter) is not made and is due before the handover.
    7. Slow checks: none beyond make check and make mutants. `make check` was green as I found it (coverage 99.47 %). The real reaping can only be seen at the shakedown.
    8. Cost: 18 runs, 8.6 min, $2.50, with no rework and no stall. S0001 is about half ($1.24) because of its table tests that run the real template make. There is no sign of waste.
+2. done (pull request merged); cost: 1 runs, 7.6 min, 35 turns, 98k tokens in (1979k more from cache), 27k out, $1.71
