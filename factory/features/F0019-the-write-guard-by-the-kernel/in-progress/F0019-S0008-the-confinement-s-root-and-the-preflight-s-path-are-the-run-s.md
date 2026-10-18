@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T19:26:41.996547Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T19:26:41.996547Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-18T19:28:27.349575Z'
+  stage: tests
+  run: 6c618677b6c14d018fa0dca6d28d4d82
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -211,3 +213,18 @@ Expect: `completed | root file refused | False`
 
     Noticed, not touched: `src/factory/entry/confine.py` is still at 78 % coverage, as I noted in round 0. That is outside this story.
 12. factory: started tests as self.
+13. tester: I made the test change from the reviewer's finding, which the coder named in entry 11. It is covered by CLAUDE.md's standing leave for moving a shared test helper.
+
+    Changed: tests/entry/test_wiring_extras_path.py. I removed the private helper `_bin_with`, which was a second copy of `write_script` in tests/confine_support.py. The test now makes the folders `agent-bin` and `own-bin`. It then calls `write_script(<folder> / command, "")` from confine_support: in `agent-bin` for the agent-path rows, in `own-bin` for the own-path rows. The import of confine_support is added the way the other tests do it.
+
+    The test keeps its name (`test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s`), its four rows and its assertions. The only difference is that the script now uses the test interpreter's shebang instead of `#!/bin/sh`, and the items search only for an executable file, so that does not change what they find.
+
+    The criterion mapping is unchanged from entry 5:
+    - criterion 1: tests/adapters/test_claude_runtime_confinement_root.py::test_a_write_path_at_the_root_never_gives_the_checkout_as_a_folder
+    - criterion 2: tests/adapters/test_claude_runtime_confinement_root.py::test_through_the_wrapper_a_missing_root_write_path_allows_no_write_at_the_root
+    - criterion 3: tests/entry/test_wiring_extras_path.py::test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s
+
+    No files created. Every test module imported. `make test`: green, coverage 98.67 %. `make lint`: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (35.9 s)

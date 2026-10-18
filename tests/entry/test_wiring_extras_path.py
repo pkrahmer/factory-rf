@@ -4,20 +4,12 @@ from pathlib import Path
 
 import pytest
 
+from confine_support import write_script
 from factory.application.boundaries import Boundaries
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
 from wiring_support import every_tool
-
-
-def _bin_with(folder: Path, command: str | None) -> Path:
-    folder.mkdir()
-    if command is not None:
-        executable = folder / command
-        executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-        executable.chmod(0o755)
-    return folder
 
 
 def _item(
@@ -50,8 +42,11 @@ def test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s(
     command: str,
     on_agent_path: bool,
 ) -> None:
-    agent_path = _bin_with(tmp_path / "agent-bin", command if on_agent_path else None)
-    own_path = _bin_with(tmp_path / "own-bin", None if on_agent_path else command)
+    agent_path = tmp_path / "agent-bin"
+    own_path = tmp_path / "own-bin"
+    agent_path.mkdir()
+    own_path.mkdir()
+    write_script((agent_path if on_agent_path else own_path) / command, "")
     monkeypatch.setenv("PATH", str(own_path))
     home = tmp_path / "home"
     home.mkdir()
