@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T17:21:01.431075Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-18T17:21:01.431075Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T17:22:04.476368Z'
+  stage: docs
+  run: 2dd1ced5e3e744c3996d2e339f9d53ca
 ---
 
 # The agents' instructions explain a refused write
@@ -251,3 +253,21 @@ Expect: `1`
     - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper (entry 13). The only change is that its identical `_body` copy is gone and the tests call `agent_body` instead. Every test keeps its name and checks the same thing.
     - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place where `agent_body` was added. Nothing that was already in it changed.
 18. factory: started docs as self.
+19. documenter: Docs round 1: the docs criterion is written. No findings.
+
+    Changed:
+    - `docs/project-guide.md`, section *The shipped agents, settings and template*, the `## Rules` bullet: one sentence added. R14 tells every agent what a refused write looks like (`Permission denied`) and that it is the write guard, never retried by another route, and a `question` when the work needs the path. Temporary files go in `$TMPDIR`, the run's own folder, and `/tmp` itself is refused. It also names `tests/test_claude_agent_refusal.py` as the test that pins the paragraph.
+
+    Checked against the diff (the seven `claude/agents/*.md` R14 lines and the tests): the agent files match the Interface paragraph. No `src/` change, so no docstring finding.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`: the confinement section already says other writes end with `Permission denied` and that `TMPDIR` is `/tmp/factory-run-<session>`.
+    - `docs/project-guide.md`: the confinement passages (wrapper, `TMPDIR`) agree with the new sentence.
+    - `README.md`: it does not mention R14 or temporary files.
+
+    Stale text noticed and not touched: none.
+
+    I changed only documents, so I did not run `make check`. The factory runs it right after this stage.
+
+    `check`: check: green
+    `documents`: documents ok
