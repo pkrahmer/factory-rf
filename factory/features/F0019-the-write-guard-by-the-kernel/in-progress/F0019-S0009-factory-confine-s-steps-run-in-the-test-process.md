@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T19:41:26.434410Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T19:41:06.174485Z'
   stage: doing
   run: f43a412ab89343a58a361b4481305b8c
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:41:26.434410Z'
+  stage: review
 ---
 
 # factory-confine's steps run in the test process
@@ -165,3 +174,4 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
