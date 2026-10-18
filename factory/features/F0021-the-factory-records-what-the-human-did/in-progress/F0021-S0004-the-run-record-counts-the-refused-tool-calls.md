@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 238
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T23:19:33.251788Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-18T23:19:33.251788Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-18T23:19:47.534417Z'
+  stage: intake
+  run: c54d58610dec4f2cbf8af679bc1f225e
+  blocked: question
 ---
 
 # The run record counts the refused tool calls
@@ -93,3 +96,8 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. Questions:
+
+   1. Criterion 1 / Interface: `_denials` takes `file_path` "or else" `notebook_path`, "when that value is a string". When `file_path` is present but not a string (`{"file_path": 3, "notebook_path": "n.ipynb"}`), does `path` become `n.ipynb` or `None`? The row `{"file_path": 3}` alone doesn't decide it. I would choose: `file_path` is used only when it is a string, otherwise fall back to `notebook_path` (`n.ipynb`). Please state the rule and add a row for it.
+
+   2. Criterion 4 / Interface: the writer leaves `denials` out when `None` and `denied_paths` out when `None`, each on its own. No row has one set and the other `None`, so a coder who ties the two together passes. I would add rows: `denials=2` with `denied_paths=None` (only `"denials":2` written) and `denials=0` with `denied_paths=[]` (written as `"denials":0,"denied_paths":[]`, so an empty list is kept and not left out). Please confirm or reword.
