@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 211
 blocked: null
 comments_seen: 0
@@ -81,3 +81,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both commands are runnable. Against the current files the grep counts are all 0, which is right before the change. The expected counts (reviewer 1 and acceptance reviewer 0 for "Earlier tests"; the reverse for the second phrase) follow from the new texts. The pytest `Expect:` line is checkable.
    - Architecture: the change is text in the shipped agent files, which the coder's lane (`claude/*`) covers. Nothing under `src/` changes, and no layer is touched.
    - Scope: it is within FEATURE scope (S0002) and not in Out of scope. The test leaves match FEATURE decision 9. The story starts after S0001, as decision 10 requires.
+3. tester: Tests written in `tests/test_claude_agent_texts.py`. The human gave leave to change this file (FEATURE decision 9), and nothing else in it changed.
+   - criterion 1: tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]. `ROLE_AND_STAGE_ANCHORS["reviewer"]` gains "Item 6 is part of every review, whichever group failed." and "6. **Earlier tests**: every test file that `main` already holds". Its two old anchors stay.
+   - criterion 2: tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role[acceptance-reviewer]. `ROLE_AND_STAGE_ANCHORS["acceptance-reviewer"]` gains "Add the earlier tests the reviewers' entries name as changed". Its two old anchors stay. The dict entry is split over several lines to fit the line length.
+   - criterion 3: tests/test_claude_agent_texts.py::test_the_reviewer_no_longer_stops_before_the_earlier_tests (new).
+   - criterion 4: the existing tests in tests/test_claude_agent_texts.py, tests/test_claude_files.py and tests/adapters/test_shipped_agents_effect.py. No new test.
+   - criteria 5 and 6: `make check` and docs. No test.
+   Files: no new file; tests/test_claude_agent_texts.py changed. The test function `test_role_and_stage_sections_carry_the_texts_of_the_role` itself is unchanged.
+   `make test` fails as intended, with the three tests above: the agent texts are not changed yet. There were no import or collection errors. `make lint` is green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_claude_agent_texts.py::test_the_reviewer_no_longer_stops_before_the_earlier_tests
