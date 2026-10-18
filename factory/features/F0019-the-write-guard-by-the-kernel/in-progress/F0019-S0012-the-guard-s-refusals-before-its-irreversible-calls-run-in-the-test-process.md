@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 233
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T20:37:14.085991Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:37:14.090747Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T20:37:33.638481Z'
+  stage: intake
+  run: 8fb816ce160042119d7fb33b78b84cad
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:37:53.405668Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T20:41:07.114164Z'
+  stage: tests
+  run: 6e76e23795d64ee9bc45f5b3a8b1a27f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:41:27.071741Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T20:43:18.488892Z'
+  stage: doing
+  run: b9e4d0cf33b44cffa040870ed2f9590c
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:43:38.734954Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T20:44:44.557684Z'
+  stage: review
+  run: 9d5561ead7204d84a317021895d46365
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:45:04.504297Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T20:46:10.253551Z'
+  stage: docs
+  run: fbbf9fcfc46040dd99c1d8f2c75f66e8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:46:30.228519Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T20:46:48.837695Z'
+  stage: smoke-test
+  run: dd1a0d66be5844398da7b70c7589e4b4
+---
+
 # The guard's refusals before its irreversible calls run in the test process
 
 <!-- proposed by feature acceptance of 2026-10-18; refine before starting -->
@@ -90,3 +174,94 @@ except ValueError as error:
 Expect: `replace_process needs a program to start`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete functions and signatures (`restrict_writes`, `replace_process`, `confine.main` with its keyword parameters) and three new test modules. It states that no `src/factory/` module changes, and that matches the criteria, which only pin behaviour already there.
+   - Criteria: each one fits a parametrized test with exact strings. Every Interface rule has both sides. The check order has rows: folders before files, and each list in its order. Each of the four fault texts has a row. The `argv` empty / `PATH`-of-`env` clauses are covered by the PermissionError and FileNotFoundError rows. Every `main` default has a row. An existing folder (no fault) and an unmakeable folder (fault) both have rows. The rules-file fault has rows for a missing file and for invalid JSON. The usage line is the existing `_USAGE` in `src/factory/entry/confine.py`, so the tester can read it.
+   - Smoke test: both commands run as written. Their `Expect:` lines are exact output: the `<base>`-substituted refusal text then `still writes`, and the `ValueError` text.
+   - Architecture: tests only, in the layer-mirroring folders (`tests/adapters`, `tests/entry`). The system calls stay child-only, as decision 18 says. The tests need no change to an earlier test beyond the standing leave for shared helpers.
+   - Scope: the story stays inside F0019's testing of the guard and is consistent with decisions 18 and 22. Nothing in it falls under the feature's Out of scope list.
+4. factory: started tests as self.
+5. tester: Wrote the in-process tests for the guard's refusals. All of them pass now, because they pin behaviour that already exists and no module under `src/factory/` is expected to change. So there are no red tests for the coder this time. The coder's task is to keep `make check` green, including `make types` over the new tests. I did not run that in this stage.
+
+   - criterion 1: tests/adapters/test_landlock_checks.py::test_a_path_that_cannot_be_ruled_is_refused_and_restricts_nothing (nine rows: missing folder, missing file, file among folders, folder among files, dangling link as folder and as file, folders before files, folders in order, files in order; each checks `ConfinementError.detail` exactly, then writes `<base>/A/after.txt` in the test process)
+   - criterion 2: tests/adapters/test_process_replace_faults.py::test_replace_process_refuses_in_the_test_process_on_the_path_of_env (rows: empty argv gives ValueError with the exact text; `factory-test-prog` without the execute bit on env's PATH gives PermissionError; an empty folder on env's PATH gives FileNotFoundError; each row asserts the program is not on the test process's own PATH)
+   - criterion 3: tests/entry/test_confine_defaults.py::test_main_left_its_defaults_uses_sys_argv_sys_stderr_and_the_adapters (rows argv, argv-usage, abi, restrict, replace; capsys reads stderr, every row leaves `stderr` None. The abi row has replace raise ENOENT and checks calls == ["restrict", "replace"], so restrict ran once.)
+   - criterion 4: tests/entry/test_confine_defaults.py::test_a_folder_of_the_rules_that_exists_is_no_fault_and_one_under_a_file_stops_the_wrapper (rows existing-folder, under-a-file)
+   - criterion 5: tests/entry/test_confine_defaults.py::test_rules_that_cannot_be_read_are_one_line_with_the_errors_text (rows missing, not-json; the not-json row computes the expected text from `Confinement.model_validate_json("not json\n")` with each "\n" replaced by one space)
+   - criteria 6 and 7: not tested here (`make check`, docs).
+
+   Files created: tests/adapters/test_landlock_checks.py, tests/adapters/test_process_replace_faults.py, tests/entry/test_confine_defaults.py.
+
+   I moved shared helpers under the standing leave in CLAUDE.md (*Tests*). The new tests would otherwise copy them. `USAGE`, `Replaced` and `Steps` came from tests/entry/test_confine_steps.py. `_rules` came from tests/entry/test_confine.py and is now `write_rules`, and `USAGE` was also a copy there. All of them now live in tests/confine_support.py. Earlier test files changed: tests/entry/test_confine_steps.py and tests/entry/test_confine.py. Only their imports and the helper's name changed; every test keeps its name and checks the same thing.
+
+   Modules the test run could not import: none. `make test`: test: green. `make lint`: green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (42.6 s)
+6. factory: started doing as self.
+7. coder: Nothing built: the tester's new in-process tests (`tests/adapters/test_landlock_checks.py`, `tests/adapters/test_process_replace_faults.py`, `tests/entry/test_confine_defaults.py`, with helpers moved to `tests/confine_support.py`) pin behaviour that `src/factory/adapters/landlock.py`, `src/factory/adapters/process.py` and `src/factory/entry/confine.py` already have. As the Interface expects, no module under `src/factory/` changes.
+
+   - Ran `make check` in the foreground. Every target is green, including `make types` over the new tests, which the tester had not run. It ends with `test: green (40.1 s)` and `check: green`, at 99.05 % coverage.
+   - Ran the second smoke command. It printed `replace_process needs a program to start`.
+   - Main choice: leave the source alone. The alternative I rejected was touching the code to "earn" the round. With nothing failing there is nothing to implement, and a change would be scope beyond the description (R13).
+   - Refactor: there is no diff of mine, so there was nothing to change.
+   - Description: the journal did not change the meaning of the task, so I left `## Description` as it is.
+   - Noticed but did not touch: coverage of `src/factory/adapters/landlock.py` stays at 61 %. Lines 54-62 and 79-126 are the system-call paths, which run only in child processes (decision 18), so the coverage report does not count them. This is expected and not in scope.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff (only tests, no change under `src/factory/`) against the criteria and against `src/factory/adapters/landlock.py`, `src/factory/adapters/process.py` and `src/factory/entry/confine.py`.
+   - Criterion 1: `tests/adapters/test_landlock_checks.py` has nine rows, one for each listed case. Every row holds a path that cannot be opened. Each row checks `detail` exactly, then writes in `<base>/A`.
+   - Criterion 2: `tests/adapters/test_process_replace_faults.py` has three rows. The PermissionError row fails if `env` is not passed, because the program is not on the test process's own `PATH` (the test asserts this).
+   - Criterion 3: `tests/entry/test_confine_defaults.py` has five default rows, each with `stderr` None and read through `capsys`. In the abi row, `calls == ["restrict", "replace"]` proves `restrict` was called once.
+   - Criteria 4 and 5: the existing-folder row fails if `exist_ok` is dropped (it expects `Replaced` and empty stderr). The folder fault and both rules-file faults are checked as exact lines.
+   - Criterion 6: the coder's journal entry 7 records `check: green`.
+   - Architecture and security: the diff touches only test files and adds no suppression markers.
+   - Work item: the Description and the docs criterion match what was built.
+
+   Earlier test files the diff changes:
+   - tests/confine_support.py: standing leave to move a shared test helper. It only gains the moved `USAGE`, `write_rules`, `Replaced` and `Steps`; nothing it held before changed.
+   - tests/entry/test_confine.py: standing leave to move a shared test helper. `USAGE` and `_rules` moved to tests/confine_support.py, and `_rules` is now `write_rules` with the same body. Every test keeps its name and its assertions.
+   - tests/entry/test_confine_steps.py: standing leave to move a shared test helper. `USAGE`, `Replaced` and `Steps` moved word for word. Every test keeps its name and its assertions.
+10. factory: started docs as self.
+11. documenter: Docs for S0012. Only documents changed, so I did not run `make check`; the factory's run decides.
+
+    Changed:
+    - `docs/project-guide.md`, *The kernel's write guard*, tests paragraph. It said `restrict_writes` is called only in child processes. It now says the refusals before the first system call also run in the test process (`tests/adapters/test_landlock_checks.py`). It says every row there names a path that cannot be opened, so a broken check still fails before anything binds the worker. It says the system calls themselves (`_create_ruleset`, `_add_rule`, `_restrict_self`) run only in child processes.
+    - `docs/project-guide.md`, *The start wrapper*, Tests paragraph. It now names `tests/entry/test_confine_defaults.py` for the in-process rows (`main`'s defaults, a folder that exists or cannot be made, the fault text of an unreadable rules file). It names `tests/adapters/test_process_replace_faults.py` for `replace_process`'s refusals, and `tests/confine_support.py` for the shared helpers.
+
+    Cross-read and found current: the `replace_process` paragraph in the project guide (empty `argv` gives `ValueError`, program searched on `env`'s `PATH`, `FileNotFoundError`), the start wrapper's steps 1 to 6, and the README. No source diff exists; the diff is tests only.
+
+    Stale text I saw: none.
+
+    Findings for the coder: none.
+
+    `check`: check: green
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran both commands exactly as written from the repository root, in order. Both met their `Expect:` lines and there are no findings.
+
+    Command 1 (`restrict_writes` with a dangling link among the folders, then a write by the same process):
+    ```
+    <base>/dangling is a symbolic link
+    still writes
+    exit=0
+    ```
+    Met: `<base>/dangling is a symbolic link`, then `still writes`. The process could still write after the refusal, so nothing bound it.
+
+    Command 2 (`replace_process([], {})`):
+    ```
+    replace_process needs a program to start
+    exit=0
+    ```
+    Met: `replace_process needs a program to start`.
+
+    Checked against the acceptance criteria: the output contradicts none of them. The first command's text is the exact text criterion 1 gives for a link among the folders (`folders [dangling]`). The write after the refusal is the check that criterion 1 asks for after each row. The second command's text is the exact `ValueError` text in criterion 2. The smoke test does not exercise criteria 3 to 5 (`main`'s defaults, the wrapper's folders, the rules file's fault), and nothing in it contradicts them. I did not run `make check` (criterion 6) because the stage does not ask for it. The journal records it green after the docs stage (entry 11).
+
+    Findings: none.

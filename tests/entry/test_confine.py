@@ -11,25 +11,10 @@ from pathlib import Path
 
 import pytest
 
+from confine_support import USAGE, write_rules
 from factory.entry.confine import main
 
-USAGE = "factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]\n"
 WRAPPER = [sys.executable, "-m", "factory.entry.confine"]
-
-
-def _rules(tmp_path: Path, folders: list[Path], files: list[Path], temporary: Path | str) -> Path:
-    path = tmp_path / "rules.json"
-    path.write_text(
-        json.dumps(
-            {
-                "folders": [str(folder) for folder in folders],
-                "files": [str(file) for file in files],
-                "temporary_directory": str(temporary),
-            }
-        ),
-        encoding="utf-8",
-    )
-    return path
 
 
 def _confine(
@@ -56,7 +41,7 @@ def tree(tmp_path: Path) -> Path:
     (tmp_path / "A").mkdir()
     (tmp_path / "P").mkdir()
     (tmp_path / "P" / "f.txt").write_text("f\n", encoding="utf-8")
-    return _rules(tmp_path, [tmp_path / "A"], [tmp_path / "P" / "f.txt"], tmp_path / "run")
+    return write_rules(tmp_path, [tmp_path / "A"], [tmp_path / "P" / "f.txt"], tmp_path / "run")
 
 
 @pytest.mark.parametrize(
@@ -116,7 +101,7 @@ def test_a_missing_folder_of_the_rules_is_made_or_stops_the_wrapper(
     tmp_path: Path, folder: str, script: str, outcome: str
 ) -> None:
     (tmp_path / "f").write_text("f\n", encoding="utf-8")
-    rules = _rules(tmp_path, [tmp_path / folder], [], tmp_path / "run")
+    rules = write_rules(tmp_path, [tmp_path / folder], [], tmp_path / "run")
 
     result = _confine(rules, "sh", "-c", script, "sh", str(tmp_path))
 
@@ -216,7 +201,7 @@ def test_rules_that_cannot_be_read_return_1_with_one_line(
 def test_a_kernel_below_abi_3_stops_the_wrapper_before_any_folder_is_made(
     tmp_path: Path, abi: int
 ) -> None:
-    rules = _rules(tmp_path, [tmp_path / "missing"], [], tmp_path / "run")
+    rules = write_rules(tmp_path, [tmp_path / "missing"], [], tmp_path / "run")
 
     status, stderr = _main(["--rules", str(rules), "--", "touch", str(tmp_path / "ran")], abi=abi)
 
@@ -243,7 +228,7 @@ def test_an_existing_temporary_folder_stops_the_wrapper(
     (tmp_path / "target").mkdir()
     run = tmp_path / "run"
     make(run, tmp_path / "target")
-    rules = _rules(tmp_path, [], [], run)
+    rules = write_rules(tmp_path, [], [], run)
 
     status, stderr = _main(["--rules", str(rules), "--", "touch", str(tmp_path / "ran")], abi=3)
 
@@ -261,10 +246,10 @@ def test_a_rule_the_kernel_cannot_take_stops_the_wrapper(tmp_path: Path, fault: 
     link.symlink_to(tmp_path / "target")
     missing = tmp_path / "missing.txt"
     if fault == "missing-file":
-        rules = _rules(tmp_path, [], [missing], tmp_path / "run")
+        rules = write_rules(tmp_path, [], [missing], tmp_path / "run")
         line = f"factory-confine: cannot open {missing}: No such file or directory\n"
     else:
-        rules = _rules(tmp_path, [link], [], tmp_path / "run")
+        rules = write_rules(tmp_path, [link], [], tmp_path / "run")
         line = f"factory-confine: {link} is a symbolic link\n"
 
     result = _confine(rules, "touch", str(tmp_path / "ran"))
@@ -274,7 +259,7 @@ def test_a_rule_the_kernel_cannot_take_stops_the_wrapper(tmp_path: Path, fault: 
 
 
 def test_a_command_that_cannot_start_stops_the_wrapper(tmp_path: Path) -> None:
-    rules = _rules(tmp_path, [], [], tmp_path / "run")
+    rules = write_rules(tmp_path, [], [], tmp_path / "run")
 
     result = _confine(rules, "no-such-program")
 

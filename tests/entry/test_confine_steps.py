@@ -6,55 +6,15 @@ import inspect
 import io
 import json
 import os
-import stat
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable
 from pathlib import Path
-from typing import NoReturn
 
 import pytest
 
+from confine_support import USAGE, Replaced, Steps
 from factory.domain.errors import ConfinementError
 from factory.entry import confine
 from factory.entry.confine import main
-
-USAGE = "factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]\n"
-
-
-class Replaced(Exception):
-    """Raised by the recording `replace` in place of becoming the command."""
-
-
-class Steps:
-    """Records the calls to `restrict` and `replace` and what the disk held at `restrict`."""
-
-    def __init__(
-        self,
-        restrict_fault: Exception | None = None,
-        replace_fault: Exception | None = None,
-    ) -> None:
-        """Record every call; raise the given faults instead of returning."""
-        self.calls: list[str] = []
-        self.restricted: list[tuple[list[Path], list[Path]]] = []
-        self.replaced: list[tuple[list[str], dict[str, str]]] = []
-        self.watched: list[Path] = []
-        self.seen: dict[Path, int | None] = {}
-        self.restrict_fault = restrict_fault
-        self.replace_fault = replace_fault
-
-    def restrict(self, folders: Sequence[Path], files: Sequence[Path]) -> None:
-        """Record the rules and the mode of every watched path at this moment."""
-        self.calls.append("restrict")
-        self.restricted.append((list(folders), list(files)))
-        for path in self.watched:
-            self.seen[path] = stat.S_IMODE(path.lstat().st_mode) if path.is_dir() else None
-        if self.restrict_fault is not None:
-            raise self.restrict_fault
-
-    def replace(self, command: Sequence[str], environment: Mapping[str, str]) -> NoReturn:
-        """Record the command and its environment, then stop the wrapper's run."""
-        self.calls.append("replace")
-        self.replaced.append((list(command), dict(environment)))
-        raise self.replace_fault if self.replace_fault is not None else Replaced
 
 
 @pytest.fixture
