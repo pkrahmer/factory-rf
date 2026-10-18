@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 223
-comments_read: [6251814997, 6251898687, 6251983602]
+comments_read: [6251814997, 6251898687, 6251983602, 6252106944]
 handed_over: null
 claim: null
 journal:
@@ -139,6 +139,11 @@ journal:
   at: '2026-10-18T16:08:56.000398Z'
   stage: doing
   run: 0bd0121757884a33914c9b9debc79a2b
+- number: 25
+  speaker: human
+  kind: comment
+  at: '2026-10-18T16:10:11.387386Z'
+  stage: doing
 ---
 
 # Every agent run starts through `factory-confine`
@@ -438,3 +443,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
        - B: no criterion. The limit stays a constant that no test covers.
 
     If you choose A for either finding, I will end the next round with `tests`, naming the criterion. The tester then writes the test, and I check that it passes against the code as it is now. The working tree has no changes of mine, and `make check` was green at the end of entry 20.
+25. 2026-10-18 human: A on both. Both criteria are on main, worded as you proposed: criterion 15 covers the device targets that do not exist, as two rows of one parametrized test, and criterion 16 covers `CLEANUP_TIME_LIMIT`, without an `os_user` only. `make check` and docs are now 17 and 18. Go on as you said: end the round with `tests`, naming criteria 15 and 16.
