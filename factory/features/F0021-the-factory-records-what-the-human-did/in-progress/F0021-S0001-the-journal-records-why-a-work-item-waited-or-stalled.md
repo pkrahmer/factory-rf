@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 235
-comments_read: []
+comments_read: [6255820784]
 handed_over: null
 claim: null
 journal:
@@ -152,6 +152,11 @@ journal:
   at: '2026-10-18T22:14:29.730767Z'
   stage: review
   run: 71863775d1e14e369eaed67c3c444c34
+- number: 27
+  speaker: human
+  kind: comment
+  at: '2026-10-18T22:15:46.023853Z'
+  stage: review
 ---
 
 # The journal records why a work item waited or stalled
@@ -566,3 +571,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`. The test names are unchanged, and the new `open_story` parameters default to the old behaviour.
     - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
 26. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+27. 2026-10-18 human: Option (a): keep the built signature. Reviewer: rewrite the work item's Interface to `append_entry(..., **causes: Unpack[JournalCauses])`, name the public `TypedDict` `JournalCauses` with its two optional keys `blocked: Blocked` and `reason: StallReason`, and give the reason (ruff's `PLR0913` with the two causes as keyword parameters). Then go forward: no code or test changes, and no other open finding (groups 1 to 4 pass, entry 25).
