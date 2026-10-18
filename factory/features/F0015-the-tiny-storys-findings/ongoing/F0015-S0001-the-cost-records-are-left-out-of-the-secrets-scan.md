@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 206
 blocked: null
 comments_seen: 0
@@ -86,3 +86,10 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make lint`: lint: green (0.0 s)
    `make test`: FAILED tests/test_template_makefile.py::test_secrets_scans_the_changed_files_or_every_tracked_file[sidecars-on-branch]
+4. coder: built. One line in `template/Makefile` (target `secrets`, line 66) is now exactly the Interface's filter line: `grep -vE '^(uv\.lock|\.secrets\.baseline|.*\.costs\.jsonl)$$'`. I copied that line byte for byte from `demo/todo-service/project/Makefile`, so the two `secrets` recipes are now identical, and I checked that with a diff of lines 59–70. Nothing else in the file changed. Commit d8d94628 (`ticket F0015-S0001: fix(template): leave the cost records out of make secrets`). `make check` passed (`check: green`), including the four new rows of `test_secrets_scans_the_changed_files_or_every_tracked_file` and `test_the_todo_demos_secrets_target_is_the_templates`.
+      - Design: copying the demo's line rather than retyping the regex rules out a tab or escaping mismatch between the two Makefiles. I rejected a narrower pattern limited to `factory/features/`, as FEATURE decision 2 does.
+      - Refactor: the diff is one line, so there was nothing to clean up and there is no refactor commit.
+      - Open: the docs for criterion 8 (project guide, operator guide, decision log) are the documenter's job. I did not touch them.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
