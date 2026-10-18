@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-18T19:33:27.092196Z'
   stage: smoke-test
   run: 536b7f917ed04fccbfc50efadadf7613
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-18T19:34:45.254142Z'
+  stage: approval
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -335,3 +340,4 @@ Expect: `completed | root file refused | False`
     - Criteria 4 and 5: the smoke test does not touch them.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 8.7 min, 71 turns, 208691 tokens in (1483589 more from cache), 26542 out, $2.33
