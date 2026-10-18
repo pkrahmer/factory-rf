@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T19:33:02.205721Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-18T19:33:02.205721Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T19:33:27.092196Z'
+  stage: smoke-test
+  run: 536b7f917ed04fccbfc50efadadf7613
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -316,3 +318,20 @@ Expect: `completed | root file refused | False`
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the smoke test from the repository root as written. It is a single bash block, which I ran as one script through `bash` so that its `trap` and heredocs work as they stand. I changed nothing in the repository.
+
+    Command 1, the `## Smoke test` block: a stand-in `claude` tries to write the missing root file `NOTES.md`, and `ClaudeCodeRuntime` runs it through the real `factory-confine` with write paths `["NOTES.md"]`.
+
+    ```
+    completed | root file refused | False
+    exit=0
+    ```
+
+    Expect: `completed | root file refused | False`. **Met**: the output is exactly that line, and the block exited 0.
+
+    I checked the acceptance criteria against what the smoke test showed:
+    - Criteria 1 and 2: the run ended `completed`, which is consistent with them. When the write path names a missing file at the root, the kernel allowed neither the file nor the checkout folder: the write was refused and no `NOTES.md` exists.
+    - Criterion 3 (the preflight `PATH`): the smoke test does not reach it, and nothing in the output contradicts it.
+    - Criteria 4 and 5: the smoke test does not touch them.
+
+    Findings: none.
