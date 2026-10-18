@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T19:10:31.304057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T19:10:31.304057Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T19:11:23.061205Z'
+  stage: tests
+  run: 8de3f032009f49d5b9f3f87cb14b815a
 ---
 
 # The documents describe the live write guard
@@ -91,3 +93,11 @@ Expect: `documents ok`
    Architecture: documents only, so the layering is not touched. The `confinement_item` paragraph correctly places it in `factory.application.preflight`, with the wiring passing `abi_version` and a search on the agent run's PATH.
    Scope: F0019's acceptance proposed the story. It is documentation for the feature, and `feature.md` lists the three documents under Scope. The template and demo stay untouched, as its Out of scope and decision 17 say.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes documentation, and its Interface says no module, test, image, template or agent file changes.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test, since the criterion governs the stages and is not code behaviour. This tester stage changed nothing under any of those paths.
+   - criterion 2 (`make check` stays green): no test of its own. The factory's checks enforce it.
+   - criterion 3 (docs): no test. The documenter writes it, and `python -m factory.entry.check_documents` and the smoke test check it.
+   Files created: none. Modules the test run could not import: none, because no new tests exist. `make test` was not run: without new tests there is nothing to see fail, and the factory runs it after this stage. `make lint`: green. Nothing to interpret, so there is no open question.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (37.5 s)
