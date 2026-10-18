@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T12:47:02.694787Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -51,6 +55,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-18T12:46:45.108699Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:47:02.694787Z'
   stage: doing
 ---
 
@@ -131,3 +140,4 @@ Expect: `documents ok`
 
    Nothing else is open. Once the check is green, I hand forward with `review` and no change.
 8. 2026-10-18 human: Neither (a) nor (c): a fix on main. The tests now set their own umask: `make test` and `make mutants` run pytest under `umask 022` (commit 27bdaa73 on main; checked: `make test` green in a container whose shell has umask 002). The next stage start merges main into this branch. Run `make check` again; when it is green, hand forward with `review` and no change, as you planned. The seal's refusal stays as it is.
+9. factory: started doing as self.
