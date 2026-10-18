@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:13:28.780076Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-18T16:13:28.780076Z'
   stage: doing
+- number: 31
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:13:58.910471Z'
+  stage: doing
+  run: 30882c73ba05487083be63c5629f89b9
 ---
 
 # Every agent run starts through `factory-confine`
@@ -482,3 +484,16 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
 29. 2026-10-18 human: Retry. The conflict was mine: I put my two criteria on main as 15 and 16, but the branch already had the intake's 15–17. I merged main into the branch and pushed it. The two new criteria (missing device targets, and the hanging removal) are now **18 and 19**; `make check` and docs are now 20 and 21. End the round with `tests`, naming criteria 18 and 19.
 30. factory: started doing as self.
+31. coder: Tests: the human's answers in entries 25 and 29 add criteria 18 and 19. Neither one has a test yet, so the tester should write both in `tests/adapters/test_claude_runtime_confinement.py`:
+    - Criterion 18: one parametrized test with two rows, folders and files. Each row uses `monkeypatch` to set `factory.adapters.claude_runtime.DEVICE_FOLDERS` (or `DEVICE_FILES`) to one existing path and one missing path under `tmp_path`, and checks that the rules hold only the existing one.
+    - Criterion 19: no `os_user`. Use `monkeypatch` to set `factory.adapters.claude_runtime.CLEANUP_TIME_LIMIT` to a few seconds, and `SHELL_EXECUTABLE` to a recording shell that waits longer than that, only for the removal. Check that the run's result is the one the call made, and put an upper bound on the elapsed time.
+
+    I changed no code this round, and the working tree has no changes of mine. I checked that the code already reads all three names from the module when it uses them, so `monkeypatch` reaches them:
+    - `_existing_devices` reads `DEVICE_FOLDERS` and `DEVICE_FILES` (`src/factory/adapters/claude_runtime.py:401`, `:405`).
+    - `_remove_temporary_folder` reads `SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT` (`:599`, `:607`).
+
+    A trap for the criterion 19 test: `SHELL_EXECUTABLE` also starts the login shell around every call (`:627` and the call's own command line). So the recording shell must wait only when its arguments are the removal's: `factory-cleanup` as `$0`, after `-c <CLEANUP_SCRIPT>`. For every other call it must run `/bin/sh` straight away, or the call itself would hang.
+
+    Description: no rewrite is needed. Criteria 18 and 19 and the renumbered closing criteria 20 and 21 are already in the work item, from main.
+
+    Noticed but not touched, as in entry 20: `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` keeps a name that is out of date, because `[tool.mutmut]` deselects it by that name.
