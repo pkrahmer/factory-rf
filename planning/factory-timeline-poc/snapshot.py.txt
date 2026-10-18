@@ -1,6 +1,6 @@
-# Embed a snapshot of the files the map reads, from a branch of a local clone, into factory-map.html.
+# Embed a snapshot of the files the timeline reads, from a branch of a local clone, into factory-timeline.html.
 # Kept as text, so `make lint` does not read it. Usage (from the repository's root):
-#   git fetch origin && uv run --no-project python planning/status-map-poc/snapshot.py.txt [origin/main]
+#   git fetch origin && uv run --no-project python planning/factory-timeline-poc/snapshot.py.txt [origin/main]
 import json
 import re
 import subprocess
@@ -42,6 +42,6 @@ for p in paths:
             except subprocess.CalledProcessError:
                 pass
 data = json.dumps(snapshot, ensure_ascii=False).replace("</", "<\\/")
-page = (HERE / "factory-map.src.html").read_text(encoding="utf-8").replace("__SNAPSHOT__", data)
-(HERE / "factory-map.html").write_text(page, encoding="utf-8", newline="\n")
+page = (HERE / "factory-timeline.src.html").read_text(encoding="utf-8").replace("__SNAPSHOT__", data)
+(HERE / "factory-timeline.html").write_text(page, encoding="utf-8", newline="\n")
 print(f"{len(paths)} files, {len(page) // 1024} KB")
