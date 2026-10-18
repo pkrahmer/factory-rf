@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T20:45:04.504297Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T20:44:44.557684Z'
   stage: review
   run: 9d5561ead7204d84a317021895d46365
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:45:04.504297Z'
+  stage: docs
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -207,3 +216,4 @@ Expect: `replace_process needs a program to start`
    - tests/confine_support.py: standing leave to move a shared test helper. It only gains the moved `USAGE`, `write_rules`, `Replaced` and `Steps`; nothing it held before changed.
    - tests/entry/test_confine.py: standing leave to move a shared test helper. `USAGE` and `_rules` moved to tests/confine_support.py, and `_rules` is now `write_rules` with the same body. Every test keeps its name and its assertions.
    - tests/entry/test_confine_steps.py: standing leave to move a shared test helper. `USAGE`, `Replaced` and `Steps` moved word for word. Every test keeps its name and its assertions.
+10. factory: started docs as self.
