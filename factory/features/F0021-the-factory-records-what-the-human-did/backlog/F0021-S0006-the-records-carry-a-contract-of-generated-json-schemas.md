@@ -82,7 +82,7 @@ Test modules (new): `tests/domain/test_contract.py`, `tests/entry/test_contract.
      - the records a reader outside the factory may rely on: the front matter of a work item (`work-item-state`, and `acceptance-state` for an acceptance report), one line of a `.costs.jsonl` sidecar (`cost-record`), one line of `factory/stops.jsonl` (`stop-record`), and `factory/pipeline.yml` (`pipeline-definition`);
      - where the schemas live and how they are regenerated (`uv run python -m factory.entry.contract`);
      - that the Markdown body of a work item, the journal entries' text included, is for people and never for parsing;
-     - where a work item's records are: on its branch `work-item/<id>` while it is in progress (the factory writes the front matter and the sidecar there at every stage), and on `main` from the archive commit on; a work item in `in-progress/` on `main` shows only the state it had at its start;
+     - where a work item's records are: on its branch `work-item/<id>` while it is in progress (the factory writes the front matter and the sidecar there at every stage), and on `main` from the merge on, moved to `done/` by the archive commit; a work item in `in-progress/` on `main` without a merge shows only the state it had at its start;
      - that a work item enters the approval with its last `result` record: no record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`;
      - the version rule of the feature's decision 15;
      - that a reader ignores a property it does not know, although the schemas say `additionalProperties: false` for what this version of the factory writes;
