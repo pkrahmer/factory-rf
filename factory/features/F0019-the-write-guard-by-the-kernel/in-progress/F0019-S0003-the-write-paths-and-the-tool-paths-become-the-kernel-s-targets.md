@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 222
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T15:12:15.858536Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T15:12:15.858536Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T15:12:38.591046Z'
+  stage: intake
+  run: 75a6e89899c444468bee01e3aa970eba
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -142,3 +144,9 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`PipelineDefinition.tool_paths`, `GuardSettings.tool_paths`, `WritePathService.at`, `WriteTarget`, `write_targets`, `confinement_of`), with the exact fault text and the layer of each.
+   Criteria: each is testable by one parametrized test. Every Interface clause has its own criterion on both sides. Tool paths: the accepted forms (1), the eleven refused forms and the string-instead-of-list case (2). Write paths: each branch of the `write_targets` rules (4). Tool path forms and `home=None` (5). Order and de-duplication (6). Each branch of `confinement_of` (7, 8). The hook and undo ignoring tool paths (9).
+   Smoke test: both commands are runnable against existing modules and `template/factory/pipeline.yml`. Each `Expect:` line gives exact output that can be compared.
+   Architecture: the pure functions and DTOs are in `domain`, the settings pass-through is in `application.write_paths`, and the key is read by the existing YAML reader. No layer rule is broken, and the story adds no adapter, dependency or wrapper.
+   Scope: it matches the feature's S0003 scope. Nothing here belongs to its Out of scope list; the runtime use is left to S0004.
