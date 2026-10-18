@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 199
 blocked: null
 comments_seen: 4
@@ -336,3 +336,17 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
        - `_stalled` taking the `StallContext` avoids a sixth parameter.
        - The docstrings of `JournalRecord` and `append_entry` name the three fields.
     5. Ticket hygiene: the log explains the `move_back` question, the demo fix and the `exclude_none` and `StallContext` choices. The Assignment matches what was built, and criterion 9 still describes what the documenter writes (already done in entry 10).
+16. documenter: documenter, round 1: I made no new edit. Round 1 changed only the second `## Demo` command in the story (entry 14), with no code diff since 3f7b85b8. The documentation I wrote in round 0 (entry 10) still matches the code, so I re-read it against the diff and kept it.
+
+    Files already changed on the branch:
+    - `docs/project-guide.md`: *The journal's data* names `at`, `stage` and `run` (types, optional when read, where each comes from, the `move_back` and `done` stages, which entries carry a run). *The journal's entries* describes `append_entry(..., at, run)` and its example now prints `at=None stage=None run=None`. *The layout* says unset stamps are left out, shows a record with all three, and says a numeric-looking `run` is single-quoted.
+    - `docs/decisions.md`: one new entry, "Journal records say when, in which stage and from which run; cost records on which instance", plus one sentence in the SI1.1 entry pointing to it.
+
+    I ran `python -m factory.entry.check_documents` and it printed `documents ok`. I did not run `make check`, because I changed no file outside README and docs this round. The working tree is clean.
+
+    Cross-read and current: `README.md` and `docs/operator-guide.md` do not mention journal records, so they need no change.
+
+    Findings: none. Nothing stale that is unrelated to this story.
+
+    `make check`: check: green
+    `make documents`: documents ok
