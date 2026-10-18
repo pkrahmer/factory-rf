@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 232
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T20:24:50.436693Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T20:24:50.436693Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-18T20:25:04.553791Z'
+  stage: intake
+  run: cdaf3db1f67f4b3cb924f77e1a59786b
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -100,3 +102,12 @@ Expect: `with: 0`, then `without: 2`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface for `judge` says "A real path inside the real root goes to `refusal`, as today, even when the root lies beneath the temporary folder". That is an ordering clause (checkout first, temporary folder second), and no criterion tests it. Criterion 1 has no row where `<R>` lies inside `<T>`. The link row only covers a link whose target is outside `<T>`. Two coders could read the ordering differently and both pass the tests. Options: (a) add a row to criterion 1: a checkout `<R>` placed beneath `<T>`, a write path `docs/*`, and a `Write` to `<R>/src/a.py`, which is refused with the text `refusal` gives for `src/a.py`. (b) Delete the clause from the Interface. I would choose (a).
+
+   The other checks found nothing:
+   - Format check: passed.
+   - The Interface names concrete modules and signatures.
+   - The other criteria each have a failing side.
+   - The smoke test is runnable and its `Expect:` line is checkable.
+   - The architecture fits: domain model, adapter and runtime, and no new layer or dependency.
+   - The scope is inside F0019 and not in its "Out of scope". The hook stays.
