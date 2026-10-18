@@ -9,6 +9,7 @@ On 2026-10-18 v1 handed this repository over to v1.1 (commit `3bcee441`): v1.1's
 - The README's opening paragraph and its section *How it is built*.
 - The operator guide's bullet on this repository's own `factory/` tree (under *Replaced from v1*).
 - A decision-log entry for the handover.
+- The passages that still say v1's configuration runs this repository: the project guide's *The document check* and the decision log's entry *Three top-level paths* (S0002, the acceptance's proposal).
 
 ## Out of scope
 
@@ -21,6 +22,7 @@ On 2026-10-18 v1 handed this repository over to v1.1 (commit `3bcee441`): v1.1's
 The build order; start one at a time, the next when the one before is archived in `done/`.
 
 - S0001: The documents name the handover
+- S0002: The agents' guide names v1.1's pipeline definition
 
 ## The human's changes
 
@@ -30,3 +32,4 @@ None. Checked against `factory/pipeline.yml`: the documenter writes `README.md` 
 
 1. The first work item v1.1 builds on itself is this documentation story, before 5a (the write guard): the human's choice of 2026-10-18 on the handover plan (`planning/overnight/handover-plan.md`, section 5, option C). (Feature)
 2. v1's history stays in `factory/v1/` and v1.1's features continue v1's numbers from F0018, because the `Makefile`'s `mutants` target finds a feature's modules by the feature's id in the commit subjects, and v1's F0001 to F0017 commits are on `main`. (The handover plan, section 2.1)
+3. S0002 rewords the sentence of the decision-log entry *Three top-level paths* in place, keeping its pointer to v1's file, rather than adding a dated line: the human's answer to S0002's intake on #218. (S0002)
