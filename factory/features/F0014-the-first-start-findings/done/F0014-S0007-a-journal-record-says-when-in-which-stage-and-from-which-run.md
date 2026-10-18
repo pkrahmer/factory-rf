@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 199
 blocked: null
 comments_seen: 4
@@ -379,3 +379,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
     It met its `Expect:` line: the last line reads `350 passed`, with no failed, error or skipped count. Exit code 0.
 
     Judgement: I checked the output against the acceptance criteria. It agrees with criteria 2 and 3: with no `at`, `append_entry` gives a record with none of the three fields. With `at` and `run`, the record gets both, plus the stage from the state. The writer leaves out unset fields and writes the three keys after `kind`. Nothing in the demo contradicts any other criterion. The modules this run covers include the new stamp tests and the existing journal, writer, stage-finish, after-agent, stall, claim, opening, send-back and reject tests, and all of them passed. I did not run `make check`, because the factory runs it as this stage's gate. No findings.
+18. done (pull request merged); cost: 14 runs, 18.8 min, 148 turns, 428k tokens in (4450k more from cache), 62k out, $5.04
