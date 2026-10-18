@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T21:47:49.404190Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T21:47:49.404190Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T21:48:05.945446Z'
+  stage: intake
+  run: 7589b9ea023b4c5a82537dfe3cb5c7b5
 ---
 
 # The journal records why a work item waited or stalled
@@ -123,3 +125,9 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.journal` types, `JournalRecord` fields, `append_entry` parameters) and the five application writers, each with its module and method. The aliases kept by assignment in `work_item` and `decisions` are stated. The validation rule (`blocked` only on `question`, `reason` only on `stall`, otherwise `ValueError`) and the writer behaviour (omit when `None`) are explicit.
+   - Criteria: each is testable by one parametrized test with no open decision. Both sides of each rule are covered. Criterion 1 covers `blocked` and `reason` accepted on their kind and refused on others. Criterion 2 covers values outside the types and every value of both types. Criterion 4 covers `append_entry` with and without `at`, and `blocked` on a `result` entry. Criterion 5 covers the round trip and omission when unset. Criteria 6 to 11 cover every writer, including the `result` record having no `blocked` and the crash and expiry records having no `reason`. Criterion 3 covers the alias identity. Earlier tests changed are named and match the feature's decision 13.
+   - Smoke test: the command runs as written with `uv run -q python -c`. Its `Expect:` line gives four exact output lines that can be compared with the output.
+   - Architecture: the causes move into `domain` and are re-exported upward. The writers sit in `application`, in the modules that already make the `append_entry` calls. No layer is crossed and no new dependency is added. The writer in `adapters` needs no change because it already uses `exclude_none`.
+   - Scope: within the feature's S0001 scope (the cause on the record). It leaves the computation to S0002, the stops to S0003, refusals to S0004 and agent texts to S0005. It adds no reason on `crash` or `expiry`, which matches decision 4 and the out-of-scope list.
