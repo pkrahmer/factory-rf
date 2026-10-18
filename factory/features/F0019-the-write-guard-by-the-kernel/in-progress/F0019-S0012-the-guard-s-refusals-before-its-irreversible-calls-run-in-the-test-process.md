@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T20:41:27.071741Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T20:41:27.071741Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T20:43:18.488892Z'
+  stage: doing
+  run: b9e4d0cf33b44cffa040870ed2f9590c
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -167,3 +169,14 @@ Expect: `replace_process needs a program to start`
    `lint`: lint: green (0.0 s)
    `test`: test: green (42.6 s)
 6. factory: started doing as self.
+7. coder: Nothing built: the tester's new in-process tests (`tests/adapters/test_landlock_checks.py`, `tests/adapters/test_process_replace_faults.py`, `tests/entry/test_confine_defaults.py`, with helpers moved to `tests/confine_support.py`) pin behaviour that `src/factory/adapters/landlock.py`, `src/factory/adapters/process.py` and `src/factory/entry/confine.py` already have. As the Interface expects, no module under `src/factory/` changes.
+
+   - Ran `make check` in the foreground. Every target is green, including `make types` over the new tests, which the tester had not run. It ends with `test: green (40.1 s)` and `check: green`, at 99.05 % coverage.
+   - Ran the second smoke command. It printed `replace_process needs a program to start`.
+   - Main choice: leave the source alone. The alternative I rejected was touching the code to "earn" the round. With nothing failing there is nothing to implement, and a change would be scope beyond the description (R13).
+   - Refactor: there is no diff of mine, so there was nothing to change.
+   - Description: the journal did not change the meaning of the task, so I left `## Description` as it is.
+   - Noticed but did not touch: coverage of `src/factory/adapters/landlock.py` stays at 61 %. Lines 54-62 and 79-126 are the system-call paths, which run only in child processes (decision 18), so the coverage report does not count them. This is expected and not in scope.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
