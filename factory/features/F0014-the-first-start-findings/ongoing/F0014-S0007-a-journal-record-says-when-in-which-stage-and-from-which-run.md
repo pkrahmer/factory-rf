@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 pr: 199
 blocked: null
 comments_seen: 4
@@ -111,7 +111,7 @@ print(text[text.index('journal:'):text.index('---', 4)], end='')
 Expect: ten lines: `journal:`, `- number: 1`, `  speaker: human`, `  kind: created`, `- number: 2`, `  speaker: tester`, `  kind: result`, `  at: '2026-10-17T20:31:00Z'`, `  stage: tests`, `  run: ` followed by 32 times `a`. The first record has no `at`, `stage` or `run` line.
 
 ```bash
-uv run pytest --no-header -p no:cacheprovider tests/domain/test_journal_stamps.py tests/adapters/test_journal_stamps_file.py tests/application/test_journal_stamps.py tests/domain/test_journal.py tests/adapters/test_work_item_markdown.py tests/application/test_claims.py tests/application/test_opening.py tests/application/handlers/test_reject.py
+uv run pytest --no-header -p no:cacheprovider tests/domain/test_journal_stamps.py tests/adapters/test_journal_stamps_file.py tests/domain/test_journal.py tests/adapters/test_work_item_markdown.py tests/application/test_stage_finish.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/application/test_claims.py tests/application/test_opening.py tests/application/handlers/test_closed_send_back.py tests/application/handlers/test_reject.py
 ```
 Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped` count.
 
@@ -292,3 +292,30 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
     I recommend (A). The tests already pin criterion 5 where the services they test are already tested, and the reviewer accepted them there. (B) would only move tests so that they match a command.
 13. human (pull request comment, 2026-10-18): (A): the tests stay where the tester put them. The second command of `## Demo` becomes, in place of the one naming `tests/application/test_journal_stamps.py`, with the two `handlers/` modules next to each other: `uv run pytest --no-header -p no:cacheprovider` followed by the other modules of the present command, then `tests/application/test_stage_finish.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/application/test_claims.py tests/application/test_opening.py tests/application/handlers/test_closed_send_back.py tests/application/handlers/test_reject.py`; its Expect line stays (a passed count, no failed, error or skipped). The stage that receives this rewrites that one command in the story and cites this answer; nothing else in the story changes, and no test moves.
+14. coder: coder, round 1: I made the change the human asked for in entry 13, option (A). In `## Demo`, I rewrote the second command and changed nothing else in the story. No test moved, and there is no code change or commit from me this round. The factory commits the story edit.
+
+    The new command is `uv run pytest --no-header -p no:cacheprovider` followed by the old command's other modules:
+    - `tests/domain/test_journal_stamps.py`
+    - `tests/adapters/test_journal_stamps_file.py`
+    - `tests/domain/test_journal.py`
+    - `tests/adapters/test_work_item_markdown.py`
+
+    and then, in the order the human gave:
+    - `tests/application/test_stage_finish.py`
+    - `tests/application/test_after_agent.py`
+    - `tests/application/test_stalls.py`
+    - `tests/application/test_claims.py`
+    - `tests/application/test_opening.py`
+    - `tests/application/handlers/test_closed_send_back.py`
+    - `tests/application/handlers/test_reject.py`
+
+    The missing `tests/application/test_journal_stamps.py` is gone, and the two `handlers/` modules are now next to each other. The Expect line is unchanged.
+
+    I ran the new command and it passed: `350 passed in 23.21s`, with no failed, error or skipped count. That clears the demo's finding in entry 11.
+
+    Refactor pass: this round has no code diff, so there was nothing to refactor.
+
+    `make check`: check: green
+
+    `make check`: check: green
+    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
