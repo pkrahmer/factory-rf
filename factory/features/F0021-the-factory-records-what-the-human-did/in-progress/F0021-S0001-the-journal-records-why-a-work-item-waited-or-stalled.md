@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T22:07:56.260090Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-18T22:07:36.237070Z'
   stage: review
   run: a159fa682ab14573ac9c5a2d026dc71b
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:07:56.260090Z'
+  stage: doing
 ---
 
 # The journal records why a work item waited or stalled
@@ -421,3 +430,4 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
       - Standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py` and are used from there. Every test keeps its name and what it checks.
     - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and its open/Makefile/run/head/state helpers moved to `tests/stage_run_support.py`. `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
     - `tests/crash_support.py`: none needed. The change only adds shared helpers and constants and leaves every existing one as it was.
+18. factory: started doing as self.
