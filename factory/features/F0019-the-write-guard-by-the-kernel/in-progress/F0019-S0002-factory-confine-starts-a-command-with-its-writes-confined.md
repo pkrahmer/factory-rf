@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T14:49:22.854312Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T14:49:02.754667Z'
   stage: tests
   run: 2892fb455ef64dcc906d519b1c3bbe33
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:49:22.854312Z'
+  stage: doing
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -191,3 +200,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_confine.py - ImportError while importing test module '...
+6. factory: started doing as self.
