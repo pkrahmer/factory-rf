@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T14:34:47.333817Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   at: '2026-10-18T14:34:27.381014Z'
   stage: tests
   run: 60db87c4e3874528a2a4a109e9db68b5
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:34:47.333817Z'
+  stage: doing
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -214,3 +223,4 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_confinement_abi.py - ImportError while importing test...
+9. factory: started doing as self.
