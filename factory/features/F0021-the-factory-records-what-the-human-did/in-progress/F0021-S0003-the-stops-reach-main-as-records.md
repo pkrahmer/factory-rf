@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 237
-comments_read: []
+comments_read: [6256126020]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 5d1423ebb19442048d35512415edc976
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T22:48:18.289456Z'
+  stage: intake
 ---
 
 # The stops reach main as records
@@ -153,3 +158,7 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
    3. `publish` must create `factory/` "when it is missing", but criterion 8 does not say whether the checkout has that folder. Should criterion 8 gain a row where `origin/main` has no `factory/` folder at all and the file still ends up with the two lines? I would add it. Otherwise I would drop the clause.
 
    A smaller point, not blocking: criterion 5 does not check `instance` on the `cleared` record, though the Interface sets it. I would add "instance is the settings' instance" to that criterion.
+4. 2026-10-18 human: 1. Yes: add the `GitError` row (origin/main unresolvable) to criterion 13, same log line, the tick goes on.
+   2. Yes: add rows for `pipeline_definition_invalid`, `agent_definition_invalid` and `checkout_restore_failed` to criterion 12, each with a local record present, origin/main gains nothing.
+   3. Yes: add the row to criterion 8 where origin/main has no `factory/` folder; keep the clause.
+   4. Yes: add "instance is the settings' instance" to criterion 5.
