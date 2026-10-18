@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 211
 blocked: null
 comments_seen: 0
@@ -109,3 +109,14 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
       - Quality and hygiene: the coder's entry gives the main decision, copying the Interface text exactly, and what was rejected. The docs criterion still describes what the documenter must write.
       Earlier tests:
       - `tests/test_claude_agent_texts.py` (M): changed with the human's leave, FEATURE decision 9 as the story's Interface names it. The change stays within that leave: three anchors are added to `ROLE_AND_STAGE_ANCHORS`, the acceptance-reviewer list is reflowed with the same text, and criterion 3 adds its new test. `test_role_and_stage_sections_carry_the_texts_of_the_role` is unchanged.
+6. documenter: no findings. The code matches the Interface (the two agent files and the three anchors).
+   Files changed:
+   - `docs/project-guide.md`, *The seven agents*: the sentence that v1's texts are renamed but not rewritten now names the exception (the sentence before the reviewer's checklist, item 6, and the acceptance reviewer's added sentence in check 6). Under `## Role` a paragraph describes item 6 *Earlier tests*: it is done in every review, lists each test file changed, renamed or deleted, gives the leave for each, and a change under none is a finding. It also says that check 6 gathers the lists and that the acceptance reviewer does not repeat the diff check.
+   - `docs/operator-guide.md`, *The hand-over at the approval*: one sentence says the reviewer's entry under Review ends with the earlier tests the story changed and the leave for each.
+   - `docs/decisions.md`: new entry "The reviewer names every earlier test the diff changes", with the reason (the shakedown of 2026-10-18) and the three rejected alternatives with their reasons.
+   Checks: `python -m factory.entry.check_documents` prints `documents ok`. I ran no `make check`, because I changed documents only.
+   Cross-read and found current: the rest of `docs/project-guide.md` on the agents, settings and template; the table under "Replaced from v1"; the `README.md` (it names no agent text).
+   Stale but not touched: none seen.
+
+   `make check`: check: green
+   `make documents`: documents ok
