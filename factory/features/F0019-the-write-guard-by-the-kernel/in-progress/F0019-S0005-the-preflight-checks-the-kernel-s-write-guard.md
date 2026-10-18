@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T17:03:33.601500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-18T17:03:33.601500Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T17:04:16.310970Z'
+  stage: review
+  run: 522672802fd34a16abf2c37572225854
 ---
 
 # The preflight checks the kernel's write guard
@@ -269,3 +271,20 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    Read: the work item, plus `git diff main...HEAD -- . ':!factory'` (src/factory/application/preflight.py, src/factory/entry/wiring.py, tests/application/test_confinement_item.py, tests/wiring_support.py and the five earlier wiring and preflight test modules).
+
+    - Criteria 1 to 3 are rows of one parametrized test: abi-3, abi-7, abi-0, abi-2, not-on-path and no-path. The ABI limit is tested on both sides (2 and 3), and so is PATH (present and absent). Criterion 4 checks the join order. Criterion 5 checks the exact `find` call. Criterion 6 checks the changed rows. Criterion 7 goes through `build_preflight` with the one extra the criterion names and asserts four things: the return value `preflight_failed`, one machine stop, the stop's detail holding `confinement: ` and the item's detail, and no request at the fake agent runtime. In the coder's entry 15, `make check` was green.
+    - Architecture: `confinement_item` is in `application` and gets the ABI reader and `which` injected. It uses `abi_fault` from `domain`. `entry` wires `abi_version` from `adapters.landlock`, and the layer order holds.
+    - Security: no suppression markers, no shell commands built from strings, no secrets.
+    - Quality: the wrapper check reuses `_path_fault`, which now takes the command as a parameter, instead of a second copy. `_kernel_fault` only adds the advice to `abi_fault`'s text. The earlier `_every_tool` copies are gone, replaced by `tests/wiring_support.py::every_tool`, so the round 0 finding is closed. The test helpers `_found` and `_not_found` are not copies of an existing helper: `_find` in test_agent_environment_item.py works from a table of commands.
+    - Hygiene: the journal records the reuse of `_path_fault` and the rejected duplicate. It also records the shorter docstring, reworded to stay within the line limit with the same meaning. The docs criterion still describes what the documenter must write. One note for the documenter: the operator guide's intro sentence that counts and lists the extras, docs/operator-guide.md:315, will also need `confinement`.
+
+    Earlier tests:
+    - tests/entry/test_wiring_extras.py: the human's leave, named in the story's Interface under the feature's decision 12. The two rows of names gained "confinement" and nothing else in them changed. The `_every_tool` → `every_tool` change in the same file is under the standing leave to move a shared test helper.
+    - tests/entry/test_wiring_run.py: the standing leave to move a shared test helper. Only `_every_tool` was replaced by the shared `every_tool`; every test keeps its name and what it checks.
+    - tests/entry/test_wiring_agent_user.py: the standing leave to move a shared test helper, with the same helper-only change.
+    - tests/entry/test_wiring_preflight.py: the standing leave to move a shared test helper, with the same helper-only change.
+    - tests/application/test_tick_preflight.py: the standing leave to move a shared test helper, with the same helper-only change.
+    - tests/wiring_support.py: the shared place the helper moved to, under the same leave. It gained `every_tool` and a wider module docstring, and its constants are unchanged.
