@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T15:17:02.459866Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T15:16:42.293834Z'
   stage: tests
   run: 902b85af1b4c4c03bb5b3ae127bd298a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:17:02.459866Z'
+  stage: doing
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -190,3 +199,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_write_targets.py - ImportError while importing test m...
+6. factory: started doing as self.
