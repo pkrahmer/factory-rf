@@ -1492,7 +1492,7 @@ The detail's trailing line breaks are removed. A detail of one line is part of t
 6. After the push, the note is posted with `PostKey(work_item, "stall", <the stall entry's number>)`.
 7. Whether the note was `posted` or `already_posted`, `HostingService.set_labels(pull_request, labels_for(<the stalled state>))` writes the stage label, so a first-stage stall has its label before any result commit. Written, never read back.
 
-So a stall keeps the writes inside the write paths (the undo reverts the rest) and releases the claim, which keeps a later tick from taking the stalled stage for a crash. The stall adds one commit: above the stage-start commit when the agent committed nothing, above the agent's last commit when it did (those commits stay in the history).
+So a stall keeps the writes inside the write paths (the undo reverts the rest) and releases the claim, which keeps a later tick from taking the stalled stage for a crash. The stall adds one commit, directly above the stage-start commit: the agent cannot commit, because the checkout's `.git` is the factory's alone (see the decision log's "The factory alone writes the checkout's `.git`").
 
 A `HostingServiceError` is not a stall and propagates unchanged: from step 3 before anything is written, committed or pushed, so the remote is unchanged; from step 6 after the push, so the stall commit stays on the remote, no note is posted and no label is written; from step 7, so the stall commit stays and the note stays posted. `StallResult` (frozen, no unknown keys) holds `reason`, `attempts`, `attempts_cap`, `commit` (the pushed head), `pull_request` (the last three at least 1), `note` (the `PostOutcome`) and `undo`.
 
@@ -1561,7 +1561,7 @@ Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.
 
 Rules 1, 2, 3, 4 and 7 run no check and no report.
 
-A run adds exactly one commit of the factory's own on `origin/<branch>`: the result commit or the stall commit, above the stage-start commit when the agent committed nothing and above the agent's last commit when it did. It holds the whole work tree, so a file a check creates is committed unless `.gitignore` covers it.
+A run adds exactly one commit of the factory's own on `origin/<branch>`: the result commit or the stall commit, directly above the stage-start commit, since the agent cannot commit. It holds the whole work tree, so a file a check creates is committed unless `.gitignore` covers it.
 
 Tests: `tests/domain/test_labels.py`, `tests/application/test_stage_finish.py`, `tests/application/test_stage_run.py`. The checks and reports are real `make` targets from a `Makefile` the tests push to `main`; the agent is `FakeAgentRuntime`, the hosting service its fake.
 
