@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T16:43:08.948517Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -338,6 +334,12 @@ journal:
   kind: started
   at: '2026-10-18T16:43:08.948517Z'
   stage: smoke-test
+- number: 61
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T16:48:58.268767Z'
+  stage: smoke-test
+  run: 74fe08ad1dcc4cf9bd324de34d73f47a
 ---
 
 # Every agent run starts through `factory-confine`
@@ -943,3 +945,28 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `check`: check: green
     `documents`: documents ok
 60. factory: started smoke-test as self.
+61. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root as written. I copied the bash block word for word into a script in a temporary directory that removes itself, and ran it with `bash` and stdin closed. Nothing was fixed or changed in the working tree.
+
+    A note on the run, so nobody misreads it: my first try hung and was moved to the background. That was my own mistake: I had put a stray `cat > /dev/null` ahead of the block, and it sat waiting on stdin. I killed only those two processes of mine (the `cat` and its shell) and ran the block again cleanly. The hang says nothing about the code.
+
+    Command 1 (the stand-in `claude` run through `ClaudeCodeRuntime(..., confine_executable="factory-confine", temporary_root=...)` with write paths `["src/*"]`):
+
+    ```
+    completed | src written, other refused, temporary folder own, config .claude
+    [] []
+    exit: 0
+    ```
+
+    Expect: two lines, `completed | src written, other refused, temporary folder own, config .claude` and then `[] []`. **Met**: both lines match exactly.
+
+    What the output shows:
+    - **Criterion 6:** the real `factory-confine` let the write to `src/a.txt` through and refused the one to `other/b.txt`.
+    - **Criterion 7:** the stand-in got its own `TMPDIR` under `factory-run-<session>`, which existed while it ran, and `CLAUDE_CONFIG_DIR` ended in `.claude`.
+    - **Criteria 4 and 9:** after the run, the temporary root and the state directory are both empty. So the temporary folder was removed, and the `confine-<session>.json` rules file and the run's other files were removed too.
+    - **Criterion 2:** the result is the stand-in's reply (`completed`, with its entry).
+
+    I read `## Acceptance criteria` again and the smoke test contradicts none of them.
+
+    Findings: none.
+
+    Open: the guard is live in production only once the image is rebuilt and the human's change 5 names factory-rf's tool paths, as the description says. That is outside this stage.
