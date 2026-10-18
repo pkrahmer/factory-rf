@@ -4,12 +4,14 @@ from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Literal, override
 
 import pytest
 
 from factory.adapters.clock import ManualClock
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
+from factory.application.machine import FactoryLog, HealthStatusStore
 from factory.application.stops import StopService
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import (
@@ -199,3 +201,76 @@ def test_an_unwritable_record_log_raises_after_the_log_and_the_health_status_wer
     assert raised.value is error
     assert boundaries.health.read().stops == expected_stops
     assert [line.split(" ", 1)[1] for line in _log_lines(tmp_path)] == [expected_line]
+
+
+class _UnwritableLog(FactoryLog):
+    """A factory log that raises the `OSError` it was given on every line."""
+
+    def __init__(self, error: OSError) -> None:
+        self._error = error
+
+    @override
+    def line(self, text: str) -> None:
+        raise self._error
+
+
+class _FailingHealth(HealthStatusStore):
+    """A health status store, empty, that raises the `OSError` it was given on one operation."""
+
+    def __init__(self, error: OSError, failing: Literal["read", "write"]) -> None:
+        self._error = error
+        self._failing = failing
+
+    @override
+    def read(self) -> HealthStatus:
+        if self._failing == "read":
+            raise self._error
+        return HealthStatus(stops=[])
+
+    @override
+    def write(self, status: HealthStatus) -> None:
+        if self._failing == "write":
+            raise self._error
+
+
+def _with_unwritable_log(boundaries: Boundaries, error: OSError) -> Boundaries:
+    return replace(boundaries, log=_UnwritableLog(error))
+
+
+def _with_unwritable_health(boundaries: Boundaries, error: OSError) -> Boundaries:
+    return replace(boundaries, health=_FailingHealth(error, "write"))
+
+
+def _with_unreadable_health(boundaries: Boundaries, error: OSError) -> Boundaries:
+    return replace(boundaries, health=_FailingHealth(error, "read"))
+
+
+@pytest.mark.parametrize(
+    ("failing", "expected"),
+    [
+        pytest.param(_with_unwritable_log, [_raised("fetch_failed", 0, INSTANCE)], id="log-line"),
+        pytest.param(
+            _with_unwritable_health,
+            [_raised("fetch_failed", 0, INSTANCE)],
+            id="health-status-write",
+        ),
+        pytest.param(_with_unreadable_health, [], id="health-status-read"),
+    ],
+)
+def test_a_raise_whose_log_or_health_status_fails_records_only_with_a_readable_status(
+    boundaries: Boundaries,
+    local_settings: InstanceSettings,
+    records: JsonLinesRecordLog[StopRecord],
+    *,
+    failing: Callable[[Boundaries, OSError], Boundaries],
+    expected: list[StopRecord],
+) -> None:
+    error = OSError("no space left on the device")
+    broken = failing(replace(boundaries, stop_records=records, settings=local_settings), error)
+    service = StopService(broken)
+
+    with pytest.raises(OSError) as raised:
+        service.raise_stop(_stop("fetch_failed"))
+
+    assert raised.value is error
+    assert records.read() == expected

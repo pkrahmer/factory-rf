@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T23:04:38.186578Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-18T23:04:38.186578Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-18T23:06:58.219503Z'
+  stage: tests
+  run: bcbfa723bba04dd3b3bae392a4097d65
 ---
 
 # The stops reach main as records
@@ -368,3 +370,22 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
     Noticed, not touched: nothing beyond entry 10.
 18. factory: started tests as self.
+19. tester: Round 1. This is the test change the human approved: the answer is entry 15, and the coder named the change in entry 17. I added one parametrized test to `tests/application/test_stop_records_service.py` and changed nothing else.
+
+    - new criterion (`raise_stop` when the log line or the health status fails): tests/application/test_stop_records_service.py::test_a_raise_whose_log_or_health_status_fails_records_only_with_a_readable_status. It has three rows:
+      - `log-line`: the factory log raises. One `raised` record is appended and the `OSError` is raised.
+      - `health-status-write`: the health status write raises. One `raised` record is appended and the `OSError` is raised.
+      - `health-status-read`: the health status read raises. No record is appended and the `OSError` is raised.
+
+      Each row checks that the error raised is the very `OSError` that was injected, and reads the records back from a real `JsonLinesRecordLog` under `tmp_path`.
+
+    How the failures are made: I added two private fakes to the module, each built on its interface. `_UnwritableLog` is a `FactoryLog` that raises on every line. `_FailingHealth` is an empty `HealthStatusStore` that raises on either `read` or `write`. Each row is a typed `Callable[[Boundaries, OSError], Boundaries]` that swaps one of these into the boundaries with `dataclasses.replace`. The two `_UnwritableHealth` fakes in `test_stops.py` and `test_pipeline_loading.py` were no use here: both read fine and only refuse writes, so they cannot fail a read. I did not move them, and I changed no earlier test file.
+
+    `make test` is green, new test included, because `raise_stop` already behaves as option (b) (entry 17). `make lint` is green after a `ruff format` of the file.
+
+    Still open, and outside this change: the work item's `## Description` does not have the new Interface sentence or the new criterion yet (the coder's edit was refused, entry 17). That criterion should become 16, so `make check` becomes 17 and docs becomes 18.
+
+    Files changed: tests/application/test_stop_records_service.py. Files created: none. Modules the test run could not import: none.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (39.6 s)
