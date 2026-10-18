@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T16:06:33.014216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -126,6 +122,12 @@ journal:
   kind: started
   at: '2026-10-18T16:06:33.014216Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T16:08:09.738271Z'
+  stage: review
+  run: ad4c1f4c7de7494b808b2f1b84f9d1ec
 ---
 
 # Every agent run starts through `factory-confine`
@@ -404,3 +406,12 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 21. factory: started review as self.
+22. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`. The check stopped at group 1 (acceptance criteria). Each of criteria 1 to 17 has a test that is named after it and checks it, and the sides of each rule are rows of one parametrized test. The coder's `make check` was green (entry 20). Two rules the Interface states have a failing side that no criterion covers. Those two gaps are in the story, not in the tests: the tester wrote what the criteria ask for. Groups 2 to 5 were not reached.
+
+    1. Interface, `extras` clause (code in `src/factory/adapters/claude_runtime.py:398-407` `_existing_devices`; test helpers in `tests/adapters/test_claude_runtime_confinement.py:378-383`). What is wrong: the rule "a folder target for each of the `DEVICE_FOLDERS` that exists, then a file target for each of the `DEVICE_FILES` that exists" is never tested on its "does not exist" side. The tests build the expected rules with the same `exists()` filter the code uses. On a machine where all six device files and `/dev/shm` exist, removing the filter from the code would still pass every test. Fix: add a criterion and a row that use `monkeypatch` to set `claude_runtime.DEVICE_FILES` and `claude_runtime.DEVICE_FOLDERS` to one existing path and one missing path under `tmp_path`, and check that the rules hold only the existing one. That needs the human's word on the story, so the coder should ask.
+    2. Interface, removal clause, `CLEANUP_TIME_LIMIT` (code in `src/factory/adapters/claude_runtime.py:111` and `:598-609`). What is wrong: this stated limit is not tested on either side. No test shows that a removal which hangs is ended at the limit and leaves the run's result as the call made it. Fix: add a criterion and a row that use `monkeypatch` to set `claude_runtime.CLEANUP_TIME_LIMIT` to a few seconds while the recording shell or stand-in `sudo` waits longer than that for the removal. The row checks that the run's result is unchanged and puts an upper bound on the elapsed time. That needs the human's word on the story, so the coder should ask.
+
+    Earlier tests changed:
+    - `tests/entry/test_wiring_boundaries.py`: the human's leave. The story's Interface names `test_the_built_agent_runtime_keeps_its_run_files_under_runs` under feature decision 13. Only `confine_executable=None` was added; it stays within that leave.
+    - `tests/entry/test_wiring_login.py`: the human's leave. The story's Interface names `test_the_built_runtime_hands_the_login_file_s_token_to_claude` under feature decision 13. Only `confine_executable=None` was added; it stays within that leave.
+    - `tests/test_process_search.py`: the human's answer in journal entry 14, which allows the `/dev/shm` marker and adds it to CLAUDE.md's exception list. The coder named the test change in entry 16. The only change is the `domain/confinement.py` entry in the expected markers; it stays within that leave.
