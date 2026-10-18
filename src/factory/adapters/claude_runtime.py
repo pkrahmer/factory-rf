@@ -275,10 +275,22 @@ def _tokens(usage: _Usage | None) -> TokenCounts | None:
     )
 
 
+def _denied_path(tool_input: JsonValue) -> str | None:
+    if not isinstance(tool_input, dict):
+        return None
+    for key in ("file_path", "notebook_path"):
+        value = tool_input.get(key)
+        if isinstance(value, str):
+            return value
+    return None
+
+
 def _denials(reply: _Reply) -> list[PermissionDenial]:
     return [
         PermissionDenial(
-            tool=denial.tool_name, detail=json.dumps(denial.tool_input, sort_keys=True)
+            tool=denial.tool_name,
+            detail=json.dumps(denial.tool_input, sort_keys=True),
+            path=_denied_path(denial.tool_input),
         )
         for denial in reply.permission_denials
     ]

@@ -44,9 +44,10 @@ def _line_of_record(record: CostRecord) -> str:
     fields = record.model_dump(mode="json")
     fields["started_at"] = record.started_at.isoformat().removesuffix("+00:00") + "Z"
     fields["cost_usd"] = None if record.cost_usd is None else str(record.cost_usd)
-    if record.instance is None:
-        # Left out, not null, so a line written before the field existed is written back as read.
-        del fields["instance"]
+    # Left out, not null, so a line written before the field existed is written back as read.
+    for field in ("instance", "denials", "denied_paths"):
+        if fields[field] is None:
+            del fields[field]
     return json.dumps(fields, separators=_SEPARATORS) + "\n"
 
 

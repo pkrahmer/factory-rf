@@ -123,12 +123,13 @@ class TokenCounts(BaseModel):
 
 
 class PermissionDenial(BaseModel):
-    """A tool call the runtime refused during a run."""
+    """A tool call the runtime refused during a run; `path` is the file it named, if any."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     tool: str
     detail: str
+    path: str | None = None
 
 
 class AgentRunResult(BaseModel):

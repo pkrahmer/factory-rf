@@ -84,6 +84,8 @@ class CostRecorder:
 
 def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
     # Copied as reported: an unknown measure stays None and a reported zero stays zero (R24).
+    # A run that died or met its time limit left no reply, so its denials are unknown.
+    no_reply = result.end_reason in ("died", "time_limit")
     return CostRecord.model_validate(
         {
             **record.model_dump(),
@@ -96,8 +98,16 @@ def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
             "turns": result.turns,
             "tokens": result.tokens,
             "cost_usd": result.cost_usd,
+            "denials": None if no_reply else len(result.permission_denials),
+            "denied_paths": None if no_reply else _denied_paths(result),
         }
     )
+
+
+def _denied_paths(result: AgentRunResult) -> list[str]:
+    paths = [denial.path for denial in result.permission_denials if denial.path is not None]
+    # Each file once, in the order the runtime reported it.
+    return list(dict.fromkeys(paths))
 
 
 class WorkItemBill(BaseModel):

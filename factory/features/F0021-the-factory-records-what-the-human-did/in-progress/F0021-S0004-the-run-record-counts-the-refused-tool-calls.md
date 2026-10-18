@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 238
 comments_read: [6256436044]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:25:48.968346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-18T23:25:48.968346Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-18T23:28:57.890228Z'
+  stage: doing
+  run: 4027b9c7b2b44040af468653dbb45792
+  blocked: question
 ---
 
 # The run record counts the refused tool calls
@@ -164,3 +167,31 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/application/test_costs_denials.py - pydantic_core._pydantic_core....
 9. factory: started doing as self.
+10. coder: Stopped with the code done. Every criterion's test passes except two failures in tests, which I may not edit. Lint, types, layers, sast, secrets and licenses are green. Other checks pass too: `test_claude_runtime_denial_paths.py`, `test_cost_record_denials.py`, `test_cost_records_jsonl_denials.py` and the changed `test_claude_runtime_resume.py`.
+
+    Built (in the working tree):
+    - `src/factory/domain/agent_runs.py`: `PermissionDenial.path: str | None = None`.
+    - `src/factory/adapters/claude_runtime.py`: `_denied_path` takes `file_path` when it is a string, or else `notebook_path`. Otherwise it gives `None`. `_denials` sets `path` from it, and `detail` is unchanged.
+    - `src/factory/domain/cost_records.py`: `denials` and `denied_paths` after `instance`. Both are added to the measures a `started` record refuses.
+    - `src/factory/application/costs.py`: `_completed` sets `denials=len(...)` and `denied_paths` (each path once, in report order, via `_denied_paths`). For `died`/`time_limit` both are `None`.
+    - `src/factory/adapters/cost_records_jsonl.py`: the line leaves out `instance`, `denials` and `denied_paths` when they are `None`. This is one loop instead of a second and third copy of the `instance` branch.
+
+    Main choice: `_completed` decides "no reply" from the end reason (`died`, `time_limit`), as the Interface says. I rejected the alternative of a `dict[str, object]` helper merged into the record. CLAUDE.md forbids dicts crossing a function boundary, so the condition is inlined.
+
+    The two failing tests:
+
+    1. `tests/application/test_costs_denials.py::test_completed_record_counts_the_denials_and_their_paths_once_each_in_order`, rows `completed` and `completed-none`. The test builds `AgentRunResult(end_reason="completed", ...)` without `decision` and `entry`. `AgentRunResult` already refuses that ("a completed run needs a decision"), so the row fails before it reaches `CostRecorder`. Options:
+       - (a) The tester gives those two rows a `decision` and an `entry`, for example `decision="review", entry="done"`.
+       - (b) Relax `AgentRunResult`. That is out of scope.
+
+       I would choose (a).
+
+    2. `tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo[overwritten]` and `[deleted]`, an earlier story's test. Its expected completed `CostRecord` leaves `denials`/`denied_paths` as `None`. The Interface says a completed run without denials gives `denials=0, denied_paths=[]`, so the test contradicts the Interface. The Interface's list of earlier tests this story changes names only `test_claude_runtime_resume.py`. Options:
+       - (a) Allow the tester to add `denials=0, denied_paths=[]` to that test's expected record.
+       - (b) Change the Interface so a completed run without denials keeps `None`. That would contradict criterion 3's `completed-none` row.
+
+       I would choose (a).
+
+    Noticed, not touched: `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` failed once under the full parallel `make check`. It passed three times when run alone. It looks like a load-dependent flake unrelated to this work item.
+
+    Refactor pass: I read the diff and nothing needs changing. The journal did not change the meaning of the task beyond what intake already wrote into the Description.
