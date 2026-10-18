@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T22:25:25.776032Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-18T22:25:05.816617Z'
   stage: intake
   run: 4f4ceead4423435e87ed35c2e6076a22
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:25:25.776032Z'
+  stage: tests
 ---
 
 # The cost table and the acceptance facts count the human
@@ -199,3 +208,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
    - Smoke test: both commands are runnable, and each `Expect:` line is an exact output to compare.
    - Architecture: the pure rules are in `domain`, the posting and reading are in `application` and reuse `git.show_file` and `parse`, and no layer is crossed.
    - Scope: within the feature's S0002 bullets (the human line on the cost table and the acceptance facts). The changes to earlier tests are covered by decision 13.
+7. factory: started tests as self.
