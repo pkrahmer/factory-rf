@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-18T19:16:18.096349Z'
   stage: smoke-test
   run: 8ec0d14b59a54f6bb44e179b15946d38
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-18T19:17:35.476845Z'
+  stage: approval
 ---
 
 # The documents describe the live write guard
@@ -211,3 +216,4 @@ Expect: `documents ok`
       - The smoke test contradicts no criterion.
 
     Open, outside this story: the documenter (entry 11) found a stale line in `docs/project-guide.md`, "Nothing starts it yet: the runtime will." This criterion forbids changing other passages, so it needs a follow-up story. It is not a finding here.
+14. factory: done (pull request merged); cost: 6 runs, 2.5 min, 29 turns, 135084 tokens in (279833 more from cache), 7319 out, $1.01
