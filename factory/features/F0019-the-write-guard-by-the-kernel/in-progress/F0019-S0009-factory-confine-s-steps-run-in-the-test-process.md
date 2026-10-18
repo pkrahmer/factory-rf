@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T19:43:37.314865Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T19:43:37.314865Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T19:43:57.326551Z'
+  stage: smoke-test
+  run: c093e40a43744e998821efb00d7378fb
 ---
 
 # factory-confine's steps run in the test process
@@ -229,3 +231,20 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: no findings.
+
+    I ran the one command under `## Smoke test` from the repository root, exactly as written, and added `; echo "exit: $?"` after it to record the exit status.
+
+    Command 1 (`uv run -q python -c '...'`, calling `main` in-process with `abi`, `restrict` and `replace` injected):
+    ```
+    ('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700
+    exit: 0
+    ```
+    It met its `Expect:` line (`('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`): the output matches it exactly.
+
+    Checked against the acceptance criteria, the run contradicts none of them:
+    - Criteria 1 and 2: `restrict` got the missing folder `a/b` followed by the temporary folder `t`. The temporary folder ended up with mode `0o700`. `replace` was called after `restrict`, with `TMPDIR` pointing at `t`.
+    - Criterion 3: the four-argument form `--rules <file> -- prog` reached `replace` with `["prog"]`.
+    - Criteria 4 to 8: the smoke test does not reach them. Nothing in its output points the other way.
+
+    Nothing is open.
