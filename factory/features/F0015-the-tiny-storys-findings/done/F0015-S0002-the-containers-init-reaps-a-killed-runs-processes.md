@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 207
 blocked: null
 comments_seen: 0
@@ -110,3 +110,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Criterion 3: the five earlier test modules pass in command 2.
 
    The demo contradicts no criterion. The real reaping inside a running container is not shown here, as decision 7 and the Assignment expect: it is a morning observation for the shakedown.
+8. done (pull request merged); cost: 6 runs, 3.0 min, 36 turns, 83k tokens in (395k more from cache), 9k out, $0.71
