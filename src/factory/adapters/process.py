@@ -1,13 +1,14 @@
-"""The one place that starts a subprocess: every command-line tool is reached through it."""
+"""The one place that starts a process: every command-line tool is reached through it."""
 
 import contextlib
 import os
 import signal
 import subprocess  # noqa: S404  # nosec B404
 import time
+from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, NoReturn
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -82,3 +83,14 @@ def run_process(request: ProcessRequest) -> ProcessResult:
         timed_out=timed_out,
         duration=timedelta(seconds=time.monotonic() - start),
     )
+
+
+def replace_process(argv: Sequence[str], env: Mapping[str, str]) -> NoReturn:
+    """Replace this process with `argv`, its program found on the `PATH` of `env`.
+
+    An empty `argv` raises `ValueError`; a program that cannot be started raises the
+    `OSError` of the `exec`, and this process then goes on.
+    """
+    if not argv:
+        raise ValueError("replace_process needs a program to start")
+    os.execvpe(argv[0], list(argv), dict(env))  # noqa: S606  # nosec B606

@@ -1,3 +1,169 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 221
+comments_read: [6251323783]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T14:43:28.693326Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:43:28.699870Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T14:43:52.992737Z'
+  stage: intake
+  run: cad48beb6b314869ba93ca927c4f1470
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:44:12.838261Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T14:49:02.754667Z'
+  stage: tests
+  run: 2892fb455ef64dcc906d519b1c3bbe33
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:49:22.854312Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-18T14:51:28.590007Z'
+  stage: doing
+  run: bd772f32133f4b0ea5bf2b0cbe30e51b
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-18T14:53:46.253719Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:54:03.797155Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T14:54:20.339121Z'
+  stage: doing
+  run: 6c9127f8efb745268e4ddba292f880dc
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:54:41.044597Z'
+  stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-18T14:56:24.022072Z'
+  stage: tests
+  run: d9d5fdd66bf1449d8760036e6d3f06a0
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:56:44.205259Z'
+  stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-18T14:58:46.852762Z'
+  stage: doing
+  run: 8116ca3895e9449ba2b32ab6fd93499d
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T14:59:06.607097Z'
+  stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T15:00:36.301916Z'
+  stage: review
+  run: 82e80387197d4f718ebc5ebd8aef5c37
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:00:56.854893Z'
+  stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:01:16.143712Z'
+  stage: doing
+  run: 1c4f9960192b4b2ebe6f24c20e501429
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:01:36.150704Z'
+  stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-18T15:03:31.195086Z'
+  stage: tests
+  run: 84e26c4f33e249988e003a3b7a65f293
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:03:51.430651Z'
+  stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:06:08.716235Z'
+  stage: doing
+  run: 1aa0ca9d2d2645f48f8554a5819a90f0
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:06:28.797986Z'
+  stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T15:07:25.203037Z'
+  stage: review
+  run: 1642e75f778c4b06beda2e5661c52709
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:07:45.175101Z'
+  stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T15:09:14.078395Z'
+  stage: docs
+  run: 4e62e8a442b94b94a80a799cf534116e
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:09:34.469521Z'
+  stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T15:10:08.196474Z'
+  stage: smoke-test
+  run: 729ae0fcaf78403bb21e9e4117d8d709
+---
+
 # `factory-confine` starts a command with its writes confined
 
 ## Description
@@ -108,3 +274,250 @@ uv run -q factory-confine --rules "$d/rules.json" -- echo started 2>&1 | sed "s|
 Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.agent_runs.CONFINE_COMMAND`, `factory.domain.confinement.Confinement`, `factory.adapters.process.replace_process`, `factory.entry.confine.main`). The pieces it builds on exist as described: `AbsolutePath` in `agent_runs`, `abi_fault`, `ConfinementError.detail`, `abi_version` and `restrict_writes` with the "cannot open" and "is a symbolic link" texts, and the `factory-confine` script line in `pyproject.toml` and the widened `CLAUDE.md` exception (the human's changes 1 and 2).
+   Criteria: each is testable by one parametrized test function. Every Interface clause has a criterion on both sides: usage (7), rules file faults (8), ABI (9), folder creation and its failure (6), temporary folder with `0700` and `FileExistsError` (4, 10), `ConfinementError` (11), `OSError` on start (12), `replace_process` success, `FileNotFoundError` and `ValueError` (2), and exit status, output and `TMPDIR` (4, 5). The step order is pinned by the "not made" clauses in 8 and 9.
+   Smoke test: three runnable blocks. Each `Expect:` line can be checked against the output.
+   Architecture: the model is in domain, `replace_process` in the one process module, and the wrapper in entry, which imports adapters and domain. This is consistent with the layers and wrapper rules, and the structural-test changes are covered by criterion 14 and decision 7.
+   Scope: within F0019 S0002's scope list. Nothing from Out of scope is touched. The runtime wiring is left to S0004.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 14. Rows that reach step 5 or 6 start the wrapper in a child (`sys.executable -m factory.entry.confine`). Rows that end at steps 1 to 4 call `main` in-process with `abi` injected and `stderr` set to a `StringIO`. The usage and rules-file rows inject ABI 0, so a wrapper that wrongly goes on still stops before it restricts the pytest worker.
+
+   criterion 1: tests/domain/test_confinement_model.py::test_a_relative_path_in_any_field_is_refused
+   criterion 2: tests/adapters/test_process_replace.py::test_replace_process_becomes_the_command_with_the_given_environment (child, prints `replaced`, exits 7) and ::test_replace_process_that_cannot_start_raises_and_this_process_goes_on (in-process rows `FileNotFoundError` and `ValueError`)
+   criterion 3: tests/entry/test_confine.py::test_the_command_writes_only_within_the_rules
+   criterion 4: tests/entry/test_confine.py::test_the_command_gets_its_own_temporary_folder_and_the_wrapper_environment
+   criterion 5: tests/entry/test_confine.py::test_the_wrapper_exits_and_prints_as_the_command
+   criterion 6: tests/entry/test_confine.py::test_a_missing_folder_of_the_rules_is_made_or_stops_the_wrapper
+   criterion 7: tests/entry/test_confine.py::test_wrong_arguments_print_the_usage_and_return_1
+   criterion 8: tests/entry/test_confine.py::test_rules_that_cannot_be_read_return_1_with_one_line
+   criterion 9: tests/entry/test_confine.py::test_a_kernel_below_abi_3_stops_the_wrapper_before_any_folder_is_made (ABI 0 and 2); the real-ABI half is covered by the criterion 3 test
+   criterion 10: tests/entry/test_confine.py::test_an_existing_temporary_folder_stops_the_wrapper
+   criterion 11: tests/entry/test_confine.py::test_a_rule_the_kernel_cannot_take_stops_the_wrapper
+   criterion 12: tests/entry/test_confine.py::test_a_command_that_cannot_start_stops_the_wrapper
+   criterion 13: tests/entry/test_confine.py::test_the_console_script_beside_the_interpreter_prints_the_usage
+   criterion 14: tests/test_process_search.py::test_no_module_uses_another_route_to_a_process and ::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper; tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module
+
+   Files created: tests/domain/test_confinement_model.py, tests/adapters/test_process_replace.py, tests/entry/test_confine.py.
+
+   Earlier test files changed under the leave of the feature's decision 7, which the Interface names:
+   - tests/test_process_search.py: the expected routes are now `{"factory.adapters.process": {"os.execvpe"}}`, and the expected markers add `noqa: S606`/`nosec B606` on the `os.execvpe(` line.
+   - tests/test_wrapper_search.py: `factory.entry.confine` is added to the importers.
+
+   All test names are unchanged.
+
+   The test run could not import `factory.domain.confinement.Confinement`, `factory.adapters.process.replace_process` or `factory.entry.confine`, so the three new modules fail at collection. The structural tests fail, as they should until the code exists. `make lint` is green.
+
+   Not tested, because no criterion names it: the constant `CONFINE_COMMAND` in `factory.domain.agent_runs`.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_confine.py - ImportError while importing test module '...
+6. factory: started doing as self.
+7. coder: Two tests contradict each other, so `make check` cannot go green. Which one should change?
+
+   - `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module` was changed by the tester under decision 7. Criterion 14 and the Interface back it. It requires `factory.entry.confine` to import `factory.adapters.process` directly.
+   - `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` is an earlier story's test. It requires that `factory.entry.wiring` is the only entry module importing anything from `factory.adapters`. So `factory.entry.confine` must not import `factory.adapters.process` or `factory.adapters.landlock`.
+
+   No import layout satisfies both. Decision 7 gave leave to change only `tests/test_process_search.py` and `tests/test_wrapper_search.py`, not `tests/test_wiring.py`.
+
+   Options:
+   A) The tester widens `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` to expect `{"factory.entry.wiring", "factory.entry.confine"}`. The start wrapper then imports `landlock` and `process` directly, as the Interface and criterion 14 say. Its justification: the wrapper picks no adapter behind an interface. It is itself the process-level step before `exec`.
+   B) `factory.entry.confine` takes `abi_version`, `restrict_writes` and `replace_process` through `factory.entry.wiring`, as `factory.entry.guard` takes `judge` and `read_guard_settings`. The tester changes `test_only_the_three_wrappers_import_the_process_module` to expect `factory.entry.wiring` in place of `factory.entry.confine`, and criterion 14 changes with it. This follows the guard's precedent and the "nothing else wires" rule in `CLAUDE.md`. But it makes the wiring module an importer of the process module.
+
+   I would choose A. It keeps criterion 14 and the Interface as written, and changes one line of one test. After your answer I end with `tests` and name that change.
+
+   Where I stopped: the implementation is complete in the working tree, following option A's layout. The three new test files, `tests/test_process_search.py` and `tests/test_wrapper_search.py` all pass. `make lint`, `make types`, `make layers`, `make sast`, `make secrets` and `make licenses` are green. `make test` fails only on the `test_wiring` test above.
+
+   What I built:
+   - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`.
+   - `src/factory/domain/confinement.py`: the model `Confinement`, using the `AbsolutePath` of `agent_runs`.
+   - `src/factory/adapters/process.py`: `replace_process`. An empty `argv` raises `ValueError` before `os.execvpe`. Without that check, `argv[0]` would raise `IndexError`. The one marker line is `# noqa: S606  # nosec B606`.
+   - `src/factory/entry/confine.py`: `main`, with the six steps in order.
+
+   Main choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes it once and returns 1. I rejected returning a status code from every step, which would repeat the write-and-return at each of the six faults.
+
+   Not touched: `src/factory/entry/confine.py` has 78% coverage, because the rows that reach steps 5 and 6 run in a child that coverage does not follow. The total coverage is still 98.6%.
+
+   No refactor pass yet; it waits until `make check` is green.
+8. 2026-10-18 human: A. You have my leave: the tester widens `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` to expect `{"factory.entry.wiring", "factory.entry.confine"}`, that one line and nothing else. The start wrapper imports `factory.adapters.landlock` and `factory.adapters.process` directly, as the Interface and criterion 14 say: it picks no adapter behind an interface; it is the process-level step before `exec`. Recorded as feature decision 19 (on main). End with `tests` naming that change.
+9. factory: started doing as self.
+10. coder: The human chose A in entry 8, so this goes to the tester for one change. In `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`, change the line `assert importers == {"factory.entry.wiring"}` to `assert importers == {"factory.entry.wiring", "factory.entry.confine"}`. Change that one line and nothing else.
+
+    What I built is already committed on the branch, as entry 7 describes:
+    - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`.
+    - `src/factory/domain/confinement.py`: the model `Confinement`.
+    - `src/factory/adapters/process.py`: `replace_process`, with the one `# noqa: S606  # nosec B606` line.
+    - `src/factory/entry/confine.py`: `main`, which runs the six steps in order. `confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly, as the human's answer allows.
+
+    Main choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes that line once and returns 1. I rejected having every step return a status, which would repeat the write-and-return at each of the six faults.
+
+    Open: when the tester sends the work item back, the next doing run checks that `make check` is green and does the refactor pass. Neither has happened yet; this run changed no code.
+
+    Noticed, not touched: `src/factory/entry/confine.py` is at 78% coverage, because the rows that reach steps 5 and 6 run in a child process that coverage does not follow. Total coverage stays above 90%.
+11. factory: started tests as self.
+12. tester: I made the one test change the human approved in entry 8 and the coder named in entry 10. In `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` (line 21), `assert importers == {"factory.entry.wiring"}` is now `assert importers == {"factory.entry.wiring", "factory.entry.confine"}`. The reason: the start wrapper imports `factory.adapters.landlock` and `factory.adapters.process` directly (feature decision 19).
+
+    Nothing else changed: no other line, no test name and no other file. I created no files.
+
+    I ran `make test` once and it was green, with total coverage at 98.64%. The run could import every module.
+
+    Open: the coder's refactor pass and `make check`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (43.3 s)
+13. factory: started doing as self.
+14. coder: `make check` is green: 98.64% total coverage, ending in `check: green`. In this run I checked the build and did the one refactor pass the earlier runs still owed. I changed no code: the diff against `main` reads cleanly, with no unclear name, no duplication and no dead code.
+
+    What I built, committed on the branch since entry 7:
+    - `src/factory/domain/agent_runs.py`: the constant `CONFINE_COMMAND`.
+    - `src/factory/domain/confinement.py`: the model `Confinement` (folders, files, temporary directory), using the `AbsolutePath` of `agent_runs`.
+    - `src/factory/adapters/process.py`: `replace_process`. It raises `ValueError` on an empty `argv` before calling `os.execvpe`; otherwise `argv[0]` would raise `IndexError`. Its exec line carries the only marker, `# noqa: S606  # nosec B606`.
+    - `src/factory/entry/confine.py`: `main` with the six steps in the order the Interface gives (arguments, rules, ABI, folders, the temporary folder with mode `0o700` and no `exist_ok`, `restrict_writes`, then `replace_process` with `TMPDIR` set). It imports `factory.adapters.landlock` and `factory.adapters.process` directly, as the human allowed in entry 8 (feature decision 19).
+
+    Main choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes that line once and returns 1. I rejected having every step return a status, which would repeat the write-and-return at each of the six faults.
+
+    What the journal changed: the human's answer in entry 8 changed only `tests/entry/test_wiring.py`, through the tester. The task's meaning is the same, so I left `## Description` as it is.
+
+    Noticed, not touched: `src/factory/entry/confine.py` is at 78% coverage and `src/factory/adapters/landlock.py` at 35%. The tests that reach the restriction and the exec run in a child process, and coverage does not follow it there. The total is still above 90%.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 36 known, 3 gone
+15. factory: started review as self.
+16. reviewer: 1. `tests/adapters/test_process_replace.py:17` and `:32`: criterion 2 ends with "(rows of one parametrized test)", but its success side (the child prints `replaced` and exits 7) is in its own test function, `test_replace_process_becomes_the_command_with_the_given_environment`. The two refused sides (`FileNotFoundError` and `ValueError`) are rows of a second function, so the sides of `replace_process`'s one rule are split across two functions. Fix: the coder ends with `tests`, and the tester merges the two into one parametrized test with three rows. The success row runs in a child; the two refused rows run in-process and the test goes on afterwards.
+
+    What I checked: every criterion from 1 to 14 against its test, and every failing side of the Interface. That covers the usage rows, the rules-file faults (including the check that the fault is one line), the ABI, the folder and temporary-folder faults, `ConfinementError`, and the `OSError` when the command cannot start. They all exist and test what their criterion says. The ABI boundary at 3 is also tested on both sides in `tests/domain/test_confinement_abi.py`. The architecture holds: `factory.entry.confine` imports the adapters directly, which feature decision 19 (entry 8) allows. On security, the only new markers are `# noqa: S606  # nosec B606` on the one `os.execvpe` line in `src/factory/adapters/process.py`, which is the exception `CLAUDE.md` allows; the `# noqa: S603` in the tests carries a reason beside it, as earlier tests do. The code matches the six steps in order. Entry 14 records `make check` green.
+
+    Not a finding: `make duplicates` reports one new dead-code record, the unused `CONFINE_COMMAND` in `src/factory/domain/agent_runs.py:27`. The Interface asks for it, and S0004 uses it.
+
+    Earlier tests:
+    - `tests/test_process_search.py`: covered by the human's leave. The story names `test_no_module_uses_another_route_to_a_process` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` under feature decision 7, and the change stays inside those two tests.
+    - `tests/test_wrapper_search.py`: covered by the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7; the change adds one importer.
+    - `tests/entry/test_wiring.py`: covered by the human's leave, the answer in journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
+17. factory: started doing as self.
+18. coder: Round 1 has one review finding (entry 16), and it is a change to a test, so this goes to the tester.
+
+    The change: in `tests/adapters/test_process_replace.py`, merge `test_replace_process_becomes_the_command_with_the_given_environment` (line 17) and `test_replace_process_that_cannot_start_raises_and_this_process_goes_on` (line 32) into one parametrized test with three rows:
+    - The success row runs `CHILD` in a child through `sys.executable -c` and expects `("replaced\n", 7)` as stdout and exit status.
+    - The `not-on-the-path` row calls `replace_process(["no-such-program"], {"PATH": str(tmp_path)})` in-process and expects `FileNotFoundError`; the test goes on afterwards.
+    - The `empty-argv` row calls `replace_process([], {"PATH": "/usr/bin:/bin"})` in-process and expects `ValueError`; the test goes on afterwards.
+
+    Nothing else changes. This test module belongs to this story (the tester wrote it in entry 5), so the merge does not need the human's leave.
+
+    I changed no code in this run. What I built is already committed on the branch, as entry 14 describes:
+    - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`
+    - `src/factory/domain/confinement.py`: `Confinement`
+    - `src/factory/adapters/process.py`: `replace_process`
+    - `src/factory/entry/confine.py`: `main`, which runs the six steps in order
+
+    Main choice (unchanged from entry 14): each fault raises a private `_Stop` that carries its line, and `main` writes that line once and returns 1. I rejected having each step return a status, because that would repeat the write-and-return at all six faults.
+
+    Open: when the tester sends the work item back, the next doing run confirms `make check` is green after the merge. No source change is expected.
+
+    Noticed, not touched (as in entry 14): coverage is 78% for `src/factory/entry/confine.py` and 35% for `src/factory/adapters/landlock.py`, because the rows that restrict and exec run in a child that coverage does not follow. `CONFINE_COMMAND` is still unused until S0004, and `make duplicates` reports it as a new dead-code record.
+19. factory: started tests as self.
+20. tester: I made the one test change from the review finding in entry 16, as the coder named it in entry 18. In `tests/adapters/test_process_replace.py`, I merged `test_replace_process_becomes_the_command_with_the_given_environment` and `test_replace_process_that_cannot_start_raises_and_this_process_goes_on` into one parametrized test, `test_replace_process_becomes_the_command_or_raises_and_this_process_goes_on`. It has three rows:
+    - `becomes-the-command`: runs `CHILD` in a child through `sys.executable -c` and expects `("replaced\n", 7)` as stdout and exit status.
+    - `not-on-the-path`: calls `replace_process(["no-such-program"], {"PATH": str(tmp_path)})` in-process, expects `FileNotFoundError`, then checks that the test goes on.
+    - `empty-argv`: calls `replace_process([], {"PATH": "/usr/bin:/bin"})` in-process, expects `ValueError`, then checks that the test goes on.
+
+    Each row checks exactly what the two earlier functions checked; `CHILD` is unchanged. This module belongs to this story, so no leave was needed. I changed no other test or file and created no files.
+
+    Criterion 2 now maps to `tests/adapters/test_process_replace.py::test_replace_process_becomes_the_command_or_raises_and_this_process_goes_on`. The other criteria's mappings are unchanged.
+
+    `make lint` is green. I ran `make test` once and it was green, with total coverage at 98.64%. The run could import every module.
+
+    Open: the coder's next doing run confirms `make check` is green, which includes the type check of this test.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (43.2 s)
+21. factory: started doing as self.
+22. coder: Round 1, after the tester merged the tests (entry 20). The one finding from review (entry 16) was a test change, and the tester has made it. `tests/adapters/test_process_replace.py::test_replace_process_becomes_the_command_or_raises_and_this_process_goes_on` now holds the success side and both refused sides of `replace_process` as rows of one parametrized test. With that change in place, `make check` is green: 98.64% total coverage, ending in `check: green`. This run changed no source code. Since entry 14 no source file has changed, so the refactor pass recorded there still holds and there is nothing new to refactor.
+
+    What I built, committed on the branch:
+    - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`.
+    - `src/factory/domain/confinement.py`: `Confinement` (folders, files, temporary directory), using the `AbsolutePath` of `agent_runs`.
+    - `src/factory/adapters/process.py`: `replace_process`. It raises `ValueError` on an empty `argv`. Its one `os.execvpe` line carries `# noqa: S606  # nosec B606`.
+    - `src/factory/entry/confine.py`: `main`, with the six steps in the Interface's order. It imports `factory.adapters.landlock` and `factory.adapters.process` directly (feature decision 19, entry 8).
+
+    Main choice (unchanged): each fault raises a private `_Stop` that carries its line, and `main` writes that line once and returns 1. I rejected having each step return a status, because that would repeat the write-and-return at all six faults.
+
+    What the journal changed: entries 8 and 16 changed only tests, and the tester made those changes. The task means the same as before, so `## Description` is unchanged.
+
+    Noticed, not touched: coverage is 78% for `src/factory/entry/confine.py`, lines 67-75, 80-83 and 95. The rows that reach the restriction and the exec run in a child process that coverage does not follow, which is also why `landlock.py`'s coverage is low (35% in entry 14). `CONFINE_COMMAND` stays unused until S0004, which is the one new dead-code finding from `make duplicates`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 36 known, 3 gone
+23. factory: started review as self.
+24. reviewer: no findings
+
+    What I checked:
+    - **Acceptance criteria.** I read each of criteria 1 to 14 against its test. Criterion 2 is now one test with three rows in `tests/adapters/test_process_replace.py`, which fixes the round-1 finding. Every failing side of the Interface has a test:
+      - Usage: the seven rows, including the case with no command word against the one-word commands of criteria 12 and 13.
+      - Step 1: a missing file (`OSError`), `UnicodeDecodeError`, and `ValidationError` from bad JSON, a relative path and an unknown key. The test checks the message is one line and that the temporary folder is not made.
+      - Step 2: ABI 0 and 2. ABI 3 passes step 2 in the criterion 10 rows, and `tests/domain/test_confinement_abi.py` covers the boundary.
+      - Step 3: a folder under a file.
+      - Step 4: an existing folder and a symbolic link.
+      - Step 5: a missing file and a linked folder.
+      - Step 6: a program that is not on the `PATH`.
+      - `replace_process`: `ValueError` and `FileNotFoundError`.
+      - The success sides: `TMPDIR`, mode `0o700`, `EXTRA` passed through, and the exit status and output of the command.
+      Entry 22 records `make check` green.
+    - **Architecture.** `factory.entry.confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly, which the human allowed in entry 8 (feature decision 19). `Confinement` is in the domain and reuses `AbsolutePath`. `os.execvpe` is used only in `src/factory/adapters/process.py`.
+    - **Security.** The only new suppression marker is `# noqa: S606  # nosec B606` on the one `os.execvpe` line, which is the exception `CLAUDE.md` allows. No shell command is built from strings. The `# noqa: S603` markers in the tests carry their reason beside them, as earlier tests do.
+    - **Quality.** `src/factory/entry/confine.py` runs the six steps in the Interface's order. It never uses `exist_ok` for the temporary folder and its comment says why. The private `_Stop` writes each fault line in one place. I found no copy of an existing helper: `_confine` and `tree` in `tests/entry/test_confine.py` differ from `_child` and `tree` in `tests/adapters/test_landlock.py`. The one new `make duplicates` record is the `CONFINE_COMMAND` constant, which is unused until S0004. The Interface asks for it, so it is not a finding.
+    - **Work item hygiene.** The Description matches what was built. The journal records the main choice (`_Stop`) and the option it rejected. The docs criterion covers what the documenter must write.
+
+    Earlier tests:
+    - `tests/test_process_search.py`: the human's leave. The story's Interface names `test_no_module_uses_another_route_to_a_process` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` under feature decision 7, and the change stays inside those two tests.
+    - `tests/test_wrapper_search.py`: the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7, and the change adds one importer.
+    - `tests/entry/test_wiring.py`: the human's leave, journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
+25. factory: started docs as self.
+26. documenter: I wrote the documentation the docs criterion asks for. Only documents changed, so I did not run `make check`; the factory's run after this stage decides. I ran the usage example (`uv run -q factory-confine -- true` printed the usage line and status 1). The JSON example in the new section is illustrative and I did not run it.
+
+    Files changed:
+    - `docs/project-guide.md`, *Starting a process*: names `replace_process` as the one `exec` and why (the command keeps the wrapper's process and process group, so `timeout`'s and the factory's group kills still reach it) and its `ValueError` and `OSError` behaviour. The `tests/test_process_search.py` paragraph now names `os.execvpe` in `process.py` as the one exception and lists the six markers.
+    - `docs/project-guide.md`, new section *The start wrapper* after *The kernel's write guard*: the arguments, the rules file (`Confinement`, with an example), the six steps in order with their fault lines and exit status 1, fail closed, `TMPDIR`, and how the tests run it.
+    - `docs/project-guide.md`, *The kernel's write guard*: the sentence "Nothing calls it yet" now points to the wrapper as its user, and says the runtime does not start the wrapper yet.
+    - `README.md` and `docs/operator-guide.md`: the lists of commands name `factory-confine` beside `factory-guard` as one the agent runtime runs, once the runtime uses it (S0004).
+    - `docs/decisions.md`: new entry *factory-confine replaces itself with the runtime*, dated 2026-10-18 (F0019-S0002). It gives the reasons of the feature's decision 5 and the widened exception in `CLAUDE.md`, and the rejected child process.
+
+    Cross-read and found current: `docs/project-guide.md` *The guard command*, *The `claude -p` runtime* and *The agent environment*, and `docs/operator-guide.md` *`factory-guard` on the agent run's `PATH`*. None of them is changed by this story.
+
+    Findings for the coder: none. The code matches the Interface, and the docstrings the project asks for are present.
+
+    Stale text I noticed and did not touch: none.
+
+    `check`: check: green
+    `documents`: documents ok
+27. factory: started smoke-test as self.
+28. smoke-tester: I ran the three smoke-test commands from the repository root, in order and as written. Each one ran in its own shell call, so each `trap 'rm -rf "$d"' EXIT` removed its own temporary folder when the call ended. My first attempt put commands 1 and 3 inside a `bash -c` wrapper, and the tool's safety check refused it (a nested script that runs `rm`). Neither command ran then. I then ran both directly, word for word, with no wrapper. None of the three commands starts a server.
+
+    Command 1 (the wrapper confines a `sh -c` command to `allowed` and its own temporary folder):
+    ```
+    allowed written
+    other refused
+    own temporary folder
+    ```
+    Met its Expect: line: three lines, `allowed written`, `other refused`, `own temporary folder`.
+
+    Command 2 (`uv run -q factory-confine -- true 2>&1; echo "status $?"`):
+    ```
+    factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]
+    status 1
+    ```
+    Met its Expect: line: the usage line, then `status 1`.
+
+    Command 3 (the temporary folder already exists):
+    ```
+    factory-confine: cannot make the temporary folder <d>/run: File exists
+    ```
+    Met its Expect: line. `started` was not printed, so the command did not run.
+
+    Against the acceptance criteria: the output agrees with criteria 3 (a write in A succeeds, a write elsewhere gets `Permission denied`), 4 (`TMPDIR` equals T and T is a folder), 7 (the usage line and exit 1), 9 (the kernel's real ABI is accepted and the command runs) and 10 (an existing temporary folder gives `File exists` and the command does not run). Nothing in the smoke test contradicts any other criterion.
+
+    No findings.
