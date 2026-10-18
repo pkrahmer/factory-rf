@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:07:56.260090Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-18T22:07:56.260090Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:08:23.912378Z'
+  stage: doing
+  run: 4101b6fd5da240bf98ff7cd326c930d4
 ---
 
 # The journal records why a work item waited or stalled
@@ -431,3 +433,21 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and its open/Makefile/run/head/state helpers moved to `tests/stage_run_support.py`. `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
     - `tests/crash_support.py`: none needed. The change only adds shared helpers and constants and leaves every existing one as it was.
 18. factory: started doing as self.
+19. coder: Round 2. The reviewer's only finding (entry 17) is a change to a test, and the tester makes those, so I changed nothing.
+
+    The test change: in `tests/domain/test_journal_causes.py`, merge `test_append_entry_puts_the_cause_into_the_new_record` and `test_append_entry_refuses_a_blocked_on_a_result_entry` into one parametrized test with an `accepted` column, the way `test_a_cause_is_accepted_only_on_its_own_kind` already is. Keep every current row: question with `round_cap` and stall with `merge_conflict`, each with and without `at`, are accepted; result with `blocked` is refused with `ValueError`.
+
+    Code: nothing changed this round. What was built is the same as in entries 7 and 15:
+    - `src/factory/domain/journal.py`
+    - the aliases in `src/factory/domain/work_item.py` and `src/factory/domain/decisions.py`
+    - the five writers in `src/factory/application/stage.py`, `stalls.py`, `recovery.py`, `handlers/questions.py` and `handlers/closed.py`
+
+    I did not run `make check` this round, because the working tree did not change. It was green in entry 15.
+
+    Still open from entries 11 and 15 (review group 5, not judged yet):
+    - `append_entry` takes the causes as `**causes: Unpack[JournalCauses]` instead of the two keyword-only parameters the Interface shows. The reason is ruff's `PLR0913`.
+    - The plain signature needs a per-file ignore in `pyproject.toml`, which is outside my write paths.
+
+    Noticed, not touched: `AskHandler` still writes the literal `"attempts_cap"` twice, once on the record and once on the state.
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
