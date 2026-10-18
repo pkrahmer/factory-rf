@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T14:59:06.607097Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-18T14:59:06.607097Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T15:00:36.301916Z'
+  stage: review
+  run: 82e80387197d4f718ebc5ebd8aef5c37
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -320,3 +322,13 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     `check`: check: green
     `duplicates`: duplicates: 1 new, 36 known, 3 gone
 15. factory: started review as self.
+16. reviewer: 1. `tests/adapters/test_process_replace.py:17` and `:32`: criterion 2 ends with "(rows of one parametrized test)", but its success side (the child prints `replaced` and exits 7) is in its own test function, `test_replace_process_becomes_the_command_with_the_given_environment`. The two refused sides (`FileNotFoundError` and `ValueError`) are rows of a second function, so the sides of `replace_process`'s one rule are split across two functions. Fix: the coder ends with `tests`, and the tester merges the two into one parametrized test with three rows. The success row runs in a child; the two refused rows run in-process and the test goes on afterwards.
+
+    What I checked: every criterion from 1 to 14 against its test, and every failing side of the Interface. That covers the usage rows, the rules-file faults (including the check that the fault is one line), the ABI, the folder and temporary-folder faults, `ConfinementError`, and the `OSError` when the command cannot start. They all exist and test what their criterion says. The ABI boundary at 3 is also tested on both sides in `tests/domain/test_confinement_abi.py`. The architecture holds: `factory.entry.confine` imports the adapters directly, which feature decision 19 (entry 8) allows. On security, the only new markers are `# noqa: S606  # nosec B606` on the one `os.execvpe` line in `src/factory/adapters/process.py`, which is the exception `CLAUDE.md` allows; the `# noqa: S603` in the tests carries a reason beside it, as earlier tests do. The code matches the six steps in order. Entry 14 records `make check` green.
+
+    Not a finding: `make duplicates` reports one new dead-code record, the unused `CONFINE_COMMAND` in `src/factory/domain/agent_runs.py:27`. The Interface asks for it, and S0004 uses it.
+
+    Earlier tests:
+    - `tests/test_process_search.py`: covered by the human's leave. The story names `test_no_module_uses_another_route_to_a_process` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` under feature decision 7, and the change stays inside those two tests.
+    - `tests/test_wrapper_search.py`: covered by the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7; the change adds one importer.
+    - `tests/entry/test_wiring.py`: covered by the human's leave, the answer in journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
