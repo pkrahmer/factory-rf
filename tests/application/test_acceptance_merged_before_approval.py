@@ -159,6 +159,24 @@ def test_an_acceptance_merged_at_its_review_stage_is_booked_accepted_before_appr
     assert checkout.show_file("origin/main", REPORT) is None
 
 
+def test_an_acceptance_merged_before_approval_stamps_its_done_entry_with_the_time_and_stage(
+    boundaries: Boundaries,
+    definition: PipelineDefinition,
+    *,
+    checkout: GitCli,
+    publish: Publish,
+    merge: Merge,
+) -> None:
+    event = merge(publish("acceptance"))
+
+    AcceptanceMerged(boundaries, definition).handle(event)
+
+    state, text = _booked(boundaries, checkout)
+    last = state.journal[-1]
+    assert (last.at, last.stage) == (boundaries.clock.now(), "done")
+    assert text.startswith(BEFORE_APPROVAL)
+
+
 def test_an_acceptance_merged_while_it_waits_with_a_question_is_booked_and_unblocked(
     boundaries: Boundaries,
     definition: PipelineDefinition,

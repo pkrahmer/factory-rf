@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 pr: 203
 blocked: null
 comments_seen: 0
@@ -60,3 +60,12 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Demo: both commands are runnable, and each Expect line is checkable (two named output lines; a pytest summary with `<n> passed` and no `failed`, `error` or `skipped`).
    - Architecture: tests only, with a domain test and an application test, in the layer folders the tests mirror. No source change is needed or asked for.
    - Scope: within F0014. FEATURE.md lists S0012 and the leave of decisions 35 and 36 (4). Nothing in "Out of scope" is touched.
+3. tester: Tests written for the before-approval branch of `book_merge`. This story pins behaviour that already exists, so the new tests pass now rather than fail. `make test` is green (33.6 s) and `make lint` is green.
+   - criterion 1: tests/domain/test_journal_stamps.py::test_booking_records_the_done_entry_with_the_time_and_the_done_stage[with-at-merge-before-approval]. It is a new `booking` row, `merge-before-approval`, through the new helper `_merge_before_approval`, which calls `book_merge(_report(), bill([]), before_approval=True, at=at)`. It sits beside the rows `merge` and `refusal`, and the test's name and body did not change.
+   - criterion 2: tests/domain/test_journal_stamps.py::test_booking_records_the_done_entry_with_the_time_and_the_done_stage[without-at-merge-before-approval]
+   - criterion 3: tests/application/test_acceptance_merged_before_approval.py::test_an_acceptance_merged_before_approval_stamps_its_done_entry_with_the_time_and_stage. It uses the fixtures `publish("acceptance")` and `merge` and the helper `_booked`. It checks that the last record has `(at, stage) == (boundaries.clock.now(), "done")` and that its text starts with `done (pull request merged before approval); cost: `.
+   - criteria 4 and 5: no test (make check / docs: none).
+   Files changed: tests/domain/test_journal_stamps.py and tests/application/test_acceptance_merged_before_approval.py. No new files. The test runner imported every module. Nothing is red for the coder to fix: the story says no behaviour changes, so the coder only needs to confirm `make check` stays green.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: test: green (32.1 s)
