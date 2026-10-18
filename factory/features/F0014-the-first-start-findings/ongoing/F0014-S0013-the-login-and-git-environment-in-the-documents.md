@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 204
 blocked: null
 comments_seen: 0
@@ -76,3 +76,12 @@ Expect: `documents ok`.
       - Criterion 2: the coder's entry records `make check` green on the branch (`check: green`), and `make duplicates` shows 0 new findings.
       - Criterion 3 (docs) is the documenter's work. It names five edits, and for each one the section, the wording to add or replace and the text that must go. It still says what the reader needs to know after this story. Architecture, security and quality had nothing to check because no code changed.
       - Ticket hygiene: the Assignment matches what was built, which is nothing so far, as a documentation-only story intends. The log explains why each stage made no change.
+6. documenter: made the five edits of criterion 3 and no others; no code, test, image, template or claude/ file changed.
+   - `docs/decisions.md`: the "Left out" bullet of "The agent's login is a token from a file" now gives the API key's reason (F0014 decision 15, FEATURE.md "Out of scope") and no longer says "not recorded". "The factory's git runs no hooks" keeps its text and gains the parenthesis "(nine with `GIT_CONFIG_COUNT=4` since F0014-S0010, ...)" after "seven entries". The target section "No nested repository in the work tree" exists.
+   - `docs/operator-guide.md`: "The agent runtime" first sentence names the agent's login (token file, or a hand-made session when there is none) and keeps the no-API-key clause. "The agent runs as a second user" shows the call with `/bin/sh -c <script> factory-login <login file> claude ...`, adds that the shell exists only with `FACTORY_CLAUDE_LOGIN_FILE` and `exec`s `claude` so `timeout`'s kill still reaches it, and names `CLAUDE_CODE_OAUTH_TOKEN` among what the agent sees.
+   - `README.md`: the status paragraph replaces "not observed yet" with the first start of 2026-10-17 (two instances healthy, probe agent run included) and says a stage's agent run end to end and a `time_limit` under `sudo` are first observed at the shakedown run.
+   Checks: `check_documents` prints `documents ok`. I did not run `make check`, because only documents changed. The three grep counts of the demo were not run.
+   Stale, not touched because the criterion says "no others": the opening paragraph of `docs/operator-guide.md` (line 3) repeats "a run against a real repository with a token is not observed yet" and the Podman-probe-only wording that the README fix replaced. It is worth a follow-up. No findings for the coder.
+
+   `make check`: check: green
+   `make documents`: documents ok
