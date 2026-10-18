@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T16:01:27.830630Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -104,6 +100,12 @@ journal:
   kind: started
   at: '2026-10-18T16:01:27.830630Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-18T16:03:30.240686Z'
+  stage: tests
+  run: d1b646089fac4143ab39789ea1787af6
 ---
 
 # Every agent run starts through `factory-confine`
@@ -346,3 +348,13 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     Refactor: not done yet, because `make check` is not green; it comes after the tester's change. The Description needs no rewrite: the Interface line about `SHELL_EXECUTABLE` arrived on main (`f04fb5f0`).
 17. factory: started tests as self.
+18. tester: Made the approved test change from the coder's entry 16, under the human's entry 14 (feature decision 21, now on CLAUDE.md's exception list). I changed one test: `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`. Its expected `markers` dict now also has `"domain/confinement.py": {shm_line: {"noqa: S108", "nosec B108"}}`. The test finds `shm_line` the same way it finds the process lines: it takes the line of `src/factory/domain/confinement.py` whose code part, before any `#`, holds `"/dev/shm"`. Nothing else in that test or its module changed.
+
+    I kept the test's name, even though it now says "the four in the process wrapper". The reason is that `[tool.mutmut]` in `pyproject.toml` deselects the test by that exact name (see feature decision 7). Renaming it would need a change to `pyproject.toml`, which is outside my write paths.
+
+    Results: `make test` is green (coverage 98.67 %), and `make lint` is green.
+
+    Files changed: `tests/test_process_search.py`. Files created: none. Modules the test run could not import: none.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (49.2 s)
