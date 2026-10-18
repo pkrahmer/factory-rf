@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T12:51:06.752799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-18T12:51:06.752799Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T12:51:31.798033Z'
+  stage: smoke-test
+  run: a48865b644864153a0fa16e6bea18c93
 ---
 
 # The documents name the handover
@@ -219,3 +221,45 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test: I ran all four commands from the repository root in order, exactly as written. Each one met its Expect line. I changed nothing.
+
+    1. `grep -c "until this repository moves to v1.1's layout" docs/operator-guide.md`
+    ```
+    0
+    ```
+    Met (`0`). grep exits 1 when it counts zero matches, which is expected for this check.
+
+    2. `grep -c "factory-rf is built by v1.1 since the handover" docs/decisions.md`
+    ```
+    1
+    ```
+    Met (`1`).
+
+    3. `grep -c "factory/v1/" README.md`
+    ```
+    1
+    ```
+    Met (at least `1`).
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Met (`documents ok`).
+
+    Re-read of the acceptance criteria against the branch:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `README.md`, `docs/decisions.md`, `docs/operator-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under src/, tests/, image/, template/ or claude/ changed. The tester (entry 5) and the coder (entry 10) each said so.
+    - Criterion 2: I did not run `make check` myself. The documenter's entry records `check: green`, and the factory runs the gate.
+    - Criterion 3, `README.md`:
+      - The opening paragraph says the repository was built by the first implementation (github.com/pkrahmer/factory) until the handover of 2026-10-18 and by v1.1 itself since then.
+      - It says the agent run and the `time_limit` under `sudo` were observed on 2026-10-18, on the todo demo. `shakedown` no longer appears in the README.
+      - *How it is built* (line 26) names `factory/pipeline.yml`, `factory/features/` and `factory/v1/`.
+    - Criterion 3, `docs/operator-guide.md` (line 1162): the bullet names `factory/v1/` and what it holds. It says nothing reads it, that `factory-check-story` does not apply to it, and that v1.1 builds this repository from `factory/pipeline.yml`, `factory/story-form.md` and `factory/features/`.
+    - Criterion 3, `docs/decisions.md`: the last section (line 545), *factory-rf is built by v1.1 since the handover*, is dated 2026-10-18 with commit `3bcee441`. It gives all three reasons the criterion asks for.
+    - No command or document contradicts any criterion.
+
+    Findings: none.
+
+    Still open from the documenter's entry, outside this story's criteria:
+    - The two rejected alternatives in the decision-log entry are the documenter's inference and need the human to check them.
+    - Some stale "first observed at the shakedown" wording remains: decisions.md lines 462 and 504, and operator-guide line 259.
