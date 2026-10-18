@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The nested-repository walk's untested sides
 
 <!-- proposed by feature acceptance of 2026-10-18; refine before promoting -->
