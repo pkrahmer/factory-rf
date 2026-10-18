@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T19:22:04.685057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T19:22:04.685057Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T19:23:50.848073Z'
+  stage: doing
+  run: a80ddb3ad65d4941970e61c6f07dd8b2
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -141,3 +143,15 @@ Expect: `completed | root file refused | False`
    `lint`: lint: green (0.0 s)
    `test`: test: green (41.2 s)
 6. factory: started doing as self.
+7. coder: I built nothing. No file under `src/` changed: `git diff main -- . ':!factory' ':!tests'` is empty. The tester's new tests already pass against the code as it is, which is what the story expects. The new tests are `tests/adapters/test_claude_runtime_confinement_root.py` and `tests/entry/test_wiring_extras_path.py`, and the helpers they use moved to `tests/confine_support.py` and the `layout` fixture in `tests/conftest.py`. I ran `make check` in the foreground and it ended `check: green`, with `test: green` and coverage at 98.67 %.
+
+   Main choice: I left `src/` alone, as the Description says to do unless a test shows a fault, and none did. The alternative I rejected was touching `ClaudeCodeRuntime._confinement` or `_which_on` in `factory.entry.wiring` to make the pinned behaviour more explicit. That would be scope the story does not ask for.
+
+   Refactor: there is no diff of mine, so nothing needed changing.
+
+   Description: no journal entry changed the meaning of the task, so I left the Description as it is.
+
+   Noticed, not touched: `src/factory/entry/confine.py` is at 78 % coverage (lines 67-75, 80-83 and 95 are not covered). That is outside this story.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
