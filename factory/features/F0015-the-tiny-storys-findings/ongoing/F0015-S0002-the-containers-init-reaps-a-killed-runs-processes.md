@@ -1,3 +1,11 @@
+---
+stage: accept
+pr: 207
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # The container's init reaps a killed run's processes
 
 ## Assignment (as of log entry 1)
@@ -40,3 +48,65 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: concrete. It names the file (`image/compose.yml`, key `init: true` after `restart: unless-stopped`, which I confirmed is at line 10), the unchanged entrypoint (its last line is already `exec python -m factory.entry.run`) and the new test module with both test names and what each asserts. Its one behaviour is the boolean `true`, and the criteria check it with `is True`.
+   - Criteria: 1 and 2 are each one test function with no open decision. Criterion 3 is a list of existing tests that must still pass. The rules' failing sides are covered: criterion 1 fails on a missing key or the string "true", and criterion 2 fails on any other last line. Criteria 4 and 5 are the closing and docs criteria.
+   - Demo: both commands are runnable. The first expects `True`, and the second expects a `<n> passed` line with no failed, error or skipped count. Both can be checked against the output.
+   - Architecture: nothing under `src/` changes. This is a compose-file setting plus a test at the `tests/` root, next to `test_compose_project.py`. That fits the layout, since the module is outside the layers.
+   - Scope: this is S0002 of F0015, finding 2, as the feature's Scope lists it. Out of scope are the factory acting as reaper, tini in the image, and v1's own compose file. Decisions 6 to 8 cover the choices, and no earlier test changes.
+3. tester: wrote the tests from the Interface and the criteria.
+   - criterion 1: tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process. It loads `image/compose.yml` with `YAML(typ="safe")` and checks `services.factory.get("init") is True`. A missing key or the string "true" fails it.
+   - criterion 2: tests/test_compose_init.py::test_the_entrypoint_hands_over_to_the_factory_with_exec. The last line of `image/entrypoint.sh` that is not blank must equal `exec python -m factory.entry.run`. It already passes because the entrypoint stays unchanged; it guards against a later change.
+   - criterion 3: no new test. The tests already in tests/test_compose.py, test_compose_project.py, test_claude_token_mount.py, test_token_folder.py and test_image_credentials.py cover it.
+   - criteria 4 and 5: the closing and docs criteria, which need no test.
+   Files created: tests/test_compose_init.py.
+   Modules the runner could not import: none, because the module imports nothing under src/. Red for the right reason: the only failure in `make test` is test_the_container_runs_the_runtimes_init_as_its_first_process, since compose.yml has no `init` key yet. `make lint` is green. No criterion needed interpreting.
+
+   `make lint`: lint: green (0.0 s)
+   `make test`: FAILED tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process
+4. coder: added `init: true` to the service `factory` in `image/compose.yml`, right after `restart: unless-stopped`, with one comment line above it: the runtime's init is the first process and reaps what a killed run leaves, and the factory reaps only its own children. Commit b740a261.
+      - Design: I used the runtime's own init, as the Interface and FEATURE decision 6 call for. I rejected making the factory the reaper and installing tini in the image, for the reasons the feature gives. `image/entrypoint.sh` and `image/Dockerfile` are unchanged, and the entrypoint's last line is still `exec python -m factory.entry.run`.
+      - Refactor: there was nothing to clean up. The diff outside the tests and the ticket is two lines of YAML.
+      - Tests: both tests in tests/test_compose_init.py pass, and the existing compose tests still pass. `make check`: check: green.
+      - Open: the docs criterion (operator guide paragraph, step 4 of the entrypoint, the `time_limit` under `sudo` observation, the decision log entry) is the documenter's.
+
+   `make check`: check: green
+   `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Criteria: criterion 1 is pinned by tests/test_compose_init.py::test_the_container_runs_the_runtimes_init_as_its_first_process. It uses `YAML(typ="safe")` and `factory.get("init") is True`, so it fails both for a missing key and for the string "true", which is the rule's failing side. Criterion 2 is pinned by test_the_entrypoint_hands_over_to_the_factory_with_exec: the last non-blank line must equal `exec python -m factory.entry.run`, and any other line fails it. Criterion 3 relies on the existing compose and image tests, and the diff does not touch them. The coder's entry records `make check`: check: green, and `make duplicates`: 0 new.
+      - Interface: `image/compose.yml` gains only `init: true`, placed right after `restart: unless-stopped`. One comment line above it says that the runtime's init is the first process and reaps what a killed run leaves, and that the factory reaps only its own children. `image/entrypoint.sh` and `image/Dockerfile` do not appear in the diff. The new test module sits at the `tests/` root, reads both files from `Path(__file__).parent.parent` as the Interface says, and imports nothing under `src/`.
+      - Architecture and security: nothing under `src/` changes, and there are no suppression markers or secrets.
+      - Quality: the module docstring is present and the names say what they hold. There is no dead or duplicated code.
+      - Ticket hygiene: the Assignment matches what was built. The coder's entry names the design choice and the rejected alternatives (the factory as the reaper, tini in the image). The docs criterion is still current for the documenter.
+6. documenter: wrote the docs criterion.
+   - docs/operator-guide.md, "The container: compose, entrypoint and health check": new paragraph on `init: true` (the runtime's init as PID 1, what it does, the zombies without it, `--init` outside Compose, the Podman fallback).
+   - docs/operator-guide.md, "The entrypoint" step 4: says the factory is started with `exec` and runs as the init's child, not as PID 1.
+   - docs/operator-guide.md, "A `time_limit` under `sudo`" and its morning-observation row: the check is now `docker exec <container> ps -eo pid,ppid,user,stat,args`; PID 1 must be the runtime's init, no `Z` in `STAT` and no `<defunct>`, and no live `claude` of `agent`.
+   - docs/decisions.md: new entry "The container runtime's init reaps the processes a killed run leaves": cause, decision, the rejected alternatives (the factory as reaper, tini in the image, `timeout --foreground`), and why `make test` shows no reaping.
+   - Cross-read: `image/compose.yml` and the tests against the diff (`init: true` after `restart: unless-stopped`, entrypoint unchanged). They agree with what I wrote. `python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only docs; the factory runs it next.
+   - No findings against the code. I wrote the rejected-alternative reasons from FEATURE decision 6 and my own reading of the options. FEATURE decision 6 does not give a reason for rejecting `timeout --foreground`, so that reason is mine.
+   - Stale but unrelated, not touched: the operator guide's opening paragraph still says a `time_limit` under `sudo` is "first observed at the shakedown". That is still true, so nothing to fix.
+
+   `make check`: check: green
+   `make documents`: documents ok
+7. demo: ran both commands under `## Demo` from the repository root, in order. Both met their `Expect:` line. No findings.
+
+   1. Reading `services.factory.init` from `image/compose.yml` with `YAML(typ='safe')`:
+   ```
+   True
+   ```
+   Met: expected `True`.
+
+   2. `uv run pytest --no-header -p no:cacheprovider tests/test_compose_init.py tests/test_compose.py tests/test_compose_project.py tests/test_claude_token_mount.py tests/test_token_folder.py tests/test_image_credentials.py`:
+   ```
+   ...................                                                      [100%]
+   19 passed in 0.05s
+   ```
+   Met: the last line says `19 passed` with no failed, error or skipped count.
+
+   Criteria cross-check:
+   - Criterion 1: `init: true` is present as a boolean. The diff of `image/compose.yml` against `origin/main` adds only the comment line and `init: true`, right after `restart: unless-stopped`.
+   - Criterion 2: the entrypoint's last line is still `exec python -m factory.entry.run`, and `image/` shows no other change.
+   - Criterion 3: the five earlier test modules pass in command 2.
+
+   The demo contradicts no criterion. The real reaping inside a running container is not shown here, as decision 7 and the Assignment expect: it is a morning observation for the shakedown.

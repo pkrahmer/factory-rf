@@ -8,6 +8,8 @@ services:
       args:
         FACTORY_IMAGE: ${FACTORY_IMAGE:-unlabelled}
     restart: unless-stopped
+    # The runtime's init is the first process and reaps what a killed run leaves; the factory reaps only its own children.
+    init: true
     healthcheck:
       test: ["CMD", "python", "-m", "factory.entry.health"]
       interval: 30s
