@@ -556,7 +556,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         try:
             written = {files.instructions: request.agent.instructions}
             if request.guard is not None:
-                written[files.guard] = request.guard.model_dump_json()
+                written[files.guard] = self._guard_settings(request.guard, files).model_dump_json()
                 written[files.hooks] = _hook_settings(files.guard)
             if self._confine_executable is not None:
                 written[files.rules] = _confinement(request, files.temporary).model_dump_json()
@@ -565,6 +565,11 @@ class ClaudeCodeRuntime(AgentRuntime):
                 path.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise self._state_error(exc) from exc
+
+    def _guard_settings(self, guard: GuardSettings, files: _RunFiles) -> GuardSettings:
+        # Only a confined run has a temporary folder of its own for the hook to allow.
+        temporary = files.temporary if self._confine_executable is not None else None
+        return guard.model_copy(update={"temporary_directory": temporary})
 
     def _call(
         self,

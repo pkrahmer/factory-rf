@@ -68,7 +68,7 @@ class AgentDefinition(BaseModel):
 
 
 class GuardSettings(BaseModel):
-    """Where an agent may write: root, write paths, paths no agent may touch, tools' folders."""
+    """Where an agent may write: root, write paths, protected paths, tool and temporary folders."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -76,6 +76,7 @@ class GuardSettings(BaseModel):
     write_paths: list[str]
     protected_paths: list[str]
     tool_paths: list[str] = []
+    temporary_directory: AbsolutePath | None = None
 
 
 class AgentRunRequest(BaseModel):

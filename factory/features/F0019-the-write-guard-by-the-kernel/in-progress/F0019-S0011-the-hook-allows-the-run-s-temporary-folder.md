@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T20:30:12.250594Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,12 @@ journal:
   kind: started
   at: '2026-10-18T20:30:12.250594Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T20:32:18.568092Z'
+  stage: doing
+  run: b7ec67ca5d4c422fb8c3ada141c0218c
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -180,3 +182,24 @@ Expect: `with: 0`, then `without: 2`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/adapters/test_claude_runtime_guard_temporary.py::test_the_guard_settings_file_names_the_run_s_temporary_folder_when_confined[unconfined]
 9. factory: started doing as self.
+10. coder: Made the tester's red tests pass. `make check` is green, and no test was touched.
+
+    What I built:
+    - `src/factory/domain/agent_runs.py`: `GuardSettings` has a new field, `temporary_directory: AbsolutePath | None = None`. Because it is `AbsolutePath`, a relative value is refused just as `root` is. The docstring now names the new field.
+    - `src/factory/adapters/claude_guard.py`: `judge` keeps its order.
+      - A real path inside the real root still goes to `refusal`, even when the root lies beneath the temporary folder.
+      - Only a path outside the checkout is then tested by `_beneath_temporary_directory`. That test compares real paths by their parts with `Path.is_relative_to`, and it does not count the folder itself as beneath itself.
+      - The `realpath` call and its error handling are now in one helper, `_real_path`, which both checks share instead of each having a copy.
+      - With `temporary_directory` set to `None`, the verdict is the same as before.
+    - `src/factory/adapters/claude_runtime.py`: a new method, `ClaudeCodeRuntime._guard_settings`, copies the request's guard settings with `temporary_directory` set to `files.temporary` when the runtime has a `confine_executable`, and to `None` when it does not. This is the same path the confined command gets as `TMPDIR`.
+
+    Main choice: the runtime fills in the temporary folder when it writes the settings file. The rejected alternative was having the caller who builds the `AgentRunRequest` set it. That caller does not know the folder's name, which is built from the session inside the runtime. Setting it in the runtime also means an unconfined runtime always writes `null`, whatever the request carries.
+
+    Refactor pass: I read the diff and kept the shared `_real_path` helper. Nothing else needed changing.
+
+    Noticed but not touched: nothing.
+
+    The journal did not change the meaning of the task. The human's answer in entry 4 added only the checkout-first row, which intake had already written into criterion 1. The Description is unchanged.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
