@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T15:20:58.041187Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T15:20:37.599737Z'
   stage: doing
   run: b7940bb81d9d440b9701df380a2c776b
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:20:58.041187Z'
+  stage: review
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -226,3 +235,4 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
 
    `check`: check: green
    `duplicates`: duplicates: 3 new, 36 known, 3 gone
+8. factory: started review as self.
