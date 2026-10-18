@@ -3,7 +3,7 @@
 import pytest
 
 from factory.domain.sections import section_text
-from shipped_agents import SHIPPED_NAMES, front_matter_and_body
+from shipped_agents import SHIPPED_NAMES, agent_body
 
 _WRITE_PATHS_RULE = (
     "R14. The pipeline's own files — `factory/pipeline.yml`, `factory/story-form.md`, every "
@@ -26,25 +26,20 @@ _OLD_ENDING = (
 )
 
 
-def _body(name: str) -> str:
-    _, body = front_matter_and_body(name)
-    return body
-
-
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_rules_hold_the_write_paths_rule_as_one_line(name: str) -> None:
-    rules = section_text(_body(name), "Rules") or ""
+    rules = section_text(agent_body(name), "Rules") or ""
 
     assert _WRITE_PATHS_RULE in rules.splitlines()
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_old_ending_of_the_write_paths_rule_is_gone(name: str) -> None:
-    assert _OLD_ENDING not in _body(name)
+    assert _OLD_ENDING not in agent_body(name)
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_write_paths_rule_appears_once(name: str) -> None:
-    lines = [line for line in _body(name).splitlines() if line.startswith("R14. ")]
+    lines = [line for line in agent_body(name).splitlines() if line.startswith("R14. ")]
 
     assert len(lines) == 1

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T17:16:18.720421Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-18T17:16:18.720421Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-18T17:18:01.576220Z'
+  stage: tests
+  run: 89e09dd960d94aa79ebb6e081d160475
 ---
 
 # The agents' instructions explain a refused write
@@ -173,3 +175,19 @@ Expect: `1`
     - Main choice: end with `tests` and name the move, as the role requires. I rejected editing the test files myself: the coder never edits tests.
     - Not touched: the seven agent files under `claude/agents/` stay as round 0 left them. The reviewer found they match the Interface. No `src/` change. The docs criterion (`docs/project-guide.md`) is left to the documenter.
 12. factory: started tests as self.
+13. tester: Moved the shared test helper that the reviewer found in entry 9 and the coder named in entry 11. This used the standing leave in `CLAUDE.md` *Tests* to move a shared test helper.
+    - `tests/shipped_agents.py`: added a public `agent_body(name: str) -> str` next to `front_matter_and_body`. It returns the stripped body of the agent file.
+    - `tests/test_claude_agent_refusal.py` (this story's file): removed `_body` and now imports `agent_body`.
+    - `tests/test_claude_agent_texts.py` (an earlier story's file, changed under the standing leave): removed its identical copy of `_body`. Its call sites now use `agent_body`. Every test keeps its name and checks the same thing. `front_matter_and_body` is still imported there because that file uses it elsewhere.
+    - Name: I chose `agent_body` instead of the `body` that entry 11 suggested. `tests/test_claude_agent_texts.py` has local variables named `body = _body(name)`, so a helper named `body` would be shadowed and raise `UnboundLocalError`. I rejected renaming those local variables because it changes more of an earlier test than the move needs.
+    - Criterion → test, unchanged:
+      - criterion 1: tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line
+      - criterion 2: tests/test_claude_agent_refusal.py::test_old_ending_of_the_write_paths_rule_is_gone
+      - criterion 3: tests/test_claude_agent_refusal.py::test_write_paths_rule_appears_once
+      - criterion 4: `make check`, run by the factory
+      - criterion 5: the docs criterion, for the documenter
+    - Files created: none in this round. Changed: `tests/shipped_agents.py`, `tests/test_claude_agent_refusal.py`, `tests/test_claude_agent_texts.py`. Import errors: none.
+    - `make test` is green (coverage 98.67 %) and `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (35.5 s)

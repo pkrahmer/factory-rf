@@ -134,3 +134,9 @@ def front_matter_and_body(name: str) -> tuple[str, str]:
     assert split is not None
     front_matter, body = split
     return front_matter, body.strip()
+
+
+def agent_body(name: str) -> str:
+    """The stripped body of the shipped agent file `name`."""
+    _, text = front_matter_and_body(name)
+    return text
