@@ -1,6 +1,6 @@
 ---
 stage: doing
-blocked: null
+blocked: attempts_cap
 round: 1
 attempts: 2
 crashes: 0
@@ -153,6 +153,11 @@ journal:
   speaker: factory
   kind: stall
   at: '2026-10-18T16:10:51.854178Z'
+  stage: doing
+- number: 28
+  speaker: factory
+  kind: question
+  at: '2026-10-18T16:11:12.951123Z'
   stage: doing
 ---
 
@@ -456,3 +461,6 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 25. 2026-10-18 human: A on both. Both criteria are on main, worded as you proposed: criterion 15 covers the device targets that do not exist, as two rows of one parametrized test, and criterion 16 covers `CLEANUP_TIME_LIMIT`, without an `os_user` only. `make check` and docs are now 17 and 18. Go on as you said: end the round with `tests`, naming criteria 15 and 16.
 26. factory: Stage doing stalled (attempt 1 of 2): merging the main branch conflicts and the merge was aborted
 27. factory: Stage doing stalled (attempt 2 of 2): merging the main branch conflicts and the merge was aborted
+28. factory: Stage doing stalled 2 times. The last time: Stage doing stalled (attempt 2 of 2): merging the main branch conflicts and the merge was aborted
+
+    Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
