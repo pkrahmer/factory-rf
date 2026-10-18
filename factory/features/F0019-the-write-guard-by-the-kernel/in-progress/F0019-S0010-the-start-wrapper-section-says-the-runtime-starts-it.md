@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 231
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T20:17:27.845408Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T20:17:27.845408Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T20:18:28.252181Z'
+  stage: tests
+  run: 7e234a1e2ba042ac917e23bcaa186b42
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -87,3 +89,11 @@ Expect: `documents ok`
    - Architecture: it fits. It changes only the project guide, which the documenter owns. The facts it states match the guide's own *Confinement* paragraph (line 327), the operator guide and the README.
    - Scope: it matches the feature's scope ("`docs/project-guide.md` ... from each story's docs criterion"). It touches nothing in "Out of scope" and removes the stale-text note raised by S0007 and S0009.
 4. factory: started tests as self.
+5. tester: No tests written, because this is a documentation-only story. The Interface is "None" and no criterion states a behaviour that a test under `tests/` could check.
+   - criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage. I created and changed no files. That is checkable from the branch diff, not by a test.
+   - criterion 2: `make check` is the factory's gate and has no test function. `make lint` is green.
+   - criterion 3 (docs): the documenter's work on `docs/project-guide.md`. The check is `python -m factory.entry.check_documents` (`documents ok`) and the story's smoke test, not a pytest test.
+   Files created: none. Modules the test run could not import: none. No new tests exist, so there are no red tests for the coder. The coder's stage has nothing to implement under `src/` and should only confirm criterion 1 in its entry.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (42.5 s)
