@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T22:46:44.901225Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T22:46:44.894540Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:46:44.901225Z'
+  stage: intake
+---
+
 # The stops reach main as records
 
 ## Description
@@ -111,3 +138,6 @@ except ValueError:
 Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","at":"2026-10-18T10:00:00Z","instance":"self"}`, `True`, `refused`.
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
