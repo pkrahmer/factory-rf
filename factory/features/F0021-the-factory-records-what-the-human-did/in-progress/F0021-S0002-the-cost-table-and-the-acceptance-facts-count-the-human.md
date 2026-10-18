@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T22:21:54.391073Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T22:21:54.384718Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:21:54.391073Z'
+  stage: intake
+---
+
 # The cost table and the acceptance facts count the human
 
 ## Description
@@ -134,3 +161,6 @@ print(repr(cost_table_post("T", human="0 questions answered, 0.0 h waited")))
 Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0 h waited'`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
