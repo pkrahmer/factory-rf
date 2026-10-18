@@ -1,3 +1,103 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 218
+comments_read: [6250212284]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T12:59:03.868461Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:59:03.873829Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-18T12:59:20.130700Z'
+  stage: intake
+  run: f3c6912b075a40df83b177ae7020e8e6
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T13:00:36.241486Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:00:53.784861Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T13:01:04.040447Z'
+  stage: intake
+  run: b6e5fe0f3c554cfd8ed27bbed9a5f1cc
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:01:24.051747Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-18T13:02:48.753069Z'
+  stage: tests
+  run: 64b62336d28d449d8a44aae8a36e352e
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:03:08.654443Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-18T13:04:46.063101Z'
+  stage: doing
+  run: 75d4b0dc9386473a8bd4056402964a70
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:05:05.880952Z'
+  stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T13:05:31.904794Z'
+  stage: review
+  run: 8b52df4e900c4dc693661a6229230f03
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:05:52.091852Z'
+  stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T13:07:01.074966Z'
+  stage: docs
+  run: 1afc899dd1ae43e9ba155bc9da227519
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-18T13:07:21.549155Z'
+  stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T13:07:39.808777Z'
+  stage: smoke-test
+  run: 026a46f995f243668c3aa1d4663de3e0
+---
+
 # The agents' guide names v1.1's pipeline definition
 
 <!-- proposed by feature acceptance of 2026-10-18; refine before starting -->
@@ -39,3 +139,101 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
+3. intake: 1. Scope: `feature.md` lists in its Scope only the README's opening and *How it is built*, the operator guide's bullet, and a new decision-log entry for the handover. This story edits `docs/project-guide.md` (section *The document check*) and rewords an existing, dated entry in `docs/decisions.md`. Neither is in the Scope, and the feature's Stories list names only S0001. Out of scope does not exclude them. Do you want `feature.md` widened to cover them and S0002 added to its Stories list? That file is yours to change (R14). I would choose yes: the passages are plainly stale, and the story is the acceptance reviewer's proposal that you started from `backlog/`.
+   2. Decision log: criterion 3 rewrites a sentence in an existing dated entry, while the Description keeps "the dated history in the decision log's other entries". Is a rewording in place what you want, or should the correction be a new dated line added to that entry? I would choose the in-place rewording the criterion states, since it keeps the pointer to v1's file.
+   3. Criterion 1 ("the tester and the coder each end with an entry saying so") is a statement about journal entries. One test function cannot check it, and it has no check for the files that must not change. Do you accept it as a process note, with the reviewer checking the diff? I would choose yes.
+4. 2026-10-18 human: 1. Yes: `feature.md` now names both passages in its Scope and S0002 in its Stories (on main; the next stage start merges it).
+   2. Reword in place, as the criterion states, keeping the pointer to v1's file (feature decision 3).
+   3. Yes: criterion 1 is a process note; the reviewer checks the diff.
+5. factory: started intake as self.
+6. intake: accepted
+   Interface: "None" is stated and exact: documentation only, no module or signature, so there is no Interface comment or rule needing a criterion.
+   Criteria: the intake answers (journal 4) settled criterion 1 as a process note checked by the reviewer's diff. Criterion 2 is `make check`. Criterion 3 gives exact before and after sentences for both passages, and `documents ok` is checkable. Nothing in the story states a validation or error rule, so there is no failing side to cover.
+   Smoke test: the four commands are runnable from the repo root, and each has an `Expect:` line checkable against the output (`0`, `0`, `1`, `documents ok`).
+   Architecture: nothing under `src/` changes, so the four layers are untouched. Only `docs/project-guide.md` and `docs/decisions.md` change, which is the documenter's job.
+   Scope: `feature.md` now names both passages in its Scope and S0002 in its Stories (journal 4, answer 1), and neither is in its Out of scope. The in-place rewording matches feature decision 3. I made no edits to the story.
+7. factory: started tests as self.
+8. tester: No tests written. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changes. The story is documentation only: its Interface is "None", and criterion 1 asks the tester to change nothing.
+   criterion 1: no test. It is a process note (journal 4, answer 3), and the reviewer checks it on the diff.
+   criterion 2: covered by `make check` itself; no new test.
+   criterion 3: no test. It is the documenter's change to `docs/project-guide.md` and `docs/decisions.md`. The smoke test checks it, as does `python -m factory.entry.check_documents` (`documents ok`).
+   Files created: none. Modules the test run could not import: none. `make test` is green (coverage 99.44%), so the branch has no red tests, which is intended for this story. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (35.4 s)
+9. factory: started doing as self.
+10. coder: Nothing built. No file under `src/`, `tests/`, `image/`, `template/` or `claude/` changes. The story is documentation only: its Interface is "None", and criterion 1 asks the coder to change nothing. The rewording in `docs/project-guide.md` and `docs/decisions.md` is the documenter's job, and the coder does not write those documents.
+    Main choice: I left the two stale passages for the docs stage. The alternative was to fix them here, since they are two sentences, but I rejected it because the coder does not write the docs and criterion 1 forbids it.
+    Refactor: there is no diff to refactor.
+    The journal changed nothing in the Description. The intake answers (journal 4) were already reflected in it, so it is not rewritten.
+    Noticed, not touched: nothing.
+    `make check`: check: green (test: green, coverage 99.44%).
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. factory: started review as self.
+12. reviewer: no findings
+
+    Read: the work item, `git diff --stat main...HEAD -- . ':!factory'` and the diff itself. Both are empty, so the branch changes nothing outside `factory/`. `git diff --name-status main...HEAD` lists only the work item's `.md` (M) and its `.costs.jsonl` sidecar (A).
+    1. Acceptance criteria: criterion 1 holds on the diff. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changes, and the tester's entry (8) and the coder's entry (10) each say so. Criterion 2: the coder's entry records `check: green` (coverage 99.44 %) and `duplicates: 0 new, 39 known, 0 gone`. The Interface is "None", so there is no rule whose failing side needs a test.
+    2.–4. Architecture, security, quality: nothing to judge, because no code changed and no silencing marker was added.
+    5. Work item hygiene: entry 10 states the main decision (leave both passages to the documenter) and the rejected alternative. The Description matches the empty diff. The docs criterion is still accurate against the committed state. `docs/project-guide.md:1710` still has the sentence "v1's pipeline configuration for this repository runs it…". `docs/decisions.md:11` still has "The coder's write paths in `factory/stages.yml` name them". `factory/pipeline.yml:31` (docs stage, `checks: [check, documents]`) and `factory/pipeline.yml:20` (coder write paths `src/*`, `image/*`, `template/*`, `claude/*`) back the new wording the criterion asks for.
+    6. Earlier tests: no test file on `main` is changed, renamed or deleted.
+13. factory: started docs as self.
+14. documenter: Files changed:
+    - `docs/project-guide.md` (section *The document check*): the sentence now begins "This repository's pipeline definition (`factory/pipeline.yml`) runs it as a check of the docs stage through `make documents`". The rest of the paragraph is unchanged. `factory/pipeline.yml` does run it: the docs stage has `checks: [check, documents]`.
+    - `docs/decisions.md` (entry *Three top-level paths for the product beyond `src/` and `tests/`*): the sentence now reads "The coder's write paths in the pipeline definition (`factory/pipeline.yml`; v1's `factory/stages.yml` until the handover of 2026-10-18) name them". I reworded it in place, as the criterion and the human's answer in journal 4 ask.
+
+    Run: `python -m factory.entry.check_documents` prints `documents ok`. `grep -c` for the old project-guide phrase prints 0.
+
+    I did not run `make check`, because I changed only documents. The factory runs it after this stage.
+
+    Cross-read and found current: the diff against `main` outside `factory/` and the docs is empty, so no name or behaviour changed. The rest of `docs/project-guide.md` *The document check* and the neighbouring text in the `docs/decisions.md` entry agree with `factory/pipeline.yml`. I did not cross-read the README or the operator guide beyond that, because S0001 covered them.
+
+    No findings for the coder.
+
+    Stale text I noticed and did not touch: none.
+
+    `check`: check: green
+    `documents`: documents ok
+15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test: all four commands met their `Expect:` lines. No findings.
+
+    I ran each command once from the repository root, in order, as written.
+
+    1. `grep -c "v1's pipeline configuration for this repository" docs/project-guide.md`
+    ```
+    0
+    ```
+    Expect `0`: met. grep exits 1 when the count is 0, which is normal for `grep -c`.
+
+    2. ``grep -c "The coder's write paths in \`factory/stages.yml\` name them" docs/decisions.md``
+    ```
+    0
+    ```
+    Expect `0`: met. grep exits 1 for the same reason.
+
+    3. ``grep -c "v1's \`factory/stages.yml\` until the handover of 2026-10-18" docs/decisions.md``
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Expect `documents ok`: met (exit 0).
+
+    Criteria re-read against the committed state:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `docs/decisions.md`, `docs/project-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed. The tester's entry (8) and the coder's entry (10) each say so.
+    - Criterion 2: I did not run `make check` (the smoke test doesn't call it). The documenter's entry (14) records `check: green` from the factory's run after the docs stage.
+    - Criterion 3: the docs diff has exactly one changed line in each file.
+      - In `docs/project-guide.md`, the sentence now begins "This repository's pipeline definition (`factory/pipeline.yml`) runs it as a check of the docs stage through `make documents`", and the rest of the paragraph is unchanged.
+      - In `docs/decisions.md`, the sentence now reads "The coder's write paths in the pipeline definition (`factory/pipeline.yml`; v1's `factory/stages.yml` until the handover of 2026-10-18) name them".
+      - No other passage of either document changed, and `documents ok` was printed.
+
+    The smoke test contradicts no criterion. Nothing is open.
