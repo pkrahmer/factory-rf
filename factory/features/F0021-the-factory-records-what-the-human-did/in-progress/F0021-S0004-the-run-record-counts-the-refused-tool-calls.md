@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T23:46:29.771101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-18T23:46:29.771101Z'
   stage: docs
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T23:47:36.182141Z'
+  stage: docs
+  run: 453d2d6a885c41a5ab5b5feff36752a9
 ---
 
 # The run record counts the refused tool calls
@@ -491,3 +493,18 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     - tests/adapters/test_claude_runtime_resume.py: the story's Interface names it under the feature's decision 14. The only change is that the expected `Write` denial gains `path="x"`.
     - tests/application/test_costs.py: the human's answer in journal entry 11, point 2. The only change is that the expected completed `CostRecord` in `test_the_sidecar_is_written_again_after_the_undo` gains `denials=0, denied_paths=[]`.
 31. factory: started docs as self.
+32. documenter: Docs were already written in the earlier docs round and are still true against the diff `main...HEAD` for `src/`. I changed no file this round. I did not run `make check`, because I changed no file; the factory's check after this stage decides.
+
+    Files changed on the branch for this story (documents):
+    - `docs/operator-guide.md`: new section "Refused tool calls in the sidecar". It names `denials` and `denied_paths` and says that only tool calls the runtime reports as refused are counted, not a refusal that is only text in a tool's output (for example a write the kernel refuses). It also says a run with no reply, and older lines, have neither key, and that `factory-bill` does not print them.
+    - `docs/project-guide.md`: three places.
+      - The claude runtime's measures now say how a denial's `path` is chosen: `file_path` if it is a string, else `notebook_path` if it is a string, else `None`, also when `tool_input` is not an object.
+      - Cost records, "Completed at the end": what `complete` sets for `denials` and `denied_paths`. `died` and `time_limit` give `None`. A replied run without denials gives `0` and `[]`.
+      - Cost records, the field list, the `started` rule, the `denials >= 0` rule and the line format: `denials` and `denied_paths` are written after `instance`, and each is left out when `None`.
+
+    Cross-read and found current: `README.md`, the rest of `docs/operator-guide.md` and the rest of `docs/project-guide.md`. A search for the old "`instance` last" wording and for `PermissionDenial` found no other stale text. The code matches the Interface and the criteria (`path` on `PermissionDenial`, `_denied_path`, the two `CostRecord` fields, `CostRecorder.complete`, the JSONL writer). Public names have docstrings.
+
+    No findings. Stale text I noticed that is not mine to fix: none.
+
+    `check`: check: green
+    `documents`: documents ok
