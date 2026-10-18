@@ -624,3 +624,12 @@ Date: 2026-10-18 (F0021-S0003). A stop of the repository or the machine was a li
 - Reasons: the viewer reads `main` and the factory's state is the remote's (R1); a stop's events are facts of the repository, the detail is the instance's.
 - Rejected: the health status file or the factory log as the published place (instance-local, rewritten or unstructured); a branch of its own for the records (the viewer would read two places); a separate event per tick that the stop lasts (it would grow without telling more).
 - Accepted effect: a `stops recorded` commit is a new `main`, so the preflight probes again, and while `preflight_failed` stands it clears `main_branch_failing` (and records a `cleared`) although `main` is still red. The probe raises it again once the machine's items pass. A later story may make the rule ignore a commit that changes only `factory/stops.jsonl`.
+
+## The reviewer passes test-quality points on as notes from round 1 on, and may add a criterion that needs no code
+
+Date: 2026-10-18 (F0021-S0005). Two questions kept reaching the human: the round cap, asked after the reviewer sent a story back at every round for the quality of its own new tests, and a request for a criterion that needs no code, for behaviour the diff already builds. Both are the factory's way from an LLM on watch to running alone.
+
+- Decision: from round 1 on, a test-quality point in a test file the diff adds is a note under `Notes:` in the reviewer's entry and does not send the story back; at round 0 it still does. A point on a criterion, the architecture, security or `src/` stays a finding.
+- Decision: the reviewer may add a criterion that only pins behaviour already built, writing it into the story and naming it as `criterion <n> added: it needs its test`. The coder ends with `tests` without a code change and the tester writes the test. A criterion that needs code stays a finding or a question.
+- Reasons: the questions were about nothing the human decides; the added criterion is still a send-back, so the round cap keeps a limit.
+- Rejected: raising the round cap (it only delays the same question); leaving every criterion to the human (the question needs no judgement and costs a wait).

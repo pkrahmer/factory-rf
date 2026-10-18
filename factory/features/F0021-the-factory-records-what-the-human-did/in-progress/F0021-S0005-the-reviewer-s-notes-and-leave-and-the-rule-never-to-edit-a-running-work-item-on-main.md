@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T23:56:56.248192Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T23:56:56.248192Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T23:58:04.750485Z'
+  stage: docs
+  run: b86ad4a6fa424a97b7543acd645d8624
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -215,3 +217,18 @@ Expect: five lines, each `1`.
 
    Earlier tests: none. The only test file in the diff is the new `tests/test_claude_agent_texts_review_leave.py`.
 10. factory: started docs as self.
+11. documenter: No findings. The code matches the Interface.
+
+    Files changed (documents only, so I did not run `make check`; the factory's run after this stage decides):
+    - `docs/operator-guide.md`: new `### Never edit a running work item on main` at the end of *A stage changed by hand*. It says to answer in the pull request, and that an edit on `main` conflicts at the next stage start and stalls with `merge_conflict` (F0019-S0004). When it has happened, revert the edit on `main`.
+    - `docs/operator-guide.md`: new `### The reviewer's notes and added criteria` at the end of *The factory's own questions*. It explains `Notes:` from round 1 on and `criterion <n> added`. It also says an added criterion is a send-back that counts a round, so the round cap may still ask the human.
+    - `docs/decisions.md`: new entry "The reviewer passes test-quality points on as notes from round 1 on, and may add a criterion that needs no code". It gives the reason and the rejected alternatives: raising the round cap, and leaving every criterion to the human.
+
+    Checks run: `grep -cx '### Never edit a running work item on main' docs/operator-guide.md` gives `1`, as the smoke test expects. I did not run the agent-file greps, which the smoke tester runs.
+
+    Cross-read and found current: the operator guide's *The agent files* section, whose list of seven agents is unchanged, and the story's diff, which is only the four agent texts and the new test module.
+
+    Stale text noticed, not touched: in `docs/operator-guide.md`, the rows "The form has findings" and "The round cap" of the table in *The factory's own questions* have a "Comment reads" cell that says `no claude process of agent; see "A time_limit under sudo" above`. That is unrelated to this story.
+
+    `check`: check: green
+    `documents`: documents ok
