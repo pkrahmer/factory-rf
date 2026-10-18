@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T22:13:21.001106Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -144,6 +140,18 @@ journal:
   kind: started
   at: '2026-10-18T22:13:21.001106Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:14:29.730767Z'
+  stage: review
+  run: 71863775d1e14e369eaed67c3c444c34
+- number: 26
+  speaker: factory
+  kind: question
+  at: '2026-10-18T22:14:29.730767Z'
+  stage: review
+  run: 71863775d1e14e369eaed67c3c444c34
 ---
 
 # The journal records why a work item waited or stalled
@@ -530,3 +538,31 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 24. factory: started review as self.
+25. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item: the source changes in `src/factory/domain/journal.py`, `work_item.py`, `decisions.py` and the five writers, and every new and changed test.
+
+    The round-1 finding is resolved. In `tests/domain/test_journal_causes.py`, criterion 4 is now one parametrized test, `test_append_entry_puts_a_cause_into_the_new_record_only_on_its_own_kind`. It has an `accepted` column and keeps every earlier row.
+
+    Groups 1 to 4 pass:
+    - Criteria 1 to 11 each have a test that checks what the criterion says.
+    - The refused sides of the kind rule and of the type rule are rows of their parametrized tests.
+    - Entry 23 reports `make check` green.
+    - The layers hold: the cause types are in `domain` and are kept by assignment in `work_item` and `decisions`.
+    - No markers and no secrets.
+    - No new copy of a shared helper. The module-local `_definition` in `tests/application/test_question_causes_recorded.py:38` follows the per-module pattern that about 20 earlier modules use; there is no shared helper for it.
+
+    Group 5 (work item hygiene) fails:
+
+    1. Work item `## Interface`, the `append_entry` signature, against `src/factory/domain/journal.py:174-188`: the Interface says `append_entry` takes two keyword-only parameters, `blocked: Blocked | None = None` and `reason: StallReason | None = None`. The code takes `**causes: Unpack[JournalCauses]` instead, and `JournalCauses` is a new public `TypedDict` that the Interface does not name. The coder's entries 7, 15 and 23 say "the journal did not change the meaning of the task" and leave the mismatch for the review. Fix: the coder ends with `question` and gives the human two options. (a) Rewrite the Interface to the built signature, naming `JournalCauses` and the reason (ruff's `PLR0913`). (b) The human adds a `PLR0913` per-file ignore in `pyproject.toml`, and the coder switches to the plain signature. I would choose (a): every caller is written the same way, and mypy checks the values.
+
+    Earlier tests (item 6):
+    - `tests/application/handlers/test_questions.py`: human's leave (the story's Interface names it under the feature's decision 13). It only adds `blocked="attempts_cap"` to two expected records.
+    - `tests/application/test_stalls.py`: human's leave, the same way. It only adds `reason="died"` to three expected stall records.
+    - `tests/application/test_recovery_cap.py`:
+      - human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record;
+      - standing leave to move a shared test helper: `_pull_request` is replaced by `crash_support.open_pull_request`. The test names are unchanged.
+    - `tests/application/test_recovery_expiry.py`:
+      - human's leave, the same way: it adds `blocked="crash_cap"`;
+      - standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py` with the same bodies. The test names are unchanged.
+    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`. The test names are unchanged, and the new `open_story` parameters default to the old behaviour.
+    - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
+26. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
