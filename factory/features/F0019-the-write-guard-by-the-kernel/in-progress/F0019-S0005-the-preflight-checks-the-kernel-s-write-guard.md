@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T17:06:17.149210Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-18T17:06:17.149210Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T17:06:31.316852Z'
+  stage: smoke-test
+  run: fc50d027f6e94930928fead0c851e26f
 ---
 
 # The preflight checks the kernel's write guard
@@ -326,3 +328,20 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test: I ran the one command under `## Smoke test` from the repository root, exactly as written. There are no findings.
+
+    Command 1 (`uv run -q python -c '…confinement_item…'`), exit status 0:
+
+    ```
+    True
+    the kernel offers Landlock ABI 2, the write guard needs ABI 3 or higher: update the kernel (on WSL: wsl --update), or allow the Landlock system calls in the container runtime's seccomp profile; factory-confine is not on the agent run's PATH /nowhere
+    ```
+
+    It met its `Expect:` line. It printed two lines: `True`, then exactly the expected joined detail, with the kernel's fault first, then `; `, then the wrapper's fault.
+
+    Against the acceptance criteria:
+    - Line 1 shows that this machine's kernel offers Landlock ABI 3 or higher. It also shows that `factory-confine` is on the `PATH` of `uv run`, so the item passes there (criterion 1).
+    - Line 2 matches criterion 2 (ABI 2), criterion 3 (not on `PATH /nowhere`) and criterion 4 (the order of the two faults), each word for word.
+    - The smoke test does not reach criteria 5 to 7. Nothing in its output contradicts them or any other criterion.
+
+    Findings: none.
