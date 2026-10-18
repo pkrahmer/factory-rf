@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T19:24:10.823730Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-18T19:23:50.848073Z'
   stage: doing
   run: a80ddb3ad65d4941970e61c6f07dd8b2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:24:10.823730Z'
+  stage: review
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -155,3 +164,4 @@ Expect: `completed | root file refused | False`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
