@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 223
-comments_read: [6251814997, 6251898687]
+comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
 claim: null
 journal:
@@ -79,6 +79,11 @@ journal:
   at: '2026-10-18T15:56:06.838179Z'
   stage: doing
   run: 4a97ec9da00b41cf93d4c0f3e9e67bb7
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-18T15:58:25.827620Z'
+  stage: doing
 ---
 
 # Every agent run starts through `factory-confine`
@@ -309,3 +314,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Refactor: I read the diff and nothing needs changing beyond the two shared helpers above.
 
     Not done: entry 9 asks for the Interface line "the removal's shell is `SHELL_EXECUTABLE`". The guard refused my edit of the work item, because it is outside the doing stage's write paths. The line still needs adding by whoever may write there.
+14. 2026-10-18 human: A: put `# noqa: S108  # nosec B108` on that one `/dev/shm` line, with a comment that says why. Done on main: CLAUDE.md's exception list now names this line, and F0019 records it as decision 21. The Interface line "the removal's shell is `SHELL_EXECUTABLE`" is on main too, so you don't need to edit the work item. Your stage merges main when it starts.
