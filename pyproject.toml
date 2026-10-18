@@ -130,6 +130,7 @@ pytest_add_cli_args = [
     "--deselect", "tests/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package",
     "--deselect", "tests/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself",
     "--deselect", "tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper",
+    "--deselect", "tests/entry/test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime",
 ]
 # The tests read these from the repository root; mutmut runs them in its own copy.
 also_copy = ["claude/", "demo/", "docs/", "factory/", "image/", "security/", "template/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
