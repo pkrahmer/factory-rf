@@ -12,6 +12,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.sealed_runs import run_sealed
 from factory.application.stops import StopService
 from factory.domain.agent_runs import (
+    CONFINE_COMMAND,
     GUARD_COMMAND,
     QUESTION,
     AgentDefinition,
@@ -19,6 +20,7 @@ from factory.domain.agent_runs import (
     GuardSettings,
 )
 from factory.domain.checks import CheckResult
+from factory.domain.confinement import abi_fault
 from factory.domain.errors import (
     AgentDefinitionError,
     AgentRuntimeError,
@@ -59,7 +61,12 @@ _NO_AGENT_USER = (
     "who can read the token file"
 )
 _AGENT_ENVIRONMENT_ITEM = "agent-environment"
+_CONFINEMENT_ITEM = "confinement"
 _PROBE_ITEM = "agent-run-probe"
+_KERNEL_ADVICE = (
+    "update the kernel (on WSL: wsl --update), "
+    "or allow the Landlock system calls in the container runtime's seccomp profile"
+)
 
 PROBE_AGENT = "coder"
 PROBE_PROMPT = "Probe: end with the decision question and the entry probe."
@@ -143,7 +150,10 @@ def agent_environment_item(
     # would let every write through.
     faults = [
         fault
-        for fault in (_path_fault(environment, find), _home_fault(environment, is_directory))
+        for fault in (
+            _path_fault(environment, find, GUARD_COMMAND),
+            _home_fault(environment, is_directory),
+        )
         if fault is not None
     ]
     if faults:
@@ -152,13 +162,13 @@ def agent_environment_item(
 
 
 def _path_fault(
-    environment: Mapping[str, str], find: Callable[[str, str], str | None]
+    environment: Mapping[str, str], find: Callable[[str, str], str | None], command: str
 ) -> str | None:
     path = environment.get("PATH")
     if path is None:
         return "the agent run has no PATH"
-    if find(GUARD_COMMAND, path) is None:
-        return f"{GUARD_COMMAND} is not on the agent run's PATH {path}"
+    if find(command, path) is None:
+        return f"{command} is not on the agent run's PATH {path}"
     return None
 
 
@@ -169,6 +179,31 @@ def _home_fault(environment: Mapping[str, str], is_directory: Callable[[Path], b
     if not is_directory(Path(home)):
         return f"the agent run's HOME {home} is no directory"
     return None
+
+
+def confinement_item(
+    abi: Callable[[], int],
+    environment: Mapping[str, str],
+    find: Callable[[str, str], str | None],
+) -> PreflightItem:
+    """Check that the kernel offers the Landlock the write guard needs and runs find the wrapper."""
+    # Every agent run starts through the wrapper, which refuses to run unguarded, so
+    # either fault would end every run; the factory does not fall back to the hook.
+    faults = [
+        fault
+        for fault in (_kernel_fault(abi()), _path_fault(environment, find, CONFINE_COMMAND))
+        if fault is not None
+    ]
+    if faults:
+        return PreflightItem(name=_CONFINEMENT_ITEM, passed=False, detail="; ".join(faults))
+    return PreflightItem(name=_CONFINEMENT_ITEM, passed=True)
+
+
+def _kernel_fault(abi: int) -> str | None:
+    fault = abi_fault(abi)
+    if fault is None:
+        return None
+    return f"{fault}: {_KERNEL_ADVICE}"
 
 
 def agent_run_probe_item(

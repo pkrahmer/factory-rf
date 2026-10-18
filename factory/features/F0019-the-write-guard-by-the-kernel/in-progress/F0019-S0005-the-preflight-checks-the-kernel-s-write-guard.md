@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:54:31.124779Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-18T16:54:31.124779Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:56:54.256196Z'
+  stage: doing
+  run: 1555ecbf28c74389ad68e2629da26e77
 ---
 
 # The preflight checks the kernel's write guard
@@ -135,3 +137,20 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/application/test_confinement_item.py - ImportError while importin...
 6. factory: started doing as self.
+7. coder: I built the `confinement` preflight item and wired it into the machine's extras.
+
+   - `src/factory/application/preflight.py`: added `confinement_item(abi, environment, find)`, a private `_kernel_fault` and the constants `_CONFINEMENT_ITEM` and `_KERNEL_ADVICE`. `_kernel_fault` adds the "update the kernel …" advice to `abi_fault`'s text. The item joins the kernel's fault and the wrapper's with `"; "`, the kernel's first.
+   - `src/factory/entry/wiring.py`: `machine_extras` now appends `lambda: confinement_item(abi_version, environment, _which_on)` after `agent-environment` and before `agent-run-probe`. `abi_version` comes from `factory.adapters.landlock`.
+
+   Main choice: I reused the `_path_fault` helper that `agent_environment_item` already had. It used to be fixed to `GUARD_COMMAND`; it now takes the command as a parameter, and `agent-environment` passes `GUARD_COMMAND` while `confinement` passes `CONFINE_COMMAND`. Both texts ("the agent run has no PATH" and "… is not on the agent run's PATH …") are exactly what the Interface asks for. I rejected writing a second, nearly identical PATH check for the wrapper, because that would be a duplicate helper.
+
+   One departure from the Interface: its docstring for `confinement_item` was 105 characters at its indent, over ruff's 100-character limit. I reworded it to "Check that the kernel offers the Landlock the write guard needs and runs find the wrapper." The meaning is the same.
+
+   Refactor pass: I read the diff and found nothing to change.
+
+   `make check` is green: lint, types, layers, sast, secrets, licenses and test. The smoke test prints `True` and then the expected joined detail.
+
+   Noticed but not touched: the docs criterion (operator guide rows, the decisions entry *No agent runs without the kernel's write guard*) is left to the documenter. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone

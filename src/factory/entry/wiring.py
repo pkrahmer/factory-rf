@@ -17,6 +17,7 @@ from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
+from factory.adapters.landlock import abi_version
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
@@ -52,6 +53,7 @@ from factory.application.preflight import (
     agent_environment_item,
     agent_run_probe_item,
     agent_user_item,
+    confinement_item,
     token_file_item,
     tool_item,
 )
@@ -381,6 +383,7 @@ def machine_extras(
     if settings.agent_user is not None:
         extras.append(lambda: tool_item("sudo", which))
     extras.append(lambda: agent_environment_item(environment, _which_on, Path.is_dir))
+    extras.append(lambda: confinement_item(abi_version, environment, _which_on))
     extras.append(lambda: agent_run_probe_item(boundaries, settings, environment))
     return extras
 
