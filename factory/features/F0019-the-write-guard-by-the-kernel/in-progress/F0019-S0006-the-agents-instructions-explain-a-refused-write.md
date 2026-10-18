@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T17:15:41.145276Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-18T17:15:21.082615Z'
   stage: review
   run: 13fd501ffaf7403e928f60972e35612c
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:15:41.145276Z'
+  stage: doing
 ---
 
 # The agents' instructions explain a refused write
@@ -146,3 +155,4 @@ Expect: `1`
    Group 4 fails on the item above, so group 5 was not reviewed.
 
    Earlier tests: none. The diff changes no test file that `main` already holds; `tests/test_claude_agent_refusal.py` is new (status `A`).
+10. factory: started doing as self.
