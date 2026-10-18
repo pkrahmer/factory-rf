@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -96,6 +96,11 @@ journal:
   at: '2026-10-18T20:35:37.456557Z'
   stage: smoke-test
   run: 53ac3895136f4ad4b5d6b6e34a1a1ec7
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-18T20:36:55.276946Z'
+  stage: approval
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -297,3 +302,4 @@ Expect: `with: 0`, then `without: 2`
     - No criterion is contradicted.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 5.8 min, 54 turns, 169375 tokens in (1083486 more from cache), 25154 out, $1.78
