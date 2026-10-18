@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 198
 blocked: null
 comments_seen: 0
@@ -98,3 +98,4 @@ Expect: `documents ok`.
    - Criterion 3 holds. Line 134 of the guide (row "The mode of what an agent makes") expects "`2775` for the directory, `664` for the file" and gives the setgid/`factory-work` reason for the 2026-10-17 first start. Line 345, in *Podman: the commands*, has the Windows connection paragraph with the error text, `podman system connection list`, the `--url`/`--identity` form with the `ps` example, and the unobserved `compose` caveat. The document check prints `documents ok`.
 
    No findings.
+8. done (pull request merged); cost: 6 runs, 1.6 min, 25 turns, 73k tokens in (258k more from cache), 5k out, $0.54
