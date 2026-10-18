@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T22:35:40.104083Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-18T22:35:40.104083Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-18T22:35:56.627584Z'
+  stage: doing
+  run: baa0eae1398b4abc8231fe6aed8bebc7
 ---
 
 # The cost table and the acceptance facts count the human
@@ -303,3 +305,14 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     - `tests/application/test_stage_run_acceptance.py`: changed under the feature's decision 13. The compared prompt tail grows by one line (`[-3:]` → `[-4:]`), nothing else.
     - `tests/application/test_task_acceptance.py`: changed under the feature's decision 13. The compared prompt tail grows by one line (`[-4:]` → `[-5:]`), nothing else.
 13. factory: started doing as self.
+14. coder: Round 1. The reviewer has one finding, and it is about tests, not code: no test checks either side of the `PositiveInt` limit on `HumanWait.question`. Fixing it is the tester's job (R9), so I changed no code and no test. `src/factory/domain/human_waits.py` already declares `question: PositiveInt`, so the new test should pass as soon as it exists.
+
+    The test change for the tester: in `tests/domain/test_human_waits.py`, add one parametrized test that builds `HumanWait` through a variable typed `type[BaseModel]`, with two rows:
+    - `question=0` raises `ValidationError`;
+    - `question=1` is accepted.
+
+    Each row also needs `blocked="question"` and a UTC `asked_at`.
+
+    What the journal changed: nothing in what the task means. `PositiveInt` was already in the Interface, and CLAUDE.md *Tests* asks for a test on both sides of every limit the Interface states. The reviewer also suggests that criterion 1 gain a matching row. I left `## Description` as it is because no journal entry changed the meaning of the task. If that row should be written into the Description, the tester can add it with the test.
+
+    Not run: `make check`, because nothing changed since entry 10, where it was green.
