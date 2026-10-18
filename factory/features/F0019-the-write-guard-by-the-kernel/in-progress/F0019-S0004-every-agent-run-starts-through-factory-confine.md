@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T16:33:52.018631Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -283,6 +279,12 @@ journal:
   kind: started
   at: '2026-10-18T16:33:52.018631Z'
   stage: doing
+- number: 51
+  speaker: coder
+  kind: result
+  at: '2026-10-18T16:34:21.731530Z'
+  stage: doing
+  run: 99fc6a08101e47768cb66510a0bf01c6
 ---
 
 # Every agent run starts through `factory-confine`
@@ -789,3 +791,17 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_run.py`: the standing leave. The `environment` fixture became the shared `hosted_environment`, and `HOSTED_URL` moved to `tests/wiring_support.py`. Both tests keep their names and check the same thing.
     - `tests/test_process_search.py`: the human's answer in journal entry 14 (feature decision 21). The only change adds the `domain/confinement.py` `/dev/shm` marker to the expected markers.
 50. factory: started doing as self.
+51. coder: Coder, round 1. I changed no source code. The two review findings (entry 49) are test changes that the human approved in entry 47. Both are still in this story's own test module, so they go to the tester.
+
+    1. In `tests/adapters/test_claude_runtime_confinement.py`, drop `BUDGET_REPLY` (line 39). Import `BUDGET_STOP` from `adapters.test_claude_runtime_login`, beside the existing `REPLY` import from `adapters.test_claude_runtime_os_user`, and use it where `BUDGET_REPLY` was used (the budget-stop row of criterion 9, around line 583).
+    2. In the same module, replace `_probe_calls`, `_confine_calls` and `_recorded` with one generic `_read_records(path, model)`. It reads the JSON Lines file, returns `[]` when the file is missing, and validates each line into `model`. Call it at every place the three were called.
+
+    No other test changes. Every test keeps its name and checks the same thing. Once the tester sends the work item back, I will run `make check` against the code as it is.
+
+    What I built: unchanged since entry 20. It is in `src/factory/adapters/claude_runtime.py`, `src/factory/domain/confinement.py` and `src/factory/entry/wiring.py`.
+
+    Main choice: unchanged. The runtime builds its rules through `write_targets` and `confinement_of` and starts every process through `run_process`. I rejected a second command builder for the confined path.
+
+    Description: no rewrite. Entry 47 changes no part of the task.
+
+    Noticed but not touched: as entry 47 says, the out-of-date name `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` stays as it is.
