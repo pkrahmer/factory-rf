@@ -1,8 +1,8 @@
 ---
 stage: doing
 pr: 199
-blocked: question
-comments_seen: 2
+blocked: asked
+comments_seen: 3
 round: 1
 attempts: 0
 ---
