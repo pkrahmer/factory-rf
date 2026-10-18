@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T23:22:24.094146Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-18T23:22:24.094146Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T23:22:44.679907Z'
+  stage: intake
+  run: e86c73b195fc495ea203ad5b02c50d3f
 ---
 
 # The run record counts the refused tool calls
@@ -52,7 +54,7 @@ The agent runtime already reports the tool calls it refused, but the factory's r
 
 `factory.domain.agent_runs.PermissionDenial` (`domain`): a new field `path: str | None = None`, the file the refused call named.
 
-`factory.adapters.claude_runtime` (`adapters`): `_denials` sets `path` to the denial's `tool_input["file_path"]`, or else its `tool_input["notebook_path"]`, when `tool_input` is an object and that value is a string; otherwise `None`. `detail` stays as today.
+`factory.adapters.claude_runtime` (`adapters`): `_denials` sets `path` to the denial's `tool_input["file_path"]` when `tool_input` is an object and that value is a string, or else its `tool_input["notebook_path"]` when that value is a string; otherwise `None`. `detail` stays as today.
 
 `factory.domain.cost_records.CostRecord` (`domain`): two new last fields, after `instance`:
 
@@ -71,10 +73,10 @@ Test modules (new): `tests/adapters/test_claude_runtime_denial_paths.py`, `tests
 
 ## Acceptance criteria
 
-1. `_denials` of the `claude -p` runtime's reply, rows of one parametrized test: a `Write` with `{"file_path": "src/a.py"}` gives `path` `src/a.py`; a `NotebookEdit` with `{"notebook_path": "n.ipynb"}` gives `n.ipynb`; a call with both keys gives the `file_path`; a `Bash` with `{"command": "git push"}` gives `None`; `{"file_path": 3}` gives `None`; a `tool_input` that is a string gives `None`. `detail` is as today in every row.
+1. `_denials` of the `claude -p` runtime's reply, rows of one parametrized test: a `Write` with `{"file_path": "src/a.py"}` gives `path` `src/a.py`; a `NotebookEdit` with `{"notebook_path": "n.ipynb"}` gives `n.ipynb`; a call with both keys gives the `file_path`; a `Bash` with `{"command": "git push"}` gives `None`; `{"file_path": 3}` gives `None`; `{"file_path": 3, "notebook_path": "n.ipynb"}` gives `n.ipynb`; a `tool_input` that is a string gives `None`. `detail` is as today in every row.
 2. `CostRecord`, rows of one parametrized test: a `completed` record with `denials=0` and with `denials=2` and `denied_paths=["src/a.py"]` is accepted; `denials=-1` is refused; a `started` record with `denials=0`, and one with `denied_paths=[]`, is refused.
 3. `CostRecorder.complete`, rows of one parametrized test over the end reasons: a `completed`, a `budget` and a `no_result` run with the denials `Write src/a.py`, `Bash` (no path), `Edit src/a.py`, `Write docs/b.md` give `denials` 4 and `denied_paths` `["src/a.py", "docs/b.md"]`; a `completed` run without denials gives `denials` 0 and `denied_paths` `[]`; a `died` and a `time_limit` run give `None` for both.
-4. The cost record writer, rows of one parametrized test: a record with both `None` is written as today, without `denials` and `denied_paths` keys; a record with `denials` 2 and `denied_paths` `["src/a.py"]` is written with `"denials":2,"denied_paths":["src/a.py"]` after `instance`; each line read back equals its record.
+4. The cost record writer, rows of one parametrized test: a record with both `None` is written as today, without `denials` and `denied_paths` keys; a record with `denials` 2 and `denied_paths` `["src/a.py"]` is written with `"denials":2,"denied_paths":["src/a.py"]` after `instance`; `denials` 2 with `denied_paths` `None` is written with only `"denials":2`; `denials` 0 with `denied_paths` `[]` is written with `"denials":0,"denied_paths":[]`; each line read back equals its record.
 5. `make check` stays green.
 6. docs:
     - `docs/operator-guide.md`, *The cost table* or *What a work item cost*: the sidecar's `denials` and `denied_paths`, and that only the tool calls the runtime reports as refused are in them, not a refusal that is only text in a tool's output.
@@ -118,3 +120,9 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 4. 2026-10-18 human: 1. Yes: `file_path` is used only when it is a string, otherwise fall back to `notebook_path` (`n.ipynb` in your row); add that row.
    2. Yes: add both rows (`denials=2` with `denied_paths=None` writes only `"denials":2`; `denials=0` with `denied_paths=[]` writes `"denials":0,"denied_paths":[]`).
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: names concrete modules and fields (`PermissionDenial.path`, `claude_runtime._denials`, `CostRecord.denials`/`denied_paths`, `CostRecorder.complete`, `cost_records_jsonl`) and the test modules. I carried in the human's answer (journal entry 4, point 1): `file_path` is used only when it is a string, otherwise `notebook_path` is tried. I reworded that Interface sentence to say so.
+   - Criteria: each is one parametrized test function. Each rule has both sides: a path, no path, a non-string value and a string `tool_input` for `_denials`; accepted and refused values, and a `started` record, for `CostRecord`; the three reported end reasons, a run with no denials, and `died`/`time_limit` for `complete`. Order, once-only paths and path-less denials are all covered by the criterion 3 rows. From entry 4, point 1, I added the row `{"file_path": 3, "notebook_path": "n.ipynb"}` giving `n.ipynb` to criterion 1. From entry 4, point 2, I added two rows to criterion 4: `denials=2` with `denied_paths=None` writes only `"denials":2`, and `denials=0` with `denied_paths=[]` writes `"denials":0,"denied_paths":[]`.
+   - Smoke test: runnable. It uses `JsonLinesCostRecordWriter().render`, and its `Expect:` line (`absent absent` and `2 ['src/a.py']`) can be checked against the output. I did not run it. The record fields in it match the Interface.
+   - Architecture: the changes sit in the right layers (domain DTOs, application recorder, adapters for the runtime and the JSONL writer). The runtime-specific parsing stays in the adapter.
+   - Scope: within the feature's S0004 and decision 8. The stop records and F0020's items are not touched. The change to the earlier test `test_claude_runtime_resume.py` is covered by decision 14.
