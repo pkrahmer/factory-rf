@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 216
 comments_read: [6250079331]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T12:48:59.563860Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -63,6 +67,11 @@ journal:
   at: '2026-10-18T12:48:39.632953Z'
   stage: doing
   run: 7ee6492fe9794a9cad2e1446bc0bcc80
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-18T12:48:59.563860Z'
+  stage: review
 ---
 
 # The documents name the handover
@@ -157,3 +166,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 39 known, 0 gone
+11. factory: started review as self.
