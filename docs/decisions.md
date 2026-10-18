@@ -560,3 +560,12 @@ Date: 2026-10-18 (F0019-S0001). The hook `factory-guard` sees two tools (`Edit` 
 - Decision: the rules handle the twelve write rights of ABI 3 (refer and truncate included) and nothing else, so reading, executing and the network stay open. A folder rule allows all twelve beneath it; a file rule only writes and truncates the file in place. The minimum is ABI 3 because refer and truncate arrive with it; below it a rename across folders or a truncate could not be refused.
 - Decision: fail closed. Every path is checked with `os.lstat` before the first system call (missing, symbolic link, wrong kind), so a refused rule leaves the process unrestricted and the caller sees a `ConfinementError` and not a half-made restriction.
 - Rejected: a binding from PyPI (a dependency for four system calls, and a package to trust); changing modes or ownership over the tree (it needs the tree to be ours, races with the agent and is undone by any `chmod` the agent can run); a helper that runs as root (a privileged part to build and defend, where Landlock needs none).
+
+## factory-confine replaces itself with the runtime
+
+Date: 2026-10-18 (F0019-S0002). The kernel's restriction must be applied by the agent's own user, after `sudo` and before the runtime starts. `factory-confine` does that and then becomes the command.
+
+- Decision: the wrapper ends in `os.execvpe` (`replace_process` in `factory.adapters.process`) and does not start a child. The command keeps the wrapper's process and process group, so the `timeout` around the runtime and the factory's kills of the process group still reach it, and no parent process is left to forward signals or an exit status.
+- Decision: every fault before the replacement is one line starting `factory-confine:` and exit status 1; the command never starts (fail closed).
+- Decision: the exception in `CLAUDE.md` widens by `os.execvpe` in `process.py`, with `noqa: S606` and `nosec B606` on that one line: six markers there in all. `factory.entry.confine` imports the landlock and process adapters directly (feature decision 19).
+- Rejected: a child process under the wrapper (the group kill would need the wrapper to survive and pass on its signals, and the wrapper's own process would stay unrestricted beside it).

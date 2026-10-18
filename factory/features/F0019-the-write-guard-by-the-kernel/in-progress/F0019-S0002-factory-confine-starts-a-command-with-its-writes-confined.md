@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T15:07:45.175101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -149,6 +145,12 @@ journal:
   kind: started
   at: '2026-10-18T15:07:45.175101Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T15:09:14.078395Z'
+  stage: docs
+  run: 4e62e8a442b94b94a80a799cf534116e
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -464,3 +466,20 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     - `tests/test_wrapper_search.py`: the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7, and the change adds one importer.
     - `tests/entry/test_wiring.py`: the human's leave, journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
 25. factory: started docs as self.
+26. documenter: I wrote the documentation the docs criterion asks for. Only documents changed, so I did not run `make check`; the factory's run after this stage decides. I ran the usage example (`uv run -q factory-confine -- true` printed the usage line and status 1). The JSON example in the new section is illustrative and I did not run it.
+
+    Files changed:
+    - `docs/project-guide.md`, *Starting a process*: names `replace_process` as the one `exec` and why (the command keeps the wrapper's process and process group, so `timeout`'s and the factory's group kills still reach it) and its `ValueError` and `OSError` behaviour. The `tests/test_process_search.py` paragraph now names `os.execvpe` in `process.py` as the one exception and lists the six markers.
+    - `docs/project-guide.md`, new section *The start wrapper* after *The kernel's write guard*: the arguments, the rules file (`Confinement`, with an example), the six steps in order with their fault lines and exit status 1, fail closed, `TMPDIR`, and how the tests run it.
+    - `docs/project-guide.md`, *The kernel's write guard*: the sentence "Nothing calls it yet" now points to the wrapper as its user, and says the runtime does not start the wrapper yet.
+    - `README.md` and `docs/operator-guide.md`: the lists of commands name `factory-confine` beside `factory-guard` as one the agent runtime runs, once the runtime uses it (S0004).
+    - `docs/decisions.md`: new entry *factory-confine replaces itself with the runtime*, dated 2026-10-18 (F0019-S0002). It gives the reasons of the feature's decision 5 and the widened exception in `CLAUDE.md`, and the rejected child process.
+
+    Cross-read and found current: `docs/project-guide.md` *The guard command*, *The `claude -p` runtime* and *The agent environment*, and `docs/operator-guide.md` *`factory-guard` on the agent run's `PATH`*. None of them is changed by this story.
+
+    Findings for the coder: none. The code matches the Interface, and the docstrings the project asks for are present.
+
+    Stale text I noticed and did not touch: none.
+
+    `check`: check: green
+    `documents`: documents ok

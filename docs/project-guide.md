@@ -278,9 +278,11 @@ The child runs in its own session, with stdin closed. At the `time_limit` the wh
 result = run_process(ProcessRequest(argv=["git", "status"], cwd=repo, time_limit=timedelta(seconds=30)))
 ```
 
+`replace_process(argv, env) -> NoReturn` is the one `exec` of the package: it calls `os.execvpe(argv[0], list(argv), dict(env))`, the program found on the `PATH` of `env`, and the process becomes that program. Only `factory-confine` uses it (see "The start wrapper"). The reason it replaces the process instead of starting a child: the command keeps the wrapper's process and process group, so the `timeout` that wraps the runtime and the factory's kills of the process group still reach it. An empty `argv` raises `ValueError`; a program that cannot be started raises the `OSError` of `os.execvpe` (`FileNotFoundError` for one not on the `PATH`) and this process goes on.
+
 Known limits: after the kill, the output is read without a limit, so a descendant that left the group (by calling `setsid`) and still holds the pipe would block the call; and a child that exits normally but leaves a background process holding its stdout open makes the call wait for that process (bounded by `time_limit` if one is set).
 
-`tests/test_process_search.py` keeps the boundary: only `process.py` imports `subprocess`; `shell=True`, `os.system`, `os.popen`, `os.exec*`, `os.spawn*`, `os.posix_spawn*` and `asyncio.create_subprocess_*` are used nowhere under `src/factory`; and the only suppression markers there are the four in `process.py` (`noqa: S404` and `nosec B404` on `import subprocess`, `noqa: S603` and `nosec B603` on the `subprocess.Popen(` line). Do not write those marker words in a comment or docstring in `src/factory`. Why: see `docs/decisions.md`. Tests run real child processes (Python one-liners through `sys.executable`) in `tmp_path`; nothing is faked.
+`tests/test_process_search.py` keeps the boundary: only `process.py` imports `subprocess`; `shell=True`, `os.system`, `os.popen`, `os.exec*` (but for the one below), `os.spawn*`, `os.posix_spawn*` and `asyncio.create_subprocess_*` are used nowhere under `src/factory`; the one exception is `os.execvpe` in `process.py`; and the only suppression markers there are the six in `process.py` (`noqa: S404` and `nosec B404` on `import subprocess`, `noqa: S603` and `nosec B603` on the `subprocess.Popen(` line, `noqa: S606` and `nosec B606` on the `os.execvpe(` line). Do not write those marker words in a comment or docstring in `src/factory`. Why: see `docs/decisions.md`. Tests run real child processes (Python one-liners through `sys.executable`) in `tmp_path`; nothing is faked.
 
 ## The agent runtime
 
@@ -1260,7 +1262,7 @@ Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.ch
 
 ## The kernel's write guard
 
-`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Nothing calls it yet; the wrapper `factory-confine` is its first user. The guard in "The guard command" sees two tools and the undo reverts the rest afterwards; the kernel refuses a write by any route, a shell command included.
+`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"); the agent runtime does not start the wrapper yet. The guard in "The guard command" sees two tools and the undo reverts the rest afterwards; the kernel refuses a write by any route, a shell command included.
 
 ### What Landlock is
 
@@ -1290,6 +1292,39 @@ A second call in a restricted process adds a ruleset on top of the first: a writ
 ### Tests
 
 The tests (`tests/adapters/test_landlock.py`, `tests/domain/test_confinement_abi.py`) call `restrict_writes` only in child processes (`sys.executable -c ...`, paths under `tmp_path`), because the restriction cannot be undone and would bind the pytest worker. Coverage does not measure the children, so the module shows little in the coverage table. No test is skipped without Landlock. Not tested: a failing system call and `abi_version`'s negative result, which no test can make the kernel produce.
+
+## The start wrapper
+
+`factory-confine --rules <file> -- <command> [<argument>...]` applies the kernel's write guard and becomes the command. It must run after `sudo` has made the process the agent's user (Landlock needs `no_new_privs`, which `sudo` cannot run under) and before the runtime starts, so that the runtime and everything it starts inherit the restriction. `pyproject.toml` registers it as `factory-confine = "factory.entry.confine:main"`; `python -m factory.entry.confine` does the same; `CONFINE_COMMAND` in `factory.domain.agent_runs` is its name. Nothing starts it yet: the runtime will.
+
+### The arguments and the rules file
+
+The arguments are exactly `--rules`, a file, `--` and at least one word of the command. Anything else writes `factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]` and returns 1.
+
+The rules file is JSON for the domain model `Confinement` (`factory.domain.confinement`, frozen, unknown keys forbidden): `folders` and `files` (lists of absolute paths) and `temporary_directory` (an absolute path); a relative path is a `ValidationError`.
+
+```json
+{"folders": ["/work/checkout/src"], "files": ["/work/checkout/notes.md"], "temporary_directory": "/tmp/run-1"}
+```
+
+### The six steps
+
+`main(argv=None, *, stderr=None, abi=None) -> int` does these in order; a fault writes one line to standard error and returns 1, and no later step runs.
+
+1. Read the rules (UTF-8, validated as `Confinement`): `factory-confine: cannot read the rules <file>: <fault>`, the fault on one line.
+2. Check the ABI with `abi_fault(abi())`: `factory-confine: the kernel offers Landlock ABI <n>, the write guard needs ABI 3 or higher`.
+3. Make each folder of `folders` that does not exist, with its parents: `factory-confine: cannot make the folder <path>: <reason>`.
+4. Make `temporary_directory` with mode `0700` and never `exist_ok`, so a folder or link made beforehand is refused: `factory-confine: cannot make the temporary folder <path>: File exists`.
+5. `restrict_writes([*folders, temporary_directory], files)`: a `ConfinementError` is `factory-confine: <detail>` (for example `cannot open <path>: No such file or directory` for a missing file, `<path> is a symbolic link`).
+6. `replace_process(command, {**os.environ, "TMPDIR": <temporary_directory>})`: `factory-confine: cannot start <command>: <reason>`.
+
+### What the command gets
+
+Fail closed: after any fault the command never starts. On success `main` does not return. The command keeps the wrapper's process and process group, so its exit status and output are its own. Its environment is the wrapper's with `TMPDIR` set to the temporary folder; every other variable is unchanged. It can write in the folders, in the listed files and in its temporary folder, and nowhere else; a process it starts is bound the same way.
+
+### Tests
+
+`tests/entry/test_confine.py` runs every row that reaches step 5 or 6 in a child process (`sys.executable -m factory.entry.confine`), because the restriction cannot be undone; rows that stop at steps 1 to 4 call `main` in-process with `abi` injected. Coverage does not follow the children. `factory.entry.confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly: it picks no adapter behind an interface (feature decision 19).
 
 ## The agent definition reader
 
