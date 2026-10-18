@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-18T17:22:44.156226Z'
   stage: smoke-test
   run: 25d1e1284fce4070a44a17a7cbdfcb37
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-18T17:30:43.604361Z'
+  stage: approval
 ---
 
 # The agents' instructions explain a refused write
@@ -310,3 +315,4 @@ Expect: `1`
     - Criterion 4 (`make check`): I did not run it here. The factory's run after the docs stage reported `check: green` (entry 19).
 
     Nothing contradicts a criterion. Nothing is open.
+22. factory: done (pull request merged); cost: 10 runs, 6.2 min, 56 turns, 150503 tokens in (798343 more from cache), 14426 out, $1.48
