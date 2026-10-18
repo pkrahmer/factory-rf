@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 231
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T20:16:45.868511Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T20:16:45.868511Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T20:17:08.179405Z'
+  stage: intake
+  run: 844ab25542b1472cacced9ccd906d55a
 ---
 
 # The project guide's start wrapper section says the runtime starts it
@@ -69,3 +71,9 @@ Expect: `documents ok`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is correct for a documentation-only story. It names no module and states no behaviour or rule, so nothing needs a criterion. It limits the documenter to `docs/project-guide.md`.
+   - Criteria: three, each checkable. (1) No change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` is checkable from the diff. (2) `make check` is the closing criterion. (3) The docs criterion names the stale sentence, which I confirmed at line 1335 of `docs/project-guide.md`. It also names the replacement's content (`ClaudeCodeRuntime`, `confine_executable`, the `build_boundaries` default, the pointer to *The `claude -p` runtime*) and the paragraph to move, which I confirmed at line 1337 and which currently sits in *The start wrapper*. The destination, the end of *The kernel's write guard*, begins at line 1300. The criterion ends with `documents ok`. The story states no limits or error rules, so there is no failing side to cover.
+   - Smoke test: all four commands are runnable. I checked the sed ranges against the current headings. After the edit, `confine_executable` appears only on the new sentence's line in the start wrapper range, because the paragraph is a single line. The `confinement_item` paragraph is one line too, so the count of 0 in the start wrapper range and 1 in the write guard range is checkable. Each `Expect:` line gives an exact value.
+   - Architecture: it fits. It changes only the project guide, which the documenter owns. The facts it states match the guide's own *Confinement* paragraph (line 327), the operator guide and the README.
+   - Scope: it matches the feature's scope ("`docs/project-guide.md` ... from each story's docs criterion"). It touches nothing in "Out of scope" and removes the stale-text note raised by S0007 and S0009.
