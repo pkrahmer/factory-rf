@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182, 6256356204]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T23:13:18.021403Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-18T23:13:18.021403Z'
   stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T23:14:33.236879Z'
+  stage: review
+  run: eb1380f0f6a0414eb63cb97afb1c48dd
 ---
 
 # The stops reach main as records
@@ -194,7 +196,7 @@ def parse_stop_records(text: str) -> list[StopRecord]:
 
 `factory.application.stops` (`application`):
 
-- `StopService.raise_stop(stop)`: when the health status read before the write holds no stop of `stop.reason`, it also appends `StopRecord(event="raised", scope=stop.scope, reason=stop.reason, at=stop.at, instance=<settings.instance, or None without settings>)` to `stop_records`. A stop of that reason already standing appends nothing. The append is tried like the log line and the health status (the decision "Both destinations of a stop are tried"): an `OSError` of any of the three is raised after all three were tried.
+- `StopService.raise_stop(stop)`: when the health status read before the write holds no stop of `stop.reason`, it also appends `StopRecord(event="raised", scope=stop.scope, reason=stop.reason, at=stop.at, instance=<settings.instance, or None without settings>)` to `stop_records`. A stop of that reason already standing appends nothing. The append is tried like the log line and the health status (the decision "Both destinations of a stop are tried"), except that without a readable health status no record is appended: an `OSError` of any of the three is raised after all three were tried.
 - `StopService.clear_stop(reason)`: when a stop of `reason` stood, after the health status and the log line, it appends `StopRecord(event="cleared", scope=<the standing stop's scope>, reason=reason, at=clock.now(), instance=...)`. Nothing stood: nothing is appended. An `OSError` of the append propagates, as one of the health status write does today.
 - Without `stop_records` (`None`), both behave exactly as today.
 
@@ -238,9 +240,10 @@ Test modules (new): `tests/domain/test_stop_records.py`, `tests/application/test
 13. `Tick.run` when the publish fails, rows of one parametrized test: the publish's push is refused (a hook of the remote refuses `main`); `origin/main` holds a folder `factory/stops.jsonl/`, so that the write raises `OSError`; `origin/main` does not resolve, so that `publish` raises `GitError`. In all three the factory log holds a line starting `cannot publish the stop records: `, the local records stay, and the tick still evaluates and dispatches its event.
 14. `StopPublisher.publish` with a local record, on a checkout whose `origin/main` does not resolve (a bare remote with no `main`, fetched): it raises `GitError`, and the local record log holds the same records afterwards.
 15. `build_boundaries` gives `stop_records` a record log at `<state directory>/records/stops.jsonl` that reads back a record it appended.
-16. `make check` stays green.
-17. docs:
-    - `docs/operator-guide.md`, *The records*: `records/stops.jsonl` (its fields, when each event is written, that it is never cleared by the factory and is safe to delete only when `main` holds every line); *The stops*: that each stop's events reach `factory/stops.jsonl` on `main` at the next tick that gets past the restore, as commits `stops recorded`, without the detail, and the log line `cannot publish the stop records: <error>`; and that the human pulls `main` before pushing to it, since the factory now pushes `main` after a stop event as well as after an archive; *The stamp and the probe of the main branch*: a `stops recorded` commit counts as a new `main`, so the probe runs again, and while the machine's items fail (`preflight_failed` stands) it clears `main_branch_failing` and writes a `cleared` record for it although `main` is still red; the probe raises it again once the machine's items pass (the feature's decision 1 accepts this for now).
+16. `StopService.raise_stop` when a destination fails, rows of one parametrized test: the log line raises: one `raised` record is appended and the `OSError` is raised; the health status write raises: one `raised` record is appended and the `OSError` is raised; the health status read raises: no record is appended and the `OSError` is raised.
+17. `make check` stays green.
+18. docs:
+    - `docs/operator-guide.md`, *The records*: `records/stops.jsonl` (its fields, when each event is written, that a raise whose health status cannot be read writes no `raised` record and the next raise that can read it does, that it is never cleared by the factory and is safe to delete only when `main` holds every line); *The stops*: that each stop's events reach `factory/stops.jsonl` on `main` at the next tick that gets past the restore, as commits `stops recorded`, without the detail, and the log line `cannot publish the stop records: <error>`; and that the human pulls `main` before pushing to it, since the factory now pushes `main` after a stop event as well as after an archive; *The stamp and the probe of the main branch*: a `stops recorded` commit counts as a new `main`, so the probe runs again, and while the machine's items fail (`preflight_failed` stands) it clears `main_branch_failing` and writes a `cleared` record for it although `main` is still red; the probe raises it again once the machine's items pass (the feature's decision 1 accepts this for now).
     - `docs/project-guide.md`, *Stops, the clock and the factory log*: `StopRecord`, `StopPublisher` and the tick's call, with its place after the restore and why (the restore logs what a killed stage left behind before the publisher's checkout could discard it).
     - `docs/decisions.md`: a new entry, "The stops reach main as raised and cleared records", with the reason and the rejected places of the feature's decisions 1 to 3, the place of the publish in the tick, and the accepted effect on the preflight's stale-stop rule (a `stops recorded` commit clears `main_branch_failing` while `preflight_failed` stands; a later story may make the rule ignore a commit that changes only `factory/stops.jsonl`).
 
@@ -465,3 +468,18 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     Earlier tests: none needed. `git diff --name-status main...HEAD` shows every test file as added (`A`), so no test file that `main` already holds was changed, renamed or deleted.
 24. 2026-10-18 human: (b): the reviewer has leave to make exactly these three edits to the work item on the next review run, worded as in entries 15 and 17 (the Interface sentence, criterion 16 with make check 17 and docs 18, and the docs criterion's line on a raise without a readable health status), and nothing else; then review again.
 25. factory: started review as self.
+26. reviewer: Round 1 review, after the human's leave in entry 24. I made exactly the three work-item edits that leave allows, worded as in entries 15 and 17, and changed nothing else:
+    - `## Interface`, the `StopService.raise_stop` clause: it now says "…tried like the log line and the health status (the decision "Both destinations of a stop are tried"), except that without a readable health status no record is appended: an `OSError` of any of the three is raised after all three were tried."
+    - `## Acceptance criteria`: a new criterion 16, "`StopService.raise_stop` when a destination fails, rows of one parametrized test". Its rows: the log line raises, the health status write raises, the health status read raises. `make check` is now 17 and docs is 18.
+    - Docs criterion, `docs/operator-guide.md` *The records*: it now says that a raise whose health status cannot be read writes no `raised` record, and that the next raise that can read it does.
+
+    Then I reviewed the whole source diff and the five new test modules again.
+    - Group 1: criteria 1 to 16 each have a test that checks what its criterion says. Criterion 16 is `tests/application/test_stop_records_service.py::test_a_raise_whose_log_or_health_status_fails_records_only_with_a_readable_status`. Each rule's failing side is a row of the same parametrized test: refused scopes and the unknown event, the no-commit cases, `PushFailed`, `GitError`, `OSError`, and the five pre-restore stops. The factory's `make check` after the coder was green (entry 21).
+    - Group 2: the layers hold. `StopRecord` and its text functions are pure domain code. `StopPublisher` reaches git only through `Boundaries.git` and `WorkItemRecorder`. The wiring is in `entry`. No `dict[str, Any]` crosses a function boundary.
+    - Group 3: no secrets, no command built from strings, and no marker that silences a check.
+    - Group 4: the scope rule is one function, `_require_scope_of_reason`, used by both models. Docstrings are present and accurate. The one comment says why. There is no dead code. `make duplicates` found 0 new.
+    - Group 5: the journal states the main choice (reuse `WorkItemRecorder`) and the rejected options (a new module, or copying the recorder). With the three edits above, `## Description` matches what was built.
+
+    No findings.
+
+    Earlier tests: none needed. `git diff --name-status main...HEAD` shows every test file as added (`A`), so no test file that `main` already holds was changed, renamed or deleted.
