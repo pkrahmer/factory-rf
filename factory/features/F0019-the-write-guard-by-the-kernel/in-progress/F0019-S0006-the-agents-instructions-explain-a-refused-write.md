@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T17:15:41.145276Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-18T17:15:41.145276Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-18T17:15:58.715122Z'
+  stage: doing
+  run: 782bdc28dbe04ee6a25cb42762ccaff0
 ---
 
 # The agents' instructions explain a refused write
@@ -156,3 +158,8 @@ Expect: `1`
 
    Earlier tests: none. The diff changes no test file that `main` already holds; `tests/test_claude_agent_refusal.py` is new (status `A`).
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's only finding is a change to the tests, so it goes to the tester. I changed nothing in this round.
+    - The change for the tester, under the standing leave to move a shared test helper: move the private `_body(name)` helper into `tests/shipped_agents.py` as a public `body(name: str) -> str`, next to `front_matter_and_body`. It returns the body from `front_matter_and_body(name)`. Then change the two files that copy it to import it from there: `tests/test_claude_agent_refusal.py` (line 29) and `tests/test_claude_agent_texts.py` (line 140). Every test in both files keeps its name and checks the same thing.
+    - I confirmed the two copies are identical, word for word. A search of `tests/` found no other `_body` that wraps `front_matter_and_body`. The `_body` helpers in `tests/application/test_acceptance_merged.py`, `tests/domain/test_hand_over.py` and `tests/domain/test_story_form.py` do something else. They are not copies and are not part of the move.
+    - Main choice: end with `tests` and name the move, as the role requires. I rejected editing the test files myself: the coder never edits tests.
+    - Not touched: the seven agent files under `claude/agents/` stay as round 0 left them. The reviewer found they match the Interface. No `src/` change. The docs criterion (`docs/project-guide.md`) is left to the documenter.
