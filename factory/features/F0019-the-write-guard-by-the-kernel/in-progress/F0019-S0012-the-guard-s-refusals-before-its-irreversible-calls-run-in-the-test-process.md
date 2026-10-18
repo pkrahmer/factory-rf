@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 233
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T20:37:53.405668Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T20:37:53.405668Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T20:41:07.114164Z'
+  stage: tests
+  run: 6e76e23795d64ee9bc45f5b3a8b1a27f
 ---
 
 # The guard's refusals before its irreversible calls run in the test process
@@ -138,3 +140,20 @@ Expect: `replace_process needs a program to start`
    - Architecture: tests only, in the layer-mirroring folders (`tests/adapters`, `tests/entry`). The system calls stay child-only, as decision 18 says. The tests need no change to an earlier test beyond the standing leave for shared helpers.
    - Scope: the story stays inside F0019's testing of the guard and is consistent with decisions 18 and 22. Nothing in it falls under the feature's Out of scope list.
 4. factory: started tests as self.
+5. tester: Wrote the in-process tests for the guard's refusals. All of them pass now, because they pin behaviour that already exists and no module under `src/factory/` is expected to change. So there are no red tests for the coder this time. The coder's task is to keep `make check` green, including `make types` over the new tests. I did not run that in this stage.
+
+   - criterion 1: tests/adapters/test_landlock_checks.py::test_a_path_that_cannot_be_ruled_is_refused_and_restricts_nothing (nine rows: missing folder, missing file, file among folders, folder among files, dangling link as folder and as file, folders before files, folders in order, files in order; each checks `ConfinementError.detail` exactly, then writes `<base>/A/after.txt` in the test process)
+   - criterion 2: tests/adapters/test_process_replace_faults.py::test_replace_process_refuses_in_the_test_process_on_the_path_of_env (rows: empty argv gives ValueError with the exact text; `factory-test-prog` without the execute bit on env's PATH gives PermissionError; an empty folder on env's PATH gives FileNotFoundError; each row asserts the program is not on the test process's own PATH)
+   - criterion 3: tests/entry/test_confine_defaults.py::test_main_left_its_defaults_uses_sys_argv_sys_stderr_and_the_adapters (rows argv, argv-usage, abi, restrict, replace; capsys reads stderr, every row leaves `stderr` None. The abi row has replace raise ENOENT and checks calls == ["restrict", "replace"], so restrict ran once.)
+   - criterion 4: tests/entry/test_confine_defaults.py::test_a_folder_of_the_rules_that_exists_is_no_fault_and_one_under_a_file_stops_the_wrapper (rows existing-folder, under-a-file)
+   - criterion 5: tests/entry/test_confine_defaults.py::test_rules_that_cannot_be_read_are_one_line_with_the_errors_text (rows missing, not-json; the not-json row computes the expected text from `Confinement.model_validate_json("not json\n")` with each "\n" replaced by one space)
+   - criteria 6 and 7: not tested here (`make check`, docs).
+
+   Files created: tests/adapters/test_landlock_checks.py, tests/adapters/test_process_replace_faults.py, tests/entry/test_confine_defaults.py.
+
+   I moved shared helpers under the standing leave in CLAUDE.md (*Tests*). The new tests would otherwise copy them. `USAGE`, `Replaced` and `Steps` came from tests/entry/test_confine_steps.py. `_rules` came from tests/entry/test_confine.py and is now `write_rules`, and `USAGE` was also a copy there. All of them now live in tests/confine_support.py. Earlier test files changed: tests/entry/test_confine_steps.py and tests/entry/test_confine.py. Only their imports and the helper's name changed; every test keeps its name and checks the same thing.
+
+   Modules the test run could not import: none. `make test`: test: green. `make lint`: green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (42.6 s)
