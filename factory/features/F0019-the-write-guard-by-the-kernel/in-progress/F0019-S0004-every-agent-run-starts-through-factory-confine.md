@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: attempts_cap
+blocked: null
 round: 1
-attempts: 2
+attempts: 0
 crashes: 0
 pull_request: 223
-comments_read: [6251814997, 6251898687, 6251983602, 6252106944]
+comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
 claim: null
 journal:
@@ -158,6 +158,11 @@ journal:
   speaker: factory
   kind: question
   at: '2026-10-18T16:11:12.951123Z'
+  stage: doing
+- number: 29
+  speaker: human
+  kind: comment
+  at: '2026-10-18T16:13:11.150904Z'
   stage: doing
 ---
 
@@ -466,3 +471,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 28. factory: Stage doing stalled 2 times. The last time: Stage doing stalled (attempt 2 of 2): merging the main branch conflicts and the merge was aborted
 
     Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+29. 2026-10-18 human: Retry. The conflict was mine: I put my two criteria on main as 15 and 16, but the branch already had the intake's 15–17. I merged main into the branch and pushed it. The two new criteria (missing device targets, and the hanging removal) are now **18 and 19**; `make check` and docs are now 20 and 21. End the round with `tests`, naming criteria 18 and 19.
