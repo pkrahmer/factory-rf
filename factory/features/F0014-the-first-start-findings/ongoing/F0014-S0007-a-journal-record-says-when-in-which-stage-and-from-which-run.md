@@ -1,3 +1,11 @@
+---
+stage: ready
+pr: null
+blocked: null
+comments_seen: 0
+round: 0
+attempts: 0
+---
 # A journal record says when, in which stage and from which run
 
 ## Assignment (as of log entry 1)
