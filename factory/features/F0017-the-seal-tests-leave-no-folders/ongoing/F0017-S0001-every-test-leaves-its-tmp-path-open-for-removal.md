@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 214
 blocked: null
 comments_seen: 0
@@ -178,3 +178,34 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: I ran all three demo commands from the repository root, in order. Each one met its `Expect:` line. No findings.
+
+   1. The pytest run over the new module and the six seal and nesting modules:
+      ```
+      ........................................................................ [ 78%]
+      ....................                                                     [100%]
+      92 passed in 3.47s
+      ```
+      Met: the last line says `92 passed`, with no `failed`, `error` or `skipped` count.
+
+   2. The `reopen` snippet on a `.git` closed to `0o020`:
+      ```
+      0o720
+      False
+      ```
+      Met: it printed exactly two lines, `0o720` and then `False`. Exit status 0.
+
+   3. `uv run python -m factory.entry.check_documents`:
+      ```
+      documents ok
+      ```
+      Met.
+
+   The acceptance criteria, read against the demo:
+   - Criteria 1 and 2: command 2 shows the `.git` ending at `0o720`, with the group bit kept, and `rmtree` then removing the tree.
+   - Criteria 1–7: command 1 shows their tests passing, together with every module criterion 7 names.
+   - Criterion 7: `git diff --stat main...HEAD -- . ':!factory'` lists only `tests/conftest.py`, `tests/tmp_path_support.py`, `tests/test_tmp_path_reopening.py`, `docs/project-guide.md` and `docs/decisions.md`. No earlier test module changed and nothing under `src/` changed.
+   - Criterion 9: command 3 shows the documents are consistent.
+   - Criterion 8 (`make check`): I did not run it here; it is the factory's gate after this stage.
+
+   Nothing in the demo contradicts any criterion. Nothing is open.
