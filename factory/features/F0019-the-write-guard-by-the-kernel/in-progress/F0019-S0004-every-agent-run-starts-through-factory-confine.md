@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T16:29:47.399072Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -250,6 +246,18 @@ journal:
   kind: started
   at: '2026-10-18T16:29:47.399072Z'
   stage: review
+- number: 45
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T16:31:12.553659Z'
+  stage: review
+  run: 01aed8addf424b46b4025cca9b988aa7
+- number: 46
+  speaker: factory
+  kind: question
+  at: '2026-10-18T16:31:12.553659Z'
+  stage: review
+  run: 01aed8addf424b46b4025cca9b988aa7
 ---
 
 # Every agent run starts through `factory-confine`
@@ -717,3 +725,23 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 44. factory: started review as self.
+45. reviewer: Review, round 2. I read the work item and `git diff main...HEAD -- . ':!factory'`.
+
+    Groups 1 to 3 pass:
+    - Group 1, acceptance criteria: each of criteria 1 to 19 has a test that is named after it and checks it. The sides of each rule are rows of one parametrized test. `CLEANUP_TIME_LIMIT` is tested on both sides (criterion 19, and every other confined run). The coder's `make check` was green (entry 43).
+    - Group 2, architecture: the device constants are pure domain data. The rules are built in the adapter through `write_targets` and `confinement_of`. Every process starts through `run_process`.
+    - Group 3, security: the removal passes the folder as `$1`. The only new marker is the `/dev/shm` line that CLAUDE.md allows, and it has its comment.
+
+    The review stopped at group 4 (quality). Both findings are in this story's own test module and need no source change. Group 5 was not reached.
+
+    1. `tests/adapters/test_claude_runtime_confinement.py:39-49`, `BUDGET_REPLY`: this is a copy of the existing `BUDGET_STOP` in `tests/adapters/test_claude_runtime_login.py` (also in `tests/adapters/test_claude_runtime_sudo_time_limit.py`). It differs only in `num_turns` (5 instead of 3), and no test here reads that field. Fix: import `BUDGET_STOP` from `adapters.test_claude_runtime_login`, as the module already imports `REPLY` and `_without_locale` from `adapters.test_claude_runtime_os_user`, or move it to a shared place under the standing leave. Then drop the copy.
+    2. `tests/adapters/test_claude_runtime_confinement.py`, `_probe_calls`, `_confine_calls` and `_recorded`: three functions with the same body. Each reads a JSON Lines file, returns `[]` when the file is missing, and validates each line into a model. Only the path and the model differ. Fix: replace them with one generic helper that takes the path and the model type, for example `_read_records(path: Path, model: type[M]) -> list[M]`, and call it at the three places.
+
+    Earlier tests changed:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It gains `local_settings` (moved from `tests/entry/test_wiring_command_records.py`) and `hosted_environment` (moved from `tests/entry/test_wiring_run.py`), and nothing else in it changed.
+    - `tests/entry/test_wiring_boundaries.py`: two leaves. The human's leave covers `test_the_built_agent_runtime_keeps_its_run_files_under_runs`, which the story's Interface names under feature decision 13: only `confine_executable=None` was added. The standing leave covers the `CREDENTIAL` copy, which is now imported from `tests/wiring_support.py`.
+    - `tests/entry/test_wiring_command_records.py`: the standing leave. The `settings` fixture moved to `local_settings` and `CREDENTIAL` to `tests/wiring_support.py`. The test keeps its name and checks the same thing.
+    - `tests/entry/test_wiring_login.py`: two leaves. The human's leave covers `test_the_built_runtime_hands_the_login_file_s_token_to_claude`, which the Interface names under feature decision 13: only `confine_executable=None` was added. The standing leave covers `CREDENTIAL`, now imported.
+    - `tests/entry/test_wiring_run.py`: the standing leave. The `environment` fixture moved to `hosted_environment` and `HOSTED_URL` to `tests/wiring_support.py`. Both tests keep their names and check the same thing.
+    - `tests/test_process_search.py`: the human's answer in journal entry 14 (feature decision 21), as the coder named it in entry 16. The only change is the `domain/confinement.py` marker added to the expected markers.
+46. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
