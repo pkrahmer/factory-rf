@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: demo
 pr: 202
 blocked: null
 comments_seen: 0
@@ -107,3 +107,11 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Criteria 6 and 7: the `two-nested` rows of the probe test and the preparer test check the full detail text and the full log line. The preparer body still checks that the test's file stays.
    - No source change. The coder's entry records `make check: check: green` and `duplicates: 0 new`.
    - Assignment, criteria and log match the diff. Criterion 9 (docs: none) still holds, because no rule changed.
+6. documenter: no files changed. The docs criterion is `none`, and the diff only adds tests (`tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`), so no rule or name changed.
+   - Cross-read and found current: `docs/project-guide.md`, the `remove_nested_repositories()` row (line 149) and the sealed-run and preparer paragraphs (lines 1046 and 1048). They state the same rules the new tests pin: links not followed, no `.git` entered, paths sorted and `/`-separated, and the `", "` join in the probe detail and the log line.
+   - Cross-read and found current: `docs/operator-guide.md` line 60. It names the stall note, the probe item and the `removed nested repositories: <paths>` log line.
+   - Not run: `make check`, because I changed no file outside README and docs.
+   - Findings: none. Stale text I saw but did not touch: none.
+
+   `make check`: check: green
+   `make documents`: documents ok
