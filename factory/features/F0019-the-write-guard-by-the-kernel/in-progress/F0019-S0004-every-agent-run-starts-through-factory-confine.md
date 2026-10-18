@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 223
 comments_read: [6251814997]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T15:42:19.260308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -50,6 +46,12 @@ journal:
   kind: started
   at: '2026-10-18T15:42:19.260308Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-18T15:48:37.426477Z'
+  stage: tests
+  run: b99dfcfb64b74437bd231ab9a9f2527e
 ---
 
 # Every agent run starts through `factory-confine`
@@ -190,3 +192,35 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
    - Architecture: constants in domain, runtime changes in adapters, wiring in entry. Layers are respected, and the process and cleanup calls go through `run_process`.
    - Scope: within F0019 S0004 of the feature's scope list. Nothing from "Out of scope" is touched. The leave to change the two earlier wiring tests is named, with the human's decision 13.
 7. factory: started tests as self.
+8. tester: Question: criterion 16, the row without an `os_user`. The criterion asks for "a recording `/bin/sh` path" that sees the removal's working directory and environment. The Interface says the removal runs the literal `["/bin/sh", "-c", CLEANUP_SCRIPT, ...]`. A test cannot put a recording program in place of `/bin/sh`. Through `/bin/sh` itself the removal's working directory and environment cannot be seen, because `chmod` and `rm` come from the shell's built-in default `PATH`. So the row needs a way in, and choosing one means deciding how the code is built. The options I see:
+   - A (my choice): the removal builds its command from the module's existing `SHELL_EXECUTABLE` constant (value `"/bin/sh"`). The test sets `factory.adapters.claude_runtime.SHELL_EXECUTABLE` with `monkeypatch` to a script that records and then runs `/bin/sh`. Criterion 10's `sudo` row still expects the literal `/bin/sh`. The Interface would get one line: "the removal's shell is `SHELL_EXECUTABLE`".
+   - B: wrap `run_process`, as `factory.adapters.claude_runtime` imports it, with a recording function that hands on to the real one, and read the `ProcessRequest` of the removal. This fakes a dependency that has no interface.
+   - C: drop the row and test only the `sudo` side.
+   I have already written row A, which is `tests/adapters/test_claude_runtime_confinement.py::test_the_removal_runs_in_the_working_directory_with_an_empty_environment[shell]`. If the answer is B or C, I change only that row.
+
+   Tests written (red on purpose):
+   criterion 1: tests/adapters/test_claude_runtime_confinement.py::test_without_a_confine_executable_a_call_starts_as_before_and_writes_no_rules
+   criterion 2: tests/adapters/test_claude_runtime_confinement.py::test_a_call_starts_through_the_confine_executable_with_its_rules_file
+   criterion 3: tests/adapters/test_claude_runtime_confinement.py::test_with_a_user_sudo_starts_the_confine_executable_after_env_i_with_the_config_folder
+   criterion 4: tests/adapters/test_claude_runtime_confinement.py::test_the_rules_file_holds_the_confinement_while_the_call_runs_and_is_gone_after (rows completed, refused)
+   criterion 5: tests/adapters/test_claude_runtime_confinement.py::test_the_rules_hold_the_targets_of_write_and_tool_paths_the_home_s_runtime_folder_and_devices
+   criterion 6: tests/adapters/test_claude_runtime_confinement.py::test_through_the_wrapper_only_a_write_the_rules_allow_is_made (rows write-path, elsewhere; real `factory-confine`)
+   criterion 7: tests/adapters/test_claude_runtime_confinement.py::test_the_agent_sees_its_temporary_folder_the_config_folder_and_the_switches (rows home, no-home)
+   criterion 8: tests/adapters/test_claude_runtime_confinement.py::test_a_request_without_guard_settings_is_confined_with_no_path_of_the_checkout
+   criterion 9: tests/adapters/test_claude_runtime_confinement.py::test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run (rows locked-subfolder, time-limit, budget-and-resume)
+   criterion 10: tests/adapters/test_claude_runtime_confinement.py::test_with_a_user_the_removal_runs_through_sudo_and_its_failure_changes_no_result (rows removed, removal-fails)
+   criterion 11: tests/adapters/test_claude_runtime_confinement.py::test_a_wrapper_line_without_a_reply_is_a_runtime_error_and_before_a_reply_is_ignored (rows no-reply, reply-after-the-line)
+   criterion 12: tests/entry/test_wiring_confinement.py::test_build_boundaries_confines_the_runtime_unless_told_not_to (rows default, none)
+   criterion 13: tests/adapters/test_claude_runtime_confinement.py::test_without_a_temporary_root_the_run_s_folder_lies_in_the_system_temporary_folder
+   criterion 14: tests/adapters/test_claude_runtime_confinement.py::test_a_sudo_refusal_is_reported_before_a_wrapper_line
+   criterion 15: tests/adapters/test_claude_runtime_confinement.py::test_a_wrapper_line_of_a_call_killed_at_its_time_limit_is_a_runtime_error
+   criterion 16: tests/adapters/test_claude_runtime_confinement.py::test_the_removal_runs_in_the_working_directory_with_an_empty_environment (rows sudo, shell; the shell row depends on the question above)
+   criterion 17: tests/entry/test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime (the behaviour of `boundaries_from_environment` and an ast source check of `factory.entry.run`)
+
+   Files created: tests/adapters/test_claude_runtime_confinement.py, tests/entry/test_wiring_confinement.py. The adapter module holds its own probe agent (records `TMPDIR`, the folder's listing and the rules files in the state directory; it can leave a `0o000` subfolder, wait and play a budget stop), a stand-in confine executable, a `sudo` that refuses only the removal, and a recording shell. The stand-in `claude` and the probe sit under `<checkout>/stand-in` with the tool path `stand-in/*`; in criterion 8 the stand-in sits under `<HOME>/.claude/stand-in`. `_without_locale` is imported from `tests/adapters/test_claude_runtime_os_user.py`, unchanged.
+
+   Earlier tests changed under feature decision 13, as the description names them: tests/entry/test_wiring_boundaries.py::test_the_built_agent_runtime_keeps_its_run_files_under_runs and tests/entry/test_wiring_login.py::test_the_built_runtime_hands_the_login_file_s_token_to_claude. In each, the `build_boundaries` call gained `confine_executable=None` and nothing else changed.
+
+   Not importable by the test run: `tests/adapters/test_claude_runtime_confinement.py` fails at collection with ImportError (`CLEANUP_SCRIPT`, `CONFIG_VARIABLE` in `factory.adapters.claude_runtime`; `DEVICE_FILES`, `DEVICE_FOLDERS` in `factory.domain.confinement`). The wiring tests fail on the missing `confine_executable` keyword and property. `make lint` is green.
+
+   Open for the coder: the source check in criterion 17 reads `factory.entry.run` and may need adding to the structural tests that mutmut leaves out in `pyproject.toml`. That is outside my write paths.
