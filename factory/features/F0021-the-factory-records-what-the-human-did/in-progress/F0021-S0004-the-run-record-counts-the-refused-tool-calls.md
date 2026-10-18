@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714, 6256619702]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T23:44:53.209340Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-10-18T23:44:33.320397Z'
   stage: doing
   run: 998f4f0fa9e04f10861c44e3b3751b9d
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:44:53.209340Z'
+  stage: review
 ---
 
 # The run record counts the refused tool calls
@@ -453,3 +462,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
+29. factory: started review as self.
