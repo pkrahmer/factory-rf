@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T15:07:45.175101Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -140,6 +144,11 @@ journal:
   at: '2026-10-18T15:07:25.203037Z'
   stage: review
   run: 1642e75f778c4b06beda2e5661c52709
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:07:45.175101Z'
+  stage: docs
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -454,3 +463,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     - `tests/test_process_search.py`: the human's leave. The story's Interface names `test_no_module_uses_another_route_to_a_process` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` under feature decision 7, and the change stays inside those two tests.
     - `tests/test_wrapper_search.py`: the human's leave. The story names `test_only_the_three_wrappers_import_the_process_module` under feature decision 7, and the change adds one importer.
     - `tests/entry/test_wiring.py`: the human's leave, journal entry 8. It is the one-line change to `test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer`.
+25. factory: started docs as self.
