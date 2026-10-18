@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T15:06:28.797986Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -129,6 +133,11 @@ journal:
   at: '2026-10-18T15:06:08.716235Z'
   stage: doing
   run: 1aa0ca9d2d2645f48f8554a5819a90f0
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-18T15:06:28.797986Z'
+  stage: review
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -419,3 +428,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 36 known, 3 gone
+23. factory: started review as self.
