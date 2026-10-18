@@ -465,3 +465,35 @@ The overnight run of `factory-v2/planning/v1.1/overnight-run-plan.md`: v1 builds
 | 2026-10-18 09:36 | Shakedown F0002-S0003 merged (demo #9; 14 runs, 6.7 agent minutes, $2.29, about 16 min to approval; two review rounds, both on duplicated test helpers; run 4: $1.12 clean). **Finding (where: the template's rules, enforced by no one):** this time the agents changed earlier stories' tests (F0001-S0003's `tests/api/test_todos.py`, `tests/conftest.py`, F0001-S0002's `tests/service/test_todo_service.py`: helpers moved to `tests/fakes.py`, fixtures renamed) without asking the human, as "approved test change" from the coder; in F0001-S0003 and S0004 the same kind of change was asked first. The changes keep what each test checks (read by the session) and are what F0001's decision 13 allows, so merged. But the rule "another story's tests only with the human's leave" (the template's `CLAUDE.md`, "Not without asking") is held by the agents' reading alone: the reviewer did not flag it and no check sees it. For v1 after the shakedown, one of: (a) a standing leave in the template's `CLAUDE.md` to move a shared test helper to `tests/` keeping what each test checks (then this was fine); (b) the reviewer's checklist names every changed test file another story created and the leave for it. The session's recommendation: (a) and (b) together. Archived. F0002's three stories: 26 runs, $3.60 (run 4: $3.33). The acceptance is due. |
 | 2026-10-18 09:42 | Shakedown F0002 acceptance merged (demo #10; 1 run, 4.3 min, $1.21; run 4: $1.47): **accepted with stories**, fair: feature smoke test green (CLI, a real `uvicorn` with memory and SQLite, a restart), mutants 98/103 (two real survivors: nothing checks that `build_app` hands the service its repository), three proposed stories in `backlog/`. It did not mention the unasked changes to F0001's tests (the finding of 09:36). Archived (`7174e6a`). F0002 total: 27 runs, $4.81 (run 4: $4.80). Weekly 81 %. F0003 added, F0003-S0001 started. |
 | 2026-10-18 09:48 | Shakedown F0003-S0001 merged (demo #11; 6 runs, 2.6 agent minutes, $0.79, about 6 min to approval; first pass; run 4: $1.00). Archived (`85ffe97`). All eight stories are built. F0003's acceptance is due. |
+| 2026-10-18 09:55 | Shakedown F0003 acceptance merged (demo #12; 1 run, 4.0 min, $1.09; run 4: $0.87): **accepted**, mutants 41/41, one proposed story (the search limit counts the text before stripping). Archived (`da0136c`). Instance healthy, no zombie. |
+
+## 2026-10-18, the shakedown run (plan step 4): result
+
+v1.1 built the todo demo's eight stories and three acceptances on `pkrahmer/factory-demo-todo`, 07:45 to 09:53 local (2 h 08 min, the session's waits included), instance `shakedown` under Docker Desktop, image `0f617cde`, on the subscription. Every story and acceptance was accepted at its first approval; no stall, no crash, no stop, no restart; the health stayed `healthy` and no zombie was left.
+
+| Work item | Runs | Agent min | Cost | What happened | Run 4 |
+| :- | -: | -: | -: | :- | -: |
+| F0001-S0001 | 6 | 3.9 | 1.52 | clean | 2.85 |
+| F0001-S0002 | 6 | 3.0 | 0.86 | clean (a coder's slip, caught by the reviewer) | 1.31 |
+| F0001-S0003 | 12 | 7.6 | 2.35 | intake question (a `null` side untested), a review round on copied test helpers with the human's leave | 1.54 |
+| F0001-S0004 | 23 | 12.9 | 4.21 | intake questions (three untested sides), three review rounds: a missing no-inheritance row, copied helpers twice | 1.94 |
+| F0001 acceptance | 1 | 8.1 | 2.25 | accepted with 4 stories, mutants 210/218 | 1.59 |
+| F0002-S0001 | 6 | 2.6 | 0.74 | clean | 1.36 |
+| F0002-S0002 | 6 | 2.2 | 0.57 | clean | 0.85 |
+| F0002-S0003 | 14 | 6.7 | 2.29 | two review rounds on copied test helpers, changed F0001's tests unasked | 1.12 |
+| F0002 acceptance | 1 | 4.3 | 1.21 | accepted with 3 stories, mutants 98/103 | 1.47 |
+| F0003-S0001 | 6 | 2.6 | 0.79 | clean | 1.00 |
+| F0003 acceptance | 1 | 4.0 | 1.09 | accepted with 1 story, mutants 41/41 | 0.87 |
+| **Total** | **82** | **57.9** | **17.88** | | **15.89** (59 runs, 40.1 min) |
+
+The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 on average (run 4's clean ones: 1.16). The extra cost sat in three stories, all for the same two causes in the demo's drafts and the template's rules, not in the engine.
+
+**Faults and findings, by where they sat** (for v1 to fix as stories with a test, once the human has chosen):
+
+1. **The template's rules, enforced by no one:** "another story's tests only with the human's leave" (template `CLAUDE.md`, "Not without asking") is held by the agents' reading alone. In F0001-S0003 and S0004 the agents asked; in F0002-S0003 they changed F0001's tests unasked (harmless helper moves), the reviewer did not flag it and the acceptance did not mention it. **For the morning:** (a) a standing leave in the template's `CLAUDE.md` to move a shared test helper to `tests/` keeping what each test checks; (b) the reviewer's checklist lists every changed test file another story created and the leave for it. The session recommends both.
+2. **The template's rules, cost:** the duplicated-helper rule pulls earlier stories' tests into each new story, a review round and often a question each time (about $3 of the run's $2 over run 4 sit there). Fixed by 1(a).
+3. **The engine, minor:** an acceptance's pull request shows `approval` on the board about 25 s before its description holds the report (seen on #12: the body was the journal alone at first). A human who reads at once sees an empty report. Worth a story only if the order is easy to swap (write the description, then hand over).
+4. **The demo's drafts (the human's `demo/`):** six questions in four stories were each a rule side the draft left untested (a `null` row, the storage format, `str` paths, a no-inheritance row). v1.1 caught every one at intake or review, as designed. A pre-check of the demo's stories against `CLAUDE.md`'s both-sides rule would have saved them, before the baseline run.
+5. **Not v1.1's:** the `StarletteDeprecationWarning` (the demo's pinned `httpx`, the human's dependency); the acceptance's proposed stories wait in the demo's backlogs (not started, the demo's rule).
+
+**Local CPU:** the shakedown container used 0.83 cores on average; 291 of 340 samples (20 s apart) were below half a core: the time is the model's. The factory's own project commands took 5.5 min in all (28 `make check` at 7.9 s mean, each on a different commit, so "skip a known check" saves nothing in the factory's own runs here; the agents' own runs inside a stage are not in that record). The spikes of 12 to 19 cores are `pytest -n auto`. v1's container was idle throughout. Logger: `C:/Dev/Projects/factory-cpu-load/` (`cpu_load.py`, `summary.py`); its per-process column stays empty for commands shorter than 20 s.
