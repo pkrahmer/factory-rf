@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-18T16:51:06.362329Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-18T16:51:06.356897Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:51:06.362329Z'
+  stage: intake
+---
+
 # The preflight checks the kernel's write guard
 
 ## Description
@@ -58,3 +85,6 @@ print(confinement_item(lambda: 2, {"PATH": "/nowhere"}, find).detail)
 Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write guard needs ABI 3 or higher: update the kernel (on WSL: wsl --update), or allow the Landlock system calls in the container runtime's seccomp profile; factory-confine is not on the agent run's PATH /nowhere`
 
 ## Journal
+
+1. 2026-10-18 human: created.
+2. factory: started intake as self.
