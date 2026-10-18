@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T19:15:55.532665Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T19:15:35.587716Z'
   stage: docs
   run: 82d54191c96a46c5b7f9ddc6a8b60182
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:15:55.532665Z'
+  stage: smoke-test
 ---
 
 # The documents describe the live write guard
@@ -159,3 +168,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
