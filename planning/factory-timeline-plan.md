@@ -10,7 +10,7 @@ A running factory leaves its whole state on GitHub: the work items with their jo
 
 ## Where it lives
 
-A separate repository, **`pkrahmer/factory-timeline`**: one static HTML page and the tests of its reading code.
+A separate repository, **`pkrahmer/factory-timeline`** (created by the human on 2026-10-19; the PoC is its first commit `b3e4124`, and its source lives there, not here): one static HTML page and the tests of its reading code.
 
 - It reads any factory's repository, not only `factory-rf`, so it does not belong to one factory's tree.
 - It depends on the factory only through the records contract (F0021-S0006). A release of the map names the contract versions it reads (`x-records-contract` major 1).
@@ -56,12 +56,12 @@ The Markdown body is only displayed: the story's chapters folded, the journal's 
 
 ## The proof of concept (this step)
 
-One HTML file, `planning/factory-timeline-poc/factory-timeline.html`, built from the mockup's design with v1.1's records:
+One HTML file (first in `planning/`, now `index.html` of `pkrahmer/factory-timeline`), built from the mockup's design with v1.1's records:
 
 1. It reads raw files (the pipeline, `feature.md`, the work items, the cost sidecars, the agent files) through one loader with two sources: the live GitHub API (a repository and a token, entered on the page) and an embedded snapshot.
 2. It parses the front matter with `js-yaml` (from cdnjs, pinned) and the sidecars line by line with `JSON.parse`.
 3. It derives the visits, waits and send-backs as above and draws the map and the panels.
-4. A snapshot of factory-rf's `main` (F0018, F0019 and F0021 as far as built) is embedded by `planning/factory-timeline-poc/snapshot.py.txt` (kept as text, so `make lint` does not read it), and the result is published as a private artifact for the human's review.
+4. A snapshot of factory-rf's `main` (F0018, F0019 and F0021 as far as built) is embedded by a snapshot script (now `tools/snapshot.py` there), and the result is published as a private artifact for the human's review.
 
 What the PoC is to show: that the records alone give the map (no prose parsed), which fields the map misses (input for F0021-S0006's contract), and whether the layout works for a real feature of 12 stories, 3 acceptances and a day's run.
 
@@ -74,7 +74,7 @@ What the PoC is to show: that the records alone give the map (no prose parsed), 
 
 ## What the PoC showed (2026-10-19)
 
-Published for review: https://claude.ai/artifact/VzazQBxJg41qR9FeGLZWSd (snapshot of `main` at `da5c3bf3` and the branch of F0021-S0001). Source: `planning/factory-timeline-poc/factory-timeline.src.html` and `snapshot.py.txt`; the built `factory-timeline.html` is not committed (its run ids are 32-character hex values, which `make secrets` would flag).
+Published for review: https://claude.ai/artifact/VzazQBxJg41qR9FeGLZWSd (snapshot of `main` at `da5c3bf3` and the branch of F0021-S0001). Source: `index.html` and `tools/snapshot.py` in `pkrahmer/factory-timeline`; a built snapshot page is not committed (its run ids are 32-character hex values, which `make secrets` would flag).
 
 1. **The records alone give the map.** Visits, waits, send-backs, stalls, costs and the human's hours come from the front matter and the sidecars; the Markdown is only displayed. F0019: 15 work items, $39.98, 12 questions, 46 minutes waited for the human; S0004 alone 25 runs, 7 send-backs (counting the coder's send-backs to the tester), 6 waits.
 2. **A running work item's records are on its branch.** On `main` an in-progress work item has no journal until the merge; the map reads `work-item/<id>` for each in-progress item (one ref request with `If-None-Match` per poll). The records contract should say so.
