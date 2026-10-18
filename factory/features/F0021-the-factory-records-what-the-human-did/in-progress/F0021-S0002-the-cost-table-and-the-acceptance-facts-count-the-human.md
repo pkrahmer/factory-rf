@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T22:43:38.623875Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-18T22:43:38.623875Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T22:44:01.276012Z'
+  stage: smoke-test
+  run: 1c63b55c8de1447aafb84c15b0f42026
 ---
 
 # The cost table and the acceptance facts count the human
@@ -442,3 +444,29 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     `check`: check: green
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root exactly as written, in order. Both exited 0 and both matched their `Expect:` line. I fixed nothing.
+
+    Command 1 (`human_line(human_waits(journal))`: a crash_cap question answered after 1 h 30 min, then an unanswered reviewer question):
+
+    ```
+    1 questions answered (crash_cap 1), 1.5 h waited
+    ```
+
+    Met `Expect: 1 questions answered (crash_cap 1), 1.5 h waited`: yes.
+
+    Command 2 (`cost_table_post("T", human=...)`):
+
+    ```
+    'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0 h waited'
+    ```
+
+    Met `Expect: 'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0 h waited'`: yes.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the comment ends the crash_cap wait, and the later question with no human record after it stays unanswered.
+    - Criterion 2: the unanswered wait is in neither the count nor the hours, the parenthesis names only the answered cause, and 1.5 h is rounded to one decimal.
+    - Criterion 3: the output is exactly the expected text with the `Human:` line.
+
+    The smoke test contradicts none of the criteria. It does not touch criteria 4 to 8 (the hand-over posts, `AcceptanceFacts.lines()`, `AcceptanceService.facts`, `make check`, docs); those are for the tests, the factory's checks and the docs stage.
+
+    Findings: none.
