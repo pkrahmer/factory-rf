@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T19:26:41.996547Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T19:26:22.296719Z'
   stage: doing
   run: 9e5dc291252c49b094c4d9f1f1b54690
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:26:41.996547Z'
+  stage: tests
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -201,3 +210,4 @@ Expect: `completed | root file refused | False`
     Nothing under `src/` changes: `git diff main -- . ':!factory' ':!tests'` is still empty. I had nothing of my own to refactor. No journal entry changed the meaning of the task, so the Description stays as it is.
 
     Noticed, not touched: `src/factory/entry/confine.py` is still at 78 % coverage, as I noted in round 0. That is outside this story.
+12. factory: started tests as self.
