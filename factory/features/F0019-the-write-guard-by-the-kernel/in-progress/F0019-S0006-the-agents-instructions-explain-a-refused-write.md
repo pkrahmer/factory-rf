@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 225
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T17:21:01.431075Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-18T17:20:41.171114Z'
   stage: review
   run: 6c0a2c707d004d9b9e707298a4910432
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:21:01.431075Z'
+  stage: docs
 ---
 
 # The agents' instructions explain a refused write
@@ -241,3 +250,4 @@ Expect: `1`
     Earlier tests:
     - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper (entry 13). The only change is that its identical `_body` copy is gone and the tests call `agent_body` instead. Every test keeps its name and checks the same thing.
     - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place where `agent_body` was added. Nothing that was already in it changed.
+18. factory: started docs as self.
