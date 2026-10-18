@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T22:30:28.113455Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-18T22:30:07.250495Z'
   stage: tests
   run: 09babd471f6240a996849cc227a1eb6b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:30:28.113455Z'
+  stage: doing
 ---
 
 # The cost table and the acceptance facts count the human
@@ -238,3 +247,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_human_waits.py - ImportError while importing test mod...
+9. factory: started doing as self.
