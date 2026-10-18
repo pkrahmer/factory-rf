@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T19:38:51.427202Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-18T19:38:31.251108Z'
   stage: tests
   run: d3c4bffad1994515a8ac07399a64c3b2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:38:51.427202Z'
+  stage: doing
 ---
 
 # factory-confine's steps run in the test process
@@ -137,3 +146,4 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/entry/test_confine_steps.py::test_restrict_and_replace_left_none_are_the_adapters_functions
+6. factory: started doing as self.
