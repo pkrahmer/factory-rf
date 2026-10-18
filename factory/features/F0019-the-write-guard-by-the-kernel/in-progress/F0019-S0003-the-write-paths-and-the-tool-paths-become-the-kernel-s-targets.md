@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T15:20:58.041187Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T15:20:58.041187Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T15:22:14.550608Z'
+  stage: review
+  run: e9141c98e5d449cc8d426ad9b3971f3a
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -236,3 +238,10 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
    `check`: check: green
    `duplicates`: duplicates: 3 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Group 1 (acceptance criteria) fails. The tests cover criteria 1 to 9 as written. Each Interface rule has its refused side tested, and the coder's journal reports `make check` green. But the Description promises "never to the checkout's root", and that rule has a gap in both the story and the code. No criterion tests a `.` segment, and pathlib collapses `.` segments, so the root, its parent or the whole home can each become a kernel target. Both findings are against the story. They need the human's word on the Interface and criteria 2 and 4, so the coder should end with `question` and propose the fix below.
+
+   1. `src/factory/domain/pipeline_definition.py:51` (`_is_plain_segment`) accepts the segment `.`. So `tool_paths: ["./*"]` passes the load-time rule, and `write_targets` turns it into the folder `root` (the whole checkout). `["~/./*"]` likewise becomes the whole `home`. The Interface's tool-path rule forbids `..` but not `.`, and criterion 2 has no such row. Fix: add "none `.`" to the tool-path rule in the Interface, and add rows `"./*"`, `"a/./b/*"` and `"~/./*"` to criterion 2. Then refuse a `.` segment in `_is_plain_segment`.
+   2. `src/factory/domain/confinement.py:86` checks only `first_wildcard == 0`, so a leading `.` segment gets past the root check. The write path `./*` (or `./*.md`) gives the folder `root.joinpath(".")`, which is the checkout's root. The write path `.` gives the file target `root`. At `confinement_of` (`confinement.py:109`), `root` is not in `existing_files` and its parent is not `root`, so it widens to the folder above the checkout. That is wider than the root the Description rules out. The Interface's `write_targets` rules allow both results, and criterion 4 has no row for them. Fix: in the Interface, say that a write path holding a `.` segment, or whose target would be `root` or a folder above it, gives no target. Add rows `./*`, `./*.md` and `.` (each giving nothing) to criterion 4. Then make `_write_path_target` return `None` for these cases.
+
+   Earlier tests:
+   - `tests/application/test_write_paths.py` — standing leave to move a shared test helper. The tester moved `_stage_start`, `_push_definition` and `PIPELINE_FILE` to `tests/write_path_support.py` as `stage_start`, `push_definition` and `PIPELINE_FILE`. Every earlier test keeps its name and checks the same thing.
