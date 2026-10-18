@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 239
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T23:55:54.233713Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T23:55:54.233713Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T23:56:35.877483Z'
+  stage: review
+  run: a793badd8b3040e880b3013ecbf9f192
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -188,3 +190,18 @@ Expect: five lines, each `1`.
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Criteria 1 and 2 (the new agent texts): the four agent files change only on the lines the Interface names, and each new text matches the Interface word for word.
+     - `claude/agents/reviewer.md:62-66` holds the new recommendation paragraph, then the notes paragraph, then the added-criterion paragraph, in that order.
+     - `claude/agents/coder.md:59`, `claude/agents/tester.md:59` and `claude/agents/acceptance-reviewer.md:58` each end with their new sentence.
+     - `tests/test_claude_agent_texts_review_leave.py` checks each text in its section with one six-row parametrized test. It checks that the old sentence is gone, and that each paragraph comes straight after the one before it with two rows of one parametrized test. Checking that they sit next to each other is stricter than checking the order alone.
+   - Criteria 3 and 4: `tests/test_claude_agent_texts.py` is unchanged and none of the `## Lessons` sections were touched. The factory's `make check` after the coder was green (entry 7).
+   - The new texts fit the factory as it is:
+     - The reviewer's write paths in `factory/pipeline.yml` include `{work_item}`, so the reviewer can write an added criterion into the work item.
+     - The `Human interventions of the stories` line exists in `src/factory/domain/acceptance.py:215`.
+     - When the coder ends with `tests`, the factory gives the tester the mode line that step 0 handles (`src/factory/domain/prompts.py:41`).
+   - Architecture and security: nothing under `src/` changed, and no marker that silences a check was added.
+   - Quality and work item hygiene: the new test module has a module docstring and uses plain parametrized tests. The journal gives the coder's main choice and what it rejected, and the Description matches what was built. The docs criterion is the documenter's next job.
+
+   Earlier tests: none. The only test file in the diff is the new `tests/test_claude_agent_texts_review_leave.py`.
