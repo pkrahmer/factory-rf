@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -96,6 +96,11 @@ journal:
   at: '2026-10-18T12:51:31.798033Z'
   stage: smoke-test
   run: a48865b644864153a0fa16e6bea18c93
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-18T12:52:49.426598Z'
+  stage: approval
 ---
 
 # The documents name the handover
@@ -263,3 +268,4 @@ Expect: `documents ok`
     Still open from the documenter's entry, outside this story's criteria:
     - The two rejected alternatives in the decision-log entry are the documenter's inference and need the human to check them.
     - Some stale "first observed at the shakedown" wording remains: decisions.md lines 462 and 504, and operator-guide line 259.
+17. factory: done (pull request merged); cost: 7 runs, 4.4 min, 37 turns, 133285 tokens in (420107 more from cache), 9995 out, $1.10
