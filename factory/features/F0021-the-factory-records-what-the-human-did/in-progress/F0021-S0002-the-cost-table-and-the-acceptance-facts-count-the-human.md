@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T22:40:33.923489Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-18T22:40:33.923489Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:41:36.048994Z'
+  stage: review
+  run: 8f2015ac74b24879a2737b0416ff75f4
 ---
 
 # The cost table and the acceptance facts count the human
@@ -379,3 +381,30 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 19. factory: started review as self.
+20. reviewer: no findings
+
+    Round 1, second review. I read the work item, the diff stat, the name-status list and the full diff of `src` and `tests` (`git diff main...HEAD -- . ':!factory'`). I did not run `make check`: entry 18 reports it green on the committed state.
+
+    1. Acceptance criteria: every criterion from 1 to 6 has one parametrized test whose rows match the criterion's bullets.
+       - Criterion 1 has 9 rows, including the human record before the question.
+       - Criterion 2 has 6 rows, including both sides of the 0.05 h rounding.
+       - Criterion 3 has 2 rows.
+       - Criterion 4 covers the story and the acceptance through `HandOverHandler` and `AcceptanceHandOver`.
+       - Criterion 5 has 4 rows plus the test that the value is passed on.
+       - Criterion 6 has the counted stories, the backlog story, a file without front matter and a file with invalid front matter. The acceptance report's 2 h `round_cap` wait would change the expected line if it were counted.
+       - The one numeric limit in the Interface, `HumanWait.question: PositiveInt`, is now tested at 0 and 1 as rows of one test (entry 16). That closes entry 12's finding.
+    2. Architecture: `human_waits` is pure domain code and imports only `bills`, `journal` and `times`. The handlers and `AcceptanceService` sit in `application` and call domain functions. The file is read at a ref through the existing `AcceptanceReader`, whose private `_document` was split into a public `document` (show_file plus `parse_at`), so there is no third copy of that reading. No layer is crossed and no tool is called directly.
+    3. Security: no strings are built into commands or SQL, and no silencing markers were added. A damaged archived file is caught as `WorkItemFormatError` and adds no waits, as the Interface says.
+    4. Quality: one rounding (`one_decimal`) is used for both the minutes and the hours. Docstrings are present and say what each function does. The comment in `_answered_at` explains why a wait ends up to one tick late.
+       - Considered and not counted as a finding: `_hours` (`src/factory/domain/human_waits.py`) repeats the one-line conversion `Decimal(str(duration.total_seconds()))` from `bills._minutes`.
+       - Why: the Interface limits `bills` to one public helper, `one_decimal(value: Decimal)`. Sharing the conversion would need a second public helper, which the human did not grant. The rule the story asks to share, the rounding, is shared. `make duplicates` reports 0 new findings.
+    5. Work item hygiene:
+       - The journal records the main choice (pass the state `handle` already checked into `_show`, not a second `require_state`) and what was rejected.
+       - The Description matches what was built.
+       - The docs criterion still describes what the documenter has to write.
+       - Entry 12 suggested adding a criterion row for the `PositiveInt` limit. Leaving it out is fine: CLAUDE.md *Tests* already requires that test.
+
+    Earlier tests:
+    - `tests/application/handlers/test_hand_over.py`: changed under the feature's decision 13, fourth bullet (`_expected_post` passes the human line). Only the expected value changed.
+    - `tests/application/test_stage_run_acceptance.py`: changed under the feature's decision 13, fifth bullet (the compared prompt tail grows from `[-3:]` to `[-4:]`). Nothing else changed.
+    - `tests/application/test_task_acceptance.py`: changed under the feature's decision 13, fifth bullet (the compared prompt tail grows from `[-4:]` to `[-5:]`). Nothing else changed.
