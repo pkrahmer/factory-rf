@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T15:12:58.703444Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T15:12:58.703444Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T15:16:42.293834Z'
+  stage: tests
+  run: 902b85af1b4c4c03bb5b3ae127bd298a
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -160,3 +162,31 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
    Architecture: the pure functions and DTOs are in `domain`, the settings pass-through is in `application.write_paths`, and the key is read by the existing YAML reader. No layer rule is broken, and the story adds no adapter, dependency or wrapper.
    Scope: it matches the feature's S0003 scope. Nothing here belongs to its Out of scope list; the runtime use is left to S0004.
 4. factory: started tests as self.
+5. tester: I wrote red tests for criteria 1 to 9. One `make test` run showed them failing for the right reason: tests that read `tool_paths` fail, and the target and confinement modules fail to import. `make lint` is green.
+
+   criterion 1: tests/domain/test_tool_paths.py::test_the_tool_paths_load_in_order_and_default_to_none
+   criterion 2: tests/domain/test_tool_paths.py::test_a_tool_path_of_neither_folder_form_is_refused
+   criterion 3: tests/application/test_write_paths_tool_paths.py::test_at_returns_the_tool_paths_of_the_definition_at_the_stage_start_commit
+   criterion 4: tests/domain/test_write_targets.py::test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name
+   criterion 5: tests/domain/test_write_targets.py::test_a_tool_path_becomes_a_folder_in_the_checkout_or_the_home
+   criterion 6: tests/domain/test_write_targets.py::test_the_write_paths_come_first_and_a_repeated_target_is_left_out
+   criterion 7: tests/domain/test_confinement_of.py::test_a_target_is_a_folder_a_file_or_the_folder_of_a_missing_file
+   criterion 8: tests/domain/test_confinement_of.py::test_the_extras_follow_the_targets_as_given_and_a_repeated_path_is_left_out
+   criterion 9: tests/domain/test_tool_paths.py::test_the_verdict_ignores_the_tool_paths
+   criteria 10 and 11 (`make check`, docs): no test of their own.
+
+   Files created: tests/domain/test_tool_paths.py, tests/domain/test_write_targets.py, tests/domain/test_confinement_of.py, tests/application/test_write_paths_tool_paths.py, tests/write_path_support.py.
+
+   Earlier test file changed: tests/application/test_write_paths.py. Under the standing leave in CLAUDE.md (*Tests*), I moved its `_stage_start` and `_push_definition` helpers and its `PIPELINE_FILE` constant to tests/write_path_support.py as `stage_start`, `push_definition` and `PIPELINE_FILE`. The new application test uses them too. Every earlier test keeps its name and checks the same thing.
+
+   Modules the test runner could not import: `factory.domain.confinement` has no `WriteTarget`, `write_targets` or `confinement_of` yet, so test_write_targets.py and test_confinement_of.py fail at collection. The rest fail on the missing `tool_paths` of `PipelineDefinition` and `GuardSettings`.
+
+   Notes for the coder:
+   - The tool-path rule is tested through `RuamelPipelineDefinitionReader`, which the Interface allows. That is because the fault `invalid tool_paths: Input should be a valid list` is written by the reader.
+   - The "two faults" row compares the faults split on `; ` as a set, so the order of the two faults is not fixed.
+   - In criterion 9, the default `tool_paths == []` and the verdict share one parametrized test. Its rows are a guard with and without `tool_paths`, crossed with `.venv/x` (refused) and `src/x` (allowed).
+
+   Nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_write_targets.py - ImportError while importing test m...
