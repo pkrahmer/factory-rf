@@ -1,6 +1,6 @@
 ---
-stage: ready
-pr: null
+stage: tests
+pr: 214
 blocked: null
 comments_seen: 0
 round: 0
@@ -135,3 +135,9 @@ Expect: `documents ok`.
 ## Log (append only)
 
 1. 2026-10-18 human: created.
+2. intake: accepted
+   - Interface: names the new module `tests/tmp_path_support.py` with the signature `reopen(root: Path) -> None`, and the fixture `reopened_tmp_path` in `tests/conftest.py` with its signature. The mode changes, the walk order and the handling of links and of a missing root are all stated concretely.
+   - Criteria: criteria 1–6 each map to named test functions and rows with exact expected modes, so one test function can check each without further decisions. Every behaviour in the Interface comments has a criterion: the owner bits added, the setgid and other bits kept (`open-with-setgid`), links not followed, the fixture doing nothing without `tmp_path`, and the teardown order. The rule with a failing side is the missing root: no error and nothing created (criterion 4). The fixture's refused side is covered by criterion 6 and the `without-conftest` row.
+   - Demo: the pytest command lists existing modules plus the new one. The Python snippet is runnable and expects `0o720` then `False`. The `check_documents` command expects `documents ok`. Each Expect line can be checked against the output.
+   - Architecture: the change is under `tests/` only, with the standard library only. It adds no layer, no dependency and no `src/` change. The child process uses `run_process` from `factory.adapters.process` as other tests do. The `tests/conftest.py` leave is stated in the story and in FEATURE decision 6.
+   - Scope: it is within FEATURE scope and avoids everything in "Out of scope": no `Makefile`, `pyproject.toml`, `src/` or earlier-test changes.
