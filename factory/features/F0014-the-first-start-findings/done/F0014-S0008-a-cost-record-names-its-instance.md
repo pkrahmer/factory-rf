@@ -1,5 +1,5 @@
 ---
-stage: accept
+stage: done
 pr: 200
 blocked: null
 comments_seen: 0
@@ -130,3 +130,4 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
    - Criterion 5: the earlier modules it names that command 2 ran (`test_cost_records_jsonl`, `test_cost_image` and `test_costs`) passed.
 
    Not run here: `tests/adapters/test_cost_records_jsonl_model_seconds.py`, `tests/domain/test_cost_records.py` and `tests/domain/test_bills.py`, which criterion 5 also names. The demo does not list them, and the factory's `make check` covers them. Criteria 6 and 7 are the factory's checks after this stage and the documenter's recorded `make check: green` and `documents ok`. Nothing in the demo contradicts any criterion.
+8. done (pull request merged); cost: 6 runs, 4.3 min, 40 turns, 120k tokens in (649k more from cache), 14k out, $1.10
