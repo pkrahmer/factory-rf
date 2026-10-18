@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 221
-comments_read: []
+comments_read: [6251323783]
 handed_over: null
 claim: null
 journal:
@@ -47,6 +47,11 @@ journal:
   at: '2026-10-18T14:51:28.590007Z'
   stage: doing
   run: bd772f32133f4b0ea5bf2b0cbe30e51b
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-18T14:53:46.253719Z'
+  stage: doing
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -229,3 +234,4 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
    Not touched: `src/factory/entry/confine.py` has 78% coverage, because the rows that reach steps 5 and 6 run in a child that coverage does not follow. The total coverage is still 98.6%.
 
    No refactor pass yet; it waits until `make check` is green.
+8. 2026-10-18 human: A. You have my leave: the tester widens `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` to expect `{"factory.entry.wiring", "factory.entry.confine"}`, that one line and nothing else. The start wrapper imports `factory.adapters.landlock` and `factory.adapters.process` directly, as the Interface and criterion 14 say: it picks no adapter behind an interface; it is the process-level step before `exec`. Recorded as feature decision 19 (on main). End with `tests` naming that change.
