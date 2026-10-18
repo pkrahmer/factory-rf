@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: [6251323783]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:03:51.430651Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -127,6 +123,12 @@ journal:
   kind: started
   at: '2026-10-18T15:03:51.430651Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:06:08.716235Z'
+  stage: doing
+  run: 1aa0ca9d2d2645f48f8554a5819a90f0
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -401,3 +403,19 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
     `lint`: lint: green (0.0 s)
     `test`: test: green (43.2 s)
 21. factory: started doing as self.
+22. coder: Round 1, after the tester merged the tests (entry 20). The one finding from review (entry 16) was a test change, and the tester has made it. `tests/adapters/test_process_replace.py::test_replace_process_becomes_the_command_or_raises_and_this_process_goes_on` now holds the success side and both refused sides of `replace_process` as rows of one parametrized test. With that change in place, `make check` is green: 98.64% total coverage, ending in `check: green`. This run changed no source code. Since entry 14 no source file has changed, so the refactor pass recorded there still holds and there is nothing new to refactor.
+
+    What I built, committed on the branch:
+    - `src/factory/domain/agent_runs.py`: `CONFINE_COMMAND`.
+    - `src/factory/domain/confinement.py`: `Confinement` (folders, files, temporary directory), using the `AbsolutePath` of `agent_runs`.
+    - `src/factory/adapters/process.py`: `replace_process`. It raises `ValueError` on an empty `argv`. Its one `os.execvpe` line carries `# noqa: S606  # nosec B606`.
+    - `src/factory/entry/confine.py`: `main`, with the six steps in the Interface's order. It imports `factory.adapters.landlock` and `factory.adapters.process` directly (feature decision 19, entry 8).
+
+    Main choice (unchanged): each fault raises a private `_Stop` that carries its line, and `main` writes that line once and returns 1. I rejected having each step return a status, because that would repeat the write-and-return at all six faults.
+
+    What the journal changed: entries 8 and 16 changed only tests, and the tester made those changes. The task means the same as before, so `## Description` is unchanged.
+
+    Noticed, not touched: coverage is 78% for `src/factory/entry/confine.py`, lines 67-75, 80-83 and 95. The rows that reach the restriction and the exec run in a child process that coverage does not follow, which is also why `landlock.py`'s coverage is low (35% in entry 14). `CONFINE_COMMAND` stays unused until S0004, which is the one new dead-code finding from `make duplicates`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 36 known, 3 gone
