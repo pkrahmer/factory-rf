@@ -6,7 +6,7 @@ import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.domain.sections import section_text
-from shipped_agents import ROOT, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent, front_matter_and_body
+from shipped_agents import ROOT, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent, agent_body
 
 _WITHOUT_ROLE = {"intake", "smoke-tester"}
 
@@ -137,11 +137,6 @@ _BANNED_WORDS = re.compile(
 )
 
 
-def _body(name: str) -> str:
-    _, body = front_matter_and_body(name)
-    return body
-
-
 def _headings(body: str) -> list[str]:
     return re.findall(r"^## .*$", body, re.MULTILINE)
 
@@ -156,7 +151,7 @@ def _decisions(role: str) -> list[str]:
 
 @pytest.mark.parametrize("agent", SHIPPED_AGENTS, ids=SHIPPED_NAMES)
 def test_body_still_opens_with_the_boundary_and_the_entry_sentence(agent: ShippedAgent) -> None:
-    body = _body(agent.name)
+    body = agent_body(agent.name)
 
     assert body.startswith(f"{agent.boundary}\n\n{agent.entry}\n")
 
@@ -167,17 +162,17 @@ def test_body_has_rules_role_stage_and_lessons_sections_in_order(name: str) -> N
     if name not in _WITHOUT_ROLE:
         expected.insert(1, "## Role")
 
-    assert _headings(_body(name)) == expected
+    assert _headings(agent_body(name)) == expected
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_body_never_says_stuck(name: str) -> None:
-    assert re.findall(r"\bstuck\b", _body(name), re.IGNORECASE) == []
+    assert re.findall(r"\bstuck\b", agent_body(name), re.IGNORECASE) == []
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_body_uses_no_word_the_rename_table_replaces(name: str) -> None:
-    body = _body(name)
+    body = agent_body(name)
 
     assert _BANNED_WORDS.findall(body) == []
     assert "Assignment" not in body
@@ -186,7 +181,7 @@ def test_body_uses_no_word_the_rename_table_replaces(name: str) -> None:
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_body_names_every_decision_of_its_stage_in_inline_code(name: str) -> None:
-    body = _body(name)
+    body = agent_body(name)
 
     missing = [decision for decision in _decisions(name) if f"`{decision}`" not in body]
 
@@ -205,7 +200,7 @@ def test_body_names_every_decision_of_its_stage_in_inline_code(name: str) -> Non
 def test_rules_section_carries_the_pipeline_rules_with_the_decision_contract(
     name: str, anchor: str
 ) -> None:
-    assert anchor in (section_text(_body(name), "Rules") or "")
+    assert anchor in (section_text(agent_body(name), "Rules") or "")
 
 
 @pytest.mark.parametrize(
@@ -217,12 +212,12 @@ def test_rules_section_carries_the_pipeline_rules_with_the_decision_contract(
 )
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_rules_section_leaves_commit_push_and_move_to_the_factory(name: str, anchor: str) -> None:
-    assert anchor in (section_text(_body(name), "Rules") or "")
+    assert anchor in (section_text(agent_body(name), "Rules") or "")
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_role_and_stage_sections_carry_the_texts_of_the_role(name: str) -> None:
-    body = _body(name)
+    body = agent_body(name)
     text = (section_text(body, "Role") or "") + (section_text(body, "Stage") or "")
 
     missing = [anchor for anchor in ROLE_AND_STAGE_ANCHORS[name] if anchor not in text]
@@ -241,11 +236,11 @@ def test_role_and_stage_sections_carry_the_texts_of_the_role(name: str) -> None:
     ],
 )
 def test_acceptance_reviewer_names_the_report_sections_and_recommendations(phrase: str) -> None:
-    assert phrase in _body("acceptance-reviewer")
+    assert phrase in agent_body("acceptance-reviewer")
 
 
 def test_acceptance_reviewer_writes_proposed_stories_into_the_backlog() -> None:
-    assert "Write the proposed stories into the feature's `backlog/`." in _body(
+    assert "Write the proposed stories into the feature's `backlog/`." in agent_body(
         "acceptance-reviewer"
     )
 
@@ -255,7 +250,7 @@ def test_acceptance_reviewer_writes_proposed_stories_into_the_backlog() -> None:
     ["compare the output with its `Expect:` line", "its trimmed output in a fenced block"],
 )
 def test_smoke_tester_compares_with_expect_and_records_trimmed_output(phrase: str) -> None:
-    assert phrase in _body("smoke-tester")
+    assert phrase in agent_body("smoke-tester")
 
 
 @pytest.mark.parametrize(
@@ -266,16 +261,16 @@ def test_smoke_tester_compares_with_expect_and_records_trimmed_output(phrase: st
     ],
 )
 def test_coder_sends_a_wrong_test_back_to_the_tester(phrase: str) -> None:
-    assert phrase in _body("coder")
+    assert phrase in agent_body("coder")
 
 
 def test_the_reviewer_no_longer_stops_before_the_earlier_tests() -> None:
-    assert "Stop at the first failing group and report it" not in _body("reviewer")
+    assert "Stop at the first failing group and report it" not in agent_body("reviewer")
 
 
 @pytest.mark.parametrize("name", SHIPPED_NAMES)
 def test_lessons_section_is_last_and_holds_exactly_the_role_bullets(name: str) -> None:
-    body = _body(name)
+    body = agent_body(name)
     lines = [line for line in (section_text(body, "Lessons") or "").splitlines() if line.strip()]
 
     assert _headings(body)[-1:] == ["## Lessons"]
