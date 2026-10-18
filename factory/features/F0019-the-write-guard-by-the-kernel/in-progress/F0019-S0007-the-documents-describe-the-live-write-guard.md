@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 227
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T19:10:31.304057Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-18T19:10:11.438468Z'
   stage: intake
   run: a6162620299f48c7a53788148423930e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:10:31.304057Z'
+  stage: tests
 ---
 
 # The documents describe the live write guard
@@ -81,3 +90,4 @@ Expect: `documents ok`
    Smoke test: four commands. The greps are runnable, and `grep -c` over two files prints `file:count`, which matches the first Expect line. Every Expect line has a concrete value, and the last is `documents ok`.
    Architecture: documents only, so the layering is not touched. The `confinement_item` paragraph correctly places it in `factory.application.preflight`, with the wiring passing `abi_version` and a search on the agent run's PATH.
    Scope: F0019's acceptance proposed the story. It is documentation for the feature, and `feature.md` lists the three documents under Scope. The template and demo stay untouched, as its Out of scope and decision 17 say.
+4. factory: started tests as self.
