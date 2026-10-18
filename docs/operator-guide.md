@@ -889,6 +889,10 @@ Human: 2 questions answered (question 1, crash_cap 1), 1.5 h waited
 
 It counts the questions that stopped the work item for you: the agent's question and the stops `round_cap`, `send_back` and `crash_cap`. A question counts once you have answered it, by a comment or by closing the pull request; the close counts as an answer too. The parenthesis names each cause and how many were answered, and is left out when none was. The hours are the time from each question to your next record in the journal, summed. A question you have not answered yet counts in neither figure. The wait can be up to one tick too long, because a comment is dated when the factory copied it from the pull request, not when you wrote it. `1 questions answered` is the wording for one as well. `factory-bill` prints the table only, without this line.
 
+### Refused tool calls in the sidecar
+
+A completed record in the sidecar (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A run that got no reply (it died or ran past its time limit) has neither key; an older line has neither. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
+
 ### The cost line
 
 The line under the table sums the same figures: `3 runs, 3.5 min, 12 turns, 72 tokens in (1500 more from cache), 400 out, $1.55 + 1 unknown`.

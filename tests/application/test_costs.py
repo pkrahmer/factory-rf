@@ -432,6 +432,8 @@ def test_the_sidecar_is_written_again_after_the_undo(
         started_at=now,
         duration_seconds=60.0,
         end_reason="completed",
+        denials=0,
+        denied_paths=[],
     )
     assert _records_at(boundaries, report.commit) == [expected]
 

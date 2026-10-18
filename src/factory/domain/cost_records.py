@@ -27,6 +27,8 @@ class CostRecord(BaseModel):
 
     `image` and `instance` say where the run ran: the machine's image and the name of
     the instance; either may be `None` on a record written without settings.
+    `denials` counts the tool calls the runtime reported as refused and `denied_paths`
+    holds the files they named, each once; both are `None` when the runtime gave no reply.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -46,6 +48,8 @@ class CostRecord(BaseModel):
     cost_usd: Cost | None = None
     image: str | None = None
     instance: Name | None = None
+    denials: NonNegativeInt | None = None
+    denied_paths: list[str] | None = None
 
     @field_validator("cost_usd", mode="before")
     @classmethod
@@ -65,6 +69,8 @@ class CostRecord(BaseModel):
                 "turns": self.turns,
                 "tokens": self.tokens,
                 "cost_usd": self.cost_usd,
+                "denials": self.denials,
+                "denied_paths": self.denied_paths,
             }
             for field, value in measures.items():
                 if value is not None:
