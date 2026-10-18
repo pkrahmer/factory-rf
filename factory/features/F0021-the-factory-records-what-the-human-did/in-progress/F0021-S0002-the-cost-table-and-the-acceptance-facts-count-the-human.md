@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 236
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T22:21:54.391073Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-18T22:21:54.391073Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-18T22:22:12.030092Z'
+  stage: intake
+  run: 2ce9b88aeef0402d90e293b38c35c7e7
+  blocked: question
 ---
 
 # The cost table and the acceptance facts count the human
@@ -164,3 +167,10 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: The format check passed. The Interface, the architecture and the scope are fine. Two Interface clauses have no criterion, so I am asking. My choice for both is to add the rows.
+
+   1. Criterion 6 and `AcceptanceService.facts`: the Interface says a done story file that `parse` refuses adds no wait, "no front matter, or a state it cannot read". The criterion's rows cover only "a file without front matter". The second branch, a file with front matter whose state cannot be read, has no row. Should I add a fourth row, "a done story whose front matter fails validation adds nothing"? I would choose yes.
+
+   2. Criterion 1 and `human_waits`: the Interface says `answered_at` is the `at` of the first *later* record (higher `number`) of the human. No row shows that a human record *before* the question does not end the wait. Criterion 1's rows always put the human record after the question. Should I add a row with a human `comment` at 09:00 before a blocking question at 10:00 and no later human record, giving `answered_at` `None`? I would choose yes.
+
+   Everything else is testable by one test function. The smoke test commands are runnable and their Expect lines can be checked against the output.
