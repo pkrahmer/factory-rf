@@ -484,3 +484,12 @@ Date: 2026-10-18 (F0014-S0007; the human's word of 2026-10-17 for the status map
 - A cost record gains `instance`, the name of the instance that ran the agent run, because two instances may work on one project and the status map reads GitHub only. It is optional when read, so no sidecar is migrated. `CostRecorder.begin` takes it from the instance's settings, as it takes `image`, and `complete` keeps it; without settings it is `None`.
 - Its key is left out when unset, while `image` is written `null`. `begin` rewrites the whole sidecar, so a line the writer of today wrote is written back unchanged, and the lines written before this story stay as they were. A `null` would change every old line the next time `begin` ran.
 - An instance built before this story refuses a line with the key (`unknown key: instance`), so the instances of one project are upgraded together.
+
+## A project's secrets scan leaves out the cost records; run ids stay hexadecimal
+
+Date: 2026-10-18 (F0015-S0001; F0015 decisions 1 to 3; the tiny story F0099-S0001 on the todo demo). `CostRecorder.begin` writes each run's record into the sidecar `<work item>.costs.jsonl`. The record's `run` is a `uuid4` as 32 lowercase hexadecimal characters, which detect-secrets reads as a high-entropy secret, so the first agent run of every work item made the project's `make check` red.
+
+- A cost record holds run metadata and no secret. The template's `make secrets` therefore leaves out every path that ends `.costs.jsonl`, in any folder, as it already leaves out `uv.lock` and `.secrets.baseline`. A rule on the path holds for any id and any scanner; a path that merely contains `.costs.jsonl` or is named `costs.jsonl` is still scanned.
+- Rejected: a prefix on the run id (the id's form is the factory's and the status map reads it; a prefix would only suit one scanner's heuristics); a baseline entry per finding (every run writes a new id, so the baseline would grow without end); a pragma in each line (the factory writes the file and would have to put a marker into every record).
+- Rejected: a narrower pattern limited to `factory/features/` (decision 2). The sidecar stands beside its work item wherever the project keeps it, and the suffix is the factory's `COST_RECORDS_SUFFIX`.
+- The todo demo's `secrets` recipe is pinned to the template's by `tests/test_demo_makefile_secrets.py` (decision 3). The demo had its own copy of the line, and the two drifted apart once; a test is cheaper than a note.
