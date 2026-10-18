@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 236
-comments_read: []
+comments_read: [6255900893]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 2ce9b88aeef0402d90e293b38c35c7e7
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T22:24:31.203151Z'
+  stage: intake
 ---
 
 # The cost table and the acceptance facts count the human
@@ -174,3 +179,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
    2. Criterion 1 and `human_waits`: the Interface says `answered_at` is the `at` of the first *later* record (higher `number`) of the human. No row shows that a human record *before* the question does not end the wait. Criterion 1's rows always put the human record after the question. Should I add a row with a human `comment` at 09:00 before a blocking question at 10:00 and no later human record, giving `answered_at` `None`? I would choose yes.
 
    Everything else is testable by one test function. The smoke test commands are runnable and their Expect lines can be checked against the output.
+4. 2026-10-18 human: Yes to both: add the fourth row to criterion 6 (a done story whose front matter fails validation adds nothing) and the row to criterion 1 (a human `comment` at 09:00 before a blocking question at 10:00 and no later human record gives `answered_at` `None`).
