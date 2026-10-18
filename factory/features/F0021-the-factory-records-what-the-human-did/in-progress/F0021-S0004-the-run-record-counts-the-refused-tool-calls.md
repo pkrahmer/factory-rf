@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T23:37:48.935842Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-18T23:37:28.830740Z'
   stage: review
   run: 9e260e01706f423992caae9e3c171e88
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:37:48.935842Z'
+  stage: docs
 ---
 
 # The run record counts the refused tool calls
@@ -317,3 +326,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     Earlier tests:
     - tests/adapters/test_claude_runtime_resume.py: the story's Interface names it with the human's word (the feature's decision 14). The only change is the expected `Write` denial gaining `path="x"`.
     - tests/application/test_costs.py: the human's answer in journal entry 11, point 2. The only change is the expected completed `CostRecord` in `test_the_sidecar_is_written_again_after_the_undo` gaining `denials=0, denied_paths=[]`.
+20. factory: started docs as self.
