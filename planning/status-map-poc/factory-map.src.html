@@ -27,7 +27,6 @@ header h1{font-size:18px;font-weight:600;margin:0}
 .btn{cursor:pointer;font-weight:600}
 .btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .btn:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.meta{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
 .source{display:flex;gap:8px;align-items:center;margin-left:auto;font-size:12px;color:var(--muted)}
 .source .pill{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:9px;padding:1px 8px}
 .source .pill.live{color:var(--ok);border-color:var(--ok)}
@@ -45,11 +44,17 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax
 .dot{width:8px;height:8px;border-radius:50%;flex:none}
 .gutter{position:sticky;left:0;z-index:2;background:var(--panel);border-right:1px solid var(--line)}
 .heads .gutterhead{position:sticky;left:0;z-index:4;background:var(--panel);border-right:1px solid var(--line);display:flex;align-items:center;padding:0 6px}
-.label{all:unset;box-sizing:border-box;position:absolute;left:36px;right:4px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;height:20px;padding:0 4px;border-radius:4px;cursor:pointer;font-size:12px}
+.label{all:unset;box-sizing:border-box;position:absolute;left:4px;right:4px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 6px;align-items:center;height:38px;padding:2px 4px;border-radius:4px;cursor:pointer;font-size:12px;line-height:1.3}
+.label .when{font-family:var(--f-mono);font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.label .badge{justify-self:end;font-size:9px;padding:0 5px}
+.label .name .dot{display:inline-block;margin-right:5px;vertical-align:1px}
+.featbar .when{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+.label .name{grid-column:1/-1}
 .label:hover{background:var(--grid)} .label[aria-current="true"]{background:var(--grid);box-shadow:inset 2px 0 0 var(--sel)}
 .label:focus-visible,.stagehead:focus-visible,.seg:focus-visible,.feat-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.label .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .label .fid{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
-.feat-btn{all:unset;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:center;width:100%;font-weight:600;font-size:12px;padding:4px;border-radius:4px}
+.label .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .label .fid{font-family:var(--f-mono);font-size:10.5px;font-weight:600}
+.featbar{padding:0 12px 6px;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 4px}
+.feat-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:center;max-width:100%;font-weight:600;font-size:13px;padding:3px 6px;border-radius:4px}
 .feat-btn span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feat-btn[aria-current="true"]{background:var(--grid)}
 .mapwrap{overflow:auto;flex:1;min-height:0;position:relative}
@@ -127,7 +132,6 @@ details.visit.back{border-left-color:var(--wait)} details.visit.ask{border-left-
 <header>
   <h1>Factory Map</h1>
   <select id="feature" aria-label="Feature"></select>
-  <span class="meta" id="meta"></span>
   <span class="source"><span class="pill" id="srcpill">snapshot</span><span id="srctext"></span><button class="btn" id="liveBtn" type="button" aria-expanded="false">Read live</button></span>
 </header>
 <form class="live" id="liveForm" hidden>
@@ -144,10 +148,9 @@ details.visit.back{border-left-color:var(--wait)} details.visit.ask{border-left-
   <span><i style="background:repeating-linear-gradient(135deg,var(--cap) 0 3px,transparent 3px 6px)"></i>waiting at a cap</span>
   <span><i style="outline:2px solid var(--stall);outline-offset:-1px"></i>stalled or crashed</span>
   <span><i style="background:var(--wait);border-radius:50%;width:8px;height:8px"></i>question</span>
-  <span>a step to the left is a send-back · long idle gaps are folded</span>
 </div>
 <main>
-  <section class="pane" aria-label="Stages over time"><h2>Work items and stages · time runs down</h2>
+  <section class="pane" aria-label="Stages over time"><h2>Work items and stages · time runs down</h2><div class="featbar" id="featbar"></div>
     <div class="mapwrap" id="mapwrap"><div class="map" id="map"><div class="heads" id="heads"></div><div class="body" id="mbody"></div></div></div></section>
   <section class="pane" aria-label="Selection"><h2 id="dtitle">Factory</h2><div class="scroll"><div class="detail" id="detail"></div></div></section>
 </main>
@@ -311,7 +314,7 @@ async function readBranches() {
 // ---------------------------------------------------------------------------------------------
 // Drawing.
 // ---------------------------------------------------------------------------------------------
-const COLW = 92, LEFT = 260, PX = 2.4 / 60e3, GAP_MS = 40 * 60e3, GAP_PX = 22;
+const COLW = 92, LEFT = matchMedia('(max-width: 600px)').matches ? 132 : 190, PX = 2.4 / 60e3, GAP_MS = 40 * 60e3, GAP_PX = 22;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hm = t => new Date(t).toISOString().slice(11, 16);
@@ -376,8 +379,6 @@ function drawMap() {
   const f = M.features[F], stages = M.stages, order = M.order;
   const now = Date.now();
   const items = f ? f.items.filter(d => d.first) : [];
-  const total = items.reduce((a, d) => a + d.cost, 0), human = items.reduce((a, d) => a + d.humanSeconds, 0);
-  $('meta').textContent = f ? `${items.length ? day(Math.min(...items.map(d => d.first))) + ' · ' : ''}${items.length} of ${f.items.length} work items started · ${usd(total)} agent cost · ${hours(human)} waiting for the human` : '';
   const heads = $('heads'), mbody = $('mbody'), map = $('map');
   if (!items.length) {
     heads.innerHTML = ''; map.style.width = '';
@@ -392,14 +393,15 @@ function drawMap() {
   map.style.width = W + 'px';
   heads.style.gridTemplateColumns = `${LEFT}px repeat(${stages.length},${COLW}px)`;
   mbody.style.height = H + 'px';
-  heads.innerHTML = `<div class="gutterhead"><button class="feat-btn" data-feature="1" title="${esc(f.title)}"><span class="dot" style="background:var(--accent)"></span><span>${esc(f.id)} ${esc(f.title)}</span></button></div>` +
+  const ds = [...new Set(items.map(d => day(d.first)))].sort(), days = ds.length > 1 ? `${ds[0]} – ${ds[ds.length - 1]}` : ds[0];
+  $('featbar').innerHTML = `<button class="feat-btn" data-feature="1" title="${esc(f.title)}"><span class="dot" style="background:var(--accent)"></span><span>${esc(f.id)} ${esc(f.title)}</span></button><span class="when">${esc(days)}</span>`;
+  heads.innerHTML = `<div class="gutterhead"></div>` +
     stages.map(s => `<button class="stagehead" data-stage="${esc(s.id)}">${esc(s.id)}<small>${esc(s.role || (s.approval ? 'human' : s.id === 'done' ? 'merged' : ''))}</small></button>`).join('');
   let html = '', paths = '';
   axis.segs.forEach((s, i) => {
-    if (i > 0) html += `<div class="gap" style="top:${s.y0 - GAP_PX + 4}px"><span>${esc(day(axis.segs[i - 1].b) === day(s.a) ? '' : day(s.a) + ' ')}${hm(axis.segs[i - 1].b)}–${hm(s.a)} idle</span></div>`;
+    if (i > 0) html += `<div class="gap" style="top:${s.y0 - GAP_PX + 4}px"><span style="margin-left:${LEFT}px">${esc(day(axis.segs[i - 1].b) === day(s.a) ? '' : day(s.a) + ' ')}${hm(axis.segs[i - 1].b)}–${hm(s.a)} idle</span></div>`;
     const startHour = Math.ceil(s.a / 36e5) * 36e5;
-    if (i === 0 || hm(s.a) !== hm(startHour)) html += `<div class="tick" style="top:${s.y0}px">${hm(s.a)}</div>`;
-    for (let t = startHour; t < s.b; t += 36e5) if (y(t) - s.y0 > 14) html += `<div class="tick" style="top:${y(t)}px">${hm(t)}</div>`;
+    for (let t = startHour; t < s.b; t += 36e5) html += `<div class="tick" style="top:${y(t)}px"></div>`;
   });
   stages.forEach((s, i) => { html += `<div class="col" style="left:${LEFT + i * COLW}px;width:${COLW}px"></div>`; });
   items.forEach((d, k) => {
@@ -441,11 +443,12 @@ function drawMap() {
     }
     if (dp) paths += `<path data-item="${esc(d.id)}" d="${dp}" fill="none" stroke="${col}" stroke-width="1.5"/>`;
   });
-  let gutter = `<div class="gutter" style="position:absolute;left:0;top:0;width:${LEFT}px;height:${H}px">`, lastY = -99;
+  let gutter = `<div class="gutter" style="position:absolute;left:0;top:0;bottom:0;width:${LEFT}px">`, lastY = -99;
   items.forEach(d => {
-    const top = Math.max(y(d.first) - 10, lastY + 21); lastY = top;
-    gutter += `<button class="label" data-item="${esc(d.id)}" style="top:${top}px" title="${esc(d.title)}"><span class="dot" style="background:hsl(${d.hue} var(--seg-s) var(--seg-l))"></span><span class="name"><span class="fid">${esc(d.id.slice(6))}</span> ${esc(d.title)}</span><span class="badge ${d.status[1]}">${esc(d.status[0])}</span></button>`;
+    const top = Math.max(y(d.first) - 6, lastY + 41); lastY = top;
+    gutter += `<button class="label" data-item="${esc(d.id)}" style="top:${top}px" title="${esc(d.title)}"><span class="when">${hm(d.first)}</span><span class="fid">${esc(d.id.slice(6))}</span><span class="badge ${d.status[1]}">${esc(d.status[0])}</span><span class="name"><span class="dot" style="background:hsl(${d.hue} var(--seg-s) var(--seg-l))"></span>${esc(d.title)}</span></button>`;
   });
+  mbody.style.height = Math.max(H, lastY + 44) + 'px';
   mbody.innerHTML = gutter + '</div>' + html + `<svg class="links" width="${W}" height="${H}">${paths}</svg>`;
 }
 
