@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-18T16:01:27.830630Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -95,6 +99,11 @@ journal:
   at: '2026-10-18T16:01:07.901504Z'
   stage: doing
   run: 294a1b4bbbab4ec6a330f7e453af0f0e
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:01:27.830630Z'
+  stage: tests
 ---
 
 # Every agent run starts through `factory-confine`
@@ -336,3 +345,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     The rest of the implementation is unchanged from entry 13. It is committed in `src/factory/adapters/claude_runtime.py`, `src/factory/domain/confinement.py` and `src/factory/entry/wiring.py`, and its design choice is described there: the rules file and the temporary folder are carried through `_RunFiles`, not through extra parameters or per-run state on the runtime.
 
     Refactor: not done yet, because `make check` is not green; it comes after the tester's change. The Description needs no rewrite: the Interface line about `SHELL_EXECUTABLE` arrived on main (`f04fb5f0`).
+17. factory: started tests as self.
