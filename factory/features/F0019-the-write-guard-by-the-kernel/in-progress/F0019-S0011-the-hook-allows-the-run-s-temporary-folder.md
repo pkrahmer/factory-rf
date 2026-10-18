@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T20:33:40.869898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   at: '2026-10-18T20:33:20.773112Z'
   stage: review
   run: 81aef6779f7b461aa3fc8b42535203f4
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-18T20:33:40.869898Z'
+  stage: docs
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -231,3 +240,4 @@ Expect: `with: 0`, then `without: 2`
     Earlier tests:
     - tests/adapters/test_claude_guard.py: standing leave to move a shared test helper. Its `_payload` and `_outside` moved to `tests/guard_support.py` as `hook_payload` and `outside`. Every test keeps its name and what it checks.
     - tests/entry/test_guard.py: standing leave to move a shared test helper. Its identical `_payload` copy now comes from `guard_support.hook_payload`, and the `json` import it no longer uses is removed. Every test keeps its name and what it checks.
+13. factory: started docs as self.
