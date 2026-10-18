@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 221
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T14:43:28.699870Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-18T14:43:28.699870Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-18T14:43:52.992737Z'
+  stage: intake
+  run: cad48beb6b314869ba93ca927c4f1470
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -138,3 +140,9 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
 
 1. 2026-10-18 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.agent_runs.CONFINE_COMMAND`, `factory.domain.confinement.Confinement`, `factory.adapters.process.replace_process`, `factory.entry.confine.main`). The pieces it builds on exist as described: `AbsolutePath` in `agent_runs`, `abi_fault`, `ConfinementError.detail`, `abi_version` and `restrict_writes` with the "cannot open" and "is a symbolic link" texts, and the `factory-confine` script line in `pyproject.toml` and the widened `CLAUDE.md` exception (the human's changes 1 and 2).
+   Criteria: each is testable by one parametrized test function. Every Interface clause has a criterion on both sides: usage (7), rules file faults (8), ABI (9), folder creation and its failure (6), temporary folder with `0700` and `FileExistsError` (4, 10), `ConfinementError` (11), `OSError` on start (12), `replace_process` success, `FileNotFoundError` and `ValueError` (2), and exit status, output and `TMPDIR` (4, 5). The step order is pinned by the "not made" clauses in 8 and 9.
+   Smoke test: three runnable blocks. Each `Expect:` line can be checked against the output.
+   Architecture: the model is in domain, `replace_process` in the one process module, and the wrapper in entry, which imports adapters and domain. This is consistent with the layers and wrapper rules, and the structural-test changes are covered by criterion 14 and decision 7.
+   Scope: within F0019 S0002's scope list. Nothing from Out of scope is touched. The runtime wiring is left to S0004.
