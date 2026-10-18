@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-18T12:57:29.238152Z'
   stage: acceptance
   run: 0831282e309e4b1aab8b7133cbe3dd4d
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-18T12:58:14.493265Z'
+  stage: done
 stories: [F0018-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents name the handover
@@ -146,3 +151,4 @@ All of these wait for time limits by design.
    6 Decisions for the human: feature decisions 1 and 2; the umask answer (`27bdaa73`, the seal stays); the documenter's inferred *Rejected* bullet in the new decision entry; "its stages" chosen to pass `check_documents`; the open shakedown question. No earlier test was changed.
    7 Slow checks: none beyond the make targets; `duplicates` 0 new. `/work` grew 0.0 to 0.4 GB, which is the instance's checkout and `.venv` (496 MB), not the feature. The 114 MB of pytest folders in `/tmp/pytest-of-agent` from my `make check` remain, because the stage's permissions refused their deletion. Slowest test: the resume time-limit test, 5.0 s.
    8 Cost: 7 runs, $1.10. The extra run is the coder's question (116 s, $0.23) that found the umask fault. Worth it; nothing else stands out.
+3. factory: done (pull request merged); cost: 1 runs, 4.0 min, 26 turns, 63776 tokens in (1066692 more from cache), 14140 out, $1.01
