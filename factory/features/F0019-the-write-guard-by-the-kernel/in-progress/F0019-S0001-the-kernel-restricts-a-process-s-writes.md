@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 220
 comments_read: [6251100326]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-18T14:30:48.929141Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -39,6 +35,12 @@ journal:
   kind: started
   at: '2026-10-18T14:30:48.929141Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-18T14:31:06.574450Z'
+  stage: intake
+  run: 64d0427494bf44c4bd869b6fc77849e8
 ---
 
 # The kernel restricts a process's writes (Landlock)
@@ -99,14 +101,15 @@ Tests (the tester writes them): `tests/domain/test_confinement_abi.py`, `tests/a
 
 1. `abi_fault` returns `"the kernel offers Landlock ABI 0, the write guard needs ABI 3 or higher"` for 0, `"the kernel offers Landlock ABI 2, the write guard needs ABI 3 or higher"` for 2, and `None` for 3 and for 7 (four rows of one parametrized test).
 2. `abi_version()` returns an `int` of at least 3 on the machine the tests run on (v1.1's container, ABI 7), and a child process that calls it can afterwards still write a new file in `tmp_path`.
-3. In a child process that calls `restrict_writes([A], [F])`, with A a folder and F an existing file in another folder P, and O a third folder, all under `tmp_path`, each attempt has its result (rows of one parametrized test, one child per row): a new file in A is written; a new folder in A is made; a new file in a folder made in A is written; an existing file in A is deleted; F is appended to; F is opened for writing and truncated; a new file in O raises `PermissionError` with errno 13; a new file in `tmp_path` itself raises it; F renamed to P/moved raises it; F deleted raises it; a symbolic link made in O raises it; an existing file in O is read and its text returned; a shell started by the child (`sh -c 'echo x > O/c'`) exits non-zero and `O/c` does not exist afterwards.
+3. In a child process that calls `restrict_writes([A], [F])`, with A a folder and F an existing file in another folder P, and O a third folder, all under `tmp_path`, each attempt has its result (rows of one parametrized test, one child per row): a new file in A is written; a new folder in A is made; a new file in a folder made in A is written; an existing file in A is deleted; a symbolic link made in A is created; a file in A renamed to another folder in A succeeds; F is appended to; F is opened for writing and truncated; a new file in O raises `PermissionError` with errno 13; a new file in `tmp_path` itself raises it; F renamed to P/moved raises it; F deleted raises it; a symbolic link made in O raises it; an existing file in O is read and its text returned; a shell started by the child (`sh -c 'echo x > O/c'`) exits non-zero and `O/c` does not exist afterwards.
 4. In a child process, `restrict_writes` raises `ConfinementError` with the exact message for each refused input, and afterwards the same child still writes a new file in O (nothing was restricted): a missing folder in `folders` (`cannot open <path>: No such file or directory`); a missing file in `files` (the same text); a file in `folders` (`<path> is not a folder`); a folder in `files` (`<path> is a folder`); a symbolic link to a folder in `folders` and one to a file in `files` (`<path> is a symbolic link`) (rows of one parametrized test).
 5. In a child process, `restrict_writes([], [])` makes a new file in A raise `PermissionError` with errno 13, while an existing file in A is still read.
 6. In a child process that calls `restrict_writes([A, B], [])` and then `restrict_writes([A], [])`, a new file in A is written and a new file in B raises `PermissionError` with errno 13 (rows of one parametrized test).
 7. In a child process, `/proc/self/fd` holds as many entries after `restrict_writes([A], [F])` as before it: the ruleset's descriptor and each rule's descriptor are closed.
 8. `ConfinementError("x").detail` is `"x"` and `str(ConfinementError("x"))` is `"x"`.
-9. `make check` stays green.
-10. docs: `docs/project-guide.md` gets a section *The kernel's write guard* after *The undo*: what Landlock is (a process restricts itself and every child, without privilege), the twelve write rights of ABI 3 that the rules handle and that reading, executing and the network stay open, a folder rule against a file rule (in place only: no rename, replace or delete), the minimum ABI 3 and its fault text, the checks before the first system call (fail closed, nothing restricted), that rulesets stack, and that the tests restrict child processes only. `docs/decisions.md` gets an entry *The write guard by the kernel: Landlock through ctypes*, dated 2026-10-18 (F0019-S0001), with the reasons of the feature's decisions 1 to 4 (the hook sees two tools, the kernel every route; `ctypes` over a binding; ABI 3's write set; fail closed) and the alternatives rejected (a binding from PyPI; chmod or ownership changes over the tree; a root helper).
+9. In a child process, `restrict_writes` raises `ConfinementError` with the message of the first failing path (rows of one parametrized test): a missing folder in `folders` and a missing file in `files` give the folder's message; two missing folders give the first one's message; two missing files give the first one's message.
+10. `make check` stays green.
+11. docs: `docs/project-guide.md` gets a section *The kernel's write guard* after *The undo*: what Landlock is (a process restricts itself and every child, without privilege), the twelve write rights of ABI 3 that the rules handle and that reading, executing and the network stay open, a folder rule against a file rule (in place only: no rename, replace or delete), the minimum ABI 3 and its fault text, the checks before the first system call (fail closed, nothing restricted), that rulesets stack, and that the tests restrict child processes only. `docs/decisions.md` gets an entry *The write guard by the kernel: Landlock through ctypes*, dated 2026-10-18 (F0019-S0001), with the reasons of the feature's decisions 1 to 4 (the hook sees two tools, the kernel every route; `ctypes` over a binding; ABI 3's write set; fail closed) and the alternatives rejected (a binding from PyPI; chmod or ownership changes over the tree; a root helper).
 
 ## Smoke test
 
@@ -166,3 +169,10 @@ Expect: two lines, `cannot open <d>/missing: No such file or directory` and then
 4. 2026-10-18 human: 1. Yes: add the ordering criterion with its three rows (folder before file; first of two folders; first of two files), before the two closing criteria.
    2. Yes: add the two rows to criterion 3 (a symbolic link made in A is created; a file renamed between two folders under A succeeds). The rename row is the one that proves the refer right.
 5. factory: started intake as self.
+6. intake: accepted
+   Carried in from journal entry 4 (the human's answers, not my improvements): criterion 3 gained two rows, "a symbolic link made in A is created" and "a file in A renamed to another folder in A succeeds"; a new criterion 9 holds the ordering rows (folder before file; first of two folders; first of two files). `make check` and `docs:` are now criteria 10 and 11, still last.
+   - Interface: concrete modules and signatures (`factory.domain.confinement`, `factory.domain.errors.ConfinementError`, `factory.adapters.landlock`). The fault text, the constants, the system call numbers and every error message are exact.
+   - Criteria: each is testable by one parametrized test or function. Every rule has both sides: the ABI fault and the pass (1), each refused input and its message (4), the ordering (9), empty rules (5), stacking (6), descriptors closed (7), `ConfinementError.detail` (8). The system-call failures are listed in the Interface as untestable, which is stated, not hidden.
+   - Smoke test: the three commands are runnable. Each `Expect:` line is checkable against the output.
+   - Architecture: the constant, the fault text and the error are in `domain`. The `ctypes` calls are in `adapters`. Nothing in `application` or `entry` is touched. No new dependency.
+   - Scope: matches S0001 in `feature.md`. Nothing from "Out of scope" is touched.
