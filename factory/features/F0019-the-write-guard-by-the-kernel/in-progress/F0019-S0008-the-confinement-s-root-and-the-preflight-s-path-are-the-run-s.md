@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 228
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T19:24:10.823730Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T19:24:10.823730Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T19:25:40.247176Z'
+  stage: review
+  run: 46d19e5def7b4b048d29e842e3bf0b9b
 ---
 
 # The runtime's rules and the preflight's wrapper search use the run's own root and PATH
@@ -165,3 +167,14 @@ Expect: `completed | root file refused | False`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: 1. tests/entry/test_wiring_extras_path.py:13 `_bin_with` is a second copy of the shared helper `write_script` in tests/confine_support.py:106, which this same diff moved there. Both make the folder, write an executable script and `chmod(0o755)` it, and `git_support.write_executable` covers the same ground. Fix: make the folder, then call `write_script(folder / command, "")` when there is a command, and drop the private copy. This is a test change, so the coder ends with `tests` and the tester makes it (R9).
+
+   Groups 1 to 3 hold:
+   - Criterion 1: `test_a_write_path_at_the_root_never_gives_the_checkout_as_a_folder` has its three rows. It kills the `root` mutant, because without the root a missing `NOTES.md` would widen to the checkout folder.
+   - Criterion 2: `test_through_the_wrapper_a_missing_root_write_path_allows_no_write_at_the_root` covers `NOTES.md` and `other.md` through the real wrapper.
+   - Criterion 3: `test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s` has a pass and a fail row for each item. The test process `PATH` is set the other way, so dropping `path=path` fails both rows.
+   - The coder's journal entry shows the factory's `check: green`. No `src/` changes, no silencing markers.
+
+   Earlier tests:
+   - tests/adapters/test_claude_runtime_confinement.py: the standing leave to move a shared test helper. Its constants, models, `Layout` and helpers moved to tests/confine_support.py and the `layout` fixture to tests/conftest.py. The private helpers were renamed (`_request` to `run_request`, `_runtime` to `confined_runtime`). Every test keeps its name, and no assertion changed.
+   - tests/conftest.py: the standing leave to move a shared test helper. It only gains the moved `layout` fixture.
