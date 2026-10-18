@@ -31,9 +31,9 @@ Tests (the tester writes them): `tests/adapters/test_process_streaming.py`, with
 
 ## Acceptance criteria
 
-1. A child that prints `one` and `two` on standard output and `err` on standard error and exits 3 gives the calls `("stdout", "one")`, `("stdout", "two")` and `("stderr", "err")`, the stdout calls in that order, and a result with exit status 3, `stdout` `"one\ntwo\n"`, `stderr` `"err\n"`, `stopped` and `timed_out` false.
+1. A child that prints `one` and `two` on standard output and `err` on standard error and exits 3 gives the calls `("stdout", "one")`, `("stdout", "two")` and `("stderr", "err")`, the stdout calls in that order and every call on the test's own thread (`threading.get_ident()`), and a result with exit status 3, `stdout` `"one\ntwo\n"`, `stderr` `"err\n"`, `stopped` and `timed_out` false.
 2. A last line without a line feed is passed, and a line with bytes that are not UTF-8 is passed with the replacement character (rows).
-3. A child that prints `go`, then sleeps 60 seconds, with a callback that returns `True` for `go`: the call returns within 20 seconds, with `stopped` true, `exit_status` `None` and `timed_out` false; a grandchild the child started is gone (`is_gone`), and no line the child would print after the sleep is passed.
+3. A child that prints `go`, then sleeps 60 seconds, with a callback that returns `True` for `go`: the call returns within 20 seconds, with `stopped` true, `exit_status` `None`, `timed_out` false and `stdout` `"go\n"`; a grandchild the child started is gone (`is_gone`), and no line the child would print after the sleep is passed.
 4. A callback that returns `True` for a line on standard error stops the run as in criterion 3.
 5. A child that prints `started` and sleeps 60 seconds under a time limit of 3 seconds, with a callback that never stops: the call returns within 20 seconds with `timed_out` true, `stopped` false, `exit_status` `None` and `started` in `stdout`.
 6. A callback that raises `RuntimeError` on the first line: the call raises it, and the child, which would sleep 60 seconds after that line, is gone.

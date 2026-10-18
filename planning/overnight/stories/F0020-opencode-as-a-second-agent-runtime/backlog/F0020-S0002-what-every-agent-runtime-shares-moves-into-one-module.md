@@ -72,12 +72,12 @@ def first_word(output: str) -> str | None: ...
 `factory.adapters.claude_runtime` (`adapters`):
 
 - Uses the functions above in place of its private copies, which it no longer holds: `_since` and the reply's parsing stay its own.
-- Every name an earlier test imports from it or sets on it stays a module-level name of it: the moved `ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `VERSION_TIME_LIMIT`, `SUDO_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `resume_budget` and `CLEANUP_SCRIPT` are re-exported with `as` (`from factory.adapters.agent_launch import FINISH_MESSAGE as FINISH_MESSAGE`), as S0001's login names are; `SWITCHES`, `CONFIG_VARIABLE` and `RUNTIME_FOLDER`, which are Claude Code's own, stay defined here.
+- Every name an earlier test imports from it or sets on it stays a module-level name of it: the moved `ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `VERSION_TIME_LIMIT`, `SUDO_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `resume_budget` and `CLEANUP_SCRIPT` are imported from `factory.adapters.agent_launch` and listed in the module's `__all__`, as S0001's login names are (never `import X as X`, ruff's `PLC0414`); `SWITCHES`, `CONFIG_VARIABLE` and `RUNTIME_FOLDER`, which are Claude Code's own, stay defined here.
 - `Launch` is frozen and forbids unknown keys, like every model (`tests/test_model_configuration.py` finds it).
 - The values a test sets on the module are read from its namespace at the call and passed to the shared functions: `SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT` for the removal, `DEVICE_FOLDERS` and `DEVICE_FILES` for `existing_devices`, and `run_process` for every call.
 - What a run does is unchanged: arguments, environment, run files and their modes, rules, refusals, resume, measures and errors.
 
-Tests (the tester writes them): `tests/adapters/test_agent_launch.py` (the words and the rules; `run_confinement` with the request of `run_request` and the folders of `build_layout` from `tests/confine_support.py`, imported, not copied), `tests/domain/test_resumed_result.py`. No earlier test changes: the tests of the Claude Code runtime (`tests/adapters/test_claude_runtime*.py`, `tests/entry/test_wiring*.py`, `tests/test_model_configuration.py`) pass as they are.
+Tests (the tester writes them): `tests/adapters/test_agent_launch.py` (the words and the rules; `run_confinement` with the request of `run_request` and the folders of `build_layout` from `tests/confine_support.py`, imported, not copied), `tests/domain/test_resumed_result.py`, `tests/test_agent_launch_search.py` (with `tests/source_search.py`). No earlier test changes: the tests of the Claude Code runtime (`tests/adapters/test_claude_runtime*.py`, `tests/entry/test_wiring*.py`, `tests/test_model_configuration.py`) pass as they are.
 
 ## Acceptance criteria
 
@@ -91,7 +91,7 @@ Tests (the tester writes them): `tests/adapters/test_agent_launch.py` (the words
 8. `first_word` gives `2.1.296` for `"\n2.1.296 (Claude Code)\n"` and `None` for `""` and `"  \n"` (rows).
 9. `resume_budget` gives `0.50` for `1`, `1.00` for `4` and `0.63` for `2.50` (rows, as `claude_runtime.resume_budget` today).
 10. `resumed_result` of two completed calls with every measure sums them, joins the refused calls in order and takes the second's decision, entry and login; a measure only one call reported is that call's; one neither reported stays `None`; a second call ended by `time_limit` keeps its own measures and gets both calls' refused calls; the duration is always the sum (rows).
-11. No function of `factory.adapters.agent_launch` starts a process: `tests/test_wrapper_search.py` and `tests/test_process_search.py` pass unchanged.
+11. No function of `factory.adapters.agent_launch` starts a process: `tests/test_wrapper_search.py` and `tests/test_process_search.py` pass unchanged; and neither `factory.adapters.agent_launch` nor `factory.adapters.claude_runtime` reads `os.environ` (a source search over both modules, which finds it in a snippet that does).
 12. Every earlier test of the Claude Code runtime passes unchanged, among them those that set `claude_runtime.SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES` and `run_process`.
 13. `make check` stays green.
 14. docs: `docs/project-guide.md`, where S0001 introduced `factory.adapters.agent_launch`: it also holds the words of a run's start (`sudo`, `timeout`, `env -i`, `factory-confine`), the rules, the removal of the run's folder, the refusals and the resume share, for every runtime; `resumed_result` in the domain adds up a resumed run. `docs/decisions.md`: an entry *What the agent runtimes share lies in one module*, dated with the story, with the reasons of the feature's decision 4.
