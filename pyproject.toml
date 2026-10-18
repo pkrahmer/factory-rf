@@ -130,4 +130,4 @@ pytest_add_cli_args = [
     "--deselect", "tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper",
 ]
 # The tests read these from the repository root; mutmut runs them in its own copy.
-also_copy = ["claude/", "docs/", "factory/", "image/", "security/", "template/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
+also_copy = ["claude/", "demo/", "docs/", "factory/", "image/", "security/", "template/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]

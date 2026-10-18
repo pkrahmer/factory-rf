@@ -63,7 +63,7 @@ secrets:
 	else
 	  files=$$(git ls-files)
 	fi
-	files=$$(printf '%s\n' $$files | grep -vE '^(uv\.lock|\.secrets\.baseline)$$' || true)
+	files=$$(printf '%s\n' $$files | grep -vE '^(uv\.lock|\.secrets\.baseline|.*\.costs\.jsonl)$$' || true)
 	if [ -n "$$files" ]; then uv run detect-secrets-hook --baseline .secrets.baseline $$files; fi
 	$(green)
 
