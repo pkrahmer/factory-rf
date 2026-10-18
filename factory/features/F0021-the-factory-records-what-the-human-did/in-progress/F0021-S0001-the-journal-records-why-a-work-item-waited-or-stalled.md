@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: [6255820784]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T22:16:03.601110Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -166,6 +162,12 @@ journal:
   kind: started
   at: '2026-10-18T22:16:03.601110Z'
   stage: review
+- number: 29
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:17:02.697568Z'
+  stage: review
+  run: 178cec908ca5407f9c00fdf2badc3eaf
 ---
 
 # The journal records why a work item waited or stalled
@@ -197,16 +199,22 @@ class JournalRecord(BaseModel):
     reason: StallReason | None = None
 
 
+class JournalCauses(TypedDict, total=False):
+    blocked: Blocked | None
+    reason: StallReason | None
+
+
 def append_entry(
     document: WorkItemDocument,
     entry: NewEntry,
     *,
     at: datetime | None = None,
     run: RunId | None = None,
-    blocked: Blocked | None = None,
-    reason: StallReason | None = None,
+    **causes: Unpack[JournalCauses],
 ) -> WorkItemDocument: ...
 ```
+
+- `JournalCauses` is a public `TypedDict` with two optional keys, `blocked` and `reason`. `append_entry` takes them as `**causes: Unpack[JournalCauses]` instead of two keyword parameters: with those two, ruff's `PLR0913` refuses the function (six arguments, more than five). Callers still write `append_entry(document, entry, at=..., blocked="round_cap")`, and mypy checks the values against `Blocked` and `StallReason`.
 
 - `blocked` is allowed only on a record of kind `question`, `reason` only on a record of kind `stall`; either on any other kind raises a `ValueError` (Pydantic's validation error). A value outside its type is refused.
 - `append_entry` puts `blocked` and `reason` into the new record as given, with or without `at`; the rules above apply to the record it builds.
@@ -582,3 +590,25 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
 26. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 27. 2026-10-18 human: Option (a): keep the built signature. Reviewer: rewrite the work item's Interface to `append_entry(..., **causes: Unpack[JournalCauses])`, name the public `TypedDict` `JournalCauses` with its two optional keys `blocked: Blocked` and `reason: StallReason`, and give the reason (ruff's `PLR0913` with the two causes as keyword parameters). Then go forward: no code or test changes, and no other open finding (groups 1 to 4 pass, entry 25).
 28. factory: started review as self.
+29. reviewer: no findings
+
+    Round 0, after the human's answer in entry 27, which picked option (a): keep the built signature, rewrite the Interface, then go forward.
+
+    - Work item `## Interface`: I rewrote the `append_entry` signature to match the code in `src/factory/domain/journal.py`. It now takes `**causes: Unpack[JournalCauses]`.
+    - I added the public `TypedDict` `JournalCauses` (`total=False`) to the Interface, with its two optional keys `blocked: Blocked | None` and `reason: StallReason | None`.
+    - I added one line under the Interface's code block. It gives the reason: ruff's `PLR0913` refuses the function with the two causes as keyword parameters, six arguments where five are allowed. Callers still write `append_entry(document, entry, at=..., blocked="round_cap")`, and mypy checks the values.
+    - The key types say `| None`, as the code does. The human's answer wrote `Blocked` and `StallReason` without it, and I followed the code, because the Interface has to match what was built.
+
+    That was the only open finding (entry 25, group 5). I checked that no file under `src/` or `tests/` changed between the last review commit (86b1bac2) and HEAD; the only commits since then are a merge from `main` and the factory's own commits. So groups 1 to 4 still pass as entry 25 found. The Description and the docs criterion still match what was built.
+
+    Earlier tests (item 6):
+    - `tests/application/handlers/test_questions.py`: human's leave. The story's Interface names it under the feature's decision 13. It only adds `blocked="attempts_cap"` to two expected records.
+    - `tests/application/test_stalls.py`: human's leave, the same way. It only adds `reason="died"` to three expected stall records.
+    - `tests/application/test_recovery_cap.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record.
+      - Standing leave to move a shared test helper: `_pull_request` was replaced by `crash_support.open_pull_request`.
+    - `tests/application/test_recovery_expiry.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"`.
+      - Standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py`.
+    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`, and the new `open_story` parameters default to the old behaviour.
+    - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
