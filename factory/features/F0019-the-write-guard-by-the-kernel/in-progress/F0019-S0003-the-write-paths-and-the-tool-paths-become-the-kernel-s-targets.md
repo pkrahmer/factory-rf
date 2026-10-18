@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 222
 comments_read: [6251638379]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T15:24:34.948620Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -83,6 +79,12 @@ journal:
   kind: started
   at: '2026-10-18T15:24:34.948620Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-18T15:24:57.750228Z'
+  stage: doing
+  run: 684785e4577549389e1dfa31e211987e
 ---
 
 # The write paths and the tool paths become the kernel's targets
@@ -300,3 +302,24 @@ Expect: five lines, `folder /work/checkout/src`, `file /work/checkout/README.md`
     - Leave `is_inside_checkout` as it is, so the hook's refusal does not change in this story.
     Amend the Interface's rules accordingly (feature decision 20, on main). End with `tests` naming the rows.
 13. factory: started doing as self.
+14. coder: I rewrote `## Description` to follow the human's answer (entry 12, option A with the check in the targets code only). The heading is now "as of the human's answer in journal entry 12". Changes to the work item's text:
+    - The Interface's tool-path rule now says "none `.` or `..`".
+    - The Interface's `write_targets` rule now reads: "`p` empty, starting with `/`, or holding a `.` or `..` segment: no target".
+    - The summary paragraph says a `.` segment is refused in a tool path and gives no target in a write path (feature decision 20).
+    - Criteria 2 and 4 have the new rows listed below.
+
+    `is_inside_checkout` and the hook's `refusal` stay as they are. I changed no code this round, and the working tree's code is still round 0's (`make check` was green there).
+
+    Tests to add (the tester's change, two existing parametrized tests):
+    - `tests/domain/test_tool_paths.py::test_a_tool_path_of_neither_folder_form_is_refused`: add the rows `"./*"`, `"a/./b/*"` and `"~/./*"`, each giving the fault `tool path <path>: must be <folder>/* or ~/<folder>/*`.
+    - `tests/domain/test_write_targets.py::test_a_write_path_becomes_the_folder_or_file_the_kernel_can_name`: add the rows `./*`, `./*.md` and `.`, each giving no target.
+
+    Plan for the next doing round:
+    - Refuse a `.` segment in `_is_plain_segment` (`src/factory/domain/pipeline_definition.py`).
+    - Have `_write_path_target` (`src/factory/domain/confinement.py`) give no target for a write path with a `.` segment.
+
+    Rejected: putting the `.` check into `is_inside_checkout`. The human ruled it out because it would change what the hook refuses in this story.
+
+    Noticed but not touched: `make duplicates` still lists `write_targets`, `confinement_of` and the older `CONFINE_COMMAND` as dead code, until S0004 uses them.
+
+    The factory undid changes outside the write paths: factory/features/F0019-the-write-guard-by-the-kernel/in-progress/F0019-S0003-the-write-paths-and-the-tool-paths-become-the-kernel-s-targets.md.
