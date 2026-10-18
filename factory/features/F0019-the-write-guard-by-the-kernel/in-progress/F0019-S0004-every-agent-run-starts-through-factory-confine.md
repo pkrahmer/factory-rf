@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T16:39:18.206090Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -307,6 +311,11 @@ journal:
   at: '2026-10-18T16:38:57.995849Z'
   stage: doing
   run: d2331ab9874148aaaf91c542b0fcff65
+- number: 56
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:39:18.206090Z'
+  stage: review
 ---
 
 # Every agent run starts through `factory-confine`
@@ -869,3 +878,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
+56. factory: started review as self.
