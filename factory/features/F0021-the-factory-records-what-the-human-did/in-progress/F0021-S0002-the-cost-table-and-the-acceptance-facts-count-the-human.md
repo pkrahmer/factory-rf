@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 236
 comments_read: [6255900893]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-18T22:40:33.923489Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-18T22:40:13.913077Z'
   stage: doing
   run: 95e29051987346d7be2854a2709e4069
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-18T22:40:33.923489Z'
+  stage: review
 ---
 
 # The cost table and the acceptance facts count the human
@@ -369,3 +378,4 @@ Expect: `'Cost of this work item so far\n\nT\n\nHuman: 0 questions answered, 0.0
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
+19. factory: started review as self.
