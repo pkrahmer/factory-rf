@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T17:04:36.277337Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-18T17:04:16.310970Z'
   stage: review
   run: 522672802fd34a16abf2c37572225854
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-18T17:04:36.277337Z'
+  stage: docs
 ---
 
 # The preflight checks the kernel's write guard
@@ -288,3 +297,4 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
     - tests/entry/test_wiring_preflight.py: the standing leave to move a shared test helper, with the same helper-only change.
     - tests/application/test_tick_preflight.py: the standing leave to move a shared test helper, with the same helper-only change.
     - tests/wiring_support.py: the shared place the helper moved to, under the same leave. It gained `every_tool` and a wider module docstring, and its constants are unchanged.
+18. factory: started docs as self.
