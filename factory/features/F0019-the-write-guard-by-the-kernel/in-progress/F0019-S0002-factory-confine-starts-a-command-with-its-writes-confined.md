@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 221
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-18T14:44:12.838261Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-18T14:44:12.838261Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-18T14:49:02.754667Z'
+  stage: tests
+  run: 2892fb455ef64dcc906d519b1c3bbe33
 ---
 
 # `factory-confine` starts a command with its writes confined
@@ -156,3 +158,36 @@ Expect: `factory-confine: cannot make the temporary folder <d>/run: File exists`
    Architecture: the model is in domain, `replace_process` in the one process module, and the wrapper in entry, which imports adapters and domain. This is consistent with the layers and wrapper rules, and the structural-test changes are covered by criterion 14 and decision 7.
    Scope: within F0019 S0002's scope list. Nothing from Out of scope is touched. The runtime wiring is left to S0004.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 14. Rows that reach step 5 or 6 start the wrapper in a child (`sys.executable -m factory.entry.confine`). Rows that end at steps 1 to 4 call `main` in-process with `abi` injected and `stderr` set to a `StringIO`. The usage and rules-file rows inject ABI 0, so a wrapper that wrongly goes on still stops before it restricts the pytest worker.
+
+   criterion 1: tests/domain/test_confinement_model.py::test_a_relative_path_in_any_field_is_refused
+   criterion 2: tests/adapters/test_process_replace.py::test_replace_process_becomes_the_command_with_the_given_environment (child, prints `replaced`, exits 7) and ::test_replace_process_that_cannot_start_raises_and_this_process_goes_on (in-process rows `FileNotFoundError` and `ValueError`)
+   criterion 3: tests/entry/test_confine.py::test_the_command_writes_only_within_the_rules
+   criterion 4: tests/entry/test_confine.py::test_the_command_gets_its_own_temporary_folder_and_the_wrapper_environment
+   criterion 5: tests/entry/test_confine.py::test_the_wrapper_exits_and_prints_as_the_command
+   criterion 6: tests/entry/test_confine.py::test_a_missing_folder_of_the_rules_is_made_or_stops_the_wrapper
+   criterion 7: tests/entry/test_confine.py::test_wrong_arguments_print_the_usage_and_return_1
+   criterion 8: tests/entry/test_confine.py::test_rules_that_cannot_be_read_return_1_with_one_line
+   criterion 9: tests/entry/test_confine.py::test_a_kernel_below_abi_3_stops_the_wrapper_before_any_folder_is_made (ABI 0 and 2); the real-ABI half is covered by the criterion 3 test
+   criterion 10: tests/entry/test_confine.py::test_an_existing_temporary_folder_stops_the_wrapper
+   criterion 11: tests/entry/test_confine.py::test_a_rule_the_kernel_cannot_take_stops_the_wrapper
+   criterion 12: tests/entry/test_confine.py::test_a_command_that_cannot_start_stops_the_wrapper
+   criterion 13: tests/entry/test_confine.py::test_the_console_script_beside_the_interpreter_prints_the_usage
+   criterion 14: tests/test_process_search.py::test_no_module_uses_another_route_to_a_process and ::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper; tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module
+
+   Files created: tests/domain/test_confinement_model.py, tests/adapters/test_process_replace.py, tests/entry/test_confine.py.
+
+   Earlier test files changed under the leave of the feature's decision 7, which the Interface names:
+   - tests/test_process_search.py: the expected routes are now `{"factory.adapters.process": {"os.execvpe"}}`, and the expected markers add `noqa: S606`/`nosec B606` on the `os.execvpe(` line.
+   - tests/test_wrapper_search.py: `factory.entry.confine` is added to the importers.
+
+   All test names are unchanged.
+
+   The test run could not import `factory.domain.confinement.Confinement`, `factory.adapters.process.replace_process` or `factory.entry.confine`, so the three new modules fail at collection. The structural tests fail, as they should until the code exists. `make lint` is green.
+
+   Not tested, because no criterion names it: the constant `CONFINE_COMMAND` in `factory.domain.agent_runs`.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_confine.py - ImportError while importing test module '...

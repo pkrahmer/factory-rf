@@ -56,7 +56,7 @@ def test_no_module_uses_another_route_to_a_process() -> None:
     }
 
     assert routes_to_a_process(snippet) == {"os.system"}
-    assert users == {}
+    assert users == {"factory.adapters.process": {"os.execvpe"}}
 
 
 def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> None:
@@ -78,10 +78,16 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
         for number, line in enumerate(process_lines, start=1)
         if "subprocess.Popen(" in line.split("#")[0]
     )
+    exec_line = next(
+        number
+        for number, line in enumerate(process_lines, start=1)
+        if "os.execvpe(" in line.split("#")[0]
+    )
 
     assert markers == {
         "adapters/process.py": {
             import_line: {"noqa: S404", "nosec B404"},
             popen_line: {"noqa: S603", "nosec B603"},
+            exec_line: {"noqa: S606", "nosec B606"},
         }
     }
