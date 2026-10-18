@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 235
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T22:06:34.896070Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-18T22:06:34.896070Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T22:07:36.237070Z'
+  stage: review
+  run: a159fa682ab14573ac9c5a2d026dc71b
 ---
 
 # The journal records why a work item waited or stalled
@@ -402,3 +404,20 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read the source changes in `src/factory/domain/journal.py`, `work_item.py`, `decisions.py` and the five writers, plus every new and changed test.
+
+    Group 1 (acceptance criteria) fails, so I stopped there and did not judge groups 2 to 5. Criteria 1 to 3 and 5 to 11 each have a test that checks what the criterion says. The refused sides of the kind rule and of the type rule are rows of their parametrized tests. The rule-4 row (docs, round 3, round_cap 3) does go past the cap. The coder's entry 15 reports `make check` green.
+
+    1. `tests/domain/test_journal_causes.py:89-119`: criterion 4 has its accepted side and its refused side in two separate test functions. The accepted side, a cause on its own kind through `append_entry`, is in `test_append_entry_puts_the_cause_into_the_new_record`. The refused side, `blocked` on a `result` entry, is in `test_append_entry_refuses_a_blocked_on_a_result_entry`. Both are sides of one rule (Interface: "the rules above apply to the record it builds"), and `CLAUDE.md` *Tests* says the sides of one rule are rows of one parametrized test, not separate test functions. Fix: the tester merges them into one parametrized test with an `accepted` column, as `test_a_cause_is_accepted_only_on_its_own_kind` already does, keeping every current row (question/round_cap and stall/merge_conflict, each with and without `at`, plus result/blocked refused). The coder ends with `tests` and names this change.
+
+    Earlier tests (item 6):
+    - `tests/application/handlers/test_questions.py`: human's leave. The story's Interface names it under the feature's decision 13. The change only adds `blocked="attempts_cap"` to two expected records.
+    - `tests/application/test_stalls.py`: human's leave, the same way. The change only adds `reason="died"` to three expected stall records.
+    - `tests/application/test_recovery_cap.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record.
+      - Standing leave to move a shared test helper: `_pull_request` is replaced by `crash_support.open_pull_request`, and every test keeps its name and what it checks.
+    - `tests/application/test_recovery_expiry.py`: two leaves.
+      - Human's leave, the same way: it adds `blocked="crash_cap"` to the expected question record.
+      - Standing leave to move a shared test helper: `OTHER_INSTANCE`, `LEASE`, `_pull_request`, `_expired_claim`, `_other` and `_expired` moved to `tests/crash_support.py` and are used from there. Every test keeps its name and what it checks.
+    - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and its open/Makefile/run/head/state helpers moved to `tests/stage_run_support.py`. `STORY` is the same text, and the new `open_story` parameters default to the old behaviour. Every test keeps its name and what it checks.
+    - `tests/crash_support.py`: none needed. The change only adds shared helpers and constants and leaves every existing one as it was.
