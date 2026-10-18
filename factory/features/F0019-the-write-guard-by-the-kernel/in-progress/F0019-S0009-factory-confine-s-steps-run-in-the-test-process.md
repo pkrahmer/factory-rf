@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T19:41:26.434410Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T19:41:26.434410Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T19:41:56.522818Z'
+  stage: review
+  run: b8b72b47a87e47b4b35d24d965cf52b5
 ---
 
 # factory-confine's steps run in the test process
@@ -175,3 +177,21 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`, which changes `src/factory/entry/confine.py` and adds `tests/entry/test_confine_steps.py`. I read both against the criteria and the Interface.
+   - Acceptance: every criterion from 1 to 6 has a test, and each test checks what its criterion says.
+     - Criterion 1 checks the exact `restrict` arguments, that `a/b` exists at the call, and that `t` has mode `0o700`.
+     - Criterion 2 checks the call order, that each step is called once, and the command and environment with `TMPDIR`.
+     - Criterion 3 has both sides of the argument count, 4 and 3, as rows of one parametrized test.
+     - Criterion 4 has both fault rows, with exact texts. In the `restrict` row, `replace` is never called.
+     - Criterion 5 has ABI 0 and 2 refused and 3 accepted, so both sides of the limit are covered, and it checks that no folder is made.
+     - Criterion 6 is the AST and signature check of the defaults. `tests/entry/test_confine.py` is untouched.
+     - The coder's journal entry 7 shows `make check` green.
+   - Every check that the five mutations in the Description would break is pinned: the rules split, mode `0700`, `parents=True` (`a/b` must exist), the 4-argument boundary, and `TMPDIR`.
+   - Architecture: the change stays in `factory.entry`. The adapters stay the defaults through the same `<default> if x is None else x` form as `abi`.
+   - Security: no suppression markers. Nothing in the security group was touched.
+   - Quality: the private aliases `_Restrict` and `_Replace` follow the module-level `Callable` alias idiom already used in `tick.py`, `comments.py` and `evaluation.py`. There is no dead code and no copied helper. `make duplicates` reports 0 new.
+   - Hygiene: journal entry 7 names the main choice (plain parameters) and the rejected alternative (a dataclass bundling the steps). The Description matches what was built. Criterion 8 still describes the docs change.
+
+   Earlier tests: none. The diff only adds `tests/entry/test_confine_steps.py`, and no test file on `main` is changed, renamed or deleted.
