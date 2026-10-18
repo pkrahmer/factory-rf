@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 232
 comments_read: [6254736316]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-18T20:35:10.212920Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-18T20:35:10.212920Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-18T20:35:37.456557Z'
+  stage: smoke-test
+  run: 53ac3895136f4ad4b5d6b6e34a1a1ec7
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -268,3 +270,30 @@ Expect: `with: 0`, then `without: 2`
     `check`: check: green
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Ran the `## Smoke test` from the repository root, as written and in order, in one shell. No findings.
+
+    Note: my first attempt wrapped the script in `bash -c '…'`. Claude Code's safety check refused it because it could not inspect the `rm -rf` in the trap, so nothing ran. I then ran the same commands unwrapped, exactly as written, and that run is the one recorded here.
+
+    Command (the whole block):
+    ```bash
+    d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+    mkdir -p "$d/checkout" "$d/t"
+    printf '{"root": "%s/checkout", "write_paths": [], "protected_paths": [], "temporary_directory": "%s/t"}' "$d" "$d" > "$d/with.json"
+    printf '{"root": "%s/checkout", "write_paths": [], "protected_paths": []}' "$d" > "$d/without.json"
+    p=$(printf '{"tool_name": "Write", "tool_input": {"file_path": "%s/t/notes.txt"}}' "$d")
+    echo "$p" | uv run -q factory-guard --settings "$d/with.json"; echo "with: $?"
+    echo "$p" | uv run -q factory-guard --settings "$d/without.json" 2>/dev/null; echo "without: $?"
+    ```
+    Output:
+    ```
+    with: 0
+    without: 2
+    ```
+    Expect: `with: 0`, then `without: 2`. **Met.**
+
+    Checked against the acceptance criteria:
+    - Criterion 4: with `temporary_directory` set, the run exited 0 and printed nothing to standard error. Standard error was not redirected for that command, and nothing showed up in the output. Without the key, it exited 2. The smoke test discards standard error on that run, so the refusal text was not seen here; the tester's criterion-4 test covers it.
+    - The run's settings file has no `temporary_directory` key and is still read without error, which agrees with criterion 2.
+    - No criterion is contradicted.
+
+    Findings: none.
