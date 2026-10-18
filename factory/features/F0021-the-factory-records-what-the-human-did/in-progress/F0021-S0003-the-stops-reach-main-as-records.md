@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 237
-comments_read: [6256126020, 6256259182]
+comments_read: [6256126020, 6256259182, 6256356204]
 handed_over: null
 claim: null
 journal:
@@ -137,6 +137,11 @@ journal:
   stage: review
   run: c661d758aeb347b29204bedfc0bd085f
   blocked: question
+- number: 24
+  speaker: human
+  kind: comment
+  at: '2026-10-18T23:13:00.080334Z'
+  stage: review
 ---
 
 # The stops reach main as records
@@ -449,3 +454,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     I would choose (b). It keeps the edits inside the pipeline, and the wording is already fixed by entries 15 and 17.
 
     Earlier tests: none needed. `git diff --name-status main...HEAD` shows every test file as added (`A`), so no test file that `main` already holds was changed, renamed or deleted.
+24. 2026-10-18 human: (b): the reviewer has leave to make exactly these three edits to the work item on the next review run, worded as in entries 15 and 17 (the Interface sentence, criterion 16 with make check 17 and docs 18, and the docs criterion's line on a raise without a readable health status), and nothing else; then review again.
