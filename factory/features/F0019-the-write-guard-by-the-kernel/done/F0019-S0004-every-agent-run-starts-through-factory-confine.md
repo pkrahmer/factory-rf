@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -340,6 +340,11 @@ journal:
   at: '2026-10-18T16:48:58.268767Z'
   stage: smoke-test
   run: 74fe08ad1dcc4cf9bd324de34d73f47a
+- number: 62
+  speaker: factory
+  kind: done
+  at: '2026-10-18T16:50:17.109074Z'
+  stage: approval
 ---
 
 # Every agent run starts through `factory-confine`
@@ -970,3 +975,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     Findings: none.
 
     Open: the guard is live in production only once the image is rebuilt and the human's change 5 names factory-rf's tool paths, as the description says. That is outside this stage.
+62. factory: done (pull request merged); cost: 25 runs, 41.9 min, 235 turns, 884545 tokens in (6214118 more from cache), 134151 out, $10.47
