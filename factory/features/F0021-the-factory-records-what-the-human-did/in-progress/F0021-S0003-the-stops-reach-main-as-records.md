@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 237
 comments_read: [6256126020]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:00:41.938784Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,13 @@ journal:
   kind: started
   at: '2026-10-18T23:00:41.938784Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: question
+  at: '2026-10-18T23:01:09.171400Z'
+  stage: doing
+  run: 1cd3c380014e4e4391ea7a5b39933061
+  blocked: question
 ---
 
 # The stops reach main as records
@@ -298,3 +301,26 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`), so no test that `main` already holds was changed, renamed or deleted.
 13. factory: started doing as self.
+14. coder: Round 1. I stopped before changing any code. Both review findings (entry 12) need a decision from the human before code or tests can change (R8, R9). The code from entry 10 is unchanged in the working tree, and `make check` was green there.
+
+    **The question.** `StopService.raise_stop` has three steps: the log line, the health status (a read, then a write) and the record append. The Interface says "an `OSError` of any of the three is raised after all three were tried". When should a `raised` record be appended if the log line or the health status fails? This is in `src/factory/application/stops.py`, `raise_stop`.
+
+    What the code does now:
+    - **The log line raises:** the record is appended, then the `OSError` is raised.
+    - **The health status write raises** (the read worked): the read already showed whether the stop was standing, so the record is appended exactly as without the error, then the `OSError` is raised.
+    - **The health status read raises:** the code cannot tell whether a stop of this reason already stands, so it appends nothing. The `OSError` is raised. The status is not written either.
+
+    There are two options for the read failure:
+    - **(a) Append the `raised` record anyway.** The stop is in the records right away. But the health status still does not hold the stop, so the next raise of the same reason appends a second `raised` line. And if the cause goes away before the status is readable again, `clear_stop` finds nothing standing. The `raised` then never gets a `cleared`.
+    - **(b) Append nothing (what the code does now).** The records stay paired with the health status. The next raise that can read the status finds no stop standing and appends the `raised` record then. The cost: if the cause clears before the status can be read again, that brief stop never reaches the records. The factory log still holds its line.
+
+    **I would choose (b).** Records that agree with the health status give every `raised` exactly one `cleared`, which is what the status-map viewer needs. The Interface sentence would then read: "tried like the log line and the health status, except that without a readable health status no record is appended".
+
+    Whichever you choose, this needs a new criterion, placed before 16 (`make check` stays green) and 17 (docs), as rows of one parametrized test:
+    - the log line raises: a `raised` record is appended and the `OSError` is raised;
+    - the health status write raises: a `raised` record is appended and the `OSError` is raised;
+    - the health status read raises: under (b) no record is appended, under (a) one is; either way the `OSError` is raised.
+
+    The intake stage then puts it into the story, and the tester writes the test. If you choose (a), I change `raise_stop` to append whenever the read failed.
+
+    **Noticed, not touched:** nothing new beyond entry 10.
