@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 pr: 214
 blocked: null
 comments_seen: 0
@@ -160,3 +160,13 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make duplicates`: duplicates: 0 new, 39 known, 0 gone
+5. reviewer: no findings.
+      - Scope: `git diff main...HEAD -- . ':!factory'` changes three files under `tests/`: `tests/tmp_path_support.py` (new), `tests/test_tmp_path_reopening.py` (new) and `tests/conftest.py`. That file gains only the `reopen` import and the autouse fixture `reopened_tmp_path`; no existing fixture changed. Nothing under `src/` changed and no earlier test module changed, as the Interface and criterion 7 require.
+      - Criteria 1–2: each row of `test_reopen_gives_the_owner_back_every_folder_and_entry_and_keeps_every_other_bit` builds the tree the Interface describes and compares each mode exactly. It then checks that `shutil.rmtree` removes the tree. Row `open-with-setgid` shows that the setgid bit and the group and others bits stay, and `0o020` → `0o720` shows the same for a closed row.
+      - Criterion 3: the three link rows check that the link stays, that `readlink` returns the same text, and that the target's mode is unchanged. In `reopen`, `os.walk` lists a link to a folder among the folders, and `is_symlink()` skips it there and among the files, so `chmod` never follows a link.
+      - Criterion 4: `test_reopen_of_a_missing_root_changes_nothing` checks that the root is not created and that `tmp_path` holds no new entry.
+      - Criteria 5–6: the child-pytest test runs the argv, env and inner test text from the Interface. With `-p conftest` it expects `0o720`/`0o700`/`0o700`, which includes a folder closed in a fixture's teardown for a test that asks for `tmp_path` only through that fixture. Without it, it expects `0o020`/`0o000`/`0o000`. Both rows check that `test_uses_no_tmp_path0` is absent; the with-conftest row also checks that `rmtree(base)` succeeds. Asking for `tmp_path` through `getfixturevalue` in an autouse fixture makes the reopen run after the teardowns of the test's other fixtures, which the `closing` row exercises.
+      - Order of the walk: `root` is opened before `os.walk`, and each folder in a listing is opened in the loop body, before `os.walk` (top down) descends into it. This matches the Interface.
+      - Architecture, security, quality: the helper uses the standard library only; the test reaches the child process through `run_process`, as other tests do; there are no suppression markers and no secrets. The module and the public function have docstrings, and the one comment explains why links are skipped. I found no existing helper that does the same job; `_close` in `git_cli.py` is the seal's private opposite, not a duplicate. Branches the fixture never reaches, a symlink root or a file root, are defensive and match the Interface's rule for links and other entries; they are not dead code that breaks a rule.
+      - Checks: I did not run `make check` myself. The coder's entry reports `check: green` and `duplicates: 0 new`.
+      - Ticket: `Assignment` matches what was built. The coder had nothing to build and made no commit, as the Assignment says. Criterion 9 still describes what the documenter must write: the project-guide sentence and the decision-log entry with the rejected ways.
