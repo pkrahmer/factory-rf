@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 232
-comments_read: []
+comments_read: [6254736316]
 handed_over: null
 claim: null
 journal:
@@ -25,6 +25,11 @@ journal:
   at: '2026-10-18T20:25:04.553791Z'
   stage: intake
   run: cdaf3db1f67f4b3cb924f77e1a59786b
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-18T20:25:47.742152Z'
+  stage: intake
 ---
 
 # The hook allows an edit in the run's own temporary folder
@@ -111,3 +116,4 @@ Expect: `with: 0`, then `without: 2`
    - The smoke test is runnable and its `Expect:` line is checkable.
    - The architecture fits: domain model, adapter and runtime, and no new layer or dependency.
    - The scope is inside F0019 and not in its "Out of scope". The hook stays.
+4. 2026-10-18 human: (a): add the row to criterion 1 yourself. A checkout `<R>` beneath `<T>`, write paths `["docs/*"]`, and a `Write` to `<R>/src/a.py` is refused with the text `refusal` gives for `src/a.py`. The Interface clause stays.
