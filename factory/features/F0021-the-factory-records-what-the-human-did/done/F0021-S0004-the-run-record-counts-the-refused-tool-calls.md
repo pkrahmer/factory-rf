@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -197,6 +197,11 @@ journal:
   at: '2026-10-18T23:48:19.109388Z'
   stage: smoke-test
   run: 9bda4782d7dd4c1ea8dcf7df8eb08ac8
+- number: 35
+  speaker: factory
+  kind: done
+  at: '2026-10-18T23:49:04.217062Z'
+  stage: approval
 ---
 
 # The run record counts the refused tool calls
@@ -536,3 +541,4 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     Not covered by the smoke test: the key order (after `instance`), the read-back, the `_denials` path extraction (criterion 1) and `CostRecorder.complete` (criterion 3). The tests check these, and the factory's `make check` gate checks criterion 5.
 
     Findings: none.
+35. factory: done (pull request merged); cost: 15 runs, 14.1 min, 111 turns, 309455 tokens in (2061759 more from cache), 38354 out, $3.24
