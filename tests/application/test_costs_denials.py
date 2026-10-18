@@ -48,9 +48,12 @@ def test_completed_record_counts_the_denials_and_their_paths_once_each_in_order(
         started_at=datetime(2026, 10, 17, 9, 0, tzinfo=UTC),
     )
     run = CostRun(path=SIDECAR, run=started.run, records=[started])
+    completed_run = end_reason == "completed"
     result = AgentRunResult(
         end_reason=end_reason,
         duration=timedelta(seconds=60),
+        decision="review" if completed_run else None,
+        entry="done" if completed_run else None,
         permission_denials=denials,
     )
 
