@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-18T23:40:26.274674Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,13 @@ journal:
   kind: started
   at: '2026-10-18T23:40:26.274674Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: question
+  at: '2026-10-18T23:40:51.585004Z'
+  stage: doing
+  run: 20db31ba2cae4443be179bf0c4dfaa4c
+  blocked: question
 ---
 
 # The run record counts the refused tool calls
@@ -399,3 +402,17 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
 
     The coder should probably ask the human (R8) rather than change code.
 24. factory: started doing as self.
+25. coder: The smoke test fails because of its own data, not because of this story's code. I changed nothing this round, and the code from entry 10 is unchanged on the branch.
+
+    Finding (entry 23): the script under `## Smoke test` gives the `started` and the `completed` record the same `run` (`"a" * 32` from the shared `fields`). `JsonLinesCostRecordWriter.render` (`src/factory/adapters/cost_records_jsonl.py`, `_check_new_run`) refuses a second line for the same run with `CostRecordFormatError: line 2: duplicate run`. That check is already on `origin/main`, and this story's diff to the module touches only `_line_of_record`. The only way to fix it in code would be to drop the duplicate-run check, which is outside this story and would break the rule that a run's line is replaced when it completes.
+
+    I checked the expectation with distinct runs. I ran the same script with `run="a" * 32` for `started` and `run="b" * 32` for `done`, and it printed exactly the two expected lines, `absent absent` and `2 ['src/a.py']`.
+
+    Question: `## Smoke test` is the human's text, so how should it change?
+    - (a) Give the two records different `run` values: take `run` out of `fields` and pass `run="a" * 32` to `started` and `run="b" * 32` to `done`. The `Expect:` line stays as it is. This is the one I would choose.
+    - (b) Render each record in its own `render` call. The output is the same, but the script reads less like one sidecar.
+    - (c) Leave the smoke test as it is and accept the failure. I would not choose this.
+
+    If you choose (a) or (b), the Description itself is unaffected. Only the `## Smoke test` block changes, and nothing in `src/` or `tests/` does.
+
+    Noticed, not touched: the possibly flaky `tests/application/test_watcher_move_rule.py::test_every_factory_move_is_no_reject[tests-doing]` from entry 10 is still open.
