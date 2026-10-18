@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 237
 comments_read: [6256126020, 6256259182, 6256356204]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-18T23:14:53.486638Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-10-18T23:14:33.236879Z'
   stage: review
   run: eb1380f0f6a0414eb63cb97afb1c48dd
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-18T23:14:53.486638Z'
+  stage: docs
 ---
 
 # The stops reach main as records
@@ -483,3 +492,4 @@ Expect: three lines, `{"event":"raised","scope":"machine","reason":"disk_low","a
     No findings.
 
     Earlier tests: none needed. `git diff --name-status main...HEAD` shows every test file as added (`A`), so no test file that `main` already holds was changed, renamed or deleted.
+27. factory: started docs as self.
