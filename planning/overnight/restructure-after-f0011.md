@@ -217,6 +217,8 @@ Once v1.1 has run on the real machine and gone through the shakedown run on the 
 
 ## For the human, outside the build (collected 2026-10-16)
 
+- Added 2026-10-18: review `planning/operator-playbook.md`; once it holds, a documents story moves it into `docs/` beside the operator guide (and the operator guide links it).
+
 - The machine: drive C: ran full on 2026-10-15 and again on 2026-10-16 (the root cause of three Docker hangs and the corrupt checkout). The disk image `docker_data.vhdx` is 340 GB on C: while Docker uses about 50 GB (`docker system df` on 2026-10-17): compact it (quit Docker Desktop, `wsl --shutdown`, then in an administrator PowerShell `Optimize-VHD -Path $env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx -Mode Full`), set a virtual disk limit, and move it to D: (Settings → Resources → Advanced). Update Docker Desktop (4.38.0) and WSL (`wsl --update`). Windows Update's active hours or a pause while a run goes; Docker Desktop's "Start when you sign in".
 - Leftovers in v1's container, to delete by hand: `/work/factory-rf.corrupt-2026-10-15` (its run record is copied), `/work/hatch-*`, `/work/dur-*`, `/tmp/fc-*`, `/tmp/ap-*`, `/tmp/approve-*`; on the host, the approval clones in the user's temp folder (`approve-*`).
 - Parked drafts: F0003-S0011 (an unreadable YAML fault on one log line), F0008-S0007 (the defensive callers of `require_state`), F0010-S0025 (one default git identity, folded into the housekeeping story).
