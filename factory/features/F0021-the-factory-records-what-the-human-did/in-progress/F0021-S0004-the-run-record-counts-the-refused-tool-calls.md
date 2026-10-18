@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 238
 comments_read: [6256436044, 6256513714]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T23:36:47.830345Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-18T23:36:47.830345Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T23:37:28.830740Z'
+  stage: review
+  run: 9e260e01706f423992caae9e3c171e88
 ---
 
 # The run record counts the refused tool calls
@@ -301,3 +303,17 @@ Expect: two lines, `absent absent` and `2 ['src/a.py']`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 18. factory: started review as self.
+19. reviewer: no findings
+
+    What I checked:
+    - Criterion 1: `tests/adapters/test_claude_runtime_denial_paths.py` has all seven rows, including the human's row from entry 4 (`file_path` 3 falling back to `notebook_path`). Each row also checks `detail` as today. `_denied_path` in `src/factory/adapters/claude_runtime.py` tries `file_path` and then `notebook_path`, each only when it is a string, and gives `None` for any `tool_input` that is not an object.
+    - Criterion 2: `tests/domain/test_cost_record_denials.py` tests `NonNegativeInt` on both sides (0 accepted, -1 refused). A `started` record is refused with `denials=0` and with `denied_paths=[]`, so the started check tests for `None`, not truthiness. Wrong-typed fields go through `type[BaseModel]`.
+    - Criterion 3: `tests/application/test_costs_denials.py` covers all six end-reason rows and reads the sidecar back. The `completed-none` row (0 and `[]`) against the `died` and `time_limit` rows (`None`) pins the end-reason check in `_completed`. Order and once-only are pinned by `["src/a.py", "docs/b.md"]` from four denials. `dict.fromkeys` keeps each path once in report order without a hand-written helper.
+    - Criterion 4: `tests/adapters/test_cost_records_jsonl_denials.py` has all four rows, including entry 4's count-only and zero-and-empty rows. It checks the keys come after a set `instance` and that each line reads back. In `cost_records_jsonl.py`, the writer now leaves out all three optional keys in one loop instead of copying the `instance` branch.
+    - Criterion 5: entry 17 records `check: green` and `duplicates: 0 new`.
+    - Architecture: `path` is on the domain DTO, the runtime-specific parsing stays in the adapter, the counting is in the application, and no dict crosses a function boundary. Security: no suppression markers and no strings built into commands. Docstrings: `PermissionDenial` and `CostRecord` describe the new fields.
+    - Work item: the Description matches the code. Entries 10 and 17 state the main choice (deciding "no reply" from the end reason) and what was rejected. The docs criterion still names what the operator guide and the project guide must say.
+
+    Earlier tests:
+    - tests/adapters/test_claude_runtime_resume.py: the story's Interface names it with the human's word (the feature's decision 14). The only change is the expected `Write` denial gaining `path="x"`.
+    - tests/application/test_costs.py: the human's answer in journal entry 11, point 2. The only change is the expected completed `CostRecord` in `test_the_sidecar_is_written_again_after_the_undo` gaining `denials=0, denied_paths=[]`.
