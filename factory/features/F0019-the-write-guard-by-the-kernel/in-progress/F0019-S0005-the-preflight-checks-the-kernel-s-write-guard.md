@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 224
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-18T16:57:14.321024Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-18T16:57:14.321024Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-18T16:58:16.111360Z'
+  stage: review
+  run: b1ac36990f9a4160b5f4fde14a7f1a04
 ---
 
 # The preflight checks the kernel's write guard
@@ -164,3 +166,7 @@ Expect: two lines, `True` and then `the kernel offers Landlock ABI 2, the write 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: 1. tests/application/test_confinement_item.py:35: `_every_tool` is a sixth copy of the same helper. Five earlier modules already hold it word for word: tests/entry/test_wiring_extras.py:53, tests/entry/test_wiring_run.py:76, tests/entry/test_wiring_agent_user.py:53, tests/entry/test_wiring_preflight.py:18 and tests/application/test_tick_preflight.py:32. Fix: under the standing leave to move a shared test helper, the tester moves `_every_tool` to one shared place under `tests/` (a root module such as `git_support`, or a fixture in `tests/conftest.py`) and makes the new module and the earlier ones use it from there, every earlier test keeping its name and what it checks. The coder hands this over with `tests` (R9).
+
+   Earlier tests:
+   - tests/entry/test_wiring_extras.py: the human's leave, named in the story's Interface under the feature's decision 12. Only the two rows of names in `test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user` changed, each gaining "confinement" between "agent-environment" and "agent-run-probe". This is within the leave.
