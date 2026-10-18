@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 223
 comments_read: [6251814997, 6251898687, 6251983602, 6252106944, 6252132469, 6252335953]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-18T16:33:52.018631Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -274,6 +278,11 @@ journal:
   at: '2026-10-18T16:33:32.134298Z'
   stage: review
   run: e6e0151e0c4347e8840fed149ea62baf
+- number: 50
+  speaker: factory
+  kind: started
+  at: '2026-10-18T16:33:52.018631Z'
+  stage: doing
 ---
 
 # Every agent run starts through `factory-confine`
@@ -779,3 +788,4 @@ Expect: two lines, `completed | src written, other refused, temporary folder own
     - `tests/entry/test_wiring_login.py`: two leaves. The human's leave (feature decision 13, named in the Interface) covers `confine_executable=None` in `test_the_built_runtime_hands_the_login_file_s_token_to_claude`. The standing leave covers `CREDENTIAL`, now imported.
     - `tests/entry/test_wiring_run.py`: the standing leave. The `environment` fixture became the shared `hosted_environment`, and `HOSTED_URL` moved to `tests/wiring_support.py`. Both tests keep their names and check the same thing.
     - `tests/test_process_search.py`: the human's answer in journal entry 14 (feature decision 21). The only change adds the `domain/confinement.py` `/dev/shm` marker to the expected markers.
+50. factory: started doing as self.
