@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 208
 blocked: null
 comments_seen: 0
@@ -81,3 +81,29 @@ Expect: `documents ok`.
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: both commands met their expectations, no findings.
+
+   1. `grep -c "the running run's" docs/project-guide.md docs/operator-guide.md docs/decisions.md`
+   ```
+   docs/project-guide.md:1
+   docs/operator-guide.md:1
+   docs/decisions.md:1
+   ```
+   Met: three lines in the expected order, and none ends `:0`.
+
+   2. `uv run python -m factory.entry.check_documents`
+   ```
+   documents ok
+   ```
+   Met (exit 0).
+
+   Criteria read against the demo and the branch:
+   - Criterion 1: `git diff --stat main...HEAD` lists only `docs/decisions.md`, `docs/operator-guide.md`, `docs/project-guide.md` and this ticket. Nothing under `src/`, `image/`, `template/`, `claude/` or `tests/` changed, and the tester's entry (3) and the coder's entry (4) both say so.
+   - Criterion 2: the factory's `make check` after the documenter was green (entry 6). It is the gate again after this stage.
+   - Criterion 3:
+     - Project guide: the new bullet is right after *Created at the start* (docs/project-guide.md:869). It says the record is uncommitted from `begin` to the commit, and that `git status`/`git diff` shows the file as modified, or untracked on the first run. It says this is expected because the undo reverts the file and the factory rewrites it from memory (it cites *Rewritten after every undo*), the agent cannot commit it, and the agent leaves it alone. It also says the agent's `make check` scans the file, which is why the secrets scan leaves it out.
+     - Operator guide: the passage follows the list in *What a stage run shows* (docs/operator-guide.md:505). It is written as two sentences, not one; the content matches the criterion, and I don't count the split as a finding.
+     - Decision log: the sidecar entry ends with the required sentence, which ties the rejected alternative to the pushed-started-record option (docs/decisions.md:165).
+     - All three passages say "the running run's". No other document changed.
+
+   Open: nothing.
