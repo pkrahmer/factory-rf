@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 229
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-18T19:43:37.314865Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-18T19:43:17.396215Z'
   stage: docs
   run: 792ead386ee542458c0e8aa3da8e53ee
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-18T19:43:37.314865Z'
+  stage: smoke-test
 ---
 
 # factory-confine's steps run in the test process
@@ -219,3 +228,4 @@ Expect: `('restrict', ['b', 't']) ('replace', ['prog'], 't') 0o700`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
