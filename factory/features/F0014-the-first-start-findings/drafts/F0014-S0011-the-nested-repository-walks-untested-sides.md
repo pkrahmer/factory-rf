@@ -26,18 +26,18 @@ No new names. The rules pinned here are those of today's code:
 
 ## Acceptance criteria
 
-1. These are new rows of the parametrized test of `remove_nested_repositories()`, in a checkout cloned from the `remote` fixture. In every row the root's `.git` stays and `resolve("HEAD")` still gives the clone's commit:
-   - A symbolic link `mirror` at the root to a folder outside the checkout that holds a repository made by `git init`: returns `[]`. The link stays, and the target's `.git` stays.
+1. These are new rows of `tests/adapters/test_git_cli_nested.py::test_remove_nested_repositories_removes_and_reports_each_nested_git_entry` (FEATURE decision 34). Its body is unchanged: the returned list, the snapshot of `tmp_path` less the removed paths, the root's `.git`, and `resolve("HEAD")`. The checkout is the module's `directory` fixture, cloned from the `remote` fixture.
+   - A symbolic link `mirror` at the root to a folder beside the checkout that holds a repository made by `git init`: returns `[]`. The link stays, and so does the target's `.git`.
    - A symbolic link `self` at the root to the root itself: returns `[]`, and the link stays.
-   - A symbolic link `deep/up` to the checkout's parent folder: returns `[]`, and nothing outside the checkout changes.
-2. A folder `.git/extra/.git` made inside the root's own `.git`: `remove_nested_repositories()` returns `[]`, and the folder stays.
-3. A repository at `notes` whose `.git` holds a folder `modules/m/.git`: returns `["notes/.git"]` only, and `notes/.git` is gone with everything in it.
-4. Two repositories at `b` and `a`, made in that order: returns `["a/.git", "b/.git"]`, sorted and not in the order they were made.
-5. A stage whose agent leaves repositories at `a` and `b` stalls with the reason `nested_repository`. Its note contains `which the factory removed: a/.git, b/.git`.
-6. A probe run that leaves repositories at `a` and `b` fails the item `agent-run-probe` with the detail `the probe run left a git repository in the work tree, which the factory removed: a/.git, b/.git`.
-7. The preparer, given an existing sealed checkout holding repositories at `a` and `b`, removes both and writes the log line `removed nested repositories: a/.git, b/.git`. It does not clone again.
+   - A symbolic link `deep/up` to the checkout's parent folder: returns `[]`, and nothing in that folder changes.
+2. A folder `.git/extra/.git` inside the root's own `.git`: returns `[]`, and the folder stays. This is a row of the same test.
+3. A repository at `notes` whose `.git` holds a folder `modules/m/.git`: returns `["notes/.git"]` only, and `notes/.git` is gone with everything in it. This is a row of the same test.
+4. A repository at `a` and another at `a/.cache`: returns `["a/.cache/.git", "a/.git"]`, the sorted order. The walk always meets `a/.git` first, whatever order the file system lists folders in. This is a row of the same test.
+5. A stage whose agent leaves repositories at `a` and `b` stalls with the reason `nested_repository`, and its note contains `which the factory removed: a/.git, b/.git`. This is a new test function in `tests/application/test_nested_repositories.py`. It reuses the module's `_nesting` and `_launch`, `_stalled` and `_note` of `application.test_after_agent`, which it imports and does not copy.
+6. A probe run that leaves repositories at `a` and `b` fails the item `agent-run-probe` with the detail `the probe run left a git repository in the work tree, which the factory removed: a/.git, b/.git`. This is the row `two-nested` of `test_a_probe_run_that_leaves_a_nested_repository_fails_the_item` (FEATURE decision 34).
+7. The preparer, given an existing sealed checkout that holds repositories at `a` and `b`, writes the log line `removed nested repositories: a/.git, b/.git` and does not clone again (the test's file in the work tree stays). This is the row `two-nested` of `test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout` (FEATURE decision 34).
 8. `make check` stays green.
-9. docs: none. The operator guide and the decision log already state that the walk does not follow links and that the note names the paths. The rules do not change.
+9. docs: none. The project guide's row for `remove_nested_repositories()` already says that the walk does not follow links, never enters a `.git` and returns the paths sorted. The operator guide already says that the stall note, the probe's item and the log line name the paths. No rule changes.
 
 ## Demo
 

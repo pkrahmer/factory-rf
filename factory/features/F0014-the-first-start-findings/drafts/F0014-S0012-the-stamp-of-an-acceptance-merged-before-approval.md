@@ -14,11 +14,11 @@ No new names. The rule pinned here is today's:
 
 ## Acceptance criteria
 
-1. These are rows of one parametrized test, `before_approval` true and false. `book_merge(document, bill, before_approval=<row>, at=<a UTC time>)` appends a `done` entry of the factory with `at` equal to that time and `stage == "done"`, and its text starts with the row's prefix.
-2. The same two rows without `at` append a `done` entry whose `at`, `stage` and `run` are all `None`.
-3. An acceptance merged at a stage before the first approval, through the merge handler, is booked in `done/` on `main` with a last journal record of kind `done`. That record has `at` equal to the boundaries' clock at the merge and `stage == "done"`. Its text starts with `done (pull request merged before approval); cost: `.
+1. `book_merge(document, bill, before_approval=True, at=<a UTC time>)` appends a `done` entry of the factory with `at` equal to that time, `stage == "done"` and `run` `None`. The test is a third `booking` row, `merge-before-approval` (`book_merge(_report(), bill([]), before_approval=True, at=at)`), of `tests/domain/test_journal_stamps.py::test_booking_records_the_done_entry_with_the_time_and_the_done_stage`, beside its rows `merge` and `refusal` (FEATURE decision 35). Its `with-at` row checks this criterion. The test's name and body stay.
+2. The same call without `at` appends a `done` entry whose `at`, `stage` and `run` are all `None`. This is the `without-at` row of the same `booking` row.
+3. An acceptance merged at its stage `acceptance`, before the first approval, through `AcceptanceMerged`, is booked in `done/` on `main` with a last journal record of kind `done`. That record has `at` equal to `boundaries.clock.now()` and `stage == "done"`, and its text starts with `done (pull request merged before approval); cost: `. This is a new test function in `tests/application/test_acceptance_merged_before_approval.py`, using its fixtures `publish` and `merge` and its helper `_booked`.
 4. `make check` stays green.
-5. docs: none. The decision log's journal entry already says every new record carries the stamp, and the merge before approval does not change.
+5. docs: none. The project guide already says that every entry the factory appends carries `at` and `stage`, and that the acceptance's `done` entry carries `done`. The merge before approval does not change.
 
 ## Demo
 
@@ -39,7 +39,7 @@ for before in (True, False):
 Expect: two lines, `True done 2026-10-18 09:00:00+00:00 done` and `False done 2026-10-18 09:00:00+00:00 done`.
 
 ```bash
-uv run pytest --no-header -p no:cacheprovider tests/domain/test_acceptance_before_approval.py tests/domain/test_acceptance_booking.py tests/application/test_acceptance_merged_before_approval.py tests/application/test_acceptance_merged.py
+uv run pytest --no-header -p no:cacheprovider tests/domain/test_journal_stamps.py tests/domain/test_acceptance_before_approval.py tests/domain/test_acceptance_booking.py tests/application/test_acceptance_merged_before_approval.py tests/application/test_acceptance_merged.py
 ```
 Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped` count.
 

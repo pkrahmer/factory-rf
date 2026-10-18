@@ -36,7 +36,7 @@ v1.1 started for the first time on 2026-10-17, as instance `shakedown` under Doc
 
 ## Stories
 
-The build order is S0001, S0006, S0009, S0010, S0002, S0003, S0004, S0005, S0007, S0008, the order of this list. S0006 was added after the others were drafted and keeps its number; it comes right after S0001 because both close a route from the checkout's `.git` to the hosting token, and S0006 changes the entry S0001 leaves in `git_environment` (decision 24). S0009 and S0010 were added after the pre-check (decision 30): S0009 is S0006's run half and follows it; S0010 extends S0009's `run_sealed` and the entries S0006 leaves in `git_environment`, and follows S0009. S0003 comes after S0009, whose `run_sealed` its probe runs through, and before S0004. A later story may start first if it is the only one moved to `ongoing/`. S0007 and S0008 were added after the others and come last (decision 29); S0008 follows S0007, whose decision-log entry it completes.
+The build order is S0001, S0006, S0009, S0010, S0002, S0003, S0004, S0005, S0007, S0008, S0011, S0012, S0013, the order of this list. S0006 was added after the others were drafted and keeps its number; it comes right after S0001 because both close a route from the checkout's `.git` to the hosting token, and S0006 changes the entry S0001 leaves in `git_environment` (decision 24). S0009 and S0010 were added after the pre-check (decision 30): S0009 is S0006's run half and follows it; S0010 extends S0009's `run_sealed` and the entries S0006 leaves in `git_environment`, and follows S0009. S0003 comes after S0009, whose `run_sealed` its probe runs through, and before S0004. A later story may start first if it is the only one moved to `ongoing/`. S0007 and S0008 were added after the others and come last (decision 29); S0008 follows S0007, whose decision-log entry it completes. S0011, S0012 and S0013 were proposed by the feature acceptance of 2026-10-18 and come after the ten built ones, in that order (decisions 34 to 36): S0011 and S0012 add rows and tests only, and S0013 changes documents only.
 
 - S0001 — The factory's git runs no hooks
 - S0006 — The factory alone writes the checkout's git folder
@@ -48,6 +48,9 @@ The build order is S0001, S0006, S0009, S0010, S0002, S0003, S0004, S0005, S0007
 - S0005 — What the first start observed, in the guide (documentation only)
 - S0007 — A journal record says when, in which stage and from which run
 - S0008 — A cost record names its instance
+- S0011 — The nested-repository walk's untested sides (tests only)
+- S0012 — The stamp of an acceptance merged before approval (tests only)
+- S0013 — The login and the git environment in the documents (documentation only)
 
 ## The human's changes
 
@@ -63,6 +66,9 @@ None in the repository. Every file the stories change is inside a write path of 
 - S0005: documents only.
 - S0007: `src/factory/domain/journal.py`, `src/factory/domain/acceptance.py`, `src/factory/adapters/work_item_markdown.py`, `src/factory/application/opening.py`, `src/factory/application/claims.py`, `src/factory/application/stage.py`, `src/factory/application/stalls.py`, `src/factory/application/recovery.py`, `src/factory/application/acceptance.py` and the handlers `closed.py`, `questions.py`, `comments.py`, `reject.py` and `merged.py`.
 - S0008: `src/factory/domain/cost_records.py`, `src/factory/adapters/cost_records_jsonl.py`, `src/factory/application/costs.py`.
+- S0011: tests only (`tests/adapters/test_git_cli_nested.py`, `tests/application/test_nested_repositories.py`).
+- S0012: tests only (`tests/domain/test_journal_stamps.py`, `tests/application/test_acceptance_merged_before_approval.py`).
+- S0013: documents only (`README.md`, `docs/decisions.md`, `docs/operator-guide.md`).
 - Every story: the tests and the documents.
 
 No dependency, no `Makefile` target, no `pyproject.toml` setting (no new test reads the source, so mutmut's deselect list stays; `image/` is already in its `also_copy`), no `security/*` entry, no `.gitignore` line (`image/secrets/` is ignored already) and no `CLAUDE.md` rule is needed.
@@ -82,7 +88,7 @@ The human's answers (2026-10-17, `planning/overnight/first-start-checklist.md`, 
 
 Taken by the session for the human, to confirm (2026-10-17, story texts):
 
-5. Five stories, in this order (six since decision 24, which puts S0006 after S0001): the hooks first, because they are the route to the hosting token (as F0013 put its token fault first); then the checkout's trust; then the token in two stories, the factory's half (S0003) before the image's (S0004), since one story would change four source modules, two image files, five test modules and six document sections, more than one coder's run within $4 and 60 minutes; the documentation-only story last. Ten stories since decision 30, which splits S0006 into S0006 and S0009 and adds S0010; the build order is in "Stories". (All stories)
+5. Five stories, in this order (six since decision 24, which puts S0006 after S0001): the hooks first, because they are the route to the hosting token (as F0013 put its token fault first); then the checkout's trust; then the token in two stories, the factory's half (S0003) before the image's (S0004), since one story would change four source modules, two image files, five test modules and six document sections, more than one coder's run within $4 and 60 minutes; the documentation-only story last. Ten stories since decision 30, which splits S0006 into S0006 and S0009 and adds S0010; thirteen since the acceptance's drafts S0011 to S0013; the build order is in "Stories". (All stories)
 6. The null path is `/dev/null` (`os.devnull`, as the wrapper's `GIT_CONFIG_GLOBAL`), not an empty value: git looks for each hook under the null device and finds none, the usual way to switch hooks off, while an empty path is a value whose reading this session did not check. The `GIT_CONFIG_*` pairs are command-line configuration and win over the checkout's `.git/config`, so a `core.hooksPath` the agent writes there is overridden too (a test row). Git drops these variables for the receiving side of a local push, so the bare remotes' hooks the tests rely on still run; the existing tests are the check. The setting stays in `git_environment` as the human said, not in `GitCli` itself: `factory-bill`'s git, built without it, only reads (`log`, `show`), and git runs no hook for those. (S0001)
 7. The human's leave for F0014-S0001 (taken by the session for the human, to confirm): its tester changes two tests of `tests/entry/test_wiring_boundaries.py` (F0010-S0003): `test_git_environment_gives_the_credential_helper_and_the_shared_group` expects the seven entries and is renamed `test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks`; `test_the_built_git_runs_with_the_git_options_of_the_settings`, whose `pre-commit` hook no longer runs, observes the environment through a stand-in `git` first on the `PATH` and also asserts the third pair, its name unchanged. Nothing else in the module changes. (S0001, story text)
 8. The trust is a file in the repository, `image/gitconfig`, copied to `/etc/gitconfig` without `--chown` (so `root:root`) and set to `0644`, with exactly one entry, `safe.directory=/work/checkout`, tied by a test to the settings' `CHECKOUT_PATH`; a test reads it with the real git. Rejected: `safe.directory=*` (trusts every repository), a `.gitconfig` in the agent's home (the agent can rewrite it), a `GIT_CONFIG_*` name in the agent run's environment (widens the allow list), `git config --system` in a `RUN` (the test would read a command line instead of the file). (S0002)
@@ -210,3 +216,21 @@ Added on 2026-10-17 after the pre-check of the eight stories (`planning/overnigh
     - Each call's shell reads the file, so a resumed call reads it again: a token changed mid-run counts from the next call, not the next run.
     - The test of "no argument list" reads the `sudo` stand-in's recorded arguments, which hold the whole chain after `sudo`. Without an agent user the shell's arguments are the tail that chain pins, since no stand-in can stand in for `/bin/sh`.
     - `claude --version` is not started through the shell; it needs no login.
+
+Added on 2026-10-18 with S0011, S0012 and S0013, proposed by the feature acceptance and checked by their pre-checks (`planning/overnight/precheck/F0014-S0011-1.md`, `F0014-S0012-1.md` and `F0014-S0013-1.md`), whose required and recommended edits are applied to the stories:
+
+34. The human's leave for F0014-S0011 (taken by the session for the human, to confirm): its tester adds rows to three tests of F0014-S0010 and changes nothing else in them:
+    - `tests/adapters/test_git_cli_nested.py`, `test_remove_nested_repositories_removes_and_reports_each_nested_git_entry`: six rows, one per case of S0011's criteria 1 to 4, each with its arrange function in the module. The body and the eight rows of today stay.
+    - `tests/application/test_nested_repositories.py`, `test_a_probe_run_that_leaves_a_nested_repository_fails_the_item`: one row `two-nested`, an act that makes repositories at `a` and `b`, with `COMPLETED` and the detail ending `a/.git, b/.git`.
+    - The same module, `test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout`: one row `two-nested`, with the same act, logged, and the line `removed nested repositories: a/.git, b/.git`.
+
+    Names, bodies and the other rows stay. The stage's two-path stall is a new test function in that module, because the stage test is parametrized only by `switched`. Any other change to an earlier test is a question.
+
+    A symbolic link to a folder that holds a repository is not itself a nested repository, and the walk keeps both. Git records a link as a link (mode `120000`) and never looks behind it, so it starts no child git there. A repository behind such a link inside the work tree is found at its own path. One outside the work tree is never read by the factory's git, and the factory does not write there. Only an entry named `.git` counts, a link of that name included (S0010). (S0011, story text)
+35. The human's leave for F0014-S0012 (taken by the session for the human, to confirm): its tester adds one `booking` row, `merge-before-approval`, with its function in the module, to `tests/domain/test_journal_stamps.py::test_booking_records_the_done_entry_with_the_time_and_the_done_stage` (F0014-S0007). It changes nothing else there: the name, the body, the `at` rows and the rows `merge` and `refusal` stay. The rule is S0007's criterion 6, so its other branch belongs in the same test. Any other change to an earlier test is a question. (S0012, story text)
+36. The human's answers of 2026-10-18 to the pre-check's five points on S0011, S0012 and S0013 (source: the human, after the pre-check of round 2; taken by the session for the human, to confirm):
+    - (1) Yes, decision 34's leave: S0011's tester adds the rows to S0010's three tests.
+    - (2) A symbolic link to a folder that holds a repository does not count as a nested repository. Only an entry named `.git` counts, links included, and the walk follows no link (S0011).
+    - (3) Yes, criterion 4's new row of S0011: repositories at `a` and `a/.cache`, in place of the two made in the order `b`, `a`.
+    - (4) Yes, the domain row in S0007's test with decision 35's leave (S0012). The criterion through the merge handler stays, as a new test function.
+    - (5) Yes, S0013's edit 1: the README wording (both instances healthy, the probe agent run included; a stage's run end to end and a `time_limit` under `sudo` first observed at the shakedown run), the environment sentence that includes `CLAUDE_CODE_OAUTH_TOKEN`, `GIT_CONFIG_COUNT=4` in the hooks entry's parenthesis, and the citation of decision 15.
