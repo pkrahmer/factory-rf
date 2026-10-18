@@ -1,5 +1,5 @@
 ---
-stage: demo
+stage: accept
 pr: 210
 blocked: null
 comments_seen: 0
@@ -141,3 +141,35 @@ Expect: the last line names `<n> passed`, with no `failed`, `error` or `skipped`
 
    `make check`: check: green
    `make documents`: documents ok
+7. demo: Demo run from the repository root. Each command was run as written, in order. Every command met its `Expect:` line. No findings.
+
+   1. `grep -c "standing leave" template/CLAUDE.md claude/agents/tester.md claude/agents/coder.md`
+   ```text
+   template/CLAUDE.md:2
+   claude/agents/tester.md:2
+   claude/agents/coder.md:1
+   ```
+   Met: three lines in the expected order, with counts 2, 2 and 1.
+
+   2. `grep -c "the story names that test and the human has given their word; you make that change" claude/agents/tester.md`
+   ```text
+   0
+   ```
+   Met: the old tester bullet is gone.
+
+   3. `uv run pytest --no-header -p no:cacheprovider tests/test_claude_files.py tests/test_claude_agent_texts.py tests/adapters/test_shipped_agents_effect.py`
+   ```text
+   ........................................................................ [ 48%]
+   ........................................................................ [ 96%]
+   .....                                                                    [100%]
+   149 passed in 0.57s
+   ```
+   Met: the last line is `149 passed`, with no failed, error or skipped count.
+
+   Criteria check against the demo:
+   - Criteria 1 to 5: the exact-text tests and the other tests of the three modules pass.
+   - Criterion 6: the documenter's run reports `make check` green. The factory runs the gate again.
+   - Criterion 7: `docs/decisions.md:506` has the entry "A standing leave to move a shared test helper". The `template/CLAUDE.md` bullet in the project guide (`docs/project-guide.md:1384`) states the leave and its bounds.
+   - Scope: the branch diff touches only the three shipped texts, the two named test modules, the two documents and the ticket. Nothing under `src/` changes.
+
+   Nothing contradicts a criterion. Nothing is open.
