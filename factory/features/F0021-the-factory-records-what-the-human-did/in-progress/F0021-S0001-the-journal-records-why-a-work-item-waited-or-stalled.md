@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 235
 comments_read: [6255820784]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-18T22:17:23.046555Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -177,6 +173,12 @@ journal:
   kind: started
   at: '2026-10-18T22:17:23.046555Z'
   stage: docs
+- number: 31
+  speaker: documenter
+  kind: result
+  at: '2026-10-18T22:18:44.144721Z'
+  stage: docs
+  run: 73790245164d41cca2baccead9b8e32b
 ---
 
 # The journal records why a work item waited or stalled
@@ -622,3 +624,22 @@ Expect: four lines, `stall reason accepted`, `crash reason refused`, `question b
     - `tests/application/test_stage_run.py`: standing leave to move a shared test helper. Its constants and helpers moved to `tests/stage_run_support.py`, and the new `open_story` parameters default to the old behaviour.
     - `tests/crash_support.py`: none needed. The change only adds helpers and constants and leaves the existing ones as they were.
 30. factory: started docs as self.
+31. documenter: No findings. The diff matches the Interface and the criteria. Round 0, after the human's answer in entry 27 (the built `append_entry` signature stays).
+
+    Files changed:
+    - `docs/project-guide.md`, *The journal's data*:
+      - The field table gains the rows `blocked` (on a `question` record only) and `reason` (on a `stall` record only). The lead-in now says five fields.
+      - A new paragraph on both fields. It says where the types are defined, that a wrong kind or value is refused with a `ValueError`, and that an unset field is left out of the front matter.
+      - A second new paragraph on who writes them. It says `crash` and `expiry` records carry no reason, and why (the feature's decision 4).
+    - `docs/project-guide.md`, *The journal's entries*: the `append_entry` description now names `blocked` and `reason`, and the `JournalCauses` `TypedDict` behind `**causes`, with the `PLR0913` reason.
+    - `docs/project-guide.md`, the `StallReason` line: it now says the type is defined in `factory.domain.journal`.
+    - `docs/decisions.md`: a new entry, "A question records the block it opened, a stall its reason". It gives the reason (the status map reads the front matter and never parses prose) and the rejected alternatives (parsing the entry texts, a reason on crash records).
+
+    I did not run `make check`: I changed only documents. I did not run the examples either, because I added none.
+
+    Cross-read and found current: README.md and `docs/operator-guide.md` say nothing about journal record fields. The other *Journal* sections of the project guide are unaffected by the diff.
+
+    Stale text noticed and left alone: none.
+
+    `check`: check: green
+    `documents`: documents ok
