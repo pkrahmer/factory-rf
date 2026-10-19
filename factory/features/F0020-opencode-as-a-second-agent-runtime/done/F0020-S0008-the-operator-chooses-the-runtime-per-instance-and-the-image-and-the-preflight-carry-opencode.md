@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-19T11:36:57.332879Z'
   stage: smoke-test
   run: 861e55454cca4c1083521b31fd64af64
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-19T11:38:16.061178Z'
+  stage: approval
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -582,3 +587,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     No criterion is contradicted. The smoke test did not cover the other criteria (compose environment, version item, probe hints, folders); those are left to the tests and `make check`.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 23.9 min, 172 turns, 532659 tokens in (6175804 more from cache), 83444 out, $6.75
