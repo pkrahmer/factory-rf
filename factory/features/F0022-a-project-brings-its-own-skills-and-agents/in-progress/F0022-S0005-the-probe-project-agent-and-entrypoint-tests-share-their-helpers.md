@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T20:24:33.921018Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T20:24:13.341413Z'
   stage: review
   run: 7f4b55bc7db14a69b5e5548f397f92e6
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:24:33.921018Z'
+  stage: docs
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -296,3 +305,4 @@ Expect: `1`
     Notes:
     - `tests/conftest.py:46`: the conftest imports `Layout` from the test module `test_entrypoint`, as the Interface asks. A later story could move `Layout` to a support module so the conftest no longer depends on a test module (entries 7 and 15 note this too).
     - Entry 15 reports `duplicates: 5 new`. This diff changes nothing under `src/factory`, so those findings do not come from this story. The feature's acceptance may want to look at the baseline.
+18. factory: started docs as self.
