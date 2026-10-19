@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "1.1",
+  "x-records-contract": "1.2",
   "$defs": {
     "TokenCounts": {
       "additionalProperties": false,
@@ -112,7 +112,8 @@
             "no_result",
             "time_limit",
             "budget",
-            "died"
+            "died",
+            "provider_limit"
           ],
           "type": "string"
         },

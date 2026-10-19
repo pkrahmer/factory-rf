@@ -207,7 +207,7 @@ A stall is the one way a stage ends without a result the factory can keep. It co
 
 ### The reasons
 
-`factory.domain.decisions.StallReason` (defined in `factory.domain.journal`, which the stall record names) is one of `died`, `time_limit`, `budget`, `no_result`, `decision_not_allowed`, `left_branch`, `form_invalid`, `check_red`, `merge_conflict`, `nested_repository`. `stall_reason_of(result)` maps the end reason of an `AgentRunResult` to the reason of the same name and `completed` to `None`.
+`factory.domain.decisions.StallReason` (defined in `factory.domain.journal`, which the stall record names) is one of `died`, `time_limit`, `budget`, `provider_limit`, `no_result`, `decision_not_allowed`, `left_branch`, `form_invalid`, `check_red`, `merge_conflict`, `nested_repository`. `stall_reason_of(result)` maps the end reason of an `AgentRunResult` to the reason of the same name and `completed` to `None`.
 
 `factory.domain.post_texts.stall_cause(reason, detail="")` gives the reason's sentence, and `<sentence>: <detail>` with a detail. `stall_note(reason, attempts, attempts_cap, *, detail="")` gives `Stalled (attempt <n> of <cap>): <cause>. ` and then `Retrying on the next tick.` when `attempts < attempts_cap`, otherwise `The attempts cap is reached; the factory asks you next.` The word "retry" appears only in the first case.
 

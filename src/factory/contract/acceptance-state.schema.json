@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "1.1",
+  "x-records-contract": "1.2",
   "$defs": {
     "Claim": {
       "additionalProperties": false,
@@ -139,7 +139,8 @@
                 "form_invalid",
                 "check_red",
                 "merge_conflict",
-                "nested_repository"
+                "nested_repository",
+                "provider_limit"
               ],
               "type": "string"
             },

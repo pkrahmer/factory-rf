@@ -65,6 +65,7 @@ from factory.domain.agent_runs import (
 from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
+from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
 
 # These names moved to the shared launch module; earlier callers still import them here.
 __all__ = [
@@ -134,6 +135,7 @@ class _Reply(BaseModel):
     usage: _Usage | None = None
     permission_denials: list[_Denial] = []
     structured_output: _StructuredOutput | None = None
+    result: str | None = None
 
 
 class _RunFiles(BaseModel):
@@ -189,12 +191,18 @@ def _hook_settings(guard_file: Path) -> str:
     return json.dumps({"hooks": {"PreToolUse": [{"matcher": GUARDED_TOOLS, "hooks": [hook]}]}})
 
 
-def _arguments(request: AgentRunRequest, session: str, files: _RunFiles) -> list[str]:
+def _session_arguments(request: AgentRunRequest, new_session: str) -> list[str]:
+    if request.resume_session is not None:
+        return ["--resume", request.resume_session]
+    return ["--session-id", new_session]
+
+
+def _arguments(request: AgentRunRequest, new_session: str, files: _RunFiles) -> list[str]:
     agent = request.agent
     arguments = ["-p", request.prompt, "--model", agent.model]
     if agent.effort is not None:
         arguments += ["--effort", agent.effort]
-    arguments += ["--tools", ",".join(agent.tools), "--session-id", session]
+    arguments += ["--tools", ",".join(agent.tools), *_session_arguments(request, new_session)]
     arguments += ["--append-system-prompt-file", str(files.instructions)]
     if request.guard is not None:
         arguments += ["--settings", str(files.hooks)]
@@ -217,27 +225,45 @@ def _arguments(request: AgentRunRequest, session: str, files: _RunFiles) -> list
 def _resume_arguments(arguments: list[str], budget: Decimal) -> list[str]:
     resumed = list(arguments)
     resumed[resumed.index("-p") + 1] = FINISH_MESSAGE
-    resumed[resumed.index("--session-id")] = "--resume"
+    # A call that already resumed a named session resumes it again as it is.
+    if "--session-id" in resumed:
+        resumed[resumed.index("--session-id")] = "--resume"
     resumed[resumed.index("--max-budget-usd") + 1] = format(resume_budget(budget), "f")
     return resumed
 
 
+def _limit_text(process: ProcessResult, reply: _Reply | None, limit: ProviderLimit) -> str | None:
+    """The error result or standard error line that holds the provider's limit, if one does."""
+    # The agent's own text is never searched: only an error reply, or standard error without one.
+    if reply is not None:
+        refused = reply.is_error and reply.result is not None and limit_in_text(reply.result, limit)
+        return reply.result if refused else None
+    lines = process.stderr.splitlines()
+    return next((line for line in lines if limit_in_text(line, limit)), None)
+
+
+def _answered(request: AgentRunRequest, output: _StructuredOutput | None) -> bool:
+    if output is None or output.decision not in request.allowed_decisions:
+        return False
+    return output.entry is not None and bool(output.entry.strip())
+
+
 def _end_reason(
-    request: AgentRunRequest, process: ProcessResult, reply: _Reply | None
+    request: AgentRunRequest,
+    process: ProcessResult,
+    reply: _Reply | None,
+    limit_text: str | None,
 ) -> EndReason:
     if process.timed_out:
         return "time_limit"
     # `claude` may exit non-zero on a budget stop; the reply still says why it stopped.
     if reply is not None and reply.subtype == BUDGET_SUBTYPE:
         return "budget"
+    if limit_text is not None:
+        return "provider_limit"
     if process.exit_status != 0 or reply is None or reply.is_error:
         return "died"
-    output = reply.structured_output
-    if output is None or output.decision not in request.allowed_decisions:
-        return "no_result"
-    if output.entry is None or not output.entry.strip():
-        return "no_result"
-    return "completed"
+    return "completed" if _answered(request, reply.structured_output) else "no_result"
 
 
 def _tokens(usage: _Usage | None) -> TokenCounts | None:
@@ -262,15 +288,29 @@ def _denials(reply: _Reply) -> list[PermissionDenial]:
     ]
 
 
-def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
+def _result(
+    request: AgentRunRequest, process: ProcessResult, session: str | None, limit: ProviderLimit
+) -> AgentRunResult:
     # The duration is the whole run's, so `run` sets it once the last call has ended.
     duration = _ZERO
     reply = _parse_reply(process.stdout)
-    end_reason = _end_reason(request, process, reply)
+    limit_text = _limit_text(process, reply, limit)
+    end_reason = _end_reason(request, process, reply, limit_text)
     login = login_used(process.stderr)
+    limit_wait = (
+        named_wait(limit_text)
+        if end_reason == "provider_limit" and limit_text is not None
+        else None
+    )
     # A killed call's output is cut short, so whatever it printed is not its measure.
     if reply is None or process.timed_out:
-        return AgentRunResult(end_reason=end_reason, duration=duration, login=login)
+        return AgentRunResult(
+            end_reason=end_reason,
+            duration=duration,
+            login=login,
+            session=session,
+            limit_wait=limit_wait,
+        )
     output = reply.structured_output if end_reason == "completed" else None
     cost = None if reply.total_cost_usd is None else Decimal(str(reply.total_cost_usd))
     api_ms = reply.duration_api_ms
@@ -286,6 +326,8 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
         cost_usd=cost,
         permission_denials=_denials(reply),
         login=login,
+        session=session,
+        limit_wait=limit_wait,
     )
 
 
@@ -323,6 +365,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         confine_executable: str | None = None,
         temporary_root: Path | None = None,
         api_login_file: Path | None = None,
+        provider_limit: ProviderLimit | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -331,6 +374,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         `login_file`, read by the call's own shell.
         With `confine_executable`, every call starts through it with the run's rules and
         its own temporary folder under `temporary_root`, the system's by default.
+        A call refused by `provider_limit`, the default limit when `None`, ends `provider_limit`.
         """
         self._executable = executable
         self._starters = Starters(
@@ -344,6 +388,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         self._state_directory = state_directory
         self._kill_points = kill_points
         self._version_time_limit = version_time_limit
+        self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
 
     @property
     def sudo_executable(self) -> str:
@@ -358,17 +403,22 @@ class ClaudeCodeRuntime(AgentRuntime):
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON it prints into a result.
 
+        A request's `resume_session` is resumed; otherwise the run starts a new session.
         A budget stop resumes the session once within what is left of the time limit.
         A call that cannot be started, or whose files cannot be written, is `AgentRuntimeError`.
         """
         started = time.monotonic()
-        session = str(uuid.uuid4())
-        files = _RunFiles.of(self._state_directory, self._temporary_root, session)
+        # The run's files take a fresh id even when the session is resumed, so no run's files
+        # meet another's.
+        new_session = str(uuid.uuid4())
+        session = request.resume_session or new_session
+        files = _RunFiles.of(self._state_directory, self._temporary_root, new_session)
         self._make_state_directory()
         try:
             self._write_files(request, files)
-            arguments = _arguments(request, session, files)
-            result = _result(request, self._call(request, files, arguments, request.time_limit))
+            arguments = _arguments(request, new_session, files)
+            process = self._call(request, files, arguments, request.time_limit)
+            result = _result(request, process, session, self._provider_limit)
             if result.end_reason == "budget":
                 result = self._resume(request, files, arguments, result, started)
             return finished_run(result, started, self._kill_points)
@@ -407,7 +457,8 @@ class ClaudeCodeRuntime(AgentRuntime):
             second = AgentRunResult(end_reason="time_limit", duration=_ZERO)
         else:
             resumed = _resume_arguments(arguments, request.agent.budget_usd)
-            second = _result(request, self._call(request, files, resumed, left))
+            process = self._call(request, files, resumed, left)
+            second = _result(request, process, first.session, self._provider_limit)
         return resumed_result(first, second)
 
     def _make_state_directory(self) -> None:

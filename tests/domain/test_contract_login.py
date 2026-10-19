@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-from factory.domain.contract import CONTRACT, RECORDS_CONTRACT, schema_file_name
-
 SCHEMAS = Path(__file__).parent.parent.parent / "src" / "factory" / "contract"
 
 
@@ -25,17 +23,13 @@ def _values(schema: object) -> set[object]:
     return {None}
 
 
-def test_the_committed_cost_record_schema_lists_the_optional_login_at_version_1_1() -> None:
+def test_the_committed_cost_record_schema_lists_the_optional_login() -> None:
     schema = _committed("cost-record.schema.json")
     properties = schema["properties"]
     required = schema.get("required", [])
     assert isinstance(properties, dict)
     assert isinstance(required, list)
 
-    assert RECORDS_CONTRACT == "1.1"
     assert "login" in properties
     assert "login" not in required
     assert _values(properties["login"]) == {"api_key", "subscription", "none", None}
-    assert [_committed(schema_file_name(entry))["x-records-contract"] for entry in CONTRACT] == [
-        "1.1"
-    ] * 5

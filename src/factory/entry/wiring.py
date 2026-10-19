@@ -255,6 +255,7 @@ def build_boundaries(
             login_file=settings.claude_login_file,
             api_login_file=settings.api_login_file,
             confine_executable=confine_executable,
+            provider_limit=settings.provider_limit,
         ),
         project_commands=RecordingProjectCommands(
             MakeProjectCommands(settings.checkout),

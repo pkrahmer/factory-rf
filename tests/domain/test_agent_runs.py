@@ -42,11 +42,18 @@ def _request(
     )
 
 
-def test_question_and_the_five_end_reasons() -> None:
+def test_question_and_the_six_end_reasons() -> None:
     assert QUESTION == "question"
     reasons = get_args(EndReason)
-    assert len(reasons) == 5
-    assert set(reasons) == {"completed", "no_result", "time_limit", "budget", "died"}
+    assert len(reasons) == 6
+    assert set(reasons) == {
+        "completed",
+        "no_result",
+        "time_limit",
+        "budget",
+        "died",
+        "provider_limit",
+    }
 
 
 @pytest.mark.parametrize(
