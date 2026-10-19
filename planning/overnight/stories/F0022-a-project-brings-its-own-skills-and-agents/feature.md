@@ -65,7 +65,7 @@ Checked against `factory/pipeline.yml`: the coder writes `src/*`, `image/*`, `te
    The same for every other reused volume, such as `factory-shakedown_claude-home`.
 
 2. After S0002 is merged: rebuild `self`, and build the demo's own instance from the same `main` (as for the shakedown run: `FACTORY_INSTANCE=shakedown`, its repository URL the repository of step 1; never `self`, which keeps building factory-rf). Then one short smoke run on the todo demo on that instance, which proves both halves once (the plan's "prove it once", about one story's cost on the subscription).
-   1. A new empty repository seeded from `demo/todo-service/` as for the shakedown run. Before the first story starts, add two files to that repository on `main` (not to `demo/` in factory-rf):
+   1. A new empty repository, `pkrahmer/factory-demo-skills` (created 2026-10-19; the demo token must cover it), seeded from `demo/todo-service/` as for the shakedown run. Before the first story starts, add two files to that repository on `main` (not to `demo/` in factory-rf):
       - `.claude/skills/journal-marker/SKILL.md`:
 
         ```markdown
