@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T16:17:58.743524Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T16:17:38.266701Z'
   stage: review
   run: e6674a9363fb45318686a47226877155
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:17:58.743524Z'
+  stage: docs
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -361,3 +370,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     1. tests/entry/test_check_mutants.py: the two sides of `--stopped-after`'s "at least 1" are in separate test functions. The `stopped-1` row is in `test_the_report_is_printed_and_a_partial_run_fails` and the `stopped-after-0` row is in `test_a_fault_ends_with_status_2`, not rows of one parametrized test. This is a test-file quality point in a file the diff adds, so from round 1 on it is a note.
 
     Earlier tests: none. Every test file in the diff has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
+18. factory: started docs as self.
