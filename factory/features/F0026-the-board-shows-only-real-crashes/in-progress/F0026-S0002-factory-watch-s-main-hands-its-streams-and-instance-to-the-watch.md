@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 276
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T18:00:45.266099Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T18:00:45.266099Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T18:01:10.708776Z'
+  stage: intake
+  run: f315cee09690418c8aef836fdb35d7a2
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -146,3 +148,9 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change, and the signatures of `main`, `run_watch` and `Watcher.evaluate` are concrete. Each of the four rules (given pair, streams with their `sys.stdout`/`sys.stderr` defaults, environment fallback, exact `GitError` text) has a criterion: 1 and 4, 1–3, 4, 5.
+   Criteria: each can be tested by one function or one parametrized test. The failing sides are covered: an invalid definition (2 and 3) and the missing `origin/main` (5). Criterion 4 has a row for each omission (both left out, only `instance`, only `boundaries`). The own-claim `crash` against `expired` distinction is stated. 6 and 7 are the closing ones.
+   Smoke test: runnable. Each `Expect:` value is a checkable string, namely the three printed lines. I did not run it.
+   Architecture: tests only, in `tests/entry/` and `tests/application/`, mirroring the package. The stand-in replaces `boundaries_from_environment`, not the code under test. No earlier test changes.
+   Scope: the story is not in `feature.md`'s Stories list because the feature acceptance proposed it. It sits inside the feature's goal, touches nothing in "Out of scope" (not `test_watcher_move_rule.py`, not the tick's judgement), and changes no code.
