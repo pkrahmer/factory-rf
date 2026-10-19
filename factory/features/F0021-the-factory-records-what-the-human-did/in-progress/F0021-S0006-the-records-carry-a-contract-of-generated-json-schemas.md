@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 240
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T00:01:10.028656Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:01:10.034029Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T00:01:24.892340Z'
+  stage: intake
+  run: 7442cdcf4b0b410cb4a79ed7022ab9e4
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:01:45.154998Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T00:04:31.307885Z'
+  stage: tests
+  run: 132e0a172c09407c8549b62994b39585
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:04:51.381749Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T00:07:14.903436Z'
+  stage: doing
+  run: 4aa5c166486b4e5280146caeaac0dfc6
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:07:35.168085Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T00:08:31.947288Z'
+  stage: review
+  run: 87f6f4890d274f169723b368fa8727a9
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:08:51.803056Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T00:10:16.028985Z'
+  stage: docs
+  run: a3267d5b90624064a1b82036375c219a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:10:36.348520Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T00:10:56.792902Z'
+  stage: smoke-test
+  run: 27da9c70f4e140b091aa48ed2410ef2f
+---
+
 # The records carry a contract of generated JSON Schemas
 
 ## Description
@@ -114,3 +198,116 @@ print(schema["x-records-contract"], sorted(schema["required"]))
 Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: `factory.domain.contract` (constants, `ContractEntry`, `CONTRACT`, `schema_file_name`, `contract_schema`) and `factory.entry.contract` (`CONTRACT_FOLDER`, `write_contract`, `main`) are concrete, with signatures and exact output formulas (the `json.dumps` call, the usage and result lines, exit codes 0 and 2). Every comment behaviour has a criterion: the schema text format (2), modes per entry (2), folder creation, replacement and leaving other files alone (4), the default folder and the argument count (6).
+   Criteria: each one is testable by one parametrized test function. Rules have both sides: one argument and none succeed and two arguments fail (6); a missing folder, an unrelated file and a stale schema (4); the committed files match and no extra file exists (5); required and not-required fields (3, 7).
+   Smoke test: both commands are runnable with `uv run`. Each `Expect:` line is checkable: seven exact lines, and `1.0 ['at', 'event', 'reason', 'scope']`.
+   Architecture: the pure `ContractEntry` and the schema text sit in `domain`; the file writing and the command sit in `entry`; the dependency direction is respected. The dataclass is explained, and no new dependency is added (decision 16).
+   Scope: it matches the feature's S0006 bullets and decision 15. It names no stage, role or reader, and it changes no earlier test. The docs criterion covers the operator guide, the project guide and the decisions entry.
+4. factory: started tests as self.
+5. tester: Wrote the red tests for the records contract. There is one test function per criterion, and the cases of each rule are rows of one parametrized test.
+
+   - criterion 1: tests/domain/test_contract.py::test_the_contract_holds_the_five_records_in_order
+   - criterion 2: tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version (one row per entry)
+   - criterion 3: tests/domain/test_contract.py::test_the_journal_record_carries_its_optional_causes, ::test_the_cost_record_carries_its_optional_denials, ::test_the_stop_record_requires_its_fields (one row per required field)
+   - criterion 4: tests/entry/test_contract.py::test_write_contract_writes_every_schema_into_the_folder (rows: no-folder, other-file, stale-schema)
+   - criterion 5: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones (one row per file, plus a no-other-file row)
+   - criterion 6: tests/entry/test_contract.py::test_main_writes_the_schemas_into_the_folder_given_or_the_default (rows: folder, default, two-arguments; `CONTRACT_FOLDER` is patched in every row, so the usage row cannot write into the real folder)
+   - criterion 7: tests/entry/test_contract.py::test_a_committed_schema_requires_exactly_the_required_fields (one row per entry)
+   - criteria 8 and 9 (`make check`, docs): no tests; the factory's checks and the docs stage cover them.
+
+   Choices made where the criteria leave the detail open:
+   - A schema with no `required` key counts as an empty required list (`schema.get("required", [])`).
+   - "Exactly one newline" is checked as the text ending in `}\n`.
+   - In criterion 6, "writes nothing" for the usage row is checked as `tmp_path` staying empty.
+
+   Files created: tests/domain/test_contract.py and tests/entry/test_contract.py. No earlier test changed.
+
+   `make test` fails as intended: both new modules give collection errors (ImportError), because `factory.domain.contract` and `factory.entry.contract` do not exist yet. The other tests passed, at 99.08 % coverage. `make lint` is green. I skipped the type check, as this stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_contract.py - ImportError while importing test module ...
+6. factory: started doing as self.
+7. coder: Built the records contract the Interface describes.
+
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT`, `CONTRACT_KEY`, `JSON_SCHEMA_DIALECT`, `SchemaMode`, the frozen dataclass `ContractEntry`, the five `CONTRACT` entries in order, `schema_file_name` and `contract_schema`. `contract_schema` uses exactly the `json.dumps(..., indent=2)` formula from the Interface plus one newline.
+   - `src/factory/entry/contract.py`: `CONTRACT_FOLDER` (`Path(factory.__file__).parent / "contract"`), `write_contract` and `main`. `main` takes the folder given or `CONTRACT_FOLDER`, prints `contract: 5 schemas written` and returns 0. With more than one argument it prints the usage line to standard error and returns 2.
+   - `src/factory/contract/*.schema.json`: the five schemas, written with `uv run python -m factory.entry.contract` and not edited by hand. The smoke test's `diff -r` against a fresh run prints `same`.
+
+   Main choice: `main` reads `CONTRACT_FOLDER` from the module when it is called, not as a default argument, so the `monkeypatch.setattr` in the tests takes effect. `write_contract` writes each file directly with `Path.write_text`. I rejected the atomic replace (`os.replace`) the factory uses for records: these files are generated build data that the next run can rewrite, and `tests/test_atomic_replace_search.py` allows only one `os.replace` call in the package.
+
+   Refactor: I read the diff and found nothing to change. `make check` is green (coverage 99.06 %). The only line not covered in the new modules is the `if __name__ == "__main__"` line, the same as in the other entry modules. The journal did not change the meaning of the task, so `## Description` is unchanged.
+
+   Noticed but did not touch: the schemas keep the models' `additionalProperties: false` (from `extra="forbid"`). The operator guide's sentence about ignoring unknown properties belongs to the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked, against `git diff main...HEAD -- . ':!factory'` and the work item:
+   - Acceptance criteria: every criterion from 1 to 7 has its test, and each test checks what its criterion says. Criterion 2 has one row per entry. It checks the first two keys, their values, that the rest equals `model_json_schema(mode=entry.mode)`, and the single closing newline. Criterion 3 checks the optional causes, the optional denials and the four required fields of the stop record. Criterion 4 has three rows: a missing folder, an unrelated file left unchanged, and a stale schema that gets replaced. Criterion 5 has one byte comparison per file, plus a row that no other file is in the folder. Criterion 6 has rows for no argument, one argument and two arguments, which covers both sides of the "more than one argument" limit, with `CONTRACT_FOLDER` checked before the patch in every row. Criterion 7 has one row per entry. The coder's journal entry 7 says `make check` was green.
+   - Architecture: `factory.domain.contract` only builds text with `json.dumps` and does no I/O. The file writing and the command are in `factory.entry.contract`, where the Interface puts them. `check_duplicates.py` already writes a file directly from `entry`, so this follows the existing pattern. The layer direction holds.
+   - Security: no strings built into commands, no markers that silence a check, no secrets. The test values are not hex.
+   - Quality: the names are clear. The module constants `_USAGE` and `_OK` follow the same style as `bill.py`, `check_story.py` and `run.py`. Both public functions and the module have docstrings, and the comments say why. No code is copied from an existing helper. The `duplicates` line in the coder's entry reports 0 new findings.
+   - Records contract: this is a new contract at version `1.0`. The five schemas are what `write_contract` generates (criterion 5 compares them byte for byte).
+   - Work item hygiene: entry 7 explains the main choice (`CONTRACT_FOLDER` is read when `main` is called) and what was rejected (the atomic `os.replace`). The Description matches what was built. The docs criterion still covers what a reader needs.
+
+   Considered and not raised: criterion 2 compares the rest of the schema as a dict, so a change that reorders only the model's own keys would not be caught. Any reorder that touches the first two keys, `sort_keys=True` among them, fails the test. The Interface's "nothing reordered" is therefore covered well enough.
+
+   Earlier tests: none. Every test file in the diff is new (status `A`).
+10. factory: started docs as self.
+11. documenter: Wrote the documentation for the records contract. I found no findings: the code matches the Interface and the criteria.
+
+    Files changed (documents only, so I did not run `make check`; the factory's run after this stage decides):
+    - `docs/operator-guide.md`: new section `## The records contract`, placed before "Checking a story before it starts". It covers the records a reader may rely on, with their schemas; the schema folder and the regeneration command; the rule that the Markdown body is never parsed; where a work item's records are; how a reader finds the approval's start and end; the version rule; ignoring unknown properties although the schemas say `additionalProperties: false`; and that the version is not the pipeline definition's `contract`.
+    - `docs/project-guide.md`: new subsection *The records contract* under *The data of a work item*. It covers `factory.domain.contract`, the command, the test that compares the committed files, and that a model change regenerates the schemas in the same story.
+    - `docs/decisions.md`: new entry "The records carry generated JSON Schemas under `src/factory/contract/`", with the reasons and the three rejected alternatives.
+
+    Run: the smoke test's first command (`uv run -q python -m factory.entry.contract <tmp>` and `diff -r` against `src/factory/contract`) printed `contract: 5 schemas written` and `same`. The other examples are prose or the same command.
+
+    Cross-read against the diff and found current: `README.md`, the operator guide's "The pipeline definition" (its `contract` is the definition's own version, which the new text says is separate), "The stop records", "The stop records on main" and "Refused tool calls in the sidecar" (the `denials` and `denied_paths` keys match the cost-record schema), and the project guide's "The state", "Cost records" and "The pipeline definition".
+
+    Stale text noticed and not touched: none related to this story. The operator guide's opening paragraph lists the built parts and does not mention the contract. The sentence is a summary, not a wrong statement, and it is not mine to extend.
+
+    The `.costs.jsonl` sidecar of this story shows as modified in the work tree. It is the factory's file and I did not touch it.
+
+    `check`: check: green
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Ran the two smoke-test commands from the repository root exactly as written and in order. I changed nothing. Both met their `Expect:` lines and there are no findings.
+
+    Command 1 (the generator writes into a temporary folder and the result is diffed against `src/factory/contract`):
+
+    ```
+    contract: 5 schemas written
+    acceptance-state.schema.json
+    cost-record.schema.json
+    pipeline-definition.schema.json
+    stop-record.schema.json
+    work-item-state.schema.json
+    same
+    ```
+
+    Met: seven lines as expected. The result line comes first, then the five schema files in `ls` order, then `same`. The exit status was 0, and the trap removed the temporary folder.
+
+    Command 2 (reads the committed stop-record schema):
+
+    ```
+    1.0 ['at', 'event', 'reason', 'scope']
+    ```
+
+    Met: the output is exactly the expected line.
+
+    Against the acceptance criteria, nothing in the output contradicts any of them:
+    - The result line and the exit status 0 match criterion 6.
+    - The byte-for-byte `diff -r` with no extra file matches criterion 5: the folder holds only the five schemas.
+    - The contract version `1.0` and the four required fields of the stop record match criteria 2 and 3.
+    - I did not run `make check` (criterion 8), and the docs (criterion 9) were not part of this stage. The factory's checks after the earlier stages were green, according to entries 7 and 11.
+
+    The work tree shows only the story's `.costs.jsonl` sidecar as modified. That file is the factory's, and I did not touch it.
+
+    Findings: none.

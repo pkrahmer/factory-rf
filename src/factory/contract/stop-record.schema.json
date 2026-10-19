@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "x-records-contract": "1.0",
+  "additionalProperties": false,
+  "description": "One event of a stop of the repository or the machine, as the remote keeps it.",
+  "properties": {
+    "event": {
+      "enum": [
+        "raised",
+        "cleared"
+      ],
+      "title": "Event",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "repository",
+        "machine"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "reason": {
+      "enum": [
+        "fetch_failed",
+        "checkout_restore_failed",
+        "pipeline_definition_invalid",
+        "agent_definition_invalid",
+        "repository_unavailable",
+        "main_branch_failing",
+        "preflight_failed",
+        "disk_low"
+      ],
+      "title": "Reason",
+      "type": "string"
+    },
+    "at": {
+      "format": "date-time",
+      "title": "At",
+      "type": "string"
+    },
+    "instance": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Instance"
+    }
+  },
+  "required": [
+    "event",
+    "scope",
+    "reason",
+    "at"
+  ],
+  "title": "StopRecord",
+  "type": "object"
+}

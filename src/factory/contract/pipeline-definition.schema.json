@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "x-records-contract": "1.0",
+  "$defs": {
+    "ProjectCommandDefinition": {
+      "additionalProperties": false,
+      "description": "One project command and the minutes it may run.",
+      "properties": {
+        "time_limit": {
+          "default": 10,
+          "exclusiveMinimum": 0,
+          "title": "Time Limit",
+          "type": "integer"
+        }
+      },
+      "title": "ProjectCommandDefinition",
+      "type": "object"
+    },
+    "RoleDefinition": {
+      "additionalProperties": false,
+      "description": "What an agent of one role may write and how long its runs may take, in minutes.",
+      "properties": {
+        "write_paths": {
+          "items": {
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Write Paths",
+          "type": "array"
+        },
+        "lease_duration": {
+          "default": 60,
+          "exclusiveMinimum": 0,
+          "title": "Lease Duration",
+          "type": "integer"
+        },
+        "time_limit": {
+          "default": 40,
+          "exclusiveMinimum": 0,
+          "title": "Time Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "write_paths"
+      ],
+      "title": "RoleDefinition",
+      "type": "object"
+    },
+    "StageDefinition": {
+      "additionalProperties": false,
+      "description": "One stage: who works there, where it may move and what is checked after the agent.",
+      "properties": {
+        "role": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "next": {
+          "default": [],
+          "items": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
+          },
+          "title": "Next",
+          "type": "array"
+        },
+        "approval": {
+          "default": false,
+          "title": "Approval",
+          "type": "boolean"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "reports": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reports",
+          "type": "array"
+        },
+        "round_cap": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Round Cap"
+        }
+      },
+      "title": "StageDefinition",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The whole pipeline definition; the order of `stages` is the pipeline's order.",
+  "properties": {
+    "contract": {
+      "title": "Contract",
+      "type": "string"
+    },
+    "stages": {
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/$defs/StageDefinition"
+        }
+      },
+      "title": "Stages",
+      "type": "object"
+    },
+    "roles": {
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/$defs/RoleDefinition"
+        }
+      },
+      "title": "Roles",
+      "type": "object"
+    },
+    "project_commands": {
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/$defs/ProjectCommandDefinition"
+        }
+      },
+      "title": "Project Commands",
+      "type": "object"
+    },
+    "attempts_cap": {
+      "default": 2,
+      "exclusiveMinimum": 0,
+      "title": "Attempts Cap",
+      "type": "integer"
+    },
+    "crash_cap": {
+      "default": 2,
+      "exclusiveMinimum": 0,
+      "title": "Crash Cap",
+      "type": "integer"
+    },
+    "acceptance_stage": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Acceptance Stage"
+    },
+    "tool_paths": {
+      "default": [],
+      "items": {
+        "pattern": "\\S",
+        "type": "string"
+      },
+      "title": "Tool Paths",
+      "type": "array"
+    }
+  },
+  "required": [
+    "contract",
+    "stages",
+    "roles"
+  ],
+  "title": "PipelineDefinition",
+  "type": "object"
+}

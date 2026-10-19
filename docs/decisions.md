@@ -633,3 +633,11 @@ Date: 2026-10-18 (F0021-S0005). Two questions kept reaching the human: the round
 - Decision: the reviewer may add a criterion that only pins behaviour already built, writing it into the story and naming it as `criterion <n> added: it needs its test`. The coder ends with `tests` without a code change and the tester writes the test. A criterion that needs code stays a finding or a question.
 - Reasons: the questions were about nothing the human decides; the added criterion is still a send-back, so the round cap keeps a limit.
 - Rejected: raising the round cap (it only delays the same question); leaving every criterion to the human (the question needs no judgement and costs a wait).
+
+## The records carry generated JSON Schemas under `src/factory/contract/`
+
+Date: 2026-10-19 (F0021-S0006). Readers outside the factory, first a page that reads a factory's records from GitHub, read a work item's front matter, its `.costs.jsonl` lines, `factory/stops.jsonl` and the pipeline definition. Until now the only description of those records was the Pydantic models, so a reader learned of a change when it broke.
+
+- Decision: five JSON Schema files, generated with `model_json_schema` from the models that validate the records, are committed in `src/factory/contract/`. Each carries `x-records-contract`, the records contract's version (`1.0`). A command regenerates them and a test compares them with the committed files, so a model change without a schema change fails `make check`. The major version rises for a change that can break a reader (a field removed or renamed, a type narrowed, a meaning changed), the minor for an added optional field or value.
+- Reasons: a reader needs a description it can fetch without running the factory; a generated file that a test compares cannot drift from its model. Package data ships in the wheel and sits on `main`.
+- Rejected: schemas written by hand (they drift from the models); a folder at the repository's root (it needs a write path of its own); the pipeline definition's `contract` as the records' version (it versions the definition's format and would tie two unrelated changes together).
