@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T07:56:33.606205Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-19T07:56:33.606205Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-10-19T07:58:10.386886Z'
+  stage: tests
+  run: 1f9465565cb84db7b06f7abf9c0c41d4
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -550,3 +552,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal did not change what the task means, so `## Description` stays as it is.
 26. factory: started tests as self.
+27. tester: Round 2: a test change the human approved. I made the change the coder listed in entry 25, which comes from the reviewer's finding in entry 23. I changed nothing under `src/`.
+
+    `tests/domain/test_provider_limits.py::test_the_named_wait_is_the_first_one_the_text_names`: I added three rows to the existing parametrized table. The `retry-after` form is now tested on every side of its one-to-six-digit limit, the same way the `in` form already was:
+    - `("Retry-After: 5", timedelta(seconds=5))`: one digit, accepted (lower side).
+    - `("retry-after 1234567", None)`: seven digits, refused (upper side).
+    - `("retry-after: soon", None)`: no digits, refused (lower side).
+
+    The test's name and its other rows are unchanged.
+
+    Criterion mapping: unchanged from the earlier tests entries. This change only adds rows to the `named_wait` table, which already belongs to the named-wait criterion.
+
+    Files changed: tests/domain/test_provider_limits.py (written by this story). No new files were created, and every module imported in the test run.
+
+    `make test`: test: green (40.2 s). As the coder expected, all three new rows pass against the current code. `make lint`: lint: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.4 s)
