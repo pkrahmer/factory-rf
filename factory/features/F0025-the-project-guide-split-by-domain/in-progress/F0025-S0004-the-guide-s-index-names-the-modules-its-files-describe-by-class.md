@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 292
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T22:13:35.512982Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T22:13:35.512982Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T22:13:56.109136Z'
+  stage: intake
+  run: f652d7693a714fdfbdebfcaad0594dc2
 ---
 
 # The guide's index names the modules its files describe by class
@@ -87,3 +89,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a docs-only story. It names the two places that change (the `watching.md` line of `docs/project-guide/README.md`, one sentence of `docs/decisions.md`). I checked both exist as described (README line 19, decisions.md line 23).
+   Criteria: criterion 1 (nothing under src/tests/image/template/demo/claude changes) and criterion 2 (`make check` green) are each checkable. The docs criterion gives the exact insertions, the exact replacement sentence, the lines that stay as they are, the 600-line limit and `documents ok`. The story states no limit, error or rejected input, so no failing side needs a criterion. The three module names are absent from the guide today, so the insertions are real.
+   Smoke test: the commands are runnable and each Expect line is checkable (`True`/`0`/`True`; `1` and `0`; `0`; `documents ok`).
+   Architecture: no code layer is touched, and the guide's index is where CLAUDE.md sends agents.
+   Scope: it fits F0025, whose goal is the guide as index plus one file per domain. The story keeps the new `factory.entry.health` content out. Nothing in the feature's Out of scope is touched.
