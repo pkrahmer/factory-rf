@@ -62,7 +62,7 @@ Tests (the tester writes them): `tests/domain/test_spend.py`, `tests/domain/test
 7. Without a window, without spend records or without a waiter, no spend record is written and no throttle wait is made (rows).
 8. `build_boundaries` gives spend records at `<state>/spend-records.jsonl`, which a patient run with a window writes.
 9. `make check` stays green.
-10. docs: `docs/operator-guide.md`, the section *A provider's spend limit*: `FACTORY_SPEND_WINDOW` (unset by default), what it does before each run and resume, the log line, the file `/state/spend-records.jsonl`, and that it avoids most limits behind a gateway but not one inside a long run; the configuration table gets the variable. `docs/project-guide.md`: `factory.domain.spend` and the spend records in the boundaries. `docs/decisions.md`: an entry *The factory can keep its spend within a window*, dated with the story, with the reasons of the feature's decision 15.
+10. docs: `docs/operator-guide.md`, the section *A provider's spend limit*: `FACTORY_SPEND_WINDOW` (unset by default), what it does before each run and resume, the log line, the file `/state/spend-records.jsonl`, and that it avoids most limits behind a gateway but not one inside a long run; the configuration table gets the variable. `docs/project-guide/watching.md`, *Boundaries*: `factory.domain.spend` and the spend records in the boundaries. `docs/decisions.md`: an entry *The factory can keep its spend within a window*, dated with the story, with the reasons of the feature's decision 15.
 
 ## Smoke test
 

@@ -14,7 +14,7 @@
 - `claude/agents/reviewer.md`: the reviewer reads the story's surviving mutants (S0003).
 - `claude/agents/acceptance-reviewer.md`: the acceptance reviewer runs `make mutants` again while it is partial (S0003).
 - The tests each story names, under `tests/`.
-- `docs/operator-guide.md`, `docs/project-guide.md` and `docs/decisions.md`, from each story's docs criterion.
+- `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md`, from each story's docs criterion.
 
 ## Out of scope
 

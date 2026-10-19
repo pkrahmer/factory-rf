@@ -24,7 +24,7 @@ Today every agent run is one `claude -p` call under the subscription. This featu
 - `src/factory/entry/wiring.py`: the API login file into the runtime (S0001), the limit's settings into the runtimes (S0005), the waiter (S0007), the runtime chosen by the setting and the item `opencode` among the extras (S0008), the spend records (S0009).
 - `image/Dockerfile`, `image/compose.yml`: the API key's mount and setting (S0001); opencode installed at a pinned version as the default build, its version and models set, the runtime and the opencode build chosen per compose call (S0008).
 - The tests each story names, under `tests/`, and the earlier test modules named in decision 19.
-- `README.md`, `docs/operator-guide.md`, `docs/project-guide.md` and `docs/decisions.md`, from each story's docs criterion.
+- `README.md`, `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md`, from each story's docs criterion.
 
 ## Out of scope
 

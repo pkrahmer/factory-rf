@@ -18,7 +18,7 @@ After every doing and docs stage the factory runs the stage's project commands, 
 - `src/factory/application/stage.py`: `StageFinisher` runs its checks and reports through `KnownResults` and writes each line with `command_line` (S0002).
 - `src/factory/entry/wiring.py`: `result_records` at `<state directory>/records/known-results.jsonl` (S0002).
 - The tests each story names, under `tests/`, and the earlier test modules named in decision 15.
-- `docs/operator-guide.md`, `docs/project-guide.md` and `docs/decisions.md`, from each story's docs criterion.
+- `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md`, from each story's docs criterion.
 
 ## Out of scope
 
