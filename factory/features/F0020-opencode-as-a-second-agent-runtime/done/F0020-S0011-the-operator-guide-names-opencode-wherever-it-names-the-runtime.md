@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T19:15:03.629878Z'
   stage: smoke-test
   run: 32d404772e59488d989c5b29c4332a26
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T19:17:26.378818Z'
+  stage: approval
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -225,3 +230,4 @@ Expect: `documents ok`
     I did not run `make check` (criterion 2). This stage does not run it, and the smoke test does not contradict it.
 
     Open: the documenter's entry lists some stale Claude-only wording that this story does not cover: the guide's intro line, *The agent runs as a second user*, the `claude-home` volume text, and *`factory-guard` on the agent run's `PATH`*. That is a candidate for a later story; it is not a finding here.
+14. factory: done (pull request merged); cost: 6 runs, 3.6 min, 28 turns, 110118 tokens in (407990 more from cache), 7756 out, $0.85
