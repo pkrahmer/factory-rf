@@ -6,11 +6,13 @@ attempts_cap: 2             # v1's max_attempts: agent runs that end without a r
 crash_cap: 2
 acceptance_stage: acceptance
 project_commands:
-  check: {time_limit: 15}       # the gate; two to five minutes here (pytest on every core)
+  # The gate; a passed result is reused while the files it reads, the pipeline definition and the image stay the same.
+  check: {time_limit: 15, not_read: ["README.md", "docs/*.md", "factory/features/*.md", "factory/features/*.jsonl", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
   lint: {time_limit: 5}
   test: {time_limit: 10}
   duplicates: {time_limit: 5}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
-  documents: {time_limit: 5}    # the four documents against the document check: a check of the docs stage only
+  documents: {time_limit: 2}    # the four documents against the document check: a check of the docs stage only
+  secrets: {time_limit: 3}      # detect-secrets over the files changed on the branch, the documents and journals that check's not_read leaves out
 # What every agent run may write for the project's tools, besides its write paths: git-ignored
 # state in the checkout, and caches in the agent's home (~/). The kernel refuses every other write.
 tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", "demo/todo-service/project/.ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "mutants/*", "~/.cache/*", "~/.semgrep/*"]
@@ -31,7 +33,7 @@ stages:
   tests: {role: tester, next: [doing], checks: [lint], reports: [test]}     # the new tests are red on purpose
   doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates]}
   review: {role: reviewer, next: [docs, doing], round_cap: 2}
-  docs: {role: documenter, next: [smoke-test, doing], checks: [check, documents], round_cap: 2}
+  docs: {role: documenter, next: [smoke-test, doing], checks: [check, secrets, documents], round_cap: 2}
   smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 2}
   acceptance: {role: acceptance-reviewer, next: [approval]}
   approval: {approval: true, next: [done, doing]}   # the human: a merge accepts, a close sends back
