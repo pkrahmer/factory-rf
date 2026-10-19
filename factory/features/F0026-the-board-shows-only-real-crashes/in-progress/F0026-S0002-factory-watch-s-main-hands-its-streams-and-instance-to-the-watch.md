@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T18:00:45.266099Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T18:00:45.256223Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:00:45.266099Z'
+  stage: intake
+---
+
 # factory-watch's main hands its streams and its instance to the watch
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -116,3 +143,6 @@ EOF
 Expect: three lines, `resolve origin/main failed (no exit status): origin/main does not resolve`, `0 ['event: idle:-  F0001-S0001 is held by self'] ''` and `1 [] 'factory-watch: not valid YAML: did not find expected node content (line 2, column 1)\n'`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
