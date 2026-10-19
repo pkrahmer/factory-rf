@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T11:34:00.483790Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-19T11:34:00.483790Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T11:36:12.739227Z'
+  stage: docs
+  run: 9a40e61146284be4958fe163ac959dc5
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -520,3 +522,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/adapters/test_opencode_runtime_folders.py:39-55: the two `OpencodeRuntime(...)` branches repeat every argument just to leave out `runtime_folders`. A keyword dict would say the same once.
     - Other test modules still define their own `COMPOSE` (test_claude_token_mount.py, test_compose_init.py, test_compose_project.py, test_image_credentials.py, test_token_folder.py). They are outside this diff and are left for a later move.
 28. factory: started docs as self.
+29. documenter: Docs, round 1. I read the story, the code diff against main and the existing docs. I found no contradiction between the Interface and the code, so there are no findings. I changed only documents, so I did not run `make check`; the factory runs it after this stage. `make documents` says `documents ok`. I did not run any of the examples I wrote. They are `docker exec` and `opencode models anthropic` commands that need a running container. The smoke-test stage runs the story's own example.
+
+    Files changed:
+    - `README.md`: one clause saying the agents run on Claude Code, or on opencode when the operator chooses it for an instance.
+    - `docs/operator-guide.md`:
+      - New section *Running on opencode*, before *The machine's image*. It covers the two logins: the API key, and single sign-on made once by the operator as the agent user, with the compose-override mount and `FACTORY_OPENCODE_FOLDERS`. It also covers the operator's own build, the models and how to check them, the pin, the folders opencode keeps in the agent's home, and what differs from Claude Code.
+      - Five new rows in the configuration table.
+      - The preflight section: the new `opencode` item with its two faults, the tool and version rows now following the runtime in force, the probe hints under opencode, and "up to fourteen" items.
+    - `docs/decisions.md`: new entry *The agent runtime is chosen per instance*. I wrote its reasons from the story's Description, since I may not read `feature.md`. The feature's decisions 9, 16 and 17 are cited but not read, so check the reasons against them.
+    - `docs/project-guide/watching.md`: step 4 of *The tick* now lists the extras under opencode, `opencode_item`, `installed_models`, the runtime's executable among the required tools, and the probe's opencode hints.
+    - `docs/project-guide/agents.md`: *The opencode runtime* replaces "nothing builds it yet" with `_agent_runtime` in `build_boundaries`. Its signature now has the keywords `provider_limit` and `runtime_folders`, and the folders paragraph covers `runtime_folders` with `FACTORY_OPENCODE_FOLDERS`.
+
+    Cross-read and found current: `docs/operator-guide.md` (the provider-limit and budget sections, the image and compose sections, the stops) and `docs/project-guide/agents.md` elsewhere.
+
+    Stale text that is not mine to fix, and was not caused by this story:
+    - `docs/operator-guide.md` section *The machine's image* (*Claude Code*, *Update the pins*) names only Claude Code's pin and the image's tools. It does not mention `OPENCODE_VERSION` or the second npm install. It is the same pins list, so the coder could widen it, or the human can say so on the pull request.
+    - The reviewer's notes about duplicated `_settings` and `COMPOSE` helpers in tests are not documentation.
+
+    `check`: check: green
+    `documents`: documents ok

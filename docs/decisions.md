@@ -721,3 +721,14 @@ Date: 2026-10-19 (F0020-S0007; F0020 decision 14). After S0005 and S0006 a run t
 - Decision: the claim stays held while waiting. The factory renews no lease, so a stage may hold its claim past `lease_duration` (about 180 minutes for the coder against 60), which only another instance on the same repository would act on; one repository has one instance. A stop or restart during a wait is a crash of the factory's own claim: the stage reruns at once and counts toward `crash_cap`, not the attempts. The human's answer of 2026-10-18.
 - Reasons: the wait lies in the application layer so both runtimes share it and each only maps its own signal; a stall at the ceiling reaches the human through the usual note, with no new stop to clear.
 - Rejected: a machine stop at the ceiling (it would need its own clearing rule, a stop that the next passing probe clears); lease renewal during the wait (not built in v1.1).
+
+## The agent runtime is chosen per instance
+
+Date: 2026-10-19 (F0020-S0008; F0020 decisions 9, 16 and 17). After S0004 to S0007 the opencode runtime existed but nothing built it, the image did not hold opencode, and the preflight checked Claude Code alone.
+
+- Decision: one setting, `FACTORY_AGENT_RUNTIME` (`claude` by default, or `opencode`), chosen for the instance's compose calls; `build_boundaries` builds the runtime and `machine_extras` adds the item `opencode` for it. An instance without the setting is as before.
+- Decision: the image installs opencode at a pinned version beside Claude Code and sets the pin and the three Anthropic ids; compose lets the operator replace the executable, the version, the models and the folders per call, each default equal to the image's value.
+- Decision: the preflight checks the runtime in force (executable, pin) and, for opencode, a model for every alias the installed agents use. It asks for no API key: an operator's build may log in through single sign-on, which only the probe of a real run can show.
+- Decision: `FACTORY_OPENCODE_FOLDERS` names extra folders in the agent's home that a run may write, so a build can keep and refresh its login there; the three folders of opencode stay the default.
+- Reasons: the human's work instance runs an operator-built opencode behind single sign-on and this repository's build stays on Claude Code, so the choice cannot be global; one setting keeps an instance on one runtime; a missing model alias would otherwise show only as a failed run.
+- Rejected: a runtime chosen per stage or per agent (two logins and two pins on one instance, and nothing needs it); a required API key for opencode (it would refuse the single sign-on build); allowing the whole home to a run (the agent could rewrite its configuration).
