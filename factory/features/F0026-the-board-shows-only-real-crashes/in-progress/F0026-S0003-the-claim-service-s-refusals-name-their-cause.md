@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T17:56:09.066748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-19T17:55:48.340049Z'
   stage: doing
   run: 5d7bc83f9925475ebfdcd42956688a28
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:56:09.066748Z'
+  stage: review
 ---
 
 # The claim service's refusals name their cause
@@ -345,3 +354,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+19. factory: started review as self.
