@@ -242,7 +242,7 @@ def test_the_state_directory_holds_no_file_after_a_run(
     assert list((tmp_path / "state").iterdir()) == []
 
 
-def test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agentstand_in_runtime(
+def test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime(
     tmp_path: Path, kill_points: KillPoints
 ) -> None:
     runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], kill_points=kill_points)

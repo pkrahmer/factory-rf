@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T10:19:42.677829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-19T10:19:42.677829Z'
   stage: tests
+- number: 24
+  speaker: tester
+  kind: result
+  at: '2026-10-19T10:21:38.624649Z'
+  stage: tests
+  run: b8662ff8c9b848b99a51e4a8c5db14f1
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -507,3 +509,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal did not change the meaning of the task. The reviewer already added criterion 15 and renumbered the closing criteria.
 23. factory: started tests as self.
+24. tester: Round 2, the test change the reviewer asked for in entry 20 and the coder named in entry 22. I made these two changes:
+
+    1. I restored the name of an earlier test in `tests/adapters/test_opencode_runtime.py`. It is `test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime` again, as on `main`. It had become `..._agentstand_in_runtime` by mistake when I moved the helper. Compared with `main`, every test in that file now keeps its name. The only difference left is the move of `_runtime` to `stand_in_runtime` in `tests/adapters/opencode_stand_in.py`, which the standing leave to move a shared test helper allows.
+    2. I added the test for criterion 15 to `tests/adapters/test_opencode_budget.py`. It runs `[over_budget(), RESUME_REPLY]` and checks three things:
+       - the resume's `OPENCODE_CONFIG` names the same file as the first call's;
+       - the resume read that file's text, the same text the first call read;
+       - the state directory is empty after the run.
+
+       The new import is `CONFIG_VARIABLE` from `factory.adapters.opencode_runtime`. I compare with the first call's file because the criterion says "the same run files as the first call".
+
+    Mapping:
+    - criterion 15: `tests/adapters/test_opencode_budget.py::test_the_resume_runs_with_the_first_call_s_run_files_which_are_removed_after_it`
+    - criteria 1 to 14: unchanged from entry 16.
+    - criteria 16 and 17: no test (`make check` and the docs).
+
+    Files: I created no new files. I changed `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_runtime.py`. The change to `tests/adapters/test_opencode_runtime.py`, a file an earlier story wrote, only undoes the rename; the helper move stays under the standing leave to move a shared test helper.
+
+    Every module imported. As expected, the new test passes against the existing code: `make test` is green (test: green (39.3 s)), and `make lint` is green.
+
+    Not taken up: the reviewer's note that the `500` and `1428` rows in `tests/adapters/test_opencode_provider_limit.py` check `<= 1` call. This round's change asked only for the two fixes above, so I left that test as it is.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.6 s)

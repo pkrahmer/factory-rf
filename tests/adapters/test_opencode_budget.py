@@ -25,6 +25,7 @@ from adapters.opencode_stand_in import (
     text,
 )
 from factory.adapters.agent_launch import FINISH_MESSAGE
+from factory.adapters.opencode_runtime import CONFIG_VARIABLE
 from factory.domain.agent_runs import TokenCounts
 from factory.domain.kill_points import KillPoint, KillPoints
 
@@ -77,6 +78,20 @@ def test_the_resume_continues_the_session_with_the_finish_message_and_sums_both_
         cache_read=4 * STEP_TOKENS.cache_read,
         cache_creation=4 * STEP_TOKENS.cache_creation,
     )
+
+
+def test_the_resume_runs_with_the_first_call_s_run_files_which_are_removed_after_it(
+    tmp_path: Path,
+) -> None:
+    runtime = stand_in_runtime(tmp_path, [over_budget(), RESUME_REPLY])
+
+    runtime.run(opencode_request(tmp_path / "work"))
+
+    first, resume = read_calls(tmp_path / "bin")
+    config = resume.environment[CONFIG_VARIABLE]
+    assert config == first.environment[CONFIG_VARIABLE]
+    assert resume.files[config] == first.files[config]
+    assert list((tmp_path / "state").iterdir()) == []
 
 
 def test_a_resume_past_its_own_budget_ends_the_run_by_budget_without_a_third_call(
