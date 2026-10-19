@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T06:41:32.848277Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T06:41:32.848277Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T06:43:08.347035Z'
+  stage: doing
+  run: 4c31837e0f2c4b769160471862ac5eda
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -336,3 +338,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (36.4 s)
 14. factory: started doing as self.
+15. coder: Round 1: I made no code change. The only finding was the reviewer's in entry 9: criterion 2 needed a row for `docs/project-guide/a.md.bak`. That row only needed a test, and the tester added it in entry 13. It passes against the existing `fullmatch` in `is_guide_file` (`src/factory/domain/documents.py`).
+
+    What I built is unchanged from entry 7:
+    - `src/factory/domain/documents.py`: `PROJECT_GUIDE_FOLDER`, the new `PROJECT_GUIDE`, `is_guide_file`, and guide files checked in sorted order after the four documents.
+    - `src/factory/entry/check_documents.py`: `_guide_files(root)` lists the files directly in `docs/project-guide/`.
+
+    Main choice, also unchanged: guide files go through the existing word-only branch of `_messages`. I rejected a separate function for them, because it would repeat the missing and empty handling.
+
+    Refactor pass: nothing to change, since this round has no diff of mine.
+
+    `make check` is green on this branch.
+
+    Noticed but not touched:
+    - `make documents` reports `docs/project-guide/README.md: missing` until the docs stage moves the guide. That check belongs to the docs stage, not to `make check`.
+    - `tests/test_claude_files.py` still quotes `CLAUDE.md`'s sentence about `docs/project-guide.md`. The human's change 1 after the merge covers it.
+
+    The journal changed nothing in the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
