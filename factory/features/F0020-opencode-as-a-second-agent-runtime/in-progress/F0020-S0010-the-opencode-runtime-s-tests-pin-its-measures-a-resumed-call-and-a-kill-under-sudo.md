@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T18:55:18.335098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-19T18:55:18.335098Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T18:59:50.703288Z'
+  stage: tests
+  run: badbf64777e04dc884bd2152e65d8d7f
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -178,3 +180,26 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
    - Architecture: tests only, in the adapters mirror under `tests/adapters/`. The stand-in and the builders in `opencode_stand_in.py` and `confine_support.py` are imported, not copied. No layer is touched.
    - Scope: within F0020's S0004 and S0006 behaviour and decisions 7, 8, 11 and 18. Nothing in "Out of scope". No earlier test changes.
 7. factory: started tests as self.
+8. tester: Wrote the tests for criteria 1 to 6. They import the stand-in, the event builders and the confine helpers rather than copying them. No earlier test file changed.
+
+   Mapping:
+   - criterion 1: tests/adapters/test_opencode_measures.py::test_a_result_block_keeps_its_entry_s_lines_and_needs_both_labels (rows: lines-kept, no-entry-label, no-decision-label, entry-on-its-label, padded)
+   - criterion 2: tests/adapters/test_opencode_measures.py::test_the_model_time_takes_off_every_tool_call_of_its_step (rows: two-tool-calls, tool-call-before-the-step; both expect exactly 700 ms)
+   - criterion 3: tests/adapters/test_opencode_measures.py::test_every_refused_tool_call_is_a_denial_and_no_other (rows: failure-then-denial, denial-then-failure, permission, denied, any-case, not-an-error)
+   - criterion 4: tests/adapters/test_opencode_resumed_words.py::test_a_resumed_call_keeps_every_word_of_the_first_before_its_session (rows: budget-resume, resume-session)
+   - criterion 5: tests/adapters/test_opencode_sudo_time_limit.py::test_under_sudo_a_kill_at_the_limit_ends_time_limit_and_keeps_session_and_login (rows: killed-at-the-limit, 137-at-once, sigkill-past-the-limit, status-1-past-the-limit; time limit 3 s, elapsed below 20 s)
+   - criterion 6: tests/adapters/test_opencode_confinement.py::test_through_the_wrapper_the_temporary_root_is_empty_after_the_run (rows: completed, died, time-limit, through the real `CONFINE`) and tests/adapters/test_opencode_confinement.py::test_with_an_agent_user_the_temporary_folder_is_removed_through_sudo (stand-in `write_confine` and stand-in `sudo`)
+
+   Files created: the four test modules above.
+
+   How the tests are built:
+   - **Criterion 5, the `-9` and exit-1 rows.** These rows need an exit status that arrives after the limit, and the real inner `timeout` would kill the call at the limit first. So both rows use a local stand-in `sudo` (`ENDING_SUDO`) that runs nothing. It prints a `step_start`, waits 4.5 s (past the 3 s limit, inside the 30 s grace `sudo` calls get) and then kills itself with SIGKILL or exits 1. The other two rows use the existing `_write_sudo` of `test_claude_runtime_os_user`, which runs the real `timeout` chain.
+   - **Criterion 5, session and login.** Only the killed-at-the-limit row checks `session` (`ses_a`) and `login` (`api_key`), as the criterion says. The other rows check only their end reason.
+   - **Criterion 6.** The test makes the layout's `state` folder itself. The run id comes from the `OPENCODE_CONFIG` file name the stand-in recorded.
+
+   Test run: one `make test`, which ended `test: green`. Since the story changes no code, all the new tests pass, as expected; none fail. No module was missing at import. `make lint` is green. I also ran `make types`, which is green.
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (52.5 s)
