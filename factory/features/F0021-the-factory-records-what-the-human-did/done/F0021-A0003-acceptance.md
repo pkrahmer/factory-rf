@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T03:27:04.603800Z'
   stage: acceptance
   run: 34fd8e56421a4ac787eefe2268e91aee
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T03:28:23.442942Z'
+  stage: done
 stories: [F0021-S0001, F0021-S0002, F0021-S0003, F0021-S0004, F0021-S0005, F0021-S0006, F0021-S0007, F0021-S0008, F0021-S0009, F0021-S0010]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory records what the human did
@@ -350,3 +355,4 @@ None. Every finding of the earlier acceptances is repaired. The survivors in the
    6 Decisions: S0010 took none and changed no test. Still open from A0002: the probe of a stops-only commit, decision 6's uncounted round-cap answer, and decision 10's round-0 send-backs. New: make mutants cannot finish this feature within its limits; whether to allow module patterns or to order or split the target is the human's call (the Makefile is outside the feature).
    7 Slow checks: nothing beyond make check and make mutants. Disk unchanged (0.5 GB used at start and now). make test took 37.4 s for 5177 tests; the slowest is the 5.0 s time-limited resume test, not this feature's.
    8 Cost: 98 runs, 98.3 min, $25.88. S0010 was the cheapest story: 6 runs, $0.62. S0001 still stands out ($6.04, 15 runs; round cap). 7 questions answered, 0.2 h waited, all in S0002 to S0004; S0005 to S0010 needed the human not once. S0001 needed the human most, but its answer predates the field and counts 0.
+3. factory: done (pull request merged); cost: 1 runs, 68.6 min, 52 turns, 91418 tokens in (3417320 more from cache), 28976 out, $1.99
