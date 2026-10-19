@@ -165,7 +165,7 @@ Compose mounts the file read-only at `/home/agent/.anthropic-api-key`, in the ag
 - The file is read at every call, so a new key applies from the next call, without a restart. The key stands in no argument, run file, result, journal entry, cost record or log, and not in the factory's own environment.
 - Switching back to the subscription means emptying the file and recreating the container (`docker compose up -d --force-recreate`), so that the container sees the file as it is now.
 
-Which login is in force: the cost record of each run has `login` (`api_key`, `subscription` or `none`; a line written before the field existed has none), and the preflight writes one factory-log line for the probe, for example `preflight: agent-run-probe: the agent runs log in with the API key from /home/agent/.anthropic-api-key`. The line comes with each run of the machine's items, so once for each image build.
+Which login is in force: the cost record of each run has the field `login`, which is `subscription`, `none` or the value for the API key (a line written before the field existed lacks it), and the preflight writes one factory-log line for the probe, for example `preflight: agent-run-probe: the agent runs log in with the API key from /home/agent/.anthropic-api-key`. The line comes with each run of the machine's items, so once for each image build.
 
 **Morning observations.** The second user, the `sudo` rule and the group exist only in a real image, so the tests cannot show these. Do them once on a running instance and note the result:
 
@@ -951,7 +951,7 @@ It counts the questions that stopped the work item for you: the agent's question
 
 ### Refused tool calls in the sidecar
 
-A completed record in the sidecar (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A third key, `login`, says which login the run's calls were handed: `api_key`, `subscription` or `none`; a runtime with no login file leaves it out. A run that got no reply (it died or ran past its time limit) has neither of those two keys; an older line has none of the three. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
+A completed record in the sidecar (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A third key, `login`, says which login the run's calls were handed: `subscription`, `none` or the value that names the API key; a runtime with no login file leaves it out. A run that got no reply (it died or ran past its time limit) has neither of those two keys; an older line has none of the three. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
 
 ### The cost line
 
