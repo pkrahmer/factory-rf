@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T03:29:52.716385Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T03:29:52.716385Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T03:35:33.914867Z'
+  stage: tests
+  run: 95cada9589c94b87841bee9f9018b545
 ---
 
 # The agent runs can log in with an API key
@@ -237,3 +239,59 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the login shell and its helpers are in an adapters module that builds words and texts and does not import the process module. Wiring stays in `entry`, the preflight detail is in `application`, and the domain holds `Login` and the DTO fields. The records contract's version rise is covered by criterion 20.
    Scope: inside F0020's scope list for S0001. Nothing in Out of scope is touched. The edits to other stories' tests are the two named under decision 19.
 4. factory: started tests as self.
+5. tester: Wrote tests for criteria 1 to 20. One `make test` run shows them red for the right reasons. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_settings_api_login.py::test_the_api_login_file_setting_is_a_path_or_none_when_blank
+   - criterion 2: tests/adapters/test_agent_launch_login.py::test_an_api_file_holding_a_key_hands_over_the_key_and_no_token
+   - criterion 3: tests/adapters/test_agent_launch_login.py::test_without_a_key_the_shell_goes_on_with_the_token_file
+   - criterion 4: tests/adapters/test_agent_launch_login.py::test_an_api_file_that_cannot_be_used_stops_the_shell
+   - criterion 5: tests/adapters/test_agent_launch_login.py::test_the_login_words_name_the_files_that_are_set
+   - criterion 6: tests/adapters/test_agent_launch_login.py::test_the_login_used_is_read_from_the_shell_s_report
+   - criterion 7: tests/adapters/test_agent_launch_login.py::test_the_refusal_names_the_file_the_shell_could_not_use
+   - criterion 8: tests/adapters/test_claude_runtime_api_login.py::test_the_api_file_s_key_wins_and_an_emptied_file_falls_back_to_the_token and ::test_without_an_api_file_the_login_is_the_token_s_or_none
+   - criterion 9: tests/adapters/test_claude_runtime_api_login.py::test_the_request_s_login_entries_are_dropped_for_the_files
+   - criterion 10: tests/adapters/test_claude_runtime_api_login.py::test_the_key_stands_in_no_argument_no_run_file_and_no_result
+   - criterion 11: tests/adapters/test_claude_runtime_api_login.py::test_an_api_file_that_cannot_be_used_stops_the_run_naming_the_file
+   - criterion 12: tests/adapters/test_claude_runtime_api_login.py::test_a_resumed_call_whose_api_file_was_emptied_gets_the_token
+   - criterion 13: tests/adapters/test_claude_runtime_api_login.py::test_the_version_call_gets_no_login_words_and_neither_name
+   - criterion 14: tests/domain/test_login_records.py::test_only_a_completed_record_keeps_a_login and tests/application/test_costs_login.py::test_the_completed_record_keeps_the_result_s_login
+   - criterion 15: tests/adapters/test_cost_records_jsonl_login.py::test_the_writer_writes_the_login_last_only_when_set
+   - criterion 16: tests/entry/test_wiring_api_login.py::test_the_built_runtime_hands_the_api_login_file_s_key_to_claude
+   - criterion 17: tests/application/test_agent_run_probe_api_login.py::test_the_probe_detail_names_the_login_its_run_was_handed
+   - criterion 18: tests/application/test_preflight_login_line.py::test_a_passed_machine_item_s_detail_is_logged_once_per_image
+   - criterion 19: tests/test_api_login_mount.py::test_the_api_login_file_is_set_once_and_bind_mounted_read_only_in_the_agent_home, plus tests/test_compose.py::test_the_three_volumes_are_mounted_and_declared (changed under decision 19)
+   - criterion 20: tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version (expected version now "1.1", under decision 19) and tests/domain/test_contract_login.py::test_the_committed_cost_record_schema_lists_the_optional_login_at_version_1_1. The existing comparison test covers the regenerated files.
+   - criteria 21 and 22 (`make check`, docs) are not tests.
+
+   Files created:
+   - tests/adapters/test_agent_launch_login.py
+   - tests/adapters/test_claude_runtime_api_login.py
+   - tests/adapters/test_cost_records_jsonl_login.py
+   - tests/application/test_agent_run_probe_api_login.py
+   - tests/application/test_costs_login.py
+   - tests/application/test_preflight_login_line.py
+   - tests/domain/test_contract_login.py
+   - tests/domain/test_login_records.py
+   - tests/domain/test_settings_api_login.py
+   - tests/entry/test_wiring_api_login.py
+   - tests/test_api_login_mount.py
+   - tests/run_process_recorder.py
+
+   Two files not on the Interface's list:
+   - The preflight log line (criterion 18) has its own module, tests/application/test_preflight_login_line.py. The probe test module only tests `agent_run_probe_item`, and this criterion needs a `Preflight` run. It reuses the constants and `RecordingWhich` of tests/application/test_preflight_run.py and injects the item through `MachineChecks`' `extra`.
+   - The record contract has its own module, tests/domain/test_contract_login.py.
+
+   Earlier test files changed:
+   - Under decision 19, as the Interface names them: tests/test_compose.py and tests/domain/test_contract.py.
+   - Under the standing leave to move a shared test helper (CLAUDE.md, *Tests*): tests/adapters/test_claude_runtime_login.py, tests/adapters/test_claude_runtime_sudo_time_limit.py and tests/conftest.py. Their two `Recorder` classes were not the same. The login one passed each request on to the real `run_process`; the sudo one answered with given `results`. They are now one `Recorder` in tests/run_process_recorder.py: it answers with the next given result and runs the request itself once none is left, so both earlier modules check exactly what they did before. The `recorder` fixture moved to tests/conftest.py. Those earlier tests stay green.
+
+   Modules the test run could not import:
+   - `factory.adapters.agent_launch` (new module)
+   - the name `API_LOGIN_FILE_VARIABLE` in `factory.domain.settings`
+   - the name `Login` in `factory.domain.agent_runs`
+
+   The other new tests fail on wrong results: no `login` field or `api_login_file`, contract still at 1.0, no preflight log line, compose bind missing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/test_api_login_mount.py - ImportError while importing test module...
