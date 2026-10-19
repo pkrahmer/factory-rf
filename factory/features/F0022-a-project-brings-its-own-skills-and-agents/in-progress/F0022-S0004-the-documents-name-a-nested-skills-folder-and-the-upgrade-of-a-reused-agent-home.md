@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T20:29:37.317717Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T20:29:37.310835Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:29:37.317717Z'
+  stage: intake
+---
+
 # The documents name a nested skills folder and the upgrade of a reused agent home
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -45,3 +72,5 @@ Expect: `documents ok`
 
 ## Journal
 
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
