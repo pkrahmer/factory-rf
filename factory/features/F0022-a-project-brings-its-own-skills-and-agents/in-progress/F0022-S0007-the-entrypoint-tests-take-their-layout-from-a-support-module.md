@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T23:48:02.782503Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T23:48:02.782503Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T23:48:19.691179Z'
+  stage: intake
+  run: c3da9f350a024dc5a78ae27a146f781b
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -82,3 +84,9 @@ Expect: `exit 0`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and contents: `tests/entrypoint_support.py` (`Layout` with its five constants, `STAMP`, `STAMPED`, `texts(output: str) -> list[str]` with `_texts`'s body), the three importers, the conftest import line, the `texts`→`lines` rename that avoids the `UnboundLocalError`, and the one changed check in `tests/test_shared_test_helpers.py`. No `src/` change. The leave for that check is present as the S0007 bullet in decision 14 of `feature.md`. Its quoted line has a real line break where the story writes `\n`; the story's `"...ImageLayout\n"` is the reading to use.
+   Criteria: 1 is checkable by comparing `pytest --collect-only` ids before and after. 2 is one test with both sides: `class Layout:` in exactly the two named modules, no `from test_entrypoint import`, no `def _texts(output`, with the `tests/application/test_tick.py` exception stated. 3 pins the import line, and the old line must fail it. 4 is `make check`. 5 is docs: none. Every Interface rule has a criterion on both sides.
+   Smoke test: three commands (a grep with sort, a grep with a count, a pytest run with its exit code). All are runnable, and each Expect line is checkable: two sorted paths, `0`, `exit 0`.
+   Architecture: tests-only change that follows the CLAUDE.md standing leave on shared helpers (support module at the `tests/` root, tester makes the move). The layers are untouched.
+   Scope: it stays inside the feature's "tests named in decision 14" scope. It is not in the feature's Stories list, but decision 14 already names S0007, so I took that as the human's intent. Nothing in "Out of scope" is touched.
