@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T22:43:15.057097Z'
   stage: smoke-test
   run: d47e08e6943a43d0aae639746c65eac5
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:44:33.208919Z'
+  stage: approval
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -223,3 +228,4 @@ Expect: `documents ok`
        - No other line or file of the guide changes. No guide file is over 600 lines, and `documents ok` was printed.
 
     I fixed nothing and created no files. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 2.4 min, 26 turns, 93910 tokens in (341160 more from cache), 5993 out, $0.76
