@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T00:59:07.599290Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T00:58:47.276209Z'
   stage: doing
   run: 20a1975dff374fbe9467ce9d5351d6ed
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:59:07.599290Z'
+  stage: review
 ---
 
 # The documents repair what the feature's stories left stale
@@ -129,3 +138,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
