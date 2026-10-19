@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T00:10:56.792902Z'
   stage: smoke-test
   run: 27da9c70f4e140b091aa48ed2410ef2f
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T00:13:16.927018Z'
+  stage: approval
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -311,3 +316,4 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
     The work tree shows only the story's `.costs.jsonl` sidecar as modified. That file is the factory's, and I did not touch it.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 5.7 min, 40 turns, 142241 tokens in (676369 more from cache), 21480 out, $1.45
