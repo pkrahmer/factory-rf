@@ -18,6 +18,7 @@ None: nothing changes under `src/factory/`, in any test, the image, the template
    - The first `not_read` example leaves out files by their type, not whole folders. It becomes `check: {time_limit: 10, not_read: ["README.md", "docs/*.md"]}`.
    - After "List only what the command does not read at all", one sentence is added: a linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder.
    - The sentence that says factory-rf's own definition takes the example "after the story that built the key" becomes the present tense and names `factory/pipeline.yml`.
+   - The `check` line of factory-rf's block below that sentence is the line `factory/pipeline.yml` holds on `main` when the story starts (its `time_limit` is `15` before F0024's change 2 and `8` after it).
    - The warning that factory-rf's docs stage "will run `secrets`" becomes "runs `secrets` as a check of its own, with nothing left out".
    - `uv run python -m factory.entry.check_documents` prints `documents ok`.
 

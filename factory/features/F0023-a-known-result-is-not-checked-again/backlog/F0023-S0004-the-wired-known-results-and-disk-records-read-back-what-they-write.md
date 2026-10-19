@@ -23,7 +23,7 @@ Tests (the tester writes them): `tests/entry/test_wiring_record_logs.py`, with t
 ## Smoke test
 
 ```bash
-uv run pytest -q --no-header -p no:cacheprovider tests/entry/test_wiring_record_logs.py 2>&1 | tail -n 1
+uv run pytest --no-header -p no:cacheprovider tests/entry/test_wiring_record_logs.py 2>&1 | tail -n 1
 ```
 Expect: a line that starts with `2 passed`
 
