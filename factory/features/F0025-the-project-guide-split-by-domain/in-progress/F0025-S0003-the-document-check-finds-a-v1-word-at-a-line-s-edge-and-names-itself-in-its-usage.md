@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T09:25:33.650447Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T09:25:33.650447Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T09:27:17.365033Z'
+  stage: doing
+  run: 2744cbce996347728b00a2f0df133ac9
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -204,3 +206,13 @@ Expect: `documents ok`
     `lint`: lint: green (0.0 s)
     `test`: test: green (36.7 s)
 14. factory: started doing as self.
+15. coder: Round 1: I built nothing, and nothing under `src/factory/` changed. The reviewer's only finding was criterion 3, a longer word at the end of the text. It needed just its test. The tester added it as the `longer-at-end-of-text` row in `tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not`, and the row passes against the current wording check. The diff against `main` holds only the two test modules this story added, plus the work item and its costs sidecar.
+    - Main choice: I left `factory.domain.documents` and `factory.entry.check_documents` as they are, because the story pins behaviour the code already has. I rejected the alternative of reworking the wording check's `"\n"` join into a line-by-line check: the code would behave the same, and the change is outside the story's scope.
+    - Refactor: there is no code diff, so there was nothing to refactor.
+    - Description: the reviewer's entry 9 added criterion 3, and the Description already holds it, so I did not rewrite it.
+    - Noticed but did not touch: the Description calls two mutation survivors equivalent, the `"UTF-8"` spelling and the default encoding under UTF-8 coercion. Both are still there, as the story intends.
+
+    `check`: check: green (test: green (36.6 s), total coverage 99.05 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
