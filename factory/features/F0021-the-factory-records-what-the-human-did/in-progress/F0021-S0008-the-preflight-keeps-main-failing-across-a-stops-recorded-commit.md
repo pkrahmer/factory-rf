@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T01:21:48.955295Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T01:21:28.504290Z'
   stage: docs
   run: 1bf7504188b54a5888b4cea781a55e81
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:21:48.955295Z'
+  stage: smoke-test
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -328,3 +337,4 @@ Expect: `0`
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
