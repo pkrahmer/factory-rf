@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T13:31:24.863620Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T13:31:03.098611Z'
   stage: docs
   run: 5991c9db6d644bc7892ef3ee57d49c95
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:31:24.863620Z'
+  stage: smoke-test
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -387,3 +396,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+16. factory: started smoke-test as self.
