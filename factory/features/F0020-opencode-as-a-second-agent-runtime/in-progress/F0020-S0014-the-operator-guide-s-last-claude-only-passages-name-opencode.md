@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T23:14:52.278234Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T23:14:32.037768Z'
   stage: tests
   run: a1cace4b738347cfbb35d180c1715571
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:14:52.278234Z'
+  stage: doing
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -102,3 +111,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.7 s)
+6. factory: started doing as self.
