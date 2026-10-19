@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T06:46:46.586748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T06:46:46.586748Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T06:47:19.197080Z'
+  stage: smoke-test
+  run: 1bb31f76631e497eb677d3fd5448f640
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -437,3 +439,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, exactly as written and in order. All three met their `Expect:` lines. I fixed nothing.
+
+    Command 1 (the script that compares the guide's sections with `origin/main:docs/project-guide.md`):
+    ```
+    False []
+    ```
+    Met: `False []`. The old file is gone. Every old `## ` section is in exactly one file, unchanged except *The document check*. Every file and every section is named in the index. No heading appears twice, no file passes 600 lines, and no file outside the index has a section the old guide did not have.
+
+    Command 2 (`uv run -q python -m factory.entry.check_documents; echo "exit $?"`):
+    ```
+    documents ok
+    exit 0
+    ```
+    Met: two lines, `documents ok` and `exit 0`.
+
+    Command 3 (a copy of the documents in a `mktemp -d` folder, with `docs/project-guide/notes.md` holding "Each ticket moves on." and `docs/project-guide/old/x.md` holding "A ticket."):
+    ```
+    docs/project-guide/notes.md: uses the v1 word 'ticket'
+    exit 1
+    ```
+    Met: two lines, the `notes.md` finding and `exit 1`. The file in the subfolder was not read.
+
+    I also read `## Acceptance criteria` again, and nothing the smoke test showed contradicts any of them:
+    - Criterion 1: `src/factory/domain/documents.py:16-19` sets `PROJECT_GUIDE_FOLDER = "docs/project-guide"` and `PROJECT_GUIDE = "docs/project-guide/README.md"`. `DOCUMENT_PATHS` keeps its order.
+    - Criterion 8, the files: the guide has the index and the eight domain files the table names. Line counts: README 144, agents 301, costs 89, git-and-hosting 197, processes-and-checks 147, stages 300, watching 276, work-items 375, write-guard 184. Each domain file opens with its title and a sentence saying to read the index first. The index opens with `# Project guide`, the "index and one file per domain" paragraph and the 600-line split rule.
+    - Criterion 8, the old path: no `docs/project-guide.md` is left inside the guide.
+    - Criterion 8, the other documents: `README.md` names `docs/project-guide/` in its opening paragraph and `docs/project-guide/README.md` under *Where to look next*. `docs/operator-guide.md` names `write-guard.md`, `stages.md` (twice), `work-items.md` and `README.md` for the sections the criterion lists. `docs/decisions.md` has the new entry *The project guide is an index and one file per domain*, and *The project guide lives in `docs/`* has its added sentence.
+    - Criterion 7: I did not run `make check`. The factory runs the stage's checks itself.
+
+    Findings: none.
