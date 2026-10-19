@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T20:06:54.800921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T20:06:54.800921Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T20:07:12.025881Z'
+  stage: docs
+  run: 20c263aa8bf2412e8247e78837f951a0
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -179,3 +181,14 @@ Expect: two lines, `completed question`, `['grep', 'read']`
    Notes:
    - The coder's entry records `duplicates: 5 new` with no change under `src/factory` on this branch, so those findings do not come from this story. The acceptance reviewer can look at them.
 10. factory: started docs as self.
+11. documenter: Files changed: none. The docs criterion is `none`: the diff only adds four rows to `tests/adapters/test_opencode_left_out_tools.py` and changes nothing under `src/`, so no behaviour or message changed.
+
+    Cross-read and found current: `docs/project-guide/agents.md`, *The opencode runtime* (line 100). It says a tool in `LEFT_OUT_TOOLS` (`Skill`) turns on no opencode tool and is not refused, and that every other tool outside `TOOL_NAMES` raises `AgentRuntimeError`. That is the behaviour the new rows pin, for any position of `Skill`. A grep of `README.md` and `docs/operator-guide.md` found no mention of the rule that needs a change.
+
+    Stale text noticed, not touched: `feature.md` lists only S0001 and S0002 under Stories, while its decision 14 names S0003. The intake, coder and reviewer entries already noted it. `feature.md` is the human's file, so I left it.
+
+    No findings, and I ran no `make check`, because I changed no file.
+
+    `check`: check: green (not run again: passed on tree 820a60a55ae9 at 2026-10-19T20:05:00Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
