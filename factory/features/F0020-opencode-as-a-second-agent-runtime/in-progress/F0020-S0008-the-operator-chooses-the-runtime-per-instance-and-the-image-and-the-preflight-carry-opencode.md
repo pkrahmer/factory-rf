@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T11:23:16.324743Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-19T11:23:16.324743Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T11:24:43.675525Z'
+  stage: review
+  run: 877af524d69e4832a93d388913c7cc98
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -371,3 +373,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 18. factory: started review as self.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: six changed files under `src/` and `image/`, and nine new test files. Groups 1 to 3 hold. Every criterion from 1 to 14 has a parametrized test that checks what the criterion says. The refused sides of `FACTORY_AGENT_RUNTIME`, `FACTORY_OPENCODE_MODELS` and `FACTORY_OPENCODE_FOLDERS` are rows. The coder's entry 17 records `make check` green. The layers hold: the domain has the settings and the `Literal`, the application has the item and the pins, the adapters have `runtime_folders`, and only the entry chooses the runtime. I found nothing on security. The source has no quality finding. I ran `make duplicates`: 5 new, 33 known, 3 gone. The four new `claude_runtime`/`opencode_runtime` similar-code pairs sit in code this diff does not touch, and the baseline has no entry for them, so the coder's line-shift reading is wrong and they predate this story. `ManualWaiter` is in an untouched file. Neither counts against this story. Group 4 fails on copied test helpers in the new test files. At round 0 these are findings.
+
+    1. tests/entry/test_wiring_opencode.py:37 `_settings` copies the `local_settings` fixture of tests/conftest.py:113 (same root, checkout, state, `agents-home`). Fix: use `local_settings.model_copy(update=...)` instead of a second copy.
+    2. tests/entry/test_wiring_opencode.py:92-95 and :135-138 write the same `settings.json` inline twice. This repeats `_settings` of tests/adapters/test_opencode_runtime.py:45. Fix: one shared helper or fixture under `tests/`, moved under the standing leave, used by both tests.
+    3. tests/test_opencode_image.py:10 and :41-43: `COMPOSE` and the loading of the service's environment copy `COMPOSE` and the `service` fixture of tests/test_compose.py:10-21. Fix: move them to a shared place under `tests/` (standing leave) and use them from there.
+    4. tests/domain/test_settings_agent_runtime.py:13, tests/domain/test_settings_opencode_models.py:8 and tests/domain/test_settings_opencode_folders.py:8: `BASE` is a further copy of the environment constant that tests/domain/test_settings_pinned.py:7 and its neighbours hold. Fix: one shared constant under `tests/`, moved under the standing leave, imported by the new modules.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`), and no earlier test file changed.
