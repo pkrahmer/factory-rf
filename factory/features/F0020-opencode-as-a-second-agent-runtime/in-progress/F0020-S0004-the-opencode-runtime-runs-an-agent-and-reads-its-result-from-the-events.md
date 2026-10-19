@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T05:36:32.676358Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -230,6 +234,11 @@ journal:
   at: '2026-10-19T05:36:12.113328Z'
   stage: docs
   run: 4b0e79f8de574963a0991075554e4332
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:36:32.676358Z'
+  stage: smoke-test
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -765,3 +774,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+41. factory: started smoke-test as self.
