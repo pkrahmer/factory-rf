@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Read", "Edit", "Write", "Glob", "Grep",
+      "Read", "Edit", "Write", "Glob", "Grep", "Skill",
       "Bash(uv run *)", "Bash(uv sync*)", "Bash(make *)", "Bash(factory-check-story *)",
       "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)",
       "Bash(git rev-parse*)"

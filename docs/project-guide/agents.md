@@ -97,7 +97,7 @@ Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_sta
 **The per-run configuration.** opencode has no flag for an agent's prompt, tools or permissions, so the runtime writes `opencode-<run>.json` into `state_directory` (mode `0640`) and names it in `OPENCODE_CONFIG`. The file defines one primary agent, `factory-<name>`, from the same `AgentDefinition` the Claude Code runtime gets from `claude/agents/*.md`:
 
 - `prompt`: the agent file's body, a blank line and `result_instructions(allowed_decisions)`;
-- `tools`: all twelve of `OPENCODE_TOOLS`, true for the agent file's tools translated through `TOOL_NAMES` (`Read` is `read`, `Bash` is `bash`, and so on) and false for the rest; a tool outside `TOOL_NAMES` raises `AgentRuntimeError`;
+- `tools`: all twelve of `OPENCODE_TOOLS`, true for the agent file's tools translated through `TOOL_NAMES` (`Read` is `read`, `Bash` is `bash`, and so on) and false for the rest; a tool in `LEFT_OUT_TOOLS` (`Skill`) turns on no opencode tool and is not refused, so only Claude Code's runs load skills; every other tool outside `TOOL_NAMES` raises `AgentRuntimeError`;
 - `permission`: `edit` allowed and `bash` `{"*": "allow"}` plus a `"deny"` for the pattern of each `Bash(<pattern>)` entry in `permissions.deny` of `settings_file` (the installed `settings.json`). Entries for other tools are not translated. A settings file that cannot be read, or holds no `permissions.deny` list of strings (also when it is no JSON), raises `AgentRuntimeError`; with no `settings_file` only `{"*": "allow"}` is written;
 - `autoupdate` false, `share` `disabled` and `snapshot` false, so a run neither updates itself nor uploads or snapshots anything.
 
@@ -227,13 +227,13 @@ prints `['coder']` and then a line that starts with `tools | invalid tools:`.
 
 | Agent | model | effort | budget_usd | tools |
 |---|---|---|---|---|
-| `intake` | sonnet | low | 1 | Read, Grep, Glob, Edit, Bash |
-| `tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash, Write |
-| `coder` | opus | medium | 4 | Read, Grep, Glob, Edit, Bash, Write |
-| `reviewer` | opus | high | 3 | Read, Grep, Glob, Edit, Bash |
-| `documenter` | sonnet | medium | 1.5 | Read, Grep, Glob, Edit, Bash, Write |
-| `smoke-tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash |
-| `acceptance-reviewer` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write |
+| `intake` | sonnet | low | 1 | Read, Grep, Glob, Edit, Bash, Skill |
+| `tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash, Write, Skill |
+| `coder` | opus | medium | 4 | Read, Grep, Glob, Edit, Bash, Write, Skill |
+| `reviewer` | opus | high | 3 | Read, Grep, Glob, Edit, Bash, Skill |
+| `documenter` | sonnet | medium | 1.5 | Read, Grep, Glob, Edit, Bash, Write, Skill |
+| `smoke-tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash, Skill |
+| `acceptance-reviewer` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write, Skill |
 
 Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. After them the body carries v1's texts, renamed with the table under "Replaced from v1", under these `## ` sections and no other `## ` heading, in this order:
 
@@ -249,7 +249,7 @@ The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run 
 
 `stuck` does not exist in v1.1: an agent that cannot finish asks. The `acceptance-reviewer` body names the report sections `## Recommendation` and `## Proposed stories` inline (F0009 reads them; at the start of a line they would be headings), the recommendations `accepted`, `accepted with stories` and `not accepted`, and tells the agent to write proposed stories into the feature's `backlog/`.
 
-To change what an agent is told, edit its file under `claude/agents/`; there is no other copy. `tests/test_claude_agent_texts.py` checks the sections, the banned v1 words, the decisions (derived from `next` in `template/factory/pipeline.yml`), the anchor phrases and the exact `## Lessons` bullets. No skills are shipped, because the runner applies no `skills` key.
+To change what an agent is told, edit its file under `claude/agents/`; there is no other copy. `tests/test_claude_agent_texts.py` checks the sections, the banned v1 words, the decisions (derived from `next` in `template/factory/pipeline.yml`), the anchor phrases and the exact `## Lessons` bullets. No skills are shipped: the agents load the project's own with the `Skill` tool (last in every `tools`; allowed in `claude/settings.json`). Rule R15, the line after R14 in every `## Rules`, says a project's skills (`.claude/skills/`) and agents (`factory/agents/`) are the human's files, that an agent loads a skill whose description fits its work, and that where a skill contradicts the agent's instructions the instructions win and the entry names the skill and the step set aside. `tests/test_claude_agent_skills.py` pins the line. The entrypoint empties `skills/` and `commands/` of the Claude home at every start (see the operator guide).
 
 `tests/test_claude_files.py` checks the files (keys, values, bodies); `tests/adapters/test_shipped_agents_effect.py` runs `ClaudeCodeRuntime` against the stand-in executable over each shipped agent and checks that `--model`, `--effort`, `--tools`, `--max-budget-usd` and the instructions file carry the file's values. `tests/shipped_agents.py` holds the shared table.
 

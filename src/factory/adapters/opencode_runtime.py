@@ -102,6 +102,8 @@ TOOL_NAMES = {
     "Task": "task",
     "TodoWrite": "todowrite",
 }
+# Tools of Claude Code that opencode has no counterpart for and that a run can do without.
+LEFT_OUT_TOOLS: frozenset[str] = frozenset({"Skill"})
 RESULT_OPEN = "<factory-result>"
 RESULT_CLOSE = "</factory-result>"
 DENIAL_PATTERN = re.compile(r"permission|denied", re.IGNORECASE)
@@ -269,6 +271,8 @@ def _model(agent: AgentDefinition, models: Mapping[str, str]) -> str:
 def _tools(agent: AgentDefinition) -> dict[str, bool]:
     enabled = set()
     for tool in agent.tools:
+        if tool in LEFT_OUT_TOOLS:
+            continue
         name = TOOL_NAMES.get(tool)
         if name is None:
             raise AgentRuntimeError(f"the opencode runtime has no tool for {tool}")

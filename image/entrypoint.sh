@@ -28,6 +28,12 @@ cp "$opt/claude/settings.json" "$home/settings.json"
 chmod 0755 "$home/agents"
 find "$home/agents" -type f -exec chmod 0644 {} +
 chmod 0644 "$home/settings.json"
+# Empty and read-only to the agent, so that no run can add a skill or a command that later runs load.
+for folder in skills commands; do
+  rm -rf "${home:?}/$folder"
+  mkdir "$home/$folder"
+  chmod 0755 "$home/$folder"
+done
 log "installed agents and settings into $home"
 
 mkdir -p "$state/runs"

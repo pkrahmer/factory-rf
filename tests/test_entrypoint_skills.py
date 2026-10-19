@@ -1,0 +1,65 @@
+"""The entrypoint leaves the agent's home with empty skills and commands it cannot fill."""
+
+import os
+import stat
+from collections.abc import Callable
+from pathlib import Path
+
+import pytest
+
+from test_entrypoint import Layout, _texts
+
+
+@pytest.fixture
+def layout(tmp_path: Path) -> Layout:
+    """Return the image layout, homes, state and stubs of one run under `tmp_path`."""
+    return Layout(tmp_path)
+
+
+def _nothing(home: Path) -> None:
+    home.mkdir(parents=True, exist_ok=True)
+
+
+def _planted(home: Path) -> None:
+    (home / "skills" / "planted").mkdir(parents=True)
+    (home / "skills" / "planted" / "SKILL.md").write_text("planted\n", encoding="utf-8")
+    (home / "commands").mkdir()
+    (home / "commands" / "plant.md").write_text("plant\n", encoding="utf-8")
+
+
+def _file_and_nested_folder(home: Path) -> None:
+    home.mkdir(parents=True, exist_ok=True)
+    (home / "skills").write_text("a file\n", encoding="utf-8")
+    (home / "commands" / "sub").mkdir(parents=True)
+    (home / "commands" / "sub" / "plant.md").write_text("plant\n", encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "prepare",
+    [
+        pytest.param(_nothing, id="nothing"),
+        pytest.param(_planted, id="planted-skill-and-command"),
+        pytest.param(_file_and_nested_folder, id="file-and-nested-folder"),
+    ],
+)
+def test_each_start_leaves_skills_and_commands_empty_and_read_only_to_the_agent(
+    layout: Layout, prepare: Callable[[Path], None]
+) -> None:
+    prepare(layout.claude_home)
+
+    result = layout.run()
+
+    assert result.exit_status == 0
+    assert _texts(result.stderr) + _texts(result.stdout) == [
+        f"installed agents and settings into {layout.claude_home}",
+        f"prepared {layout.state}/runs",
+        "starting instance unset",
+    ]
+    for name in ("skills", "commands"):
+        folder = layout.claude_home / name
+        assert folder.is_dir()
+        assert not folder.is_symlink()
+        assert list(folder.iterdir()) == []
+        status = folder.stat()
+        assert status.st_uid == os.getuid()
+        assert stat.S_IMODE(status.st_mode) == 0o755

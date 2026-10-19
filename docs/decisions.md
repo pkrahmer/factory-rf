@@ -753,3 +753,15 @@ Date: 2026-10-19 (F0022-S0001; F0022 decisions 1 to 6). The agent of a role was 
 - Decision: a project may add a role whose only agent is its own.
 - Reasons: one place to read and one set of rules keep a project agent as safe as a shipped one; a fallback on a fault would hide the fault and run an agent the project did not mean.
 - Rejected: merging a project file over the shipped one (which keys and which lines win would need a rule of its own); reading the work item's branch (the story could rewrite its own agent).
+
+## The agents load a project's skills, and the agent's home gets none
+
+Date: 2026-10-19 (F0022-S0002; F0022 decisions 7 to 13). No shipped agent could load a skill: each passes its tools to `claude -p` explicitly and none listed `Skill`. v1 delivered its rules as skills; when they were folded into the agent files no story kept the tool, so a project had no way to bring its own know-how.
+
+- Decision: every shipped agent has the `Skill` tool, last in `tools`, and `claude/settings.json` allows it right after `Grep`. A project's skills sit under `.claude/skills/` in its checkout, the work item's branch.
+- Decision: rule R15, right after R14 in every agent: a project's skills and agents are the human's files; an agent loads a skill whose description fits; where a skill contradicts the agent's instructions, the instructions win and the entry names the skill and the step set aside. `.claude/*` stays a protected path, and the factory does not check what a skill says.
+- Decision: with the tool, Claude Code also loads the user skills and commands of the agent's own Claude home, which a run may write, so one run could plant a skill every later run loads. The entrypoint removes and remakes `skills/` and `commands/` there at every start, empty, owned by the factory and mode `0755`.
+- Decision: the opencode runtime refuses a tool it cannot map, which would end every opencode run now. `LEFT_OUT_TOOLS` (`Skill`) is left out instead, in a set beside `TOOL_NAMES`; any other unmapped tool is refused as before. Only Claude Code's runs load skills in this feature.
+- Reasons: a skill is a project's way to say how to work, and the instructions winning keeps the pipeline's rules (write paths, no commit, foreground checks) out of a skill's reach; the remade folders close the one route by which a run could change later runs.
+- Rejected: a sentinel in `TOOL_NAMES` for the left-out tool (it mixes two kinds of tool and changes the type); checking what a skill says (no check can judge it); leaving the home's folders writable (the planted-skill route).
+- Open: a user `CLAUDE.md` and `.claude.json` in the home stay writable and are read by `claude`; whether opencode loads skills of its own is not checked.
