@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T12:50:10.454533Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T12:49:50.182284Z'
   stage: review
   run: 1bf4f13b85a049b2af937bd1971dae8c
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:50:10.454533Z'
+  stage: docs
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -420,3 +429,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/entry/test_watch_own_claim.py:27`: the `_agents` fixture is a copy of the one in `tests/entry/test_watch.py` (the Interface allows the copy). It could move to `tests/conftest.py` under the standing leave.
     - `tests/domain/test_lease_observed.py:15`, `tests/application/test_watcher_observer.py:20` and `tests/entry/test_watch_own_claim.py:23`: the `INSTANCE` and `OTHER_INSTANCE` constants are repeated in each new file. `_claim` sits beside `watch_support.aged_claim`, which builds the same claim from a clock instead of a fixed `NOW`.
+18. factory: started docs as self.
