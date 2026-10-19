@@ -16,7 +16,8 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.identifiers import Name
+from factory.domain.errors import AgentDefinitionMissing
+from factory.domain.identifiers import Name, is_name
 
 QUESTION = "question"
 
@@ -30,6 +31,13 @@ CONFINE_COMMAND = "factory-confine"
 # any other key would read as if it did something and do nothing.
 APPLIED_AGENT_KEYS: frozenset[str] = frozenset({"model", "tools", "effort", "budget_usd"})
 KEY_NOT_APPLIED = "key not applied by the agent runtime"
+
+
+def check_agent_name(name: str) -> None:
+    """Raise `AgentDefinitionMissing` when `name` is not an agent name."""
+    if not is_name(name):
+        raise AgentDefinitionMissing(name, f"not an agent name: {name}")
+
 
 # The agent's environment is built from these names alone, so nothing the factory process
 # holds, its hosting-service token above all, reaches an agent run by accident.

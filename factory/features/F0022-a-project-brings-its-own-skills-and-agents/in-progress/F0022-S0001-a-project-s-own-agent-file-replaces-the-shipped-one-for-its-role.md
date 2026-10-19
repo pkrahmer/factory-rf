@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T13:24:51.211353Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T13:24:51.211353Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T13:27:16.588576Z'
+  stage: doing
+  run: 20d831e10db24367bf8c2fbd356e36d8
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -298,3 +300,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/domain/test_write_paths.py`: the human's leave. The story's Interface names the rename to `test_the_protected_paths_are_the_engines_eleven_patterns` and `"factory/agents/*"` added last.
    - `tests/entry/test_wiring_boundaries.py`: the human's leave. The story's Interface names both changes: the expected class becomes `ProjectAgentDefinitions`, and the test clones `remote` into `settings.checkout` and checks the same names. The removed `FrontmatterAgentDefinitionReader` import was left unused by that change.
 10. factory: started doing as self.
+11. coder: Round 1: I fixed both review findings and changed nothing else. No test changed. `make check` is green (`check: green`).
+
+    What I built:
+    - Finding 1, the copied name refusal. The check is now one public domain function, `check_agent_name(name)`, in `src/factory/domain/agent_runs.py` beside the other agent rules (`APPLIED_AGENT_KEYS`, `KEY_NOT_APPLIED`). It raises `AgentDefinitionMissing(name, f"not an agent name: {name}")`. Three callers use it:
+      - `FrontmatterAgentDefinitionReader.read` and `parse` in `src/factory/adapters/agent_files.py`, where the private `_check_name` is gone;
+      - `ProjectAgentDefinitions.read` in `src/factory/application/project_agents.py`, where it still runs before any call of `git`.
+    - Finding 2, the repeated `".md"`. `src/factory/domain/paths.py` now exports a public `AGENT_SUFFIX` beside `PROJECT_AGENTS_DIRECTORY`, and `project_agent_file` uses it. `project_agents.py` uses it in `_project_names` in place of the literal. `agent_files.py` drops its own `_AGENT_SUFFIX` and uses it too, so the suffix is written once.
+
+    Main choice: I put `check_agent_name` in `factory.domain.agent_runs` rather than in `factory.domain.identifiers`, where the reviewer offered either.
+    - The refusal is an agent rule that raises an agent error. `identifiers` is about work item ids and names, and imports no errors today.
+    - `agent_runs` already imports from `identifiers`, and `errors` imports nothing of either, so no import cycle arises.
+
+    Refactor pass: I reread the diff and nothing more needed changing.
+
+    Noticed but not touched: `paths.py` still has the private `_WORK_ITEM_SUFFIX = ".md"` beside the new `AGENT_SUFFIX`. Both hold `.md`, but they mean different things, so I left them separate.
+
+    The journal did not change the meaning of the task, so I left `## Description` as it is.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone

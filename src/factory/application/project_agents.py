@@ -5,10 +5,10 @@ from typing import override
 from factory.application.agent_runtime import AgentDefinitionReader
 from factory.application.git import Git
 from factory.application.pipeline_loading import PIPELINE_REF
-from factory.domain.agent_runs import AgentDefinition
-from factory.domain.errors import AgentDefinitionInvalid, AgentDefinitionMissing
+from factory.domain.agent_runs import AgentDefinition, check_agent_name
+from factory.domain.errors import AgentDefinitionInvalid
 from factory.domain.identifiers import is_name
-from factory.domain.paths import PROJECT_AGENTS_DIRECTORY, project_agent_file
+from factory.domain.paths import AGENT_SUFFIX, PROJECT_AGENTS_DIRECTORY, project_agent_file
 
 
 class ProjectAgentDefinitions(AgentDefinitionReader):
@@ -27,8 +27,7 @@ class ProjectAgentDefinitions(AgentDefinitionReader):
     @override
     def read(self, name: str) -> AgentDefinition:
         # Checked before git is asked, so a name can never lead outside the agents folder.
-        if not is_name(name):
-            raise AgentDefinitionMissing(name, f"not an agent name: {name}")
+        check_agent_name(name)
         path = project_agent_file(name)
         text = self._git.show_file(self._ref, path)
         if text is None:
@@ -49,7 +48,7 @@ class ProjectAgentDefinitions(AgentDefinitionReader):
         prefix = f"{PROJECT_AGENTS_DIRECTORY}/"
         names = []
         for path in self._git.list_files(self._ref, PROJECT_AGENTS_DIRECTORY):
-            stem = path.removeprefix(prefix).removesuffix(".md")
+            stem = path.removeprefix(prefix).removesuffix(AGENT_SUFFIX)
             # The round trip leaves out files in subfolders and with another suffix.
             if is_name(stem) and project_agent_file(stem) == path:
                 names.append(stem)
