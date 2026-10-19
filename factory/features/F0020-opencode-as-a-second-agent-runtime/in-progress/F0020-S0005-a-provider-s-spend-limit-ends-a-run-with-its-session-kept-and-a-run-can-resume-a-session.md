@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T07:27:16.139978Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-19T07:27:16.139978Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T07:27:36.153542Z'
+  stage: intake
+  run: 5630e5c1e65b4046a2b3999a48486767
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -141,12 +143,12 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 4. `limit_in_text` with the default limit is true for `API Error: 428 {"message": "limit"}`, `status (428)` and `HTTP 428:`, and false for `14280 tokens`, `4280`, `""` and `rate limited`; with `message` `spend limit` it is true for `the spend limit is reached` without a status (rows).
 5. `ProviderLimit` refuses status 99 and 600 and accepts 100 and 599, and refuses `message` `"("` (rows).
 6. `named_wait` gives 420 seconds for `try again in 7 minutes`, 420 for `in 7 min` and for `in 7 m`, 120 seconds for `retry after 120 seconds`, `in 120 s`, `in 120 sec`, `Retry-After: 120` and `retry-after 120`, 2 hours for `in 2 h` and `in 2 hours`, 1 hour for `in 1 hour`, 45 seconds for `in 45`, the earlier of two, and `None` for `in 0 minutes`, `in 1234567`, `limit reached` and `in seven minutes` (rows).
-7. `read_settings` gives status 428 and message `None` without the variables or with blank ones, 429 for `429`; it raises `SettingsInvalid` naming `FACTORY_PROVIDER_LIMIT_STATUS` for `abc`, `99`, `600` and `٤٢٨`, and naming `FACTORY_PROVIDER_LIMIT_MESSAGE` for `(` (rows).
+7. `read_settings` gives status 428 and message `None` without the variables or with blank ones, 429 for `429`; it raises `SettingsInvalid` naming `FACTORY_PROVIDER_LIMIT_STATUS` for `abc`, `99`, `600` and `٤٢٨`, and naming `FACTORY_PROVIDER_LIMIT_MESSAGE` for `(` (rows); `FACTORY_PROVIDER_LIMIT_MESSAGE` `spend limit` gives `provider_limit.message` `spend limit`.
 8. `stall_cause("provider_limit")` is `the provider's spend limit lasted past the waiting ceiling`, and `stall_note("provider_limit", 1, 2)` is `Stalled (attempt 1 of 2): the provider's spend limit lasted past the waiting ceiling. Retrying on the next tick.`
 9. A stand-in `claude` that prints an error reply (`is_error` true) with `result` `API Error: 428 spend limit reached, try again in 7 minutes`, cost 0.01 and one turn ends the run `provider_limit` with that cost and turn, `limit_wait` 420 seconds and `session` the id the stand-in got with `--session-id`; the same reply with `result` `API Error: 500` ends `died` (rows).
-10. A stand-in that prints no reply and `API Error: 428` on standard error ends `provider_limit` without measures; a runtime built with `ProviderLimit(status=429)` ends the same call `died`; a runtime built with `ProviderLimit(message="spend limit")` recognizes `result` `the spend limit is reached`; a call that prints `API Error: 428` on standard error and outlasts its time limit of 3 seconds ends `time_limit`; a budget reply (`error_max_budget_usd`) whose `result` names 428 ends `budget` and is resumed (rows).
+10. A stand-in that prints no reply and `API Error: 428, try again in 7 minutes` on standard error ends `provider_limit` without measures and with `limit_wait` 420 seconds; the same with `API Error: 428` alone ends `provider_limit` with `limit_wait` `None`; a runtime built with `ProviderLimit(status=429)` ends the same call `died`; a runtime built with `ProviderLimit(message="spend limit")` recognizes `result` `the spend limit is reached`; a call that prints `API Error: 428` on standard error and outlasts its time limit of 3 seconds ends `time_limit`; a budget reply (`error_max_budget_usd`) whose `result` names 428 ends `budget` and is resumed (rows).
 11. A run whose budget stop is resumed and whose resume prints the 428 error reply ends `provider_limit` with both calls' measures and the session of both calls.
-12. A request with `resume_session` `"ses_a"` makes the stand-in see `--resume ses_a` and no `--session-id`, with the request's prompt and `--max-budget-usd` of the agent's budget; the result's `session` is `ses_a`; a completed run of a request without it has a `session` equal to its `--session-id` (rows).
+12. A request with `resume_session` `"ses_a"` makes the stand-in see `--resume ses_a` and no `--session-id`, with the request's prompt and `--max-budget-usd` of the agent's budget; the result's `session` is `ses_a`; a completed run of a request without it has a `session` equal to its `--session-id`; the run's files of a request with `resume_session` are named by a fresh id that differs from `resume_session` (rows).
 13. A request with `resume_session` whose call is stopped by its budget is resumed once with `--resume ses_a` and the finish message.
 14. The opencode runtime with `resume_session` `"ses_a"` calls the stand-in with `--session ses_a` right before the prompt; its result's `session` is the first `sessionID` of the events, and `ses_a` when no event carries one; a run without it and without events has `session` `None` (rows).
 15. `build_boundaries` with a `provider_limit` of status 429 gives a Claude Code runtime whose run ends `provider_limit` on a stand-in error result naming 429 (`confine_executable=None`).
@@ -208,3 +210,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. Yes, the first proposal: add to criterion 12 that the run's files use a new id that differs from `resume_session`.
    3. Yes: change criterion 10's standard-error row so `API Error: 428, try again in 7 minutes` gives `limit_wait` 420 seconds, and add the row where the line names no wait and `limit_wait` is `None`.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures are named (`domain.agent_runs`, `domain.provider_limits`, `domain.settings`, `domain.journal`/`post_texts`, `adapters.claude_runtime`/`opencode_runtime`, `application.costs`, `domain.contract`, `entry.wiring`). The behaviours in its comments each have a criterion now, after the human's answer (entry 4).
+   - Criteria: each can be tested by one test function. Each rule has its failing side: blank `resume_session`, `limit_wait` on a non-limit reason and zero, status 99 and 600, an invalid message regular expression, invalid settings values, `died` on 500 or on status 429, `time_limit` beating the limit, and a budget reply that names 428. I wrote in the three additions from the human's answer in entry 4:
+     - Criterion 7 has a new row: `FACTORY_PROVIDER_LIMIT_MESSAGE` `spend limit` gives `provider_limit.message` `spend limit`.
+     - Criterion 12 now also checks that the run's files of a request with `resume_session` use a fresh id that differs from `resume_session`.
+     - Criterion 10's standard-error row now gives `limit_wait` 420 seconds for `API Error: 428, try again in 7 minutes`, and `None` for `API Error: 428` alone.
+   - Smoke test: runnable with a stand-in `claude`. The three Expect values (`provider_limit 0.01 420.0`, `True True True`, `True False 0:02:00`) can be checked against the output.
+   - Architecture: pure rules are in `domain`, the tool-specific recognition is in the adapters, and the wiring is in `entry`. The layer order is kept.
+   - Scope: inside F0020's scope and its decisions 12, 13, 19 and 23. The test changes it names are the ones decision 19 allows.
