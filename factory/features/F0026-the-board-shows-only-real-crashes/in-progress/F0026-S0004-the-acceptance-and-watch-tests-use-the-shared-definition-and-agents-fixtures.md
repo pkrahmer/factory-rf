@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T17:35:49.854421Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T17:35:29.324266Z'
   stage: review
   run: 14caa561044b445c9c0443a35f5247b5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:35:49.854421Z'
+  stage: docs
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -191,3 +200,4 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    Notes:
    - The coder's `make duplicates` reported `5 new` (entry 7). This branch changes nothing under `src/factory`, so those findings are not this diff's. They are worth a look at the feature's acceptance.
    - `mutants`: no module under `src/factory` changed, so there was no report to read.
+10. factory: started docs as self.
