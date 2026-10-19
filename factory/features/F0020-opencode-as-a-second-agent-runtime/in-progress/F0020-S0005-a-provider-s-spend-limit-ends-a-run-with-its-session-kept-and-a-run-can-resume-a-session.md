@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T08:13:03.558414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -256,6 +252,12 @@ journal:
   kind: started
   at: '2026-10-19T08:13:03.558414Z'
   stage: docs
+- number: 45
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T08:15:07.868916Z'
+  stage: docs
+  run: d4dc927002bc42e9b5ee499f5205ffcd
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -829,3 +831,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal `""` matches any validation error. A fragment naming the rule that a `limit_wait` must be positive would pin which rule refused it. Carried forward from entry 31.
     - tests/adapters/test_opencode_resume_session.py:41-54: the two time-limited rows have no upper bound on the elapsed time, unlike the Claude time-limit test. The criterion does not ask for one.
 44. factory: started docs as self.
+45. documenter: Docs, round 1. I read the story, the diff (`git diff main...HEAD` outside `factory`, `docs` and `README.md`) and the docs criterion. I changed documents only, so I did not run `make check`; the factory runs it after me. I found no contradiction between the code and the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The configuration table gets `FACTORY_PROVIDER_LIMIT_STATUS` (default 428) and `FACTORY_PROVIDER_LIMIT_MESSAGE` (regular expression, unset by default).
+      - A new section, *A provider's spend limit*, says what each variable matches and where. It matches the status as a whole number, or the message pattern, in the error result or standard error, and never in the agent's own text. It also covers the wait the gateway's message can name, the cost record and the stall.
+      - The stall note lists eleven causes, with the new sentence `the provider's spend limit lasted past the waiting ceiling`.
+      - The records contract version reads `1.2`, with what `1.2` added.
+    - `docs/project-guide/agents.md`:
+      - `AgentRunResult` gets the sixth end reason, `session` and `limit_wait`. `AgentRunRequest` gets `resume_session`.
+      - The Claude runtime section gets the `provider_limit` constructor argument, the recognition rule and the `--resume` call.
+      - The opencode runtime section gets the `--session` call and how `session` is read.
+    - `docs/project-guide/stages.md`: `provider_limit` is added to the list of stall reasons.
+    - `docs/project-guide/work-items.md`: the records contract version reads `1.2`.
+    - `docs/decisions.md`: a new entry, *A provider's spend limit is its own end reason, and the session is kept*, dated with the story.
+
+    Two judgement calls:
+    - The story does not hold the text of the feature's decisions 12 and 13, and I may not read `feature.md`. I wrote the entry's reasons from the story's description. The human should check that they match those decisions.
+    - The opencode runtime does not recognize the limit while streaming until S0006. The docs say so, and say that waiting out the limit and continuing the session comes in a later story (S0007).
+
+    Cross-read and found current: `README.md`, `docs/project-guide/README.md`, `costs.md`, `processes-and-checks.md`, `watching.md` and the rest of `operator-guide.md`. The cost record's rule that only `died` and `time_limit` runs leave `denials` unknown is still true.
+
+    I did not run the example commands. I added no runnable examples.
+
+    Stale text seen, not touched: none related to this story. The reviewer's carried-forward notes about the tests are not mine: the error reply written twice, and the `zero-wait` row's fragment `""`.
+
+    `check`: check: green
+    `documents`: documents ok
