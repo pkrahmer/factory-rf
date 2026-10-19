@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T21:29:36.229926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T21:29:36.229926Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T21:29:52.738194Z'
+  stage: smoke-test
+  run: d7691e770ec94de48c9bf12feb090a57
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -192,3 +194,22 @@ Expect: `True`
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the `## Smoke test` block exactly as written, from the repository root, as one bash script. It made a temporary directory with `mktemp -d`, removed it on exit through its own `trap`, and left nothing behind.
+
+    Command: the whole block. It runs `git init`, writes `a.md`, `-x.md` and `--y.md`, then runs the `uv run -q python -` script. The script compares `work_tree_id(["-x.md", "--y.md"])` with `work_tree_id()` after the two dash files are deleted.
+
+    ```
+    True
+    exit=0
+    ```
+
+    Expect: `True`. Met. Both `work_tree_id` calls ran without an error, and the two ids are equal.
+
+    Acceptance criteria, read again against the smoke test:
+    1. Criterion 1: consistent. The smoke test is that criterion's first row, run outside the test suite on a fresh repository with no commits: the dash paths are removed as literal paths, and the call raises nothing. The smoke test does not exercise the other three rows (`-x.md` alone, `-*`, `a.md` alone), but nothing it showed contradicts them.
+    2. Criterion 2 (`make check` stays green): the smoke test does not touch this. The factory's check after the coder was green (entry 7), and I did not run it again because this stage fixes nothing.
+    3. Criterion 3 (docs: none): not contradicted.
+
+    Findings: none.
