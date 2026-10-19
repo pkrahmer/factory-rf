@@ -135,6 +135,8 @@ pytest_add_cli_args = [
     "--deselect", "tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones",
     "--deselect", "tests/test_agent_launch_search.py::test_neither_runtime_module_reads_os_environ",
     "--deselect", "tests/test_agent_launch_search.py::test_the_launch_module_does_not_import_the_process_module",
+    "--deselect", "tests/adapters/test_process_streaming.py::test_run_process_shares_the_one_popen_line_and_reports_no_stop",
+    "--deselect", "tests/test_opencode_runtime_search.py::test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ",
 ]
 # The tests read these from the repository root; mutmut runs them in its own copy.
 also_copy = ["claude/", "demo/", "docs/", "factory/", "image/", "security/", "template/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
