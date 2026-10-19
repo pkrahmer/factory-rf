@@ -1,7 +1,6 @@
 """The opencode runtime stops a call at once on a provider limit in its errors, not its text."""
 
 import json
-import sys
 import time
 from datetime import timedelta
 from decimal import Decimal
@@ -11,58 +10,33 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
-    MODELS,
+    BOUND_SECONDS,
+    RESUME_REPLY,
     SESSION,
+    WAIT_SECONDS,
     error,
     opencode_request,
+    over_budget,
     result_text,
+    stand_in_runtime,
     stdout,
     step_finish,
     step_start,
     text,
     tool_use,
-    write_opencode,
 )
-from adapters.test_opencode_budget import RESUME_REPLY, _over_budget
-from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.provider_limits import ProviderLimit
 
-WAIT_SECONDS = 30
-BOUND_SECONDS = 20
 LIMIT_MESSAGE = "spend limit reached, try again in 7 minutes"
 LIMIT_ERROR = error(LIMIT_MESSAGE, status_code=428, timestamp=3000)
 LIMIT_LINE = "HTTP 428 Precondition Required"
-
-
-def _runtime(
-    tmp_path: Path, steps: list[Step], provider_limit: ProviderLimit | None = None
-) -> OpencodeRuntime:
-    executable = write_opencode(tmp_path / "bin", steps)
-    state = tmp_path / "state"
-    state.mkdir(exist_ok=True)
-    return OpencodeRuntime(str(executable), state, models=MODELS, provider_limit=provider_limit)
+REPLY = stdout(step_start(), text(result_text()), step_finish())
 
 
 def _without_status(line: str) -> str:
     event = json.loads(line)
     del event["error"]["data"]["statusCode"]
     return json.dumps(event)
-
-
-def _stderr_first(tmp_path: Path, executable: Path, line: str) -> Path:
-    """An executable that prints `line` on standard error, then becomes `executable`."""
-    wrapper = tmp_path / "wrapper" / "opencode"
-    wrapper.parent.mkdir()
-    wrapper.write_text(
-        f"#!{sys.executable}\n"
-        "import os\nimport sys\n"
-        f"sys.stderr.write({line!r} + '\\n')\n"
-        "sys.stderr.flush()\n"
-        f"os.execv({str(executable)!r}, [{str(executable)!r}, *sys.argv[1:]])\n",
-        encoding="utf-8",
-    )
-    wrapper.chmod(0o755)
-    return wrapper
 
 
 def test_a_limit_error_after_a_step_ends_the_run_at_once_with_its_wait_and_session(
@@ -72,7 +46,7 @@ def test_a_limit_error_after_a_step_ends_the_run_at_once_with_its_wait_and_sessi
         stdout_before_wait=stdout(step_start(), step_finish(cost=0.2), LIMIT_ERROR),
         wait_seconds=WAIT_SECONDS,
     )
-    runtime = _runtime(tmp_path, [first, RESUME_REPLY])
+    runtime = stand_in_runtime(tmp_path, [first, RESUME_REPLY])
 
     started = time.monotonic()
     result = runtime.run(opencode_request(tmp_path / "work"))
@@ -87,7 +61,7 @@ def test_a_limit_error_after_a_step_ends_the_run_at_once_with_its_wait_and_sessi
 
 def test_a_limit_error_before_any_step_ends_the_run_without_measures(tmp_path: Path) -> None:
     first = Step(stdout_before_wait=stdout(LIMIT_ERROR), wait_seconds=WAIT_SECONDS)
-    runtime = _runtime(tmp_path, [first, RESUME_REPLY])
+    runtime = stand_in_runtime(tmp_path, [first, RESUME_REPLY])
 
     started = time.monotonic()
     result = runtime.run(opencode_request(tmp_path / "work"))
@@ -114,7 +88,7 @@ def test_an_error_that_is_no_limit_does_not_stop_the_call(
         stdout=stdout(step_start(), step_finish(), error(status_code=status_code)),
         exit_status=1,
     )
-    runtime = _runtime(tmp_path, [first, RESUME_REPLY], provider_limit)
+    runtime = stand_in_runtime(tmp_path, [first, RESUME_REPLY], provider_limit=provider_limit)
 
     result = runtime.run(opencode_request(tmp_path / "work"))
 
@@ -141,7 +115,7 @@ def test_an_error_without_a_status_is_a_limit_when_its_message_holds_the_pattern
         wait_seconds=wait_seconds,
         exit_status=1,
     )
-    runtime = _runtime(tmp_path, [first, RESUME_REPLY], provider_limit)
+    runtime = stand_in_runtime(tmp_path, [first, RESUME_REPLY], provider_limit=provider_limit)
 
     started = time.monotonic()
     result = runtime.run(opencode_request(tmp_path / "work"))
@@ -150,24 +124,32 @@ def test_an_error_without_a_status_is_a_limit_when_its_message_holds_the_pattern
     assert result.end_reason == end_reason
 
 
+@pytest.mark.parametrize(
+    ("line", "first", "end_reason"),
+    [
+        pytest.param(
+            LIMIT_LINE,
+            Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS),
+            "provider_limit",
+            id="limit-line",
+        ),
+        pytest.param("HTTP 500 Internal Server Error", Step(stdout=REPLY), "completed", id="500"),
+        pytest.param("error 1428", Step(stdout=REPLY), "completed", id="1428"),
+    ],
+)
 def test_a_limit_line_on_standard_error_ends_the_run_at_once_without_a_wait(
-    tmp_path: Path,
+    tmp_path: Path, line: str, first: Step, end_reason: str
 ) -> None:
-    executable = write_opencode(
-        tmp_path / "bin",
-        [Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS), RESUME_REPLY],
-    )
-    state = tmp_path / "state"
-    state.mkdir()
-    wrapper = _stderr_first(tmp_path, executable, LIMIT_LINE)
-    runtime = OpencodeRuntime(str(wrapper), state, models=MODELS)
+    runtime = stand_in_runtime(tmp_path, [first, RESUME_REPLY], stderr_first=line)
 
     started = time.monotonic()
     result = runtime.run(opencode_request(tmp_path / "work"))
 
     assert time.monotonic() - started < BOUND_SECONDS
-    assert result.end_reason == "provider_limit"
+    assert result.end_reason == end_reason
     assert result.limit_wait is None
+    # The limit stop may come before the stand-in records its call; a completed run had one.
+    assert len(read_calls(tmp_path / "bin")) <= 1
 
 
 @pytest.mark.parametrize(
@@ -186,7 +168,7 @@ def test_a_limit_in_the_agent_s_text_or_a_tool_s_output_stops_nothing(
     reply = Step(
         stdout=stdout(step_start(), line, text(result_text("question", "Read it.")), step_finish())
     )
-    runtime = _runtime(tmp_path, [reply, RESUME_REPLY])
+    runtime = stand_in_runtime(tmp_path, [reply, RESUME_REPLY])
 
     result = runtime.run(opencode_request(tmp_path / "work"))
 
@@ -203,7 +185,7 @@ def test_a_limit_in_the_resume_ends_the_run_by_the_limit_with_both_calls_costs(
         stdout_before_wait=stdout(step_start(10_000), step_finish(10_500, cost=0.1), LIMIT_ERROR),
         wait_seconds=WAIT_SECONDS,
     )
-    runtime = _runtime(tmp_path, [_over_budget(), resume, RESUME_REPLY])
+    runtime = stand_in_runtime(tmp_path, [over_budget(), resume, RESUME_REPLY])
 
     started = time.monotonic()
     result = runtime.run(opencode_request(tmp_path / "work"))

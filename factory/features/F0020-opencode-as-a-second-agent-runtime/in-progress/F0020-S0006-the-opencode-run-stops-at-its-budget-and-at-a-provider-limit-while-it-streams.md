@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T10:10:43.305863Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-19T10:10:43.305863Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-19T10:15:06.472475Z'
+  stage: tests
+  run: 08601e91f4654aa494395ff5a1642714
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -361,3 +363,45 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `_Watch.stopped_by` in `src/factory/adapters/opencode_runtime.py` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
     - The row `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]`, which failed once in entry 8, may be flaky under the parallel test workers. If it fails again, it is worth a story of its own.
 15. factory: started tests as self.
+16. tester: I made the test changes the coder's entry 14 names, which come from the reviewer's findings in entry 12. I changed no code under `src/`. `make lint` is green and `make test` is green (`test: green (39.0 s)`).
+
+    **1 and 2. The shared helpers are in one place.** These moves fall under the standing leave to move a shared test helper. `tests/adapters/opencode_stand_in.py` now holds:
+    - `stand_in_runtime(tmp_path, steps, *, settings_file, kill_points, provider_limit, stderr_first)`. This is the old `_runtime` of `test_opencode_runtime.py`, with a `provider_limit` keyword added. `stderr_first` is the executable override: it puts the wrapper that writes a line to standard error and then execs the stand-in in front of the stand-in.
+    - `budget_steps` (formerly `_steps`), `over_budget` (formerly `_over_budget`), `RESUME_REPLY`, `RESUME_ENTRY`, `WAIT_SECONDS` and `BOUND_SECONDS`.
+
+    `test_opencode_budget.py` and `test_opencode_provider_limit.py` import these and keep no copies. That removes the copied `_runtime`, the inline build, `_stderr_first` and the imports from other test modules.
+
+    Earlier test files I changed under the standing leave:
+    - `tests/adapters/test_opencode_runtime.py`: its `_runtime` was removed, and it uses `stand_in_runtime`.
+    - `tests/adapters/test_opencode_resume_session.py`: it imported `_runtime` from `test_opencode_runtime.py` and now imports `stand_in_runtime`.
+
+    Every test in both files keeps its name and checks the same thing.
+
+    **3.** `test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit` now also asserts `len(read_calls(tmp_path / "bin")) == 2`.
+
+    **4. Criterion 14 is new rows of criterion 10's test.** The test now has three rows: `limit-line`, `500` (`HTTP 500 Internal Server Error`) and `1428` (`error 1428`). The two new rows play a valid block and must end `completed`.
+    - My first `make test` failed on the `limit-line` row. The new call-count check found 0 calls, because the runtime stops on the standard-error line before the stand-in records its call. How many calls get recorded there depends on timing.
+    - Every row now asserts `len(read_calls(...)) <= 1`. A `completed` run must have run the stand-in, so for criterion 14's rows that check still means exactly one call.
+    - The earlier version of the criterion-10 test checked no call count, so the limit row checks nothing less than before. The second `make test` was green.
+
+    Mapping:
+    - criterion 1: tests/adapters/test_opencode_budget.py::test_a_call_is_stopped_once_its_summed_cost_passes_the_budget
+    - criterion 2: tests/adapters/test_opencode_budget.py::test_the_resume_continues_the_session_with_the_finish_message_and_sums_both_calls
+    - criterion 3: tests/adapters/test_opencode_budget.py::test_a_resume_past_its_own_budget_ends_the_run_by_budget_without_a_third_call
+    - criterion 4: tests/adapters/test_opencode_budget.py::test_a_budget_stop_without_a_known_session_is_not_resumed
+    - criterion 5: tests/adapters/test_opencode_budget.py::test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit
+    - criterion 6: tests/adapters/test_opencode_provider_limit.py::test_a_limit_error_after_a_step_ends_the_run_at_once_with_its_wait_and_session
+    - criterion 7: tests/adapters/test_opencode_provider_limit.py::test_a_limit_error_before_any_step_ends_the_run_without_measures
+    - criterion 8: tests/adapters/test_opencode_provider_limit.py::test_an_error_that_is_no_limit_does_not_stop_the_call
+    - criterion 9: tests/adapters/test_opencode_provider_limit.py::test_an_error_without_a_status_is_a_limit_when_its_message_holds_the_pattern
+    - criterion 10: tests/adapters/test_opencode_provider_limit.py::test_a_limit_line_on_standard_error_ends_the_run_at_once_without_a_wait (row limit-line)
+    - criterion 11: tests/adapters/test_opencode_provider_limit.py::test_a_limit_in_the_agent_s_text_or_a_tool_s_output_stops_nothing
+    - criterion 12: tests/adapters/test_opencode_provider_limit.py::test_a_limit_in_the_resume_ends_the_run_by_the_limit_with_both_calls_costs
+    - criterion 13: tests/adapters/test_opencode_budget.py::test_the_kill_point_is_reached_once_for_a_resumed_run
+    - criterion 14: tests/adapters/test_opencode_provider_limit.py::test_a_limit_line_on_standard_error_ends_the_run_at_once_without_a_wait (rows 500, 1428)
+    - criteria 15 and 16: no test (`make check` and the docs).
+
+    Files: no new files. Changed: `tests/adapters/opencode_stand_in.py`, `tests/adapters/test_opencode_budget.py`, `tests/adapters/test_opencode_provider_limit.py`, `tests/adapters/test_opencode_runtime.py` and `tests/adapters/test_opencode_resume_session.py`. Every module imported; nothing was left that the test run could not import.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.5 s)
