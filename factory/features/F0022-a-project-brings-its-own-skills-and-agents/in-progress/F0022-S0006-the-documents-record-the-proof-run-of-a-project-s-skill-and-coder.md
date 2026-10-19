@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 302
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T23:36:02.221021Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T23:36:02.221021Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T23:36:21.450502Z'
+  stage: intake
+  run: 5922b8a2708f479d9b0c3295cb9c9d78
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -80,3 +82,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. It names no module or signature, and it states no behaviour that needs a criterion. The documenter's two files, `docs/operator-guide.md` and `docs/decisions.md`, are named.
+   - Criteria: all three are checkable. Criterion 1 is a negative, "nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes", and the entries of the tester and the coder state it. Criterion 3 names exact strings to remove or replace, plus the content of the new `- Proven:` bullet and the `Open:` change. I confirmed that the old strings exist: `docs/operator-guide.md:989` holds both "(the feature's proof run looks)" and "A run reads them from its checkout". `docs/decisions.md:757` holds the entry, with an `Open:` bullet at line 767. The story states no limit, validation or rejected input, so there is no failing side to cover.
+   - Smoke test: the four commands are runnable, and each `Expect:` line is a literal output (`0`, `0`, `1`, `documents ok`). The `sed` range in the third command starts at the exact heading at line 757 of `docs/decisions.md`. It stops at the next `## `, and the new bullet falls inside that range.
+   - Architecture: no layer is touched, and the change is limited to documents, which fits the documenter's write paths (`README.md` and `docs/*`).
+   - Scope: the story belongs to F0022 and records the proof run (the feature's change 2, decision 15). It leaves the nested `.claude/skills/` open, as decision 12 does, and touches nothing the feature puts out of scope. The story's description of the proof run's evidence is the human's account, and I did not verify it.
