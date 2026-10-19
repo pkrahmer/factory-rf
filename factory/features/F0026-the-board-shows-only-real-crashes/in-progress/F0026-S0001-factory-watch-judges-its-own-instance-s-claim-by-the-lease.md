@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T12:41:12.790764Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T12:40:46.296997Z'
   stage: review
   run: bb1159f652174673b6a4ca6eadb76441
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:41:12.790764Z'
+  stage: doing
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -274,3 +283,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests:
    - `tests/test_claim_ownership.py`: changed under the feature's decision 5, which the story names. Only `LEASE_FUNCTIONS` changed; both tests keep their names and what they check.
+10. factory: started doing as self.
