@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T07:49:32.734323Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-19T07:49:12.315731Z'
   stage: doing
   run: 45b46b45a9d34f1e95fcd3673ede0ce5
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:49:32.734323Z'
+  stage: tests
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -420,3 +429,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What I expect from the code: `named_wait` in `src/factory/domain/provider_limits.py` already accepts up to six digits, so the new rows should pass without a code change. If either one fails, the work item comes back here.
 
     Not touched: the 5 new `make duplicates` findings reported in entry 13. None of them comes from this story's diff.
+18. factory: started tests as self.
