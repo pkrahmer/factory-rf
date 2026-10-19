@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 259
-comments_read: [6265170554]
+comments_read: [6265170554, 6265355420]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: d9a14394ec744c159466958d48395923
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-19T10:42:56.928106Z'
+  stage: doing
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -340,3 +345,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     **Main choice:** `PatientRuns` is one loop that keeps the joined result and the total of the waits so far, so the budget and time left are worked out from the joined cost and duration. I rejected a recursive resume, which would need the waits passed down through each call.
 
     **Noticed, not touched:** None of the models I changed appear in the records contract, so no schemas were regenerated. I did not run `make duplicates`.
+11. 2026-10-19 human: (a). Change the row's expected waits to `[timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)]`, as the Interface's steps 3 and 4 give them; the log line stays `waited 1800 s, the ceiling of 1800 s; the run ends provider_limit`, so the row still checks whole seconds on the ceiling line (the waits sum to 1800.7 s). The Interface stays as it is. The tester makes the change in this story's own test.
