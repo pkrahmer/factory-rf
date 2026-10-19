@@ -18,6 +18,7 @@ from adapters.opencode_stand_in import (
     step_finish,
     step_start,
     text,
+    write_agent_settings,
     write_opencode,
 )
 from adapters.test_claude_runtime_os_user import _without_locale
@@ -40,12 +41,6 @@ REPLY = stdout(step_start(), text(result_text()), step_finish())
 CONFIG_NAME = re.compile(
     r"opencode-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.json"
 )
-
-
-def _settings(tmp_path: Path, text_of_file: str) -> Path:
-    path = tmp_path / "settings.json"
-    path.write_text(text_of_file, encoding="utf-8")
-    return path
 
 
 @pytest.mark.parametrize(
@@ -129,7 +124,7 @@ def test_a_request_the_runtime_cannot_configure_fails_before_anything_starts(
     if settings == "missing":
         settings_file = tmp_path / "missing.json"
     elif settings is not None:
-        settings_file = _settings(tmp_path, settings)
+        settings_file = write_agent_settings(tmp_path, settings)
     runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
 
     with pytest.raises(AgentRuntimeError) as raised:
@@ -163,7 +158,7 @@ def test_the_configuration_defines_the_agent_from_its_definition_and_the_setting
 ) -> None:
     deny = ["Bash(git push*)", "Read(.env)", "Bash(rm -rf *)"]
     settings_file = (
-        _settings(tmp_path, json.dumps({"permissions": {"allow": [], "deny": deny}}))
+        write_agent_settings(tmp_path, json.dumps({"permissions": {"allow": [], "deny": deny}}))
         if with_settings
         else None
     )

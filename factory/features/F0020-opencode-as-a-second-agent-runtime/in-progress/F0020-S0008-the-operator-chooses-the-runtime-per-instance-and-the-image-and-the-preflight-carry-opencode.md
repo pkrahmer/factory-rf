@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T11:26:00.995057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-19T11:26:00.995057Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-19T11:29:15.487287Z'
+  stage: tests
+  run: 962aa57ea2bd4316bf970ef31428e617
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -417,3 +419,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: `make duplicates` still reports the four `claude_runtime`/`opencode_runtime` similar-code pairs and `ManualWaiter` in `src/factory/adapters/clock.py`. The reviewer judged that none of these comes from this story. The journal did not change the Description. I did not run `make check` this run because I changed nothing; it was green after entry 17.
 22. factory: started tests as self.
+23. tester: Round 1, mode: a test change the human approved. I made the four test changes from the coder's entry 21, which come from the reviewer's findings in entry 19. Finding 1 changes only this story's own test. Findings 2 to 4 are moves of a shared test helper under the standing leave in CLAUDE.md (*Tests*). Every test keeps its name and checks the same thing. No test was added or renamed, and the criterion → test mapping in entry 8 still holds.
+
+    1. `tests/entry/test_wiring_opencode.py`: I removed `_settings`. The three tests that used it now take the `local_settings` fixture from `tests/conftest.py` and call `local_settings.model_copy(update={...})` with the same fields as before. The fixture has the same root, checkout, state and `agents-home`.
+    2. The agent-settings writer: `write_agent_settings(folder, text_of_file) -> Path` is now in the shared stand-in module `tests/adapters/opencode_stand_in.py`. It creates the folder if it is missing and writes `settings.json` there. It replaces `_settings` in `tests/adapters/test_opencode_runtime.py` and the two inline writes in `tests/entry/test_wiring_opencode.py`, which now use one constant, `DENY_PUSH`.
+    3. Compose: I created `tests/compose_support.py`, which holds `COMPOSE`. The `service` fixture of `tests/test_compose.py` moved to `tests/conftest.py` as `compose_service`. `tests/test_compose.py` now uses that fixture (the parameter was renamed in its three tests) and imports `COMPOSE` from the new module. `tests/test_opencode_image.py` reads the service's environment through the same fixture. Other modules still define their own `COMPOSE` (`test_claude_token_mount.py`, `test_compose_init.py`, `test_compose_project.py`, `test_image_credentials.py`, `test_token_folder.py`). I left them alone because the finding did not name them.
+    4. `BASE`: I created `tests/settings_support.py`, which holds the shared environment constant. It replaces the module's own `BASE` in this story's three modules (`tests/domain/test_settings_agent_runtime.py`, `test_settings_opencode_models.py`, `test_settings_opencode_folders.py`). It also replaces `BASE` in these earlier modules, each of which held the same value: `tests/domain/test_settings.py`, `test_settings_pinned.py`, `test_settings_min_free.py`, `test_settings_provider_limit.py`, `test_settings_provider_limit_wait.py`, `test_settings_claude_login.py`, `test_settings_api_login.py`, `test_settings_boundaries.py` and `test_settings_agent_user.py`. `tests/entry/test_wiring_agent_user.py` also has a `BASE`, but it is a different value (a process environment), so I did not change it.
+
+    Files I created: `tests/compose_support.py` and `tests/settings_support.py`.
+
+    Earlier tests I changed under the standing leave: `tests/conftest.py`, `tests/test_compose.py`, `tests/adapters/opencode_stand_in.py`, `tests/adapters/test_opencode_runtime.py`, and the nine earlier `tests/domain/test_settings*.py` modules listed in item 4.
+
+    Every module imports in the test run.
+
+    `make test` ran once: test: green (38.3 s), coverage 99.06 %. `make lint`: lint: green. As this stage says, I did not run `make types`; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (42.4 s)

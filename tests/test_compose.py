@@ -1,47 +1,34 @@
 """The compose file: a restart policy, the health check, required settings and the volumes."""
 
 import re
-from pathlib import Path
 
 import pytest
 from ruamel.yaml import YAML
 
-ROOT = Path(__file__).parent.parent
-COMPOSE = ROOT / "image" / "compose.yml"
-
-
-@pytest.fixture
-def service() -> dict[str, object]:
-    """Return the service `factory` of the compose file."""
-    loaded = YAML(typ="safe").load(COMPOSE.read_text(encoding="utf-8"))
-    services = loaded["services"]
-    assert isinstance(services, dict)
-    found = services["factory"]
-    assert isinstance(found, dict)
-    return found
+from compose_support import COMPOSE
 
 
 def test_the_service_restarts_unless_stopped_and_runs_the_health_check(
-    service: dict[str, object],
+    compose_service: dict[str, object],
 ) -> None:
-    assert service["restart"] == "unless-stopped"
-    assert service["healthcheck"] == {
+    assert compose_service["restart"] == "unless-stopped"
+    assert compose_service["healthcheck"] == {
         "test": ["CMD", "python", "-m", "factory.entry.health"],
         "interval": "30s",
         "timeout": "10s",
         "retries": 3,
         "start_period": "60s",
     }
-    build = service["build"]
+    build = compose_service["build"]
     assert isinstance(build, dict)
     assert (build["context"], build["dockerfile"]) == ("..", "image/Dockerfile")
 
 
 @pytest.mark.parametrize("name", ["FACTORY_REPOSITORY_URL", "FACTORY_INSTANCE"])
 def test_each_required_variable_refuses_to_start_unset_and_has_no_default(
-    service: dict[str, object], name: str
+    compose_service: dict[str, object], name: str
 ) -> None:
-    environment = service["environment"]
+    environment = compose_service["environment"]
     assert isinstance(environment, dict)
     value = environment[name]
 
@@ -49,8 +36,8 @@ def test_each_required_variable_refuses_to_start_unset_and_has_no_default(
     assert ":-" not in value
 
 
-def test_the_image_label_defaults_to_unlabelled(service: dict[str, object]) -> None:
-    build = service["build"]
+def test_the_image_label_defaults_to_unlabelled(compose_service: dict[str, object]) -> None:
+    build = compose_service["build"]
     assert isinstance(build, dict)
 
     assert build["args"]["FACTORY_IMAGE"] == "${FACTORY_IMAGE:-unlabelled}"

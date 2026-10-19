@@ -9,9 +9,9 @@ from pydantic import ValidationError
 from factory.domain.errors import FactoryError, SettingsInvalid
 from factory.domain.git import GitIdentity
 from factory.domain.settings import InstanceSettings, read_settings
+from settings_support import BASE
 
 URL = "/srv/project.git"
-BASE = {"FACTORY_REPOSITORY_URL": URL, "FACTORY_INSTANCE": "factory-1"}
 DEFAULT_IMAGE_PATH = Path("/opt/factory/image-id")
 OTHER_IMAGE_PATH = Path("/images/image-id")
 

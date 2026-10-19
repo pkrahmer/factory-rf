@@ -14,6 +14,7 @@ from adapters.opencode_stand_in import (
     step_finish,
     step_start,
     text,
+    write_agent_settings,
     write_opencode,
 )
 from adapters.test_agent_launch_login import API_LOGIN
@@ -31,21 +32,8 @@ from wiring_support import CREDENTIAL, every_tool
 
 REPLY = stdout(step_start(), text(result_text()), step_finish())
 LIMIT_REPLY = stdout(step_start(), error("limit reached", status_code=429))
+DENY_PUSH = json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}})
 OPENCODE_THREE = [".local/share/opencode", ".local/state/opencode", ".cache/opencode"]
-
-
-def _settings(tmp_path: Path, **fields: object) -> InstanceSettings:
-    root = tmp_path.resolve()
-    return InstanceSettings.model_validate(
-        {
-            "repository_url": "/srv/project.git",
-            "instance": "factory-1",
-            "checkout": root / "checkout",
-            "state_directory": root / "state",
-            "agent_home": root / "agents-home",
-            **fields,
-        }
-    )
 
 
 @pytest.mark.parametrize(
@@ -56,10 +44,10 @@ def _settings(tmp_path: Path, **fields: object) -> InstanceSettings:
     ],
 )
 def test_the_built_runtime_is_the_one_the_instance_names(
-    tmp_path: Path, runtime: str, expected: type[object]
+    local_settings: InstanceSettings, runtime: str, expected: type[object]
 ) -> None:
     boundaries = build_boundaries(
-        _settings(tmp_path, agent_runtime=runtime),
+        local_settings.model_copy(update={"agent_runtime": runtime}),
         CREDENTIAL,
         hosting=FakeHostingService(),
         confine_executable=None,
@@ -76,23 +64,21 @@ def test_the_built_runtime_is_the_one_the_instance_names(
     ],
 )
 def test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_and_limit(
-    tmp_path: Path, reply: str, end_reason: str
+    tmp_path: Path, local_settings: InstanceSettings, reply: str, end_reason: str
 ) -> None:
     executable = write_opencode(tmp_path / "bin", [Step(stdout=reply)])
     api_login = tmp_path / "api-login"
     api_login.write_text(f"{API_LOGIN}\n", encoding="utf-8")
-    settings = _settings(
-        tmp_path,
-        agent_runtime="opencode",
-        opencode_executable=str(executable),
-        opencode_models={"sonnet": "anthropic/claude-sonnet-5-5"},
-        api_login_file=api_login,
-        provider_limit=ProviderLimit(status=429),
+    settings = local_settings.model_copy(
+        update={
+            "agent_runtime": "opencode",
+            "opencode_executable": str(executable),
+            "opencode_models": {"sonnet": "anthropic/claude-sonnet-5-5"},
+            "api_login_file": api_login,
+            "provider_limit": ProviderLimit(status=429),
+        }
     )
-    settings.agent_home.mkdir(parents=True)
-    (settings.agent_home / "settings.json").write_text(
-        json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}}), encoding="utf-8"
-    )
+    write_agent_settings(settings.agent_home, DENY_PUSH)
     runs = settings.state_directory / "runs"
     runs.mkdir(parents=True)
     boundaries = build_boundaries(
@@ -120,22 +106,20 @@ def test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_a
     ],
 )
 def test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s(
-    tmp_path: Path, layout: Layout, folders: list[str], expected: list[str]
+    local_settings: InstanceSettings, layout: Layout, folders: list[str], expected: list[str]
 ) -> None:
     confine = write_confine(layout)
     executable = write_opencode(layout.stand_in, [Step(stdout=REPLY)])
-    settings = _settings(
-        tmp_path,
-        checkout=layout.checkout,
-        agent_runtime="opencode",
-        opencode_executable=str(executable),
-        opencode_models={"sonnet": "anthropic/claude-sonnet-5-5"},
-        opencode_folders=folders,
+    settings = local_settings.model_copy(
+        update={
+            "checkout": layout.checkout,
+            "agent_runtime": "opencode",
+            "opencode_executable": str(executable),
+            "opencode_models": {"sonnet": "anthropic/claude-sonnet-5-5"},
+            "opencode_folders": folders,
+        }
     )
-    settings.agent_home.mkdir(parents=True)
-    (settings.agent_home / "settings.json").write_text(
-        json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}}), encoding="utf-8"
-    )
+    write_agent_settings(settings.agent_home, DENY_PUSH)
     (settings.state_directory / "runs").mkdir(parents=True)
     boundaries = build_boundaries(
         settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=str(confine)

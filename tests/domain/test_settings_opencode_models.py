@@ -4,8 +4,8 @@ import pytest
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import OPENCODE_MODELS_VARIABLE, read_settings
+from settings_support import BASE
 
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
 SHAPE = "which is not <alias>=<provider>/<model>"
 
 

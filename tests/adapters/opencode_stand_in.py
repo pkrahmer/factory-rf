@@ -85,6 +85,14 @@ def write_opencode(directory: Path, steps: list[Step]) -> Path:
     return path
 
 
+def write_agent_settings(folder: Path, text_of_file: str) -> Path:
+    """Write `text_of_file` as `settings.json` in `folder`, created if missing; return its path."""
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / "settings.json"
+    path.write_text(text_of_file, encoding="utf-8")
+    return path
+
+
 def read_config_modes(directory: Path) -> list[int | None]:
     """The mode of the configuration file at each call, `None` where there was none."""
     modes = directory / CONFIG_MODES

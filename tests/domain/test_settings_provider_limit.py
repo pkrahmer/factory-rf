@@ -4,8 +4,7 @@ import pytest
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import read_settings
-
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
+from settings_support import BASE
 
 
 @pytest.mark.parametrize(

@@ -1,13 +1,9 @@
 """The image installs opencode at a pinned version and the compose file lets the operator choose."""
 
 import re
-from pathlib import Path
-
-from ruamel.yaml import YAML
 
 from dockerfile_support import dockerfile_instructions
 
-COMPOSE = Path(__file__).parent.parent / "image" / "compose.yml"
 MODELS = (
     "opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,"
     "haiku=anthropic/claude-haiku-5-5"
@@ -35,12 +31,11 @@ def test_the_image_installs_opencode_at_its_pin_and_sets_its_version_and_models(
     assert models < user
 
 
-def test_the_compose_service_passes_the_runtime_and_opencode_build_with_the_image_s_defaults() -> (
-    None
-):
-    environment = YAML(typ="safe").load(COMPOSE.read_text(encoding="utf-8"))["services"]["factory"][
-        "environment"
-    ]
+def test_the_compose_service_passes_the_runtime_and_opencode_build_with_the_image_s_defaults(
+    compose_service: dict[str, object],
+) -> None:
+    environment = compose_service["environment"]
+    assert isinstance(environment, dict)
     names = list(environment)
     after = names[names.index("FACTORY_INSTANCE") + 1 : names.index("FACTORY_INSTANCE") + 6]
     pin = next(

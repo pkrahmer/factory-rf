@@ -4,8 +4,8 @@ import pytest
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import OPENCODE_FOLDERS_VARIABLE, read_settings
+from settings_support import BASE
 
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
 INSIDE = "which is not a folder inside the agent's home"
 
 
