@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T04:34:55.037187Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-19T04:34:34.951395Z'
   stage: review
   run: 5e5370a3222d4d6eabd93b2fe41044a6
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:34:55.037187Z'
+  stage: docs
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -337,3 +346,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - tests/adapters/test_process.py: changed under the standing leave to move a shared test helper (CLAUDE.md, *Tests*). `_python` moved to `process_support.python_argv` and the unused `import sys` was dropped. Every test keeps its name and checks the same thing.
     - tests/process_support.py: changed under the same standing leave, as the destination of the move. It only gains `python_argv`; `is_gone` and `GONE_WITHIN_SECONDS` are unchanged.
+21. factory: started docs as self.
