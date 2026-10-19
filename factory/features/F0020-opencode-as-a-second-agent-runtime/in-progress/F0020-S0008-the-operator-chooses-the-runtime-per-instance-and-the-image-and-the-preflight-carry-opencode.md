@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T11:34:00.483790Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-19T11:33:40.239196Z'
   stage: review
   run: c4d605a5f64242c4ad5effe09679fe11
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:34:00.483790Z'
+  stage: docs
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -510,3 +519,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/application/test_opencode_item.py:22 and tests/application/test_machine_checks_runtime.py:19: each builds `InstanceSettings` with its own `_settings` instead of starting from a shared fixture such as `local_settings`.
     - tests/adapters/test_opencode_runtime_folders.py:39-55: the two `OpencodeRuntime(...)` branches repeat every argument just to leave out `runtime_folders`. A keyword dict would say the same once.
     - Other test modules still define their own `COMPOSE` (test_claude_token_mount.py, test_compose_init.py, test_compose_project.py, test_image_credentials.py, test_token_folder.py). They are outside this diff and are left for a later move.
+28. factory: started docs as self.
