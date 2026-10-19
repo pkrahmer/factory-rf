@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T23:34:07.215815Z'
   stage: smoke-test
   run: 66bf0d0f0d8c4256918dde34377d76b6
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:35:26.084090Z'
+  stage: approval
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -200,3 +205,4 @@ Expect: `documents ok`
     - Criterion 3 holds. `docs/operator-guide.md:703`, *What a stage run shows*, point 3, now carries the Interface's new text word for word, followed by "(the tests stage's `make test`, stopped at its 10 minutes)". The rule it illustrates, ` (stopped at its time limit after <seconds> s)`, is unchanged.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 2.2 min, 29 turns, 84306 tokens in (379256 more from cache), 5761 out, $0.70
