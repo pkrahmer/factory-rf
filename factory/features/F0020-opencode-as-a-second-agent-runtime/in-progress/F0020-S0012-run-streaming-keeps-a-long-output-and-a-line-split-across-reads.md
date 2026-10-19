@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T18:50:32.763454Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T18:50:32.763454Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T18:50:54.725043Z'
+  stage: smoke-test
+  run: 840f23cce74c400b9be5276b88dcb7c2
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -183,3 +185,20 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed, no findings.
+
+    I ran the one command under `## Smoke test` exactly as written, from the repository root. It exited with 0.
+
+    ```
+    [('stdout', 200000)] 200001
+    [('stderr', 'hello'), ('stdout', '{"a":1}')] '{"a":1}\n' 'hello\n'
+    ```
+    Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('stdout', '{"a":1}')] '{"a":1}\n' 'hello\n'`. Met: both lines match exactly.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: on standard output, the 200000-character line reached the callback once and whole, and `stdout` has length 200001. The smoke test does not cover the standard-error row of this criterion. The tester's parametrized test covers it, and nothing in the output contradicts it.
+    - Criterion 2: a line split by a 0.5 s pause reached the callback once and whole on both streams (`{"a":1}` and `hello`), and each stream's text in the result is whole. Nothing contradicts it.
+    - Criterion 3: I did not run `make check` in this stage. The coder reported `check: green` (entry 7) and the factory reused that result after the docs stage (entry 11). Nothing in the smoke test contradicts it.
+    - Criterion 4: `docs/project-guide/processes-and-checks.md:71` holds the sentence: "A line reaches the callback once and whole however many reads it takes to arrive …, and `stdout` and `stderr` hold the whole output."
+
+    I changed nothing. The working tree holds only the factory's `.costs.jsonl` sidecar.
