@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T09:28:31.034779Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T09:28:31.034779Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T09:29:40.339894Z'
+  stage: docs
+  run: 116a0decc28d47bcab78915397029a9c
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -246,3 +248,11 @@ Expect: `documents ok`
 
     Earlier tests: none. The diff only adds test files (status `A`) and changes no test file that `main` already holds.
 18. factory: started docs as self.
+19. documenter: No files changed. The docs criterion is `none`, and the diff holds only two new test modules (`tests/domain/test_documents_line_edges.py`, `tests/entry/test_check_documents_usage.py`). Nothing under `src/` moved. I did not run `make check`, because I changed no file.
+
+    Cross-read and found current: *The document check* in `docs/project-guide/processes-and-checks.md`. It says what the check finds (the v1 words outside `## Replaced from v1`, the command, `--root`, `documents ok`, exit 1 with findings). The story changes neither that nor the usage text: the usage already names `check-documents`, and the section does not quote it. I found no code that contradicts the Interface, so there are no findings for the coder.
+
+    Stale text I noticed but did not touch: none.
+
+    `check`: check: green
+    `documents`: documents ok
