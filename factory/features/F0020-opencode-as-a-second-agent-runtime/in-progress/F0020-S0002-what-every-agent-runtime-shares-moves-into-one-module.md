@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T03:57:21.211835Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T03:57:00.929721Z'
   stage: intake
   run: 6ebfa4a4bf58433fb7d71a07b44cdc98
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:57:21.211835Z'
+  stage: tests
 ---
 
 # What every agent runtime shares moves into one module
@@ -161,3 +170,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: runnable with `uv run -q python -` and a temporary folder; each of the four expected output lines is exact and checkable (sudo words and 40.0 s, the confine words, 1.00, `completed 4 1.25 3.0`).
    Architecture: shared words and texts go in the adapters layer, the pure summing of a resumed run goes in the domain, and `agent_launch` imports no process module, so R5's one-wrapper rule and the layer order hold.
    Scope: inside the feature's scope for S0002 (`agent_launch`, `resumed_result`, `claude_runtime`) and nothing from its Out of scope. No earlier test changes.
+4. factory: started tests as self.
