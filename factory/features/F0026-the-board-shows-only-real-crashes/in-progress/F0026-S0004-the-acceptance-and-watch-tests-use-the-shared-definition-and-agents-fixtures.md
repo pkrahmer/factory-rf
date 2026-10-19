@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T17:28:06.011389Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T17:28:06.004141Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:28:06.011389Z'
+  stage: intake
+---
+
 # The acceptance and watch tests use the shared definition and agents fixtures
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -43,3 +70,6 @@ uv run pytest -q -p no:cacheprovider --no-cov -n 4 tests/application/test_accept
 Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
