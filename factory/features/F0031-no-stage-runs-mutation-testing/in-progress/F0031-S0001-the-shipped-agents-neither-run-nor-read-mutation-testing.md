@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T20:53:45.980015Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T20:53:24.236936Z'
   stage: tests
   run: 980123cff2644e24ba046a9ecdcb0181
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:53:45.980015Z'
+  stage: doing
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -138,3 +147,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text
+6. factory: started doing as self.
