@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T13:46:11.092030Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T13:45:50.551264Z'
   stage: tests
   run: b0bc512dc7ac49c699d21d6759cd052d
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:46:11.092030Z'
+  stage: doing
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -296,3 +305,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.1 s)
+14. factory: started doing as self.
