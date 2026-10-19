@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T13:31:24.863620Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T13:31:24.863620Z'
   stage: smoke-test
+- number: 17
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T13:31:53.031987Z'
+  stage: smoke-test
+  run: 92bac92515fb4812bb3cbfeb2e0b8b77
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -397,3 +399,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 16. factory: started smoke-test as self.
+17. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` exactly as written, from the repository root, in bash. Its temporary directory came from `mktemp -d` and its own `trap` removed it on exit. I fixed nothing and changed no files.
+
+    Command 1 (the bare remote, the human clone with `factory/agents/coder.md` and `factory/agents/designer.md` pushed to `main`, a fresh checkout clone, and `ProjectAgentDefinitions` over the shipped `claude/` agent home). Output, exit status 0:
+
+    ```
+    pushed
+    opus 2 The project's coder.
+    You test what the criteria say and nothing else; a case they leave open is a question.
+    acceptance-reviewer coder designer documenter intake reviewer smoke-tester tester
+    factory/agents/designer.md at origin/main: key not applied by the agent runtime: colour
+    ```
+
+    Met its `Expect:` line: yes. There are exactly five lines and each one matches the expected text.
+
+    Checked against the acceptance criteria:
+    - The project's `coder.md` on `origin/main` replaced the shipped coder whole: model `opus`, budget `2` and its own instructions (criterion 4).
+    - `tester` has no project file, so it fell back to the installed agent (criteria 4 and 14).
+    - `names()` gives the sorted union of the shipped roles and the project-only role `designer`, with no repeats (criterion 8).
+    - The faulty project file `designer.md` raised `AgentDefinitionInvalid` with a fault that names `factory/agents/designer.md at origin/main`. No installed file replaced it (criterion 7).
+    - The reader read a fresh clone at `origin/main`, which agrees with the rule that it reads the ref and not the work tree (criterion 6).
+
+    No output contradicts any criterion. The smoke test does not cover the other criteria, which are left to the tests and checks:
+    - `make check` and the docs (criteria 15 and 16): the factory runs the checks.
+    - The tick, preflight, loader and protected-path behaviour (criteria 2 and 10 to 13).
+
+    Findings: none.
+
+    Open: nothing.
