@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T22:14:16.775852Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T22:13:56.109136Z'
   stage: intake
   run: f652d7693a714fdfbdebfcaad0594dc2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:14:16.775852Z'
+  stage: tests
 ---
 
 # The guide's index names the modules its files describe by class
@@ -95,3 +104,4 @@ Expect: `documents ok`
    Smoke test: the commands are runnable and each Expect line is checkable (`True`/`0`/`True`; `1` and `0`; `0`; `documents ok`).
    Architecture: no code layer is touched, and the guide's index is where CLAUDE.md sends agents.
    Scope: it fits F0025, whose goal is the guide as index plus one file per domain. The story keeps the new `factory.entry.health` content out. Nothing in the feature's Out of scope is touched.
+4. factory: started tests as self.
