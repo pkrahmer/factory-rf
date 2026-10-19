@@ -155,12 +155,13 @@ assert outcome.ok and agent_runtime.requests() == [request]
 
 ## The agent definition reader
 
-Every role of the pipeline definition needs an agent file of the same name, `<agent home>/agents/<name>.md`. `AgentDefinitionReader` (`factory.application.agent_runtime`, an abstract base class, `Boundaries.agent_definitions`) has two operations and `FrontmatterAgentDefinitionReader(agent_home)` (`factory.adapters.agent_files`) implements them. F0005 uses `read` to compose every task; `PipelineLoader` uses `names()` to check the roles.
+Every role of the pipeline definition needs an agent file of the same name, `<agent home>/agents/<name>.md`. `AgentDefinitionReader` (`factory.application.agent_runtime`, an abstract base class, `Boundaries.agent_definitions`) has three operations and `FrontmatterAgentDefinitionReader(agent_home)` (`factory.adapters.agent_files`) implements them. `ProjectAgentDefinitions` (below) is the one wired as `Boundaries.agent_definitions`. F0005 uses `read` to compose every task; `PipelineLoader` uses `names()` to check the roles.
 
 | Operation | Does |
 |---|---|
 | `names()` | the sorted stems of the regular `.md` files directly in `agents/` whose stem is a `Name`; `[]` for an empty directory |
-| `read(name)` | the `AgentDefinition` of the file; `name` is checked as a `Name` before any path is built |
+| `read(name)` | the `AgentDefinition` of the file; `name` is checked as a `Name` before any path is built (`check_agent_name` in `factory.domain.agent_runs`, raising `AgentDefinitionMissing`) |
+| `parse(name, text)` | the `AgentDefinition` of the text of an agent file, with every check `read` makes once it has the text; `read` is the file lookup plus `parse` |
 
 The front matter is split as the work item reader splits it, with `split_front_matter`, and loaded with ruamel.yaml through `RuamelYamlHandler`, never PyYAML (so `model: on` is the text `on`). The body, stripped, is `instructions`. Only `model`, `tools`, `effort` and `budget_usd` may appear (`APPLIED_AGENT_KEYS` in `factory.domain.agent_runs`): the runner builds its flags and its prompt from them, because Claude Code ignores an agent file in print mode.
 
@@ -172,6 +173,15 @@ The front matter is split as the work item reader splits it, with `split_front_m
 | `budget_usd` | the budget of the run; the run ends with `budget` when it is spent |
 
 Any other key is refused with `AgentDefinitionInvalid` (fault `key not applied by the agent runtime: <key>`, `key` the first such key in the file's order, keys compared as written so `Model` is refused) before the applied keys are validated, so it wins over a missing `model` or a bad `budget_usd`. The validated keys go to `AgentDefinition`. `budget_usd` becomes a `Decimal` (`0.1` gives `Decimal("0.1")`). No variable in the module is named `yaml`, because the semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`.
+
+### A project's own agents
+
+`ProjectAgentDefinitions(git, installed, ref=PIPELINE_REF)` (`factory.application.project_agents`) is an `AgentDefinitionReader` over the `Git` interface and an installed reader. `build_boundaries` wires it with the boundaries' `GitCli` and `FrontmatterAgentDefinitionReader(settings.agent_home)`; the loader, the task composer and the preflight reach it through `boundaries.agent_definitions` and know nothing of it.
+
+- `read(name)` checks the name first (no `git` call for a bad one), then reads `factory/agents/<name>.md` at `ref` (`origin/main`) with `git.show_file`. No file: `installed.read(name)`. A file: `installed.parse(name, text)`, so the rules are the installed reader's, and a fault is raised again with the fault text `factory/agents/<name>.md at origin/main: <fault>` and the same `key`. The installed file is then not read: a faulty project file is never replaced.
+- `names()` is the sorted union of `installed.names()` and the stems of the files directly in `factory/agents/` at `ref` that are `<name>.md` with a `Name` stem. `GitError` and the installed reader's `AgentDefinitionError` propagate.
+- `parse` is the installed reader's.
+- It keeps nothing between calls and never reads the work tree, so a push to `main` is seen after the next fetch (the tick fetches) and a branch's copy never.
 
 ### Faults
 

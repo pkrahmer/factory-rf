@@ -432,7 +432,7 @@ The preflight is a list of seven items, and of up to fourteen with the machine's
 
 #### The probe of the agent run
 
-`agent-run-probe` runs the agent runtime once, with the factory's own arguments: the shipped agent `coder`, a budget of 0.10 dollar, a fixed one-line prompt, the decision `question` only, a time limit of 2 minutes, as the agent user, with the agent run's environment and a guard that gives no write path. It costs a few cents. Like the other machine items it runs once for each image build and is skipped while the image is unchanged.
+`agent-run-probe` runs the agent runtime once, with the factory's own arguments: the project's agent `coder` (`factory/agents/coder.md` on `origin/main`) or the installed one, a budget of 0.10 dollar, a fixed one-line prompt, the decision `question` only, a time limit of 2 minutes, as the agent user, with the agent run's environment and a guard that gives no write path. It costs a few cents. Like the other machine items it runs once for each image build and is skipped while the image is unchanged.
 
 It fails with `the probe run ended <reason>; run claude -p by hand as <agent user> to see why` (under opencode `run <executable> run by hand as <agent user> to see why`, with no token hint) when the run does not end `completed`. Without `FACTORY_AGENT_USER` the detail names `the factory user` in place of `<agent user>`. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. When the probe ran with the API key, the detail ends instead with `; the agent's API key is read from <file>: check that it is valid and that its account has credit`. A login file that cannot be read or is not ASCII text fails the item with the runtime's message, `cannot read the agent's login file <file>: ...`, or `cannot read the agent's API login file <file>: ...` for the API key. The usual causes are a flag the pinned `claude` rejects (every real run would end `died` with no text that says why), a login missing for the agent user (a missing or expired token when the detail names the login file; otherwise log in as that user and keep the login in its `HOME`), and a run that ran out of its budget or time. A refused `sudo` (`sudo: a password is required`: the rule is missing or wrong) and a state directory that cannot be written fail it with the runtime's own message, and a missing agent `coder` fails it with the reader's message naming the agent. All of these stop the machine before any work item is claimed.
 
@@ -755,7 +755,7 @@ The detail is the fault. The faults the load reports:
 | `factory/pipeline.yml is missing at origin/main` | the file is not on `main`; merge it |
 | a fault of the text, such as `missing key: contract`, `unknown key: <path>`, `invalid <path>: <message>`, `not valid YAML: <problem> (line <l>, column <c>)` | fix `factory/pipeline.yml` on `main`; several faults are joined by `; `. A YAML fault is one line with a 1-based position, for example `not valid YAML: found duplicate key "done" with value "{}" (original value: "{}") (line 27, column 3)` (a stage key written twice; the factory refuses a repeated key on purpose) |
 | a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; see "The pipeline definition" for the rules you meet most often and `docs/project-guide/stages.md`, "The rules of the definition", for the full list |
-| `role <role>: agent is not installed` | the role has no file `<agent home>/agents/<role>.md`; install it. Every missing role is named, in the order of `roles`, joined by `; ` |
+| `role <role>: agent is not installed` | the role has neither a file `factory/agents/<role>.md` on `origin/main` nor a file `<agent home>/agents/<role>.md`; add one of them. Every missing role is named, in the order of `roles`, joined by `; ` |
 | `agent home unavailable: <fault>` | `<agent home>/agents` is missing or is not a directory (see "The agent files") |
 
 The agents are checked only when the text itself is valid, so a broken file and a missing agent home show the file's fault alone until it is fixed. A key with a default may be left out and takes it; a key without one that is missing is a fault.
@@ -770,7 +770,7 @@ Once the pipeline definition on `origin/main` is valid, the load reads the agent
 2026-10-16T12:00:07Z stop repository agent_definition_invalid: coder: key not applied by the agent runtime: permissionMode
 ```
 
-The tick ends there and nothing else happens: no stage is started and no event is handled. To fix it, edit the named file in the agent home (`<agent home>/agents/<agent name>.md`) and remove or correct the key the detail names. The next tick loads again and clears the stop with the line `stop cleared agent_definition_invalid`. A role whose agent is not installed is a fault of the definition and shows as `pipeline_definition_invalid`, because the other checks come first. As for that stop, only the load of `origin/main` raises or clears this one.
+The tick ends there and nothing else happens: no stage is started and no event is handled. To fix it, edit the named file and remove or correct the key the detail names. For a shipped agent that is `<agent home>/agents/<agent name>.md`. For a project's own agent the detail names the file and the ref, `<agent name>: factory/agents/<agent name>.md at origin/main: <fault>`, and the fix is a commit on `main`: a branch's copy is never read, and the installed agent does not stand in for a faulty project file. The next tick loads again and clears the stop with the line `stop cleared agent_definition_invalid`. A role whose agent is not installed is a fault of the definition and shows as `pipeline_definition_invalid`, because the other checks come first. As for that stop, only the load of `origin/main` raises or clears this one.
 
 ## The stops of the tick
 
@@ -828,7 +828,7 @@ The keys, with what a left-out key takes:
 | `acceptance_stage` | the stage of the feature acceptance | none |
 | `tool_paths` | folders every agent run may write besides the stage's write paths (see below) | `[]` |
 
-A stage has `role` (none: no agent runs), `next` (the first name is the forward move), `approval` (the human decides), `checks` (project commands that must pass after the agent), `reports` (project commands run after green and only recorded) and `round_cap` (none: no cap). A role has `write_paths` (required), `lease_duration` (60 minutes) and `time_limit` (40 minutes, one agent run). A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path (`factory/features/F0004-x`). The engine's protected paths (`factory/pipeline.yml`, the forms, `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/`) are outside every write path. Every limit is a positive whole number.
+A stage has `role` (none: no agent runs), `next` (the first name is the forward move), `approval` (the human decides), `checks` (project commands that must pass after the agent), `reports` (project commands run after green and only recorded) and `round_cap` (none: no cap). A role has `write_paths` (required), `lease_duration` (60 minutes) and `time_limit` (40 minutes, one agent run). A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path (`factory/features/F0004-x`). The engine's protected paths (`factory/pipeline.yml`, the forms, `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/`, `factory/agents/`) are outside every write path. Every limit is a positive whole number.
 
 `tool_paths` lists the project's tool state, which no write path names: a virtual environment, caches, reports. Each entry is `<folder>/*` for a folder of the checkout or `~/<folder>/*` for a folder of the agent's home; `<folder>` is one or more plain segments (no `.`, `..`, wildcard or leading `/`). For example:
 
@@ -848,13 +848,13 @@ The rules you meet most often:
 - The lease: for each stage with a role, the role's `time_limit` plus the `time_limit` of every command in the stage's `checks` and `reports` must be at most the role's `lease_duration`. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits; a stage with two checks and a report adds up to 70 and is refused. Raise the `lease_duration` or lower a limit.
 - Values are taken only in their YAML type: a limit is an integer (not `'30'`, `30.0` or `true`), `approval` is `true` or `false` (not `'yes'` or `1`), names and write paths are text. A write path must hold a character that is not whitespace.
 - A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them.
-- Every role needs an agent file (see "The agent files").
+- Every role needs an agent file, a project's own or the installed one (see "The agent files").
 
 A refused definition raises the stop `pipeline_definition_invalid`, described above. `docs/project-guide/stages.md`, "The rules of the definition", lists every fault.
 
 ## The agent files
 
-An agent is a file `<agent home>/agents/<name>.md`. The name is lowercase letters, digits and hyphens, starting with a letter (`coder`); `README.md` and `Coder.md` are not agents, nor is a file with another suffix or one in a subdirectory. Every role of the pipeline definition needs an agent file of the same name.
+An agent is a file `<name>.md`: the project's own, `factory/agents/<name>.md` on `origin/main`, or the installed one, `<agent home>/agents/<name>.md`. The name is lowercase letters, digits and hyphens, starting with a letter (`coder`); `README.md` and `Coder.md` are not agents, nor is a file with another suffix or one in a subdirectory. Every role of the pipeline definition needs an agent file of the same name, from either place.
 
 The file is YAML front matter between two lines of three hyphens, then the agent's instructions:
 
@@ -894,6 +894,17 @@ The reader reports these faults. `read` names the agent; a fault with a key name
 | `invalid <key>: <reason>` | any other value of the wrong type |
 
 When a file has several faults, the first is reported: a key that is not applied before a missing key, and a missing key before an invalid value.
+
+### A project's own agents
+
+For each role the factory reads `factory/agents/<name>.md` from `origin/main` first, at every tick, the same ref as the pipeline definition. When the project has no such file it uses the installed agent. A project's agent replaces the installed one whole and never extends it: nothing is merged, so a key or a line of instructions you leave out is not taken from the shipped file. To change a shipped agent, copy it from `claude/agents/` in the image's source, put the copy at `factory/agents/<name>.md` and change the copy.
+
+The file follows the same rules as any agent file: the same four keys, the same faults. A fault of a project file is named with its place, `factory/agents/<name>.md at origin/main: <fault>`, for example `factory/agents/coder.md at origin/main: key not applied by the agent runtime: colour`. The load of every tick and the preflight's probe check it, and a faulty project file is never replaced by the installed one: the stop `agent_definition_invalid` stands until a commit on `main` fixes it.
+
+- **A new role.** Add the role to `factory/pipeline.yml` and its file under `factory/agents/`, in one commit on `main`. A role whose only agent is the project's own needs no installed file.
+- **Back to the shipped agent.** Remove `factory/agents/<name>.md` from `main`.
+- **A branch's copy is never read.** A work item's branch, or an uncommitted edit in the checkout, changes nothing; only `origin/main` counts, so a work item cannot change its own agent. A file under `factory/agents/` is a protected path (the human's), and an agent that writes there is refused.
+- **The probe.** The preflight's `agent-run-probe` runs the project's `coder` when there is one, once for each image build; a faulty file fails the item with `agent coder: factory/agents/coder.md at origin/main: <fault>`.
 
 ### The shipped agents and settings
 

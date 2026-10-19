@@ -741,3 +741,15 @@ Date: 2026-10-19 (F0026-S0001; F0026 decisions 1 to 4). `factory-watch` showed `
 - Reasons: the tick keeps `claim_status` because a restarted instance must rerun its dead stage at once, not after the lease (R20); the two judgements differ only in an own claim within its lease, so a keyword on `Watcher` is enough. A real crash still shows once the lease has run out, and within the lease the tick handles it at its first look after the restart.
 - Cost: a live stage that uses every limit can show as a crash for about a minute past its lease, the margin another instance's `expired` already has. A stage that waits out a provider limit holds its claim past its lease (see the decision on the provider-limit wait), so it shows as a crash while it waits; the factory log's line of the wait tells the two apart.
 - Rejected: a sign of life of the tick (heartbeat, lock or process lookup), a new mechanism for a window the tick closes at its first look; showing an own claim always as `held`, which would hide a crash for good.
+
+## A project's agent replaces the shipped one, never extends it
+
+Date: 2026-10-19 (F0022-S0001; F0022 decisions 1 to 6). The agent of a role was only `<agent home>/agents/<role>.md`, filled from the image; a project could not bring its own agent in its repository, only the operator could replace the file outside the project's history.
+
+- Decision: for each role the factory reads `factory/agents/<role>.md` from `origin/main` first, and the installed agent only when the project has no such file. `ProjectAgentDefinitions`, in the application layer over the `Git` and `AgentDefinitionReader` interfaces, is wired in `build_boundaries`; the loader, the composer and the preflight are unchanged.
+- Decision: a project agent replaces the installed one whole. Nothing is merged, so a project reads one file and sees the whole agent.
+- Decision: the ref is `origin/main`, as for the pipeline definition, so a work item's branch can never change its own agent. `factory/agents/*` becomes the eleventh protected path.
+- Decision: the project's file is parsed by the same reader (`parse`, added to `AgentDefinitionReader`) with the same rules, and checked at the same points: the load of every tick and the preflight's probe. A fault names the file and the ref, and the installed agent never stands in for a faulty project file.
+- Decision: a project may add a role whose only agent is its own.
+- Reasons: one place to read and one set of rules keep a project agent as safe as a shipped one; a fallback on a fault would hide the fault and run an agent the project did not mean.
+- Rejected: merging a project file over the shipped one (which keys and which lines win would need a rule of its own); reading the work item's branch (the story could rewrite its own agent).

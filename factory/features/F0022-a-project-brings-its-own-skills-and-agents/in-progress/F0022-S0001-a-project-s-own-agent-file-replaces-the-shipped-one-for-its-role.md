@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T13:28:45.654425Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T13:28:45.654425Z'
   stage: docs
+- number: 15
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T13:31:03.098611Z'
+  stage: docs
+  run: 5991c9db6d644bc7892ef3ee57d49c95
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -363,3 +365,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `PROJECT_CODER` and its likes (`AGENT_FILE.replace("Do the work.", "The project's coder.")`, or the opus/Read/2 text) are defined again in `tests/application/test_project_agents.py`, `test_agent_run_probe_project_agent.py` and `tests/entry/test_wiring_project_agents.py`. One constant in `tests/git_support.py` would do.
     - `tests/application/test_pipeline_loading_project_agents.py:30` and `tests/application/test_project_agents.py:69`: the tests take a parameter and branch on it in the body (`if project_file:`, `if files:`) rather than giving each row its own setup data.
 14. factory: started docs as self.
+15. documenter: Round 1 docs. I wrote the documentation the docs criterion asks for. I changed only documents, so I did not run `make check`; the factory runs it next. `make documents` reports `documents ok`. No findings: the diff matches the Interface and the criteria.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - *The agent files* now says an agent is the project's `factory/agents/<name>.md` on `origin/main` or the installed one. A new subsection, *A project's own agents*, covers read-first at every tick, whole replacement and never extension (copy from `claude/agents/`), the same keys and faults, and the fault text `factory/agents/<name>.md at origin/main: <fault>`. It also covers adding a role (one commit on `main`), going back to the shipped agent (remove the file), a branch's copy never being read, and the probe.
+      - *The stop `agent_definition_invalid`* gives the detail of a project file and says the fix is a commit on `main`.
+      - *The pipeline definition* lists `factory/agents/` among the protected paths and now says a role's agent may be the project's or the installed one.
+      - The `pipeline_definition_invalid` table row `role <role>: agent is not installed` now names both places.
+      - *The probe of the agent run* now says it runs the project's `coder` when there is one.
+    - `docs/project-guide/agents.md`, *The agent definition reader*: three operations, `parse`, and `check_agent_name`. A new subsection, *A project's own agents*, describes `ProjectAgentDefinitions` and where it is wired.
+    - `docs/project-guide/work-items.md`, *Ids and names*: `is_name`, `PROJECT_AGENTS_DIRECTORY`, `project_agent_file`, `AGENT_SUFFIX`.
+    - `docs/project-guide/write-guard.md`, *Protected paths and the refusal*: eleven patterns, with `factory/agents/*` last.
+    - `docs/decisions.md`: the new entry *A project's agent replaces the shipped one, never extends it*, with the reasons of decisions 1 to 6 and what was rejected.
+
+    Cross-read and found current: the operator guide's remaining agent sections (*The shipped agents and settings*, the fault table of the reader). Also current: the reader's *Faults* table in `agents.md`; my addition there touches only the first lines. `README.md` names no agent location or protected-path count.
+
+    Not touched:
+    - The probe paragraph in the operator guide still says a missing `coder` fails with "the reader's message naming the agent". That stays true, so I left it.
+    - The reviewer's test notes from round 1 are for the tester, not the docs: the copied `ENVIRONMENT`, `COMPLETED` and `settings` in `tests/application/test_agent_run_probe_project_agent.py`, and the repeated `PROJECT_CODER` text.
+
+    `check`: check: green
+    `documents`: documents ok
