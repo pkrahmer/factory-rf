@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T21:59:49.404432Z'
   stage: smoke-test
   run: c8dc84126a3d4db3af0df7ae40fc768b
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:06:17.261054Z'
+  stage: approval
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -220,3 +225,4 @@ Expect: `documents ok`
       - The document check prints `documents ok`.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 2.7 min, 27 turns, 94093 tokens in (367903 more from cache), 6716 out, $0.77
