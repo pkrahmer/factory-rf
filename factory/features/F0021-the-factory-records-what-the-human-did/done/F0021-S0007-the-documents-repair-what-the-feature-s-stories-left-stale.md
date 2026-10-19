@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T01:01:51.943657Z'
   stage: smoke-test
   run: df07998406254ed4b1cc8172c3875b4c
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T01:03:09.114229Z'
+  stage: approval
 ---
 
 # The documents repair what the feature's stories left stale
@@ -226,3 +231,4 @@ Expect: `documents ok`
     - No other passage changed: the diff touches only these five passages, and `check_documents` prints `documents ok`.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.3 min, 32 turns, 91715 tokens in (419802 more from cache), 8516 out, $0.77
