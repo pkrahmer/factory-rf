@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T07:22:37.407855Z'
   stage: acceptance
   run: 60522f5a2bfb44e39ad439875ea68eb3
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T07:24:59.308161Z'
+  stage: done
 stories: [F0025-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project guide split by domain
@@ -332,3 +337,4 @@ The one extra round (coder, tester, coder and reviewer again, about $0.72 togeth
    8. Cost: 10 runs, 9.7 min, $2.74; 0 human questions and 0.0 h waited.
       - The scripted move cost $0.34 in 80 s.
       - The one extra round (about $0.72) came from the reviewer's test-only finding.
+3. factory: done (pull request merged); cost: 1 runs, 21.9 min, 56 turns, 127331 tokens in (3883554 more from cache), 44546 out, $2.69
