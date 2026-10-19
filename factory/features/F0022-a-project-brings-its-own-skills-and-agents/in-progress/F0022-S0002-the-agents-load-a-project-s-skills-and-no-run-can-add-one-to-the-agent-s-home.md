@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T13:43:48.512965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T13:43:27.816266Z'
   stage: doing
   run: e29c560df1db4398905086fb74c44c3a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:43:48.512965Z'
+  stage: tests
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -263,3 +272,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What I built in round 0 stays as it is: `claude/agents/*.md`, `claude/settings.json`, `image/entrypoint.sh` and `LEFT_OUT_TOOLS` in `src/factory/adapters/opencode_runtime.py`. I already recorded the main choice in round 0: a separate left-out set, not a sentinel in `TOOL_NAMES`.
 
     The journal did not change the meaning of the task, so `## Description` stays as it is. I noticed nothing else and touched nothing else. I did not run `make check` in this round, because no file changed.
+12. factory: started tests as self.
