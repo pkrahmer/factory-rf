@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T01:11:44.171802Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T01:11:44.171802Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T01:14:35.249729Z'
+  stage: tests
+  run: 87678f39cc634ffda0f6e20ceb773eb9
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -212,3 +214,26 @@ Expect: `0`
     4. `_commit_on_main` in test_preflight_stops_commit.py: replace it with `rig.human.push_file("main", ...)` (tests/human_clone.py) for the one-file rows. For the two-file row, reuse that shared helper (or extend HumanClone in tests/human_clone.py) instead of writing raw git calls again.
     Every earlier test keeps its name and checks the same thing. I did not touch any test. The journal did not change what the task means, so the Description is unchanged. Not touched: the reliance of `changed_paths` on the tick's restore leaving the work tree at `origin/main`. The reviewer confirmed it is safe.
 12. factory: started tests as self.
+13. tester: Round 1, a test change. I made the four helper moves the coder named in entry 11, from the reviewer's findings in entry 9. They fall under the standing leave in CLAUDE.md (*Tests*) to move a shared test helper. Every earlier test keeps its name and checks the same thing. No source file changed.
+
+    The criterion → test mapping is the same as in entry 5:
+    criterion 1: tests/domain/test_preflight_stop_records_paths.py::test_only_the_stop_records_file_is_a_change_of_stop_records_only
+    criterion 2: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_keeps_the_failing_stop_only_across_stop_records_commits
+    criterion 3: tests/application/test_preflight_stops_commit.py::test_a_kept_failing_stop_appends_no_cleared_record
+    criterion 4: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_clears_the_stop_when_the_remembered_commit_is_not_in_the_clone
+    criteria 5 and 6: no test (`make check` and the docs).
+
+    The moves:
+    1. `_log_lines` is now `log_lines` in a new module, tests/log_support.py. These files use it from there instead of their own copy: tests/application/test_preflight_stops_commit.py, test_preflight_stale_main_stop.py, test_tick_stop_records.py, test_stale_branches.py, test_tick.py and test_disk_recorder.py.
+    2. `CLEARED_LINE`, the probe-once helper `fail_once` and the `failed_once` fixture are in a new module, tests/preflight_support.py. The fixture depends on `red_main`, which lives in tests/application/test_preflight_run.py, so it cannot go in conftest.py. Both test_preflight_stale_main_stop.py and test_preflight_stops_commit.py bind it with `failed_once = preflight_support.failed_once`, the same way they already bind `rig`. `failed_once_recording` builds on `fail_once`.
+    3. The `records` fixture (stop records) moved from tests/application/test_tick_stop_records.py to tests/conftest.py. The new module uses it from there too. Modules that define their own `records` override it as before. test_stop_publisher.py still holds an identical copy; entry 11 did not name it, so I left it.
+    4. `_commit_on_main` is gone. The one-file rows use `Rig.push_main`, which calls `HumanClone.push_file`. For the two-file row I added `HumanClone.push_files(branch, files)` in tests/human_clone.py, and `push_file` now delegates to it with the same commit message.
+
+    Files created: tests/log_support.py, tests/preflight_support.py.
+    Earlier test files changed: test_preflight_stale_main_stop.py, test_tick_stop_records.py, test_stale_branches.py, test_tick.py and test_disk_recorder.py (all in tests/application/), plus tests/conftest.py and tests/human_clone.py.
+    Modules the test run could not import: none.
+
+    `make lint` and `make test` are both green; total coverage is 99.06 %.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (48.5 s)

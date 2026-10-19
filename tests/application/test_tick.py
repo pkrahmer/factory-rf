@@ -32,6 +32,7 @@ from git_support import (
     write_files,
 )
 from human_clone import HumanClone
+from log_support import log_lines
 from source_search import SRC
 
 INSTANCE = "factory-1"
@@ -180,11 +181,6 @@ def _start_second(human: HumanClone) -> None:
     human.start(SECOND_BACKLOG_PATH)
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-
-
 def _texts(lines: list[str]) -> list[str]:
     return [line.split(" ", 1)[1] if " " in line else "" for line in lines]
 
@@ -239,7 +235,7 @@ def test_the_fetch_stop_is_logged_with_the_clock_stamp(
 
     _tick(boundaries, {"idle": IdleHandler()}).run()
 
-    lines = [line for line in _log_lines(tmp_path) if "stop repository fetch_failed" in line]
+    lines = [line for line in log_lines(tmp_path) if "stop repository fetch_failed" in line]
     assert lines
     assert all(line.startswith(STAMP) for line in lines)
 
@@ -267,7 +263,7 @@ def test_an_invalid_pipeline_definition_ends_the_tick_before_the_restore(
     untracked = tmp_path / CHECKOUT / "scratch.txt"
     untracked.write_text("left by someone\n", encoding="utf-8")
     handler = Recording()
-    before = len(_log_lines(tmp_path))
+    before = len(log_lines(tmp_path))
 
     outcome = _tick(boundaries, {"idle": handler, "run": handler}).run()
 
@@ -281,7 +277,7 @@ def test_an_invalid_pipeline_definition_ends_the_tick_before_the_restore(
     assert len(stops) == 1
     assert "contract" in stops[0].detail
     assert untracked.exists()
-    lines = _log_lines(tmp_path)[before:]
+    lines = log_lines(tmp_path)[before:]
     assert (
         len([line for line in lines if "stop repository pipeline_definition_invalid" in line]) == 1
     )
@@ -326,13 +322,13 @@ def test_the_restore_discards_changes_and_names_them_in_one_line(
     assert status.head == checkout.resolve("origin/main")
     assert status.changes == []
     expected = f"discarded uncommitted changes: {paths[0]}, {paths[1]}"
-    assert _texts(_log_lines(tmp_path)).count(expected) == 1
+    assert _texts(log_lines(tmp_path)).count(expected) == 1
 
 
 def test_a_clean_checkout_writes_no_discarded_line(boundaries: Boundaries, tmp_path: Path) -> None:
     _tick(boundaries, {"idle": IdleHandler()}).run()
 
-    assert not [line for line in _log_lines(tmp_path) if "discarded uncommitted changes" in line]
+    assert not [line for line in log_lines(tmp_path) if "discarded uncommitted changes" in line]
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="root removes files in unwritable directories")

@@ -29,9 +29,13 @@ class HumanClone:
 
     def push_file(self, branch: str, path: str, text: str) -> None:
         """Write `text` to `path` on `branch`, commit and push."""
+        self.push_files(branch, {path: text})
+
+    def push_files(self, branch: str, files: dict[str, str]) -> None:
+        """Write each text of `files` to its path on `branch`, commit them as one and push."""
         self._on_branch(branch)
-        write_files(self._directory, {path: text})
-        self._git.commit(f"write {path}")
+        write_files(self._directory, files)
+        self._git.commit(f"write {', '.join(files)}")
         self._push(branch)
 
     def merge(self, branch: str, method: Literal["merge", "squash", "rebase"]) -> None:

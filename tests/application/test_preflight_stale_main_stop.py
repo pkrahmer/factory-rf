@@ -7,22 +7,19 @@ from pathlib import Path
 
 import pytest
 
+import preflight_support
 from application import test_preflight_run
 from application.test_preflight_run import IMAGE, OTHER_IMAGE, TOOLS, Rig
 from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
 from factory.domain.stops import RepositoryStop
 from git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
+from log_support import log_lines
+from preflight_support import CLEARED_LINE
 
 rig = test_preflight_run.rig
 red_main = test_preflight_run.red_main
-
-CLEARED_LINE = "stop cleared main_branch_failing"
-
-
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
+failed_once = preflight_support.failed_once
 
 
 def _failing_details(rig: Rig) -> list[str]:
@@ -43,16 +40,6 @@ def _empty_remote(rig: Rig, tmp_path: Path) -> None:
     )
 
 
-@pytest.fixture
-def failed_once(red_main: Rig) -> Rig:
-    """Return the rig after one probe of its red main, the stamp holding `main_failed`."""
-    assert red_main.preflight(IMAGE).run() == "main_branch_failing"
-    stamp = red_main.stamps.read()
-    assert stamp is not None
-    assert stamp.main_failed == red_main.main()
-    return red_main
-
-
 @pytest.mark.parametrize(
     "move_main",
     [
@@ -69,7 +56,7 @@ def test_a_failed_machine_clears_the_stop_of_a_main_that_moved_on(
 
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert failed_once.reasons() == ["preflight_failed"]
-    assert any(line.endswith(CLEARED_LINE) for line in _log_lines(tmp_path))
+    assert any(line.endswith(CLEARED_LINE) for line in log_lines(tmp_path))
     assert failed_once.stamps.read() == before
 
 

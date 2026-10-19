@@ -7,18 +7,20 @@ from pathlib import Path
 
 import pytest
 
+import preflight_support
 from application import test_preflight_run
 from application.test_preflight_run import IMAGE, OTHER_IMAGE, Rig
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.domain.paths import STOP_RECORDS_FILE
 from factory.domain.preflight import PreflightStamp
 from factory.domain.stops import StopRecord, stop_records_text
-from git_support import run_git, write_files
+from log_support import log_lines
+from preflight_support import CLEARED_LINE, fail_once
 
 rig = test_preflight_run.rig
 red_main = test_preflight_run.red_main
+failed_once = preflight_support.failed_once
 
-CLEARED_LINE = "stop cleared main_branch_failing"
 AT = datetime(2026, 10, 18, 10, 0, tzinfo=UTC)
 FIRST = StopRecord(event="raised", scope="repository", reason="fetch_failed", at=AT)
 SECOND = StopRecord(
@@ -26,40 +28,27 @@ SECOND = StopRecord(
 )
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-
-
 def _logged_cleared(tmp_path: Path) -> bool:
-    return any(line.endswith(CLEARED_LINE) for line in _log_lines(tmp_path))
-
-
-def _commit_on_main(rig: Rig, files: dict[str, str]) -> None:
-    human = rig.directory / "human"
-    run_git(human, "fetch", "-q", "origin")
-    run_git(human, "checkout", "-q", "-B", "main", "origin/main")
-    write_files(human, files)
-    run_git(human, "add", "-A")
-    run_git(human, "commit", "-q", "-m", f"write {', '.join(files)}")
-    run_git(human, "push", "-q", "origin", "main")
+    return any(line.endswith(CLEARED_LINE) for line in log_lines(tmp_path))
 
 
 def _one_stops_commit(rig: Rig) -> None:
-    _commit_on_main(rig, {STOP_RECORDS_FILE: stop_records_text([FIRST])})
+    rig.push_main(STOP_RECORDS_FILE, stop_records_text([FIRST]))
 
 
 def _two_stops_commits(rig: Rig) -> None:
-    _commit_on_main(rig, {STOP_RECORDS_FILE: stop_records_text([FIRST])})
-    _commit_on_main(rig, {STOP_RECORDS_FILE: stop_records_text([FIRST, SECOND])})
+    rig.push_main(STOP_RECORDS_FILE, stop_records_text([FIRST]))
+    rig.push_main(STOP_RECORDS_FILE, stop_records_text([FIRST, SECOND]))
 
 
 def _stops_and_other_file(rig: Rig) -> None:
-    _commit_on_main(rig, {STOP_RECORDS_FILE: stop_records_text([FIRST]), "README.md": "moved\n"})
+    rig.human.push_files(
+        "main", {STOP_RECORDS_FILE: stop_records_text([FIRST]), "README.md": "moved\n"}
+    )
 
 
 def _other_file_only(rig: Rig) -> None:
-    _commit_on_main(rig, {"README.md": "moved\n"})
+    rig.push_main("README.md", "moved\n")
 
 
 def _move_main(rig: Rig, move: Callable[[Rig], None]) -> None:
@@ -71,30 +60,10 @@ def _move_main(rig: Rig, move: Callable[[Rig], None]) -> None:
 
 
 @pytest.fixture
-def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
-    """The stop records in the test's state directory."""
-    return JsonLinesRecordLog(tmp_path / "state" / "records" / "stops.jsonl", StopRecord)
-
-
-def _failed_once(rig: Rig) -> Rig:
-    assert rig.preflight(IMAGE).run() == "main_branch_failing"
-    stamp = rig.stamps.read()
-    assert stamp is not None
-    assert stamp.main_failed == rig.main()
-    return rig
-
-
-@pytest.fixture
-def failed_once(red_main: Rig) -> Rig:
-    """Return the rig after one probe of its red main, the stamp holding `main_failed`."""
-    return _failed_once(red_main)
-
-
-@pytest.fixture
 def failed_once_recording(red_main: Rig, records: JsonLinesRecordLog[StopRecord]) -> Rig:
     """Return the rig with the stop records after one probe of its red main."""
     red_main.boundaries = replace(red_main.boundaries, stop_records=records)
-    return _failed_once(red_main)
+    return fail_once(red_main)
 
 
 @pytest.mark.parametrize(
