@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T19:05:23.636099Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-19T19:05:02.584375Z'
   stage: docs
   run: 1bc58445f29f4e838da5edeeb3cec208
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:05:23.636099Z'
+  stage: smoke-test
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -283,3 +292,4 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
     `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
