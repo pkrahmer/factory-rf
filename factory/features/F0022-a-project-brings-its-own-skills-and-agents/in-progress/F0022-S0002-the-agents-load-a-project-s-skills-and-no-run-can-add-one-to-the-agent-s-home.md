@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T13:43:15.581948Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T13:43:15.581948Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T13:43:27.816266Z'
+  stage: doing
+  run: e29c560df1db4398905086fb74c44c3a
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -249,3 +251,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/shipped_agents.py`: the human's leave, the feature's decision 14 as the story's Interface names it (`_ALL_TOOLS` and `_TOOLS_WITHOUT_WRITE` gain `"Skill"` last, nothing else changed).
    - `tests/test_claude_files.py`: the human's leave, the feature's decision 14 as the story's Interface names it (`SETTINGS` `allow` gains `"Skill"` after `"Grep"`, nothing else changed).
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's one finding is about the tests alone, so I changed no code and no test.
+
+    Test change for the tester to make: in `tests/adapters/test_opencode_left_out_tools.py`, merge `test_skill_turns_on_no_opencode_tool_and_is_not_refused` and `test_another_tool_without_an_opencode_name_is_still_refused_before_anything_starts` into one parametrized test. It has three rows:
+    - `["Read", "Skill"]` expects the configuration's `tools` true for `{"read"}` alone.
+    - `["Skill"]` expects every name false.
+    - `["Read", "NotebookEdit"]` expects `AgentRuntimeError` `the opencode runtime has no tool for NotebookEdit`, with the stand-in never called.
+
+    Each row branches on its expected value, as `test_a_request_the_runtime_cannot_configure_fails_before_anything_starts` in `tests/adapters/test_opencode_runtime.py` does. The behaviour is unchanged (criterion 5).
+
+    What I built in round 0 stays as it is: `claude/agents/*.md`, `claude/settings.json`, `image/entrypoint.sh` and `LEFT_OUT_TOOLS` in `src/factory/adapters/opencode_runtime.py`. I already recorded the main choice in round 0: a separate left-out set, not a sentinel in `TOOL_NAMES`.
+
+    The journal did not change the meaning of the task, so `## Description` stays as it is. I noticed nothing else and touched nothing else. I did not run `make check` in this round, because no file changed.
