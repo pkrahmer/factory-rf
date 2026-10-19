@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T13:35:10.544852Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T13:35:10.544852Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T13:35:25.406901Z'
+  stage: intake
+  run: fbcd6b2f42aa40f1932437691eecd412
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -145,3 +147,9 @@ Expect: two lines, `completed question`, `['read']`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names the seven agent files with their exact `tools` lines, the exact R15 text and its place after R14, the `claude/settings.json` entry, the entrypoint lines and their position, and `LEFT_OUT_TOOLS` in `factory.adapters.opencode_runtime`. It also names the test helpers and the earlier tests that change.
+   - Criteria: each is testable by one parametrized test function. Every behaviour the Interface states has one. The R15 text, its single occurrence and its position are criterion 3. The entrypoint's three starting states, the mode, the owner, the exit code and the log lines are criterion 4. For the opencode runtime, both sides are covered: `Skill` is left out (criterion 5, rows `["Read","Skill"]` and `["Skill"]`) and any other unmapped tool is still refused with the exact text (row `NotebookEdit`). Criterion 6 covers the shipped agents. `make check` and `docs:` are last.
+   - Smoke test: the commands are runnable, using a temporary layout, a stub `python` and a stub opencode, with no paid call. Every `Expect:` line is checkable: the 15 grep lines (7 + 7 + 1), the four lines for the entrypoint run, and the two lines for the opencode run.
+   - Architecture: the placement is right. The `claude/*`, `image/*` and `src/factory/adapters/opencode_runtime.py` changes sit inside the coder's write paths, and the tests inside the tester's. The change to the opencode adapter keeps the layers intact. The tool left-out set lives in the adapter that owns `TOOL_NAMES`.
+   - Scope: it matches the feature's scope list for S0002 and touches nothing in its "Out of scope". The changes to earlier tests are the ones decision 14 names, with the human's leave.
