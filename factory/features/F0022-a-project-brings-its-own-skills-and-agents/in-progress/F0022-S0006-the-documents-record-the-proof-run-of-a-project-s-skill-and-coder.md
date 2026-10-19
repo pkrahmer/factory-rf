@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T23:40:54.042215Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T23:40:54.042215Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T23:41:13.681451Z'
+  stage: docs
+  run: d4a9fbb9b57e465fb6d2553a01de5962
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -163,3 +165,18 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Documents only, so I did not run `make check`. I ran `python -m factory.entry.check_documents`, which printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`, *A project's own skills*: "(the feature's proof run looks)" is now "was not checked", and "A run reads them" is now "A run reads the root `.claude/skills/`".
+    - `docs/decisions.md`, *The agents load a project's skills, and the agent's home gets none*: a new `- Proven:` bullet before `Open:`, as the criterion words it. The `Open:` bullet now says the proof run did not check the nested `.claude/skills/`.
+
+    Cross-read and found current: the story's diff holds no code, so no name or behaviour moved. The rest of the entry in `docs/decisions.md` and the rest of the *A project's own skills* section match the story.
+
+    Stale text noticed but not touched: none.
+
+    The proof run's evidence (`skills-demo`, the `project coder:` and `skill: journal-marker` lines, the refused `mkdir`) is the human's account. I did not check it against the night log.
+
+    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
