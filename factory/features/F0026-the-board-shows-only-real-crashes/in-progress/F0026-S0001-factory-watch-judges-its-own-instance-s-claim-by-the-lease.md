@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T12:46:26.511546Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T12:46:06.226271Z'
   stage: tests
   run: d4ec544a69694771be47df22e7d9d714
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:46:26.511546Z'
+  stage: doing
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -350,3 +359,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (46.5 s)
+14. factory: started doing as self.
