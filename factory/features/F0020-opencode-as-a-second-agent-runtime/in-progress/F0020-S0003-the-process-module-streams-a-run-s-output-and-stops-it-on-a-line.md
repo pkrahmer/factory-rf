@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T04:18:29.536723Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-19T04:18:29.536723Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T04:18:58.053646Z'
+  stage: intake
+  run: 92678775aefc4fc585dc35341555f978
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -77,16 +79,18 @@ Tests (the tester writes them): `tests/adapters/test_process_streaming.py`, with
 
 1. A child that prints `one` and `two` on standard output and `err` on standard error and exits 3 gives the calls `("stdout", "one")`, `("stdout", "two")` and `("stderr", "err")`, the stdout calls in that order and every call on the test's own thread (`threading.get_ident()`), and a result with exit status 3, `stdout` `"one\ntwo\n"`, `stderr` `"err\n"`, `stopped` and `timed_out` false.
 2. A last line without a line feed is passed, and a line with bytes that are not UTF-8 is passed with the replacement character (rows).
-3. A child that prints `go`, then sleeps 60 seconds, with a callback that returns `True` for `go`: the call returns within 20 seconds, with `stopped` true, `exit_status` `None`, `timed_out` false and `stdout` `"go\n"`; a grandchild the child started is gone (`is_gone`), and no line the child would print after the sleep is passed.
+3. A child that prints `go`, then sleeps 60 seconds, with a callback that returns `True` for `go`: the call returns within 20 seconds, with `stopped` true, `exit_status` `None`, `timed_out` false and `stdout` `"go\n"`; a grandchild the child started is gone (`is_gone`), and no line the child would print after the sleep is passed. A further row: a child that prints `go` and then `later` at once, with a callback that returns `True` for `go`, never gets `later` passed, also when both lines were read in the same chunk.
 4. A callback that returns `True` for a line on standard error stops the run as in criterion 3.
-5. A child that prints `started` and sleeps 60 seconds under a time limit of 3 seconds, with a callback that never stops: the call returns within 20 seconds with `timed_out` true, `stopped` false, `exit_status` `None` and `started` in `stdout`.
+5. A child that prints `started` and sleeps 60 seconds under a time limit of 3 seconds, with a callback that never stops: the call returns within 20 seconds with `timed_out` true, `stopped` false, `exit_status` `None` and `started` in `stdout`; and a child that prints `late` after a sleep longer than the limit never has `late` passed to the callback.
 6. A callback that raises `RuntimeError` on the first line: the call raises it, and the child, which would sleep 60 seconds after that line, is gone.
 7. With `merge_stderr=True`, a line on standard error comes as `("stdout", ...)` in the order written, and the result's `stderr` is `""`.
 8. A missing executable raises `FileNotFoundError` and calls the callback never.
 9. Lines arrive while the child runs: a child that prints `first`, then waits until a file appears, then prints `second`, with a callback that writes that file when it gets `first`, ends with both lines passed (no sleep in the test).
-10. `run_process` and every test of `tests/adapters/test_process.py` behave as before, and the module holds one `subprocess.Popen(` line.
-11. `make check` stays green.
-12. docs: `docs/project-guide.md`, the process module: `run_streaming` hands each line to a callback while the process runs and kills the process group when the callback says stop, for a runtime that must act on its output as it comes (the opencode runtime's budget and provider limit); `ProcessResult.stopped`. `docs/decisions.md`: an entry *A run's output can be streamed by the one process module*, dated with the story, with the reasons of the feature's decision 5.
+10. `run_streaming` starts the child as `run_process` does (rows): a child that prints its working directory gives `request.cwd`; a child that prints one variable of `request.env` gives its value; a child that reads standard input gets end of file at once.
+11. `duration` of the result is at least the child's known run time (a child that prints a line and exits after a short wait) and below an upper bound with room above it.
+12. `run_process` and every test of `tests/adapters/test_process.py` behave as before, and the module holds one `subprocess.Popen(` line.
+13. `make check` stays green.
+14. docs: `docs/project-guide.md`, the process module: `run_streaming` hands each line to a callback while the process runs and kills the process group when the callback says stop, for a runtime that must act on its output as it comes (the opencode runtime's budget and provider limit); `ProcessResult.stopped`. `docs/decisions.md`: an entry *A run's output can be streamed by the one process module*, dated with the story, with the reasons of the feature's decision 5.
 
 ## Smoke test
 
@@ -129,3 +133,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. Yes: add to criterion 5 that no line printed after the limit is passed (`late` after a sleep longer than the limit).
    5. Standard output is enough; leave it as is.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: `factory.adapters.process` names `Stream`, `ProcessResult.stopped` and `run_streaming(request, on_line)` concretely. Every clause has a criterion, including the start conditions, `duration` and the burst after a stop (see the edits below).
+   - Criteria: each is testable by one test function. Each rule has both sides: stop vs. natural end (1, 3), time limit (5), raise (6), merge (7), missing executable (8), lines arriving while the child runs (9). The human's answer in journal entry 4 was carried in as follows. (1) New criterion 10: cwd, env and stdin at end of file, as rows. (2) New criterion 11: `duration`. (3) A burst row (`go` then `later`) added to criterion 3. (4) `late` after a sleep longer than the limit added to criterion 5. (5) Left as is, stdout only. The closing criteria were renumbered: `run_process` unchanged is now 12, `make check` 13 and `docs:` 14.
+   - Smoke test: runnable, and the `Expect:` lines can be checked against the output.
+   - Architecture: it sits in the adapters layer, in the one process module, and keeps the single `Popen` line. No new wrapper or dependency.
+   - Scope: within F0020's scope (S0003 in the feature's Scope and decision 5), and not in "Out of scope".
