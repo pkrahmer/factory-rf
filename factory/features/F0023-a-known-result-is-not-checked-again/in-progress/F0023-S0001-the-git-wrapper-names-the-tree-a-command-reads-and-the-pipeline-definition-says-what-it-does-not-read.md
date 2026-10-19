@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T14:25:26.681339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T14:25:26.681339Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T14:28:34.739919Z'
+  stage: tests
+  run: a2fe8bf5b0744716ac8312611cf8741d
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -183,3 +185,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Scope: inside F0023's scope list (S0001 items) and not in its Out of scope; nothing uses `not_read` or `work_tree_id` yet, which is S0002's.
    Open: none. One note, not a question: criterion 8 pins the contract version only through `x-records-contract` equal to `RECORDS_CONTRACT`; the `"1.3"` literal itself is pinned by the changed existing tests.
 4. factory: started tests as self.
+5. tester: Wrote the tests for every criterion. `make lint` is green, and one `make test` run is red for the expected reasons: `TreeId` and `work_tree_id` don't exist yet, `not_read` is still an unknown key the strict model refuses, and the schema has no `not_read` yet.
+   criterion 1: tests/domain/test_tree_id.py::test_a_tree_id_is_forty_lower_case_hex_characters
+   criterion 2: tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records
+   criterion 3: tests/adapters/test_git_cli_work_tree.py::test_the_left_out_paths_are_not_in_the_work_tree_id
+   criterion 4: tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_changes_nothing_and_leaves_no_temporary_file
+   criterion 5: tests/application/test_git_interface.py::test_git_has_exactly_the_twenty_four_operations_and_git_cli_has_each, tests/application/test_interfaces.py::test_git_abstract_methods_are_exactly_its_twenty_four_operations
+   criterion 6: tests/domain/test_pipeline_not_read.py::test_not_read_loads_in_order_and_defaults_to_nothing
+   criterion 7: tests/domain/test_pipeline_not_read.py::test_a_not_read_pattern_outside_the_checkout_is_refused (the accepted patterns, the refused patterns, two commands, two patterns, after tool_paths), tests/domain/test_pipeline_not_read.py::test_a_not_read_that_is_not_a_list_of_patterns_is_refused (a plain string, `[1]`, `[""]`, `[" "]`)
+   criterion 8: tests/entry/test_contract_not_read.py::test_the_committed_pipeline_schema_holds_an_optional_not_read, and the existing tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones (F0021-S0006's comparison)
+   criteria 9 (`make check`) and 10 (docs): no test, these are the coder's and the documenter's.
+
+   Files created: tests/domain/test_tree_id.py, tests/adapters/test_git_cli_work_tree.py, tests/domain/test_pipeline_not_read.py, tests/entry/test_contract_not_read.py.
+   Earlier test files changed, as the feature's decision 15 allows and nothing else in them:
+   - tests/application/test_git_interface.py: `"work_tree_id"` added to `OPERATIONS`, and the test renamed to `..._twenty_four_...`.
+   - tests/application/test_interfaces.py: the git test renamed to `..._twenty_four_...`.
+   - tests/domain/test_contract.py: the `"1.2"` literal on line 54 is now `"1.3"`.
+   - tests/domain/test_contract_provider_limit.py: the two `"1.2"` literals are now `"1.3"`. The test name and the module docstring still say 1.2, as the story asks.
+   No other test module pins the contract version as a literal.
+
+   Could not import: `factory.domain.git.TreeId`, so tests/domain/test_tree_id.py stops at collection with an ImportError. The other new tests fail on missing behaviour: `GitCli.work_tree_id`, `ProjectCommandDefinition.not_read` with its load rule, and the regenerated schema at contract 1.3.
+
+   Choices made inside the criteria:
+   - In criterion 3, the files are committed before each row runs.
+   - In criterion 4, the checkout has a staged new file, an unstaged edit of a tracked file and an untracked file.
+   - For criterion 7's type rows, the test checks only that the fault names `not_read`, since the criterion says nothing more.
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_tree_id.py - ImportError while importing test module ...
