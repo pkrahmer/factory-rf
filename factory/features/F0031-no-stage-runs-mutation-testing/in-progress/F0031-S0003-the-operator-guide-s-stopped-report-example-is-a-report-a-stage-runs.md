@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T23:29:54.255632Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T23:29:54.255632Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:30:47.264736Z'
+  stage: tests
+  run: 09f2fa45dee24f39aab0a45212617bdd
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -88,3 +90,13 @@ Expect: `documents ok`
    Architecture: documentation only, no layer touched; consistent with CLAUDE.md, where the documenter owns `docs/`.
    Scope: within F0031's goal (documents say no stage runs mutation testing). The tests that use `mutants` as sample data stay, as feature decision 7 says. Nothing is in its "Out of scope".
 4. factory: started tests as self.
+5. tester: No tests written: the story is documentation only. Its Interface says no module under `src/factory/` and no test changes, and criterion 1 says the tester changes nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` and says so in its entry. This is that entry.
+   criterion 1: no test. It is a constraint on the diff, and this stage changed no file under `src/`, `tests/`, `image/`, `template/` or `claude/`.
+   criterion 2: no test. The factory's `make check` covers it.
+   criterion 3: no test. It is the docs criterion, which the documenter fulfils and the smoke test checks with its two greps and `check_documents`. A pytest test pinning the guide's wording would itself be a change under `tests/`, which criterion 1 forbids.
+   Files created: none. Modules the test run could not import: none, because no test was added. I did not run `make test`, since without new tests there is no red to confirm. `make lint` is green.
+   Rejected: a test that greps `docs/operator-guide.md`, because criterion 1 forbids it.
+   Open: nothing. The coder has nothing to implement either; the documenter makes the change.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.3 s)
