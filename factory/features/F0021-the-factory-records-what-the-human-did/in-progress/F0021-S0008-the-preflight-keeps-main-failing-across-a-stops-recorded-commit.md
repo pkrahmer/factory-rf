@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T01:09:33.117637Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T01:09:12.619941Z'
   stage: doing
   run: b1dd6c008bf34208822ef8d894a6eab0
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:09:33.117637Z'
+  stage: review
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -162,3 +171,4 @@ Expect: `0`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
