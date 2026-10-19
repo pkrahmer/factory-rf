@@ -507,11 +507,13 @@ def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> 
     )
 
 
-def _confinement(request: AgentRunRequest, temporary: Path) -> Confinement:
+def _confinement(
+    request: AgentRunRequest, temporary: Path, runtime_folders: Sequence[str]
+) -> Confinement:
     return device_confinement(
         request,
         temporary,
-        runtime_folders=RUNTIME_FOLDERS,
+        runtime_folders=runtime_folders,
         device_folders=DEVICE_FOLDERS,
         device_files=DEVICE_FILES,
     )
@@ -540,6 +542,7 @@ class OpencodeRuntime(AgentRuntime):
         confine_executable: str | None = None,
         temporary_root: Path | None = None,
         provider_limit: ProviderLimit | None = None,
+        runtime_folders: Sequence[str] = RUNTIME_FOLDERS,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -550,6 +553,7 @@ class OpencodeRuntime(AgentRuntime):
         With `confine_executable`, every call starts through it with the run's rules and
         its own temporary folder under `temporary_root`, the system's by default.
         A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
+        A run's rules allow each of `runtime_folders` in the agent's home, in their order.
         """
         self._executable = executable
         self._state_directory = state_directory
@@ -566,6 +570,7 @@ class OpencodeRuntime(AgentRuntime):
             Path(tempfile.gettempdir()) if temporary_root is None else temporary_root
         )
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
+        self._runtime_folders = tuple(runtime_folders)
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON events it prints into a result.
@@ -611,7 +616,9 @@ class OpencodeRuntime(AgentRuntime):
     def _write_files(self, request: AgentRunRequest, files: _RunFiles, configuration: str) -> None:
         written = {files.config: configuration}
         if self._starters.confine_executable is not None:
-            written[files.rules] = _confinement(request, files.temporary).model_dump_json()
+            written[files.rules] = _confinement(
+                request, files.temporary, self._runtime_folders
+            ).model_dump_json()
         try:
             for path, text in written.items():
                 path.write_text(text, encoding="utf-8")

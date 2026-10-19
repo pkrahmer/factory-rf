@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 260
 comments_read: [6265790615]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T11:10:50.209799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-19T11:10:50.209799Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-19T11:15:59.438181Z'
+  stage: doing
+  run: ebf0aa0ba20243ad8b428237356abc1f
+  blocked: question
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -249,3 +252,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none]
 9. factory: started doing as self.
+10. coder: Question: one row of criterion 14 cannot pass with the Interface's `build_boundaries` as written, and the tester's `tests/application/test_opencode_item.py` fails `make types`. Which way do you want it?
+
+    **1. Missing `settings.json` in criterion 14's `build_boundaries` test.** The test is `tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, rows `set` and `unset`. The Interface says to pass `settings_file=settings.agent_home / "settings.json"` without condition. `OpencodeRuntime` deliberately fails closed when that file is missing: `tests/adapters/test_opencode_runtime.py` row `settings-missing` expects `cannot read the agent settings ...`. This test never writes `settings.json` into `agent_home`, so the run raises `AgentRuntimeError` before the rules are written. The other test of criterion 4 writes the file and passes. Options:
+       - (a) The tester writes a `settings.json` holding a `permissions.deny` list into `settings.agent_home` in that test, as the test of criterion 4 does. No code or Interface change. **I would choose (a).**
+       - (b) The wiring passes `settings_file` only when the file exists. This changes the Interface, and the opencode runs would silently lose their denies whenever the file is missing. That works against the runtime's fail-closed decision.
+
+    **2. `make types` is red in a test file.** `tests/application/test_opencode_item.py` has two errors:
+       - line 90: `write_text(content)` with `content: str | None` gives `arg-type`.
+       - line 112: the lambda builds a tuple from the value of `write_agent`, which is typed `-> None`. That gives `func-returns-value`, the trap CLAUDE.md names.
+
+       Both need the tester. If you agree, I end the next run with `tests` naming the three changes.
+
+    **Where I stopped.** The implementation is complete in the working tree. With `make test`, every other new and earlier test passes, coverage is 99 %, and `make lint` and `make layers` are green. Only the two rows above and the two type errors in the test file fail.
+    - `src/factory/domain/settings.py`: the five `*_VARIABLE` constants, `AgentRuntimeName` and the five new `InstanceSettings` fields, read by `_agent_runtime`, `_opencode_models`/`_opencode_model` and `_opencode_folders`/`_opencode_folder`.
+    - `src/factory/adapters/opencode_runtime.py`: the `runtime_folders` keyword, passed through to `_confinement`.
+    - `src/factory/application/preflight.py`: `opencode_item` and `installed_models`. `MachineChecks` uses the runtime's executable and pin (`_runtime_executable`, `_runtime_pin`). The probe names `<opencode> run` and gives the single sign-on hint (`_runtime_command`, `_opencode_login_hint`).
+    - `src/factory/entry/wiring.py`: `_agent_runtime` builds `OpencodeRuntime` or `ClaudeCodeRuntime`, and `machine_extras` adds `opencode` after `confinement`.
+    - `image/Dockerfile` and `image/compose.yml`: the pin, the install, the two `ENV` lines and the five compose entries.
+
+    **Main choice.** The runtime is chosen in one private builder in the wiring, `_agent_runtime`. I rejected a runtime registry or factory interface: with two runtimes it would be machinery beyond the story. `installed_models` reuses the reader's `names()`, which already sorts, rather than sorting again.
+
+    **Not done yet.** I have not done the refactor pass or the final `make check`; I do both once the tests are settled. I touched no docs; criterion 16 is the documenter's.

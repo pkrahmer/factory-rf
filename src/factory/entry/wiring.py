@@ -19,6 +19,7 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.landlock import abi_version
 from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.opencode_runtime import RUNTIME_FOLDERS, OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
@@ -31,6 +32,7 @@ from factory.application.acceptance import (
     AcceptanceMerged,
     SplitByWorkItemKind,
 )
+from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.costs import BillService
@@ -54,6 +56,8 @@ from factory.application.preflight import (
     agent_run_probe_item,
     agent_user_item,
     confinement_item,
+    installed_models,
+    opencode_item,
     token_file_item,
     tool_item,
 )
@@ -248,14 +252,8 @@ def build_boundaries(
     return Boundaries(
         git=git,
         hosting=hosting,
-        agent_runtime=ClaudeCodeRuntime(
-            settings.claude_executable,
-            state / RUNS_DIRECTORY_NAME,
-            sudo_executable=which("sudo") or SUDO_EXECUTABLE,
-            login_file=settings.claude_login_file,
-            api_login_file=settings.api_login_file,
-            confine_executable=confine_executable,
-            provider_limit=settings.provider_limit,
+        agent_runtime=_agent_runtime(
+            settings, which("sudo") or SUDO_EXECUTABLE, confine_executable
         ),
         project_commands=RecordingProjectCommands(
             MakeProjectCommands(settings.checkout),
@@ -279,6 +277,33 @@ def build_boundaries(
         disk_records=JsonLinesRecordLog(state / _DISK_RECORDS_PATH, DiskRecord),
         stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
         waiter=SleepingWaiter(),
+    )
+
+
+def _agent_runtime(
+    settings: InstanceSettings, sudo_executable: str, confine_executable: str | None
+) -> AgentRuntime:
+    runs = settings.state_directory / RUNS_DIRECTORY_NAME
+    if settings.agent_runtime == "opencode":
+        return OpencodeRuntime(
+            settings.opencode_executable,
+            runs,
+            models=settings.opencode_models,
+            settings_file=settings.agent_home / "settings.json",
+            sudo_executable=sudo_executable,
+            api_login_file=settings.api_login_file,
+            confine_executable=confine_executable,
+            provider_limit=settings.provider_limit,
+            runtime_folders=(*RUNTIME_FOLDERS, *settings.opencode_folders),
+        )
+    return ClaudeCodeRuntime(
+        settings.claude_executable,
+        runs,
+        sudo_executable=sudo_executable,
+        login_file=settings.claude_login_file,
+        api_login_file=settings.api_login_file,
+        confine_executable=confine_executable,
+        provider_limit=settings.provider_limit,
     )
 
 
@@ -390,6 +415,10 @@ def machine_extras(
         extras.append(lambda: tool_item("sudo", which))
     extras.append(lambda: agent_environment_item(environment, _which_on, Path.is_dir))
     extras.append(lambda: confinement_item(abi_version, environment, _which_on))
+    if settings.agent_runtime == "opencode":
+        extras.append(
+            lambda: opencode_item(settings, environment, _which_on, installed_models(boundaries))
+        )
     extras.append(lambda: agent_run_probe_item(boundaries, settings, environment))
     return extras
 

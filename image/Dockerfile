@@ -3,6 +3,7 @@
 ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
 FROM ${BASE_IMAGE}
 ARG CLAUDE_CODE_VERSION=2.1.296
+ARG OPENCODE_VERSION=1.19.3
 ARG UV_VERSION=0.9.2
 # Only a label: the image's identity is generated below.
 ARG FACTORY_IMAGE=unlabelled
@@ -12,6 +13,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv==${UV_VERSION}
 RUN npm install --global --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
+RUN npm install --global --no-audit --no-fund opencode-ai@${OPENCODE_VERSION}
 # /state is the factory user's alone; the agent reads its run's files in /state/runs.
 RUN groupadd --gid 1000 factory \
  && groupadd --gid 1002 factory-work \
@@ -58,6 +60,10 @@ ENV PATH=/opt/factory/.venv/bin:$PATH \
     DISABLE_AUTOUPDATER=1 \
     FACTORY_CLAUDE_VERSION=${CLAUDE_CODE_VERSION} \
     FACTORY_CLAUDE_HOME=/home/agent/.claude
+# The opencode version the preflight compares with what the installed opencode reports.
+ENV FACTORY_OPENCODE_VERSION=${OPENCODE_VERSION}
+# opencode's provider/model ids for the model aliases the agent files name.
+ENV FACTORY_OPENCODE_MODELS=opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5
 USER factory
 WORKDIR /work
 ENTRYPOINT ["/opt/factory/entrypoint.sh"]

@@ -4,6 +4,7 @@ import re
 from collections.abc import Callable, Mapping
 from datetime import timedelta
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, PositiveInt, TypeAdapter, ValidationError
 
@@ -45,9 +46,18 @@ PROVIDER_LIMIT_STATUS_VARIABLE = "FACTORY_PROVIDER_LIMIT_STATUS"
 PROVIDER_LIMIT_MESSAGE_VARIABLE = "FACTORY_PROVIDER_LIMIT_MESSAGE"
 PROVIDER_LIMIT_COOLDOWN_VARIABLE = "FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES"
 PROVIDER_LIMIT_CEILING_VARIABLE = "FACTORY_PROVIDER_LIMIT_CEILING_MINUTES"
+AGENT_RUNTIME_VARIABLE = "FACTORY_AGENT_RUNTIME"
+OPENCODE_EXECUTABLE_VARIABLE = "FACTORY_OPENCODE"
+OPENCODE_VERSION_VARIABLE = "FACTORY_OPENCODE_VERSION"
+OPENCODE_MODELS_VARIABLE = "FACTORY_OPENCODE_MODELS"
+OPENCODE_FOLDERS_VARIABLE = "FACTORY_OPENCODE_FOLDERS"
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
+_OPENCODE_EXECUTABLE_DEFAULT = "opencode"
+
+AgentRuntimeName = Literal["claude", "opencode"]
+_AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
 
 _NAME = TypeAdapter(Name)
 
@@ -73,6 +83,11 @@ class InstanceSettings(BaseModel):
     min_free_gb: PositiveInt = DEFAULT_MIN_FREE_GB
     temporary_directory: Path | None = None
     provider_limit: ProviderLimit = ProviderLimit()
+    agent_runtime: AgentRuntimeName = "claude"
+    opencode_executable: str = _OPENCODE_EXECUTABLE_DEFAULT
+    pinned_opencode_version: str | None = None
+    opencode_models: dict[str, str] = {}
+    opencode_folders: list[str] = []
 
 
 def read_settings(
@@ -97,6 +112,12 @@ def read_settings(
         agent_user=_agent_user(environ),
         min_free_gb=_min_free_gb(environ),
         provider_limit=_provider_limit(environ),
+        agent_runtime=_agent_runtime(environ),
+        opencode_executable=_optional(environ, OPENCODE_EXECUTABLE_VARIABLE)
+        or _OPENCODE_EXECUTABLE_DEFAULT,
+        pinned_opencode_version=_optional(environ, OPENCODE_VERSION_VARIABLE) or None,
+        opencode_models=_opencode_models(environ),
+        opencode_folders=_opencode_folders(environ),
     )
 
 
@@ -133,6 +154,59 @@ def _instance(environ: Mapping[str, str]) -> str:
 def _agent_user(environ: Mapping[str, str]) -> str | None:
     agent_user = _optional(environ, AGENT_USER_VARIABLE)
     return _name(AGENT_USER_VARIABLE, agent_user) if agent_user else None
+
+
+def _agent_runtime(environ: Mapping[str, str]) -> AgentRuntimeName:
+    value = _optional(environ, AGENT_RUNTIME_VARIABLE)
+    if not value:
+        return "claude"
+    for runtime in _AGENT_RUNTIMES:
+        if value == runtime:
+            return runtime
+    raise SettingsInvalid(
+        AGENT_RUNTIME_VARIABLE, f"holds {value}, which is neither claude nor opencode"
+    )
+
+
+def _opencode_models(environ: Mapping[str, str]) -> dict[str, str]:
+    value = _optional(environ, OPENCODE_MODELS_VARIABLE)
+    models: dict[str, str] = {}
+    if not value:
+        return models
+    for entry in value.split(","):
+        alias, model = _opencode_model(entry.strip())
+        if alias in models:
+            raise SettingsInvalid(OPENCODE_MODELS_VARIABLE, f"names {alias} twice")
+        models[alias] = model
+    return models
+
+
+def _opencode_model(entry: str) -> tuple[str, str]:
+    alias, equals, model = (part.strip() for part in entry.partition("="))
+    # The provider is the part before the first slash; the model may hold slashes of its own.
+    provider, slash, model_name = model.partition("/")
+    if not (equals and alias and slash and provider and model_name):
+        raise SettingsInvalid(
+            OPENCODE_MODELS_VARIABLE, f"holds {entry}, which is not <alias>=<provider>/<model>"
+        )
+    return alias, model
+
+
+def _opencode_folders(environ: Mapping[str, str]) -> list[str]:
+    value = _optional(environ, OPENCODE_FOLDERS_VARIABLE)
+    if not value:
+        return []
+    return [_opencode_folder(entry.strip()) for entry in value.split(",")]
+
+
+def _opencode_folder(entry: str) -> str:
+    # An absolute path begins with an empty segment; `Path` would fold `a//b` and `./a`.
+    if any(segment in {"", ".", ".."} for segment in entry.split("/")):
+        raise SettingsInvalid(
+            OPENCODE_FOLDERS_VARIABLE,
+            f"holds {entry}, which is not a folder inside the agent's home",
+        )
+    return entry
 
 
 def _min_free_gb(environ: Mapping[str, str]) -> int:
