@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T12:50:10.454533Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T12:50:10.454533Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T12:52:03.691734Z'
+  stage: docs
+  run: cf5877328f8a4e63b231934537da4633
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -430,3 +432,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_watch_own_claim.py:27`: the `_agents` fixture is a copy of the one in `tests/entry/test_watch.py` (the Interface allows the copy). It could move to `tests/conftest.py` under the standing leave.
     - `tests/domain/test_lease_observed.py:15`, `tests/application/test_watcher_observer.py:20` and `tests/entry/test_watch_own_claim.py:23`: the `INSTANCE` and `OTHER_INSTANCE` constants are repeated in each new file. `_claim` sits beside `watch_support.aged_claim`, which builds the same claim from a clock instead of a fixed `NOW`.
 18. factory: started docs as self.
+19. documenter: Docs, round 1. The diff matches the Interface, so there are no findings for the coder. I changed only documents, so I did not run `make check`. The factory's check after this stage is the gate.
+
+    Files changed:
+    - `docs/operator-guide.md`, *Looking at the remote: `factory-watch`*:
+      - The opening sentence now says it evaluates as a tick would, except that it judges its own instance's claim by the lease, since a tick never looks while its own stage runs.
+      - A new bullet gives the two displays for an own claim. Within the lease it is `event: idle:-  <work item> is held by <instance>`. Once the lease has run out it is `event: crash:<work item>`.
+      - The same bullet says the tick still reruns its own claim at its first look after a restart.
+      - It also says a stage waiting out a provider limit past its lease shows as a crash, and the factory log's line of the wait tells the two apart.
+      - I added the up-to-a-minute margin past the lease, from the feature's decision 3, and a line that the board's rows do not change.
+    - `docs/operator-guide.md`, *Claims, leases and the clock*: one sentence in the first bullet says only `factory-watch` judges an own claim by the lease.
+    - `docs/project-guide/stages.md`, *The claim service*: a new paragraph for `observed_status` and `observed_claim_status`, and `observed_claim_status` is added to the lease functions only `factory.application.claims` reaches.
+    - `docs/project-guide/watching.md`:
+      - *The evaluation* describes `Watcher`'s `observer` and which claim status it hands over.
+      - *The watcher's command line* says `run_watch` evaluates with `observer=True`.
+    - `docs/decisions.md`: a new last entry, *factory-watch judges its own instance's claim by the lease*. It is dated 2026-10-19 with the story and gives the reasons of the feature's decisions 1 to 4, the cost and what was rejected.
+
+    I read the code diff in `lease.py`, `claims.py`, `watcher.py` and `watch.py` against these texts. The docstring of `entry/watch.py` is already updated by the coder. I did not run the smoke test's examples; I wrote no runnable examples.
+
+    Cross-read and found current: the exit-status and board bullets of the `factory-watch` section, and *When a feature acceptance is due*, whose `factory-watch` line shows `acceptance_due`.
+
+    Stale text I noticed and did not touch:
+    - The intro paragraph of `docs/operator-guide.md` (line 3) lists the built parts and does not mention this story. It is a long running list, so I left it.
+    - `tests/entry/test_watch_own_claim.py` still copies the `_agents` fixture. The reviewer noted this for the tester, and it is not mine.
+
+    `check`: check: green
+    `documents`: documents ok
