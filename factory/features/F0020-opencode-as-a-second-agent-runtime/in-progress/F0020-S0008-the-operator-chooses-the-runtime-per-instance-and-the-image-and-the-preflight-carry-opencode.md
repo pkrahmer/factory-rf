@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T11:36:33.334498Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-19T11:36:33.334498Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T11:36:57.332879Z'
+  stage: smoke-test
+  run: 861e55454cca4c1083521b31fd64af64
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -552,3 +554,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: Ran the `## Smoke test` block as written from the repository root. It ran in one bash shell, so the `mktemp -d` folder and its `trap` cleanup applied to the whole block. Exit status 0. Nothing was fixed or changed.
+
+    Command 1 (the `uv run -q python - "$d"` heredoc), output:
+    ```
+    OpencodeRuntime {'sonnet': 'anthropic/claude-sonnet-5-5'}
+    False
+    opencode is not on the agent run's PATH /nowhere; no model is set for opus in FACTORY_OPENCODE_MODELS
+    ```
+    Command 2 (`grep -c 'opencode-ai@${OPENCODE_VERSION}' image/Dockerfile`), output:
+    ```
+    1
+    ```
+    Expect line: met. The output is exactly four lines and each one matches the expected text:
+    1. `OpencodeRuntime {'sonnet': 'anthropic/claude-sonnet-5-5'}`
+    2. `False`
+    3. `opencode is not on the agent run's PATH /nowhere; no model is set for opus in FACTORY_OPENCODE_MODELS`
+    4. `1`
+
+    Judged against the acceptance criteria:
+    - AC4: with `FACTORY_AGENT_RUNTIME=opencode`, `build_boundaries` built an `OpencodeRuntime`.
+    - AC3: one `FACTORY_OPENCODE_MODELS` entry was read into the mapping.
+    - AC6: `opencode_item` failed with the PATH fault and the fault for the unmapped `opus`, joined by `; ` in that order. The mapped `sonnet` was not reported.
+    - AC7: a login file that does not exist did not change or block the item.
+    - AC11: the Dockerfile installs `opencode-ai@${OPENCODE_VERSION}` exactly once.
+
+    No criterion is contradicted. The smoke test did not cover the other criteria (compose environment, version item, probe hints, folders); those are left to the tests and `make check`.
+
+    Findings: none.
