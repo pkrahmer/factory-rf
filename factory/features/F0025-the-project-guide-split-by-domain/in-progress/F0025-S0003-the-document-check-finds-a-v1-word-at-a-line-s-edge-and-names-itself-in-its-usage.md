@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T09:23:38.396884Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T09:23:38.396884Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T09:25:13.434154Z'
+  stage: tests
+  run: 3899f1ad576842adabc233566afae09c
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -183,3 +185,12 @@ Expect: `documents ok`
     - Description: the reviewer's entry added criterion 3 and renumbered the closing criteria to 4 and 5. The Description already shows that, so I did not rewrite it.
     - Noticed but did not touch: nothing new.
 12. factory: started tests as self.
+13. tester: I made the one test change named in coder entry 11, which covers reviewer criterion 3. In `tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not` I added the row `longer-at-end-of-text`. It adds `docs/project-guide/agents.md` with the text `"# Agents\n\nThe last ticketed"` to `clean_texts()` and expects `[]`. No other test changed.
+    - criterion 1: tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not (rows end-of-line, start-of-line, end-of-text, longer-at-end-of-line, longer-at-start-of-line)
+    - criterion 2: tests/entry/test_check_documents_usage.py::test_a_wrong_argument_prints_the_usage_naming_the_command_and_exits_two
+    - criterion 3: tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not (row longer-at-end-of-text)
+    - criteria 4 (`make check` stays green) and 5 (docs: none) get no test function.
+    Files: I created none in this round and changed only tests/domain/test_documents_line_edges.py, which this story wrote. Every module imported. `make test` is green: the new row passes against the current code, as expected, because this story pins behaviour the code already has. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (36.7 s)

@@ -17,6 +17,7 @@ TICKET = [DocumentFinding(document=AGENTS, message="uses the v1 word 'ticket'")]
         pytest.param("# Agents\n\nThe last ticket", TICKET, id="end-of-text"),
         pytest.param("# Agents\n\nEach ticketed\nmoves on.\n", [], id="longer-at-end-of-line"),
         pytest.param("# Agents\n\nThe run\nsubticket moves.\n", [], id="longer-at-start-of-line"),
+        pytest.param("# Agents\n\nThe last ticketed", [], id="longer-at-end-of-text"),
     ],
 )
 def test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not(
