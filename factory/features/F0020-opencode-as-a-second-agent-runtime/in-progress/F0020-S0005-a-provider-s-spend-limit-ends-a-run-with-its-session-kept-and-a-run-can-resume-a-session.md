@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T07:39:04.600998Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-19T07:38:44.180897Z'
   stage: tests
   run: c1602f4e806d46c2b262a998d9b08212
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:39:04.600998Z'
+  stage: doing
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -321,3 +330,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: ERROR tests/entry/test_wiring_provider_limit.py - ImportError while importing...
+12. factory: started doing as self.
