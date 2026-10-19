@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T22:18:28.061918Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T22:18:07.729924Z'
   stage: review
   run: 7b253c52d46c496f96cfa9a0a1e2ce44
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:18:28.061918Z'
+  stage: docs
 ---
 
 # The guide's index names the modules its files describe by class
@@ -154,3 +163,4 @@ Expect: `documents ok`
    2. to 4. Architecture, security and quality: there is no code to judge.
    5. Work item hygiene: the coder's entry gives the main decision, which is to leave both doc edits to the documenter, and the option it rejected. The Description matches what was built, which is nothing outside docs. The docs criterion still describes what the next stage must write. I checked that its targets exist: the `watching.md` line at `docs/project-guide/README.md:19` holds `factory.adapters.health_file`, `factory.application.boundaries` and `factory.domain.stop_table`, the three anchors the insertions follow. The sentence it replaces is at `docs/decisions.md:23`. None of the three module names appears anywhere under `docs/project-guide/` yet.
    6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
+10. factory: started docs as self.
