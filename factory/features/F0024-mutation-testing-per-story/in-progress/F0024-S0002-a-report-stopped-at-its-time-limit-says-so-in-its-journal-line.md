@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T16:26:59.253210Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T16:26:38.909346Z'
   stage: intake
   run: b73d88c57c5245d18769af5ed9478863
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:26:59.253210Z'
+  stage: tests
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -85,3 +94,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: The script is runnable with `uv run -q python`, using the existing `CheckResult` fields. The `Expect:` line names three exact lines that can be compared with the output.
    Architecture: The change sits in `factory.domain.checks`, which is pure (no I/O). The stage test uses a `ProjectCommands` subclass, as CLAUDE.md requires, and no layer is crossed.
    Scope: It matches feature decision 10 and the scope line for `checks.py` (S0002). It does not touch the Out of scope items (no new status, no gentler stop). The earlier tests stay as they are (decision 15).
+4. factory: started tests as self.
