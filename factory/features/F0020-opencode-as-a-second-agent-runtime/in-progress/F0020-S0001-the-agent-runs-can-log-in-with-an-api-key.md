@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T03:29:12.896925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T03:29:12.896925Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T03:29:32.769652Z'
+  stage: intake
+  run: 8b758a12977c4881aa29c6eb58f665e7
 ---
 
 # The agent runs can log in with an API key
@@ -219,3 +221,9 @@ Expect: four lines, `api_key`, `subscription`, `stand-in-api-login unset`, `unse
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete modules and signatures throughout (`agent_launch` constants, `LoginFiles`, the four functions, the runtime constructor, `Login`, `CostRecord.login`, settings, wiring, preflight details, Dockerfile and compose lines). Every behaviour in it (the script's branches, argv shapes, report and refusal texts, the key order of the JSON line, the contract version, the preflight log line) has a criterion.
+   Criteria: each is testable by one parametrized test with named rows. Each rule has both sides: key and no key (2, 3), unreadable and non-ASCII API file (4), a started record with a login refused (14), `None` left out of the line (15), a failed probe with `api_key` and with `subscription` (17), and a second preflight run that writes no log line (18). The rows for ordering and "first line" are in 6, 7 and 15.
+   Smoke test: runnable as written (stand-in `claude`, real runtime, no sudo or confinement). The `Expect:` line gives four checkable lines in a fixed order.
+   Architecture: the login shell and its helpers are in an adapters module that builds words and texts and does not import the process module. Wiring stays in `entry`, the preflight detail is in `application`, and the domain holds `Login` and the DTO fields. The records contract's version rise is covered by criterion 20.
+   Scope: inside F0020's scope list for S0001. Nothing in Out of scope is touched. The edits to other stories' tests are the two named under decision 19.
