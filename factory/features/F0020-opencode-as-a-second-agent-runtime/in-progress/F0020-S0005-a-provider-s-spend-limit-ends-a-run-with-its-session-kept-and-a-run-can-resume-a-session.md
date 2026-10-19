@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T08:06:07.226708Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-10-19T08:05:47.048562Z'
   stage: review
   run: 30e03fe15cef425bb2bb18afd4f8d9fe
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-10-19T08:06:07.226708Z'
+  stage: doing
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -683,3 +692,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes (carried forward from entry 31, as entry 33 asks):
     - tests/adapters/test_claude_runtime_provider_limit.py:22 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply`.
     - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal `""` matches any validation error. A fragment such as `limit_wait` naming the positive rule would pin which rule refused it.
+36. factory: started doing as self.
