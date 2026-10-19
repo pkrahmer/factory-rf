@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T18:18:13.343815Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -127,6 +123,12 @@ journal:
   kind: started
   at: '2026-10-19T18:18:13.343815Z'
   stage: smoke-test
+- number: 22
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T18:18:29.502624Z'
+  stage: smoke-test
+  run: b24658746df443bd93ccc4fc9ef1cbee
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -372,3 +374,21 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 21. factory: started smoke-test as self.
+22. smoke-tester: The smoke test passed, so the decision is approval. I ran the one `## Smoke test` command from the repository root exactly as written, by extracting the bash block into a temporary file and running it with `bash`. It exited with status 0.
+
+    Command 1 (the bash block with the inline Python script) printed:
+
+    ```
+    resolve origin/main failed (no exit status): origin/main does not resolve
+    0 ['event: idle:-  F0001-S0001 is held by self'] ''
+    1 [] 'factory-watch: not valid YAML: did not find expected node content (line 2, column 1)\n'
+    ```
+
+    It met its `Expect:` line. The three lines match the expected text exactly:
+    - On the empty clone, the `GitError` text is the exact one criterion 5 names.
+    - With the story held by `self` and the output written to the standard streams, the status is 0, the first line is the idle event and the error stream is empty. Criteria 1 and 3 agree.
+    - With an invalid definition on `main`, the status is 1, the output stream is empty and the error stream has one `factory-watch: ` line. Criteria 2 and 3 agree.
+
+    I read `## Acceptance criteria` again and found nothing the smoke test contradicts. The smoke test does not exercise the environment fallback in criterion 4; the tests cover it. The smoke test does not touch line 87 of `watch.py`, which entry 14 settled.
+
+    Findings: none.
