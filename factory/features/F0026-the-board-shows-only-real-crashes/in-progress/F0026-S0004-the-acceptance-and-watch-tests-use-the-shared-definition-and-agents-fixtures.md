@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T17:34:22.744759Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T17:34:22.744759Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T17:35:29.324266Z'
+  stage: review
+  run: 14caa561044b445c9c0443a35f5247b5
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -150,3 +152,42 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
    `mutants`: mutants: no module under src/factory changed by F0026-S0004
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Criterion 1 is tested by `tests/test_shared_fixtures.py::test_the_definition_fixture_is_defined_only_in_conftest`. It searches every `.py` file under `tests/` for the signature at column 0 and expects `conftest.py` only.
+   - Criterion 2 is tested by `tests/test_shared_fixtures.py::test_the_agents_fixture_is_defined_only_in_conftest`. It covers both parts: `def installed_agents(` only in conftest, and the old `_agents(agent_home: Path, boundaries: Boundaries)` nowhere. `tests/adapters/test_agent_files.py::_agents(agent_home)` has a different signature, so the search correctly leaves it out.
+   - The two tests check two different criteria, not two sides of one rule, so they don't need to be one parametrized test.
+   - The coder's `make check` was green (entry 7).
+   - No `src/` change, so no architecture, security or mutant question arises.
+   - Every removed `definition` copy had the same body as the one in `tests/conftest.py` (`boundaries.pipeline_reader.parse(PIPELINE_YAML)`); only the docstrings differed.
+   - Every removed `_agents` and `installed_agents` copy had the same body as the new shared `installed_agents`.
+   - Swapping autouse for `pytest.mark.usefixtures` still installs the agent files before each test's argument fixtures.
+   - The only imports dropped are those that only the removed fixtures used.
+   - The `## Description` and Interface match what was built.
+   - Criterion 4, `docs: none`, still holds: `docs/project-guide/stages.md:123` names `install_agents` in `tests/git_support.py`, which stays.
+
+   Earlier tests (all under the standing leave to move a shared test helper; each test keeps its name and what it checks):
+   - tests/conftest.py: gains the shared `installed_agents` fixture, the place it was moved to.
+   - tests/application/test_acceptance_closed.py: copy of `definition` removed.
+   - tests/application/test_acceptance_due_handler.py: copy of `definition` removed.
+   - tests/application/test_acceptance_hand_over.py: copy of `definition` removed.
+   - tests/application/test_acceptance_merged.py: copy of `definition` removed.
+   - tests/application/test_acceptance_merged_before_approval.py: copy of `definition` removed.
+   - tests/application/test_acceptance_reading.py: copy of `definition` removed.
+   - tests/application/test_acceptance_repeated.py: copy of `definition` removed.
+   - tests/application/test_acceptance_service.py: copy of `definition` removed.
+   - tests/application/test_acceptance_snapshots.py: copy of `definition` removed.
+   - tests/application/test_stage_run_acceptance.py: copy of `definition` removed.
+   - tests/application/test_task_acceptance.py: copy of `definition` removed.
+   - tests/application/test_pipeline_loading_agents.py: copy of `installed_agents` removed; its `pytestmark` stays.
+   - tests/application/test_tick.py: autouse `_agents` replaced by `pytestmark = pytest.mark.usefixtures("installed_agents")`.
+   - tests/application/test_tick_disk.py: autouse `_agents` replaced by the `installed_agents` `pytestmark`.
+   - tests/application/test_tick_stop_records.py: autouse `_agents` replaced by the `installed_agents` `pytestmark`.
+   - tests/entry/test_watch.py: autouse `_agents` replaced by the `installed_agents` `pytestmark`.
+   - tests/entry/test_watch_acceptance.py: autouse `_agents` replaced by the `installed_agents` `pytestmark`.
+   - tests/entry/test_watch_own_claim.py: autouse `_agents` replaced by the `installed_agents` `pytestmark`.
+
+   Notes:
+   - The coder's `make duplicates` reported `5 new` (entry 7). This branch changes nothing under `src/factory`, so those findings are not this diff's. They are worth a look at the feature's acceptance.
+   - `mutants`: no module under `src/factory` changed, so there was no report to read.
