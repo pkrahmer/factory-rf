@@ -10,12 +10,6 @@ import pytest
 from test_entrypoint import Layout, _texts
 
 
-@pytest.fixture
-def layout(tmp_path: Path) -> Layout:
-    """Return the image layout, homes, state and stubs of one run under `tmp_path`."""
-    return Layout(tmp_path)
-
-
 def _nothing(home: Path) -> None:
     home.mkdir(parents=True, exist_ok=True)
 
@@ -43,20 +37,20 @@ def _file_and_nested_folder(home: Path) -> None:
     ],
 )
 def test_each_start_leaves_skills_and_commands_empty_and_read_only_to_the_agent(
-    layout: Layout, prepare: Callable[[Path], None]
+    image_layout: Layout, prepare: Callable[[Path], None]
 ) -> None:
-    prepare(layout.claude_home)
+    prepare(image_layout.claude_home)
 
-    result = layout.run()
+    result = image_layout.run()
 
     assert result.exit_status == 0
     assert _texts(result.stderr) + _texts(result.stdout) == [
-        f"installed agents and settings into {layout.claude_home}",
-        f"prepared {layout.state}/runs",
+        f"installed agents and settings into {image_layout.claude_home}",
+        f"prepared {image_layout.state}/runs",
         "starting instance unset",
     ]
     for name in ("skills", "commands"):
-        folder = layout.claude_home / name
+        folder = image_layout.claude_home / name
         assert folder.is_dir()
         assert not folder.is_symlink()
         assert list(folder.iterdir()) == []

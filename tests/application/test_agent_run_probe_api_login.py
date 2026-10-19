@@ -5,13 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from application.test_agent_run_probe_login import ENVIRONMENT, HINT, LOGIN_FILE
+from application.test_agent_run_probe_login import HINT, LOGIN_FILE
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult, EndReason, Login
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
+from probe_support import ENVIRONMENT
 
 API_LOGIN_FILE = Path("/home/agent/.anthropic-api-key")
 API_HINT = (

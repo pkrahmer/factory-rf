@@ -11,12 +11,6 @@ from test_image import DOCKERFILE, _path_settings
 CREDENTIALS_TEXT = '{"token": "stand-in"}\n'
 
 
-@pytest.fixture
-def layout(tmp_path: Path) -> Layout:
-    """Return the image layout, homes, state and stubs of one run under `tmp_path`."""
-    return Layout(tmp_path)
-
-
 def _mode(path: Path) -> int:
     return stat.S_IMODE(path.stat().st_mode)
 
@@ -50,30 +44,30 @@ def test_the_agent_home_is_the_factorys_with_the_sticky_bit_and_work_stays_share
     ],
 )
 def test_the_installed_agents_and_settings_are_not_writable_by_group_or_others(
-    layout: Layout, relative: str, mode: int
+    image_layout: Layout, relative: str, mode: int
 ) -> None:
-    image = layout.opt / "claude"
+    image = image_layout.opt / "claude"
     (image / "agents" / "reviewer.md").write_text(AGENT_TEXT, encoding="utf-8")
     # The image's copies may arrive group-writable; the installed ones must not stay so.
     image.joinpath("agents").chmod(0o775)
     for path in [*image.joinpath("agents").iterdir(), image / "settings.json"]:
         path.chmod(0o664)
 
-    result = layout.run()
+    result = image_layout.run()
 
     assert result.exit_status == 0
-    installed = _mode(layout.claude_home / relative)
+    installed = _mode(image_layout.claude_home / relative)
     assert installed == mode
     assert installed & 0o022 == 0
 
 
-def test_a_file_the_agent_made_in_the_home_is_left_as_it_was(layout: Layout) -> None:
-    credentials = layout.claude_home / ".credentials.json"
+def test_a_file_the_agent_made_in_the_home_is_left_as_it_was(image_layout: Layout) -> None:
+    credentials = image_layout.claude_home / ".credentials.json"
     credentials.parent.mkdir(parents=True)
     credentials.write_text(CREDENTIALS_TEXT, encoding="utf-8")
     credentials.chmod(0o600)
 
-    result = layout.run()
+    result = image_layout.run()
 
     assert result.exit_status == 0
     assert credentials.read_text(encoding="utf-8") == CREDENTIALS_TEXT

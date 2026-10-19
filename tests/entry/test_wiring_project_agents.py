@@ -9,11 +9,9 @@ from factory.adapters.git_cli import GitCli
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
-from git_support import AGENT_FILE, install_agents
+from git_support import PROJECT_CODER, install_agents
 from human_clone import HumanClone
 from wiring_support import CREDENTIAL
-
-PROJECT_CODER = AGENT_FILE.replace("Do the work.", "The project's coder.")
 
 
 @pytest.mark.parametrize(

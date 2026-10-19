@@ -32,13 +32,10 @@ from factory.domain.errors import AgentRuntimeError
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
 from human_clone import HumanClone
+from probe_support import COMPLETED, ENVIRONMENT
 
-ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
 SUDO_REFUSAL = "sudo: a password is required"
 IMAGE = "build-7"
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
-)
 REPLY = json.dumps(
     {
         "type": "result",
@@ -70,19 +67,6 @@ class RefusingRuntime(AgentRuntime):
 
 
 @pytest.fixture
-def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
-    """Return settings whose agents run as the user `agent`, the state in `tmp_path`."""
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        pinned_agent_version="fake",
-        agent_user="agent",
-    )
-
-
-@pytest.fixture
 def coder(agent_home: Path) -> None:
     """Install the agent `coder`, among others, into the test's agent home."""
     install_agents(agent_home, ["intake", "coder", "reviewer"])
@@ -94,11 +78,11 @@ def _ended(reason: EndReason) -> ScriptedRun:
 
 @pytest.mark.usefixtures("coder")
 def test_a_completed_probe_passes(
-    boundaries: Boundaries, settings: InstanceSettings, agent_runtime: FakeAgentRuntime
+    boundaries: Boundaries, probe_settings: InstanceSettings, agent_runtime: FakeAgentRuntime
 ) -> None:
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
 
-    item = agent_run_probe_item(boundaries, settings, ENVIRONMENT)
+    item = agent_run_probe_item(boundaries, probe_settings, ENVIRONMENT)
 
     assert item.name == "agent-run-probe"
     assert item.passed
@@ -106,11 +90,11 @@ def test_a_completed_probe_passes(
 
 @pytest.mark.usefixtures("coder")
 def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
-    boundaries: Boundaries, settings: InstanceSettings, agent_runtime: FakeAgentRuntime
+    boundaries: Boundaries, probe_settings: InstanceSettings, agent_runtime: FakeAgentRuntime
 ) -> None:
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
 
-    agent_run_probe_item(boundaries, settings, ENVIRONMENT)
+    agent_run_probe_item(boundaries, probe_settings, ENVIRONMENT)
 
     [request] = agent_runtime.requests()
     assert request.prompt == PROBE_PROMPT
@@ -139,7 +123,7 @@ def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
 )
 def test_a_probe_that_does_not_complete_fails_with_its_detail(
     boundaries: Boundaries,
-    settings: InstanceSettings,
+    probe_settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
     *,
     reason: EndReason,
@@ -147,7 +131,7 @@ def test_a_probe_that_does_not_complete_fails_with_its_detail(
     named: str,
 ) -> None:
     agent_runtime.queue(_ended(reason))
-    probed = settings.model_copy(update={"agent_user": agent_user})
+    probed = probe_settings.model_copy(update={"agent_user": agent_user})
 
     item = agent_run_probe_item(boundaries, probed, ENVIRONMENT)
 
@@ -160,11 +144,11 @@ def test_a_probe_that_does_not_complete_fails_with_its_detail(
 
 @pytest.mark.usefixtures("coder")
 def test_a_runtime_that_cannot_run_the_probe_fails_with_its_message(
-    boundaries: Boundaries, settings: InstanceSettings
+    boundaries: Boundaries, probe_settings: InstanceSettings
 ) -> None:
     refusing = dataclasses.replace(boundaries, agent_runtime=RefusingRuntime(SUDO_REFUSAL))
 
-    item = agent_run_probe_item(refusing, settings, ENVIRONMENT)
+    item = agent_run_probe_item(refusing, probe_settings, ENVIRONMENT)
 
     assert item.name == "agent-run-probe"
     assert not item.passed
@@ -173,14 +157,14 @@ def test_a_runtime_that_cannot_run_the_probe_fails_with_its_message(
 
 def test_a_missing_coder_fails_the_probe_naming_the_agent(
     boundaries: Boundaries,
-    settings: InstanceSettings,
+    probe_settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
     agent_home: Path,
 ) -> None:
     install_agents(agent_home, ["intake", "reviewer"])
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
 
-    item = agent_run_probe_item(boundaries, settings, ENVIRONMENT)
+    item = agent_run_probe_item(boundaries, probe_settings, ENVIRONMENT)
 
     assert item.name == "agent-run-probe"
     assert not item.passed
@@ -189,13 +173,13 @@ def test_a_missing_coder_fails_the_probe_naming_the_agent(
 
 @pytest.mark.usefixtures("coder")
 def test_the_probe_calls_claude_with_the_flags_of_a_stage(
-    boundaries: Boundaries, settings: InstanceSettings, tmp_path: Path
+    boundaries: Boundaries, probe_settings: InstanceSettings, tmp_path: Path
 ) -> None:
     bin_directory = tmp_path / "bin"
     executable = write_stand_in(bin_directory, [Step(stdout=REPLY), Step(stdout=REPLY)])
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "runtime-state")
     claude = dataclasses.replace(boundaries, agent_runtime=runtime)
-    as_factory_user = settings.model_copy(update={"agent_user": None})
+    as_factory_user = probe_settings.model_copy(update={"agent_user": None})
     environment = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
 
     item = agent_run_probe_item(claude, as_factory_user, environment)
@@ -221,7 +205,7 @@ def test_the_probe_calls_claude_with_the_flags_of_a_stage(
 
 def test_the_probe_runs_once_for_each_image_build(
     boundaries: Boundaries,
-    settings: InstanceSettings,
+    probe_settings: InstanceSettings,
     *,
     agent_runtime: FakeAgentRuntime,
     agent_home: Path,
@@ -242,9 +226,9 @@ def test_the_probe_runs_once_for_each_image_build(
     environment = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": str(tmp_path)}
     extra = [
         lambda: agent_environment_item(environment, find, Path.is_dir),
-        lambda: agent_run_probe_item(boundaries, settings, environment),
+        lambda: agent_run_probe_item(boundaries, probe_settings, environment),
     ]
-    checks = MachineChecks(boundaries, settings, lambda name: f"/usr/bin/{name}", extra)
+    checks = MachineChecks(boundaries, probe_settings, lambda name: f"/usr/bin/{name}", extra)
     stamps = JsonPreflightStampFile(tmp_path / "state" / "preflight-stamp.json")
     preflight = Preflight(boundaries, checks, stamps, StopService(boundaries), IMAGE)
 

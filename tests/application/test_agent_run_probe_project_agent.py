@@ -1,7 +1,6 @@
 """The preflight's probe runs the project's own coder and fails on a faulty one."""
 
 import dataclasses
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -10,29 +9,10 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import PROBE_BUDGET_USD, agent_run_probe_item
 from factory.application.project_agents import ProjectAgentDefinitions
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.settings import InstanceSettings
-from git_support import AGENT_FILE, COLOURED_AGENT_FILE, install_agents
+from git_support import COLOURED_AGENT_FILE, PROJECT_CODER, install_agents
 from human_clone import HumanClone
-
-ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
-)
-PROJECT_CODER = AGENT_FILE.replace("Do the work.", "The project's coder.")
-
-
-@pytest.fixture
-def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
-    """Return settings whose agents run as the user `agent`, the state in `tmp_path`."""
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        pinned_agent_version="fake",
-        agent_user="agent",
-    )
+from probe_support import COMPLETED, ENVIRONMENT
 
 
 @pytest.mark.parametrize(
@@ -51,7 +31,7 @@ def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
 )
 def test_the_probe_runs_the_project_coder(
     boundaries: Boundaries,
-    settings: InstanceSettings,
+    probe_settings: InstanceSettings,
     *,
     agent_home: Path,
     human: HumanClone,
@@ -70,7 +50,7 @@ def test_the_probe_runs_the_project_coder(
     )
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
 
-    item = agent_run_probe_item(project, settings, ENVIRONMENT)
+    item = agent_run_probe_item(project, probe_settings, ENVIRONMENT)
 
     assert item.passed is passed
     requests = agent_runtime.requests()
