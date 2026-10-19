@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T21:25:52.253507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T21:25:52.253507Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T21:27:48.648851Z'
+  stage: doing
+  run: 1194e1a9265a493ba57a42be13de4489
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -124,3 +126,13 @@ Expect: `True`
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.5 s)
 6. factory: started doing as self.
+7. coder: I built nothing, as the story expects. No file under `src/factory/` changed. `GitCli.work_tree_id` (`src/factory/adapters/git_cli.py:412-427`) already passes `--` before the dropped paths to `update-index --force-remove`. The tester's `tests/adapters/test_git_cli_work_tree_dash.py` passes all four rows against the current code.
+
+   - Mutant check: I changed the `--` to `XX` by hand and ran the new test alone. Three rows failed (both-dash-files, single-dash-file-only, dash-pattern), and plain-file-only passed, as it should. So the test kills the mutant the acceptance found surviving. I restored the file from a copy in `$TMPDIR`, and `git status` shows `src/` unchanged.
+   - Main choice: I left the code alone. The alternative I rejected was hardening the call further, for example by passing the paths through `--stdin -z`. The description says no code changes, and the `--` is already correct.
+   - Refactor: I made no changes, because there is no diff of mine to refactor.
+   - `make check`: green (`check: green`, `test: green (44.7 s)`).
+   - Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
