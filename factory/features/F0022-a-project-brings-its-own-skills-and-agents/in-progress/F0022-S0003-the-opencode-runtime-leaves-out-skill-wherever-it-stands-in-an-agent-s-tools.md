@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 282
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T20:00:31.557402Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T20:00:31.557402Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T20:00:54.381978Z'
+  stage: intake
+  run: 701a7f5b432245e79369f604e8fad06e
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -87,3 +89,10 @@ Expect: two lines, `completed question`, `['grep', 'read']`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no source change. It names `OpencodeRuntime.run` and `LEFT_OUT_TOOLS` in `factory.adapters.opencode_runtime`. I checked `_tools` (lines 272-280). It does `continue` for a left-out tool, maps the others through `TOOL_NAMES`, and raises `the opencode runtime has no tool for <tool>` for an unknown one. This is the behaviour the story describes. Both Interface clauses (left out wherever it stands; refused when it follows a left-out tool) have a criterion.
+   Criteria: criterion 1 has four rows, and each can be checked by one parametrized test function. Three rows cover the left-out tool in first and middle position, with the exact true and false tool sets. The fourth covers the failing side: `["Skill", "NotebookEdit"]` is refused with the exact detail, and the stand-in is never called. The existing test `test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused` in `tests/adapters/test_opencode_left_out_tools.py` has the three rows and the structure the story expects: a str expected value for refusal, a set otherwise. The leave to change it is decision 14 (S0003). Criterion 2 is `make check`. Criterion 3 is `docs: none`, with a reason given.
+   Smoke test: the commands run against the stand-in `opencode` script and print two lines. The Expect line is exact (`completed question`, `['grep', 'read']`).
+   Architecture: no change. The adapter layer is untouched and the tests sit in `tests/adapters/`.
+   Scope: within F0022 (decisions 11 and 14). It is not in Out of scope, and it adds no new behaviour.
+   Open note, not a question: `feature.md` lists only S0001 and S0002 under Stories, but its decision 14 already names S0003, so I take that as the human's intent.
