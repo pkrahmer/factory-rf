@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T22:30:15.926287Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T22:30:15.926287Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T22:32:15.866631Z'
+  stage: doing
+  run: 9e72cc131a604e8094bb323eb5f50d71
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -120,3 +122,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_template_makefile_header.py::test_template_makefile_header_calls_mutants_a_sweep_by_hand[new-line-4]
 6. factory: started doing as self.
+7. coder: Replaced line 4 of `template/Makefile` with the two lines the Interface gives: "# `duplicates` is a report outside `check`; `mutants` is for a sweep by hand, never a stage." and "# A Python example with a src layout." Lines 1 to 3 are unchanged, and so is everything after them, which now sits one line lower. No other file changed, and no module under `src/` did either.
+
+   Main choice: I used the Interface's exact text. The alternative I rejected was keeping the header to one line by shortening the sentence: the test requires the exact text as line 4 and the old second sentence as line 5.
+
+   Refactor: nothing to change. The diff is the one-line replacement.
+
+   `make check` is green (`check: green`). The new test `tests/test_template_makefile_header.py` passes, and `tests/test_template_makefile.py`, `tests/test_claude_agent_texts_mutants.py` and `tests/test_claude_files.py` pass unchanged.
+
+   Noticed, not touched: the todo demo's `Makefile:4` still has the old line, as the Description says. It is outside my write paths, and changing it is up to the human. The Description did not need rewriting, because no journal entry changed the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
