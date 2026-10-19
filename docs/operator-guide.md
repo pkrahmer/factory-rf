@@ -24,6 +24,7 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; the image sets it to `/home/factory/.secrets/hosting-token`. |
 | `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.claude-token`. See "The agent runtime" and "The agent's login token". |
+| `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
 | `FACTORY_AGENT_USER` | no | The operating-system user every agent runs as (`agent`). It must match `^[a-z][a-z0-9-]*$` (`Agent` and `1x` are refused, with `FACTORY_AGENT_USER` as the variable). Unset or blank means no user: the agent then runs as the factory's own user, with no `sudo`. The image sets it to `agent`. |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
 
@@ -69,15 +70,22 @@ A project whose `check` scans for secrets, with the template's `make secrets` or
 
 ## The agent runtime
 
-The factory runs each agent as a `claude -p` call: it needs the `claude` program and the agent's login (the token file, or a session logged in by hand when there is none), and it holds no API key of its own. With `FACTORY_AGENT_USER` set (the image sets it) the call runs under that user's `claude` login (see "The agent runs as a second user"); only without it does it run under the factory user's own login. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
+The factory runs each agent as a `claude -p` call: it needs the `claude` program and the agent's login (an API key file, the token file, or a session logged in by hand when neither holds one). The factory itself holds no key or token: the call's own shell reads them. With `FACTORY_AGENT_USER` set (the image sets it) the call runs under that user's `claude` login (see "The agent runs as a second user"); only without it does it run under the factory user's own login. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
 
-The login of the call is a token when `FACTORY_CLAUDE_LOGIN_FILE` names a file that holds one, made once with `claude setup-token`. When the variable is unset, or the file is missing or blank, the call runs under the login in the agent's home instead.
+The login of the call is, in this order:
+
+1. an API key, when `FACTORY_API_LOGIN_FILE` names a file that holds one (see "The agent's API key");
+2. a token, when `FACTORY_CLAUDE_LOGIN_FILE` names a file that holds one, made once with `claude setup-token`;
+3. otherwise the login in the agent's home.
+
+A variable that is unset, or a file that is missing or blank, counts as holding nothing. The text below is about the token; the API key is read the same way.
 
 - A small shell reads the file at the start of every `claude -p` call, as the user the call runs as (the agent, under `sudo`), and hands the token to `claude` as `CLAUDE_CODE_OAUTH_TOKEN` before it replaces itself with `claude`. A new token is used from the next call, without a restart. The factory itself never reads the file.
 - A file that cannot be read, or that is not plain ASCII text (a file saved as UTF-16 by Windows PowerShell 5, for example), stops the run with `agent runtime failed: cannot read the agent's login file <path>: cannot be read` or `...: not ASCII text`. No call is made.
 - The token reaches only the `claude -p` calls. It is not in the factory's own environment, the project commands' or `claude --version`'s. A `CLAUDE_CODE_OAUTH_TOKEN` in a request's environment is dropped: the file is the only source.
 - The token stands in no process's arguments, so neither `ps` inside the container nor a host user's `ps` on a Linux host shows it (a host shows a container's processes with their arguments unless `/proc` is mounted with `hidepid=2`).
-- The allow list of the agent run's environment keeps its six names (`PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM`, `TZ`); the runtime's shell adds this one name.
+- The allow list of the agent run's environment keeps its six names (`PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM`, `TZ`); the runtime's shell adds this one name, or `ANTHROPIC_API_KEY` when an API key is in force.
+- With `FACTORY_API_LOGIN_FILE` set, the shell is started as `/bin/sh -c <script> factory-login --api-login <api file> <token file> claude ...`, with an empty word in place of the token file when `FACTORY_CLAUDE_LOGIN_FILE` is unset. Without it the words are the five of before. The shell tells the runtime on standard error which login it handed over (`factory-login-used: api_key`, `subscription` or `none`); the runtime turns that into the run's `login`.
 
 A run whose budget is spent is not lost: the factory resumes the same session once with a quarter of the budget (at least 0.50 USD) and asks the agent to finish with its decision, `question` if the work is not done. That costs up to that extra amount, and the cost and tokens of both calls are added up. If the resume is also over budget, the run stops as a stall; there is no third call. A run that dies, runs past its time limit or returns no usable decision stops the work item as a stall. One `time_limit` covers both calls: the resume gets what is left. A run the `time_limit` ends is killed, is not resumed, and shows its cost, tokens and turns as unknown.
 
@@ -142,6 +150,22 @@ docker exec -it -u agent <container> claude
 ```
 
 That login is kept in the volume `claude-home` (`/home/agent/.claude/.credentials.json`) and survives `docker compose down` and `up`. `.claude.json` lies inside the volume too, because the runtime sets `CLAUDE_CONFIG_DIR` (below). An older volume may still hold an unused `/home/agent/.claude.json` in the home's root; `claude` no longer reads it.
+
+**The agent's API key.** An instance can run its agents on an Anthropic API key instead of the subscription, for example at a workplace that has a key and no subscription. This repository's own build stays on the subscription.
+
+1. Save the key, with nothing else in the file, as `image/secrets/anthropic-api-key` (git ignores the folder), as plain ASCII text. On Windows use `Set-Content -NoNewline -Encoding ascii`, as for the token: a file saved as UTF-16 stops the run with `agent runtime failed: cannot read the agent's API login file <path>: not ASCII text`. A file that is a folder or unreadable stops it with `...: cannot be read`. No call is made in either case.
+2. Set the file's permissions as for the token file (`chown 1001:1002` and `chmod 0440` on Linux).
+3. To give one instance its own key, point that instance's compose calls at another host file with `FACTORY_API_KEY_FILE=/path/to/file docker compose ...`. The default is `image/secrets/anthropic-api-key` beside `compose.yml`.
+
+Compose mounts the file read-only at `/home/agent/.anthropic-api-key`, in the agent's home, and the image sets `FACTORY_API_LOGIN_FILE` to that path.
+
+- The host file must exist, even empty, or Compose refuses to start (as for `claude-token`). An empty file means no API key.
+- Several instances on one machine may differ: the instance that stays on the subscription keeps an empty file while another has a key in its own file.
+- A key in the file wins over the token, which is not read then. Anything else in the environment named `ANTHROPIC_API_KEY` is dropped; the file is the only source.
+- The file is read at every call, so a new key applies from the next call, without a restart. The key stands in no argument, run file, result, journal entry, cost record or log, and not in the factory's own environment.
+- Switching back to the subscription means emptying the file and recreating the container (`docker compose up -d --force-recreate`), so that the container sees the file as it is now.
+
+Which login is in force: the cost record of each run has `login` (`api_key`, `subscription` or `none`; a line written before the field existed has none), and the preflight writes one factory-log line for the probe, for example `preflight: agent-run-probe: the agent runs log in with the API key from /home/agent/.anthropic-api-key`. The line comes with each run of the machine's items, so once for each image build.
 
 **Morning observations.** The second user, the `sudo` rule and the group exist only in a real image, so the tests cannot show these. Do them once on a running instance and note the result:
 
@@ -220,6 +244,7 @@ The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001)
 | `/work/checkout/.git` | `2750`, `factory:factory-work`; its files `0640` | Git's repository of the checkout. The factory alone writes it. The agent's git reads it (`git status`, `git diff`, `git log`) and cannot create, change, rename or remove anything in it. The work tree around it stays group-writable. |
 | `/etc/gitconfig` | `0644`, `root:root` | Git's system configuration, installed from `image/gitconfig`. The agent's git reads it; the factory's git wrapper does not (it sets `GIT_CONFIG_NOSYSTEM=1`). It names `/work/checkout` as a safe directory, so that the agent can run `git status`, `git diff` and `git log` in the checkout `factory` owns. The agent cannot change the file. |
 | `/home/agent/.claude-token` | the host file's owner and mode (`1001:1002`, `0440` on Linux), mounted read-only | The agent's login token. The agent can read it; it lies outside `/home/factory/.secrets` and outside the volume `claude-home`. |
+| `/home/agent/.anthropic-api-key` | the host file's owner and mode (`1001:1002`, `0440` on Linux), mounted read-only | The agent's API key, or an empty file for none. Like the token file it lies outside `/home/factory/.secrets` and outside the volume `claude-home`. |
 | `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
 
 ### The image on the cost records
@@ -332,7 +357,9 @@ The preflight is a list of seven items, and of up to thirteen with the machine's
 
 `agent-run-probe` runs the agent runtime once, with the factory's own arguments: the shipped agent `coder`, a budget of 0.10 dollar, a fixed one-line prompt, the decision `question` only, a time limit of 2 minutes, as the agent user, with the agent run's environment and a guard that gives no write path. It costs a few cents. Like the other machine items it runs once for each image build and is skipped while the image is unchanged.
 
-It fails with `the probe run ended <reason>; run claude -p by hand as <agent user> to see why` when the run does not end `completed`. Without `FACTORY_AGENT_USER` the detail names `the factory user` in place of `<agent user>`. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. A login file that cannot be read or is not ASCII text fails the item with the runtime's message, `cannot read the agent's login file <file>: ...`. The usual causes are a flag the pinned `claude` rejects (every real run would end `died` with no text that says why), a login missing for the agent user (a missing or expired token when the detail names the login file; otherwise log in as that user and keep the login in its `HOME`), and a run that ran out of its budget or time. A refused `sudo` (`sudo: a password is required`: the rule is missing or wrong) and a state directory that cannot be written fail it with the runtime's own message, and a missing agent `coder` fails it with the reader's message naming the agent. All of these stop the machine before any work item is claimed.
+It fails with `the probe run ended <reason>; run claude -p by hand as <agent user> to see why` when the run does not end `completed`. Without `FACTORY_AGENT_USER` the detail names `the factory user` in place of `<agent user>`. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. When the probe ran with the API key, the detail ends instead with `; the agent's API key is read from <file>: check that it is valid and that its account has credit`. A login file that cannot be read or is not ASCII text fails the item with the runtime's message, `cannot read the agent's login file <file>: ...`, or `cannot read the agent's API login file <file>: ...` for the API key. The usual causes are a flag the pinned `claude` rejects (every real run would end `died` with no text that says why), a login missing for the agent user (a missing or expired token when the detail names the login file; otherwise log in as that user and keep the login in its `HOME`), and a run that ran out of its budget or time. A refused `sudo` (`sudo: a password is required`: the rule is missing or wrong) and a state directory that cannot be written fail it with the runtime's own message, and a missing agent `coder` fails it with the reader's message naming the agent. All of these stop the machine before any work item is claimed.
+
+When the probe completes, the item passes and the factory log gets one line with its detail, which names the login in force: `the agent runs log in with the API key from <file>`, `the agent runs log in with the subscription token from <file>`, or `the agent runs get no login from a file; the runtime uses the login kept in its home`.
 
 The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first. The commit identity is not an item.
 
@@ -817,7 +844,7 @@ The command prints `contract: 5 schemas written`. With two or more arguments it 
 
 **The approval.** A work item enters the approval with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
 
-**The version.** Each schema carries the records contract's version in `x-records-contract`, now `1.0`. The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
+**The version.** Each schema carries the records contract's version in `x-records-contract`, now `1.1` (`1.1` added the cost record's optional `login`). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
 
 **Unknown properties.** The schemas say `additionalProperties: false` for what this version of the factory writes. A reader still ignores a property it does not know, since a later minor version may add one.
 
@@ -924,7 +951,7 @@ It counts the questions that stopped the work item for you: the agent's question
 
 ### Refused tool calls in the sidecar
 
-A completed record in the sidecar (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A run that got no reply (it died or ran past its time limit) has neither key; an older line has neither. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
+A completed record in the sidecar (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A third key, `login`, says which login the run's calls were handed: `api_key`, `subscription` or `none`; a runtime with no login file leaves it out. A run that got no reply (it died or ran past its time limit) has neither of those two keys; an older line has none of the three. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
 
 ### The cost line
 

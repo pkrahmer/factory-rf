@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T03:49:25.909205Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-10-19T03:49:25.909205Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T03:50:49.466445Z'
+  stage: docs
+  run: 5ac3661f85304bd5852f69f935f88df9
+- number: 20
+  speaker: factory
+  kind: stall
+  at: '2026-10-19T03:50:49.494770Z'
+  stage: docs
+  run: 5ac3661f85304bd5852f69f935f88df9
+  reason: check_red
 ---
 
 # The agent runs can log in with an API key
@@ -515,3 +524,45 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_claude_runtime_api_login.py:52` and `:76`: criterion 8 is tested by two functions. The first is a sequence on one runtime (key, then the emptied file), so it does not fit as a row beside the other two cases; I left it.
     - `tests/adapters/test_claude_runtime_api_login.py:39`: `_runtime` leaves out the `api_login_file` keyword when it is `None`, so the "built without `api_login_file`" rows use the constructor's default. That is deliberate and correct, but there is no comment saying why.
 18. factory: started docs as self.
+19. documenter: Round 1, docs. I read the story, the code diff and the docs. The code matches the Interface and I have no findings. I wrote the docs criterion's items. `make documents` prints `documents ok`. I did not run `make check`, because I changed only documents. I ran none of the new text's commands: it needs a container and a real key. The shell's behaviour is covered by `tests/adapters/test_agent_launch_login.py`.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The settings table gets `FACTORY_API_LOGIN_FILE`.
+      - *The agent runtime* now lists the login order (API key, token, login kept in the home) and the `--api-login` words.
+      - A new section *The agent's API key* covers the host file, `FACTORY_API_KEY_FILE`, the empty-file rule, a key per instance, a key winning over the token, the read at every call, plain ASCII, switching back, and where `login` and the preflight log line show the login in force.
+      - The mounts table gets `/home/agent/.anthropic-api-key`.
+      - *The probe of the agent run* gets the API-key hint, the API refusal text, and the passed detail with its log line.
+      - The cost-record paragraph gets `login`.
+      - The records contract's version reads `1.1`.
+    - `docs/project-guide.md`:
+      - `AgentRunResult.login` is described.
+      - The `ClaudeCodeRuntime` signature gets `api_login_file`, and its login paragraph is rewritten around `login_argv`.
+      - A new section *The shared launch module* describes `factory.adapters.agent_launch`.
+      - The `CostRecord` fields, the started-record rule, the JSON Lines key order and the settings fields are updated.
+      - The contract schema text reads `1.1`.
+    - `docs/decisions.md`:
+      - A new entry *An agent run logs in with an API key when its file holds one*.
+      - The schema entry notes that the version is now `1.1`.
+
+    What I could not fill in: I did not have the feature's decisions 1 to 3. The new decisions entry therefore states the reasons only as far as the story gives them. If the feature's text has more reasons or rejected options, the human may want to add them.
+
+    Cross-read against the diff and found current: `README.md`, which has no login text; the `compose.yml` and `Dockerfile` comments; the preflight items table; the stop table.
+
+    Stale text I saw and left alone: none related to this story. The remaining `'1.0'` strings (`operator-guide.md` and `project-guide.md`, in the pipeline definition's `contract` examples) are that definition's own format version, a different thing from the records contract.
+20. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `check`
+    [tester]	WARNING	nosec encountered (B606), but no failed test on file src/factory/adapters/process.py:96
+    sast: green (2.7 s)
+    ERROR: Potential secrets about to be committed to git repo!
+
+    Secret Type: Secret Keyword
+    Location:    docs/operator-guide.md:168
+
+    Possible mitigations:
+      - For information about putting your secrets in a safer place, please ask in
+        #security
+      - Mark false positives with an inline `pragma: allowlist secret` comment
+
+    If a secret has already been committed, visit
+    https://help.github.com/articles/removing-sensitive-data-from-a-repository
+    make: *** [Makefile:51: secrets] Error 1
