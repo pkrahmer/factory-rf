@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T01:01:29.669867Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T01:01:09.681293Z'
   stage: docs
   run: 9a9a4b03cd7a43ce8ac5d84cb3846150
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:01:29.669867Z'
+  stage: smoke-test
 ---
 
 # The documents repair what the feature's stories left stale
@@ -179,3 +188,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
