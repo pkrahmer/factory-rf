@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T19:04:28.979558Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-19T19:04:28.979558Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T19:05:02.584375Z'
+  stage: docs
+  run: 1bc58445f29f4e838da5edeeb3cec208
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -264,3 +266,20 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` holds was changed.
 13. factory: started docs as self.
+14. documenter: Docs criterion said `none`, with the check that `docs/project-guide/agents.md` (*The opencode runtime*) and `docs/operator-guide.md` (*Running on opencode*) say each of the six rules. I checked each against the tests. The diff changes only tests, and no finding for the coder came out of it.
+
+    Four rules were missing or too loose, so I changed `docs/project-guide/agents.md`:
+    - The result block: the entry's lines are joined with line feeds and inner line breaks stay. A second line `entry: text` gives `None`.
+    - The denials: the match on `permission` or `denied` is in any case.
+    - The end reason: under an `os_user`, a kill status after the limit is `time_limit` and keeps `session` and `login`. The same status before the limit, or any other status after it, is `died`.
+    - The run's temporary folder: with `confine_executable` it is removed after every call, as the agent user under `sudo` when `os_user` is set, also after a died or killed call.
+
+    The other two rules were already stated, so I left them. The model time takes off every tool call between a step's start and finish. A resumed call has the first call's words, then `--session <id>`, then the prompt, for both the budget resume and `resume_session`.
+
+    Cross-read and found current: `docs/operator-guide.md` *Running on opencode*, which describes the operator's view and none of these internals, and the rest of the opencode section of `agents.md`. I ran no examples, since I wrote none. Only documents changed, so I did not run `make check`; the factory's run after this stage decides.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok
