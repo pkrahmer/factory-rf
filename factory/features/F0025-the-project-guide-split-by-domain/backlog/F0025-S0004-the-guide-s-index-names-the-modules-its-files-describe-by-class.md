@@ -15,8 +15,8 @@ None: no module under `src/factory/`, no test, no image, template, demo or agent
 1. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes; the tester and the coder each end with an entry saying so.
 2. `make check` stays green.
 3. docs:
-   - `docs/project-guide/README.md`, *The files*, the `watching.md` line: its sentence "It also names ..." gains `factory.adapters.preflight_stamp_file`, `factory.application.dispatcher` and `factory.domain.tick_status`, each in backticks. The line keeps its domain, its existing modules, its `Sections:` list and its `Subsections other files refer to:` list as they are. No other line of the index changes.
-   - `docs/decisions.md`, *The project guide lives in `docs/`*: the sentence "Since F0025-S0001 the guide is the folder `docs/project-guide/` (see *The project guide is an index and one file per domain*)." reads "Since F0025-S0001 it is an index and one file per domain (see *The project guide is an index and one file per domain*)." The section's first sentence and the dated F0011-S0005 entry stay as they are.
+   - `docs/project-guide/README.md`, *The files*, the `watching.md` line: its sentence "It also names ..." gains `factory.adapters.preflight_stamp_file` after `factory.adapters.health_file`, `factory.application.dispatcher` after `factory.application.boundaries` and `factory.domain.tick_status` after `factory.domain.stop_table`, each in backticks, so the list keeps its order. The line keeps its domain, its existing modules, its `Sections:` list and its `Subsections other files refer to:` list as they are. No other line of the index changes.
+   - `docs/decisions.md`, *The project guide lives in `docs/`*: the sentence "Since F0025-S0001 the guide is the folder `docs/project-guide/` (see *The project guide is an index and one file per domain*)." reads "Since F0025-S0001 the guide is an index and one file per domain (see *The project guide is an index and one file per domain*)." The section's first sentence and the dated F0011-S0005 entry stay as they are.
    - No file of the guide passes 600 lines. `python -m factory.entry.check_documents` prints `documents ok`.
 
 ## Smoke test
@@ -39,7 +39,7 @@ EOF
 Expect: three lines, `True`, `0` and `True`
 
 ```bash
-grep -c "Since F0025-S0001 it is an index and one file per domain" docs/decisions.md; grep -c "Since F0025-S0001 the guide is the folder" docs/decisions.md
+grep -c "Since F0025-S0001 the guide is an index and one file per domain" docs/decisions.md; grep -c "Since F0025-S0001 the guide is the folder" docs/decisions.md
 ```
 
 Expect: two lines, `1` and `0`
