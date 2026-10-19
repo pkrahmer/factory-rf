@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T16:03:19.217267Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T16:03:19.209860Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:03:19.217267Z'
+  stage: intake
+---
+
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
 
 ## Description
@@ -126,3 +153,5 @@ Expect: four lines, `mutants: partial, 1 killed, 0 survived, 0 timed out, 0 with
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
