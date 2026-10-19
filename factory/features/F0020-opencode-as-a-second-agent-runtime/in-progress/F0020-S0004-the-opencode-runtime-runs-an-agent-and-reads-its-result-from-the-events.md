@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 251
 comments_read: [6259811093]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:49:39.935705Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-19T04:49:39.935705Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-19T04:54:30.355887Z'
+  stage: doing
+  run: ac22a570d30c4544a587165d9b406023
+  blocked: question
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -309,3 +312,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/adapters/test_opencode_runtime_launch.py - ImportError while impo...
 9. factory: started doing as self.
+10. coder: Question: `make check` is red, and the only failing step is in a test file this story's tester wrote, which I may not change.
+
+    `make secrets` (detect-secrets, Secret Keyword) flags `tests/adapters/test_opencode_runtime.py:213`. That line is in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, where the dict `given` holds the literal key `"ANTHROPIC_API_KEY": "request-key"`. The keyword detector matches the quoted key name, whatever the value is. Earlier tests avoid this by keying with the constant: `tests/adapters/test_agent_launch_login.py:62` writes `API_LOGIN_VARIABLE: ...`.
+
+    The options I see:
+    - (a) The tester rewrites the two keys of `given` as `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` (both from `factory.adapters.agent_launch`). The test keeps its name and checks the same thing. **This is the one I would choose.**
+    - (b) Add a `pragma: allowlist secret` on that line. CLAUDE.md lists this under "Not without asking", and it would also break `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`.
+    - (c) Add a `.secrets.baseline` entry. This is also under "Not without asking".
+
+    If you answer (a), the next doing run ends with `tests` and names this change.
+
+    Where I stopped: the implementation is done. Every other step of the check is green when run on its own: lint, types, layers, sast, licenses, and `make test` (98.98 % coverage, with every new opencode test passing).
+
+    What I built: `src/factory/adapters/opencode_runtime.py` (new), following the Interface:
+    - `result_instructions` and `parse_result_block`.
+    - The eight private event models. `_Event` carries an after-validator that refuses a `step_finish` without cost or tokens, a `tool_use` without tool or state, and a `text` without text. Its `type` is a `Literal` of the five known types, so an unknown type fails validation and the line is skipped.
+    - Measures from the `step_finish` events. Model time follows line order and adds 0 for a finish with no earlier start.
+    - Denials matched by `DENIAL_PATTERN`, with the path taken from `filePath`.
+    - The per-run configuration, including `Bash(...)` deny patterns read from `settings.json`.
+    - `OpencodeRuntime.run` and `version`. Model, tools and settings are checked before any file is written. The call is launched through `login_argv`, `confined_argv` and `launch`, and run with `run_streaming` and a callback that never stops it.
+
+    Main choice: the settings file is parsed with a `TypeAdapter(JsonValue)` and then checked with `isinstance`. I rejected a private Pydantic settings model, because `tests/test_model_configuration.py` would then need a new `EXCEPTIONS` entry that the tester did not add. Text that is not JSON gives "hold no permissions.deny list", as the tester's reading (journal entry 8) and the tests expect. The runtime does not create its state directory (journal entry 4).
+
+    Refactor: I removed a `# noqa: PLR0913` that `test_process_search` counts as a forbidden marker. Ruff did not need it. Nothing else needed changing.
+
+    Noticed but not touched:
+    - `make duplicates` reports 7 new similar-code blocks against `claude_runtime`: the refusal checks, the temporary-folder cleanup, `version`, and building the `ProcessRequest` from `launch`. They cannot move into `agent_launch` without it importing the process module, which `tests/test_wrapper_search.py` forbids. Sharing them is a restructuring for its own story.
+    - Vulture reports `_ErrorData.status_code` and `OpencodeRuntime` as unused (60 % confidence). The first is the field the provider-limit story will read; the runtime is wired in a later story.
