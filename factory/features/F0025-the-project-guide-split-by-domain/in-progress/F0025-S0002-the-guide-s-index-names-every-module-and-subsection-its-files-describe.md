@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T09:04:43.617564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T09:04:43.617564Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T09:06:33.508174Z'
+  stage: doing
+  run: 7ff02647df0c4f82bd54927357de0fb6
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -152,3 +154,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (34.3 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes documentation. Criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and requires the coder's entry to say so. I changed nothing there, and nothing anywhere else either. My working tree holds no edits. The only modified file is the work item's `.costs.jsonl` sidecar, which the factory writes.
+      - Main choice: I did not make the guide's edits in this stage. The rejected alternative was to edit `docs/project-guide/README.md`, `agents.md` and `decisions.md` now. The Interface gives those edits to the documenter, and CLAUDE.md says the coder does not write the docs.
+      - Refactor: there is no diff, so there was nothing to refactor.
+      - Description: the journal did not change the task's meaning, so I left the Description as it is.
+      - Noticed, not touched: the slip intake noted is still in the Description. It says "Three smaller passages need the same repair" but lists two bullets (`agents.md` and `decisions.md`). The criteria cover the same two passages.
+      - `make check`: green on the unchanged tree (`check: green`, test coverage 99.05 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 35 known, 1 gone
