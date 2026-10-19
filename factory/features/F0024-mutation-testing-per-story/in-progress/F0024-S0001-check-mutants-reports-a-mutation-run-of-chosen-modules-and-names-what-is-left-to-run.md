@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T16:19:20.255129Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T16:18:59.051582Z'
   stage: docs
   run: 17e299ccd4cf4d5fa3c4ab82ee5730fd
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:19:20.255129Z'
+  stage: smoke-test
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -393,3 +402,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree a2d0c03d102a at 2026-10-19T16:15:39Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
