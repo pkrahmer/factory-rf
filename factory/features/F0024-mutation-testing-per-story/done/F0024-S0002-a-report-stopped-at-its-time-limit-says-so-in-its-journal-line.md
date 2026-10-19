@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T16:33:22.521156Z'
   stage: smoke-test
   run: 84cd9dc757644b3d9c51ff93a9546055
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T16:34:41.114540Z'
+  stage: approval
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -203,3 +208,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The failed result's line is unchanged and has no suffix.
 
     Criteria check: the output agrees with criterion 1's time-limit row, empty-last-line row and failed row. The smoke test does not touch criterion 2 (the stage test), criterion 3 (`make check`) or criterion 4 (docs), and nothing in its output contradicts them. I fixed nothing.
+14. factory: done (pull request merged); cost: 6 runs, 3.7 min, 33 turns, 122415 tokens in (564657 more from cache), 10474 out, $1.07
