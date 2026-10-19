@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T20:56:35.011750Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T20:56:35.011750Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:57:03.904444Z'
+  stage: review
+  run: 524c2a0cc4dd485b8e802f1836f3346d
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -176,3 +178,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Findings:
+
+   1. `tests/test_claude_agent_texts_mutants.py:1`: the module docstring goes beyond the leave this file was changed under. Decision 7 of `feature.md` says the tester makes exactly the listed changes and nothing else, and it sets the docstring to `"""No shipped agent runs or reads mutation testing; the acceptance's check 3 says it is done by sweep."""`. The tester wrote `"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""` instead. Fix: the tester sets the docstring to decision 7's exact text. The coder hands this on with `tests`. If the human prefers the tester's wording because the module now also holds the Makefile test, that is the human's call to make in an answer.
+
+   Everything else checked clean:
+   - The four files under `claude/` and `template/` match the Interface's old and new pairs exactly. The reviewer's paragraph is gone with one of its blank lines, and check 7's rest and the Disk sentence are unchanged.
+   - Criteria 1 to 4 each have a test that checks what the criterion names. Every count has a 0 row and a once row, and the sides are rows of parametrized tests.
+   - The coder's journal reports the factory's `make check` as green.
+   - No module under `src/` changed and there are no suppression markers, so architecture and security are clean.
+
+   Earlier tests:
+   - `tests/test_claude_agent_texts_mutants.py`: the human's leave, decision 7 of the feature, which the story names (rewritten; see finding 1 for the docstring that goes beyond it).
+   - `tests/test_claude_files.py`: the human's leave, decision 7 of the feature, which the story names. Only `TEMPLATE_RULES_LINES` changed: the sentence was replaced and the strings around it were wrapped again, and every other line and test is as it was.
