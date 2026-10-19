@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T22:27:58.433108Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T22:27:58.433108Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T22:29:55.394407Z'
+  stage: tests
+  run: 0c5ac142d6cc4d2988d094877a3cf927
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -98,3 +100,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the change is to a template file in the coder's write path (`template/*`). The new test module goes under `tests/` and reads the file through `ROOT` of `tests/shipped_agents.py`. It is at the `tests/` root, which fits a module outside the layers. No dependency is added.
    Scope: the change is in F0031's goal (the template's words on `make mutants`). The story leaves out the other lines, the `mutants` recipe, `template/CLAUDE.md`, `template/factory/pipeline.yml` and the todo demo. No earlier test is changed.
 4. factory: started tests as self.
+5. tester: Wrote the test of criterion 1 as one parametrized test that reads `template/Makefile` through `ROOT` of `tests/shipped_agents.py`. I changed no earlier test.
+   - criterion 1: tests/test_template_makefile_header.py::test_template_makefile_header_calls_mutants_a_sweep_by_hand. It has three rows: `new-line-4` (the new header line occurs exactly once and is line 4), `old-phrase` (`` `duplicates` and `mutants` are reports`` occurs 0 times) and `line-5` (`# A Python example with a src layout.` is line 5; the criterion gives no count for this row, so the test checks none).
+   - criterion 2: no new test. The criterion is met when the existing tests/test_template_makefile.py, tests/test_claude_agent_texts_mutants.py and tests/test_claude_files.py pass unchanged under `make test`. I did not touch them.
+   - criterion 3: `make check`, which the factory runs. There is no test for it.
+   - criterion 4: docs: none. There is no test for it.
+   Files created: tests/test_template_makefile_header.py.
+   Modules the test runner could not import: none. All three rows fail because the result is wrong: `template/Makefile` still holds the old line 4. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_template_makefile_header.py::test_template_makefile_header_calls_mutants_a_sweep_by_hand[new-line-4]
