@@ -20,9 +20,9 @@ Each of these is a line of the feature's promise (decisions 7, 8, 11 and 18), an
 
 No module under `src/factory/` changes. The behaviour pinned is that of `OpencodeRuntime.run` and `parse_result_block` in `factory.adapters.opencode_runtime` (adapters), as they are:
 
-- `parse_result_block(text, allowed_decisions)`: the entry is the block's lines after `entry:`, joined with `\n` and stripped. The block is `None` unless its first line starts with `decision: ` and its second line is exactly `entry:`.
+- `parse_result_block(text, allowed_decisions)`: the entry is the block's lines after `entry:`, joined with `\n` and stripped. The block is `None` unless its first line starts with `decision:` and its second line is exactly `entry:`.
 - `model_duration` sums each step's span (its `step_start` to its `step_finish`, by line order) less the spans of every `tool_use` event between them. A `tool_use` before the first `step_start` adds nothing.
-- `permission_denials` lists every `tool_use` event with `status` `error` whose error names a permission or a denial, in line order, whatever events come between them.
+- `permission_denials` lists every `tool_use` event with `status` `error` whose error contains `permission` or `denied`, in any case (`DENIAL_PATTERN`), in line order, whatever events come between them.
 - The words of a resumed call are the first call's words, then `--session <id>`, then the prompt: `run --format json --auto --model <model> --agent factory-<name> --session <id> <prompt>`. This holds for the budget's own resume (prompt `FINISH_MESSAGE`) and for a request with `resume_session`.
 - With `os_user` set, a call whose exit status is in `KILL_STATUSES` and whose duration reached its time limit ends `time_limit`. It keeps the `session` of its events and the `login` the shell reported.
 - With a confine executable set, the run's temporary folder is removed after each call, as the agent user under `sudo` when one is set, also after a died or killed call.
@@ -32,14 +32,14 @@ Tests (the tester writes them), all new modules that use the stand-in and the ev
 - `tests/adapters/test_opencode_measures.py` (criteria 1 to 3);
 - `tests/adapters/test_opencode_resumed_words.py` (criterion 4);
 - `tests/adapters/test_opencode_sudo_time_limit.py` (criterion 5, with a stand-in `sudo` as `tests/adapters/test_claude_runtime_sudo_time_limit.py` uses for the Claude Code runtime);
-- `tests/adapters/test_opencode_confinement.py` (criterion 6, with a stand-in confine executable as `tests/adapters/test_claude_runtime_confinement.py` uses).
+- `tests/adapters/test_opencode_confinement.py` (criterion 6, with `CONFINE` and with the stand-in `write_confine` of `tests/confine_support.py`, as `tests/adapters/test_claude_runtime_confinement.py` uses them; the test makes the layout's `state` folder, since the runtime does not).
 
 No earlier test changes.
 
 ## Acceptance criteria
 
 1. `parse_result_block`, one parametrized test:
-   - the block `decision: question` / `entry:` / `First line.` / (empty) / `Third line.`, with `question` allowed, gives `("question", "First line.\n\nThird line.")`;
+   - the text `<factory-result>` / `decision: question` / `entry:` / `First line.` / (empty) / `Third line.` / `</factory-result>`, with `question` allowed, gives `("question", "First line.\n\nThird line.")`;
    - the same block with `note:` in place of `entry:` gives `None`;
    - a block whose first line is `question` (no `decision: ` label) and whose second line is `entry:` gives `None`.
 2. `model_duration`, one parametrized test:
@@ -47,10 +47,10 @@ No earlier test changes.
    - the same events after a `tool_use` spanning 0–400 that comes before the `step_start` also give 700 ms.
 3. `permission_denials`: a run with a `tool_use` of `status` `error` whose error is `exit 1`, followed by a `tool_use` refused with `permission denied by rule git push*`, lists exactly one denial, the second, with detail `{"command": "git push"}`. A row with the two events in the other order lists the same one denial.
 4. The second call's words, one parametrized test:
-   - a run stopped at its budget (one `step_finish` of cost 1.2 against a budget of 1, session `ses_s`) and resumed: the second call's words, after the login words, are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_s <FINISH_MESSAGE>`;
-   - a request with `resume_session` `ses_r` and prompt `Go on.`: the call's words are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_r Go on.`.
-5. As agent user `agent` with a stand-in `sudo`: a stand-in that prints a `step_start` with session `ses_k` and then sleeps past a time limit of 3 seconds ends `time_limit`, with `session` `ses_k` and `login` `api_key` when the API login file holds a key. The elapsed time stays below 20 seconds. A row whose stand-in exits 137 at once, before its time limit, ends `died`.
-6. With a stand-in confine executable, the run's temporary folder does not exist after the run, in three rows: a completed run, a run whose stand-in exits 1 without events (`died`), and a run past its time limit (`time_limit`). With an agent user set, the removal's words start with the `sudo` words for that user.
+   - a run stopped at its budget (one `step_finish` of cost 1.2 against a budget of 1, session `ses_a`, the builders' `SESSION`) and resumed: the arguments the stand-in records for the second call are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_a <FINISH_MESSAGE>`;
+   - a request with `resume_session` `ses_r` and prompt `Go on.`: the arguments the stand-in records are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_r Go on.`.
+5. As agent user `agent` with a stand-in `sudo`: a stand-in that prints a `step_start` (session `ses_a`, the builders' `SESSION`) and then sleeps past a time limit of 3 seconds ends `time_limit`, with `session` `ses_a` and `login` `api_key` when the API login file holds a key. The elapsed time stays below 20 seconds. A row whose stand-in exits 137 at once, before its time limit, ends `died`.
+6. With the write guard's wrapper `factory-confine` (`CONFINE` of `tests/confine_support.py`, which makes the run's temporary folder) and the layout's temporary root, the root is empty after the run, in three rows: a completed run, a run whose stand-in exits 1 without events (`died`), and a run past a time limit of 3 seconds (`time_limit`). With the agent user `agent`, a stand-in `sudo` and the stand-in confine executable of `write_confine`, the last call the stand-in `sudo` records is `-n -u agent -- /bin/sh -c`, then `CLEANUP_SCRIPT`, `factory-cleanup` and `<temporary root>/factory-run-<run>`, `<run>` being the id in the name of the configuration file the call was given (`opencode-<run>.json`).
 7. `make check` stays green.
 8. docs: none. The behaviour is already described in `docs/project-guide/agents.md` (*The opencode runtime*) and `docs/operator-guide.md` (*Running on opencode*). The documenter checks that those passages say each of the six rules above, and adds the one that is missing.
 

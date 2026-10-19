@@ -13,7 +13,7 @@ No module under `src/factory/` changes. The behaviour pinned is that of `run_str
 - A line is handed to `on_line` once and whole, however many reads it takes to arrive, on standard output and on standard error alike.
 - `ProcessResult.stdout` and `ProcessResult.stderr` hold everything the process printed, however many reads it took.
 
-Tests (the tester writes them): `tests/adapters/test_process_streaming_reads.py` (new), with real Python child processes and the helper `python_argv` from `tests/process_support.py`, imported, not copied. No earlier test changes.
+Tests (the tester writes them): `tests/adapters/test_process_streaming_reads.py` (new), with real Python child processes, the helper `python_argv` from `tests/process_support.py` and the callback `Recorder`, imported, not copied. Under the standing leave of `CLAUDE.md` (*Tests*) the tester moves `Recorder` from `tests/adapters/test_process_streaming.py` to `tests/process_support.py`, and `tests/adapters/test_process_streaming.py` imports it from there; its tests keep their names and what they check. No other earlier test changes.
 
 ## Acceptance criteria
 

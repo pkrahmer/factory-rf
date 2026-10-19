@@ -24,10 +24,12 @@ Changed under the standing leave to move a shared test helper, by the tester onl
 - the `definition` fixture is removed from `tests/application/test_acceptance_closed.py`, `test_acceptance_reading.py`, `test_task_acceptance.py`, `test_stage_run_acceptance.py`, `test_acceptance_repeated.py`, `test_acceptance_snapshots.py`, `test_acceptance_hand_over.py`, `test_acceptance_service.py`, `test_acceptance_due_handler.py`, `test_acceptance_merged.py` and `test_acceptance_merged_before_approval.py`, which then use the one in `tests/conftest.py`, along with any import that only it used;
 - the autouse `_agents` fixture is removed from the six modules named in the Description, which gain `pytestmark = pytest.mark.usefixtures("installed_agents")`, and the `installed_agents` fixture is removed from `tests/application/test_pipeline_loading_agents.py`, whose `pytestmark` stays.
 
+Tests (the tester writes them): `tests/test_shared_fixtures.py` (new), the two searches of criteria 1 and 2. Every test of the eighteen changed modules keeps its name and id.
+
 ## Acceptance criteria
 
-1. Under `tests/`, only `tests/conftest.py` defines a fixture `definition(boundaries: Boundaries)`. The eleven modules' tests pass with the same test ids as before the change.
-2. Under `tests/`, only `tests/conftest.py` defines `installed_agents`, and no module defines `_agents(agent_home: Path, boundaries: Boundaries)`. The seven modules' tests pass with the same test ids as before the change.
+1. A test that reads every `.py` file under `tests/` finds `def definition(boundaries: Boundaries)` only in `tests/conftest.py`.
+2. A test that reads every `.py` file under `tests/` finds `def installed_agents(` only in `tests/conftest.py`, and `def _agents(agent_home: Path, boundaries: Boundaries)` in no file.
 3. `make check` stays green.
 4. docs: none. No document names these fixtures; `docs/project-guide/stages.md` names `install_agents` in `tests/git_support.py`, which stays.
 
