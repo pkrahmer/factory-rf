@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T22:30:15.926287Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T22:29:55.394407Z'
   stage: tests
   run: 0c5ac142d6cc4d2988d094877a3cf927
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:30:15.926287Z'
+  stage: doing
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -110,3 +119,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_template_makefile_header.py::test_template_makefile_header_calls_mutants_a_sweep_by_hand[new-line-4]
+6. factory: started doing as self.
