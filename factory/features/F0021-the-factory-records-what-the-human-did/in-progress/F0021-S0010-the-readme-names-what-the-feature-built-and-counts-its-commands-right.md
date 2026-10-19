@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T02:12:36.275618Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T02:12:36.275618Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T02:14:25.469564Z'
+  stage: doing
+  run: 9114f168a38c4514a3c396121a9c3cb2
 ---
 
 # The README names what the feature built and counts its commands right
@@ -121,3 +123,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.0 s)
 6. factory: started doing as self.
+7. coder: No code changed. This is a docs-only story with Interface "None". Criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and nothing there changed in this stage. `git status --short` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   - Built: nothing. The four passages in `README.md` and `docs/operator-guide.md` are the documenter's to change. The coder does not write those documents (CLAUDE.md, *Docs*).
+   - Main choice: hand forward empty. The alternative I rejected was editing the README and the operator guide here. That would take the docs criterion away from the documenter, which owns it.
+   - Refactor: no diff, so nothing to refactor.
+   - Description: the journal did not change the task's meaning, so the description stays as written.
+   - Noticed, not touched: none.
+
+   `make check`: check: green (test: green, 37.1 s; coverage 99.06 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
