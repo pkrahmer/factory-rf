@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:32:27.773536Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T20:32:27.773536Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:33:42.946340Z'
+  stage: doing
+  run: 8b09ff6203404f7b9e4cfda0751d9958
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -112,3 +114,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.1 s)
 6. factory: started doing as self.
+7. coder: No code written. This story changes documents only: its Interface says "None", and the tester left no red tests. The documenter makes the three document changes in criterion 3.
+   criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage. `git diff --stat main` over those paths is empty, and my working tree changes no file. This entry is the coder's confirmation.
+   criterion 2: `make check` ran in the foreground and ended `check: green` (coverage 99.12 %, `test: green (47.0 s)`).
+   Main choice: I changed nothing, as the story asks. I rejected writing the document passages myself: `docs/` is the documenter's to change, not the coder's (CLAUDE.md, *Docs*).
+   Refactor: there is no diff, so nothing to refactor.
+   The journal did not change the meaning of the task, so `## Description` is unchanged.
+   Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
