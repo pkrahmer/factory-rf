@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T19:11:35.643326Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T19:11:14.011588Z'
   stage: tests
   run: 001ce14c6be444bfa9860773496b90c6
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:11:35.643326Z'
+  stage: doing
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -108,3 +117,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (47.8 s)
+6. factory: started doing as self.
