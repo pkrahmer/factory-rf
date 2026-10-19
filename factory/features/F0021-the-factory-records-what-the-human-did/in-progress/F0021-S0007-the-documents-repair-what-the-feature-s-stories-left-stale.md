@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T00:55:07.692054Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T00:54:47.753710Z'
   stage: intake
   run: 707f745ac3d541ea9d7f881bd182d205
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:55:07.692054Z'
+  stage: tests
 ---
 
 # The documents repair what the feature's stories left stale
@@ -89,3 +98,4 @@ Expect: `documents ok`
    Smoke test: All four commands are runnable. Each `Expect:` line is a count or an exact output that can be checked. The second test greps the two rows for `time_limit`, which sits only in the `Comment reads` cell being replaced, so `0` is right after the change.
    Architecture: No layer is touched.
    Scope: The story repairs the five passages the feature acceptance found and nothing else. It stays inside the feature's docs paths, and nothing in `feature.md`'s Out of scope covers it.
+4. factory: started tests as self.
