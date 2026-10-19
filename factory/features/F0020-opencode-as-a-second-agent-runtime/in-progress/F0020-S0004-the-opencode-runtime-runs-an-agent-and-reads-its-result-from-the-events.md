@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T05:17:48.908099Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-10-19T05:17:28.244557Z'
   stage: doing
   run: dc6e66f97146489eaa37833f837d2826
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:17:48.908099Z'
+  stage: tests
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -522,3 +531,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed but not touched:
     - `make duplicates` now reports 3 new similar blocks, down from 7. They are only matching call sites of the shared helpers (the `call_refusal` call, the `version_printed` call, the temporary-folder removal), each with the same keyword arguments. `_request_of` is the same 4 lines in both runtimes, because `agent_launch` may not build a `ProcessRequest`.
     - Vulture still flags `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in) as unused.
+25. factory: started tests as self.
