@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T01:03:27.841706Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T01:03:27.835216Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:03:27.841706Z'
+  stage: intake
+---
+
 # The preflight keeps main failing across a stops recorded commit
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -68,3 +95,6 @@ grep -c "the rule does not yet ignore a commit that changes only" docs/operator-
 Expect: `0`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
