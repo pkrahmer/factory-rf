@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 289
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T21:41:09.467403Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T21:41:09.467403Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T21:41:28.793183Z'
+  stage: intake
+  run: 00469f4ea1a9460e8571778f8b2f6978
 ---
 
 # The wired known results and disk records read back what they write
@@ -58,3 +60,9 @@ Expect: a line that starts with `2 passed`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no module under `src/` changes. `factory.entry.wiring.build_boundaries` exists and sets `result_records` (`JsonLinesRecordLog(..., ResultRecord)`) and `disk_records` (`JsonLinesRecordLog(..., DiskRecord)`). The rule is stated concretely: `read()` gives `[]` before an append and `[record]` after one. The named test helpers exist: `CREDENTIAL` in `tests/wiring_support.py`, `local_settings` in `tests/conftest.py`, and `tests/entry/test_wiring_stop_records.py` as the pattern. `DiskUse` has path, free_bytes and used_bytes as the story's example uses them. I did not check `ResultRecord`, `ResultKey` or `DiskRecord` field by field.
+   Criteria: criterion 1 is one parametrized test with a row per log, and both sides (before and after the append) are stated. The Interface states no limit, rejected input or default beyond that. `make check` and `docs: none` are the last two, as the form requires.
+   Smoke test: the command is runnable and the `Expect:` line (`2 passed`) can be checked against the output. It matches the two rows.
+   Architecture: tests only, in `tests/entry/`, which mirrors `factory.entry`. Nothing is faked except the hosting service, as `CLAUDE.md` allows.
+   Scope: `feature.md` lists only S0001 and S0002 under Stories, and its Scope names `result_records` but not `disk_records` (F0012's). This story is the feature acceptance's proposal and it is test-only, so I accepted it. If you would rather add it to the feature's story list, that edit is yours.
