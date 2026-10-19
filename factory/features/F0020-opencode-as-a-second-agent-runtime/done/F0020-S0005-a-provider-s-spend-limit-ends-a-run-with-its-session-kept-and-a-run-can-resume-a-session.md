@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -269,6 +269,11 @@ journal:
   at: '2026-10-19T08:15:51.159775Z'
   stage: smoke-test
   run: 5577222ee5f14bc5b8d454192809a033
+- number: 48
+  speaker: factory
+  kind: done
+  at: '2026-10-19T09:01:12.330787Z'
+  stage: approval
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -892,3 +897,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The smoke test contradicts no criterion. It does not exercise the rest (settings, opencode, costs, contract schemas, docs); the factory's checks cover those.
 
     Findings: none.
+48. factory: done (pull request merged); cost: 21 runs, 31.6 min, 203 turns, 711584 tokens in (6410847 more from cache), 99914 out, $8.43
