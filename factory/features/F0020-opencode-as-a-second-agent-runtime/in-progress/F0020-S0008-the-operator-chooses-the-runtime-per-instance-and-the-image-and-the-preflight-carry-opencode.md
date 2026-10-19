@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T11:18:15.562504Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-19T11:17:55.303815Z'
   stage: doing
   run: 3960e7dca5d84181bab3f9a8838fed7f
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:18:15.562504Z'
+  stage: tests
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -300,3 +309,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     3. In `tests/application/test_opencode_item.py`, line 112, the `no-agents-folder` neighbour row's lambda builds a tuple from the value of `write_agent`, which is typed `-> None`. That gives `func-returns-value`, the trap CLAUDE.md names. Make it a named helper function that calls `write_agent` and `write_bytes` as statements.
 
     State: the implementation from my previous run is committed on the branch (`src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, `image/Dockerfile`, `image/compose.yml`). Its design choice is in entry 10: one private `_agent_runtime` builder in the wiring, not a runtime registry. Still open for my next doing run, once the tests are settled: the refactor pass and the final `make check`. The journal changed nothing in the Description: the Interface and the runtime's fail-closed settings read stay as written.
+14. factory: started tests as self.
