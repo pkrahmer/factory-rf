@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T16:43:17.962858Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-19T16:43:17.962858Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T16:43:45.108230Z'
+  stage: docs
+  run: 09c8447f091840b9834071fc89321250
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -224,3 +226,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     docs/project-guide/processes-and-checks.md: uses the v1 word 'ticket'
     make: *** [Makefile:93: documents] Error 1
 13. factory: started docs as self.
+14. documenter: I fixed the one failure left by the last docs run, which stalled on `make documents`: `docs/project-guide/processes-and-checks.md` used the v1 word 'ticket'. I have now run `make documents` and it passes (`documents ok`). Only documents changed, so I did not run `make check`.
+
+    Files changed this round:
+    - `docs/project-guide/processes-and-checks.md`, *Mutation testing*, the `FEATURE` bullet: the commit subjects it matches are now written as `work item <id>-S<nnnn>:`. The Makefile's `FEATURE_MODULES` pattern also matches v1's older subject form, so the text points the reader to that pattern instead of spelling the old word out.
+
+    Files changed in round 0 (entry 11) and still in place:
+    - `docs/project-guide/processes-and-checks.md`: *Mutation testing* rewritten for the human's recipe.
+    - `docs/operator-guide.md`: point 3 of *What a stage run shows*, and the new `### The mutation report of a story`.
+    - `docs/decisions.md`: new entry *Mutation testing per story*. The older entry is marked superseded.
+
+    Cross-read and found current: `claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md` against the Interface, `CLAUDE.md`'s *Checks* paragraph, `README.md`, and the other project-guide files.
+
+    Findings for the coder: none.
+
+    Stale text I saw but did not touch: none. The work item's `.costs.jsonl` shows as modified in the work tree; that is the factory's file.
+
+    `check`: check: green (not run again: passed on tree 3cf1f2b13373 at 2026-10-19T16:39:50Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
