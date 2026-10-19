@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T09:17:52.328365Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T09:17:32.281949Z'
   stage: intake
   run: 943f8bbb0822414abe712e378aab16e1
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:17:52.328365Z'
+  stage: tests
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -93,3 +102,4 @@ Expect: `documents ok`
    - Smoke test: the three commands are runnable. Each `Expect:` line can be checked against the output: the three printed lists, the usage with `exit 2`, and `documents ok`.
    - Architecture: the story only pins behaviour in the domain and entry layers, and nothing crosses a layer. It adds no new tests of another story and changes none.
    - Scope: this is acceptance follow-up work, inside F0025's document check. It touches neither the feature's "Out of scope" items nor any other story's tests. The feature lists only S0001 under Stories, so this story is a proposed addition that the human started by hand, which I accept as given.
+4. factory: started tests as self.
