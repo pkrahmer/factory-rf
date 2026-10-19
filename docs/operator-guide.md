@@ -792,6 +792,35 @@ When a file has several faults, the first is reported: a key that is not applied
 
 The image ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. The entrypoint installs them into `FACTORY_CLAUDE_HOME` at every start, so an edit made there by hand is gone at the next start; change the files in the image instead. The settings let an agent run `factory-check-story` and no other `factory-` command: it cannot run `factory-run`, `factory-watch` or `factory-bill`. They also deny `git add` and `git commit`, because an agent leaves its changes in the working tree and the factory makes the result commit (an agent user has no git identity of its own), and `git push`, `gh` and the commands that move or rewrite branches, because the factory alone pushes. A new project starts from `template/` in the image (a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in); the story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
 
+## The records contract
+
+A reader outside the factory, such as a page that shows a factory's records from GitHub, may rely on these records and on nothing else:
+
+| Record | Where | Schema |
+|---|---|---|
+| the front matter of a work item | the story file; for an acceptance report, its file | `work-item-state`; `acceptance-state` for an acceptance report |
+| one line of a work item's cost records | `<work item>.costs.jsonl` | `cost-record` |
+| one line of the stop records | `factory/stops.jsonl` | `stop-record` |
+| the pipeline definition | `factory/pipeline.yml` | `pipeline-definition` |
+
+The Markdown body of a work item, the text of the journal entries included, is for people. Never parse it.
+
+The schemas are JSON Schema files (draft 2020-12) in `src/factory/contract/`, named `<schema>.schema.json`. They are generated from the models that validate each record and are never written by hand. A story that changes one of those models regenerates them in the same change; `make check` fails when a committed file differs from what the models give. To regenerate them, or to write them into another folder:
+
+```bash
+uv run python -m factory.entry.contract [<folder>]
+```
+
+The command prints `contract: 5 schemas written`. The files are package data, so they ship in the wheel, and a reader in another repository can fetch them from `main`.
+
+**Where a work item's records are.** While the work item is in progress they are on its branch `work-item/<id>`: the factory writes the front matter and the sidecar there at every stage. From the merge on they are on `main`, moved to `done/` by the archive commit. A work item in `in-progress/` on `main` without a merge shows only the state it had at its start.
+
+**The approval.** A work item enters the approval with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
+
+**The version.** Each schema carries the records contract's version in `x-records-contract`, now `1.0`. The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
+
+**Unknown properties.** The schemas say `additionalProperties: false` for what this version of the factory writes. A reader still ignores a property it does not know, since a later minor version may add one.
+
 ## Checking a story before it starts
 
 `factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout must be laid out the v1.1 way: `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in `backlog`, `in-progress` or `done`.

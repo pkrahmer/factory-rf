@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T00:08:51.803056Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T00:08:51.803056Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T00:10:16.028985Z'
+  stage: docs
+  run: a3267d5b90624064a1b82036375c219a
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -247,3 +249,20 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
    Earlier tests: none. Every test file in the diff is new (status `A`).
 10. factory: started docs as self.
+11. documenter: Wrote the documentation for the records contract. I found no findings: the code matches the Interface and the criteria.
+
+    Files changed (documents only, so I did not run `make check`; the factory's run after this stage decides):
+    - `docs/operator-guide.md`: new section `## The records contract`, placed before "Checking a story before it starts". It covers the records a reader may rely on, with their schemas; the schema folder and the regeneration command; the rule that the Markdown body is never parsed; where a work item's records are; how a reader finds the approval's start and end; the version rule; ignoring unknown properties although the schemas say `additionalProperties: false`; and that the version is not the pipeline definition's `contract`.
+    - `docs/project-guide.md`: new subsection *The records contract* under *The data of a work item*. It covers `factory.domain.contract`, the command, the test that compares the committed files, and that a model change regenerates the schemas in the same story.
+    - `docs/decisions.md`: new entry "The records carry generated JSON Schemas under `src/factory/contract/`", with the reasons and the three rejected alternatives.
+
+    Run: the smoke test's first command (`uv run -q python -m factory.entry.contract <tmp>` and `diff -r` against `src/factory/contract`) printed `contract: 5 schemas written` and `same`. The other examples are prose or the same command.
+
+    Cross-read against the diff and found current: `README.md`, the operator guide's "The pipeline definition" (its `contract` is the definition's own version, which the new text says is separate), "The stop records", "The stop records on main" and "Refused tool calls in the sidecar" (the `denials` and `denied_paths` keys match the cost-record schema), and the project guide's "The state", "Cost records" and "The pipeline definition".
+
+    Stale text noticed and not touched: none related to this story. The operator guide's opening paragraph lists the built parts and does not mention the contract. The sentence is a summary, not a wrong statement, and it is not mine to extend.
+
+    The `.costs.jsonl` sidecar of this story shows as modified in the work tree. It is the factory's file and I did not touch it.
+
+    `check`: check: green
+    `documents`: documents ok
