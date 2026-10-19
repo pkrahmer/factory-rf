@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T18:17:33.462235Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -107,6 +111,11 @@ journal:
   at: '2026-10-19T18:17:12.502993Z'
   stage: review
   run: f14baac4a94e47f3849bf680cbeeb198
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:17:33.462235Z'
+  stage: docs
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -334,3 +343,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     Notes:
     - `tests/entry/test_watch_main.py:108-111`: the stand-in names its keyword `_hosting`, but `boundaries_from_environment` (`src/factory/entry/wiring.py:205-207`) calls it `hosting`. `main` passes no hosting, so nothing breaks, but `hosting` would match the real function.
     - `tests/entry/test_watch_main.py:65-91`: the criterion 3 test does not assert `main`'s return status. The criterion does not ask for it, and criteria 1 and 2 already pin it.
+19. factory: started docs as self.
