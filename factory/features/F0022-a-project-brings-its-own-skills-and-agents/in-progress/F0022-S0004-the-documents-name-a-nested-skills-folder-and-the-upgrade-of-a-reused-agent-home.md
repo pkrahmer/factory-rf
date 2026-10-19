@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T20:32:27.773536Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T20:32:06.401545Z'
   stage: tests
   run: c3cf987070584f3cb18a8bad46c56259
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:32:27.773536Z'
+  stage: doing
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -102,3 +111,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.1 s)
+6. factory: started doing as self.
