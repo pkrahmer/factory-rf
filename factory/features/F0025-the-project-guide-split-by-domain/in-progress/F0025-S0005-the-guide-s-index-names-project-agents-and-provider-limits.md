@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T22:42:52.643338Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T22:42:32.512280Z'
   stage: docs
   run: 276bca75576a49dc8590ca476655a01b
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:42:52.643338Z'
+  stage: smoke-test
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -177,3 +186,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 4b0c868681a6 at 2026-10-19T22:40:16Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
