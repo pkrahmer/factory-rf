@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T20:50:05.454416Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T20:50:05.454416Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T20:50:27.935593Z'
+  stage: intake
+  run: 6dedcc08f3dc416a855ead9a8ad44429
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -96,3 +98,9 @@ Expect: `1`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under `src/` changes. It names four exact files (`claude/agents/acceptance-reviewer.md`, `claude/agents/reviewer.md`, `template/CLAUDE.md`, `template/Makefile`) and gives the old and new text of every passage. I found the old passages in the acceptance reviewer: check 7 is on line 59, step 1 on line 72 and step 3 on line 74. The template's Makefile still has the old comment line.
+   - Criteria: each is testable by a parametrized text-presence or text-count test. The rules have both sides. The new texts are present (1), the old texts occur 0 times and check 3 occurs once as the third numbered check (2), and the reviewer holds no `mutant`, `mutmut` or `mutation` plus the blank-line layout (3). The template's CLAUDE.md line and Makefile line are present once, and the old wording is gone (4). The unchanged tests still pass (5). Every behaviour in the Interface comments has a criterion. The changes to existing tests carry the human's leave under the feature's decision 7.
+   - Smoke test: the commands are runnable greps. I checked the first one: its four patterns sit on four separate lines (check 3, check 7, step 1, step 3), so `4` is right. The second block's four expected lines (`0`, `0`, `template/CLAUDE.md:0`, `template/Makefile:0`) match grep -c output for two files. Each `Expect:` line can be checked against the output.
+   - Architecture: only shipped agent texts and template files change, in `claude/` and `template/`. Those are the coder's write paths and the tests are the tester's. No layer, dependency or suppression marker is involved.
+   - Scope: it is within the feature's Scope. It leaves alone the Out-of-scope items (the `mutants` target, `src/`, the pipeline files and the todo demo). The pipeline file and the demo changes stay the human's, as the feature says.
