@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T23:55:17.498618Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T23:55:17.498618Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:57:15.015867Z'
+  stage: tests
+  run: cecc0b6814684c4482da014280e8e4c8
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -204,3 +206,28 @@ Expect: `exit 0`
 
     Noticed, not touched: nothing else. Nothing under `src/` changes in this story, and `make check` was green after round 0 (entry 7).
 12. factory: started tests as self.
+13. tester: Round 1: I fixed the reviewer's finding (entry 9) with the move the coder named in entry 11. I made it under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. Nothing under `src/` changed.
+
+    The move:
+    - tests/search_support.py (new) holds `modules_matching(pattern: str, leave_out: str) -> list[str]`, with its own `TESTS`. It is the body of `_writing`: it compiles the pattern with `re.MULTILINE | re.DOTALL`, searches every `*.py` under `tests` except the module named `leave_out`, and returns the sorted relative paths of the modules that match. Its own source holds none of the texts the tests search for.
+    - I rejected the name `test_modules_matching`. A function with the `test_` prefix that a test module imports is collected by pytest as a test.
+
+    Earlier test files changed:
+    - tests/test_shared_test_helpers.py (standing leave): `_writing` removed. `test_each_shared_helper_is_written_in_one_module` now calls `modules_matching(pattern, THIS)`; its name, ids and patterns are unchanged. `TESTS` stays because `test_the_image_layout_fixture_returns_the_entrypoints_layout` reads conftest through it, and that test is unchanged.
+    - tests/test_entrypoint_support.py (written by this story): `_containing` is now a one-line call, `modules_matching(re.escape(text), THIS)`, and its own `TESTS` is gone. `test_the_entrypoint_layout_lives_in_its_support_module_alone` keeps its name and its three split texts, and checks the same thing.
+
+    Criteria → tests (unchanged from entry 5):
+    - criterion 1: no test function of its own; the collected ids are the same as before. This round changes no test name or id.
+    - criterion 2: tests/test_entrypoint_support.py::test_the_entrypoint_layout_lives_in_its_support_module_alone
+    - criterion 3: tests/test_shared_test_helpers.py::test_the_image_layout_fixture_returns_the_entrypoints_layout
+    - criterion 4: `make check`, which the coder runs.
+    - criterion 5: docs: none.
+
+    Files created: tests/search_support.py.
+
+    Run: `make test` → `test: green (39.7 s)`; every module imported. The tests are green rather than red because this story is only a move. The first `make lint` failed on the import order in tests/test_shared_test_helpers.py (I001). `ruff --fix` sorted it and `make lint` is now green. I did not re-run `make test` after that fix, which only reordered imports. I did not run the type check (stage rule).
+
+    Open: none.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.9 s)

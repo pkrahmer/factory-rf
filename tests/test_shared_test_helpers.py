@@ -5,18 +5,11 @@ from pathlib import Path
 
 import pytest
 
+from search_support import modules_matching
+
 TESTS = Path(__file__).parent
 # The texts below are split so that a search of `tests` for them finds only their one module.
 THIS = Path(__file__).name
-
-
-def _writing(pattern: str) -> list[str]:
-    found = re.compile(pattern, re.MULTILINE | re.DOTALL)
-    return sorted(
-        path.relative_to(TESTS).as_posix()
-        for path in TESTS.rglob("*.py")
-        if path.name != THIS and found.search(path.read_text(encoding="utf-8"))
-    )
 
 
 @pytest.mark.parametrize(
@@ -41,7 +34,7 @@ def _writing(pattern: str) -> list[str]:
     ],
 )
 def test_each_shared_helper_is_written_in_one_module(pattern: str, module: str) -> None:
-    assert _writing(pattern) == [module]
+    assert modules_matching(pattern, THIS) == [module]
 
 
 def test_the_image_layout_fixture_returns_the_entrypoints_layout() -> None:

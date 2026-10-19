@@ -1,17 +1,15 @@
 """The entrypoint tests' layout and line helper are written in their support module alone."""
 
+import re
 from pathlib import Path
 
-TESTS = Path(__file__).parent
+from search_support import modules_matching
+
 THIS = Path(__file__).name
 
 
 def _containing(text: str) -> list[str]:
-    return sorted(
-        path.relative_to(TESTS).as_posix()
-        for path in TESTS.rglob("*.py")
-        if path.name != THIS and text in path.read_text(encoding="utf-8")
-    )
+    return modules_matching(re.escape(text), THIS)
 
 
 def test_the_entrypoint_layout_lives_in_its_support_module_alone() -> None:
