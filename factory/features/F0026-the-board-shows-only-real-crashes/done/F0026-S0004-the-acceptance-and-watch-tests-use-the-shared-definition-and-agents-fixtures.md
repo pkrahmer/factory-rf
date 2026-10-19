@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T17:38:08.598211Z'
   stage: smoke-test
   run: 09ea76c956a9446183299b2c3f8dd04e
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T17:39:27.668491Z'
+  stage: approval
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -254,3 +259,4 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
     - Criterion 4 (docs: none): the smoke test does not touch it.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 5.2 min, 36 turns, 125271 tokens in (719113 more from cache), 12378 out, $1.23
