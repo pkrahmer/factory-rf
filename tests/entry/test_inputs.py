@@ -31,5 +31,25 @@ def test_an_input_is_read_as_utf_8_or_reported_unreadable(
         assert str(raised.value).startswith(f"cannot read {path}: ")
 
 
+@pytest.mark.parametrize(
+    ("content", "cause"),
+    [
+        pytest.param(None, FileNotFoundError, id="missing"),
+        pytest.param(b"\xff\xfe", UnicodeDecodeError, id="not-utf-8"),
+    ],
+)
+def test_an_unreadable_input_is_chained_from_the_error_it_reports(
+    tmp_path: Path, content: bytes | None, cause: type[Exception]
+) -> None:
+    path = tmp_path / "input.txt"
+    if content is not None:
+        path.write_bytes(content)
+
+    with pytest.raises(UnreadableInput) as raised:
+        read_input(path)
+
+    assert isinstance(raised.value.__cause__, cause)
+
+
 def test_check_duplicates_has_no_reader_of_its_own() -> None:
     assert not hasattr(check_duplicates, "_read")

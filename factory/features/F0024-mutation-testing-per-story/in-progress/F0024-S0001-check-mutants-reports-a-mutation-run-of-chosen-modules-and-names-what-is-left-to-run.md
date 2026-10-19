@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T16:12:16.391069Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T16:12:16.391069Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T16:14:10.224150Z'
+  stage: tests
+  run: 0c5b5e7743da4a44b91456729b6bf827
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -285,3 +287,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: nothing new.
 12. factory: started tests as self.
+13. tester: I made the two test changes listed in the coder's entry 11: the reviewer's finding 1 and the test for the new criterion 12. I did not touch any code under `src/`.
+
+    - criterion 1: tests/domain/test_mutants.py::test_result_lines_are_read_in_their_order_and_other_lines_are_refused. This replaces `test_result_lines_are_read_in_their_order` and `test_a_line_that_is_no_result_is_refused`, merged into one parametrized test. It keeps the same rows: two lines with a blank line between, empty text, one row per status, and the seven refused lines. A refused row expects the `ValueError` with the exact message `not a result line of mutmut: <repr>`.
+    - criterion 12: tests/entry/test_inputs.py::test_an_unreadable_input_is_chained_from_the_error_it_reports. It has two rows. For a missing file, `__cause__` is a `FileNotFoundError`. For a file holding `b"\xff\xfe"`, it is a `UnicodeDecodeError`.
+
+    All other tests and the mapping in entry 5 are unchanged.
+
+    Files changed: tests/domain/test_mutants.py and tests/entry/test_inputs.py, both written by this story. I created no new files and changed no earlier test file.
+
+    Every module imported. `make test` is green. That is expected, because the code already existed and already chains the error (`from error` in src/factory/entry/inputs.py). `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (43.7 s)

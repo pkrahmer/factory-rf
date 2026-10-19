@@ -63,31 +63,29 @@ def _names(results: Sequence[MutantResult], *numbers: int) -> list[str]:
             )
             for status in STATUSES
         ),
+        *(
+            pytest.param(f"{line}\n", f"not a result line of mutmut: {line!r}", id=case)
+            for line, case in (
+                ("factory.domain.a.x_f__mutmut_1 killed", "no-separator"),
+                ("factory.domain.a.x_f__mutmut_1: dead", "unknown-status"),
+                ("x_f__mutmut_1: killed", "no-dot"),
+                ("factory..x_f__mutmut_1: killed", "empty-part"),
+                ("factory.domain.a b.x_f__mutmut_1: killed", "whitespace-in-name"),
+                ("factory.domain:a.x_f__mutmut_1: killed", "colon-in-name"),
+                ("Warning: 3 files changed", "other-text"),
+            )
+        ),
     ],
 )
-def test_result_lines_are_read_in_their_order(text: str, expected: list[MutantResult]) -> None:
-    assert parse_results(text) == expected
-
-
-@pytest.mark.parametrize(
-    "line",
-    [
-        pytest.param("factory.domain.a.x_f__mutmut_1 killed", id="no-separator"),
-        pytest.param("factory.domain.a.x_f__mutmut_1: dead", id="unknown-status"),
-        pytest.param("x_f__mutmut_1: killed", id="no-dot"),
-        pytest.param("factory..x_f__mutmut_1: killed", id="empty-part"),
-        pytest.param("factory.domain.a b.x_f__mutmut_1: killed", id="whitespace-in-name"),
-        pytest.param("factory.domain:a.x_f__mutmut_1: killed", id="colon-in-name"),
-        pytest.param("Warning: 3 files changed", id="other-text"),
-    ],
-)
-def test_a_line_that_is_no_result_is_refused(line: str) -> None:
-    with pytest.raises(
-        ValueError, match=re.escape(f"not a result line of mutmut: {line!r}")
-    ) as raised:
-        parse_results(line + "\n")
-
-    assert str(raised.value) == f"not a result line of mutmut: {line!r}"
+def test_result_lines_are_read_in_their_order_and_other_lines_are_refused(
+    text: str, expected: list[MutantResult] | str
+) -> None:
+    if isinstance(expected, str):
+        with pytest.raises(ValueError, match=re.escape(expected)) as raised:
+            parse_results(text)
+        assert str(raised.value) == expected
+    else:
+        assert parse_results(text) == expected
 
 
 @pytest.mark.parametrize(
