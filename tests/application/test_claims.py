@@ -17,9 +17,10 @@ from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
+from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, TEST_IDENTITY, remote_commit
 from human_clone import HumanClone
+from work_item_support import CREATED, checkout_text, created_state, put_work_item
 
 INSTANCE = "factory-1"
 STAGE = "intake"
@@ -31,7 +32,6 @@ NOTES = "factory/features/F0001-example/in-progress/notes.md"
 PIPELINE_FILE = "factory/pipeline.yml"
 BEFORE_JOURNAL = "# First story\n\n## Description\n\nOriginal.\n\n"
 BODY = BEFORE_JOURNAL + "## Journal\n\n1. 2026-10-12 human: created.\n"
-CREATED = JournalRecord(number=1, speaker="human", kind="created")
 LEASE_45_YAML = PIPELINE_YAML.replace(
     'intake: {write_paths: ["{work_item}"]}',
     'intake: {write_paths: ["{work_item}"], lease_duration: 45}',
@@ -44,7 +44,7 @@ OTHER_INSTANCE = "factory-2"
 
 
 def _state(stage: str = STAGE) -> WorkItemState:
-    return initial_state(stage).model_copy(update={"journal": [CREATED]})
+    return created_state(stage)
 
 
 def _definition(boundaries: Boundaries, text: str = PIPELINE_YAML) -> PipelineDefinition:
@@ -58,16 +58,8 @@ def _prepare(
     committed: bool = True,
 ) -> WorkItemDocument:
     """Put the work item on its branch, created from `origin/main`, and return its document."""
-    git = boundaries.git
-    git.fetch()
-    git.checkout(BRANCH, start_point="origin/main")
     document = WorkItemDocument(state=_state() if state is None else state, body=BODY)
-    target = boundaries.checkout / PATH
-    target.parent.mkdir(parents=True, exist_ok=True)
-    boundaries.work_item_writer.write(target, document)
-    if committed:
-        git.commit("prepare the work item")
-        assert git.push(BRANCH) == "pushed"
+    put_work_item(boundaries, BRANCH, PATH, document, committed=committed)
     return document
 
 
@@ -90,15 +82,10 @@ def _pushed_document(boundaries: Boundaries, git: GitCli, commit: str) -> WorkIt
     return boundaries.work_item_reader.parse(text)
 
 
-def _file_text(boundaries: Boundaries, path: str) -> str | None:
-    target = boundaries.checkout / path
-    return target.read_text(encoding="utf-8") if target.exists() else None
-
-
 def _snapshot(
     boundaries: Boundaries, remote: Path, branch: str, path: str
 ) -> tuple[WorkTreeStatus, str | None, str | None]:
-    return boundaries.git.status(), _file_text(boundaries, path), remote_commit(remote, branch)
+    return boundaries.git.status(), checkout_text(boundaries, path), remote_commit(remote, branch)
 
 
 def test_claim_records_instance_stage_and_start_time_in_utc(
@@ -361,7 +348,7 @@ def test_claim_refuses_a_path_whose_file_name_is_no_work_items_and_writes_nothin
         service.claim(BRANCH, NOTES, document, STAGE)
 
     assert _snapshot(boundaries, remote, BRANCH, NOTES) == before
-    assert _file_text(boundaries, NOTES) is None
+    assert checkout_text(boundaries, NOTES) is None
 
 
 def test_claim_on_a_new_branch_commits_the_uncommitted_opening_on_main(
