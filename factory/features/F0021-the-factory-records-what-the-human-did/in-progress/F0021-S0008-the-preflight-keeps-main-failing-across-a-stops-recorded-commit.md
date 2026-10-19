@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T01:09:33.117637Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T01:09:33.117637Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T01:10:49.028949Z'
+  stage: review
+  run: 48340b1330eb463e9c6e45a9c88766f5
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -172,3 +174,13 @@ Expect: `0`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/domain/preflight.py, src/factory/application/preflight.py, two new test modules) against the work item.
+
+   Acceptance criteria: criteria 1 to 4 each have one parametrized test that checks what the criterion says. The Interface's failing sides are covered: other paths in criterion 1 and rows 3 and 4 of criterion 2, `GitError` in criterion 4, the empty list in criterion 1. Journal entry 7 records `make check` green. Architecture: the domain function imports only `factory.domain`, and the application method reaches git through `Boundaries.git`. I also checked that `changed_paths` compares against the work tree, not `origin/main`, and that this is safe: the tick's `_restore_checkout` calls `checkout(main, start_point=origin/main)`, a `switch --force-create`, before the stops are published and the preflight runs. So the work tree never lags `origin/main`, and an extra path in the work tree only makes the rule clear the stop. Security: nothing to report. Quality fails in the new test module, on helpers copied from other modules:
+
+   1. tests/application/test_preflight_stops_commit.py:29 `_log_lines` is a copy of `_log_lines` in tests/application/test_preflight_stale_main_stop.py:23 (also held in test_tick_stop_records.py:86, test_stale_branches.py:26, test_tick.py:183, test_disk_recorder.py:75). Fix: under the standing leave, move it to one shared place under `tests/` and use it from there.
+   2. tests/application/test_preflight_stops_commit.py:21 and :80-89 `CLEARED_LINE` and the `failed_once` fixture (body in `_failed_once`) copy `CLEARED_LINE` and `failed_once` in tests/application/test_preflight_stale_main_stop.py:20 and :46. Fix: move both to a shared place (the fixture to `tests/conftest.py` or beside `rig`/`red_main`) and use them from there; the recording variant can build on the shared fixture.
+   3. tests/application/test_preflight_stops_commit.py:73 the `records` fixture copies `records` in tests/application/test_tick_stop_records.py:97, word for word. Fix: move it to `tests/conftest.py` under the standing leave and use it from both modules.
+   4. tests/application/test_preflight_stops_commit.py:38 `_commit_on_main` is a second implementation, in raw git calls, of `HumanClone.push_file` (tests/human_clone.py:29): fetch, switch to `origin/main`, write, commit, push. Fix: use `rig.human.push_file("main", ...)` for the one-file rows. For the two-file row, reuse the shared helper rather than another raw-git copy.
+
+   Earlier tests: none. Every test file in the diff has status `A`.
