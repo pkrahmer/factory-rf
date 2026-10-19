@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T07:27:16.139978Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T07:26:58.091006Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:27:16.139978Z'
   stage: intake
 ---
 
@@ -198,3 +207,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 4. 2026-10-19 human: 1. Yes: add the row to criterion 7 (message variable `spend limit` gives `provider_limit.message` `spend limit`).
    2. Yes, the first proposal: add to criterion 12 that the run's files use a new id that differs from `resume_session`.
    3. Yes: change criterion 10's standard-error row so `API Error: 428, try again in 7 minutes` gives `limit_wait` 420 seconds, and add the row where the line names no wait and `limit_wait` is `None`.
+5. factory: started intake as self.
