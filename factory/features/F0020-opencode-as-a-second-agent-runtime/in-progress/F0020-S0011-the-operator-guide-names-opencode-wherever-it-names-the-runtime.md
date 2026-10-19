@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T19:14:42.602822Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T19:14:21.703504Z'
   stage: docs
   run: 3b6072a462e043dbb6266cf6753e44c7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:14:42.602822Z'
+  stage: smoke-test
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -180,3 +189,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
