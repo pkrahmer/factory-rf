@@ -31,6 +31,8 @@ def test_the_variables_have_their_names() -> None:
         pytest.param({COOLDOWN: "", CEILING: ""}, 10, 120, id="empty"),
         pytest.param({COOLDOWN: "  ", CEILING: "  "}, 10, 120, id="blank"),
         pytest.param({COOLDOWN: "5", CEILING: "60"}, 5, 60, id="five-and-sixty"),
+        pytest.param({COOLDOWN: "1", CEILING: "1"}, 1, 1, id="one-and-one"),
+        pytest.param({COOLDOWN: "30", CEILING: "30"}, 30, 30, id="ceiling-equals-cooldown"),
     ],
 )
 def test_the_cooldown_and_ceiling_are_read_in_minutes(

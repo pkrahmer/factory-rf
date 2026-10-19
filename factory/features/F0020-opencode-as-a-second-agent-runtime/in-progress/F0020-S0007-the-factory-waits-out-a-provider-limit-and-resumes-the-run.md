@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T10:50:13.244609Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-19T10:50:13.244609Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-19T10:51:57.785406Z'
+  stage: tests
+  run: 7adeae54c08f4358a247951eba8612ef
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -488,3 +490,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: nothing new.
 22. factory: started tests as self.
+23. tester: I wrote the test for criterion 18, which the reviewer added in entry 19. The coder's entry 21 named the change. It is two new rows in the parametrized `test_the_cooldown_and_ceiling_are_read_in_minutes`, next to the existing `five-and-sixty` row. Each row tests an accepting boundary that had no test:
+    - `one-and-one`: `{COOLDOWN: "1", CEILING: "1"}` gives a cool-down and a ceiling of 1 minute each. This is the smallest whole number of minutes the Interface allows.
+    - `ceiling-equals-cooldown`: `{COOLDOWN: "30", CEILING: "30"}` gives 30 and 30 minutes. A ceiling equal to the cool-down is accepted.
+
+    The refused sides already had tests: `0` in `test_a_value_that_is_not_whole_minutes_of_at_least_one_is_refused`, and 30/20 in the existing ceiling-below-cool-down test.
+
+    criterion 18: tests/domain/test_settings_provider_limit_wait.py::test_the_cooldown_and_ceiling_are_read_in_minutes[one-and-one] and [ceiling-equals-cooldown]
+
+    Files changed: tests/domain/test_settings_provider_limit_wait.py. This story wrote that file, so no earlier story's test was changed. I created no new files.
+
+    `make test` passed as expected, since the code already accepts these values: `test: green (36.0 s)`. Every module imported. `make lint` passed: `lint: green (0.0 s)`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.3 s)
