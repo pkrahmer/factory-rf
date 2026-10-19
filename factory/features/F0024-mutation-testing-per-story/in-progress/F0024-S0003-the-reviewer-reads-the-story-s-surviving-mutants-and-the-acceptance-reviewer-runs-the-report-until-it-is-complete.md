@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T16:44:05.985233Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-19T16:44:05.985233Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T16:44:22.604346Z'
+  stage: smoke-test
+  run: e014cc81242f4223a6d92eea146d8c53
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -255,3 +257,42 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test passed: all five commands printed `1`, so the output meets the `Expect:` line ("five lines, each `1`"). There are no findings.
+
+    I ran the five commands under `## Smoke test` from the repository root, as written and in order. None of them starts a server.
+
+    1. `grep -c 'When the coder.s latest entry has the line of a mutation report' claude/agents/reviewer.md`
+    ```
+    1
+    ```
+    Met.
+
+    2. `grep -c 'A report line that says `partial`, or that the factory stopped the report at its time limit, is a note too, never a pass of the mutants it did not reach.' claude/agents/reviewer.md`
+    ```
+    1
+    ```
+    Met.
+
+    3. `grep -c 'and run it again while its last line says `partial`, at most three runs in all' claude/agents/acceptance-reviewer.md`
+    ```
+    1
+    ```
+    Met.
+
+    4. `grep -c 'Report the score from the last run.s last line, say whether it is partial, and give the groups.' claude/agents/acceptance-reviewer.md`
+    ```
+    1
+    ```
+    Met.
+
+    5. `grep -cx '### The mutation report of a story' docs/operator-guide.md`
+    ```
+    1
+    ```
+    Met.
+
+    Against the acceptance criteria: commands 1 and 2 find the start and the end of the reviewer's new paragraph, and commands 3 and 4 find the changed parts of the acceptance reviewer's check 3 (criterion 1). Command 5 finds the new operator-guide subsection heading, exactly as a whole line (criterion 6). Nothing in the output contradicts any criterion, including the ones the commands do not target (2 to 5).
+
+    I fixed nothing and changed no file.
+
+    Open: nothing.
