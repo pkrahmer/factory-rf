@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:03:59.395139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T20:03:59.395139Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:05:53.863283Z'
+  stage: doing
+  run: 2f9b6a748428411aa7df308893c98022
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -127,3 +129,12 @@ Expect: two lines, `completed question`, `['grep', 'read']`
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.8 s)
 6. factory: started doing as self.
+7. coder: Built nothing, as the story asks: the Interface says no module under `src/factory/` changes. The tester's four new rows in `tests/adapters/test_opencode_left_out_tools.py` (`skill-first`, `skill-before-two`, `skill-in-the-middle`, `notebook-edit-after-skill-refused`) already pass against the current `_tools` in `src/factory/adapters/opencode_runtime.py`. That function skips a tool of `LEFT_OUT_TOOLS` with `continue` and refuses an unknown tool wherever it stands.
+   Main choice: leave the source untouched. I rejected rewriting `_tools`, for example as a comprehension over the tools that are not left out, so that the `break` mutant could not occur at all. That would be a restructuring the story does not ask for. The new rows already kill that mutant, as the tester's entry explains.
+   Refactor: there is no diff of mine to refactor; the working tree holds only the factory's costs sidecar.
+   `make check`: check: green (test: green, 42.6 s).
+   Description: no journal entry changed the meaning of the task, so it stays as written.
+   Noticed, not touched: as the intake noted, `feature.md` lists only S0001 and S0002 under Stories, while its decision 14 names S0003.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
