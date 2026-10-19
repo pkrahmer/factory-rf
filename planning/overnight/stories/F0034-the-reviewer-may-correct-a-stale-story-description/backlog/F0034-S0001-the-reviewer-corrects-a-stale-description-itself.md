@@ -1,0 +1,43 @@
+# The reviewer corrects a stale Description itself
+
+## Description
+
+On 2026-10-19 the human decided that the reviewer may rewrite a story's `## Description` when it has gone stale against what the story built. Until now a stale Description was a finding that no later stage could fix. F0026-S0002's coder was refused the work item and asked. F0019-S0003's reviewer asked the human. F0025-S0002's "Three smaller passages" above a list of two went to `done/` unchanged, although four stages noted it. The work item is already in the reviewer's write paths. This story adds one paragraph to the shipped reviewer's *Role*. The reviewer rewrites the stale sentences itself, when the human's answers in the journal, the Interface or the criteria already settle what the Description should say. It names the correction in its entry as `description corrected: <what it said> -> <what it says now>`. The correction is not a finding, so with no other finding the reviewer ends with `docs`. A Description the code contradicts while nothing settles which is right stays a finding, or a question when no stage can fix it. Unchanged: the checklist (item 5 keeps its words), the reviewer's other paragraphs, its front matter and lessons, and the six other agents. Nothing under `src/` changes.
+
+## Interface
+
+No module under `src/factory/` changes. The coder changes one file, `claude/agents/reviewer.md`, and nothing else in it.
+
+`claude/agents/reviewer.md`, the section *Role*: after the paragraph that begins `When the diff builds a behaviour that no criterion names` and ends `A criterion that needs a code change stays a finding or a question.`, one blank line and then this paragraph, followed by one blank line before the `## Stage` heading:
+
+```markdown
+When the work item's `## Description` has gone stale against what the story built, and the human's answers in the journal, the Interface or the criteria already settle what it should say, rewrite the stale sentences of the Description yourself and change nothing else in the work item. Name the correction in your entry as `description corrected: <what it said> -> <what it says now>`, one line each. A correction is not a finding: with no other finding, end with `docs`. A Description that the code contradicts while neither the journal nor the Interface nor the criteria settle which is right stays a finding, or a question when no stage can fix it.
+```
+
+- Item 5 of the checklist keeps its exact line: ``5. **Work item hygiene**: the journal explains the main decision and what was rejected; the `## Description` matches what was built; the docs criterion still describes what the reader must know after this story (the documenter writes it next, from that criterion).``
+- No other agent file gains the text `description corrected:`.
+
+Tests (the tester writes them): `tests/test_claude_agent_texts_description.py` (new), through `agent_body` of `tests/shipped_agents.py` and `section_text` of `factory.domain.sections`, as `tests/test_claude_agent_texts_review_leave.py` reads the reviewer's other paragraphs. That module and `tests/test_claude_agent_texts.py` pass unchanged.
+
+## Acceptance criteria
+
+1. The paragraph of the Interface, the whole text from `When the work item's` to `when no stage can fix it.`, is in `section_text(agent_body("reviewer"), "Role")`.
+2. It follows the added-criterion paragraph: `agent_body("reviewer")` holds the added-criterion paragraph's last sentence `A criterion that needs a code change stays a finding or a question.`, then exactly one blank line (`"\n\n"`), then the paragraph's first words `When the work item's`.
+3. Only the reviewer carries the rule (rows of one parametrized test, one per shipped agent, each the count of `description corrected:` in `agent_body(<name>)`): `reviewer` 1, and `intake`, `tester`, `coder`, `documenter`, `smoke-tester` and `acceptance-reviewer` each 0.
+4. Item 5 of the checklist is unchanged: its line as the Interface gives it occurs exactly once in `section_text(agent_body("reviewer"), "Role")`.
+5. `make check` stays green.
+6. docs: `docs/operator-guide.md`, *The reviewer's notes and added criteria*, a new last paragraph. When a story's Description has gone stale against what it built, and the human's answers, the Interface or the criteria settle what it should say, the reviewer rewrites the stale sentences itself. Its entry names each correction as `description corrected: <what it said> -> <what it says now>`. That is not a send-back and counts no round; read those lines at the approval. A Description the code contradicts with nothing to settle it still comes back as a finding or a question. `docs/decisions.md`: an entry *The reviewer corrects a stale Description*, dated with the story, from the feature's decisions 1 to 3. Its reasons are the human's decision of 2026-10-19 and the stale Descriptions of F0019-S0003, F0025-S0002 and F0026-S0002. It rejects giving the coder the work item (a second writer of the story's text) and leaving it to the human (a question about nothing the human decides). `docs/operator-playbook.md`, section 3, check 2 at approval (*The reviewer.*): after "and any `criterion <n> added`", add "and any `description corrected:`". `README.md` and the project guide: none, since neither describes the reviewer's checklist.
+
+## Smoke test
+
+```bash
+grep -c -F 'description corrected:' claude/agents/*.md
+```
+Expect: seven lines, `claude/agents/acceptance-reviewer.md:0`, `claude/agents/coder.md:0`, `claude/agents/documenter.md:0`, `claude/agents/intake.md:0`, `claude/agents/reviewer.md:1`, `claude/agents/smoke-tester.md:0`, `claude/agents/tester.md:0`
+
+```bash
+grep -c -F '5. **Work item hygiene**: the journal explains the main decision and what was rejected; the `## Description` matches what was built;' claude/agents/reviewer.md
+```
+Expect: `1`
+
+## Journal

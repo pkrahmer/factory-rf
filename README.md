@@ -23,7 +23,7 @@ Beside the seven console commands, `uv run python -m factory.entry.contract [<fo
 
 ## How it is built
 
-Since the handover of 2026-10-18, v1.1's instance builds this repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, one folder per feature; one stage agent at a time takes a story through tests, code, review, docs and smoke test. A story's pull request carries the whole story; merging it accepts the story. v1's history (its stages, its forms and its features F0001 to F0017) lies in `factory/v1/`.
+Since the handover of 2026-10-18, v1.1's instance builds this repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, one folder per feature; one stage agent at a time takes a story through tests, code, review, docs and smoke test. A story's pull request carries the whole story; merging it accepts the story. v1's history (its stages, its forms and its features F0001 to F0017) is kept at the tag `planning-history-2026-10-19`.
 
 ## Replaced from v1
 

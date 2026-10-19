@@ -1,0 +1,5 @@
+2026-10-19T20:04:28Z disk start: /work 971.5 GB free, 0.0 GB used; /state 971.5 GB free, 0.0 GB used; /tmp 971.5 GB free, 0.0 GB used
+2026-10-19T20:04:40Z preflight: agent-run-probe: the agent runs log in with the subscription token from /home/agent/.claude-token
+2026-10-19T20:55:16Z disk acceptance: /work 970.4 GB free, 0.4 GB used; /state 970.4 GB free, 0.0 GB used; /tmp 970.4 GB free, 0.0 GB used
+2026-10-19T21:46:31Z disk acceptance: /work 970.4 GB free, 0.5 GB used; /state 970.4 GB free, 0.0 GB used; /tmp 970.4 GB free, 0.0 GB used
+2026-10-19T22:06:31Z disk acceptance: /work 970.4 GB free, 0.5 GB used; /state 970.4 GB free, 0.0 GB used; /tmp 970.4 GB free, 0.0 GB used
