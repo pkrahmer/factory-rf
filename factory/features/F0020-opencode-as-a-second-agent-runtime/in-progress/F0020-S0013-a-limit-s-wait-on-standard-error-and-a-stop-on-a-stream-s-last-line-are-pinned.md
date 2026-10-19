@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T23:03:54.212628Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-19T23:03:33.581329Z'
   stage: doing
   run: ca9f061fad454930ac3c16e295e0f340
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:03:54.212628Z'
+  stage: review
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -299,3 +308,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+19. factory: started review as self.
