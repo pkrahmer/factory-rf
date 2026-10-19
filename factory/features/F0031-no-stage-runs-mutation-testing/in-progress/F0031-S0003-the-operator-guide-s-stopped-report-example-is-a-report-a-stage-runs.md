@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T23:32:31.146184Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T23:32:10.160645Z'
   stage: doing
   run: febb99ae723048739bc57d53c7fcbd0d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:32:31.146184Z'
+  stage: review
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -120,3 +129,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
