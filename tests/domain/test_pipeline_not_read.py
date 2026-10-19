@@ -34,7 +34,15 @@ def test_not_read_loads_in_order_and_defaults_to_nothing(text: str, expected: li
     assert commands["test"].not_read == []
 
 
-ACCEPTED = ["docs/*", "*.md", ".github/*", "factory/features/*"]
+ACCEPTED = [
+    "docs/*",
+    "*.md",
+    ".github/*",
+    "factory/features/*",
+    "docs/~old/*",
+    "docs/a..b/*",
+    "docs..x/*",
+]
 REFUSED = ["/etc/*", "~/notes/*", "../docs/*", "docs/../src/*", "{work_item}", "docs/{x", "docs/x}"]
 
 

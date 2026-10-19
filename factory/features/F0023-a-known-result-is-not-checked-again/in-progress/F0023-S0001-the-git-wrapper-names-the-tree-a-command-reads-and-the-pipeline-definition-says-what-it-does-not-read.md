@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T14:42:53.979135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T14:42:53.979135Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-10-19T14:44:36.340719Z'
+  stage: tests
+  run: 02f11883ce914c12af2390537f8df9f6
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -471,3 +473,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `make duplicates` shows five findings older than this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused `ManualWaiter`.
     - `update-index` gets all left-out paths in one argument list, so a very large `left_out` could hit the system's limit on argument length.
 20. factory: started tests as self.
+21. tester: Round 2, the test change named in the coder's entry 19, following the reviewer's finding in entry 17. I added the reviewer's criterion 9, which needed only its test, as three accepted rows of the existing parametrized test. No new test function was needed.
+
+    - criterion 9: tests/domain/test_pipeline_not_read.py::test_a_not_read_pattern_outside_the_checkout_is_refused. The new rows are `accepts-docs/~old/*`, `accepts-docs/a..b/*` and `accepts-docs..x/*`.
+
+    Files changed: `tests/domain/test_pipeline_not_read.py`, which this story wrote. I added the three patterns to `ACCEPTED`; the list is now one pattern per line. I created no new files and changed no test from another story.
+
+    Every module under test imported. The code already accepts all three patterns, so the new rows pass at once, as the coder's entry 19 predicted. `make test`: test: green (43.1 s), coverage 99.07 %. `make lint`: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (42.5 s)
