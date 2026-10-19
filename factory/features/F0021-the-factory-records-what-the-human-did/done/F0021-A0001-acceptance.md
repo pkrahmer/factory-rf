@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T00:51:50.397853Z'
   stage: acceptance
   run: 346616f95ebf454d8317809c11bbf2a5
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T00:52:35.948487Z'
+  stage: done
 stories: [F0021-S0001, F0021-S0002, F0021-S0003, F0021-S0004, F0021-S0005, F0021-S0006]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory records what the human did
@@ -262,3 +267,4 @@ Human interventions: 7 questions answered (question 7), 0.2 h waited. S0003 and 
    6 Decisions: feature decisions 1 to 16 and the journal answers listed for the human. Decision 6 leaves S0001's round-cap answer uncounted (8 answers, 7 counted). Every earlier test change has its leave (decisions 13 and 14, the standing helper move, S0004 entry 11). S0008 is the follow-up that decision 1 left to a later story.
    7 Slow checks: nothing beyond make check and make mutants. Disk unchanged (0.5 GB used at start and now). make test took 38.4 s; the slowest test, the time-limited resume, took 5.0 s. make mutants cannot finish 28 modules within its limit.
    8 Cost: 66 runs, 75.3 min, $20.63. S0001 stands out ($6.04, 15 runs): three send-backs over its own tests' quality, then the round cap. That is the human's real intervention, though it counts 0 by decision 6, and it is the question S0005 removed. S0005 and S0006 ran once per stage. 7 questions answered, 0.2 h waited, 3 each in S0003 and S0004.
+3. factory: done (pull request merged); cost: 1 runs, 37.8 min, 69 turns, 158857 tokens in (6045651 more from cache), 43471 out, $3.35
