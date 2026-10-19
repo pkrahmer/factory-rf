@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T14:28:55.104292Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T14:28:55.104292Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:32:15.630018Z'
+  stage: doing
+  run: 911c94291ef8401e8ac595d077b86416
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -225,3 +227,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_tree_id.py - ImportError while importing test module ...
 6. factory: started doing as self.
+7. coder: Built the git wrapper's twenty-fourth operation, `work_tree_id`, and the `not_read` key of a project command with its load rule. I raised the records contract to 1.3. `make check` is green.
+
+   What I built (paths):
+   - `src/factory/domain/git.py`: `TreeId`, which uses the same pattern as `CommitId`.
+   - `src/factory/application/git.py`: the abstract `Git.work_tree_id(left_out=())`, with the docstring from the Interface.
+   - `src/factory/adapters/git_cli.py`: `GitCli.work_tree_id`. It works in a `tempfile.TemporaryDirectory()`. When the checkout has its own `.git/index`, it starts from a copy of it; otherwise it starts empty. It then runs `add --all`, then `ls-files -z`, keeps the paths that `matches_any(path, left_out)` accepts and passes them to `update-index --force-remove -- <paths>`, and returns `write-tree`. All four git calls go through `_run` with a new keyword `index`, which `_execute` hands to `_environment(index)`. That function adds `GIT_INDEX_FILE` last, after the isolation variables.
+   - `src/factory/domain/pipeline_definition.py`:
+     - `ProjectCommandDefinition.not_read: list[WritePath] = []`.
+     - `is_inside_checkout`, moved here from `write_paths`.
+     - The rule `_not_read_faults`, last in `_RULES`. It refuses a pattern that `is_inside_checkout` refuses, that starts with `~`, or that holds `{` or `}`. The fault text is the one the story gives.
+   - `src/factory/domain/write_paths.py` and `src/factory/domain/confinement.py` now import `is_inside_checkout` from `pipeline_definition`. `write_paths` no longer imports `PARENT_SEGMENT`, which it no longer uses.
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT` is now "1.3".
+   - `src/factory/contract/*.schema.json`: all five regenerated with `uv run python -m factory.entry.contract`. Four of them change only their version; the pipeline definition's schema also gains `not_read`.
+
+   Main choice: I remove the left-out paths with `git update-index --force-remove -- <paths>`, whose arguments git reads as literal paths. I rejected `git rm --cached` with `:(literal)` pathspecs and `--pathspec-from-file`: they still go through pathspec parsing, would need a magic prefix on every path, and `rm --cached` complains about paths it doesn't find. The temporary index goes to git through an `index` keyword on `_run` and `_execute`. I rejected a second `GitCli` built with `GIT_INDEX_FILE` in `GitOptions.environment`, because that would create a wrapper per call and could not reuse the checkout's index path.
+
+   Refactor pass: I read the diff and changed nothing. Only `ruff format` ran, which rewrapped the code it touched. A `git stash` I tried in order to compare `make duplicates` against the base was refused and changed nothing; the working tree is intact.
+
+   Noticed but not touched:
+   - `make duplicates` reports 7 new findings. Two are mine and expected: `work_tree_id` (in `git_cli.py` and `application/git.py`) shows as unused until S0002 calls it. The other five were not caused by this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter` in `adapters/clock.py`.
+   - `update-index` gets all dropped paths in one argument list. A `left_out` that drops a very large number of files could reach the system's limit on argument length. That is fine for this repository; a batched or `--stdin` form would need `ProcessRequest` to accept input.
+
+   `check`: check: green
+   `duplicates`: duplicates: 7 new, 33 known, 3 gone

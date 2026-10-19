@@ -38,6 +38,14 @@ def has_wildcard(pattern: str) -> bool:
     return any(wildcard in pattern for wildcard in _WILDCARDS)
 
 
+def is_inside_checkout(path: str) -> bool:
+    """Whether `path` is relative, non-empty and holds no `..` segment."""
+    # fnmatch sees only the string, so `src/../x` would match `src/*` though it leaves `src`.
+    if not path or path.startswith("/"):
+        return False
+    return PARENT_SEGMENT not in path.split("/")
+
+
 def tool_path_folder(tool_path: str) -> str | None:
     """The folder of `<folder>/*` or `~/<folder>/*`, `~/` kept; `None` for any other form."""
     body = tool_path.removeprefix(HOME_PREFIX)
@@ -82,11 +90,12 @@ class StageDefinition(BaseModel):
 
 
 class ProjectCommandDefinition(BaseModel):
-    """One project command and the minutes it may run."""
+    """One project command, the minutes it may run and the paths it does not read."""
 
     model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
     time_limit: PositiveInt = 10
+    not_read: list[WritePath] = []
 
 
 def _default_project_commands() -> dict[str, ProjectCommandDefinition]:
@@ -266,6 +275,24 @@ def _tool_path_faults(definition: PipelineDefinition) -> list[str]:
     ]
 
 
+def _is_checkout_pattern(pattern: str) -> bool:
+    # A placeholder is expanded in write paths only; here it would name no path at all.
+    return (
+        is_inside_checkout(pattern)
+        and not pattern.startswith("~")
+        and not any(brace in pattern for brace in "{}")
+    )
+
+
+def _not_read_faults(definition: PipelineDefinition) -> list[str]:
+    return [
+        f"project command {name}: not_read {pattern} must be a path pattern inside the checkout"
+        for name, command in definition.project_commands.items()
+        for pattern in command.not_read
+        if not _is_checkout_pattern(pattern)
+    ]
+
+
 _RULES = (
     _contract_faults,
     _done_stage_faults,
@@ -278,4 +305,5 @@ _RULES = (
     _empty_next_faults,
     _unworked_stage_faults,
     _tool_path_faults,
+    _not_read_faults,
 )

@@ -3,6 +3,7 @@
 import os
 import shutil
 import stat
+import tempfile
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ from factory.domain.git import (
     MergeOutcome,
     PushOutcome,
     RemoteBranch,
+    TreeId,
     WorkTreeStatus,
     check_branch_name,
     check_git_argument,
@@ -26,6 +28,7 @@ from factory.domain.git import (
 )
 from factory.domain.kill_points import KillPoint
 from factory.domain.paths import REMOTE
+from factory.domain.write_paths import matches_any
 
 # The argument check is exported: every public operation passes it once, at this one name.
 __all__ = ["GitCli", "check_git_argument"]
@@ -406,6 +409,23 @@ class GitCli(Git):
         except OSError as error:
             raise GitError("discard", None, str(error)) from error
 
+    def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
+        """Stage the work tree in a temporary index, drop the paths left out, write its tree."""
+        with tempfile.TemporaryDirectory() as folder:
+            index = Path(folder) / "index"
+            # A copy of the own index lets git rehash only changed files and keeps a tracked
+            # file that `.gitignore` matches, as a commit keeps it.
+            own_index = self._directory / ".git" / "index"
+            if own_index.is_file():
+                shutil.copyfile(own_index, index)
+            self._run(["add", "--all"], index=index)
+            listing = self._run(["ls-files", "-z"], index=index).stdout
+            dropped = [path for path in listing.split("\0") if path and matches_any(path, left_out)]
+            if dropped:
+                # update-index reads its arguments as literal paths, never as pathspecs.
+                self._run(["update-index", "--force-remove", "--", *dropped], index=index)
+            return self._run(["write-tree"], index=index).stdout.strip()
+
     # The helpers below take arguments their public caller has already checked.
 
     def _resolve_or_raise(self, ref: str, command: str) -> CommitId:
@@ -475,7 +495,7 @@ class GitCli(Git):
         if self._options.kill_points is not None:
             self._options.kill_points.reach(point)
 
-    def _environment(self) -> dict[str, str]:
+    def _environment(self, index: Path | None = None) -> dict[str, str]:
         # The identity, the isolation and the locale come last, so that no extra environment can
         # lift them; the C locale keeps the English messages the push outcomes are read from.
         # The ceiling keeps git from looking above the working copy: a `.git` that is not a
@@ -491,6 +511,7 @@ class GitCli(Git):
             "GIT_CEILING_DIRECTORIES": str(self._directory.absolute().parent),
             "GIT_CONFIG_GLOBAL": os.devnull,
             "LC_ALL": "C",
+            **({} if index is None else {"GIT_INDEX_FILE": str(index)}),
         }
 
     def _run(
@@ -500,8 +521,9 @@ class GitCli(Git):
         accepted: tuple[int, ...] = (0,),
         error: type[GitError] = GitError,
         cwd: Path | None = None,
+        index: Path | None = None,
     ) -> ProcessResult:
-        result = self._execute(arguments, error=error, cwd=cwd)
+        result = self._execute(arguments, error=error, cwd=cwd, index=index)
         if result.exit_status not in accepted:
             raise error(_command(arguments), result.exit_status, _tail(result.stdout))
         return result
@@ -512,12 +534,13 @@ class GitCli(Git):
         *,
         error: type[GitError] = GitError,
         cwd: Path | None = None,
+        index: Path | None = None,
     ) -> ProcessResult:
         # Runs git and leaves the exit status to the caller; only a git that never finished fails.
         request = ProcessRequest(
             argv=[self._options.executable, *arguments],
             cwd=self._directory if cwd is None else cwd,
-            env=self._environment(),
+            env=self._environment(index),
             time_limit=self._options.time_limit,
             merge_stderr=True,
         )

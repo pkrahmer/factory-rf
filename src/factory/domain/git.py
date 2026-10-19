@@ -11,6 +11,8 @@ from factory.domain.times import UtcDatetime
 
 CommitId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
 
+TreeId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+
 PushOutcome = Literal["pushed", "rejected", "unreachable"]
 
 MergeOutcome = Literal["merged", "fast_forwarded", "up_to_date", "conflict", "not_fast_forward"]
