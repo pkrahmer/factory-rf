@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 268
-comments_read: []
+comments_read: [6270411276]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 83a82119910244929a394682a97f06c0
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-19T15:04:46.438750Z'
+  stage: doing
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -304,3 +309,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    I would choose (a). If you agree, I will end with `tests` and name this change for the tester. I could not run the rest of that test separately, because my temporary probe was refused. Its other assertions (one `failed` record, then a second run of `check`) follow from `known_result` ignoring a failed last run.
 
    Noticed but not touched: `KnownResults._append` repeats the comment "the record is telemetry" from `RecordingProjectCommands.run`. The two cases mean the same thing, so I left both.
+8. 2026-10-19 human: (a). The tester asserts `"`check`." in note.body` together with the existing `"check done"` check (or compares with `stall_note("check_red", 1, 2, detail=...)`, as `tests/application/test_stalls.py:459` does). This story's own test; `stall_note` stays as it is. End with `tests` naming the change.
