@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T06:30:52.646885Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T06:30:52.646885Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T06:31:35.571848Z'
+  stage: intake
+  run: f825ff04273b4127a65b62265f11490c
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -156,3 +158,16 @@ Expect: two lines, `docs/project-guide/notes.md: uses the v1 word 'ticket'` and 
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete. It names `factory.domain.documents` (`PROJECT_GUIDE`, `PROJECT_GUIDE_FOLDER`, `is_guide_file(path) -> bool`, `check_documents(texts)`) and `factory.entry.check_documents.main(argv)`. It also states the exact rule for `is_guide_file` and the order of the findings.
+   Criteria: each one can be tested by one test function. Every clause of the Interface has a criterion, and each rule has both its passing and its failing side.
+   - Criterion 1: the constants and `DOCUMENT_PATHS`.
+   - Criterion 2: the `is_guide_file` rows, covering the case-sensitive `X.MD`, the index itself, a subfolder, a non-`.md` name, `.md` alone, the old path, a sibling folder and the bare folder.
+   - Criterion 3: clean text, the v1 word, the replaced phrase, blank, `None`, and the exempt `## Replaced from v1` section.
+   - Criterion 4: finding order, plus ignored keys.
+   - Criterion 5: the command reads a guide file, ignores a `.txt` file, a subfolder file and a folder named `x.md`, and reads UTF-8.
+   - Criterion 6: a missing folder and the old path not being read.
+   - Criterion 9 of the feature gives the leave to change the two named tests.
+   Smoke test: the three blocks are runnable. The first needs the move to have been made, which the docs stage does. Each `Expect:` line is checkable against the output (`False []`, `documents ok` with `exit 0`, the `notes.md` finding with `exit 1`).
+   Architecture: the change fits the layering. The rules and constants go in `domain.documents`, and the folder reading goes in `entry.check_documents`, the only place that touches the filesystem. There is no new dependency or package.
+   Scope: the story stays inside the feature's Scope. Its Out of scope list (template, todo demo, operator guide and decision log staying single files, no code tree move) is respected.
