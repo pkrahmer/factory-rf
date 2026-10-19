@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T04:06:36.635107Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T04:06:16.462657Z'
   stage: doing
   run: 5650a9458e854e949f2332360bb907c2
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:06:36.635107Z'
+  stage: tests
 ---
 
 # What every agent runtime shares moves into one module
@@ -288,3 +297,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The reviewer's open note: the Interface could name `request_home` in `src/factory/adapters/agent_launch.py`. It was not a finding, so I left `## Description` as it is.
     - Still open from entries 5 and 7: `tests/test_agent_launch_search.py` may need to go on mutmut's list of left-out structural tests in `pyproject.toml`, which is outside my write paths.
     - No journal entry changed the meaning of the task, so I did not rewrite the Description.
+12. factory: started tests as self.
