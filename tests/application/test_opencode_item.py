@@ -97,22 +97,32 @@ def test_the_opencode_item_does_not_depend_on_the_api_login_file(
     assert item == opencode_item(_settings(), ENVIRONMENT, _find_on(found), models)
 
 
+def _write_three_agents(home: Path) -> None:
+    for role, model in (("tester", "sonnet"), ("coder", "sonnet"), ("intake", "opus")):
+        write_agent(home, role, AGENT_FILE.replace("model: sonnet", f"model: {model}"))
+
+
 @pytest.mark.parametrize(
-    "prepare",
+    ("prepare", "models"),
     [
-        pytest.param(lambda _: None, id="no-agents-folder"),
+        pytest.param(_write_three_agents, ["sonnet", "opus"], id="each-once-in-name-order"),
+        pytest.param(lambda _: None, [], id="no-agents-folder"),
         pytest.param(
             lambda home: (
                 write_agent(home, "coder", AGENT_FILE),
                 (home / "agents" / "intake.md").write_bytes(b"\xff\xfe"),
             ),
+            [],
             id="unreadable-agent-file",
         ),
     ],
 )
-def test_the_installed_models_are_none_when_the_agents_cannot_be_read(
-    boundaries: Boundaries, agent_home: Path, prepare: Callable[[Path], object]
+def test_the_installed_models_are_each_agent_s_model_once_or_none_when_unreadable(
+    boundaries: Boundaries,
+    agent_home: Path,
+    prepare: Callable[[Path], object],
+    models: list[str],
 ) -> None:
     prepare(agent_home)
 
-    assert installed_models(boundaries) == []
+    assert installed_models(boundaries) == models

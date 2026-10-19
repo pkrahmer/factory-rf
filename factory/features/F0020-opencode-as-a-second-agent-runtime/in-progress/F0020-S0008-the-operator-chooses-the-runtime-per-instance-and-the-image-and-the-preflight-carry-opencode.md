@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T11:08:34.010755Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-19T11:08:34.010755Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T11:10:29.589401Z'
+  stage: tests
+  run: e99f1c09789243b98eab997cc1454054
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -207,3 +209,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Files created: tests/domain/test_settings_agent_runtime.py, tests/domain/test_settings_opencode_models.py, tests/domain/test_settings_opencode_folders.py, tests/adapters/test_opencode_runtime_folders.py, tests/application/test_opencode_item.py, tests/application/test_machine_checks_runtime.py, tests/application/test_agent_run_probe_opencode.py, tests/entry/test_wiring_opencode.py, tests/test_opencode_image.py. I changed no earlier test file.
 6. 2026-10-19 human: (a). The Interface stands: `installed_models` gives each model once in the order of the agents' names, so criterion 8's three-agent row expects `["sonnet", "opus"]`. Add the row as you propose, with the test renamed to cover both cases. Your two smaller readings are accepted as you took them (the empty entry named in criterion 13's error for `a,`; prefix and contained-text checks for the texts criteria 1 and 9 show in part).
 7. factory: started tests as self.
+8. tester: Added criterion 8's three-agent row, following the human's answer (a): `installed_models` gives each model once, in the order of the agents' names. The agents are `coder` (sonnet), `intake` (opus) and `tester` (sonnet), and the row expects `["sonnet", "opus"]`. The test writes the agent files in the order tester, coder, intake, so a result in file order fails the row. I renamed the test to cover both cases. The two `[]` rows are unchanged. The readings the human accepted stay as they were: the empty entry named in criterion 13's error for `a,`, and prefix or contained-text checks for the texts that criteria 1 and 9 show only in part.
+
+   I ran `make test` once. It fails for the right reasons only: collection errors where a module imports a name that does not exist yet (the new `*_VARIABLE` constants in `factory.domain.settings`, `opencode_item` and `installed_models` in `factory.application.preflight`), and test errors where `InstanceSettings` refuses the new fields. `make lint` is green.
+
+   Mapping:
+   - criterion 1: tests/domain/test_settings_agent_runtime.py::test_the_agent_runtime_is_claude_by_default_or_the_one_named
+   - criterion 2: tests/domain/test_settings_agent_runtime.py::test_the_opencode_executable_and_pin_default_to_opencode_and_none
+   - criterion 3: tests/domain/test_settings_opencode_models.py::test_the_opencode_models_map_each_alias_in_their_order and ::test_a_malformed_opencode_models_entry_is_refused_naming_it
+   - criterion 4: tests/entry/test_wiring_opencode.py::test_the_built_runtime_is_the_one_the_instance_names and ::test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_and_limit
+   - criterion 5: tests/entry/test_wiring_opencode.py::test_the_opencode_item_comes_after_confinement_only_under_opencode
+   - criterion 6: tests/application/test_opencode_item.py::test_the_opencode_item_names_a_missing_executable_and_each_unmapped_alias
+   - criterion 7: tests/application/test_opencode_item.py::test_the_opencode_item_does_not_depend_on_the_api_login_file
+   - criterion 8: tests/application/test_opencode_item.py::test_the_installed_models_are_each_agent_s_model_once_or_none_when_unreadable
+   - criterion 9: tests/application/test_machine_checks_runtime.py::test_the_last_required_tool_is_the_runtime_s_executable and ::test_the_version_item_compares_against_the_pin_of_the_runtime_in_force
+   - criterion 10: tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint
+   - criterion 11: tests/test_opencode_image.py::test_the_image_installs_opencode_at_its_pin_and_sets_its_version_and_models
+   - criterion 12: tests/test_opencode_image.py::test_the_compose_service_passes_the_runtime_and_opencode_build_with_the_image_s_defaults
+   - criterion 13: tests/domain/test_settings_opencode_folders.py::test_the_opencode_folders_are_the_named_ones_in_their_order and ::test_an_opencode_folder_outside_the_agent_s_home_is_refused_naming_it
+   - criterion 14: tests/adapters/test_opencode_runtime_folders.py::test_the_rules_allow_each_runtime_folder_in_the_home_in_order, and tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s (build_boundaries)
+
+   Files created on this branch (the last run wrote all of them; this run changed only test_opencode_item.py): tests/domain/test_settings_agent_runtime.py, tests/domain/test_settings_opencode_models.py, tests/domain/test_settings_opencode_folders.py, tests/adapters/test_opencode_runtime_folders.py, tests/application/test_opencode_item.py, tests/application/test_machine_checks_runtime.py, tests/application/test_agent_run_probe_opencode.py, tests/entry/test_wiring_opencode.py, tests/test_opencode_image.py. No earlier test file changed.
+
+   Not importable by the test run:
+   - `factory.domain.settings`: the new `*_VARIABLE` names are missing.
+   - `factory.application.preflight`: `opencode_item` and `installed_models` are missing.
+
+   `InstanceSettings` lacks the new fields, and `OpencodeRuntime` lacks `runtime_folders`. The Dockerfile and compose file lack the opencode lines.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none]
