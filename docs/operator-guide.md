@@ -193,7 +193,7 @@ Make the `.git` observation after the instance's second iteration: right after a
 
 ### `factory-guard` on the agent run's `PATH`
 
-The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; the preflight's item `agent-environment` checks it (see "The preflight's items"). The factory builds that environment itself from an allow list of six names (see "The hosting-service token"); the two that matter here are a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home, or, when `FACTORY_AGENT_USER` is set, the agent user's home: the parent of `FACTORY_CLAUDE_HOME`, `/home/agent`). Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The hook also allows an `Edit` or `Write` in the run's own temporary folder (`$TMPDIR`), as the kernel does. The details are in the project guide, "The guard command".
+The write-path guard is the command `factory-guard`, installed with the factory like `factory-check-story`. The runtime registers it as a Claude Code hook that refuses an agent's `Edit` or `Write` outside the stage's write paths. The runtime adds no `PATH` to the call, so the `PATH` of the agent run's environment must contain `factory-guard`. If it does not, the hook cannot start, and what Claude Code does then is not the guard's refusal; the preflight's item `agent-environment` checks it (see "The preflight's items"). The factory builds that environment itself from an allow list of six names (see "The hosting-service token"); the two that matter here are a `PATH` of the directory where `factory-guard` is installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` (the factory user's home, or, when `FACTORY_AGENT_USER` is set, the agent user's home: the parent of `FACTORY_CLAUDE_HOME`, `/home/agent`). Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them. So `factory-guard` must be installed in the same environment as the factory, and the tools an agent needs must be in one of those four directories. The guard reads only the settings file the runtime wrote for the run and exits 2 (a refusal, shown to the agent) for a write outside the write paths, a missing option or an unreadable settings file. A payload it cannot read is allowed. The hook also allows an `Edit` or `Write` in the run's own temporary folder (`$TMPDIR`), as the kernel does. The details are in `docs/project-guide/write-guard.md`, "The guard command".
 
 ## The machine's image
 
@@ -674,7 +674,7 @@ The detail is the fault. The faults the load reports:
 |---|---|
 | `factory/pipeline.yml is missing at origin/main` | the file is not on `main`; merge it |
 | a fault of the text, such as `missing key: contract`, `unknown key: <path>`, `invalid <path>: <message>`, `not valid YAML: <problem> (line <l>, column <c>)` | fix `factory/pipeline.yml` on `main`; several faults are joined by `; `. A YAML fault is one line with a 1-based position, for example `not valid YAML: found duplicate key "done" with value "{}" (original value: "{}") (line 27, column 3)` (a stage key written twice; the factory refuses a repeated key on purpose) |
-| a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; see "The pipeline definition" for the rules you meet most often and the project guide, "The rules of the definition", for the full list |
+| a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; see "The pipeline definition" for the rules you meet most often and `docs/project-guide/stages.md`, "The rules of the definition", for the full list |
 | `role <role>: agent is not installed` | the role has no file `<agent home>/agents/<role>.md`; install it. Every missing role is named, in the order of `roles`, joined by `; ` |
 | `agent home unavailable: <fault>` | `<agent home>/agents` is missing or is not a directory (see "The agent files") |
 
@@ -770,7 +770,7 @@ The rules you meet most often:
 - A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them.
 - Every role needs an agent file (see "The agent files").
 
-A refused definition raises the stop `pipeline_definition_invalid`, described above. The project guide, "The rules of the definition", lists every fault.
+A refused definition raises the stop `pipeline_definition_invalid`, described above. `docs/project-guide/stages.md`, "The rules of the definition", lists every fault.
 
 ## The agent files
 
@@ -881,7 +881,7 @@ Findings about the place, and what to do:
 | `the story <id> is in the directory of feature <id>` | move the story to its own feature's directory, or fix its id |
 | `the feature file feature.md is missing in factory/features/<directory>` | add the feature's `feature.md` |
 
-Findings about the content follow the form check (`docs/project-guide.md`, "The form check of a story"):
+Findings about the content follow the form check (`docs/project-guide/work-items.md`, "The form check of a story"):
 
 | Finding | What to do |
 |---|---|
@@ -1239,7 +1239,7 @@ What it does, in one call:
 
 A commit that you pushed to the branch while the stage ran is on the remote, so it stays; the journal entry names the commit the discard went back to. The stage-start commit and its `started` entry stay in the history too.
 
-Recovery is proved by injection tests: each of the six kill points is killed against a real local bare remote and the factory restarted, and v1's thirteen fault-injection paths are each walked with one kill or stall (`uv run pytest tests/test_kill_points.py tests/test_fault_paths.py tests/test_fault_paths_7_to_13.py`). The cases and paths are listed in the project guide's sections *Kill points* and *Fault-injection paths*.
+Recovery is proved by injection tests: each of the six kill points is killed against a real local bare remote and the factory restarted, and v1's thirteen fault-injection paths are each walked with one kill or stall (`uv run pytest tests/test_kill_points.py tests/test_fault_paths.py tests/test_fault_paths_7_to_13.py`). The cases and paths are listed in the sections *Kill points* and *Fault-injection paths* of `docs/project-guide/README.md`.
 
 If the push of the crash commit is rejected (someone pushed in between), the event is a counted error as under "An event that keeps failing"; a push to the branch makes the factory look again. A claim of another instance name is handled only once its lease has expired (see "An expired lease").
 

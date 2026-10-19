@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T06:44:20.499075Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T06:44:20.499075Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T06:46:26.003360Z'
+  stage: docs
+  run: 75acb588c06e47988206ba063409977c
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -397,3 +399,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/entry/test_check_documents.py` (M): changed under the human's leave the story's Interface names (the feature's decision 9). Only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one` changed, and every test keeps its name and what it checks.
 18. factory: started docs as self.
+19. documenter: I moved the project guide into `docs/project-guide/` and updated every reference to it. No findings: the code matches the Interface and the criteria, and the public functions have their docstrings.
+
+    The move was made by a script kept in `$TMPDIR`. It cut the old guide at its `## ` headings with `factory.domain.sections.sections` and wrote each section's lines unchanged.
+
+    Files changed:
+    - `docs/project-guide.md`: deleted.
+    - `docs/project-guide/README.md`: new index. It holds the opening paragraph reworded (the guide is this index plus one file per domain), the 600-line split rule, and a section *The files* that names each file, its domain, its modules and its sections. Below that come *Errors*, *The models' configuration*, *Kill points* and *Fault-injection paths*.
+    - `docs/project-guide/git-and-hosting.md`, `processes-and-checks.md`, `agents.md`, `write-guard.md`, `work-items.md`, `costs.md`, `stages.md`, `watching.md`: one domain each. The sections are the table's, in the old guide's order, under a title and one sentence. The largest file is `work-items.md` at 375 lines.
+    - In the moved text, one sentence of *The write paths* now names `` `docs/project-guide/` ``. *The document check* is rewritten as the criterion says: the index is the project guide, every other guide file is checked for words, its findings follow in path order, and a story that changes a guide file runs the check.
+    - `README.md`: the last sentence of the opening paragraph and *Where to look next* now name `docs/project-guide/` and its index.
+    - `docs/operator-guide.md`: five references to the project guide now name their files. The guard command is in `write-guard.md`. "The rules of the definition" is in `stages.md` (two places). The form check is in `work-items.md`. *Kill points* and *Fault-injection paths* are in `docs/project-guide/README.md`.
+    - `docs/decisions.md`: new entry *The project guide is an index and one file per domain*, dated 2026-10-19, with the reasons of the feature's decisions 1 to 6. One sentence added to *The project guide lives in `docs/`* that the guide is the folder since this story.
+
+    Checks run:
+    - The smoke test's first block gave `False []`.
+    - `uv run python -m factory.entry.check_documents` gave `documents ok` with exit 0.
+    - No `docs/project-guide.md` is left in `README.md`, the operator guide or the guide folder. I did not run the smoke test's third block (a temporary copy with a bad `notes.md`).
+    - I changed only documents, so I did not run `make check`; the factory's run after this stage decides.
+
+    Cross-read and found current: the rest of `docs/operator-guide.md` and `README.md` against the diff. The code change touches only the document check, and the operator guide has no text about it.
+
+    Stale text I did not touch:
+    - The F0011-S0005 entry of `docs/decisions.md` still names `docs/project-guide.md`. It is dated history, and the feature's decision 8 leaves it as it is.
+    - `CLAUDE.md`, `factory/story-form.md` and `tests/test_claude_files.py` still name the old path. They are the human's change 1 after the merge.
+    - The guide's sections still say "see *Section name*" without a file. The index leads from a name to its file, and links were rejected under decision 4.
+
+    `check`: check: green
+    `documents`: documents ok

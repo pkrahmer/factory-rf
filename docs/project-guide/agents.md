@@ -1,0 +1,301 @@
+# The agent runtime, the agent files and the template
+
+This file covers the agent runtime, the agent files, the shipped agents and the template; read the index, `README.md`, first.
+
+## The agent runtime
+
+The factory reaches an agent only through the `AgentRuntime` interface (an abstract base class, `factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation is `ClaudeCodeRuntime` and the `opencode run` implementation is `OpencodeRuntime` (both below); each inherits `AgentRuntime`. The fake is the third implementation.
+
+`AgentRunRequest` holds:
+
+- `agent`: an `AgentDefinition` (`name`, `model`, `tools`, `effort` or `None`, `budget_usd` greater than 0, `instructions`). `name` is a `Name` (`factory.domain.identifiers`): lower-case letters, digits and hyphens, starting with a letter.
+- `prompt`, `time_limit` (greater than zero) and `working_directory` (absolute).
+- `allowed_decisions`: must contain `QUESTION` (`"question"`) and have no repeats, so an agent can always ask the human. The validation error names `question`.
+- `environment`: the run's whole environment, `{}` by default; `guard`: optional `GuardSettings` (absolute `root`, `write_paths`, `protected_paths`); `os_user`: optional; `TaskComposer` fills it with `boundaries.settings.agent_user`, or `None` without settings.
+
+`AgentRunResult` holds `end_reason`, `decision`, `entry`, `duration`, `turns`, `tokens` (`TokenCounts`: `input`, `output`, `cache_read`, `cache_creation`, none negative), `cost_usd`, `permission_denials` and `login`. `login` (`Login = Literal["api_key", "subscription", "none"]`) is the login the run's calls were handed, `None` when the runtime has no login file; unlike `decision` and `entry` it is set whatever the end reason, and a resumed run's is that of its last call. `end_reason` is one of `completed`, `no_result`, `time_limit`, `budget` and `died`. `decision` and `entry` are set exactly when the run is `completed`, and `ok` is true exactly then. A measure the runtime did not report is `None`, never 0: unknown is unknown.
+
+A run that dies, reaches its `time_limit` or exhausts its budget is a result with an end reason, not an exception; for the caller it is a stall. `AgentRuntimeError` is for a runtime that cannot be used at all. See `docs/decisions.md`.
+
+### The `claude -p` runtime
+
+`ClaudeCodeRuntime(executable, state_directory, kill_points=None, *, version_time_limit=VERSION_TIME_LIMIT, sudo_executable=SUDO_EXECUTABLE, login_file=None, confine_executable=None, temporary_root=None, api_login_file=None)` (`factory.adapters.claude_runtime`) runs an agent as a `claude -p` call, under the login of `request.os_user` when it is set and under the factory process's own login when not; a call stopped by its budget is resumed once (below).
+
+With `login_file` or `api_login_file` set, every call (not `version()`) starts through a login shell whose words come from `login_argv(LoginFiles(subscription=login_file, api=api_login_file))` (`factory.adapters.agent_launch`, below), followed by `<executable> <arguments>`, after `env -i` and its assignments when there is an `os_user`. With neither file there are no words. The request's own `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_API_KEY` entries are dropped (`without_login`): the files are the only source. The factory never reads either file. A refusal in standard error (`login_refusal`) raises `AgentRuntimeError("cannot read the agent's login file <path>: <reason>")`, or `"cannot read the agent's API login file <path>: <reason>"` for the API file, unless the reply parses. The result's `login` is `login_used(stderr)` of the run's last call. The file is read again at every call, so a changed file applies to the next call of the same runtime. The module re-exports `LOGIN_SCRIPT`, `LOGIN_VARIABLE`, `LOGIN_PREFIX` and `SHELL_EXECUTABLE` in its `__all__`, and keeps reading `SHELL_EXECUTABLE` from its own namespace when it removes the temporary folder. It starts the process through `run_process`, and with `git_cli` and `make_commands` it is one of the modules that import `factory.adapters.process` (`git_cli`, `make_commands` and `opencode_runtime` are the others; `tests/test_wrapper_search.py`).
+
+### The shared launch module
+
+`factory.adapters.agent_launch` holds what every agent runtime shares to start a call; the opencode runtime reuses it. It imports no `factory.adapters.process` and reads no `os.environ`: it builds words, rules and texts, and each runtime starts its own processes. It holds the login shell (below) and the start of a run: the words, the rules, the removal of the run's folder, the refusals and the resume share. `ClaudeCodeRuntime` calls these functions; it keeps its own process calls, the reply's parsing and `_since`. The names a test sets on `claude_runtime` (`SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES`, `run_process`) are read from that module's namespace at the call and passed in, and the moved constants (`ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `VERSION_TIME_LIMIT`, `SUDO_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `CLEANUP_SCRIPT`, `resume_budget`) stay names of `claude_runtime` through its `__all__`.
+
+- `launch(argv, environment, *, os_user, sudo_executable, time_limit)` gives a frozen `Launch(argv, env, time_limit)`. Without `os_user` it keeps all three as given. With one, `argv` is `sudo_prefix(...)` (`[sudo, -n, -u, <user>, --]`), `timeout --signal=KILL <seconds>s` (the limit rounded up), `env -i`, one `NAME=value` per entry in the environment's order, then the command; `env` is empty and the limit is the given one plus `SUDO_GRACE` (30 s). `confined_argv(argv, confine_executable, rules)` puts `[confine_executable, --rules, <rules file>, --]` before the command, or leaves it unchanged without a wrapper.
+- `temporary_folder(root, run)` is `root / "factory-run-<run>"`. `cleanup_argv(shell, temporary, *, os_user, sudo_executable)` is `[shell, -c, CLEANUP_SCRIPT, factory-cleanup, <folder>]`, after `sudo_prefix` with a user.
+- `run_confinement(request, temporary, *, runtime_folders, devices)` builds the run's `Confinement`. `runtime_folders` are relative to the request's `HOME` (`[".claude"]` for Claude Code), each becoming a folder target `<HOME>/<folder>` in the order given and none without a `HOME`; a request without guard settings may write nothing of the checkout. `existing_devices(folders, files)` gives the folder targets, then the file targets of those that exist. `request_home(request)` is the request's `HOME` or `None`.
+- `line_starting(stderr, prefix)` is the first line that starts with the prefix (`SUDO_PREFIX` `sudo:`, `CONFINE_PREFIX` `factory-confine:`, the login prefixes). `killed_at_limit(*, os_user, exit_status, duration, time_limit)` is true only with a user, a status in `KILL_STATUSES` (137, -9) and a duration at or above the limit. `first_word(output)` is the first word of the first non-blank line (the version).
+- `resume_budget(budget)` is a quarter of the budget, at least `MINIMUM_RESUME_BUDGET` (0.50), rounded half up to cents; `FINISH_MESSAGE` is the resumed call's prompt.
+- `resumed_result(first, second)` is in the domain (`factory.domain.agent_runs`): the sum of a resumed run, by the rules under "Measures of a resumed run" below. It takes `second`'s end reason, decision, entry and login, joins the refused calls (first call's first, `path` unchanged) and adds the durations; the run sets the whole run's clock afterwards.
+
+- `LOGIN_SCRIPT` is built from the module's constants only (an f-string, so its source holds no `NAME="..."` pair of a secret's name), and runs as the user the call runs as. With `--api-login <file>` and a file that holds a key (anything left once spaces, tabs, carriage returns and line feeds are removed) it exports `ANTHROPIC_API_KEY`, unsets `CLAUDE_CODE_OAUTH_TOKEN`, prints `factory-login-used: api_key` on standard error and `exec`s the command; the token file is not read. Otherwise it unsets `ANTHROPIC_API_KEY`, reads the token file as before (a missing or empty file, or an empty argument, is no token) and prints `factory-login-used: subscription` or `factory-login-used: none`. A file that exists but is not a readable regular file, or holds a byte other than printable ASCII, space, tab, carriage return or line feed, prints `factory-api-login: <reason>` (API file) or `factory-login: <reason>` (token file), with the reason `cannot be read` or `not ASCII text`, and exits 1 without starting the command.
+- `LoginFiles(subscription=None, api=None)` is the frozen pair of files. `login_argv(files)` is `[]` for neither, `[/bin/sh, -c, LOGIN_SCRIPT, factory-login, <subscription>]` for the token only, and `[..., factory-login, --api-login, <api>, <subscription or "">]` with an API file.
+- `login_used(stderr)` reads the first `factory-login-used:` line (`None` for none or an unknown word). `login_refusal(stderr, files)` gives the API text first, then the token text, else `None`. `without_login(environment)` is the copy without both names.
+- Names that contain `key`, `token`, `secret` or `password` are never assigned a string literal (ruff's `S105`, `make secrets`); tests hold a stand-in key in a name such as `API_LOGIN` and write an environment entry with the name's constant.
+
+The arguments, in this order (`<session>` is a new `uuid4` per run):
+
+```text
+-p <prompt>  --model <model>  [--effort <effort>]  --tools <tools joined with commas>
+--session-id <session>  --append-system-prompt-file <state_directory>/instructions-<session>.md
+[--settings <state_directory>/hooks-<session>.json]  --permission-mode auto  --permission-prompts none
+--strict-mcp-config  --max-budget-usd <budget as plain decimal>  --output-format json  --json-schema <schema>
+```
+
+`--effort` is left out when the agent has none; `--settings` when the request has no guard; `--tools` is always there, with an empty value for an empty list. The flags are v1's; the preflight's `agent-run-probe` makes one call with them, so a flag the pinned `claude` rejects stops the machine. The schema asks for an object with `decision` (an enum of `allowed_decisions`, in the request's order) and `entry` (described by `ENTRY_DESCRIPTION`), both required, nothing else.
+
+Files under `state_directory` (created with its parents when missing), written before the call and removed when the run ends, whether by a result, `InjectedKill` or `AgentRuntimeError`:
+
+- `instructions-<session>.md`: the agent's instructions.
+- With a guard only: `guard-<session>.json` (the `GuardSettings` as JSON) and `hooks-<session>.json`, a `PreToolUse` hook on `Edit|Write` whose command is `factory-guard --settings <guard file, shell-quoted>`. The command is described in "The guard command".
+- With `confine_executable` only: `confine-<session>.json`, the kernel's rules (see *Confinement* below).
+
+Environment: the call gets `request.environment` plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1` and `PYTHONDONTWRITEBYTECODE=1`. Nothing is inherited from the factory's process and no `PATH` is added; `factory-guard` is found only if the request's own `PATH` holds it. The call runs in `request.working_directory`.
+
+Confinement. With `confine_executable` set (the property of that name; `None` leaves the command line, the environment and the files exactly as described above), every call, a first one and a resumed one, starts as `[confine_executable, "--rules", <state_directory>/confine-<session>.json, "--", *<the call's command>]`, where the command is the login shell, when there is one, and `claude` with their arguments. With an `os_user` that list follows `env -i` and its assignments, after `sudo -n -u <user> -- timeout --signal=KILL <limit>s`. `build_boundaries(..., confine_executable=CONFINE_COMMAND)` passes `factory-confine`; `factory.entry.run` and `boundaries_from_environment` pass nothing, so every run of the factory is confined (a test pins the default and the source of `run`).
+
+- The rules file is the `Confinement` as `model_dump_json()`, mode `0o640` (`RUN_FILE_MODE`), written with the run's other files and removed with them. `run_confinement` (`factory.adapters.agent_launch`) builds it with `confinement_of(write_targets(guard, home=home), root=guard.root, existing_files=..., extras=..., temporary_directory=...)`: `guard` is the request's, or `GuardSettings(root=working_directory, write_paths=[], protected_paths=[])` when it has none (so a run without a guard is confined with no path of the checkout); `home` is `HOME` of the request's environment or `None`; `existing_files` are the file targets that are files; `extras` are `<home>/.claude` (`RUNTIME_FOLDER`, passed as `runtime_folders=[RUNTIME_FOLDER]`; only with a `HOME`), then each of `DEVICE_FOLDERS` and then each of `DEVICE_FILES` (`factory.domain.confinement`) that exists. `DEVICE_FILES` is `/dev/null`, `/dev/zero`, `/dev/full`, `/dev/random`, `/dev/urandom` and `/dev/tty`; `DEVICE_FOLDERS` is `/dev/shm`, whose line carries the one `noqa: S108` and `nosec B108` that `CLAUDE.md` allows in the domain.
+- The temporary folder is `temporary_root / f"{TEMPORARY_PREFIX}{session}"` (`TEMPORARY_PREFIX` is `factory-run-`; `temporary_root` `None` is `Path(tempfile.gettempdir())`), the same path for a first call and its resume. The wrapper makes it and sets `TMPDIR`; the runtime sets nothing for it.
+- With a `HOME` in the request's environment the call's environment gains `CLAUDE_CONFIG_DIR` (`CONFIG_VARIABLE`) `=<HOME>/.claude`, so that Claude Code keeps `.claude.json` inside the one folder the rules allow. Without `HOME` the variable is not set, and the rules hold no `.claude` folder and no folder of a `~/` tool path.
+- After every call the runtime runs `[SHELL_EXECUTABLE, "-c", CLEANUP_SCRIPT, "factory-cleanup", <temporary folder>]` through `run_process` (limit `CLEANUP_TIME_LIMIT`, 60 s), prefixed by `sudo -n -u <user> --` with an `os_user`, in the request's working directory and with an empty environment. `CLEANUP_SCRIPT` is `chmod -R u+rwX -- "$1" 2>/dev/null; rm -rf -- "$1"`: the folder is `$1`, never part of the script, and `chmod` first lets it remove a folder the agent closed. Status and output are not read, so a failed removal changes no result; an `OSError` starting it is `AgentRuntimeError`. It runs also after a kill at the time limit or an error.
+- Refusal. A call that ends without a usable reply (none that parses, or one cut short by the time limit) and whose standard error holds a line starting `CONFINE_PREFIX` (`factory-confine:`) raises `AgentRuntimeError("<confine_executable> refused the agent run: <line>")`; such a line before a usable reply is ignored. The `sudo:` check comes first.
+
+A call as another user (`request.os_user` set). The argument vector is `<sudo_executable> -n -u <os_user> -- timeout --signal=KILL <seconds>s env -i NAME=value ... <executable> <arguments>` (`TIMEOUT_EXECUTABLE`; `<seconds>` is the call's time limit rounded up to whole seconds), one assignment per name of the environment above, and the process itself starts with an empty environment: `env -i` drops whatever `sudo` keeps, so the agent sees the request's environment alone. `sudo_executable` defaults to `SUDO_EXECUTABLE` (`/usr/bin/sudo`) and is readable as the property `ClaudeCodeRuntime.sudo_executable`; `build_boundaries` gives the runtime the `sudo` on the `PATH` that the preflight's `tool:sudo` item finds (`which("sudo")`, its `which` parameter defaulting to `shutil.which`), and `/usr/bin/sudo` only when there is none, in which case the preflight stops the machine anyway. The instructions, guard and hook files are written with `RUN_FILE_MODE` (`0o640`) for every request, so the other user can read them through the group. The factory may not signal `sudo`, so the agent's own `timeout` kills at the limit, and the outer `ProcessRequest` gets the limit plus `SUDO_GRACE` (30 s), so the factory's own kill fires only when the inner one did not. A call with an `os_user` that ends with status 137 or -9 after a duration of at least its limit (`KILL_STATUSES`) is marked `timed_out` (`killed_at_limit`), so it ends `time_limit` without measures; the same status earlier is `died`. The resume goes through the same call with what is left of the limit. When the call reached its `time_limit` or printed no reply that parses, a standard-error line starting with `sudo:` raises `AgentRuntimeError` (`<sudo_executable> refused the agent run: <line>`): a refused `sudo` is a misconfiguration, not a stall. A reply that parses, from a call within its `time_limit`, is a reply even when a `sudo:` warning came with it. `agent_run_environment(settings, base)` in `factory.entry.wiring` sets `HOME` to the parent of `settings.agent_home` when `settings.agent_user` is set, since the agent home is the `.claude` folder in the agent user's home.
+
+End reason, first rule that applies: `time_limit` when the time limit ended the call (it is killed with its children); `died` when the exit status is not 0, the output is not a JSON object with a string `subtype` and a boolean `is_error`, or `is_error` is true; `completed` when `structured_output` has a `decision` from `allowed_decisions` and a non-blank `entry`; otherwise `no_result`. A reply with `subtype` `error_max_budget_usd` is `budget`, checked right after `time_limit` and before the exit status, because `claude` may exit non-zero on a budget stop. The rules above describe one call; the resume below applies them to each call.
+
+Measures: `duration` is what the factory measured around the call. `model_duration` is the reply's `duration_api_ms`, the time the model took (the JSON's `duration_ms` is ignored); it is `None` when the reply lacks the field and after a `time_limit`, and a negative value makes the reply unparsable (`died`). `turns`, `cost_usd` (`Decimal(str(total_cost_usd))`), `tokens` and `permission_denials` come from the JSON when it parses, and are `None` for any field it lacks, and for all of them after a `time_limit`. For a resumed run they are added up (below). `tokens` is known only when both `input_tokens` and `output_tokens` are present; the cache counts default to 0. A denial's `detail` is its `tool_input` as JSON with sorted keys; its `path` is the `tool_input`'s `file_path` when that is a string, or else its `notebook_path` when that is a string, otherwise `None` (also when `tool_input` is not an object). A reply with the wrong type in a field it carries does not parse and counts as `died`. So does a reply with a negative `num_turns`, token count or `total_cost_usd`: it counts as `died` and every measure is unknown (`None`); zero is valid. This holds for a budget-stop reply too, which is then not resumed.
+
+Kill point: `KillPoint.AGENT_RUN` is reached once, after the last call and the result, whatever the end reason, and not when the call could not be started. A missing executable or an unwritable state directory raises `AgentRuntimeError` naming the cause.
+
+The budget resume. When a call ends with `budget`, the same session is resumed once, so that an agent that ran out of money still gives its decision and entry. The arguments are the first call's, except `-p` is `FINISH_MESSAGE`, `--session-id <session>` becomes `--resume <session>`, and `--max-budget-usd` is `resume_budget(agent.budget_usd)`: a quarter of the budget, at least `MINIMUM_RESUME_BUDGET` (0.50), rounded half up to cents. The run's files are the same ones and are removed when the run ends. The resumed call's reply is read by the rules above; if it also ends with `budget`, so does the run. A third call is never made. `FINISH_MESSAGE` asks for `question` where v1 asked for `stuck`.
+
+One `time_limit` counts across the run: the first call may take `request.time_limit`, the resume what is left of it, measured by the factory from the start of `run`. A first call ended by the time limit is never resumed. If nothing is left when the first call ends, the resume is skipped and the run ends as `time_limit`.
+
+Measures of a resumed run: `turns`, `cost_usd` and each of the four token counts are the sums over both calls; a call that reported none adds nothing, and a measure is `None` only when neither call reported it. When the resumed call is ended by the time limit, `turns`, `cost_usd` and `tokens` are all `None` (R24: no partial figure; the first call's alone would be one). Permission denials are joined, the first call's first. `duration` is the factory's own, from the start of `run` to the end of the last call. `model_duration` is the sum of both calls' when both are known, the known one when only one is, `None` when neither; a resume ended by the time limit keeps the second call's `None`.
+
+`version()` runs `<executable> --version` through `run_process` in the process's current directory, with its current environment and the limit `version_time_limit` (`VERSION_TIME_LIMIT`, 30 seconds). It returns the first word of the first non-blank line, so `2.1.289 (Claude Code)` gives `2.1.289`. It raises `AgentRuntimeError` when the call cannot be started, exits non-zero, reaches the limit or prints nothing.
+
+Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
+
+### The opencode runtime
+
+`OpencodeRuntime(executable, state_directory, kill_points=None, *, models=None, settings_file=None, version_time_limit=VERSION_TIME_LIMIT, sudo_executable=SUDO_EXECUTABLE, api_login_file=None, confine_executable=None, temporary_root=None)` (`factory.adapters.opencode_runtime`) runs an agent as one `opencode run` call and reads the run's result from the JSON events the call prints. Nothing builds it yet except the tests: the operator's choice of this runtime and the settings that fill `models` and `settings_file` come in later stories of F0020 (S0008 for the choice), and the budget stop, the provider limit and a resumed session in S0005 and S0006. It reads no `os.environ`; its starts go through `run_process` and `run_streaming` (the callback never stops the run yet).
+
+**The call.** The words are, in order, the login words of `login_argv` (an API login file only; there is no subscription file), `<executable> run --format json --auto --model <model> --agent factory-<name> <prompt>`, the prompt one argument, in the request's working directory. `<model>` is the agent's `model` as it is when it holds a `/`, otherwise `models[alias]`; an alias without a mapping raises `AgentRuntimeError`. With an `os_user` and with `confine_executable`, `sudo`, `timeout`, `env -i` and `factory-confine` wrap the call exactly as for `claude -p`, through the helpers of `factory.adapters.agent_launch`. The call's environment is the request's, without `ANTHROPIC_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN` (the login file is the only source), plus `OPENCODE_CONFIG` and `PYTHONDONTWRITEBYTECODE=1`. `version()` runs `<executable> --version` without login words and returns the first word of the first non-blank line (`1.19.3`), with the errors of the Claude Code runtime.
+
+**The per-run configuration.** opencode has no flag for an agent's prompt, tools or permissions, so the runtime writes `opencode-<run>.json` into `state_directory` (mode `0640`) and names it in `OPENCODE_CONFIG`. The file defines one primary agent, `factory-<name>`, from the same `AgentDefinition` the Claude Code runtime gets from `claude/agents/*.md`:
+
+- `prompt`: the agent file's body, a blank line and `result_instructions(allowed_decisions)`;
+- `tools`: all twelve of `OPENCODE_TOOLS`, true for the agent file's tools translated through `TOOL_NAMES` (`Read` is `read`, `Bash` is `bash`, and so on) and false for the rest; a tool outside `TOOL_NAMES` raises `AgentRuntimeError`;
+- `permission`: `edit` allowed and `bash` `{"*": "allow"}` plus a `"deny"` for the pattern of each `Bash(<pattern>)` entry in `permissions.deny` of `settings_file` (the installed `settings.json`). Entries for other tools are not translated. A settings file that cannot be read, or holds no `permissions.deny` list of strings (also when it is no JSON), raises `AgentRuntimeError`; with no `settings_file` only `{"*": "allow"}` is written;
+- `autoupdate` false, `share` `disabled` and `snapshot` false, so a run neither updates itself nor uploads or snapshots anything.
+
+The model, tools and settings are checked before any file is written; the state directory must exist (the runtime does not create it). The configuration and the `confine-<run>.json` rules are removed after the run, whatever its end. Why the agent is generated and not shipped: see *opencode's agent is generated per run from the shipped agent files* in `docs/decisions.md`.
+
+**The result block.** opencode has no structured-output flag, so the prompt ends with a fixed block the agent must end its final message with:
+
+```
+<factory-result>
+decision: <one of: doing, question>
+entry:
+<the entry>
+</factory-result>
+```
+
+`parse_result_block(text, allowed_decisions)` reads it strictly from the last `text` event: the text must end with `</factory-result>` (trailing spaces and line feeds are ignored; text after it is not), the last `<factory-result>` before it opens the block, the first line is `decision:` and a word in `allowed_decisions` (spaces around it are fine), the second is `entry:`, and the lines after it, stripped, are the entry and must not be blank. Anything else gives `None`, and the run is `no_result`. There is no repair and no fuzzy match: a reply the factory cannot trust is not a decision.
+
+**The events.** With `--format json` each stdout line is one event; a line that is no JSON, has no known `type` (`step_start`, `tool_use`, `text`, `step_finish`, `error`), or has a negative number where a count, cost or timestamp belongs, is skipped, and so is a `step_finish` without `cost` or `tokens`. The measures come from the valid lines alone:
+
+- `cost_usd`, `turns` and `tokens` are summed over the `step_finish` events: `input`, `output` (plus `reasoning`), `cache.read` and `cache.write` (a missing part counts 0). Cost is added as `Decimal(str(cost))`.
+- `model_duration` is, for each step, `step_finish` timestamp minus the earlier `step_start` timestamp, minus the spans of the `tool_use` events between them by line order, never below 0; a finish with no earlier start adds 0 and still counts as a turn.
+- A `tool_use` whose state is an error that mentions `permission` or `denied` is a `PermissionDenial` (tool, sorted input as JSON, and `path` from the input's `filePath` when it is a string).
+
+**The end reason.** A timeout is `time_limit` with no measures. Otherwise a non-zero exit or no `step_finish` is `died`; a valid block is `completed` (with its decision and entry); anything else is `no_result`. A stderr line from `sudo` or `factory-confine` is a refusal only when no valid event was printed.
+
+**opencode's folders.** opencode writes its sessions, logs and caches to `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode` in the agent's home (`RUNTIME_FOLDERS`); the run's rules allow those three, with the run's temporary folder and the write paths. `.config` is not allowed: opencode's own configuration there is what the next run reads, and an agent that could write it could change its own tools and permissions.
+
+Tests use `tests/adapters/opencode_stand_in.py` in `tmp_path`; the real `opencode` is never run.
+
+### The fake
+
+`FakeAgentRuntime(kill_points=None, version="fake")` (`factory.adapters.fake_agent_runtime`) is what every stage test uses. It inherits `AgentRuntime`, an abstract base class. The `agent_runtime` fixture in `tests/conftest.py` builds one with the test's `kill_points`.
+
+A test queues `ScriptedRun`s (`writes`: path to UTF-8 text, `deletes`, `result`, `kill`) with `queue`. Each `run` call:
+
+1. records the request (`requests()` lists all, in order, also one that raised);
+2. takes the oldest queued run, or raises `AgentRuntimeError` when none is queued;
+3. checks every path, then writes (parent folders created, an existing file replaced) and deletes (a missing path is ignored) relative to `request.working_directory`. An absolute path or a `..` segment raises `AgentRuntimeError` before anything is written or deleted;
+4. when `kill` is true and the fake has kill points, reaches `KillPoint.AGENT_RUN`, which raises `InjectedKill` if armed. The writes are already on disk, as after a real crash;
+5. returns the scripted `result`.
+
+```python
+agent_runtime.queue(ScriptedRun(writes={"tests/test_a.py": "x = 1\n"}, result=result))
+outcome = agent_runtime.run(request)
+assert outcome.ok and agent_runtime.requests() == [request]
+```
+
+## The agent definition reader
+
+Every role of the pipeline definition needs an agent file of the same name, `<agent home>/agents/<name>.md`. `AgentDefinitionReader` (`factory.application.agent_runtime`, an abstract base class, `Boundaries.agent_definitions`) has two operations and `FrontmatterAgentDefinitionReader(agent_home)` (`factory.adapters.agent_files`) implements them. F0005 uses `read` to compose every task; `PipelineLoader` uses `names()` to check the roles.
+
+| Operation | Does |
+|---|---|
+| `names()` | the sorted stems of the regular `.md` files directly in `agents/` whose stem is a `Name`; `[]` for an empty directory |
+| `read(name)` | the `AgentDefinition` of the file; `name` is checked as a `Name` before any path is built |
+
+The front matter is split as the work item reader splits it, with `split_front_matter`, and loaded with ruamel.yaml through `RuamelYamlHandler`, never PyYAML (so `model: on` is the text `on`). The body, stripped, is `instructions`. Only `model`, `tools`, `effort` and `budget_usd` may appear (`APPLIED_AGENT_KEYS` in `factory.domain.agent_runs`): the runner builds its flags and its prompt from them, because Claude Code ignores an agent file in print mode.
+
+| Key | What the runner does with it |
+|---|---|
+| `model` | passed as the model of the run |
+| `tools` | the tools the run may use |
+| `effort` | the effort level of the run; optional |
+| `budget_usd` | the budget of the run; the run ends with `budget` when it is spent |
+
+Any other key is refused with `AgentDefinitionInvalid` (fault `key not applied by the agent runtime: <key>`, `key` the first such key in the file's order, keys compared as written so `Model` is refused) before the applied keys are validated, so it wins over a missing `model` or a bad `budget_usd`. The validated keys go to `AgentDefinition`. `budget_usd` becomes a `Decimal` (`0.1` gives `Decimal("0.1")`). No variable in the module is named `yaml`, because the semgrep rule `factory-no-unsafe-yaml-load` matches any `yaml.load(...)`.
+
+### Faults
+
+`AgentDefinitionError(name, fault)` is a `FactoryError`. `names()` raises it with `name == ""` and `no agents directory at <path>`. `read` raises a subclass:
+
+| Error | Fault |
+|---|---|
+| `AgentDefinitionMissing` | `not an agent name: <name>`, `no agent file <path>` |
+| `AgentDefinitionInvalid` (`key` is `""`) | `cannot read: <reason>`, `no front matter`, `front matter is not valid YAML`, `front matter is not a mapping` |
+| `AgentDefinitionInvalid` (`key` is the unapplied key) | `key not applied by the agent runtime: <key>` (`KEY_NOT_APPLIED` and the key) |
+| `AgentDefinitionInvalid` (`key` is the top-level key) | `missing key: <key>`, `budget_usd must be greater than 0`, `invalid <path>: <message>` |
+
+Of several validation faults the first in the order of `first_fault` is reported (unapplied key, unknown key, missing key, invalid value); `first_error` in `factory.adapters.validation_faults` gives the error `first_fault` formats, so the `key` and the fault name the same problem.
+
+```bash
+uv run python -c "
+import tempfile
+from pathlib import Path
+from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.domain.errors import AgentDefinitionInvalid
+with tempfile.TemporaryDirectory() as folder:
+    home = Path(folder)
+    (home / 'agents').mkdir()
+    (home / 'agents' / 'coder.md').write_text('---\nmodel: sonnet\ntools: Read\nbudget_usd: 1\n---\nGo.\n')
+    reader = FrontmatterAgentDefinitionReader(home)
+    print(reader.names())
+    try:
+        reader.read('coder')
+    except AgentDefinitionInvalid as error:
+        print(error.key, '|', error.fault)
+"
+```
+
+prints `['coder']` and then a line that starts with `tools | invalid tools:`.
+
+## The shipped agents, settings and template
+
+`claude/` and `template/` are data the image carries; no code under `src/` reads them except through the readers named here.
+
+### The seven agents
+
+`claude/agents/<role>.md` holds one agent for each role of the starting pipeline definition. Each file's front matter has exactly the four keys the runner applies (see *The agent definition reader*):
+
+| Agent | model | effort | budget_usd | tools |
+|---|---|---|---|---|
+| `intake` | sonnet | low | 1 | Read, Grep, Glob, Edit, Bash |
+| `tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash, Write |
+| `coder` | opus | medium | 4 | Read, Grep, Glob, Edit, Bash, Write |
+| `reviewer` | opus | high | 3 | Read, Grep, Glob, Edit, Bash |
+| `documenter` | sonnet | medium | 1.5 | Read, Grep, Glob, Edit, Bash, Write |
+| `smoke-tester` | opus | medium | 2 | Read, Grep, Glob, Edit, Bash |
+| `acceptance-reviewer` | opus | high | 8 | Read, Grep, Glob, Edit, Bash, Write |
+
+Each body starts with two paragraphs: the role's boundary as one sentence, a blank line, and one sentence on what the role's journal entry contains. After them the body carries v1's texts, renamed with the table under "Replaced from v1", under these `## ` sections and no other `## ` heading, in this order:
+
+- `## Rules`: v1's pipeline rules, in every body. The agent ends with a decision, one of the `Allowed decisions` its prompt lists (`question` is always among them), and with a journal entry. The factory commits, pushes and moves the work item; the agent never pushes, checks out, switches, merges, pulls or calls `gh`. v1's rules on the work item, the pipeline definition, commit subjects and the pipeline files are rewritten to what the prompt, the pipeline definition and the write paths say, or dropped where the factory does them in code. R14 tells every agent what a refused write looks like (`Permission denied`), that it is the write guard and never to be retried by another route, and that the agent ends with `question` when the work needs the path; temporary files belong in `$TMPDIR`, the run's own folder, and `/tmp` itself is refused. `tests/test_claude_agent_refusal.py` pins the paragraph word for word.
+- `## Role`: v1's role skill. `intake` and `smoke-tester` have none, because v1 had none for them.
+  The `reviewer`'s checklist has a sixth item of v1.1's own, *Earlier tests*, done in every review whichever group failed (the sentence before the checklist says so: it stops at the first failing group of 1 to 5, and item 6 is always part of the review). The reviewer lists each test file that `main` already holds and the diff changes, renames or deletes (any status but `A` in `git diff --name-status main...HEAD`), with the leave for each: the standing leave of `CLAUDE.md` to move a shared test helper, the human's leave (the story naming the test, or the human's answer in the journal), or none needed when the change only adds tests. A change under none of them, or beyond its leave, is a finding. The `acceptance-reviewer`'s check 6 gathers those lists for the human, and an earlier test changed with no leave named is a finding there. The acceptance reviewer does not repeat the diff check over the whole feature. `tests/test_claude_agent_texts.py` pins these passages with anchors.
+- `## Stage`: v1's stage skill for the agent's stage.
+- `## Lessons`: v1.1's own part, after v1's texts, and always last. It holds the lessons of v1.1's build for the role, one bullet each: the first two bullets (run make targets in the foreground; give a long project command such as `make check` the shell tool's largest timeout, 600000 ms) are in every body; `intake`, `tester`, `coder`, `reviewer` and `documenter` have more. `tester` has two lessons on earlier tests (the standing leave `CLAUDE.md` gives to move a shared test helper, with its entry naming each earlier test file it changed; and, in the mode `a test change the human approved`, making the move that a coder's entry names under that leave), and `coder` ends with one that sends a reviewer's finding of a copied test helper to the tester with `tests`. `tester` still ends with the time-limit lesson: a test that waits for a time limit gives the process it starts room to start (a limit of a few seconds, an upper bound on the elapsed time with room above it, never a check that a one-second limit is met to the tenth). `documenter` ends with the documents-only lesson: when every file it changed is a document, it ends without running `make check`, because the factory runs the stage's checks right after it; when it changed any other file, it runs it. Two lessons belong to the agents that run scripts outside the repository. `smoke-tester` and `acceptance-reviewer` end with the temporary-directory lesson (`documenter` carries it before its last bullet): make every such file in a self-removing temporary directory (`tempfile.TemporaryDirectory()`, or `mktemp -d` with a `trap` in the shell) and leave nothing in `/tmp`. `acceptance-reviewer` ends with one more: when `make test` writes a JUnit report, read each test's time from it and name the slowest tests in the slow checks and in the cost. No other agent carries either.
+
+The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions (questionnaire 1, Q29). The words are renamed, the sentences are not rewritten in other words. Three passages are v1.1's own text and not v1's: the sentence before the `reviewer`'s checklist, the checklist's sixth item and the `acceptance-reviewer`'s added sentence in its check 6, described in the `## Role` bullet above.
+
+(the table of renamed words is under "Replaced from v1")
+
+`stuck` does not exist in v1.1: an agent that cannot finish asks. The `acceptance-reviewer` body names the report sections `## Recommendation` and `## Proposed stories` inline (F0009 reads them; at the start of a line they would be headings), the recommendations `accepted`, `accepted with stories` and `not accepted`, and tells the agent to write proposed stories into the feature's `backlog/`.
+
+To change what an agent is told, edit its file under `claude/agents/`; there is no other copy. `tests/test_claude_agent_texts.py` checks the sections, the banned v1 words, the decisions (derived from `next` in `template/factory/pipeline.yml`), the anchor phrases and the exact `## Lessons` bullets. No skills are shipped, because the runner applies no `skills` key.
+
+`tests/test_claude_files.py` checks the files (keys, values, bodies); `tests/adapters/test_shipped_agents_effect.py` runs `ClaudeCodeRuntime` against the stand-in executable over each shipped agent and checks that `--model`, `--effort`, `--tools`, `--max-budget-usd` and the instructions file carry the file's values. `tests/shipped_agents.py` holds the shared table.
+
+### The settings
+
+`claude/settings.json` is the permissions and environment every agent run shares. It allows file tools, `uv run`, `uv sync`, `make`, `factory-check-story` and the read-only git commands `status`, `diff`, `log`, `show` and `rev-parse`. It denies `git add` and `git commit` (the agent leaves its changes in the working tree and the factory makes the result commit, R10; the agents' `## Rules` say "You do not commit either", and a denied command is refused by the runtime where an unlisted one would ask for a permission nobody can give), `git push`, `checkout`, `switch`, `merge`, `pull`, `rebase`, `reset`, `branch -D`, `gh` and `rm -rf`. `factory-check-story` is the only `factory-` command allowed: an agent may not run `factory-run`, `factory-watch` or `factory-bill`. The environment sets `CLAUDE_CODE_FORK_SUBAGENT` to `0`. A test compares the file with the expected document, so any change is a deliberate edit of both.
+
+### The template
+
+`template/` is what a new project starts from, laid out as the project's tree. It holds three files and nothing else:
+
+- `template/factory/pipeline.yml`, the starting pipeline definition. Its roles are the seven agents above. The stages run `intake`, `tests`, `doing`, `review`, `docs`, `smoke-test`, then `approval`; `acceptance` is the acceptance stage. Copy it to `factory/pipeline.yml` and adjust it.
+
+  ```yaml
+  contract: "1.0"
+  attempts_cap: 2
+  crash_cap: 2
+  acceptance_stage: acceptance
+  project_commands:
+    check: {time_limit: 10}
+    lint: {time_limit: 5}
+    test: {time_limit: 10}
+  roles:
+    intake: {write_paths: ["{work_item}"]}
+    tester: {write_paths: ["tests/*"]}
+    coder: {write_paths: ["src/*"]}
+    reviewer: {write_paths: ["{work_item}"]}
+    documenter: {write_paths: ["README.md", "docs/*"]}
+    smoke-tester: {write_paths: ["{work_item}"]}
+    acceptance-reviewer: {write_paths: ["{work_item}", "{feature}/backlog/*"]}
+  stages:
+    intake: {role: intake, next: [tests]}
+    tests: {role: tester, next: [doing], checks: [lint], reports: [test]}
+    doing: {role: coder, next: [review, tests], checks: [check]}
+    review: {role: reviewer, next: [docs, doing], round_cap: 3}
+    docs: {role: documenter, next: [smoke-test, doing], checks: [check], round_cap: 3}
+    smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 3}
+    acceptance: {role: acceptance-reviewer, next: [approval]}
+    approval: {approval: true, next: [done, doing]}
+    done: {}
+  ```
+
+  The coder's write path is `src/*` only; a project that keeps code elsewhere changes it.
+- `template/CLAUDE.md`, the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks, and it carries the Python lessons of v1.1's build (the `mypy --strict` traps in tests, low-entropy hexadecimal test values, and the time-limit lesson: a test that waits for a time limit gives the process it starts room to start). It also gives a standing leave to move a shared test helper: a helper, constant or fixture that a new test would copy from another story's test module, or that an earlier module still holds as a copy, may be moved to one shared place under `tests/`, and the earlier tests changed to use it, without asking, as long as every earlier test keeps its name and checks the same thing. The tester makes the move, never the coder; any other change to another story's test still needs the human's leave.
+- `template/Makefile`, the project commands of a Python project with a src layout, in the pattern of `factory-rf`'s own. Its targets are the contract's three, `check`, `lint` and `test`, and the other targets `check` runs: `types`, `layers`, `sast`, `secrets` and `licenses`. Every recipe runs in one shell and ends with `<target>: green (<seconds> s)`; `make test` runs on every core and writes a JUnit report; `make secrets` scans the files changed against `origin/main`, and leaves out `uv.lock`, `.secrets.baseline` and every file ending `.costs.jsonl`. Those are the factory's cost records: they hold run metadata and no secret, and their 32-character hexadecimal run ids read to detect-secrets as high-entropy secrets, which made the coder's `make check` red at the tiny story of 2026-10-18 (F0099-S0001 on the todo demo). The todo demo's `secrets` recipe is the template's, and `tests/test_demo_makefile_secrets.py` keeps them equal. `duplicates` is a report outside `check`: it writes similar code and dead code to `.reports/` and counts them, and compares them with no baseline. `mutants` is run by the feature acceptance: `make mutants FEATURE=<feature id>` runs mutmut over the modules that the feature's story commits on `origin/main` changed, found by the subjects `work item <id>: ...` (or `<id>: ...` after a squash merge), and `FEATURE` is taken from an acceptance's branch `work-item/<feature id>-A<number>`. There is no `documents` target. A project fills in two placeholders, `SOURCE` (its package folder) and `LAYERS` (its layers command), and the file's header names the development dependencies the targets need.
+
+The template ships no forms. The story and feature forms (`factory/story-form.md`, `factory/feature-form.md`) are the human's to add to a project made from it. Until `factory/story-form.md` exists, `StoryFormChecker` (see *The story form check*) stops every stage.
+
+## Replaced from v1
+
+The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words, except the three passages of v1.1's own text that *The seven agents* names):
+
+| v1 | v1.1 |
+|---|---|
+| ticket | work item |
+| log | journal |
+| `drafts/` | `backlog/` |
+| `ongoing/` | `in-progress/` |
+| promote | start |
+| `stages.yml`, stage table | the pipeline definition (`factory/pipeline.yml`) |
+| lane | write paths |
+| gate, the stage `accept` | approval |
+| demo (the stage and the agent) | smoke test |
+| acceptor | acceptance reviewer |
+| outcome (of an agent) | decision |
+| verdict | recommendation |
+| `max_rounds` | `round_cap` |
+| `stuck` | `question` |
+| `Assignment`, `## Assignment` | `Description`, `## Description` |
+| `## Log (append only)` | `## Journal` |
+| `## Demo`, Demo (the story's section) | `## Smoke test`, smoke test |
