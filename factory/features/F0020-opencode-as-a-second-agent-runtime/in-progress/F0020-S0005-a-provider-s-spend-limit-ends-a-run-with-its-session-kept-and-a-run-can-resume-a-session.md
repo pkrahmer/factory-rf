@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 254
-comments_read: []
+comments_read: [6261999766]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 99589987c2734d4eb32f91bec4df5b0d
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T07:26:58.091006Z'
+  stage: intake
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -190,3 +195,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. `limit_wait` for the standard-error path ("`named_wait` of that `result` or line"): criterion 9 tests the wait only for the `result` path. Criterion 10's standard-error row says "without measures" and does not mention the wait. Proposed: change that row so a stand-in printing `API Error: 428, try again in 7 minutes` on standard error gives `limit_wait` of 420 seconds. Also add a row where the stderr line names no wait and `limit_wait` is `None`.
 
    I would choose all three proposals as written.
+4. 2026-10-19 human: 1. Yes: add the row to criterion 7 (message variable `spend limit` gives `provider_limit.message` `spend limit`).
+   2. Yes, the first proposal: add to criterion 12 that the run's files use a new id that differs from `resume_session`.
+   3. Yes: change criterion 10's standard-error row so `API Error: 428, try again in 7 minutes` gives `limit_wait` 420 seconds, and add the row where the line names no wait and `limit_wait` is `None`.
