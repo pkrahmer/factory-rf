@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T07:25:18.091627Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T07:25:18.086867Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:25:18.091627Z'
+  stage: intake
+---
+
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
 
 ## Description
@@ -149,3 +176,5 @@ Expect: three lines, `provider_limit 0.01 420.0`, `True True True`, `True False 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
