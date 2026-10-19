@@ -305,3 +305,5 @@ RESUME_REPLY = Step(
         step_finish(10_500, cost=0.1),
     )
 )
+
+REPLY = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))
