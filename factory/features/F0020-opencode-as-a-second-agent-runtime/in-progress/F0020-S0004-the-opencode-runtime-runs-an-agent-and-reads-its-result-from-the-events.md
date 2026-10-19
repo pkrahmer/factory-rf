@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T05:36:32.676358Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-10-19T05:36:32.676358Z'
   stage: smoke-test
+- number: 42
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T05:36:56.888035Z'
+  stage: smoke-test
+  run: 12ab485eaa904c338b357e6c19109171
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -775,3 +777,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 41. factory: started smoke-test as self.
+42. smoke-tester: Smoke test, round 2. I ran the one command block under `## Smoke test` exactly as written, from the repository root. I copied the fenced block into a temporary file in `$TMPDIR`, ran it with `bash` and deleted the file afterwards. The block's own `trap` removed its temporary directory. It exited 0.
+
+    Output (complete, 6 lines):
+
+    ```
+    completed question The smoke entry.
+    0.012 1 10 7 100 20 0.5
+    ['bash']
+    False disabled ['bash', 'read']
+    []
+    run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder Smoke.
+    ```
+
+    Expect: six lines, `completed question The smoke entry.`, `0.012 1 10 7 100 20 0.5`, `['bash']`, `False disabled ['bash', 'read']`, `[]`, `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder Smoke.`. **Met**: every line matches exactly.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the call words match, and the alias `sonnet` was turned into its mapped model.
+    - Criterion 3: the configuration has `snapshot` false and `share` `disabled`, and the only tools turned on are `bash` and `read`.
+    - Criterion 4: the state directory held no file after the completed run.
+    - Criterion 7: the output count of 7 is output 5 plus reasoning 2.
+    - Criterion 8: the model time is 0.5 s, the step from 1000 to 2000 ms less the tool span from 1200 to 1700 ms.
+    - Criterion 9: the denial `permission denied by rule git push*` was counted as a refused `bash` call.
+    - Criterion 12: a valid block with exit 0 ended `completed`, with the block's decision and entry.
+
+    The smoke test contradicts no criterion. It does not cover the criteria for sudo, the wrapper, login, the version call and the error paths (13–20). Their tests cover them.
+
+    Findings: none. I fixed nothing, and I did not run `make check` myself: the stage does not ask for it.
