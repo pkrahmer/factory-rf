@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T09:27:37.906234Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T09:27:37.906234Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T09:28:10.642404Z'
+  stage: review
+  run: 57297fcc506a4fc7ad927b6c39963963
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -226,3 +228,11 @@ Expect: `documents ok`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    - Criteria 1 and 3: `tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not` has six rows in one parametrized test. Three rows put `ticket` at a line's end, at a line's start and at the text's end, and each expects exactly the one `DocumentFinding` for `docs/project-guide/agents.md`. Three rows cover the longer-word side at the same three edges (`ticketed`, `subticket`, `ticketed`), and each expects `[]`. Both sides of the word-edge rule are covered at every edge the Interface names. Each row is `clean_texts()` with the one key replaced, and `clean_texts` from `tests/document_texts.py` is used unchanged, imported the way the other test modules import it.
+    - Criterion 2: `tests/entry/test_check_documents_usage.py::test_a_wrong_argument_prints_the_usage_naming_the_command_and_exits_two` has two rows, `--bogus` and `--root` without a value. Each checks `SystemExit` code 2, empty standard output and the exact standard error the criterion gives, through `capsys`. `_PROGRAM = "check-documents"` in `src/factory/entry/check_documents.py:14` is what puts the name in that usage line. This test does not duplicate `tests/entry/test_entry_arguments.py`, which checks only the exit code when the command reads the process's own arguments.
+    - Criteria 4 and 5: the coder's entry 15 records `check: green`. No file under `src/` changed, so no architecture, security or docstring rule is affected. The docs criterion ("none") fits, because the behaviour of the document check does not change.
+    - Work item hygiene: the Description matches the diff (only tests were added). The journal gives the main choice, which was to leave the `"\n"` join as it is, and the rejected alternative, a line-by-line check.
+
+    Earlier tests: none. The diff only adds test files (status `A`) and changes no test file that `main` already holds.
