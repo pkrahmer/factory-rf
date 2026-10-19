@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T22:52:49.376894Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-19T22:52:29.188918Z'
   stage: intake
   run: 29fa665e0b1f4342993a9172adc129db
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:52:49.376894Z'
+  stage: tests
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -144,3 +153,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
    - Smoke test: the commands are runnable and the `Expect:` line is checkable against the two printed lines.
    - Architecture: the new tests sit under `tests/adapters/`, as `CLAUDE.md` requires. They import the shared helpers and change no earlier test.
    - Scope: within F0020's scope, which covers the opencode runtime and `process.py` streaming. Nothing in the feature's Out of scope is touched.
+7. factory: started tests as self.
