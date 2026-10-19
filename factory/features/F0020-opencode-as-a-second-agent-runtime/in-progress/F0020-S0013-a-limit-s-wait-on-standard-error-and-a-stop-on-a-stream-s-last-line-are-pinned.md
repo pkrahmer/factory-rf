@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T23:04:49.871271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-19T23:04:49.871271Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T23:05:08.982221Z'
+  stage: docs
+  run: 231bb062cde649b79841de6e060db752
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -335,3 +337,17 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     1. `tests/adapters/test_opencode_limit_wait_on_stderr.py:21`: `WAITING` is written inline the same way in `tests/adapters/test_opencode_provider_limit.py:132` and `tests/adapters/test_opencode_confinement.py:60`. It could become a shared constant in `tests/adapters/opencode_stand_in.py` in a later story.
     2. `tests/adapters/test_process_streaming_last_line.py:57`: under `if stopped:`, the `timed_out` check and the 10 s bound run only in the stop rows. That matches criterion 2, but a `no-stop` row that timed out would go unnoticed.
 21. factory: started docs as self.
+22. documenter: Documented the story's one missing passage. I found no findings: the diff is two new test modules plus `REPLY` in a shared test helper, and nothing under `src/` changed.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, the `run_streaming` section. I added one sentence to the stop bullet: a stop on a last line without a line feed, passed when its stream closes, stops the call at once, also while the other stream is open. I added `tests/adapters/test_process_streaming_last_line.py` to the `Tests:` line.
+
+    I did not change `docs/project-guide/agents.md` (*The opencode runtime*, *The provider limit*). The passage already says the callback stops on a line of standard error that holds the limit, and that `limit_wait` is `named_wait` of the message or line, so a stderr line is covered. The docs criterion says to add a sentence only where the passage lacks it.
+
+    Cross-read against the diff and found current: the `run_streaming` section of `processes-and-checks.md` (the other bullets), `agents.md` (the opencode runtime and provider-limit passages). I did not run `make check`, because I changed only a document. No example was added.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok
