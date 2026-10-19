@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T01:30:28.940427Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T01:30:08.365494Z'
   stage: review
   run: 6023e6b28b82414897d5898b20de76a7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:30:28.940427Z'
+  stage: doing
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -142,3 +151,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
    1. `tests/entry/test_contract_arguments.py:15-26`: this is a second copy of helpers from `tests/entry/test_contract.py:23-24,79-84`. The constants `WRITTEN` and `USAGE` are copied word for word, and the row dataclass `_ArgvRow` has the same fields as `_MainRow` (`written`, `out`, `err`, `code`, and a `Callable[[Path], list[str]]` argument field). Fix: under the standing leave in CLAUDE.md, the tester moves `WRITTEN`, `USAGE` and the row dataclass to one shared module at the `tests/` root. Both modules then import them from there, and every earlier test in `tests/entry/test_contract.py` keeps its name and what it checks.
 
    Earlier tests: none. `git diff --name-status main...HEAD` lists no test file with a status other than `A`.
+10. factory: started doing as self.
