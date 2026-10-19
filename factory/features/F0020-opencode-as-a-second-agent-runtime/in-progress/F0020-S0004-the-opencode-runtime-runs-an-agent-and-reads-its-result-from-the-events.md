@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T05:05:09.026289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-19T05:05:09.026289Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:07:02.417045Z'
+  stage: doing
+  run: 3208ffcbb2bd4b9fadae1298a6a8bf64
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -424,3 +426,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Not touched: the open points from entry 10 still stand. `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused; later stories will use both. The journal did not change what the task means, so `## Description` stays as it is.
 18. 2026-10-19 human: (a), done by the human on the branch: the quote is reworded in journal entries 10 and 18 (commits 0b383f77 and 9d83e265); `detect-secrets scan` over every file the branch changes now finds nothing. No baseline entry, no pragma. Go on to review.
 19. factory: started doing as self.
+20. coder: `make check` is green: every step passes, `make secrets` included, and the last line is `check: green`. `make test` is green with 98.98 % coverage. The human reworded the quote in the journal (entry 18), and that was the only thing keeping `make secrets` red.
+
+    What I built: `src/factory/adapters/opencode_runtime.py` (new), the one described in entry 10. I changed no code in this run. Already in the module:
+    - `result_instructions` and `parse_result_block`.
+    - The eight private event models. `_Event`'s `type` is a `Literal` of the five known types, and an after-validator refuses a `step_finish` without cost or tokens.
+    - The measures over the `step_finish` events. The model time goes by line order, and a finish with no earlier start adds 0.
+    - The denials, with the path read from `filePath`.
+    - The configuration for each run, with the `Bash(...)` deny patterns read from `settings.json`.
+    - `OpencodeRuntime.run` and `version`, launched through `login_argv`, `confined_argv`, `launch` and `run_streaming`.
+
+    Main choice: the settings file is read with a `TypeAdapter(JsonValue)` and then checked with `isinstance`. I rejected a private Pydantic settings model, because it would need a new `EXCEPTIONS` entry in `tests/test_model_configuration.py` that the tester did not add. Text that is not JSON gives the error "hold no permissions.deny list", which is how the tester read criterion 2 (entry 8).
+
+    Refactor: I did the refactor in entry 10 (I removed a `# noqa: PLR0913` that ruff did not need). Nothing more needed changing.
+
+    Description: entries 11 to 18 changed only wording in a test and the journal, not what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` reports 7 blocks similar to code in `claude_runtime`: the refusal checks, the temporary-folder cleanup, `version`, and building the `ProcessRequest`. They cannot move into `agent_launch` without it importing the process module, which `tests/test_wrapper_search.py` forbids. Sharing them would be a restructuring for its own story.
+    - Vulture flags `_ErrorData.status_code` (S0006 will read it) and `OpencodeRuntime` (S0008 wires it in) as unused.
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 35 known, 4 gone
