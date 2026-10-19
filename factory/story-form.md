@@ -12,7 +12,7 @@ The modules under `src/factory/` (with their layer: `domain`, `application`, `ad
 
 ## Acceptance criteria
 
-Numbered 1, 2, 3 and on; each one behaviour a test can check, with its input and its exact result. The sides of one rule (accepted and refused, below and at and above a limit) are one criterion, tested as rows of one parametrized test. The second-to-last criterion is `make check` stays green. The last starts with `docs:` and says what the documenter writes, in which of the four documents (`README.md`, `docs/operator-guide.md`, `docs/project-guide.md`, `docs/decisions.md`), or `none` with the reason.
+Numbered 1, 2, 3 and on; each one behaviour a test can check, with its input and its exact result. The sides of one rule (accepted and refused, below and at and above a limit) are one criterion, tested as rows of one parametrized test. The second-to-last criterion is `make check` stays green. The last starts with `docs:` and says what the documenter writes, in which of the four documents (`README.md`, `docs/operator-guide.md`, the project guide under `docs/project-guide/` (its index `README.md` and its files by domain), `docs/decisions.md`), or `none` with the reason.
 
 ## Smoke test
 
