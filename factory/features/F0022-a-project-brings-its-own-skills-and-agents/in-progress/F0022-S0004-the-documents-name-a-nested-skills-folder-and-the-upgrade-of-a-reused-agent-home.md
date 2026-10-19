@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T20:35:44.643442Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T20:35:44.643442Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T20:36:06.638540Z'
+  stage: smoke-test
+  run: 1abbaa0b5eb14424a917316a4f92f072
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -192,3 +194,37 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran all five commands as written from the repository root. Each one met its `Expect:` line, and there are no findings.
+
+    1. `sed -n "/^### A project's own skills/,/^### /p" docs/operator-guide.md | grep -c 'src/.claude/skills'`, met (Expect: `1`)
+    ```
+    1
+    ```
+    2. `grep -c 'rm: cannot remove' docs/operator-guide.md`, met (Expect: `1`)
+    ```
+    1
+    ```
+    3. `sed -n "/^## The agents load a project's skills/,/^## /p" docs/decisions.md | grep -c 'src/.claude/skills'`, met (Expect: `1`)
+    ```
+    1
+    ```
+    4. `grep -c 'there is no other copy of a shipped agent' docs/project-guide/agents.md`, met (Expect: `1`)
+    ```
+    1
+    ```
+    5. `uv run python -m factory.entry.check_documents`, met (Expect: `documents ok`; exit 0)
+    ```
+    documents ok
+    ```
+
+    I then read the acceptance criteria again against `git diff main...HEAD`:
+    - Criterion 1: the branch changes only `docs/decisions.md`, `docs/operator-guide.md`, `docs/project-guide/agents.md` and the work item with its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. Entries 5 (tester) and 7 (coder) each confirm this.
+    - Criterion 2: I did not run `make check` in this stage. The last result on record is entry 7, where it ended `check: green`; no code has changed since then, and the factory runs the gate itself.
+    - Criterion 3: each passage is where the criterion puts it.
+      - *A project's own skills*: the sentence on the root `.claude/` only, with `src/.claude/skills/`, the unknown loading and the diff.
+      - *The agent runs as a second user*: the `rm: cannot remove ...` restart and the root `docker run ... rm -rf /h/skills /h/commands` fix, with `factory-self_claude-home` as the example.
+      - The decisions entry: its `Open:` bullet holds the nested folder of decision 12, and the sentence superseding "skills" in the 2026-10-17 (F0012-S0025) entry is there.
+      - `agents.md`: "there is no other copy of a shipped agent", plus the `factory/agents/` on `origin/main` sentence.
+      - No other passage in these files changed. Nothing in the smoke test contradicts a criterion.
+
+    Open: none. I did not run the `docker run` fix, because it needs a Docker volume; the smoke test does not ask for it.
