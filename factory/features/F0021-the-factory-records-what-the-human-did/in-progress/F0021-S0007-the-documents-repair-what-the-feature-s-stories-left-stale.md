@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T00:59:56.557305Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T00:59:36.526730Z'
   stage: review
   run: 62706da793fa477c959f9075d7bc7577
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:59:56.557305Z'
+  stage: docs
 ---
 
 # The documents repair what the feature's stories left stale
@@ -152,3 +161,4 @@ Expect: `documents ok`
    - The section "The stops reach main as raised and cleared records" exists at `docs/decisions.md:616`.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as self.
