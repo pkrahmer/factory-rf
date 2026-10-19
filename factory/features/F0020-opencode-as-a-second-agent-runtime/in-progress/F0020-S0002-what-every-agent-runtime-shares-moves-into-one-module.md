@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T04:04:58.562641Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T04:04:58.562641Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T04:05:38.312620Z'
+  stage: review
+  run: 57f38ba25d9d45199405860f2576848d
 ---
 
 # What every agent runtime shares moves into one module
@@ -249,3 +251,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Groups 1 to 3 hold. Every criterion from 1 to 12 has a parametrized test that checks what the criterion says, with both sides of each limit: `killed_at_limit` is tested below, at and above the limit, `resume_budget` at the 0.50 minimum, and `launch` with a whole and a fractional second. The coder's `make check` was green (entry 7). The layers hold. `agent_launch` imports no process module and reads no `os.environ`. `claude_runtime` still reads `SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES` and `run_process` from its own namespace at the call. There are no new silencing markers. `make duplicates` has 0 new findings. The review stops at group 4.
+
+   1. `tests/test_agent_launch_search.py:11` `reads_os_environ`: this copies the existing helper `_reads_os_environ` in `tests/test_agent_run_request_search.py:22`, which finds `os.environ` as an attribute or an import. The fix: under the standing leave, the tester moves the helper into `tests/source_search.py` as a public `reads_os_environ` that covers both forms (the attribute, `import os.environ` through `imported_modules`, and `from os import environ`). Both test modules then use it from there, and every earlier test keeps its name and what it checks.
+
+   Earlier tests: none changed. All three test files in the diff are new (`A`), and the diff changes, renames or deletes no file that `main` already holds under `tests/`.
+
+   Open, not a finding: `request_home` in `src/factory/adapters/agent_launch.py:255` is a public function that the Interface does not list. The coder made it so that a second private copy of `_home` was not needed. The `run_confinement` rows with and without `HOME` already cover it. When the work item goes back, the Interface could name it beside the other shared functions.
