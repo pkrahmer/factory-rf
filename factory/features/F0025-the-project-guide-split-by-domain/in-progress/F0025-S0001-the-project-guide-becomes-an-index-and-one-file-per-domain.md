@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T06:46:46.586748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T06:46:26.003360Z'
   stage: docs
   run: 75acb588c06e47988206ba063409977c
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:46:46.586748Z'
+  stage: smoke-test
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -427,3 +436,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
