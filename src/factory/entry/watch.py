@@ -1,4 +1,7 @@
-"""The watcher's command line: the event the next tick would handle and the board."""
+"""The watcher's command line: the event of one evaluation, as seen from outside the tick.
+
+It shows the event as a look from outside the tick sees it, and the board.
+"""
 
 import argparse
 import os
@@ -50,7 +53,7 @@ def run_watch(boundaries: Boundaries, instance: Name, out: TextIO, err: TextIO) 
     except AgentDefinitionInvalid as error:
         err.write(f"{_PROGRAM}: {error}\n")
         return _INVALID_DEFINITION
-    event = Watcher(boundaries, instance).evaluate(definition)
+    event = Watcher(boundaries, instance, observer=True).evaluate(definition)
     view = BoardReader(boundaries).read(definition)
     out.write(f"{render_event(event)}\n\n{render_board(view.features, view.rows)}")
     return _OK

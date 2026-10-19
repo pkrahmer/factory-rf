@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T12:37:09.492769Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T12:37:09.492769Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T12:39:39.164347Z'
+  stage: doing
+  run: 04dd0edb36d04a29a8ee9d14e215e01e
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -226,3 +228,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_lease_observed.py - ImportError while importing test ...
 6. factory: started doing as self.
+7. coder: `factory-watch` now judges its own instance's claim by the claim's lease. `make check` is green, and the first smoke-test block prints the six lines the story expects.
+
+   What I built:
+   - `src/factory/domain/lease.py`: `observed_claim_status`. An own claim whose lease has not run out gives "held". Every other case goes to `claim_status`, so the none, other-instance and expired-own cases are judged in one place only.
+   - `src/factory/application/claims.py`: `ClaimService.observed_status`, next to `status`, which is unchanged.
+   - `src/factory/application/watcher.py`: `Watcher(..., *, observer=False)`. `evaluate` passes `claims.observed_status` when `observer` is true and `claims.status` when it is false. A short comment says why: a tick never looks while its own stage runs.
+   - `src/factory/entry/watch.py`: `run_watch` evaluates with `observer=True`. The module docstring now says it shows the event of one evaluation as a look from outside the tick sees it, and the board.
+
+   Main choice: `observed_claim_status` handles only the one case that differs and hands the rest to `claim_status`. I rejected a function that repeats every branch, because it would be a second copy of the none, held and expired rules.
+
+   Refactor: I read my diff and found nothing to change.
+
+   Noticed but not touched:
+   - The docs for criterion 8 (operator guide, project guide, decision log) are the documenter's.
+   - `src/factory/entry/watch.py` lines 85-86 and 90 were already uncovered; the coverage gate still passes.
+   - I did not run the second smoke-test block (the full git round trip). Criterion 5's tests cover the same path.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone

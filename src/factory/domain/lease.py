@@ -30,3 +30,14 @@ def claim_status(claim: Claim | None, *, instance: str, now: datetime) -> ClaimS
     if lease_expired(claim, now):
         return "expired"
     return "held"
+
+
+def observed_claim_status(claim: Claim | None, *, instance: str, now: datetime) -> ClaimStatus:
+    """The status of `claim` as a look from outside `instance`'s tick sees it at `now`.
+
+    An own claim within its lease is "held", since the tick may be running its stage; at and
+    past its lease it is "own". Every other claim has its `claim_status`.
+    """
+    if claim is not None and claim.instance == instance and not lease_expired(claim, now):
+        return "held"
+    return claim_status(claim, instance=instance, now=now)

@@ -20,10 +20,11 @@ _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 class Watcher:
     """Turns the remote-tracking refs and the one pull request lookup into one event."""
 
-    def __init__(self, boundaries: Boundaries, instance: Name) -> None:
-        """Read through `boundaries` and judge claims as `instance`."""
+    def __init__(self, boundaries: Boundaries, instance: Name, *, observer: bool = False) -> None:
+        """Read through `boundaries`; judge claims as `instance`, from outside if `observer`."""
         self._boundaries = boundaries
         self._instance = instance
+        self._observer = observer
 
     def evaluate(self, definition: PipelineDefinition) -> Event:
         """The event the remote shows now under `definition`.
@@ -44,7 +45,9 @@ class Watcher:
             due=acceptances.due_features(),
         )
         claims = ClaimService(boundaries, self._instance, definition)
-        return evaluate(facts, self._lookup, claims.status)
+        # A tick never looks while its own stage runs; an observer may, so it needs the lease.
+        status_of = claims.observed_status if self._observer else claims.status
+        return evaluate(facts, self._lookup, status_of)
 
     def _main_commit(self) -> CommitId:
         commit = self._boundaries.git.resolve(_MAIN_REF)
