@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T18:10:35.423939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -66,6 +62,12 @@ journal:
   kind: started
   at: '2026-10-19T18:10:35.423939Z'
   stage: review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T18:11:40.909102Z'
+  stage: review
+  run: 101e64f39884474e91e8f68bf2c99147
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -225,3 +227,20 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 10. factory: started review as self.
+11. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: two new test files, `tests/entry/test_watch_main.py` and `tests/application/test_watcher_main_ref.py`. Nothing under `src/` changes.
+
+    Groups 1 to 4 pass:
+    - Group 1, acceptance criteria. Criteria 1 to 5 each have a test that checks what the criterion says, and the coder's entry 9 reports `check: green`.
+      - Criterion 1 removes `FACTORY_INSTANCE`. A `main` that read the environment would therefore end with status 2, so the given pair is pinned.
+      - Criterion 3 has two rows, one per stream. Each row catches a stream swapped or left as `None`.
+      - Criterion 4 has three rows. The two rows that leave `boundaries` out pin "both from the environment". The `only-instance` row catches dropping `instance = settings.instance`, because the claim would then read `expired`.
+      - Criterion 5 checks the exact `str` through both `run_watch` and `Watcher`.
+      - The coder's entry has no `mutants` line, so I had no mutation report to read.
+    - Group 2, architecture: tests only, in folders that mirror the package.
+    - Group 3, security: nothing to flag.
+    - Group 4, quality: the stand-in matches the shape of `boundaries_from_environment` (`src/factory/entry/wiring.py:205`). The `empty_clone` fixture builds its clone the way the story's Interface says to (`tests/entry/test_watch.py:220-222`). It copies no existing helper.
+
+    Findings:
+    1. The work item's `## Description` says lines 82-83 and 87 of `src/factory/entry/watch.py` were uncovered and that "This story pins all of that". Line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`, is still uncovered, as the coder's entry 9 says, and no criterion asks for it. So the Description does not match what was built (item 5). Fix: the coder rewrites the Description to say that line 87 stays uncovered, because only running the module as a program reaches it. Alternatively, end with `question` if the human wants a criterion that runs the module in a subprocess.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files, so no earlier test file changed.
