@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T11:02:30.592165Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T11:02:10.349477Z'
   stage: intake
   run: 2374b9efe1e6470aae7e6cdb6c6633d4
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:02:30.592165Z'
+  stage: tests
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -147,3 +156,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable as written. I traced the output against the Interface and the four Expect values match: `OpencodeRuntime {...}`, `False`, the PATH fault joined with the missing `opus` model, and `1`.
    - Architecture: the settings and DTO changes sit in domain, the item and checks in application, the runtime folders in adapters, and the runtime choice and extras in entry wiring. This respects the layer order. No new dependency or package.
    - Scope: within F0020's scope for S0008. It touches no item in Out of scope, and it names no earlier test change beyond the standing leave.
+4. factory: started tests as self.
