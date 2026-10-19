@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T09:27:37.906234Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T09:27:17.365033Z'
   stage: doing
   run: 2744cbce996347728b00a2f0df133ac9
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:27:37.906234Z'
+  stage: review
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -216,3 +225,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
+16. factory: started review as self.
