@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T20:34:45.458740Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T20:34:45.458740Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T20:35:23.391373Z'
+  stage: docs
+  run: fe88aaf2f11141a2b75dbf57444d97a3
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -155,3 +157,28 @@ Expect: `documents ok`
 
    The coder's `duplicates: 5 new` record cannot come from this branch, since it changes nothing under `src/factory`. It is outside this review's scope.
 10. factory: started docs as self.
+11. documenter: Documents only; no code, test or comment changed. I did not run `make check`, because only documents changed. The factory's checks run after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *A project's own skills*, second paragraph: the `.claude/*` protection covers the repository's root `.claude/` only. A stage may write a `.claude/skills/` in its own write paths (for example `src/.claude/skills/`). Whether Claude Code loads such a nested folder is not known, and the review and the human's merge see it in the diff.
+    - `docs/operator-guide.md`, *The agent runs as a second user*, the paragraph on the agent's home, after the sentence on a `claude-home` volume made by an earlier image: a `skills/` or `commands/` folder made without group write cannot be removed by the entrypoint, so the instance restarts with `rm: cannot remove ...` in `docker logs`. The sentence gives the root `docker run ... rm -rf /h/skills /h/commands` fix.
+    - `docs/decisions.md`, the entry *The agents load a project's skills, and the agent's home gets none*: the `Open:` bullet adds the nested `.claude/skills/` of decision 12. A sentence says the entry supersedes "skills" in the open point of the entry dated 2026-10-17 (F0012-S0025).
+    - `docs/project-guide/agents.md`, *The seven agents*: "there is no other copy" becomes "there is no other copy of a shipped agent", followed by a sentence that a project's own agent is its file under `factory/agents/` on `origin/main` (see *A project's own agents*).
+
+    Checks run:
+    - The four smoke-test greps each print `1`.
+    - `python -m factory.entry.check_documents` prints `documents ok`.
+    - I did not run the `docker run` command, because it needs a Docker volume. It follows the story's wording and the volume naming of `factory-<instance>_claude-home` already in the guide.
+
+    Cross-read and found current against the (empty) code diff:
+    - The rest of `docs/operator-guide.md` (the sections *A project's own agents* and *The shipped agents and settings*).
+    - `docs/project-guide/agents.md`, on R15 and the entrypoint's remade `skills/` and `commands/`.
+    - `README.md` was not read for this story, since it is untouched by the criteria.
+
+    Stale text seen but not touched: none.
+
+    Findings for the coder: none. The branch has no code diff.
+
+    `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
