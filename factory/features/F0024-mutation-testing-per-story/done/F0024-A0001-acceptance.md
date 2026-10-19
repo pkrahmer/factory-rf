@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T17:05:43.291998Z'
   stage: acceptance
   run: cd7478727f3f477881c2df41d8913a90
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T17:10:08.610651Z'
+  stage: done
 stories: [F0024-S0001, F0024-S0002, F0024-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Mutation testing per story
@@ -210,3 +215,4 @@ Earlier tests changed: none. All three reviews say "Earlier tests: none", every 
    6 Decisions: `feature.md` decisions 1 to 18 hold, except decision 4's claim that the factory waits for mutmut. Also for the human: change 2 is due, the `6dacaef9` step, criterion 12 added by S0001's reviewer, argparse's check of `--stopped-after`, and the refused `rm -rf` trap. No earlier test was changed.
    7 Slow checks: none beyond `make check` (green as I found it, 99.07 %) and `make mutants`. The slowest tests take 5.0 s and none is the feature's; its 66 tests take 0.68 s. Disk used is unchanged on every mount.
    8 Cost: 23 runs, 18.6 min, $5.40. S0001 cost $3.03 of it, after a review round on test structure that added criterion 12. S0003 needed one extra docs run after a stall on the word "ticket". 0 questions to the human, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 18.2 min, 60 turns, 142672 tokens in (5472632 more from cache), 44502 out, $3.13
