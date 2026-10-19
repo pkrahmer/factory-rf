@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:43:14.681817Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T10:42:56.928106Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:43:14.681817Z'
   stage: doing
 ---
 
@@ -346,3 +355,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     **Noticed, not touched:** None of the models I changed appear in the records contract, so no schemas were regenerated. I did not run `make duplicates`.
 11. 2026-10-19 human: (a). Change the row's expected waits to `[timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)]`, as the Interface's steps 3 and 4 give them; the log line stays `waited 1800 s, the ceiling of 1800 s; the run ends provider_limit`, so the row still checks whole seconds on the ceiling line (the waits sum to 1800.7 s). The Interface stays as it is. The tester makes the change in this story's own test.
+12. factory: started doing as self.
