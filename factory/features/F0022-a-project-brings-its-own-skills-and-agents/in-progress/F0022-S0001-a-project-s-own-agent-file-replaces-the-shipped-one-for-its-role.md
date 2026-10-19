@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T13:28:45.654425Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T13:28:25.193850Z'
   stage: review
   run: db39a2456b954fea95959bf34becd2fc
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:28:45.654425Z'
+  stage: docs
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -353,3 +362,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/application/test_agent_run_probe_project_agent.py:18-35`: `ENVIRONMENT`, `COMPLETED` and the `settings` fixture are copied from `tests/application/test_agent_run_probe.py:36-80`. The standing leave would let the tester move them to one shared place.
     - `PROJECT_CODER` and its likes (`AGENT_FILE.replace("Do the work.", "The project's coder.")`, or the opus/Read/2 text) are defined again in `tests/application/test_project_agents.py`, `test_agent_run_probe_project_agent.py` and `tests/entry/test_wiring_project_agents.py`. One constant in `tests/git_support.py` would do.
     - `tests/application/test_pipeline_loading_project_agents.py:30` and `tests/application/test_project_agents.py:69`: the tests take a parameter and branch on it in the body (`if project_file:`, `if files:`) rather than giving each row its own setup data.
+14. factory: started docs as self.
