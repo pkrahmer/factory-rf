@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T04:13:31.114909Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T04:13:11.214318Z'
   stage: docs
   run: 4cb881dc38cc4d1fb3920176b5dffe5d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:13:31.114909Z'
+  stage: smoke-test
 ---
 
 # What every agent runtime shares moves into one module
@@ -415,3 +424,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
