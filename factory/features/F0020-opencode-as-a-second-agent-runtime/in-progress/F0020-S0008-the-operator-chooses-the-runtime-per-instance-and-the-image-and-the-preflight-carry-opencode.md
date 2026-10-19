@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T11:26:00.995057Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-19T11:25:40.673247Z'
   stage: doing
   run: 2aeea47664c14354b244f71ba3540587
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:26:00.995057Z'
+  stage: tests
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -407,3 +416,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice: I ended with `tests` rather than `question`, because the standing leave covers moves 2 to 4 and finding 1 changes only this story's own test. The other option was to ask the human; I rejected it because the leave already answers this.
 
     Noticed, not touched: `make duplicates` still reports the four `claude_runtime`/`opencode_runtime` similar-code pairs and `ManualWaiter` in `src/factory/adapters/clock.py`. The reviewer judged that none of these comes from this story. The journal did not change the Description. I did not run `make check` this run because I changed nothing; it was green after entry 17.
+22. factory: started tests as self.
