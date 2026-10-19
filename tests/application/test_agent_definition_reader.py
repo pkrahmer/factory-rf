@@ -45,7 +45,7 @@ def test_agent_definition_reader_is_abstract_with_names_and_read() -> None:
     interface: type[object] = AgentDefinitionReader
 
     assert issubclass(AgentDefinitionReader, ABC)
-    assert AgentDefinitionReader.__abstractmethods__ == {"names", "read"}
+    assert AgentDefinitionReader.__abstractmethods__ == {"names", "parse", "read"}
     with pytest.raises(TypeError):
         interface()
 
@@ -57,7 +57,7 @@ def test_agent_definition_reader_methods_are_their_docstrings_alone() -> None:
         if isinstance(node, ast.FunctionDef)
     ]
 
-    assert sorted(function.name for function in functions) == ["names", "read"]
+    assert sorted(function.name for function in functions) == ["names", "parse", "read"]
     for function in functions:
         assert len(function.body) == 1, function.name
         statement = function.body[0]

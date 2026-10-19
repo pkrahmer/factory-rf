@@ -92,7 +92,7 @@ def test_a_brace_that_is_no_placeholder_name_is_kept() -> None:
     assert expand_write_paths(patterns, work_item_path=WORK_ITEM, feature_path=FEATURE) == patterns
 
 
-def test_the_protected_paths_are_the_engines_ten_patterns() -> None:
+def test_the_protected_paths_are_the_engines_eleven_patterns() -> None:
     assert PROTECTED_PATHS == (
         ".claude/*",
         "CLAUDE.md",
@@ -104,6 +104,7 @@ def test_the_protected_paths_are_the_engines_ten_patterns() -> None:
         "factory/feature-form.md",
         "feature.md",
         "*/feature.md",
+        "factory/agents/*",
     )
 
 

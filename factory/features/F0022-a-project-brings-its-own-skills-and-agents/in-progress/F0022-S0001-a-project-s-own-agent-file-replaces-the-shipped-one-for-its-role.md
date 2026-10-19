@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T13:15:40.769641Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T13:15:40.769641Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T13:19:45.998145Z'
+  stage: tests
+  run: a1d79c3efdca49b5942c40a11c16166a
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -184,3 +186,39 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: `ProjectAgentDefinitions` is an application class over the `Git` ABC and the reader ABC, and it is wired only in `factory.entry.wiring`. `is_name` and the paths sit in the domain, the adapter keeps the parsing, and `PIPELINE_REF` comes from the application layer. The layering holds.
    Scope: it stays within feature scope S0001, with nothing from the out-of-scope list. Skills, the shipped agent texts and the entrypoint are left to S0002. The write paths cover the files named. The tester's changes to earlier tests are the ones decision 14 lists.
 4. factory: started tests as self.
+5. tester: I wrote the tests for criteria 1 to 14. One test per criterion; each rule's cases are rows of one parametrized test. `make lint` is green. I ran `make test` once and it fails as expected: test modules fail at collection because the names they import do not exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_is_name.py::test_is_name_accepts_exactly_the_names
+   - criterion 2: tests/domain/test_project_agent_paths.py::test_the_project_agent_file_lies_in_the_project_agents_directory, ::test_the_project_agents_folder_is_protected (the matches_any rows), ::test_a_write_to_a_project_agent_file_is_refused_as_the_humans
+   - criterion 3: tests/adapters/test_agent_files_parse.py::test_parse_gives_what_read_gives_for_the_same_text_in_a_file
+   - criterion 4: tests/application/test_project_agents.py::test_the_project_file_replaces_the_installed_agent_of_its_role
+   - criterion 5: tests/application/test_project_agents.py::test_a_name_that_is_not_an_agent_name_is_refused_before_git_is_read (refs origin/main and origin/none), ::test_a_ref_that_does_not_exist_is_a_git_error (rows read and names)
+   - criterion 6: tests/application/test_project_agents.py::test_the_agent_is_read_at_the_ref_at_every_call_never_from_the_work_tree
+   - criterion 7: tests/application/test_project_agents.py::test_a_faulty_project_file_is_refused_naming_the_file_never_replaced
+   - criterion 8: tests/application/test_project_agents.py::test_names_are_the_sorted_union_of_installed_and_project_agents, ::test_names_without_an_installed_agents_folder_is_an_error
+   - criterion 9: tests/application/test_project_agents.py::test_parse_is_the_installed_readers_parse
+   - criterion 10: tests/application/test_pipeline_loading_project_agents.py::test_a_role_without_an_installed_agent_loads_with_the_project_agent_alone
+   - criterion 11: tests/application/test_pipeline_loading_project_agents.py::test_a_faulty_project_agent_stops_the_load_until_main_holds_a_valid_one
+   - criterion 12: tests/application/test_tick_project_agent.py::test_the_stage_runs_the_project_agent_of_its_role (imports STORY, BACKLOG_PATH, INSTANCE, ENVIRONMENT and COMPLETED from tests/application/test_tick_agent_definition.py and copies none of them)
+   - criterion 13: tests/application/test_agent_run_probe_project_agent.py::test_the_probe_runs_the_project_coder
+   - criterion 14: tests/entry/test_wiring_project_agents.py::test_the_built_agent_definitions_read_the_project_agents_first
+
+   Files I created: tests/domain/test_is_name.py, tests/domain/test_project_agent_paths.py, tests/adapters/test_agent_files_parse.py, tests/application/test_project_agents.py, tests/application/test_pipeline_loading_project_agents.py, tests/application/test_tick_project_agent.py, tests/application/test_agent_run_probe_project_agent.py, tests/entry/test_wiring_project_agents.py.
+
+   Earlier test files I changed, as the Interface lists under the feature's decision 14 (all four tests keep their names, except the one rename the Interface asks for):
+   - tests/domain/test_write_paths.py: `test_the_protected_paths_are_the_engines_ten_patterns` is renamed `..._eleven_patterns`, and its expected tuple gains `"factory/agents/*"` last.
+   - tests/entry/test_wiring_boundaries.py: `test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing` now expects `ProjectAgentDefinitions`. The now-unused `FrontmatterAgentDefinitionReader` import is gone. `test_the_built_agent_definitions_are_read_from_the_agent_home` takes the `remote` fixture, clones it into `settings.checkout` with `GitCli` before building the boundaries, and checks the same names.
+   - tests/application/test_agent_definition_reader.py: the expected abstract methods and the sorted method names now include `parse`.
+
+   Names the test run could not import:
+   - `factory.domain.identifiers.is_name`
+   - `factory.domain.paths.PROJECT_AGENTS_DIRECTORY` and `project_agent_file`
+   - the module `factory.application.project_agents`
+
+   The collection errors I saw included tests/domain/test_is_name.py, tests/domain/test_project_agent_paths.py, tests/entry/test_wiring_boundaries.py and tests/entry/test_wiring_project_agents.py. tests/adapters/test_agent_files_parse.py can be imported; it fails because `FrontmatterAgentDefinitionReader.parse` does not exist yet.
+
+   Nothing needed interpreting. No test checks "writes nothing" or "the installed file is then not read" on its own: no criterion names them. The second is covered indirectly by criterion 7, where a valid installed coder.md exists.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_wiring_project_agents.py - ImportError while importing...
