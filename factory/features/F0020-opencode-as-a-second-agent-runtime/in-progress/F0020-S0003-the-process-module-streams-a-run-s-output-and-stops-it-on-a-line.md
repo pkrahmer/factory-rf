@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T04:19:18.008910Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-19T04:18:58.053646Z'
   stage: intake
   run: 92678775aefc4fc585dc35341555f978
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:19:18.008910Z'
+  stage: tests
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -139,3 +148,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable, and the `Expect:` lines can be checked against the output.
    - Architecture: it sits in the adapters layer, in the one process module, and keeps the single `Popen` line. No new wrapper or dependency.
    - Scope: within F0020's scope (S0003 in the feature's Scope and decision 5), and not in "Out of scope".
+7. factory: started tests as self.
