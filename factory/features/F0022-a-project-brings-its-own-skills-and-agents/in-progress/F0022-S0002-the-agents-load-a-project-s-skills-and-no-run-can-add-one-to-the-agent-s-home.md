@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T13:39:03.303866Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T13:38:41.995766Z'
   stage: tests
   run: 2069933ca20647d787e201b5f59a48bd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:39:03.303866Z'
+  stage: doing
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -192,3 +201,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_skills.py::test_the_rules_hold_the_skills_rule_once_right_after_r14[acceptance-reviewer]
+6. factory: started doing as self.
