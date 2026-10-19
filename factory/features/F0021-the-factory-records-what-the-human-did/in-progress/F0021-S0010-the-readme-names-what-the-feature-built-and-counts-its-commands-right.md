@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T02:16:43.132879Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T02:16:43.132879Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T02:17:05.948848Z'
+  stage: smoke-test
+  run: 5d3878beadb64826a0d47454f695f10e
 ---
 
 # The README names what the feature built and counts its commands right
@@ -197,3 +199,45 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed. I ran all five commands from the repository root, as written and in order. Every output met its `Expect:` line, and none of the acceptance criteria is contradicted.
+
+    1. `grep -c "six console commands" README.md`
+    ```
+    0
+    ```
+    Met: `0`.
+
+    2. `grep -c "seven console commands" README.md; grep -c "factory.entry.contract" README.md; grep -c "factory/stops.jsonl" README.md`
+    ```
+    1
+    1
+    1
+    ```
+    Met: three lines, `1`, `1` and `1`.
+
+    3. `grep -c "usage: python -m factory.entry.contract \[<folder>\]" docs/operator-guide.md`
+    ```
+    1
+    ```
+    Met: `1`.
+
+    4. `uv run -q python -m factory.entry.contract one two 2>/dev/null; echo "status $?"`
+    ```
+    status 2
+    ```
+    Met: `status 2`. Afterwards `git status --short` showed only the work item's `.costs.jsonl` sidecar. So the call with two arguments wrote nothing under `src/factory/contract/`.
+
+    5. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Met: `documents ok`.
+
+    Checking the criteria against `git diff main...HEAD`:
+    - Criterion 1 holds. The diff outside `factory/` touches only `README.md` and `docs/operator-guide.md`. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) each say so.
+    - Criterion 2: the factory's `make check` was green after the coder (entry 7) and after the docs stage (entry 11). The only later change is mine, and I changed nothing.
+    - Criterion 3 holds. In the README's summary paragraph, one added clause names all four things: the cause on a blocking question and on a stall, the `Human:` line, `factory/stops.jsonl` on `main`, and the records contract under `src/factory/contract/`. It points to "The records contract" in `docs/operator-guide.md`. *Getting started* now says "Beside the seven console commands" and names `uv run python -m factory.entry.contract [<folder>]` with one clause, and that name appears exactly once in the README. In the operator guide, the usage sentence comes right after "The command prints `contract: 5 schemas written`." No other passage changed (the README hunk is one changed line in each of the two places).
+
+    Findings: none.
+
+    Not a finding, just a note: the README's summary sentence now chains "and the cost records with the bill, and the records the human can read…". That is clumsy wording but meets the criterion. The same goes for the following "It is no console script", which now follows two `python -m` commands and reads slightly oddly.
