@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:08:41.216278Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T04:08:20.926528Z'
   stage: tests
   run: 34aaa8e5b37043c580bdb480910bb946
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:08:41.216278Z'
+  stage: doing
 ---
 
 # What every agent runtime shares moves into one module
@@ -318,3 +327,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (36.5 s)
+14. factory: started doing as self.
