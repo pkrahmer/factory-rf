@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T04:33:31.911922Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-19T04:33:11.687891Z'
   stage: doing
   run: 2fca8ecc14b54f2d9f8b11552c757140
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:33:31.911922Z'
+  stage: review
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -310,3 +319,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 35 known, 4 gone
+19. factory: started review as self.
