@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 246
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T02:10:38.363701Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T02:10:38.363701Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T02:10:57.080490Z'
+  stage: intake
+  run: d19a9d232e94442eb845175f9adfb69c
 ---
 
 # The README names what the feature built and counts its commands right
@@ -83,3 +85,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a docs-only story. It names the two files the documenter changes (`README.md`, `docs/operator-guide.md`) and no module or signature is needed.
+   Criteria: each is checkable by one test or grep. Criterion 1 (nothing outside the docs changes) is a diff check. The docs bullets are pinned by the smoke greps: the "six"/"seven console commands" wording, `factory.entry.contract` exactly once, `factory/stops.jsonl` once, and the usage sentence. The rule for two or more arguments (usage on stderr, nothing written, status 2) has its failing side stated and is checked by the smoke test's `status 2`. I checked the current text: README has none of the new strings, line 14 says "six console commands", and the guide has 0 usage lines. So the "0" and "1" expectations are reachable only after the edit.
+   Smoke test: every command is runnable. Each has an `Expect:` line that output can be checked against. The `grep -c` and `uv run` commands are the project's own.
+   Architecture: no code layer is touched, so there is nothing to place. The documenter's write paths cover `README.md` and `docs/*`.
+   Scope: within F0021. The story repairs the README and the operator guide's contract section, which belong to the S0006 docs and the feature's goal. Nothing in "Out of scope" is touched.
