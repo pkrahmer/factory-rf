@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T20:57:24.472810Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T20:57:03.904444Z'
   stage: review
   run: 524c2a0cc4dd485b8e802f1836f3346d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:57:24.472810Z'
+  stage: doing
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -191,3 +200,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/test_claude_agent_texts_mutants.py`: the human's leave, decision 7 of the feature, which the story names (rewritten; see finding 1 for the docstring that goes beyond it).
    - `tests/test_claude_files.py`: the human's leave, decision 7 of the feature, which the story names. Only `TEMPLATE_RULES_LINES` changed: the sentence was replaced and the strings around it were wrapped again, and every other line and test is as it was.
+10. factory: started doing as self.
