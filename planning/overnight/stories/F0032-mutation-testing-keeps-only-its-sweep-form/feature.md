@@ -1,0 +1,100 @@
+# Mutation testing keeps only its sweep form
+
+## Goal
+
+The human decided on 2026-10-19 that mutation testing runs only as sweeps outside the factory, with `mutants/` made anew for every run (the night log, `docs/runs/2026-10-12-overnight/night-log.md`, the row of 22:20). The human then agreed to one small cleanup (22:48). F0031 takes `make mutants` out of the shipped agents' texts. Its tools still have the per-story form. The `mutants` recipe of the `Makefile` still has a story-branch mode and still reads `FEATURE` from an acceptance's branch. It stops at 540 s, because an agent's shell command ended after 10 minutes. It still copies the other files under `src/` into a kept `mutants/`, and it still makes `mutants/` writable for two users. It still ends with `python -m factory.entry.check_mutants`. That command (`factory.domain.mutants`, F0024-S0001) did two jobs. It filtered the survivors that earlier runs had left in a kept `mutants/`, and it named the mutants still to run in a kept `mutants/`. With a fresh `mutants/` for every run, neither job is left. None of the three sweeps of 2026-10-19 called it: they ran mutmut directly and triaged with `mutmut results` and `mutmut show`. The waiting story F0024-S0004 would pin the fault lines of that command. This feature is for the human and the helpers who run the sweeps. When it is done, `make mutants` is the sweep's form: the modules come from `MODULES` given by hand or from `FEATURE`, and every run starts with a fresh `mutants/`. A time limit and a cap on mutmut's workers are optional. The run ends with mutmut's own listing of what it did not kill. The report command, its rules and its tests are gone, and the documents describe the sweep form. Done when every story below is merged and `make check` is green.
+
+## Scope
+
+- `src/factory/entry/check_mutants.py` and `src/factory/domain/mutants.py`: removed (S0001).
+- `tests/entry/test_check_mutants.py` and `tests/domain/test_mutants.py`: removed. A new test module pins that both modules are gone and that `factory.entry.inputs` stays (S0001, under decision 9).
+- `docs/project-guide/processes-and-checks.md`, `docs/project-guide/README.md`, `docs/operator-guide.md` and `docs/decisions.md`, from the story's docs criterion (S0001).
+
+## Out of scope
+
+- `factory.entry.inputs` and `tests/entry/test_inputs.py`: unchanged. `check_duplicates` reads its files through `read_input` (decision 7).
+- `[tool.mutmut]` and the `mutmut` dependency in `pyproject.toml`, and `mutants/` in `.gitignore`: unchanged, because the sweeps need them.
+- `command_line`'s suffix ` (stopped at its time limit after <n> s)` (F0024-S0002): unchanged. It holds for every command, and `tests/domain/test_command_line_time_limit.py` and `tests/application/test_stage_time_limited_report.py` use `mutants` only as sample data.
+- F0030 (the kill at a time limit ends the command's whole session): it stays. Only its real check meets this feature (the human's change 4).
+- `template/` and the todo demo (`demo/todo-service/project/`): their `mutants` recipe takes only `FEATURE`, keeps `mutants/` and calls no `check_mutants`. It is a project's own, and F0031 changed their words (decision 10).
+- `factory/pipeline.yml`: `"mutants/*"` in `tool_paths` and the acceptance reviewer's comment and limits are F0031's (its changes 2 and 3).
+- How a sweep runs (its brief under `planning/`, F0028's sweeps): the human's, outside the factory.
+- The baseline run: its checkout is fixed at `baseline-v1.1`, and nothing here reaches it.
+- Every paid call: no story and no smoke test makes one.
+
+## Stories
+
+The build order; start one at a time, the next when the one before is archived in `done/`. The human's changes 1 to 3 come before S0001 starts, and after F0031-S0001 is merged and `self` is rebuilt (decision 12).
+
+- S0001: The mutation report command is removed and the documents describe the sweep form of `make mutants`
+
+## The human's changes
+
+Checked against `factory/pipeline.yml`: the coder writes `src/*`, `image/*`, `template/*` and `claude/*`, the tester `tests/*`, the documenter `README.md` and `docs/*`. S0001 removes two modules under `src/factory/` (the coder's), removes two test modules and adds one (the tester's), and changes four documents (the documenter's). No new dependency, no `.secrets.baseline` entry, no `security/` change, no suppression marker, no `pyproject.toml` change. `security/duplicates-baseline.txt` names neither module. The new test reads no source, so `[tool.mutmut]` stays as it is. Outside the write paths:
+
+1. **`Makefile`, the `mutants` recipe**, before S0001 starts, because today's recipe calls `python -m factory.entry.check_mutants`, which S0001 removes. Everything from the line `# Mutation testing (mutmut) of the modules under src/factory that one story or one feature changed.` to the end of the file becomes the block below. Every recipe line starts with one tab, as today. The `.PHONY` line stays as it is. Tried on an LF copy in a throwaway container of `factory-self-factory`, with a stand-in for `uv`. With no variable, the recipe printed the first line and the recipe failed with 2. `FEATURE=F0099` in a copy without `.git` gave `mutants: no module under src/factory changed by F0099`, exit 0. With two modules and `MUTANTS_CHILDREN=2`, the call was `mutmut run --max-children 2 factory.domain.disk.* factory.application.*`, the earlier `mutants/` was gone before mutmut started, and the `not checked` line was filtered out. `MUTANTS_SECONDS=1` against a 5-second run printed the stop line, and the recipe failed with 1. "Nothing matches" ended with 0, another mutmut status gave that status, and `/tmp` held no folder of the recipe's afterwards.
+
+   ```make
+   # Mutation testing (mutmut), for a sweep by hand: no stage and no agent runs it (the human,
+   # 2026-10-19). MODULES names dotted modules or packages, each run by its pattern <name>.*, as in
+   # make mutants MODULES='factory.domain.disk factory.application'. FEATURE=<feature id> takes instead
+   # the modules under src/factory that the feature's story commits on origin/main changed, which needs
+   # a checkout with its history; MODULES given by hand wins. MUTANTS_SECONDS stops mutmut after that
+   # many seconds (no stop when it is empty); MUTANTS_CHILDREN caps its workers (mutmut's default is
+   # every core the machine reports, also inside a container limited to fewer).
+   FEATURE ?=
+   MUTANTS_SECONDS ?=
+   MUTANTS_CHILDREN ?=
+   FEATURE_MODULES = $(wildcard $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' 2>/dev/null | sort -u))
+   MODULES ?= $(if $(FEATURE),$(foreach module,$(FEATURE_MODULES),$(subst /,.,$(patsubst src/%.py,%,$(module)))))
+   mutants:
+   	if [ -z "$(FEATURE)$(MODULES)" ]; then echo "mutants: set MODULES or FEATURE, as in make mutants MODULES=factory.domain.disk or make mutants FEATURE=F0012"; exit 2; fi
+   	if [ -z "$(strip $(MODULES))" ]; then echo "mutants: no module under src/factory changed by $(FEATURE)"; exit 0; fi
+   	# mutmut stops a mutant's pytest at its time limit, which leaves that run's folder locked for
+   	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.
+   	temporary=$$(mktemp -d)
+   	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true' EXIT
+   	umask 022   # as for make test: the seal refuses a group-writable checkout
+   	# Nothing is kept between runs (the human, 2026-10-19): mutmut makes mutants/ anew, copies the
+   	# other files under src/ (the contract's schemas) afresh and runs its stats again.
+   	rm -rf mutants
+   	set -f   # the names below are mutmut's patterns, never file names
+   	stopped=""
+   	# mutmut mutates only functions without a decorator: a module of interfaces, models or constants has
+   	# no mutant, and mutmut stops when no name matches one. That is a run with nothing to check.
+   	TMPDIR="$$temporary" $(if $(MUTANTS_SECONDS),timeout $(MUTANTS_SECONDS)) uv run mutmut run $(if $(MUTANTS_CHILDREN),--max-children $(MUTANTS_CHILDREN)) $(foreach module,$(MODULES),$(module).*) 2>&1 | tee "$$temporary/run.txt" || { status=$$?; [ $$status -eq 124 ] || grep -qF 'Filtered for specific mutants, but nothing matches' "$$temporary/run.txt" || exit $$status; [ $$status -ne 124 ] || stopped=yes; }
+   	# mutmut generates mutants for every module; those outside MODULES stay "not checked".
+   	uv run mutmut results | { grep -v ': not checked$$' || true; }
+   	if [ -n "$$stopped" ]; then echo "mutants: stopped after $(MUTANTS_SECONDS) s, so the mutants it did not reach are not checked"; exit 1; fi
+   ```
+
+2. **`CLAUDE.md`, *Checks***, with change 1. In the bullet that begins `` - `make lint` and `make test` run those two alone.``, everything from `` `make mutants` runs mutmut and is never part of `make check`.`` to the end of the bullet becomes:
+
+   ```markdown
+   `make mutants` runs mutmut and is never part of `make check`. No stage and no agent runs it: mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy (the human, 2026-10-19). Every run removes `mutants/` first, so nothing is kept between runs. It mutates the modules named by hand, as in `make mutants MODULES='factory.domain.disk factory.application'` (dotted modules or packages, each run by its pattern `<name>.*`), or, with `FEATURE=<feature id>`, the modules under `src/factory` that the feature's story commits on `origin/main` changed; `MODULES` wins when both are given. `MUTANTS_SECONDS` stops mutmut after that many seconds (no stop when unset), and `MUTANTS_CHILDREN` caps its workers. It ends with mutmut's own listing of the mutants it did not kill, and fails with `mutants: stopped after <n> s, ...` when the stop came first. mutmut leaves out the structural tests listed in `pyproject.toml`, which read the source it rewrites. The pipeline knows these six targets (`check`, `lint`, `test`, `secrets`, `duplicates`, `documents`).
+   ```
+
+   If F0031's decision 9 kept the `mutants` line in `factory/pipeline.yml`, the last sentence stays as it is then.
+
+3. **F0024's backlog** (`factory/features/F0024-mutation-testing-per-story/backlog/`), before S0001 starts. **F0024-S0004** (*The fault lines of `check-mutants` and `check-duplicates` are pinned*) is removed (decision 8).
+
+4. **F0030's draft** (`planning/overnight/stories/F0030-a-command-stopped-at-its-time-limit-leaves-no-process-running/`), if this feature is merged first. Its human's change 2, the real check with mutmut, runs on a story-form branch, and that mode is gone. "in a throwaway clone on a story-form branch: `MUTANTS_SECONDS=60`," becomes "in a throwaway clone, with `MODULES=factory.domain.disk` and `MUTANTS_SECONDS=60` in the environment,". The rest stays: the recipe still runs `timeout` without `--foreground`, and mutmut's output still goes through `tee`. In S0001's docs criterion, the sentence on the stop at `MUTANTS_SECONDS` stays true: the stop is only optional now.
+
+5. **Optional, the sweep brief** (`planning/overnight/briefs/mutation-sweep.md`). Its first sentence still says that feature acceptances run `make mutants`. A sweep may now run `make mutants MODULES=factory.application MUTANTS_SECONDS=<s> MUTANTS_CHILDREN=2` instead of mutmut by hand. It cannot reuse the stats between two runs in one copy, as part 3 did (decision 1). The brief is the human's, and nothing here needs it changed.
+
+## Decisions taken for the human
+
+1. **A fresh `mutants/`: the recipe removes it first** (the human, night log 22:20: "`mutants/` rebuilt for every run, nothing kept between runs"; the task asks how). `rm -rf mutants` comes before mutmut starts, and mutmut then makes the folder anew. Every run pays mutmut's stats again: about 165 s on 20 cores (operator guide), and 4.5 to 19 minutes on two cores in the sweeps of 2026-10-19. The human accepted that cost with the decision. Rejected: refusing a run while `mutants/` exists (a forgotten folder would stop a night's sweep with nothing done); leaving the freshness to the sweep's fresh copy (a second run in the same copy would then reuse old results, which the decision rules out). A sweep that wants the stats kept between two runs, as part 3 did, runs mutmut by hand. (The human's change 1)
+2. **The copy of the other files under `src/` goes with the kept `mutants/`.** That line ran only `if [ -d mutants/src ]`. mutmut copies those files on its first run, which is now every run, so after `rm -rf mutants` the line could never act. The task asked to keep it; it is dead code once `mutants/` is fresh. Recommended: it goes, and the comment above `rm -rf mutants` says that the schemas are copied afresh. Option: keep it as a guard against a later return of a kept `mutants/`. (The human's change 1)
+3. **No stop unless asked: `MUTANTS_SECONDS` is empty by default** (the task: "the 540 s stop only if a sweep wants it"). The 540 s came from the agent's 10-minute shell command and the report's 10-minute `time_limit`, and neither runs it now. The sweeps used 5,400 to 9,400 s. A given value works as today: `timeout`, the stop line, and a failed target. Option: keep 540 as the default; then a sweep by hand must always set it. (The human's change 1)
+4. **`MUTANTS_CHILDREN`, new and optional.** All three sweeps of 2026-10-19 passed `--max-children 2` or `3`, because they ran in containers limited to two or three cores beside the factory's instances. mutmut defaults to `os.cpu_count()`, which inside such a container still reports the host's cores. Empty, it passes nothing. This is one line beyond the task's list. Option: leave it out, and a sweep that needs it runs mutmut by hand. (The human's change 1)
+5. **The modules: `MODULES` by hand, or `FEATURE`; no story-branch mode and no `FEATURE` from a branch** (the task, point 1). `MODULES` takes dotted modules or packages, and each runs by its pattern `<name>.*`, so `factory.application` sweeps a layer as the sweeps did. `MODULES` given by hand wins over `FEATURE`, because a command-line variable overrides the `Makefile`'s own; a refusal of both would be one more line for no gain. `FEATURE` reads `git log` on `origin/main`, so it needs a checkout with its history. The sweeps' copies have no `.git` and take `MODULES`. The story-branch mode (`BRANCH`, `STORY`, `STORY_MODULES`, the work-tree diff) and the reading of an acceptance's branch go: no stage runs on such a branch any more. (The human's change 1)
+6. **`check_mutants` and `factory.domain.mutants` are removed, with their tests and documents** (the task, point 2). They had three jobs, and the human's decisions left none of them. (a) Filter the survivors of earlier runs out of a kept `mutants/`: with a fresh `mutants/`, every other module's mutant is `not checked`, and the recipe filters those lines as the template does. (b) `--names`, the rerun list for a kept `mutants/`: with a fresh one it is every module's pattern, which the recipe writes itself. (c) Exit 1 and `partial` for the factory's report and the acceptance: no stage reads it now, and a stopped run says so in its own line. The sweeps never called it. mutmut's own last line, `<checked>/<total>  🎉 <killed> … 🙁 <survived> …`, counts exactly this run once `mutants/` is fresh. Removed: 172 lines of code, 433 lines of tests, one documents section and their mutants in every later sweep. Option: keep it for its summary line. Then `--names` and `rerun_names` are still dead and would go, and `_chosen` would need to match packages, because `MODULES=factory.application` would count 0 mutants. That is more change than removal. (S0001)
+7. **`factory.entry.inputs` stays.** `src/factory/entry/check_duplicates.py` imports `UnreadableInput` and `read_input` from it, and `tests/entry/test_inputs.py` pins it (`test_check_duplicates_has_no_reader_of_its_own`). With one user its docstring, "read as UTF-8 text in one place", is still true. Moving `read_input` back into `check_duplicates` would undo F0024's decision 9 for nothing. (S0001)
+8. **F0024-S0004 is removed whole** (the task, point 3: drop it if check_mutants goes). Its `check-mutants` half pins a removed command. Its `check-duplicates` half pins message texts: the program name in argparse's usage line and two parse-fault lines. That is the kind of mutant F0028 left out as "the messages of internal guards", which a user does not see as behaviour. A later sweep of `factory.entry` can propose it again under F0028 if it is wanted. Option: keep a trimmed S0004 with criteria 2 and 3 only. (The human's change 3)
+9. **The leave to remove tests another story wrote**, beyond the standing leave of `CLAUDE.md`. The tester removes `tests/entry/test_check_mutants.py` and `tests/domain/test_mutants.py` (F0024-S0001) whole, and changes no other earlier test. Unchanged, and they must pass: `tests/entry/test_inputs.py`, `tests/entry/test_check_duplicates.py`, `tests/domain/test_command_line_time_limit.py`, `tests/application/test_stage_time_limited_report.py`, `tests/test_template_makefile.py` and F0031's `tests/test_claude_agent_texts_mutants.py`. (S0001)
+10. **The template's and the demo's `mutants` recipes stay.** Each takes only `FEATURE`, calls no `check_mutants` and keeps `mutants/`. They belong to the projects, and the projects never had the per-story report. Carrying the fresh `mutants/` there would change `tests/test_template_makefile.py` and the demo's copy for projects that run no sweeps today. Option: a later story, if a project sweeps. (Feature)
+11. **What else stays** (the task, point 4: `src/`, `tests/`, `docs/`, `CLAUDE.md`, `template/`, `demo/` searched for `mutants`, `mutmut`, `check_mutants` and `MUTANTS_SECONDS`). Kept: `[tool.mutmut]` and `mutmut==3.8.0` in `pyproject.toml`, and `mutants/` in `.gitignore` (the sweeps); `command_line`'s suffix (F0024-S0002) and its two sample-data tests; `docs/project-guide/watching.md`'s sentence that a project's `make mutants` reads the commit prefix (still true of `FEATURE`); the history entries in `docs/decisions.md`, which only gain a line naming the new entry; the template and the demo (decision 10). F0031's: the agent texts, `template/CLAUDE.md`, `template/Makefile`'s comment, `docs/project-guide/agents.md`, and `"mutants/*"` and the comment in `factory/pipeline.yml`. Removed here: the two modules, their two test modules, *The report of a mutation run* and every passage that names `check_mutants`, `factory.domain.mutants`, the story-branch mode, `--names`, the `chmod -R g+w mutants` or the kept `mutants/`. Also stale, in another drafter's file: `planning/overnight/stories/F0028-the-tests-pin-what-mutation-testing-found/feature.md`'s check after the feature still names "the feature acceptance's `make mutants`". After this feature, that check is `make mutants MODULES=<its thirteen modules>`. (Feature)
+12. **The order.** The human's changes 1 to 3 come after F0031-S0001 is merged and `self` is rebuilt. Before that, an acceptance on the old agent text would run `make mutants` on its branch, and with no `FEATURE` read from the branch it would end at the first line. The changes come before S0001 starts, because today's recipe calls `check_mutants`. With F0030 there is no order in code; the human's change 4 adjusts F0030's real check if this feature comes first. (Feature)
+13. **One story.** The coder removes two files and writes no code. The tester removes two modules and writes one test of about fifteen lines. The documenter rewrites one section, removes one subsection, and edits one passage of the operator guide, one index line and one decision entry. Each part fits the 40-minute `time_limit`. (Feature)
+14. **The number and the name.** F0032 is the first number above every folder in `factory/features/` (F0018 to F0026, F0031) and `planning/overnight/stories/` (F0001 to F0030). The folder name says what the feature makes true. (Feature)
