@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T23:41:54.921421Z'
   stage: smoke-test
   run: 090bbd9461964d59bc9c718cd8c54e34
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:43:13.216334Z'
+  stage: approval
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -223,3 +228,4 @@ Expect: `documents ok`
       - Only these two passages changed in the diff.
 
     Not checked: the proof run's evidence itself is the human's account, as the earlier stages also noted.
+14. factory: done (pull request merged); cost: 6 runs, 3.2 min, 27 turns, 92175 tokens in (361540 more from cache), 6585 out, $0.75
