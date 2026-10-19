@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T19:13:14.119943Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T19:12:53.263834Z'
   stage: doing
   run: 6a908e56d8d344909a2f95f4f72d8f9e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:13:14.119943Z'
+  stage: review
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -128,3 +137,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
