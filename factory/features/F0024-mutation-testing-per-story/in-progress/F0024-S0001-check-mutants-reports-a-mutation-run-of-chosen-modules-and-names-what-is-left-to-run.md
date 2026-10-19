@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T16:12:16.391069Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T16:11:55.896688Z'
   stage: doing
   run: 38f65ea4b8ff4ffeab254b82c2f0b97c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:12:16.391069Z'
+  stage: tests
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -275,3 +284,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What the journal changed: criterion 12 was added, and the two closing criteria are now 13 and 14. The Description already says this, so I did not rewrite it. I did not run `make check`, because the working tree has no code change since the green run recorded in entry 7.
 
     Noticed but not touched: nothing new.
+12. factory: started tests as self.
