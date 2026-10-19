@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T09:28:31.034779Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T09:28:10.642404Z'
   stage: review
   run: 57297fcc506a4fc7ad927b6c39963963
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:28:31.034779Z'
+  stage: docs
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -236,3 +245,4 @@ Expect: `documents ok`
     - Work item hygiene: the Description matches the diff (only tests were added). The journal gives the main choice, which was to leave the `"\n"` join as it is, and the rejected alternative, a line-by-line check.
 
     Earlier tests: none. The diff only adds test files (status `A`) and changes no test file that `main` already holds.
+18. factory: started docs as self.
