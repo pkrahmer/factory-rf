@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T22:59:32.769074Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-19T22:59:12.517622Z'
   stage: doing
   run: 30eccef766474876a9ae9e9c60f0ab6b
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:59:32.769074Z'
+  stage: tests
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -245,3 +254,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     Refactor: none, since there is no diff under `src/`.
 
     Noticed but did not touch: the earlier test modules still hold their own copies of the reply constant. Removing them would be a story of its own.
+15. factory: started tests as self.
