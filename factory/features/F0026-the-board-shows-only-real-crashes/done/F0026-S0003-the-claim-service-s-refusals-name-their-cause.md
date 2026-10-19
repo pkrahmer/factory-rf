@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-19T17:58:36.266806Z'
   stage: smoke-test
   run: 465cb7c5447b41d097ce86f68d2edd96
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-19T17:59:55.507540Z'
+  stage: approval
 ---
 
 # The claim service's refusals name their cause
@@ -445,3 +450,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     - Criteria 3 (`make check`) and 4 (docs: none): the smoke test does not touch them, and the factory runs the checks.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 10.2 min, 72 turns, 229729 tokens in (1499940 more from cache), 31393 out, $2.54
