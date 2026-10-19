@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 275
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T17:46:06.086777Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,13 @@ journal:
   kind: started
   at: '2026-10-19T17:46:06.086777Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: question
+  at: '2026-10-19T17:47:16.887665Z'
+  stage: review
+  run: 6399fd07943c4287b61b2eab9baa1731
+  blocked: question
 ---
 
 # The claim service's refusals name their cause
@@ -182,3 +185,28 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Question for the human: the new test module copies two helpers from `tests/application/test_claims.py`, and the story forbids the one change that would remove the copies. Should the copies stay, or may the tester move the helpers?
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`, which adds only `tests/application/test_claims_refusals.py`, together with the work item, `src/factory/application/claims.py` and the earlier claim tests.
+
+   - Groups 1 to 3 pass.
+     - Criterion 1: `test_service_refusal_of_an_instance_name_quotes_the_name` has three rows. `"Factory-1"` and `""` must produce the exact `str`, and `"factory-1"` must be accepted.
+     - Criterion 2: `test_claim_refusal_names_its_cause_and_writes_nothing` has six rows. Each row compares the exact message, and each compares a snapshot taken before and after the claim (git status, the work item file, `notes.md`, the remote branch's commit).
+     - Each row's message matches the f-string in `claims.py` that the code reaches first in that row, given the order of the refusals in `_check_preconditions`.
+     - The coder's journal entry 7 records `check: green`. The coder's entry has no `mutants` line, so there was no mutation report to read.
+     - Nothing changed under `src/`, so groups 2 and 3 (architecture, security) have nothing to fail.
+   - Group 4 (quality) fails on copied helpers:
+     - `tests/application/test_claims_refusals.py:30` `_file_text` is an exact copy of `_file_text` in `tests/application/test_claims.py:93`. It is also the same as `_text` in `tests/application/test_undo.py:80`.
+     - The `prepared` fixture (`test_claims_refusals.py:46`) repeats the body of `_prepare` in `test_claims.py:54`.
+     - At round 0 a copied helper is a finding.
+     - The fix that `CLAUDE.md` offers is the standing leave: move the helper to one shared module under `tests/` and change the earlier modules to import it, every earlier test keeping its name and what it checks.
+     - But the story's Description says `tests/application/test_claims.py` stays unchanged, and its Interface says "No earlier test changes". The tester kept the copies for that reason (journal entry 5).
+     - So I cannot send this back as a finding: its only fix contradicts the Description.
+
+   Options:
+   - (a) Keep the copies. The story's sentence stands, and the review passes with no findings.
+   - (b) Allow the move. The tester moves `_file_text` (merging `test_undo.py`'s `_text` into it) and the work-item preparation into a shared module under `tests/`, for example `tests/git_support.py` beside `remote_commit`. `test_claims.py`, `test_undo.py` and the new module then import them, and every earlier test keeps its name and what it checks. The Description's sentence then becomes "the tests in `tests/application/test_claims.py` keep their names and what they check".
+
+   I would choose (b): it is the standing leave `CLAUDE.md` gives for exactly this case, and it stops a fourth copy of `_file_text` from settling in.
+
+   Earlier tests: none. The diff only adds files: `git diff --name-status main...HEAD` shows `A` for every test file, and only the work item is `M`.
