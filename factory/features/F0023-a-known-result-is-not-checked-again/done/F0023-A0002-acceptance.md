@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T22:11:56.925225Z'
   stage: acceptance
   run: cef27f092d8545ad9ea1cdabd9c9e5e9
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:13:16.862001Z'
+  stage: done
 stories: [F0023-S0001, F0023-S0002, F0023-S0003, F0023-S0004, F0023-S0005]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A known result is not checked again
@@ -219,3 +224,4 @@ None. Every open item is either the human's to edit (`feature.md`'s *Stories*, t
       S0003 to S0005 changed no earlier test.
    7. Slow checks: nothing beyond `make check`, which is green (test 40.9 s, coverage 99.12 %). The slowest tests take 5.0 s and are not F0023's. Disk is unchanged since the start record.
    8. Cost: 45 runs, 41.4 min, $12.32. S0001 and S0002 come to $4.91 and $4.87, with rework that changed only tests. S0003 to S0005 cost under $1 each, with no rework. 1 human question (S0002's stall-note assertion), answered with 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 5.0 min, 27 turns, 100459 tokens in (1895764 more from cache), 20537 out, $1.59
