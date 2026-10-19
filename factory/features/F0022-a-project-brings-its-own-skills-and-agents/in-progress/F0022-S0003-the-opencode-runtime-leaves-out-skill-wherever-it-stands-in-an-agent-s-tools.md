@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T20:01:14.832998Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T20:01:14.832998Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:03:38.600971Z'
+  stage: tests
+  run: a1e63e1787f94130be9c664c9bb1b4b5
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -106,3 +108,12 @@ Expect: two lines, `completed question`, `['grep', 'read']`
    Scope: within F0022 (decisions 11 and 14). It is not in Out of scope, and it adds no new behaviour.
    Open note, not a question: `feature.md` lists only S0001 and S0002 under Stories, but its decision 14 already names S0003, so I take that as the human's intent.
 4. factory: started tests as self.
+5. tester: Added the four rows criterion 1 asks for to the existing parametrized test. The test keeps its name and its three original rows; the leave for changing it is the feature's decision 14 (S0003). Each new row uses the stand-in and builders the module already imports.
+   - criterion 1: tests/adapters/test_opencode_left_out_tools.py::test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused, new rows `skill-first` (`["Skill", "Read"]` → `read` only), `skill-before-two` (`["Skill", "Read", "Bash"]` → `read`, `bash`), `skill-in-the-middle` (`["Read", "Skill", "Grep"]` → `read`, `grep`), `notebook-edit-after-skill-refused` (`["Skill", "NotebookEdit"]` → `AgentRuntimeError` with `the opencode runtime has no tool for NotebookEdit`, and no stand-in call). The completing rows check that every other name of `OPENCODE_TOOLS` is false.
+   - criterion 2: `make check` is checked by the factory, not by a test. `make lint` is green.
+   - criterion 3: docs: none, so there is no test.
+   Files: changed tests/adapters/test_opencode_left_out_tools.py, which was written by another story (F0022-S0002). Created no new files.
+   Modules the test run could not import: none. The new tests are green from the start, not red: the story changes no code, so they pin what the code already does (`make test` green). This means no red specification is handed to the coder. Against the `break` mutant, all four new rows would fail: the first three because tools after `Skill` would be false, the fourth because nothing would be refused.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (46.8 s)
