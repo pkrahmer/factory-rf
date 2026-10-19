@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T10:47:56.799760Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-19T10:47:36.211318Z'
   stage: doing
   run: 4f6b0d7be5fb4d518f01eee69dc06ab8
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:47:56.799760Z'
+  stage: review
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -433,3 +442,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
+18. factory: started review as self.
