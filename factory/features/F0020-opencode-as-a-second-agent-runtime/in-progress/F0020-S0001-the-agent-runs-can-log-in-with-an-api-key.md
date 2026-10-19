@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T03:51:11.776041Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   stage: docs
   run: 5ac3661f85304bd5852f69f935f88df9
   reason: check_red
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:51:11.776041Z'
+  stage: docs
 ---
 
 # The agent runs can log in with an API key
@@ -566,3 +575,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     If a secret has already been committed, visit
     https://help.github.com/articles/removing-sensitive-data-from-a-repository
     make: *** [Makefile:51: secrets] Error 1
+21. factory: started docs as self.
