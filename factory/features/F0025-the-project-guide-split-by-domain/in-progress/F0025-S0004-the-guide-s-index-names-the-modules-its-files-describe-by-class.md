@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T22:16:28.924116Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T22:16:28.924116Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T22:17:31.105626Z'
+  stage: doing
+  run: 2d4b3b3eca8640c480edc9b3698832c2
 ---
 
 # The guide's index names the modules its files describe by class
@@ -125,3 +127,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (43.8 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes docs. Its Interface says no module under `src/factory/` and no test changes, and the tester left no red tests. Following criterion 1, I changed nothing under src/, tests/, image/, template/, demo/ or claude/. The working tree holds only the factory's `.costs.jsonl` sidecar.
+   Main choice: leave the two doc edits (the `watching.md` line of `docs/project-guide/README.md` and the sentence in `docs/decisions.md`) to the documenter, as the Interface and CLAUDE.md say. I rejected making them here, because the coder does not write the guide or the decision log.
+   Refactor: no diff, so nothing to refactor.
+   Noticed, not touched: nothing.
+   `make check`: check: green (test: green, coverage 99.12 %).
+
+   `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
