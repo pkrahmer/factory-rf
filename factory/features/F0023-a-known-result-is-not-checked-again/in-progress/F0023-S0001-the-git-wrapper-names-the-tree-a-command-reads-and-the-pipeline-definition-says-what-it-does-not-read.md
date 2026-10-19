@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T14:50:29.269971Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -166,6 +162,12 @@ journal:
   kind: started
   at: '2026-10-19T14:50:29.269971Z'
   stage: smoke-test
+- number: 29
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T14:51:04.344929Z'
+  stage: smoke-test
+  run: 725dd2ec47794271ad1f15c8f95c90e5
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -596,3 +598,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 28. factory: started smoke-test as self.
+29. smoke-tester: Smoke test, round 2. I ran the three commands under `## Smoke test` from the repository root, as written and in order. No command starts a server. The first command's `mktemp -d` folder was removed by its own `trap`.
+
+    Command 1 (`work_tree_id` with and without `left_out`, against the commit `GitCli.commit` makes), exit 0:
+    ```
+    False True
+    False
+    True True
+    ```
+    Met `Expect:` (three lines, `False True`, `False`, `True True`).
+
+    Command 2 (`not_read` loads; the `../docs/*` pattern is refused), exit 0:
+    ```
+    ['README.md', 'docs/*']
+    project command check: not_read ../docs/* must be a path pattern inside the checkout
+    ```
+    Met `Expect:` (two lines, the list in the order written, then the fault text exactly).
+
+    Command 3 (the committed pipeline-definition schema), exit 0:
+    ```
+    True False
+    ```
+    Met `Expect:` (`True False`).
+
+    I checked the acceptance criteria against what the commands showed:
+    - Criterion 2: the tree id matches the tree of the commit made right after the call, and the status is clean afterwards.
+    - Criterion 3: an edit under `docs/` leaves `work_tree_id(["docs/*"])` unchanged but changes `work_tree_id()`, and an edit outside `docs/` changes both.
+    - Criterion 6: the patterns come back in the order written.
+    - Criterion 7: the fault text is exact.
+    - Criterion 8: `not_read` is among the schema's properties and not among its required fields.
+
+    Nothing contradicts any criterion. The commands do not cover criteria 1, 4, 5, 9 and 10, and they contradict none of them; the tests and the earlier stages' `make check` cover those.
+
+    Findings: none.
