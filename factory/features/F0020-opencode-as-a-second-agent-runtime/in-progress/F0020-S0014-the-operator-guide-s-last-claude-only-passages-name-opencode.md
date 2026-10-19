@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T23:16:15.921191Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T23:16:15.921191Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T23:16:44.546546Z'
+  stage: review
+  run: 4c322100d23f46d3a011b2d91d1c7077
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -134,3 +136,15 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`), so nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+   1. Acceptance criteria: criterion 1 holds, because the diff outside `factory/` is empty. The tester's entry (5) and the coder's entry (7) each say they changed nothing. Criterion 2 holds: the coder's entry records `check: green`. Criterion 3 is the docs criterion, which the documenter writes next. The story states no rule or limit, so no failing side needs a test, and no behaviour was built that would need a new criterion.
+   2. Architecture, security and quality: there is no code to judge. `duplicates: 5 new` in entry 7 cannot come from this branch, because the branch changes no file under `src/factory`.
+   3. Work item hygiene: entry 7 gives the main decision (hand forward with no change) and the alternative it rejected (editing the guide itself). The Description matches what was built, which is nothing yet. I checked the docs criterion's claims against the code so the documenter starts from correct facts. Each claim below holds:
+      - `machine_extras` (`src/factory/entry/wiring.py:409`) adds `agent_environment_item` whatever the runtime, at line 422. Only `opencode_item` depends on `settings.agent_runtime == "opencode"`.
+      - `opencode_runtime` registers no hook. It reads `settings.json` only for the `permissions.deny` list.
+      - The opencode call is wrapped by `sudo`, `timeout`, `env -i` and `factory-confine` exactly as for `claude -p` (`docs/project-guide/agents.md`, *The opencode runtime*).
+      - The target passages exist: line 3 of `docs/operator-guide.md` names "the `claude -p` runtime", line 117 says "does not start `claude` itself", line 137 covers the `claude` login in `~/.claude`, and line 218 says the guard is registered as a Claude Code hook. The anchors "Running on opencode" (260) and "What differs from Claude Code" (281) also exist.
+
+   Earlier tests: none. The diff changes no test file.
