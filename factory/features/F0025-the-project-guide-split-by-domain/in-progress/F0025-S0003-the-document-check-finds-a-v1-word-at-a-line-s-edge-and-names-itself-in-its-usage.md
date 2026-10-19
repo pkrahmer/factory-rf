@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T09:19:57.752306Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T09:19:57.752306Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T09:21:49.580519Z'
+  stage: doing
+  run: 54e0364d34764efca5018f240f86e9d5
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -124,3 +126,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (36.2 s)
 6. factory: started doing as self.
+7. coder: I built nothing, because the code already does what the story asks. No file under `src/factory/` changed. I did not edit the tester's tests, `tests/domain/test_documents_line_edges.py` and `tests/entry/test_check_documents_usage.py`, and both pass against the current code. `make check` is green: `check: green`, with `test: green (36.8 s)` and total coverage at 99.05 %.
+   - Main choice: I left `factory.domain.documents` and `factory.entry.check_documents` as they are, because the Description says to and the new tests pin how they behave now. The alternative I rejected was reworking the wording check's `"\n"` join, for example by checking line by line. That change would be outside the story's scope, and the code would behave the same.
+   - Refactor: I made no changes, so there is nothing to refactor.
+   - Description: no journal entry changed what the task means, so I left the Description as it is.
+   - Noticed but did not touch: the two survivors the Description calls equivalent, the `"UTF-8"` spelling and the default encoding under Python 3.12's UTF-8 coercion, are still there, as the story intends.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 35 known, 1 gone
