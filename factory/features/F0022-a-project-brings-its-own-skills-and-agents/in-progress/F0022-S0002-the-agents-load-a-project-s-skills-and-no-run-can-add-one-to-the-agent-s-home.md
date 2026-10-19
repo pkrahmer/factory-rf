@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T13:51:39.521795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T13:51:18.587226Z'
   stage: docs
   run: c605e1100207429d81cc18eed9dab76e
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:51:39.521795Z'
+  stage: smoke-test
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -395,3 +404,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
