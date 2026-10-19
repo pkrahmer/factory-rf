@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T01:38:43.141305Z'
   stage: smoke-test
   run: 4b4edacf16884dfd83aa14df4d2a0d36
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T01:41:03.408039Z'
+  stage: approval
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -299,3 +304,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
     - Criteria 3 and 4: the smoke test does not touch them. The factory runs `make check` as its gate.
 
     The smoke test contradicts no criterion. `git status` afterwards showed only the work item's `.costs.jsonl` sidecar as changed, which is the factory's file. I fixed nothing.
+22. factory: done (pull request merged); cost: 10 runs, 7.1 min, 53 turns, 139751 tokens in (729682 more from cache), 14231 out, $1.39
