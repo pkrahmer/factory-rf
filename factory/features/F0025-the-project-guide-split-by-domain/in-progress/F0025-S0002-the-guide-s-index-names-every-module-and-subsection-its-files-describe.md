@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T09:09:26.821246Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T09:09:05.935758Z'
   stage: docs
   run: 813371c09e464365b96040d5a2de49dd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:09:26.821246Z'
+  stage: smoke-test
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -225,3 +234,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
