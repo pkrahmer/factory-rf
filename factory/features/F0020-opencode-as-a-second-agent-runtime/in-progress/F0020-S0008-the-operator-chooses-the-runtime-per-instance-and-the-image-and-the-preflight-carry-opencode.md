@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 260
-comments_read: [6265790615]
+comments_read: [6265790615, 6265944829]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: ebf0aa0ba20243ad8b428237356abc1f
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-19T11:17:15.832358Z'
+  stage: doing
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -274,3 +279,5 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     **Main choice.** The runtime is chosen in one private builder in the wiring, `_agent_runtime`. I rejected a runtime registry or factory interface: with two runtimes it would be machinery beyond the story. `installed_models` reuses the reader's `names()`, which already sorts, rather than sorting again.
 
     **Not done yet.** I have not done the refactor pass or the final `make check`; I do both once the tests are settled. I touched no docs; criterion 16 is the documenter's.
+11. 2026-10-19 human: 1. (a). The tester writes a `settings.json` with a `permissions.deny` list into `settings.agent_home` in `test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, as criterion 4's test does. The Interface and the runtime's fail-closed read of the settings stay as they are.
+    2. Yes: end with `tests` naming the three changes, the two type errors in `tests/application/test_opencode_item.py` (line 90's `str | None` and line 112's lambda over a `-> None` helper) and change 1. These are this story's own tests.
