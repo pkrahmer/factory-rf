@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T12:31:07.012649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T12:31:07.012649Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T12:31:31.557576Z'
+  stage: intake
+  run: 84ef30c790f64bcd8e0f7badc61a6271
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -173,3 +175,9 @@ Expect: two lines, `0 event: idle:-  F0001-S0001 is held by self ''` and `0 even
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete and placed right. `observed_claim_status` in `factory.domain.lease`, `ClaimService.observed_status` in `factory.application.claims`, `Watcher(..., observer=False)` in `factory.application.watcher`, and `run_watch` in `factory.entry.watch`. Each has a signature and a rule for every case: None, own within and past the lease (negative age included), another instance's claim, and what stays unchanged.
+   Criteria: each is testable by one parametrized test with the ages and expected values spelled out. Criterion 1 covers both sides of the lease boundary for an own claim (59m59s held, 60m own, negative age held) and for another instance's claim. Criterion 2 compares `observed_status` with `status`. Criteria 3 and 4 cover observer true and false, for stories and for acceptances. Criterion 5 covers the exact `run_watch` output line, status, empty `err` and board row. Criterion 6 covers decision 5's change to the ownership test. Criterion 8 covers the docs. The Interface's docstring wording for the `watch` module has no test of its own; I judged it documentation, which criterion 8 and the reviewer cover, not a behaviour.
+   Smoke test: both blocks are runnable as written, using the project's own adapters and fakes with no network or paid call. Each Expect line states exact lines that can be checked against the output.
+   Architecture: the lease rule sits in domain and is pure. The service wraps it in application and `Watcher` chooses the status function. Only `entry` changes the wiring, and the layer order is kept. The only test change to another story's module is `tests/test_claim_ownership.py`, and the human gave it in decision 5.
+   Scope: it matches feature.md's Scope list. The tick, `RecoveryHandler`, `CLAIM_EVENTS`, the board and `claim_status` stay unchanged, as Out of scope requires. Decision 4's precondition (F0020-S0007 archived) is the human's to keep, and they started this story.
