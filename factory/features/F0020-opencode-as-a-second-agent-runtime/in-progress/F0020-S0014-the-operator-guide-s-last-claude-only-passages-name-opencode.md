@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:14:52.278234Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T23:14:52.278234Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:15:55.673183Z'
+  stage: doing
+  run: 0f7bfd1e3f9f41d99e1731c51f115065
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -112,3 +114,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.7 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes docs: its Interface is "None", and criterion 1 forbids changes under src/, tests/, image/, template/, demo/ or claude/. This stage changed nothing in those folders, and the working tree holds only the factory's costs sidecar.
+   What I built: nothing. The three passages in `docs/operator-guide.md` (the opening paragraph, *The agent runs as a second user*, *`factory-guard` on the agent run's `PATH`*) are the documenter's job under the docs criterion. The coder does not write docs (CLAUDE.md, *Docs*).
+   Main choice: hand forward with no change. The alternative I rejected was editing the operator guide here, which is outside the coder's role and would have taken over the documenter's work.
+   Refactor: there is no diff, so nothing to refactor.
+   The journal did not change what the task means, so the Description stays as it is.
+   Noticed but not touched: nothing.
+   `make check`: check: green (test: green (39.9 s)).
+
+   `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
