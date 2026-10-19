@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T22:41:30.432793Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T22:41:30.432793Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T22:41:54.803027Z'
+  stage: review
+  run: 9c27616d6cf94b85a18b4a865b732f76
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -143,3 +145,10 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The only files the branch changes are the work item and its `.costs.jsonl` sidecar, both under `factory/`. This is what a docs-only story should look like at this point: the Interface rules out any change under `src/`, `tests/`, `image/`, `template/`, `demo/` and `claude/`, and the documenter makes the two-line edit next.
+   1. Acceptance criteria: criterion 1 limits what the diff may touch. It holds, and the tester (entry 5) and the coder (entry 7) each said so, as the criterion asks. Criterion 2: the factory's `make check` after the coder was green (entry 7, `check: green`). Criterion 3 is the docs criterion. The story adds no code, so there is no rule whose failing side would need a test.
+   2-4. Architecture, security, quality: there is no code in the diff to judge. The coder's `duplicates: 5 new` cannot come from this branch, which changes nothing under `src/factory`.
+   5. Work item hygiene: entries 5 and 7 explain why nothing was built (the documenter owns `docs/project-guide/`, under CLAUDE.md *Docs*) and what was rejected (the coder making the edit). The docs criterion still matches the repository. The `agents.md` line (README.md:14) lists `factory.adapters.validation_faults` and then `factory.domain.provider_limits`, so `project_agents` goes between them. The `stages.md` line (README.md:18) lists `factory.adapters.pipeline_yaml` first among "It also names". Both modules exist: `src/factory/application/project_agents.py` and `src/factory/application/provider_limits.py`.
+   6. Earlier tests: none. No test file is changed, renamed or deleted.
