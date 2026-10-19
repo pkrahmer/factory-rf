@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T21:03:18.501814Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T21:02:57.963878Z'
   stage: review
   run: d1b3c51175754e128154d2369a4adaa0
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:03:18.501814Z'
+  stage: docs
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -310,3 +319,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/test_claude_agent_texts_mutants.py:1`: the docstring is held under 100 columns by a backslash continuation inside the string. This is unusual, but needed to keep decision 7's exact one-line text.
     - `template/Makefile:4` (the coder's entries 7, 11 and 15): it still calls `duplicates` and `mutants` "reports outside `check`". This is outside this story's Interface; the feature acceptance can consider it as a wording story.
+18. factory: started docs as self.
