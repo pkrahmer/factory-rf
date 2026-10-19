@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T03:53:02.022177Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-19T03:52:41.819742Z'
   stage: docs
   run: ee2c150ba2e8497e825651c066140e52
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:53:02.022177Z'
+  stage: smoke-test
 ---
 
 # The agent runs can log in with an API key
@@ -589,3 +598,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+23. factory: started smoke-test as self.
