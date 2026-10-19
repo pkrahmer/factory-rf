@@ -1,0 +1,118 @@
+# factory-watch's main hands its streams and its instance to the watch
+
+<!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
+
+## Description
+
+`factory-watch`'s `main` (`factory.entry.watch`) picks the output and error streams (the given ones, else `sys.stdout` and `sys.stderr`) and the boundaries and instance (the given pair, else both from the environment), then calls `run_watch`. No test runs `main` through to `run_watch`. The tests call it only for an option or a settings refusal, and the one test that would get past the settings, `test_a_valid_environment_gets_past_the_settings_to_the_fixed_checkout`, skips whenever `/work/checkout/.git` exists, as it does in every factory run. So F0026's mutation run left 14 mutants of `main` alive (writing to `None`, always to `sys.stdout`, taking the environment although boundaries were given, dropping the settings' instance, passing `None` as the error stream), and `watch.py` lines 82-83 and 87 uncovered. The text of the "origin/main does not resolve" `GitError`, which the operator reads, is not pinned either: `run_watch` and `Watcher` each kept two survivors that replace half of it with `None`. This story pins all of that with new tests and changes no code. `run_watch`, the board, the event line and the exit statuses stay as they are, and so do their tests.
+
+## Interface
+
+No module under `src/factory/` changes. The behaviour pinned is that of, as it is:
+
+```python
+# factory.entry.watch (entry)
+def main(argv: Sequence[str] | None = None, *, boundaries: Boundaries | None = None, instance: Name | None = None, out: TextIO | None = None, err: TextIO | None = None) -> int: ...
+def run_watch(boundaries: Boundaries, instance: Name, out: TextIO, err: TextIO) -> int: ...
+# factory.application.watcher (application)
+class Watcher:
+    def evaluate(self, definition: PipelineDefinition) -> Event: ...
+```
+
+- With both `boundaries` and `instance` given, `main` does not read the environment, and runs the watch as `instance` on those boundaries.
+- `main` writes the watch to `out` and its error line to `err`, and to `sys.stdout` and `sys.stderr` when `out` or `err` is left out.
+- With `boundaries` or `instance` left out, `main` takes both from `boundaries_from_environment(os.environ)` and runs the watch as the settings' instance.
+- On a clone whose `origin/main` does not resolve, `run_watch` and `Watcher(...).evaluate` raise `GitError` whose text is `resolve origin/main failed (no exit status): origin/main does not resolve`.
+
+Tests (the tester writes them): `tests/entry/test_watch_main.py` (new), on the `boundaries`, `human` and `clock` fixtures, with the story claim of `watch_support.push_story_claim` and `aged_claim` and the agents installed as `tests/entry/test_watch.py` does. The environment criterion replaces `factory.entry.watch.boundaries_from_environment` with `monkeypatch.setattr` by a stand-in that returns the test's boundaries and `InstanceSettings` of the instance `factory-2`; the code under test, `main`, is not replaced. `tests/application/test_watcher_main_ref.py` (new), on a clone of an empty bare remote, as `tests/entry/test_watch.py::test_run_watch_without_origin_main_raises_git_error` builds it. No earlier test changes.
+
+## Acceptance criteria
+
+1. `main([], boundaries=b, instance="factory-1", out=out, err=err)`, with `FACTORY_INSTANCE` removed from the environment and the story `F0001-S0001` claimed by `factory-1` 1 minute before the clock under a 60-minute lease: it returns 0, the first line of `out` is `event: idle:-  F0001-S0001 is held by factory-1`, and `err` is empty.
+2. `main` with given boundaries and instance, `out` and `err`, on a remote whose `factory/pipeline.yml` on `main` is not valid YAML: it returns 1, `out` is empty, and `err` is one line that starts with `factory-watch: `.
+3. `main` with given boundaries and instance, and `out` and `err` left out (rows of one parametrized test, read with `capsys`): for the story of criterion 1, standard output starts with `event: idle:-  F0001-S0001 is held by factory-1` and standard error is empty; for the definition of criterion 2, standard output is empty and standard error is one line that starts with `factory-watch: `.
+4. `main([], out=out, err=err)` with `boundaries_from_environment` replaced by the stand-in that gives the instance `factory-2`, and `F0001-S0001` claimed by `factory-2` 61 minutes before the clock under a 60-minute lease: it returns 0, `err` is empty, and the first line of `out` is `event: crash:F0001-S0001` (the settings' own claim past its lease; as another instance's claim it would be `expired:F0001-S0001`).
+5. On a clone of an empty bare remote (rows of one parametrized test): `run_watch(...)` and `Watcher(boundaries, "factory-1").evaluate(definition)` each raise `GitError` whose `str` is exactly `resolve origin/main failed (no exit status): origin/main does not resolve`.
+6. `make check` stays green.
+7. docs: none. `docs/project-guide/watching.md`, *The watcher's command line*, and the operator guide's `factory-watch` section already say what `main` does with its streams, its instance and the environment, and that a missing `origin/main` ends with a git error.
+
+## Smoke test
+
+```bash
+d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+uv run -q python - "$d" <<'EOF'
+import contextlib
+import io
+import subprocess
+import sys
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+from factory.adapters.fake_hosting import FakeHostingService
+from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.domain.errors import GitError
+from factory.domain.settings import InstanceSettings
+from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
+from factory.entry.watch import main
+from factory.entry.wiring import build_boundaries
+
+d = Path(sys.argv[1])
+story = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
+pipeline = 'contract: "1.0"\nproject_commands:\n  check: {time_limit: 10}\nroles:\n  coder: {write_paths: ["src/*"]}\nstages:\n  doing: {role: coder, next: [done], checks: [check]}\n  done: {}\n'
+
+
+def git(cwd: Path, *args: str) -> None:
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args], cwd=cwd, check=True, capture_output=True)
+
+
+def write(root: Path, path: str, text: str) -> None:
+    (root / path).parent.mkdir(parents=True, exist_ok=True)
+    (root / path).write_text(text, encoding="utf-8")
+
+
+def watch(boundaries) -> None:
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        status = main([], boundaries=boundaries, instance="self")
+    print(status, repr(out.getvalue().splitlines()[:1]), repr(err.getvalue()))
+
+
+def boundaries_of(name: str):
+    git(d, "clone", "-q", str(d / "remote.git"), name)
+    settings = InstanceSettings(repository_url="https://github.com/example/project.git", instance="self", checkout=d / name, state_directory=d / f"{name}-state", agent_home=d / "agents-home")
+    return build_boundaries(settings, "unused", hosting=FakeHostingService())
+
+
+git(d, "init", "-q", "--bare", "--initial-branch=main", "remote.git")
+empty = boundaries_of("empty")
+try:
+    main([], boundaries=empty, instance="self")
+except GitError as error:
+    print(error, flush=True)
+git(d, "clone", "-q", str(d / "remote.git"), "human")
+human = d / "human"
+write(human, "factory/pipeline.yml", pipeline)
+write(human, "factory/features/F0001-example/feature.md", "# Example feature\n")
+write(human, story, "# First story\n")
+git(human, "add", "-A")
+git(human, "commit", "-q", "-m", "start")
+git(human, "push", "-q", "origin", "main")
+write(d / "agents-home", "agents/coder.md", "---\nmodel: sonnet\ntools: [Read, Write]\nbudget_usd: 1\n---\nDo the work.\n")
+git(human, "switch", "-q", "-c", "work-item/F0001-S0001")
+claim = Claim(instance="self", stage="doing", started_at=datetime.now(UTC) - timedelta(minutes=1), lease_duration=60)
+write(human, story, FrontmatterWorkItemWriter().render(WorkItemDocument(state=WorkItemState(stage="doing", claim=claim), body="# First story\n")))
+git(human, "commit", "-q", "-am", "doing starts")
+git(human, "push", "-q", "origin", "work-item/F0001-S0001")
+boundaries = boundaries_of("checkout")
+watch(boundaries)
+git(human, "switch", "-q", "main")
+write(human, "factory/pipeline.yml", "contract: [\n")
+git(human, "commit", "-q", "-am", "break the definition")
+git(human, "push", "-q", "origin", "main")
+boundaries.git.fetch()
+watch(boundaries)
+EOF
+```
+Expect: three lines, `resolve origin/main failed (no exit status): origin/main does not resolve`, `0 ['event: idle:-  F0001-S0001 is held by self'] ''` and `1 [] 'factory-watch: not valid YAML: did not find expected node content (line 2, column 1)\n'`
+
+## Journal
