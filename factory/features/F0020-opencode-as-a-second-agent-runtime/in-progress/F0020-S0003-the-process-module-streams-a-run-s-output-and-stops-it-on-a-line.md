@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T04:29:20.512660Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-19T04:29:00.773661Z'
   stage: doing
   run: 9ad038bf0ea649fe80f6f572dcbb3820
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:29:20.512660Z'
+  stage: tests
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -253,3 +262,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The description is already up to date: criterion 13 and the renumbered closing criteria 14 and 15 are in it. Since no file changed, I did not run `make check` this round. It was green after entry 10.
 
     Noticed but not touched: as entry 10 says, `make duplicates` reports `run_streaming` as unused. That is expected, because nothing calls it until S0004.
+15. factory: started tests as self.
