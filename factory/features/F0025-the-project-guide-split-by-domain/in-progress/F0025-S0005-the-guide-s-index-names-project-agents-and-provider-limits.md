@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T22:42:52.643338Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T22:42:52.643338Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T22:43:15.057097Z'
+  stage: smoke-test
+  run: d47e08e6943a43d0aae639746c65eac5
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -187,3 +189,37 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root. I ran the three commands exactly as written, in order. All three met their `Expect:` lines, and there are no findings.
+
+    Command 1 (the Python check of the index's *The files*):
+    ```
+    True
+    True
+    2
+    True
+    ```
+    Expect: four lines, `True`, `True`, `2` and `True`. Met.
+
+    Command 2 (`git diff --name-only origin/main -- src tests image template demo claude | wc -l; git diff --name-only origin/main -- docs README.md`):
+    ```
+    0
+    docs/project-guide/README.md
+    ```
+    Expect: two lines, `0` and `docs/project-guide/README.md`. Met.
+
+    Command 3 (`uv run -q python -m factory.entry.check_documents`):
+    ```
+    documents ok
+    ```
+    Expect: `documents ok`. Met.
+
+    Acceptance criteria, read again against the results:
+    1. Command 2 shows nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester (entry 5) and the coder (entry 7) each said so in their entries.
+    2. `make check` was green after the coder (entry 7), and the factory's gate reused that result after the docs stage (entry 11). The smoke test does not contradict it.
+    3. Docs: I also read `git diff origin/main -- docs`. Exactly two lines of `docs/project-guide/README.md` change.
+       - The `agents.md` line gains `factory.application.project_agents` between `factory.adapters.validation_faults` and `factory.domain.provider_limits`.
+       - The `stages.md` line gains `factory.application.provider_limits` right after `factory.adapters.pipeline_yaml`.
+       - Both are in backticks. Each line's domain, its existing modules, its `Sections:` list and its `Subsections other files refer to:` list are unchanged.
+       - No other line or file of the guide changes. No guide file is over 600 lines, and `documents ok` was printed.
+
+    I fixed nothing and created no files. Nothing is open.
