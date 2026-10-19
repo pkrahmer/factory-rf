@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T23:36:41.771479Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T23:36:41.771479Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:38:24.619435Z'
+  stage: tests
+  run: b14725f670f44e75b10950c951cfc57f
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -98,3 +100,11 @@ Expect: `documents ok`
    - Architecture: no layer is touched, and the change is limited to documents, which fits the documenter's write paths (`README.md` and `docs/*`).
    - Scope: the story belongs to F0022 and records the proof run (the feature's change 2, decision 15). It leaves the nested `.claude/skills/` open, as decision 12 does, and touches nothing the feature puts out of scope. The story's description of the proof run's evidence is the human's account, and I did not verify it.
 4. factory: started tests as self.
+5. tester: No tests written. This story changes documents only, and its Interface says no test changes.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test function. I made no change under any of those paths. `git status` shows only the factory's own `.costs.jsonl` sidecar.
+   - criterion 2 (`make check` stays green): no test function. It is the factory's check. `make test` is green now (coverage 99.13 %) and `make lint` is green.
+   - criterion 3 (docs): no test function. The documenter writes it, and the smoke test and `make documents` cover it.
+   Files created: none. Every test module imported: since there are no new tests, nothing is red on purpose, and the coder has no test specification for this story.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.4 s)
