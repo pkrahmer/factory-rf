@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:08:41.216278Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T04:08:41.216278Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:10:29.309757Z'
+  stage: doing
+  run: 1f834a06c7984e2ea583152472cc1fc4
 ---
 
 # What every agent runtime shares moves into one module
@@ -328,3 +330,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (36.5 s)
 14. factory: started doing as self.
+15. coder: Round 1, back from the tests stage. The reviewer's only finding (entry 9, item 1, the copied `reads_os_environ`) is fixed. In entry 13 the tester moved the helper into `tests/source_search.py` and made both search modules use it from there. That fix was a test change only, so this round needs no code change, and I made none: the working tree holds no change from me. `make check` is green on the committed state.
+
+    What I built is unchanged from round 0 (entry 7):
+    - `src/factory/domain/agent_runs.py`: `resumed_result`.
+    - `src/factory/adapters/agent_launch.py`: the shared words, rules, removal, refusals and resume share, plus `Launch`.
+    - `src/factory/adapters/claude_runtime.py`: calls the shared functions. It lists the moved names in `__all__` and reads the values tests set on it (`SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES`, `run_process`) from its own namespace at the call.
+
+    Main choice this round: I handed forward without touching the code. The other option was to also add the reviewer's open note to the Interface (naming `request_home`). I didn't, because the round covers exactly the findings and that note was not a finding.
+
+    Refactor: nothing to change, since the round left no diff of mine.
+
+    Description: unchanged. No journal entry changed what the task means.
+
+    Noticed but not touched:
+    - Still open from entries 5, 7 and 13: `tests/test_agent_launch_search.py` reads the source, so it may belong on mutmut's list of left-out structural tests in `pyproject.toml`. That file is outside my write paths.
+    - The Interface could name `request_home` in `src/factory/adapters/agent_launch.py`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
