@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T17:40:23.060880Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T17:40:23.060880Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T17:43:17.724949Z'
+  stage: tests
+  run: 6c64ca6592c543b5bcaf2d9ccfbbb8de
 ---
 
 # The claim service's refusals name their cause
@@ -125,3 +127,22 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
    Architecture: tests only, in the application test folder; no layer is touched, and no earlier test changes.
    Scope: inside F0026's goal of killing the survived mutants in claims.py; no listed out-of-scope item is touched. Note: feature.md's Scope and Stories list only S0001, while this story was proposed by the feature acceptance. This is the human's to start, so I did not question it.
 4. factory: started tests as self.
+5. tester: Wrote the tests that pin the text of each `ValueError` refusal from `ClaimService`. Each row checks `str(caught.value)` for equality with the exact message.
+
+   - criterion 1: tests/application/test_claims_refusals.py::test_service_refusal_of_an_instance_name_quotes_the_name. It has three rows: `"Factory-1"` and `""` are refused with the quoted name, and `"factory-1"` is accepted.
+   - criterion 2: tests/application/test_claims_refusals.py::test_claim_refusal_names_its_cause_and_writes_nothing. It has six rows: other-stage, unknown-stage, stage-without-role, other-branch, no-work-item-file and checkout-on-main.
+     - The `prepared` fixture puts the work item at `doing` on its own pushed branch, `work-item/F0001-S0001`. The checkout stays on that branch unless the row is checkout-on-main.
+     - Each row compares a snapshot taken before and after the claim: git status, the text of the work item file and of `notes.md`, and the remote's branch commit.
+     - The tests use the `boundaries` and `definition` fixtures from `tests/conftest.py`.
+   - criterion 3 (`make check` stays green) and criterion 4 (docs: none) need no test.
+
+   Files created: tests/application/test_claims_refusals.py. No earlier test file was changed.
+
+   Modules the test run could not import: none. The story changes no code, so these tests pass already: `make test` was green, and these tests are not red for the coder. The coder has only to keep `make check` green. Whether the seven mutants in `claims.py` are now killed is for the `mutants` report to show.
+
+   `make lint` is green. I ran `ruff format` on the new file to fix its line wrapping.
+
+   One choice I made: the new module keeps its own small `_snapshot` and `_file_text` helpers rather than sharing the ones in `tests/application/test_claims.py`. The story says that file stays unchanged, so I did not move them to a shared place under the standing leave.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (48.6 s)
