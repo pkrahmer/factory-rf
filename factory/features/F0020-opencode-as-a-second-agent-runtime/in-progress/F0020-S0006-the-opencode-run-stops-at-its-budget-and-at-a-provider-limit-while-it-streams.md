@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:05:02.271823Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   stage: doing
   run: 573612d9d583433bb80918dbb882986d
   reason: check_red
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:05:02.271823Z'
+  stage: doing
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -257,3 +266,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    =========================== short test summary info ============================
    FAILED tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]
    make: *** [Makefile:75: test] Error 1
+9. factory: started doing as self.
