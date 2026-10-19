@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T14:34:51.352028Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T14:34:30.899753Z'
   stage: doing
   run: db0c5cecd9d441f19f806a6768ee64c4
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:34:51.352028Z'
+  stage: tests
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -315,3 +324,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice: end with `tests` instead of `question`, because the standing leave in CLAUDE.md covers this exact move. I rejected adding the fifth module only as a note: the leave covers it too, and the reviewer would count it next round.
 
     Noticed, not touched: the open notes from entry 7 still stand. `make duplicates` shows five findings that predate this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter`. `update-index` receives the left-out paths in one argument list, which could hit the system's argument-length limit if a very large number of paths were left out.
+12. factory: started tests as self.
