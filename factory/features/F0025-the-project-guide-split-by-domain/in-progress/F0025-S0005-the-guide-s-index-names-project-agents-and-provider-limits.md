@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 295
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T22:37:12.258996Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T22:37:12.258996Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T22:37:29.049172Z'
+  stage: intake
+  run: 06f44ed3ae40476786d76baed81414d9
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -82,3 +84,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a docs-only story. It names exactly the two lines of `docs/project-guide/README.md`, *The files*, that change (`agents.md` at line 14, `stages.md` at line 18). I checked that both lines exist, and that `factory.application.project_agents` and `factory.application.provider_limits` exist under `src/factory/application/`. No comment in the Interface states a behaviour.
+   Criteria: the three are testable and each is verified by a command. Criterion 1 is checked by the `git diff --name-only` smoke test, 2 by `make check`, and 3 by the smoke test and `check_documents`. The ordering rule (adapters, then application, then domain) fits the current `agents.md` line: `validation_faults`, then the new `project_agents`, then `domain.provider_limits`. On the `stages.md` line the new module goes after `pipeline_yaml` as stated. The "keeps as they are" clauses and the 600-line limit have a check each. There is no failing-side rule to test, because the story adds no code.
+   Smoke test: the commands are runnable. The Python snippet prints four lines and its `Expect:` states them (`True`, `True`, `2`, `True`). The second block expects `0` and `docs/project-guide/README.md`. The third expects `documents ok`.
+   Architecture: it fits. The documenter writes only `docs/*`, and no layer is touched.
+   Scope: it is inside F0025's purpose, the index naming each module of the guide's files. It is not in "Out of scope", because it adds no lasting test and no rewording. The story leaves the question of a lasting check of the index's completeness open for the human (F0025-A0003).
