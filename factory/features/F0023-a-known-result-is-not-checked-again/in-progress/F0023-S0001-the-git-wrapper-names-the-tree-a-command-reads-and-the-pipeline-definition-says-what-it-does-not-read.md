@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T14:32:36.302068Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T14:32:36.302068Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T14:33:45.904837Z'
+  stage: review
+  run: 6cd31f31389b45f58c6f4bfbac87d2a7
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -261,3 +263,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 7 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read the generated schemas only for `pipeline-definition.schema.json`; the other four change only their version.
+
+   Groups 1 to 3 hold. Every criterion from 1 to 8 has a test that checks what the criterion says, and every stated limit is tested on both sides:
+   - `TreeId`: 39, 40 and 41 characters, upper case and non-hex.
+   - `left_out`: `Docs/*` and `docsx`.
+   - The load rule's refused forms, the order of faults and how they join.
+   - The non-list, non-string, empty and blank `not_read`.
+   - `GitError` together with the removed temporary folder.
+
+   The coder's entry 7 records `make check` green. The layers hold: `is_inside_checkout` moved to `pipeline_definition` with no cycle, git is reached only through `GitCli._run`, and `update-index --force-remove --` takes literal paths. No markers, no strings built into a shell, no secrets. The contract went from 1.2 to 1.3 for an optional field, which follows the minor-version rule.
+
+   Group 4 fails on one test file the diff adds (round 0, so it is a finding):
+
+   1. `tests/domain/test_pipeline_not_read.py:17` `_fault_of` is a second copy of `_outcome`, which is already in `tests/domain/test_tool_paths.py:39`, `tests/adapters/test_pipeline_strict_values.py` and `tests/adapters/test_pipeline_rules.py`. It has the same body and the same docstring: parse with `RuamelPipelineDefinitionReader` and return the fault, or `None`. Fix: under the standing leave, the tester moves `_outcome` to one shared module at the `tests/` root (for example beside `PIPELINE_YAML` in `tests/git_support.py`). The new test and the earlier modules then use it from there, and every earlier test keeps its name and what it checks. This is a tester change, so the coder ends with `tests` and names this change.
+
+   Rejected as findings:
+   - `TreeId` repeats `CommitId`'s pattern literally, but the story's Interface prescribes exactly that line.
+   - `self._directory / ".git" / "index"` and the `rev-parse`-style `stdout.strip()` return follow the wrapper's existing idiom (`git_cli.py:311`, `:476`).
+
+   Earlier tests (changed, not added):
+   - `tests/application/test_git_interface.py`: the human's leave, the story naming it under the feature's decision 15 (`work_tree_id` added to `OPERATIONS`, test renamed to `..._twenty_four_...`). Within the leave.
+   - `tests/application/test_interfaces.py`: the human's leave, the story under decision 15 (test renamed). Within the leave.
+   - `tests/domain/test_contract.py`: the human's leave, the story under decision 15 (one `"1.2"` became `"1.3"`). Within the leave.
+   - `tests/domain/test_contract_provider_limit.py`: the human's leave, the story under decision 15 (two `"1.2"` became `"1.3"`; name and docstring kept). Within the leave.
