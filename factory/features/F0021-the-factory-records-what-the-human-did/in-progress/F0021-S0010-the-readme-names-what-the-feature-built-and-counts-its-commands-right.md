@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T02:11:16.777828Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T02:11:16.777828Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T02:12:16.168276Z'
+  stage: tests
+  run: 9b127a4d5be04df49fb0816313ff0c3f
 ---
 
 # The README names what the feature built and counts its commands right
@@ -101,3 +103,11 @@ Expect: `documents ok`
    Architecture: no code layer is touched, so there is nothing to place. The documenter's write paths cover `README.md` and `docs/*`.
    Scope: within F0021. The story repairs the README and the operator guide's contract section, which belong to the S0006 docs and the feature's goal. Nothing in "Out of scope" is touched.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes docs, and its Interface is "None".
+   - criterion 1: no test function. The criterion forbids changes under `tests/`, so I wrote no test, and nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage. `git status` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   - criterion 2: no test function. The factory's `make check` covers it.
+   - criterion 3 (docs): no test function. The documenter's work is checked by the smoke test's greps and by `python -m factory.entry.check_documents`. A pytest test that pins README wording would itself be a change under `tests/`, which criterion 1 rules out.
+   Files created: none. Modules the test run could not import: none, since there are no new tests. I did not run `make test` because there is no new red test to see fail. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.0 s)
