@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T20:17:36.458297Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T20:17:15.323801Z'
   stage: doing
   run: dfa7691c53fc41f1878cbab8315f6fcc
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:17:36.458297Z'
+  stage: review
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -146,3 +155,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
