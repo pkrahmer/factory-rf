@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T12:31:51.835974Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T12:31:51.835974Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T12:36:48.602420Z'
+  stage: tests
+  run: 123b6c61b7364611891103a5ea96d9d2
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -191,3 +193,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the lease rule sits in domain and is pure. The service wraps it in application and `Watcher` chooses the status function. Only `entry` changes the wiring, and the layer order is kept. The only test change to another story's module is `tests/test_claim_ownership.py`, and the human gave it in decision 5.
    Scope: it matches feature.md's Scope list. The tick, `RecoveryHandler`, `CLAIM_EVENTS`, the board and `claim_status` stay unchanged, as Out of scope requires. Decision 4's precondition (F0020-S0007 archived) is the human's to keep, and they started this story.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 6. Each criterion is one parametrized test, and every claim is aged from `clock.now()` (a fixed `NOW` in the domain test) with `lease_duration` 60.
+   criterion 1: tests/domain/test_lease_observed.py::test_an_observed_claim_is_judged_by_its_lease
+   criterion 2: tests/application/test_claims_observed.py::test_the_observed_status_judges_an_own_claim_by_its_lease
+   criterion 3: tests/application/test_watcher_observer.py::test_a_story_claim_is_judged_from_outside_by_its_lease
+   criterion 4: tests/application/test_watcher_observer.py::test_an_acceptance_claim_is_judged_from_outside_by_its_lease
+   criterion 5: tests/entry/test_watch_own_claim.py::test_the_watch_judges_its_own_instances_claim_by_the_lease
+   criterion 6: tests/test_claim_ownership.py::test_only_the_claim_service_uses_the_lease_functions (its `LEASE_FUNCTIONS` now ends with "observed_claim_status"; nothing else in the module changed, under the feature's decision 5)
+   criteria 7 and 8: no test (make check, docs).
+
+   Files created: tests/domain/test_lease_observed.py, tests/application/test_claims_observed.py, tests/application/test_watcher_observer.py, tests/entry/test_watch_own_claim.py. Earlier test file changed: tests/test_claim_ownership.py (decision 5). I copied the `_agents` fixture of tests/entry/test_watch.py into test_watch_own_claim.py, as the Interface allows, and left test_watch.py unchanged.
+
+   How the tests are built: in the watcher test rows, "observer left out" means `Watcher(boundaries, INSTANCE)` with no keyword at all. The acceptance rows open `F0002` with `AcceptanceService.open` on a complete `F0002-todo`. They then push the branch state at stage `acceptance` with the claim, through `human.push_file`.
+
+   `make test` (one run) is red, as intended:
+   - tests/domain/test_lease_observed.py does not import, because `observed_claim_status` is not in `factory.domain.lease` yet.
+   - The observer rows of the watcher tests fail, because `Watcher` does not take `observer` yet.
+   - The claim-service and watch tests fail because `observed_status` does not exist and `run_watch` still shows an own claim within its lease as `crash`.
+   - The ownership test fails because `observed_claim_status` is not imported by `factory.application.claims` yet.
+
+   The rows that pin unchanged behaviour (the tick's own-claim crash, another instance's claim, the watch's crash at the lease) may already pass. `make lint` is green; I ran `ruff format` on the new files. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_lease_observed.py - ImportError while importing test ...
