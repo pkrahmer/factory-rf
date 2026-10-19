@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T16:29:22.644247Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T16:29:01.484769Z'
   stage: tests
   run: a22d91aac353454295af6500799cc056
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:29:22.644247Z'
+  stage: doing
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -106,3 +115,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/domain/test_command_line_time_limit.py::test_only_a_command_stopped_at_its_time_limit_gets_the_stop_note[empty-last-line]
+6. factory: started doing as self.
