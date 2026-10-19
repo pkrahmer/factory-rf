@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T21:04:37.016854Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T21:04:37.016854Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T21:04:58.882243Z'
+  stage: smoke-test
+  run: 26c2e8dd158c4860b95afd259ad4c25a
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -363,3 +365,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, exactly as written and in order. Each one met its `Expect:` line. I changed nothing.
+
+    Command 1 (the new texts of the acceptance reviewer):
+    ```
+    4
+    ```
+    Met: `4`. Check 3, check 7, step 1 and step 3 each hold their new text.
+
+    Command 2 (no old text is left):
+    ```
+    0
+    0
+    template/CLAUDE.md:0
+    template/Makefile:0
+    ```
+    Met: four lines, `0`, `0`, `template/CLAUDE.md:0` and `template/Makefile:0`.
+
+    Command 3 (the new template sentence):
+    ```
+    1
+    ```
+    Met: `1`.
+
+    Against the acceptance criteria: I also checked the line layout that the commands do not cover, and none of it contradicts a criterion.
+    - In `claude/agents/acceptance-reviewer.md`, the `3. **Mutation testing.**` line is at line 55, and the next line starts `4. **What the stories noticed.**` (criterion 2).
+    - In `claude/agents/reviewer.md`, the `6. **Earlier tests**` line is followed by one blank line and then `Write findings as a numbered list in your entry` (criterion 3).
+    - In `template/Makefile`, line 103 holds the new `make mutants FEATURE=F0001` comment line (criterion 4).
+
+    Not covered by this stage: criteria 5 and 6 (the earlier tests still pass, `make check` stays green) are proved by the factory's checks, not by this smoke test. The docs criterion belongs to the docs stage.
+
+    Findings: none.
