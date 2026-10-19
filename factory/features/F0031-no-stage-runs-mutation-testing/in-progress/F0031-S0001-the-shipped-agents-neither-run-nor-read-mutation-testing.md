@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:57:24.472810Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T20:57:24.472810Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:57:38.230068Z'
+  stage: doing
+  run: 3ffd636478c14af4b2e9487a1d9744fd
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -201,3 +203,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/test_claude_agent_texts_mutants.py`: the human's leave, decision 7 of the feature, which the story names (rewritten; see finding 1 for the docstring that goes beyond it).
    - `tests/test_claude_files.py`: the human's leave, decision 7 of the feature, which the story names. Only `TEMPLATE_RULES_LINES` changed: the sentence was replaced and the strings around it were wrapped again, and every other line and test is as it was.
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's only finding is about a test, so I changed no code. I'm passing it to the tester.
+
+    - Test change: in `tests/test_claude_agent_texts_mutants.py`, line 1, set the module docstring to decision 7's exact text: `"""No shipped agent runs or reads mutation testing; the acceptance's check 3 says it is done by sweep."""`. It currently reads `"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""`. Nothing else in that file changes.
+    - Code: the four files under `claude/` and `template/` stay as they were in entry 7. The reviewer found that they match the Interface exactly. No refactor was needed, and no other file changed.
+    - Choice: I'm handing the change on with `tests` rather than raising a question. The reviewer's finding names decision 7's exact text, so nothing is left to decide unless the human prefers the tester's wording. The reviewer left that call to the human, and I have no reason to ask for it.
+    - Noticed, not touched: what I reported in entry 7 still holds. Line 4 of `template/Makefile` calls `duplicates` and `mutants` "reports outside `check`", which could be a later wording story.
