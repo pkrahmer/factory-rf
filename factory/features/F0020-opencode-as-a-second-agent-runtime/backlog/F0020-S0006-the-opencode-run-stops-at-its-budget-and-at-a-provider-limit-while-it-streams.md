@@ -47,7 +47,7 @@ Tests (the tester writes them): `tests/adapters/test_opencode_budget.py`, `tests
 
 ```bash
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
-mkdir "$d/work"
+mkdir "$d/work" "$d/state"
 cat > "$d/opencode" <<'EOF'
 #!/bin/sh
 here=$(dirname "$0")
