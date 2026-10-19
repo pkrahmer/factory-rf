@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T14:37:19.247939Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T14:36:58.183346Z'
   stage: tests
   run: ec2395a87fb340d9a1c3a19ca9a14d13
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:37:19.247939Z'
+  stage: doing
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -349,3 +358,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (48.6 s)
+14. factory: started doing as self.
