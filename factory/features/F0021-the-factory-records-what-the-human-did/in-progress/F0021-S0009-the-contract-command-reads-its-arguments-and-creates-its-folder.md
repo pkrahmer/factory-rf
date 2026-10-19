@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T01:34:07.080307Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T01:33:46.814411Z'
   stage: tests
   run: 69f6840e309c4477b68ffcd73a5a892e
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:34:07.080307Z'
+  stage: doing
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -183,3 +192,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.2 s)
+14. factory: started doing as self.
