@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T15:05:04.338543Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-19T15:05:04.338543Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-19T15:05:22.679392Z'
+  stage: doing
+  run: af99403547124ba0bf719c2c12ed5ea1
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -320,3 +322,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Noticed but not touched: `KnownResults._append` repeats the comment "the record is telemetry" from `RecordingProjectCommands.run`. The two cases mean the same thing, so I left both.
 8. 2026-10-19 human: (a). The tester asserts `"`check`." in note.body` together with the existing `"check done"` check (or compares with `stall_note("check_red", 1, 2, detail=...)`, as `tests/application/test_stalls.py:459` does). This story's own test; `stall_note` stays as it is. End with `tests` naming the change.
 9. factory: started doing as self.
+10. coder: Following the human's answer (a) in entry 8, I made no code change. The tester needs to make one change to `tests/application/test_stage_known_results.py::test_a_red_check_stalls_and_is_run_again_on_the_same_code` (line 178). Replace `assert "`check`\n" in note.body` with `assert "`check`." in note.body`, or compare against `stall_note("check_red", 1, 2, detail=...)` as `tests/application/test_stalls.py:459` does. Keep the `"check done"` assertion. `stall_note` stays as it is.
+
+    The implementation from entry 7 is already committed on the branch and unchanged:
+    - `src/factory/domain/known_results.py`
+    - `src/factory/domain/checks.py`
+    - `src/factory/application/known_results.py`
+    - `src/factory/application/boundaries.py`
+    - `src/factory/application/stage.py`
+    - `src/factory/entry/wiring.py`
+
+    Its main choice is also unchanged: the digest is computed once, in the `KnownResults` constructor, rather than on every `run`.
+
+    `make check` was not run in this round, since nothing changed. In entry 7, that test was the only red result in `make check`. Once the tester has changed it, the next doing round runs `make check` again.
+
+    Noticed but not touched: as entry 7 says, the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
