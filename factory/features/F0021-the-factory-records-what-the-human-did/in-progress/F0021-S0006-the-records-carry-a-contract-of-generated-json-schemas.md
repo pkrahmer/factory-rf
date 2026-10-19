@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T00:07:35.168085Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T00:07:35.168085Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T00:08:31.947288Z'
+  stage: review
+  run: 87f6f4890d274f169723b368fa8727a9
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -222,3 +224,16 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked, against `git diff main...HEAD -- . ':!factory'` and the work item:
+   - Acceptance criteria: every criterion from 1 to 7 has its test, and each test checks what its criterion says. Criterion 2 has one row per entry. It checks the first two keys, their values, that the rest equals `model_json_schema(mode=entry.mode)`, and the single closing newline. Criterion 3 checks the optional causes, the optional denials and the four required fields of the stop record. Criterion 4 has three rows: a missing folder, an unrelated file left unchanged, and a stale schema that gets replaced. Criterion 5 has one byte comparison per file, plus a row that no other file is in the folder. Criterion 6 has rows for no argument, one argument and two arguments, which covers both sides of the "more than one argument" limit, with `CONTRACT_FOLDER` checked before the patch in every row. Criterion 7 has one row per entry. The coder's journal entry 7 says `make check` was green.
+   - Architecture: `factory.domain.contract` only builds text with `json.dumps` and does no I/O. The file writing and the command are in `factory.entry.contract`, where the Interface puts them. `check_duplicates.py` already writes a file directly from `entry`, so this follows the existing pattern. The layer direction holds.
+   - Security: no strings built into commands, no markers that silence a check, no secrets. The test values are not hex.
+   - Quality: the names are clear. The module constants `_USAGE` and `_OK` follow the same style as `bill.py`, `check_story.py` and `run.py`. Both public functions and the module have docstrings, and the comments say why. No code is copied from an existing helper. The `duplicates` line in the coder's entry reports 0 new findings.
+   - Records contract: this is a new contract at version `1.0`. The five schemas are what `write_contract` generates (criterion 5 compares them byte for byte).
+   - Work item hygiene: entry 7 explains the main choice (`CONTRACT_FOLDER` is read when `main` is called) and what was rejected (the atomic `os.replace`). The Description matches what was built. The docs criterion still covers what a reader needs.
+
+   Considered and not raised: criterion 2 compares the rest of the schema as a dict, so a change that reorders only the model's own keys would not be caught. Any reorder that touches the first two keys, `sort_keys=True` among them, fails the test. The Interface's "nothing reordered" is therefore covered well enough.
+
+   Earlier tests: none. Every test file in the diff is new (status `A`).
