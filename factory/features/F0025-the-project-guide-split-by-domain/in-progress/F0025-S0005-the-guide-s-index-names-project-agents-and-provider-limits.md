@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T22:42:14.966939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T22:42:14.966939Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T22:42:32.512280Z'
+  stage: docs
+  run: 276bca75576a49dc8590ca476655a01b
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -162,3 +164,16 @@ Expect: `documents ok`
    5. Work item hygiene: entries 5 and 7 explain why nothing was built (the documenter owns `docs/project-guide/`, under CLAUDE.md *Docs*) and what was rejected (the coder making the edit). The docs criterion still matches the repository. The `agents.md` line (README.md:14) lists `factory.adapters.validation_faults` and then `factory.domain.provider_limits`, so `project_agents` goes between them. The `stages.md` line (README.md:18) lists `factory.adapters.pipeline_yaml` first among "It also names". Both modules exist: `src/factory/application/project_agents.py` and `src/factory/application/provider_limits.py`.
    6. Earlier tests: none. No test file is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/project-guide/README.md`, *The files*, two lines only. The `agents.md` line now names `factory.application.project_agents` after `factory.adapters.validation_faults` and before `factory.domain.provider_limits`. The `stages.md` line now names `factory.application.provider_limits` after `factory.adapters.pipeline_yaml`. Both are in backticks in the "It also names ..." sentence, as the docs criterion asks. Each line keeps its domain, its existing modules, its `Sections:` list and its `Subsections other files refer to:` list. No other line or file of the guide changed.
+
+    Checked: `uv run -q python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only a document under `docs/`. The factory's checks after this stage decide. I did not run the work item's other smoke-test commands either.
+
+    Cross-read and found current: the rest of `docs/project-guide/README.md`, the `agents.md` and `stages.md` lines as they were, and the diff against `main`. That diff touches nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, so no other document can have gone stale from it.
+
+    Stale text noticed and not touched: nothing.
+
+    Findings for the coder: none.
+
+    `check`: check: green (not run again: passed on tree 4b0c868681a6 at 2026-10-19T22:40:16Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
