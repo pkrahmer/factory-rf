@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T21:47:24.502300Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T21:47:04.105539Z'
   stage: review
   run: 12f5154a06224fc3a00bbcd85231ca0d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:47:24.502300Z'
+  stage: docs
 ---
 
 # The wired known results and disk records read back what they write
@@ -145,3 +154,4 @@ Expect: a line that starts with `2 passed`
    4. Quality: the names say what they are. `_read_back` is generic over the record model and copies no existing helper; I searched `tests/` for one.
    5. Work item hygiene: the journal records the main choice (no code change, and the rejected idea of adding code for its own sake) and what is still open (the log of `RecordingProjectCommands`). The Description matches what was built, and `docs: none` still holds.
    6. Earlier tests: the diff changes no file that `main` already holds under `tests/`. The only test file in the diff has status `A`, so no leave was needed.
+10. factory: started docs as self.
