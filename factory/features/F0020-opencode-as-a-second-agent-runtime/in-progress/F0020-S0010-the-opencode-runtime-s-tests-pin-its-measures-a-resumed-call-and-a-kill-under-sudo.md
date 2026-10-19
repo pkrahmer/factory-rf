@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T19:05:23.636099Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-19T19:05:23.636099Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T19:05:55.828305Z'
+  stage: smoke-test
+  run: 846c6b424a8947fab9c679a07793fef2
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -293,3 +295,26 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: No findings. I ran the smoke test from the repository root exactly as written, as one bash script: the stand-in `opencode` in a `mktemp -d` folder that removes itself on exit, then the Python snippet through `uv run -q python`. No server was involved. I fixed nothing.
+
+    Command 1, the stand-in `opencode` and the `OpencodeRuntime.run` snippet. Output (exit status 0):
+
+    ```
+    completed 'First line.\n\nThird line.' 0.8 ['{"command": "git push"}']
+    run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_s
+    ```
+
+    Expect: met. The output is the two expected lines, character for character:
+    - The end reason is `completed`.
+    - The entry keeps its line breaks, including the empty middle line.
+    - The model time is 0.8 s. The first step is 1000 ms less both tool calls (100 ms and 200 ms), which leaves 700 ms, and the resumed step adds 100 ms.
+    - Exactly one denial is listed, `{"command": "git push"}`. The `exit 1` failure before it neither appears as a denial nor hides it.
+    - The second call's words are the first call's words, then `--session ses_s`, with `FINISH_MESSAGE` after them. The budget resume happened because the first call cost 1.2 against a budget of 1.
+
+    Acceptance criteria, read again against this output: nothing contradicts any of them.
+    - Criteria 1 to 4 (the result block, the model time, the denials, the resumed words): the run shows each behaviour as the criterion states it.
+    - Criteria 5 and 6 (the kill under `sudo`, the temporary folder after the run): the smoke test does not exercise them. The tester's tests cover them, and nothing here contradicts them.
+    - Criterion 7: the coder's `make check` was green (journal 10).
+    - Criterion 8 (docs) was handled by the documenter (journal 14).
+
+    Open: none.
