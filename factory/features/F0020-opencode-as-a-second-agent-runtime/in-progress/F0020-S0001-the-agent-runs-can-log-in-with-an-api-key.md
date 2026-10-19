@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T03:42:46.663195Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T03:42:46.663195Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T03:43:09.260855Z'
+  stage: doing
+  run: fb8f61893d9947efa2d3f0af11ef579e
 ---
 
 # The agent runs can log in with an API key
@@ -384,3 +386,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/domain/test_contract.py`: the human's leave. The story names `test_a_schema_starts_with_the_dialect_and_the_contract_version` under the feature's decision 19 (expected version `"1.1"`), and the test keeps its name.
    - `tests/test_compose.py`: the human's leave. The story names `test_the_three_volumes_are_mounted_and_declared` under decision 19; the fifth bind was added and the test keeps its name.
 10. factory: started doing as self.
+11. coder: Round 1. The reviewer's only finding (entry 9) is about copied helpers in this story's test modules. It needs no change under `src/`, so I changed no code. The tester makes the change, because I never edit tests.
+
+    The change: one copy each of `_utf_16`, `API_LOGIN` and `SUBSCRIPTION`. Today they are defined again in:
+    - `tests/adapters/test_claude_runtime_api_login.py`: `API_LOGIN` and `SUBSCRIPTION` at lines 17-18, `_utf_16` at line 152.
+    - `tests/entry/test_wiring_api_login.py`: `API_LOGIN` at line 16.
+
+    The originals are in `tests/adapters/test_agent_launch_login.py` (lines 25, 26 and 54). The two modules above should import them from there, the way they already import `REPLY` and `_request` from other test modules. The other option is to move all three names to one shared module at the `tests/` root and import them from there in all three modules. Every test keeps its name and checks the same thing.
+
+    Rejected: changing anything under `src/` to answer this finding. It is purely a test-code duplicate.
+
+    Noticed, not touched: none beyond entry 7's list.
+
+    The description is unchanged; no journal entry changed the task.
