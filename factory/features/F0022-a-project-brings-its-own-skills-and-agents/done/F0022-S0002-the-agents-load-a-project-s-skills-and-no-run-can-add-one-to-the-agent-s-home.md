@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T13:52:14.860043Z'
   stage: smoke-test
   run: b64a6fd15f794a44b47023af4cf13978
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T13:53:33.691957Z'
+  stage: approval
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -448,3 +453,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Against the acceptance criteria: nothing in the output contradicts any criterion. The output supports criteria 1 (the tools lines), 2 (the settings), 3 (the R15 line is in each of the seven agents once), 4 (the case of a planted skill folder: exit 0, empty folders, mode 755) and 5 (the `["Read", "Skill"]` row). The smoke test does not check the entrypoint's three log lines, because it discards the output, and it does not check folder ownership. The tests behind criteria 4 and 6 cover those, along with criterion 7 (`make check`), which the factory runs. I did not run `make check` myself.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 8.9 min, 66 turns, 237063 tokens in (1277169 more from cache), 28267 out, $2.42
