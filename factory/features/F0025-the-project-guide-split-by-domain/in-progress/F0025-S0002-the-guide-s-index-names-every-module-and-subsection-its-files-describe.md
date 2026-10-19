@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T09:09:26.821246Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T09:09:26.821246Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T09:09:58.450625Z'
+  stage: smoke-test
+  run: 31052bf52f52474eaedcadf3263bb05d
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -235,3 +237,37 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: No findings. I ran the four smoke test commands from the repository root exactly as written, in order. Each one met its `Expect:` line. I fixed nothing.
+
+    Command 1 (the Python coverage script). Expect: two lines, `0 True` and `True`. Met.
+    ```
+    0 True
+    True
+    ```
+
+    Command 2 (the two `grep -c` counts). Expect: two lines, `1` and `0`. Met.
+    ```
+    1
+    0
+    ```
+
+    Command 3 (`git diff --name-only origin/main -- src tests image template demo claude | wc -l`). Expect: `0`. Met.
+    ```
+    0
+    ```
+
+    Command 4 (`uv run -q python -m factory.entry.check_documents`). Expect: `documents ok`. Met.
+    ```
+    documents ok
+    ```
+
+    I also read the acceptance criteria against `git diff origin/main -- docs`. Nothing contradicts any of them:
+    - Criterion 1 holds: command 3 shows no change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and entries 5 and 7 both say so.
+    - Criterion 2: the factory's `make check` after the docs stage was green (entry 11). I did not run it again here.
+    - Criterion 3, the index: the `docs/project-guide/README.md` diff only adds text (a word diff shows no removed words). So each line keeps its domain, its existing modules and its `Sections:` list. On each of the `agents.md`, `work-items.md` and `watching.md` lines, `Subsections other files refer to:` comes after `Sections:` and lists the names the criterion asks for, in italics.
+    - Criterion 3, the other two sentences:
+      - `agents.md`: one line changed, the "(see *The story form check* in `stages.md`)" sentence.
+      - `docs/decisions.md`: one line changed. Its first sentence now names `docs/project-guide/`, and the F0025-S0001 sentence is still in it. The dated F0011-S0005 entry is not in the diff, so it is unchanged.
+    - Criterion 3, the limits: no guide file passes 600 lines (command 1, second line), and `documents ok` is printed (command 4).
+
+    Still open, not a finding: the Description says "Three smaller passages" above a list of two. Intake, the coder, the reviewer and the documenter all noted this. The criteria name the right two passages.
