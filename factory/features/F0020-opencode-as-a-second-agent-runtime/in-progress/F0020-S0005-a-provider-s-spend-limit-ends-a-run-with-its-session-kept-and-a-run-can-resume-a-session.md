@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T08:06:46.084002Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   at: '2026-10-19T08:06:25.898922Z'
   stage: doing
   run: f72631595db34e198e92924aabea56d9
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-10-19T08:06:46.084002Z'
+  stage: tests
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -713,3 +722,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The 5 new `make duplicates` findings from entry 13. None of them comes from this story's diff.
 
     The journal (entry 31) added criterion 19, and the reviewer already wrote it into `## Acceptance criteria`. I did not touch `## Description`.
+38. factory: started tests as self.
