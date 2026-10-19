@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T14:37:19.247939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T14:37:19.247939Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:39:39.284092Z'
+  stage: doing
+  run: 0984ab8ae1e0459c9b46f94a3fd6f4d0
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -359,3 +361,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (48.6 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's move. The reviewer's one finding (entry 9, the copied parse helper) is fixed: in entry 13 the tester moved it to `pipeline_outcome` in `tests/git_support.py`, and the five modules that held a copy now use it from there. That was a change to tests only, so I changed no code this round. `make check` is green on the committed state: `test: green (47.2 s)`, coverage 99.07 %, `check: green`.
+
+    What I built: nothing new this round. The paths from round 0 are unchanged (entry 7):
+    - `src/factory/domain/git.py`
+    - `src/factory/application/git.py`
+    - `src/factory/adapters/git_cli.py`
+    - `src/factory/domain/pipeline_definition.py`
+    - `src/factory/domain/write_paths.py`
+    - `src/factory/domain/confinement.py`
+    - `src/factory/domain/contract.py`
+    - `src/factory/contract/*.schema.json`
+
+    Main choice (unchanged, from round 0): the left-out paths are removed with `git update-index --force-remove -- <paths>`, which takes them as literal paths. I rejected `git rm --cached` with `:(literal)` pathspecs, which need a prefix on every path and complain about paths they don't find.
+
+    Refactor pass: I had no new diff of my own to read, so nothing changed. The journal did not change what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - The tester left the `_changed` helper as a copy in `tests/adapters/test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py`, because only the parse helper was named. These copies were there before this story.
+    - The notes from entry 7 still stand:
+      - `make duplicates` shows five findings older than this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused `ManualWaiter`.
+      - `update-index` gets all left-out paths in one argument list, so a very large `left_out` could hit the system's limit on argument length.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
