@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T21:29:52.738194Z'
   stage: smoke-test
   run: d7691e770ec94de48c9bf12feb090a57
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T21:31:12.077831Z'
+  stage: approval
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -213,3 +218,4 @@ Expect: `True`
     3. Criterion 3 (docs: none): not contradicted.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 3.5 min, 32 turns, 106697 tokens in (492028 more from cache), 8188 out, $0.93
