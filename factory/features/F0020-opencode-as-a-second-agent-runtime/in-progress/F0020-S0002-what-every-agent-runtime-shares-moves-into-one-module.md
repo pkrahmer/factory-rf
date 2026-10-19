@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T04:06:36.635107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T04:06:36.635107Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:08:20.926528Z'
+  stage: tests
+  run: 34aaa8e5b37043c580bdb480910bb946
 ---
 
 # What every agent runtime shares moves into one module
@@ -298,3 +300,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Still open from entries 5 and 7: `tests/test_agent_launch_search.py` may need to go on mutmut's list of left-out structural tests in `pyproject.toml`, which is outside my write paths.
     - No journal entry changed the meaning of the task, so I did not rewrite the Description.
 12. factory: started tests as self.
+13. tester: Round 1, test change only. This is the move the coder named in entry 11 for the reviewer's finding in entry 9, item 1, made under CLAUDE.md's standing leave to move a shared test helper.
+
+    What I changed:
+    - tests/source_search.py: added a public `reads_os_environ(tree: ast.Module) -> bool`. It finds the attribute `os.environ`, and it finds `import os.environ` and `from os import environ` through `imported_modules`, which records `from os import environ` as `os.environ`. Its body is the earlier test's `_reads_os_environ`, which already covered all three forms.
+    - tests/test_agent_launch_search.py: the local copy of `reads_os_environ` is gone and the module imports it from `source_search`. Test names and what they check are unchanged.
+    - tests/test_agent_run_request_search.py (an earlier story's test file, changed under the standing leave): the private `_reads_os_environ` is gone and the module imports `reads_os_environ` from `source_search` instead. It no longer imports `imported_modules`. Both tests keep their names and check the same thing.
+
+    Criterion → test is unchanged from entry 5. Criterion 11 is still tests/test_agent_launch_search.py::test_neither_runtime_module_reads_os_environ and ::test_the_launch_module_does_not_import_the_process_module.
+
+    Files created: none. Files changed: tests/source_search.py, tests/test_agent_launch_search.py, tests/test_agent_run_request_search.py.
+    Modules the test run could not import: none. `make test` is green, since the code exists from round 0, and `make lint` is green.
+
+    Still open from entries 5, 7 and 9:
+    - tests/test_agent_launch_search.py may belong on mutmut's list of left-out structural tests in `pyproject.toml`, which is outside my write paths.
+    - The Interface could name `request_home`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (36.5 s)

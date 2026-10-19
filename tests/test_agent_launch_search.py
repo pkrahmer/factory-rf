@@ -2,29 +2,10 @@
 
 import ast
 
-from source_search import imports, modules
+from source_search import imports, modules, reads_os_environ
 
 LAUNCH = "factory.adapters.agent_launch"
 SEARCHED = (LAUNCH, "factory.adapters.claude_runtime")
-
-
-def reads_os_environ(tree: ast.Module) -> bool:
-    """Whether `tree` reads `os.environ` or imports `environ` from `os`."""
-    for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Attribute)
-            and isinstance(node.value, ast.Name)
-            and node.value.id == "os"
-            and node.attr == "environ"
-        ):
-            return True
-        if (
-            isinstance(node, ast.ImportFrom)
-            and node.module == "os"
-            and any(alias.name == "environ" for alias in node.names)
-        ):
-            return True
-    return False
 
 
 def test_neither_runtime_module_reads_os_environ() -> None:
