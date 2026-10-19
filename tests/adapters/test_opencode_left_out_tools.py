@@ -49,6 +49,14 @@ def _tools_of(call: StandInCall, agent: str) -> dict[str, bool]:
             "the opencode runtime has no tool for NotebookEdit",
             id="notebook-edit-refused",
         ),
+        pytest.param(("Skill", "Read"), {"read"}, id="skill-first"),
+        pytest.param(("Skill", "Read", "Bash"), {"read", "bash"}, id="skill-before-two"),
+        pytest.param(("Read", "Skill", "Grep"), {"read", "grep"}, id="skill-in-the-middle"),
+        pytest.param(
+            ("Skill", "NotebookEdit"),
+            "the opencode runtime has no tool for NotebookEdit",
+            id="notebook-edit-after-skill-refused",
+        ),
     ],
 )
 def test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused(
