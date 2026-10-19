@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T21:23:40.918296Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T21:23:20.190763Z'
   stage: intake
   run: aa86554ae37d48f79ed12866f9547c41
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:23:40.918296Z'
+  stage: tests
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -82,3 +91,4 @@ Expect: `True`
    - Smoke test: the commands are runnable (git init, three files, a short python script via `uv run`). The `Expect: True` line is checkable against the printed output.
    - Architecture: adapter layer only, with tests under `tests/adapters/` using the shared fixtures `checkout`, `run_git` and `write_files`, as the CLAUDE.md test layout requires. No earlier test changes.
    - Scope: it is inside F0023 and S0001's `work_tree_id`, adds a test only, and touches nothing in the feature's Out of scope.
+4. factory: started tests as self.
