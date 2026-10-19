@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:15:26.712569Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-19T10:15:06.472475Z'
   stage: tests
   run: 08601e91f4654aa494395ff5a1642714
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:15:26.712569Z'
+  stage: doing
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -405,3 +414,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.5 s)
+17. factory: started doing as self.
