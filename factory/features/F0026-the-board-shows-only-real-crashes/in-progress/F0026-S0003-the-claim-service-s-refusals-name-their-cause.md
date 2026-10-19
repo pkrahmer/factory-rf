@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T17:48:51.911308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-19T17:48:51.911308Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T17:49:28.161281Z'
+  stage: review
+  run: cfeadf54b7744f6a9c8a4476d8d693f3
 ---
 
 # The claim service's refusals name their cause
@@ -226,3 +228,12 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
    Earlier tests: none. The diff only adds files: `git diff --name-status main...HEAD` shows `A` for every test file, and only the work item is `M`.
 10. 2026-10-19 human: (b). The tester moves `_file_text` (with `test_undo.py`'s `_text` merged into it) and the work-item preparation into one shared module under `tests/` (for example `tests/git_support.py`), under the standing leave in `CLAUDE.md`; `test_claims.py`, `test_undo.py` and the new module import them, and every earlier test keeps its name and what it checks. The Description's sentence becomes "the tests in `tests/application/test_claims.py` keep their names and what they check".
 11. factory: started review as self.
+12. reviewer: Second review at round 0, after the human's answer in entry 10 chose (b). The diff has not changed since entry 9: it still only adds `tests/application/test_claims_refusals.py`. Groups 1 to 3 still pass, for the reasons given in entry 9. Each of the nine rows compares the exact `str` of the error, and the six claim rows also compare a before/after snapshot. The coder's entry 7 records `check: green` and has no `mutants` line, so there was no mutation report to read. Group 4 now fails, because the human has given leave for the fix.
+
+    1. `tests/application/test_claims_refusals.py:30` `_file_text` is a copy of `_file_text` in `tests/application/test_claims.py:93`, and of `_text` in `tests/application/test_undo.py:80`. Fix (tester, under entry 10): move one `_file_text` into a shared module under `tests/`, for example `tests/git_support.py` beside `remote_commit`. Merge `test_undo.py`'s `_text` into it. All three modules then import it, and every earlier test keeps its name and what it checks.
+    2. `tests/application/test_claims_refusals.py:46` the `prepared` fixture (with `_document` at :25) repeats `_prepare` and `_state` in `tests/application/test_claims.py:46-71`. Fix (tester, under entry 10): move the work-item preparation into the same shared module. Both modules then use it, and every earlier test in `test_claims.py` keeps its name and what it checks.
+    3. The work item's `## Description` still says "and so is `tests/application/test_claims.py`", and its `## Interface` still says "No earlier test changes". Both contradict entry 10. Fix (coder): rewrite the Description sentence as "the tests in `tests/application/test_claims.py` keep their names and what they check". Change the Interface line to name the shared helper module, and `test_claims.py` and `test_undo.py` as changed under the human's leave in entry 10.
+
+    The coder can hand findings 1 and 2 to the tester with `tests`, since entry 10 is the human's word for these test changes.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows `A` for every test file.
