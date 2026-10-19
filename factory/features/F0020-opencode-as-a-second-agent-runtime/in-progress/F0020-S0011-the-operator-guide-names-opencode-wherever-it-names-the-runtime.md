@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T19:13:49.750625Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T19:13:28.960158Z'
   stage: review
   run: 04dd7b7527494015ab915528d665aa37
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:13:49.750625Z'
+  stage: docs
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -147,3 +156,4 @@ Expect: `documents ok`
    - Item 2 (architecture), item 3 (security) and item 4 (quality): there is no code or test in the diff to judge. The coder's `duplicates: 5 new` cannot come from this branch, since it changes nothing under `src/factory`. They are findings already on `main` and outside this review's scope.
    - Item 5 (work item hygiene): the coder's entry gives the main choice (hand forward with no change) and what was rejected (editing `docs/operator-guide.md` from the doing stage). The Description still matches the work. The docs criterion names each passage and the exact wording the documenter must write.
    - Item 6 (earlier tests): no test file that `main` holds is changed, renamed or deleted.
+10. factory: started docs as self.
