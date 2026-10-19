@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:58:52.107502Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-19T04:58:32.190684Z'
   stage: tests
   run: 108e574eb374401489989af7f5696cde
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:58:52.107502Z'
+  stage: doing
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -383,3 +392,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.7 s)
+16. factory: started doing as self.
