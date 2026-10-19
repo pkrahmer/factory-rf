@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T20:47:23.816379Z'
   stage: acceptance
   run: 013cf932f784407fa07e1bbf4b7d0669
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T20:49:46.153464Z'
+  stage: done
 stories: [F0022-S0001, F0022-S0002, F0022-S0003, F0022-S0004, F0022-S0005]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A project brings its own skills and agents
@@ -231,3 +236,4 @@ Why S0005 stands out:
    6. Decisions for the human: the nested `.claude/skills/` stays open, with three options and my choice of a short real run before any protection. Also S0003's untouched `_tools`, S0005's fixture names and its structural test, and the skipped `make mutants`. Earlier tests changed: S0003 under decision 14, S0005's 11 files under the standing leave. All were named by their reviewers; none was changed without a leave.
    7. Slow checks: there is nothing beyond `make check` (green, 46.0 s, 99.12 %). The slowest tests are F0020's (5.0 s); the touched modules take under 1 s each. /work used space is unchanged at 0.5 GB. Free space fell 6.6 GB on all mounts alike: the shared host disk, not explained by the feature's changes, likely the `skills-demo` instance and the rebuilds of `self`.
    8. Cost: 41 runs, 36.6 min, $10.19 in total; the three follow-ups cost $4.33. S0005 stands out at $2.61: a $0.72 tester run, a four-run round ($0.73) to restore one docstring, and a second smoke run. Human interventions: 1 question (S0005's smoke command `-q`, caused by the command's text), 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 6.2 min, 43 turns, 129610 tokens in (3711582 more from cache), 29549 out, $2.37
