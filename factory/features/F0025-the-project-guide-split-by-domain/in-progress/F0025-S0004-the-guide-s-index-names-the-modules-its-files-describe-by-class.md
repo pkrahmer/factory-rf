@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T22:16:28.924116Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T22:16:08.496323Z'
   stage: tests
   run: 7a78d5eaab224c40909988148d41a6cd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:16:28.924116Z'
+  stage: doing
 ---
 
 # The guide's index names the modules its files describe by class
@@ -115,3 +124,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (43.8 s)
+6. factory: started doing as self.
