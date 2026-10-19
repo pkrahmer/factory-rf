@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T11:32:17.860139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-19T11:32:17.860139Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T11:33:40.239196Z'
+  stage: review
+  run: c4d605a5f64242c4ad5effe09679fe11
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -479,3 +481,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 26. factory: started review as self.
+27. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. Since the round-0 review (efe108db), the only changes are to tests: the four helper moves from entry 23. `src/` and `image/` have not changed since then. I read them again anyway. Groups 1 to 5 hold.
+
+    - Acceptance criteria: criteria 1 to 14 each have a parametrized test that checks what the criterion says. The refused sides of `FACTORY_AGENT_RUNTIME`, `FACTORY_OPENCODE_MODELS` and `FACTORY_OPENCODE_FOLDERS` are rows of the same test as their accepted sides. Both sides of the version pin, the probe's login hints and the runtime choice are rows. The three-agent row of `installed_models` follows the human's answer in entry 6. The coder's entry 25 records `make check` green after the moves.
+    - Architecture: the settings and `AgentRuntimeName` are in the domain. `opencode_item`, `installed_models` and the runtime's pin and executable are in the application. `runtime_folders` is in the adapters. Only `factory.entry.wiring._agent_runtime` chooses the runtime.
+    - Security: no new marker or secret, and no command built from strings.
+    - Quality and hygiene: the names and docstrings hold, and the comments say why. The Description matches what was built, and criterion 16 still describes what the documenter must write.
+    - The moves from entry 19's findings are done: `local_settings.model_copy`, `write_agent_settings` in `tests/adapters/opencode_stand_in.py`, `COMPOSE` in `tests/compose_support.py` with `compose_service` in `tests/conftest.py`, and `BASE` in `tests/settings_support.py`.
+
+    no findings
+
+    Earlier tests:
+    - tests/adapters/opencode_stand_in.py: standing leave to move a shared test helper (`write_agent_settings` added as the shared home of `_settings` from test_opencode_runtime.py).
+    - tests/adapters/test_opencode_runtime.py: standing leave (its `_settings` replaced by the shared `write_agent_settings`; the same two tests, same names, same checks).
+    - tests/conftest.py: standing leave (the `service` fixture of test_compose.py moved here as `compose_service`).
+    - tests/test_compose.py: standing leave (`COMPOSE` and the `service` fixture moved out; its three tests keep their names and checks, and only the parameter follows the fixture's new name).
+    - tests/domain/test_settings.py: standing leave (`BASE` moved to tests/settings_support.py, same value).
+    - tests/domain/test_settings_agent_user.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_api_login.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_boundaries.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_claude_login.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_min_free.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_pinned.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_provider_limit.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_provider_limit_wait.py: standing leave (same `BASE` move).
+
+    Notes:
+    - tests/application/test_opencode_item.py:22 and tests/application/test_machine_checks_runtime.py:19: each builds `InstanceSettings` with its own `_settings` instead of starting from a shared fixture such as `local_settings`.
+    - tests/adapters/test_opencode_runtime_folders.py:39-55: the two `OpencodeRuntime(...)` branches repeat every argument just to leave out `runtime_folders`. A keyword dict would say the same once.
+    - Other test modules still define their own `COMPOSE` (test_claude_token_mount.py, test_compose_init.py, test_compose_project.py, test_image_credentials.py, test_token_folder.py). They are outside this diff and are left for a later move.
