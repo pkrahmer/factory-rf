@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T10:32:50.565965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-19T10:32:29.572034Z'
   stage: intake
   run: af491629e30f465888a9f8628f122908
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:32:50.565965Z'
+  stage: tests
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -243,3 +252,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable, and its numbers add up (cost 0.6, duration 15 s, waits 420 and 600 s, clock 00:17:00, budget 0.8, time limit 55 s). Its `Expect:` line is checkable.
    - Architecture: the `Waiter` interface lives in `application`, its implementations in `adapters`, the limit values in `domain`, and the wiring in `entry`. The layering holds, and no `AgentRunRequest` is built outside `model_copy`.
    - Scope: within S0007's part of F0020's Scope. It touches no "Out of scope" item and changes no earlier test.
+7. factory: started tests as self.
