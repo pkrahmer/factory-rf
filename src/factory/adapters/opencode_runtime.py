@@ -37,12 +37,11 @@ from factory.adapters.agent_launch import (
     cleanup_launch,
     confined_argv,
     denied_path,
-    existing_devices,
+    device_confinement,
     finished_run,
     killed_at_limit,
     login_argv,
     login_used,
-    run_confinement,
     run_launch,
     temporary_folder,
     version_printed,
@@ -438,8 +437,13 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
 
 
 def _confinement(request: AgentRunRequest, temporary: Path) -> Confinement:
-    devices = existing_devices(DEVICE_FOLDERS, DEVICE_FILES)
-    return run_confinement(request, temporary, runtime_folders=RUNTIME_FOLDERS, devices=devices)
+    return device_confinement(
+        request,
+        temporary,
+        runtime_folders=RUNTIME_FOLDERS,
+        device_folders=DEVICE_FOLDERS,
+        device_files=DEVICE_FILES,
+    )
 
 
 def _request_of(started: Launch, cwd: Path) -> ProcessRequest:

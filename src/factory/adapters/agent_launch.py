@@ -295,6 +295,19 @@ def run_confinement(
     )
 
 
+def device_confinement(
+    request: AgentRunRequest,
+    temporary: Path,
+    *,
+    runtime_folders: Sequence[str],
+    device_folders: Sequence[str],
+    device_files: Sequence[str],
+) -> Confinement:
+    """The rules of a run, with those of the `device_folders` and `device_files` that exist."""
+    devices = existing_devices(device_folders, device_files)
+    return run_confinement(request, temporary, runtime_folders=runtime_folders, devices=devices)
+
+
 def killed_at_limit(
     *, os_user: str | None, exit_status: int | None, duration: timedelta, time_limit: timedelta
 ) -> bool:

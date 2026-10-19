@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T05:25:53.566808Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-19T05:25:53.566808Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:27:45.273803Z'
+  stage: doing
+  run: 4c846cfc9e1b448a8d07550a6cff8b25
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -614,3 +616,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_model_configuration.py`: changed under the leave the story gives it (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
     - `tests/test_wrapper_search.py`: changed under the leave the story gives it (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
 31. factory: started doing as self.
+32. coder: Round 2. I fixed the reviewer's code finding 2 from entry 30. Finding 1 adds criterion 20, which needs only its test, so this goes to the tester for **criterion 20**: a call that printed an event that validates is not a refusal, whatever its stderr holds. It needs two rows. With an agent user, a `sudo` stand-in prints `sudo: a password is required` and then runs the call, which prints a valid step and block. Through a stand-in wrapper, the wrapper prints its `factory-confine: ...` line and the valid events and exits 0. Both should give `completed` with the block's decision and entry. No change under `src/` is needed for it. `make check` is green (`check: green`, coverage 99.03 %).
+
+    What I built:
+    - **`src/factory/adapters/agent_launch.py`**: a new `device_confinement(request, temporary, *, runtime_folders, device_folders, device_files)`. It runs `existing_devices` on the device lists and passes the result to `run_confinement`.
+    - **`src/factory/adapters/claude_runtime.py`** and **`src/factory/adapters/opencode_runtime.py`**: each runtime's private `_confinement` now just calls `device_confinement` with its own folders (`[RUNTIME_FOLDER]` and `RUNTIME_FOLDERS`). The `existing_devices` and `run_confinement` imports are gone from both.
+
+    Main choice: the device lists are arguments, not read from `factory.domain.confinement` inside `agent_launch`. I rejected the reviewer's literal fix, a shared function that computes `existing_devices(DEVICE_FOLDERS, DEVICE_FILES)` itself. `tests/adapters/test_claude_runtime_confinement.py::test_the_rules_hold_only_the_device_targets_that_exist` monkeypatches `claude_runtime.DEVICE_FOLDERS` and `DEVICE_FILES`, so the runtime has to pass its own module's names. `cleanup_launch` already takes `SHELL_EXECUTABLE` that way. I kept the one-line `_confinement` in each runtime so the call at the run site stays short. I also left `run_confinement`'s signature alone because `tests/adapters/test_agent_launch.py` calls it with `devices=`.
+
+    Refactor: I read the diff. Nothing more needed changing.
+
+    Description: the journal added criterion 20 and renumbered the closing two. Nothing else changed in what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` gives `5 new, 35 known, 4 gone`, the same as the reviewer found in round 1. The 3 similar blocks are call sites of the shared helpers. The 2 dead-code flags are `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in).
+    - The reviewer's notes on two pairs of tests are for the tester:
+      - `test_a_step_with_zero_values_is_a_valid_step` sits beside `test_a_line_that_does_not_validate_is_skipped` as a separate function.
+      - `test_a_version_that_cannot_be_read_names_the_reason` partly repeats `test_a_version_that_cannot_be_read_is_a_runtime_error`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
