@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -30,8 +30,13 @@ journal:
   at: '2026-10-19T12:27:50.650147Z'
   stage: acceptance
   run: ee7366eee62f45499e8e4880e375268b
+- number: 5
+  speaker: factory
+  kind: done
+  at: '2026-10-19T12:29:09.380026Z'
+  stage: done
 stories: [F0020-S0001, F0020-S0002, F0020-S0003, F0020-S0004, F0020-S0005, F0020-S0006, F0020-S0007, F0020-S0008]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of opencode as a second agent runtime
@@ -373,3 +378,4 @@ These start at the prompt's next free number, F0020-S0009, which collides with t
    6. Decisions: feature decisions 1 to 23 and the human's answers in S0003, S0004, S0005, S0007 and S0008 are listed. Every changed earlier test has a named leave (decision 19, the standing leave, or S0005's entry 9). Human changes 4 and 6 are still the human's to do.
    7. Slow checks: there are none beyond make check and make mutants. `make check` was green (43.7 s test run; slowest tests 5.0 s, the time-limit tests). Disk is unchanged since `disk start`.
    8. Cost: 115 runs, 172.2 min, $47.50. S0004 cost the most ($10.01, 19 runs): the whole runtime, two secrets stops and a duplication round. S0005 had the most runs (21) and hit the round cap. The human answered 11 questions (10 questions and 1 round cap) and the stories waited 0.3 h; S0004 and S0005 needed the human 3 times each.
+5. factory: done (pull request merged); cost: 1 runs, 47.6 min, 68 turns, 178287 tokens in (7313068 more from cache), 53042 out, $3.95
