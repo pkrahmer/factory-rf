@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T01:04:03.849629Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T01:04:03.849629Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T01:06:51.375124Z'
+  stage: tests
+  run: efe185d0f7ce45588091db9c02369c14
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -116,3 +118,20 @@ Expect: `0`
    Architecture: the layering follows CLAUDE.md. There is no new dependency, and the test modules mirror the package and reuse existing fixtures. Docs go to the three named files.
    Scope: the work is within feature decision 1, which left this change to a later story. The probe of a new `main`, the stamp and the other preflight rules stay as they are. The existing sentence in `docs/operator-guide.md` line 348 is what the docs criterion replaces.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 4. Each one is a parametrized test where the criterion lists rows.
+   criterion 1: tests/domain/test_preflight_stop_records_paths.py::test_only_the_stop_records_file_is_a_change_of_stop_records_only (rows: empty, modified, added, deleted, mixed, other, similar-name, other-jsonl)
+   criterion 2: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_keeps_the_failing_stop_only_across_stop_records_commits (rows: one-stops-commit, two-stops-commits, stops-and-other-file, other-file-only)
+   criterion 3: tests/application/test_preflight_stops_commit.py::test_a_kept_failing_stop_appends_no_cleared_record (rows: one-stops-commit gives 0 `cleared` records for main_branch_failing, stops-and-other-file gives 1)
+   criterion 4: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_clears_the_stop_when_the_remembered_commit_is_not_in_the_clone
+   criteria 5 and 6: no test (`make check` and the docs).
+
+   Files created: tests/domain/test_preflight_stop_records_paths.py, tests/application/test_preflight_stops_commit.py. No earlier test file changed. The application module reuses the `rig` and `red_main` fixtures of tests/application/test_preflight_run.py, as test_preflight_stale_main_stop.py does.
+
+   How the tests move main: the human clone makes the commits, then the checkout fetches and goes to main at `origin/main` (`checkout` plus `reset_to`). That is where the tick's restore leaves the checkout before the preflight runs. It matters because `Git.changed_paths(since)` compares `since` with the work tree, not with `origin/main`. Without that step the probe leaves the checkout on the old failing commit, and the diff would come back empty. The stops file the tests commit holds valid `StopRecord` lines.
+
+   Run of `make test`: the domain module could not be imported (`changes_only_stop_records` is missing from factory.domain.preflight). In the application module, these rows fail because the stop is still cleared: the one-stops-commit and two-stops-commits rows of the criterion 2 test, and the one-stops-commit row of the criterion 3 test. The clear rows and criterion 4 already pass. That is expected: they describe what the code does today. `make lint` is green.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_preflight_stop_records_paths.py - ImportError while i...
