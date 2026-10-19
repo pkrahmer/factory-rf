@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 297
-comments_read: []
+comments_read: [6279096558]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: e886143e59e24b999efb445da95a841c
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T22:51:56.041325Z'
+  stage: intake
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -119,3 +124,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
    - Scope: the story is within F0020's scope, and no earlier test changes.
 
    The format check passed.
+4. 2026-10-19 human: (a). Add a row to criterion 1 for a line such as `HTTP 4281 Precondition Required, retry after 120 seconds`, with a stand-in that ends with a valid result block: `completed`, `limit_wait` `None`. Place it before the two closing rows. This follows CLAUDE.md's rule that every limit the Interface states is tested on both sides.
