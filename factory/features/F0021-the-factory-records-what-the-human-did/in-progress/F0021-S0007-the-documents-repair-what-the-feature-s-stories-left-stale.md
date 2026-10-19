@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T01:01:29.669867Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T01:01:29.669867Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T01:01:51.943657Z'
+  stage: smoke-test
+  run: df07998406254ed4b1cc8172c3875b4c
 ---
 
 # The documents repair what the feature's stories left stale
@@ -189,3 +191,38 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran all four commands from the repository root, exactly as written and in order.
+
+    1. `grep -c "run=None blocked=None reason=None" docs/project-guide.md`
+    ```
+    1
+    ```
+    Met: `Expect: 1`.
+
+    2. `grep -E '^\| (The form has findings|The round cap) \|' docs/operator-guide.md | grep -c 'time_limit'`
+    ```
+    0
+    ```
+    Met: `Expect: 0`. The exit status is 1, which is normal for `grep -c` when nothing matches.
+
+    3. `awk '/^## The stops reach main as raised and cleared records/{p=1;next} /^## /{p=0} p' docs/decisions.md | grep -c 'make secrets'`
+    ```
+    1
+    ```
+    Met: `Expect: 1`.
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Met: `Expect: documents ok` (exit 0).
+
+    Criteria read again against `git diff main...HEAD`:
+    - Criterion 1: holds. The branch changes only `docs/decisions.md`, `docs/operator-guide.md`, `docs/project-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. Entries 5 and 7 each say so.
+    - Criterion 2: entry 11 records `check: green` after the docs stage. I did not run `make check` myself, because this stage only runs the smoke test.
+    - Criterion 3, project guide: the journal example prints the required record. The `Boundaries` list adds the optional `disk`, `disk_records` and `stop_records` after `settings`, each with one clause pointing to the tick's step 0, the `DiskRecord` paragraph and "Stop records".
+    - Criterion 3, operator guide: the cells of "The form has findings" and "The round cap" read word for word as the criterion quotes them, and no other row of the table changed. The opening paragraph has one clause naming the stop records on `factory/stops.jsonl` on `main` and the records contract under `src/factory/contract/`.
+    - Criterion 3, decision log: the stops section gives `make secrets` as the reason for leaving out the detail (every tracked file on `main`, a commit id or URL in a git error's text, `main_branch_failing`). The "Rejected" line adds a GitHub issue or comment, citing R10.
+    - No other passage changed: the diff touches only these five passages, and `check_documents` prints `documents ok`.
+
+    Nothing is open.
