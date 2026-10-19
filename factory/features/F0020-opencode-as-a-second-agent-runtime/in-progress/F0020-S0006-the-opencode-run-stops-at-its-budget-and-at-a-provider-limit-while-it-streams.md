@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:10:04.942715Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-10-19T10:09:44.493948Z'
   stage: review
   run: 5ed053eb29224475b599c3219e1ab966
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:10:04.942715Z'
+  stage: doing
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -319,3 +328,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `make duplicates` lists 5 new findings. All of them are blocks that S0004/S0005 shared with `claude_runtime` and that this diff did not add; `_resume` is not reported.
 
     Earlier tests: the diff adds `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_provider_limit.py` and changes, renames or deletes no test file that `main` holds.
+13. factory: started doing as self.
