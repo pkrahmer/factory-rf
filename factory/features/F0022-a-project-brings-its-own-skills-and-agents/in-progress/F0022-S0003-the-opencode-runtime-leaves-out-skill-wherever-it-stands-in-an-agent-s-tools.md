@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T20:06:54.800921Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T20:06:34.326227Z'
   stage: review
   run: 1031c21739e24166a306484f385d3a7e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:06:54.800921Z'
+  stage: docs
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -169,3 +178,4 @@ Expect: two lines, `completed question`, `['grep', 'read']`
 
    Notes:
    - The coder's entry records `duplicates: 5 new` with no change under `src/factory` on this branch, so those findings do not come from this story. The acceptance reviewer can look at them.
+10. factory: started docs as self.
