@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T04:10:49.532573Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T04:10:29.309757Z'
   stage: doing
   run: 1f834a06c7984e2ea583152472cc1fc4
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:10:49.532573Z'
+  stage: review
 ---
 
 # What every agent runtime shares moves into one module
@@ -351,3 +360,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
+16. factory: started review as self.
