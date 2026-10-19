@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:56:04.376420Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T04:55:46.723662Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:56:04.376420Z'
   stage: doing
 ---
 
@@ -346,3 +355,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `make duplicates` reports 7 new similar-code blocks against `claude_runtime`: the refusal checks, the temporary-folder cleanup, `version`, and building the `ProcessRequest` from `launch`. They cannot move into `agent_launch` without it importing the process module, which `tests/test_wrapper_search.py` forbids. Sharing them is a restructuring for its own story.
     - Vulture reports `_ErrorData.status_code` and `OpencodeRuntime` as unused (60 % confidence). The first is the field the provider-limit story will read; the runtime is wired in a later story.
 11. 2026-10-19 human: (a): the tester rewrites the two keys of `given` in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment` as `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` (from `factory.adapters.agent_launch`), as `tests/adapters/test_agent_launch_login.py` does; the test keeps its name and checks the same thing. No pragma, no baseline entry.
+12. factory: started doing as self.
