@@ -37,7 +37,7 @@ No earlier test changes.
    - row `stderr`: the same on standard error, with the calls `[("stderr", "go")]`;
    - row `no-stop`: the last line `gone` on standard output, after which the child exits 0 at once instead of sleeping. The calls are exactly `[("stdout", "gone")]`, `stopped` is `False` and `exit_status` is `0`.
 3. `make check` stays green.
-4. docs: `docs/project-guide/agents.md` (*The opencode runtime*), the passage on a provider limit: one sentence saying that a limit line on standard error gives `limit_wait` from the wait it names, as an `error` event does. `docs/project-guide/processes-and-checks.md`, the paragraph on `run_streaming`: one sentence saying that a stop on a last line without a newline stops the call as a complete line does. The documenter adds each only where the passage does not already say it.
+4. docs: `docs/project-guide/agents.md` (*The opencode runtime*), the passage on a provider limit: one sentence saying that a limit line on standard error gives `limit_wait` from the wait it names, as an `error` event does. `docs/project-guide/processes-and-checks.md`, the paragraph on `run_streaming`: one sentence saying that a stop on a last line without a newline stops the call as a complete line does, and its `Tests:` line names `tests/adapters/test_process_streaming_last_line.py`. The documenter adds each only where the passage does not already say it.
 
 ## Smoke test
 
