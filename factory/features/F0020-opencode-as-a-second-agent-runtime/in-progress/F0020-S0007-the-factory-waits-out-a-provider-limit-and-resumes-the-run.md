@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T10:50:13.244609Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-19T10:49:52.735479Z'
   stage: doing
   run: 16f277d025334f0b8d5e4b8f7a78eb6c
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:50:13.244609Z'
+  stage: tests
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -478,3 +487,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Description: the reviewer added criterion 18 to the work item. The task means the same, and the Interface already states both limits, so I did not rewrite the Description.
 
     Noticed, not touched: nothing new.
+22. factory: started tests as self.
