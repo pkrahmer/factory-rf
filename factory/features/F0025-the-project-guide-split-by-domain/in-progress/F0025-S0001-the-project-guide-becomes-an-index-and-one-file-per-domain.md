@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T06:38:52.213665Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T06:38:31.897492Z'
   stage: review
   run: 4a04ea9975cc4a598f41e87386c285f6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:38:52.213665Z'
+  stage: doing
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -273,3 +282,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests:
    - `tests/entry/test_check_documents.py` (M): changed under the human's leave named in the story's Interface (the feature's decision 9). The diff changes only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one`, and every test keeps its name.
+10. factory: started doing as self.
