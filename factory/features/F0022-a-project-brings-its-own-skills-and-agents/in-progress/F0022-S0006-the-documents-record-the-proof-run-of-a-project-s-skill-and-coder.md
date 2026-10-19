@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T23:38:45.610400Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T23:38:24.619435Z'
   stage: tests
   run: b14725f670f44e75b10950c951cfc57f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:38:45.610400Z'
+  stage: doing
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -108,3 +117,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.4 s)
+6. factory: started doing as self.
