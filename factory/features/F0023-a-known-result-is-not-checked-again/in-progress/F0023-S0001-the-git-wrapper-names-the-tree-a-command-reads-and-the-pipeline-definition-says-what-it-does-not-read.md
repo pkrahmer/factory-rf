@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T14:48:18.083189Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -146,6 +150,11 @@ journal:
   at: '2026-10-19T14:47:56.219692Z'
   stage: review
   run: 0013be7b4d404c608a3546ce0766b02c
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:48:18.083189Z'
+  stage: docs
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -558,3 +567,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_pipeline_rules.py`: the standing leave (`_outcome` replaced; three asserts rewrapped, each checking the same text). Within it.
     - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
     - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
+26. factory: started docs as self.
