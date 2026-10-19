@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T22:18:28.061918Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T22:18:28.061918Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T22:18:48.396239Z'
+  stage: docs
+  run: ce6bb58845ce459cb0a96849dd206546
 ---
 
 # The guide's index names the modules its files describe by class
@@ -164,3 +166,18 @@ Expect: `documents ok`
    5. Work item hygiene: the coder's entry gives the main decision, which is to leave both doc edits to the documenter, and the option it rejected. The Description matches what was built, which is nothing outside docs. The docs criterion still describes what the next stage must write. I checked that its targets exist: the `watching.md` line at `docs/project-guide/README.md:19` holds `factory.adapters.health_file`, `factory.application.boundaries` and `factory.domain.stop_table`, the three anchors the insertions follow. The sentence it replaces is at `docs/decisions.md:23`. None of the three module names appears anywhere under `docs/project-guide/` yet.
    6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
 10. factory: started docs as self.
+11. documenter: Docs written for the criterion; no code, test or comment touched.
+
+    Files changed:
+    - `docs/project-guide/README.md` (*The files*, `watching.md` line): added `factory.adapters.preflight_stamp_file` after `factory.adapters.health_file`, `factory.application.dispatcher` after `factory.application.boundaries`, and `factory.domain.tick_status` after `factory.domain.stop_table`. Nothing else on the line or in the index changed.
+    - `docs/decisions.md` (*The project guide lives in `docs/`*): the last sentence now reads "Since F0025-S0001 the guide is an index and one file per domain (see *The project guide is an index and one file per domain*)." The first sentence and the dated F0011-S0005 entry are untouched.
+
+    Run: `python -m factory.entry.check_documents` printed `documents ok`. I checked the edited README line by hand: the three new names sit right after their anchors and the list order holds. I did not run `make check` because I changed only documents.
+
+    Cross-read and found current: the rest of `docs/project-guide/README.md`, and `docs/decisions.md` around the edited section. The diff has no code, so nothing else could have gone stale.
+
+    Findings: none. Stale text I saw but did not touch: none. `factory.entry.health` is still described only in the operator guide, which the story leaves for a later one.
+
+    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
