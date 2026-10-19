@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T01:27:32.458691Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T01:27:32.458691Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:29:18.986883Z'
+  stage: doing
+  run: 921cb51f26354f1bb012dc0a2d47bbfc
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -116,3 +118,10 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
    `lint`: lint: green (0.0 s)
    `test`: test: green (37.2 s)
 6. factory: started doing as self.
+7. coder: Built nothing. The story pins behaviour that already exists, and the tester's new module `tests/entry/test_contract_arguments.py` was already green against `src/factory/entry/contract.py` as it is. I ran `make check` and it ended `check: green`, with `test: green (39.6 s)`. My diff against `main` has no source change, so there was nothing to refactor.
+   Main choice: leave `src/factory/entry/contract.py` unchanged, because the Interface says no module under `src/factory/` changes and the code already meets both criteria. I rejected touching it, for example a coverage-driven edit to the one uncovered line, because that would be a change the story's scope does not allow.
+   Noticed, not touched: `src/factory/entry/contract.py:41` is still the one uncovered line in coverage. It is presumably the module's `__main__` guard, which only the smoke test's `python -m` run reaches.
+   The journal changed nothing in the meaning of the task, so `## Description` stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
