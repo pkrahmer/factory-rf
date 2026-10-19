@@ -12,16 +12,16 @@ No module under `src/factory/` changes.
 
 Tests (the tester makes the moves, under the standing leave):
 
-- `tests/probe_support.py` (new): `ENVIRONMENT` and `COMPLETED`, each exactly as `tests/application/test_agent_run_probe.py` holds it today. The four probe modules import `ENVIRONMENT` from it, and the two that hold `COMPLETED` import that too. None keeps its own copy.
+- `tests/probe_support.py` (new): `ENVIRONMENT` and `COMPLETED`, each exactly as `tests/application/test_agent_run_probe.py` holds it today. The four probe modules import `ENVIRONMENT` from it, and the two that hold `COMPLETED` import that too. None keeps its own copy. `tests/application/test_agent_run_probe_api_login.py`, which imports `ENVIRONMENT` from `test_agent_run_probe_login.py` today, imports it from `tests/probe_support.py` (under `mypy --strict` a module does not re-export a name it imported).
 - `tests/conftest.py`: a fixture `probe_settings(agent_home, tmp_path)` with the body of today's `settings` fixture of `tests/application/test_agent_run_probe.py`. In `test_agent_run_probe.py`, `test_agent_run_probe_project_agent.py` and `test_agent_run_probe_login.py`, the local `settings` fixture goes and the tests take `probe_settings`. The `settings` fixture of `test_agent_run_probe_opencode.py` is another one (it installs an agent and sets login files) and stays.
 - `tests/git_support.py`: `PROJECT_CODER`, as written today in `tests/entry/test_wiring_project_agents.py`. The two modules that hold that text import it.
-- `tests/conftest.py`: a fixture `image_layout(tmp_path)` that returns `Layout(tmp_path)` of `tests/test_entrypoint.py`. The three local `layout` fixtures go, and the tests that used them take `image_layout`. The conftest's `layout` fixture stays as it is.
+- `tests/conftest.py`: a fixture `image_layout(tmp_path)` that returns `ImageLayout(tmp_path)`, the `Layout` of `tests/test_entrypoint.py` imported as `ImageLayout`, because the conftest's own `Layout` is the confinement's (`confine_support`) and stays. The three local `layout` fixtures go, and the tests that used them take `image_layout`. The conftest's `layout` fixture stays as it is.
 - The tester's entry names each earlier test file it changed.
 
 ## Acceptance criteria
 
-1. Every test function of the eight changed test modules (`tests/application/test_agent_run_probe.py`, `test_agent_run_probe_project_agent.py`, `test_agent_run_probe_login.py`, `test_agent_run_probe_opencode.py`, `tests/entry/test_wiring_project_agents.py`, `tests/test_entrypoint.py`, `tests/test_agent_home_ownership.py` and `tests/test_entrypoint_skills.py`) keeps its name and its parametrize ids. `pytest --collect-only -q` lists the same test ids before and after the change.
-2. Under `tests/`, `ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin"` is assigned in exactly one module (`tests/probe_support.py`), and `COMPLETED = AgentRunResult(` with `entry="probe"` in exactly one. `PROJECT_CODER = AGENT_FILE.replace(` is assigned in exactly one (`tests/git_support.py`). `return Layout(tmp_path)` is written in exactly one (`tests/conftest.py`).
+1. Every test function of the nine changed test modules (`tests/application/test_agent_run_probe.py`, `test_agent_run_probe_project_agent.py`, `test_agent_run_probe_login.py`, `test_agent_run_probe_opencode.py`, `test_agent_run_probe_api_login.py`, `tests/entry/test_wiring_project_agents.py`, `tests/test_entrypoint.py`, `tests/test_agent_home_ownership.py` and `tests/test_entrypoint_skills.py`) keeps its name and its parametrize ids. `pytest --collect-only -q` lists the same test ids before and after the change.
+2. Under `tests/`, `ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin"` is assigned in exactly one module (`tests/probe_support.py`), and `COMPLETED = AgentRunResult(` with `entry="probe"` in exactly one. `PROJECT_CODER = AGENT_FILE.replace(` is assigned in exactly one (`tests/git_support.py`). `Layout(tmp_path)` is written in exactly one (`tests/conftest.py`, as `return ImageLayout(tmp_path)`).
 3. `make check` stays green.
 4. docs: none. No behaviour and no document changes; the project guide does not name test helpers of these modules.
 
@@ -33,12 +33,12 @@ grep -rlF 'ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin"' tests | wc -l
 Expect: `1`
 
 ```bash
-grep -rlF 'PROJECT_CODER = AGENT_FILE.replace(' tests | wc -l; grep -rlF 'return Layout(tmp_path)' tests | wc -l
+grep -rlF 'PROJECT_CODER = AGENT_FILE.replace(' tests | wc -l; grep -rlF 'Layout(tmp_path)' tests | wc -l
 ```
 Expect: `1`, then `1`
 
 ```bash
-uv run pytest -q tests/application/test_agent_run_probe.py tests/application/test_agent_run_probe_project_agent.py tests/application/test_agent_run_probe_login.py tests/entry/test_wiring_project_agents.py tests/test_entrypoint_skills.py 2>&1 | tail -1 | grep -c ' passed'
+uv run pytest -q tests/application/test_agent_run_probe.py tests/application/test_agent_run_probe_project_agent.py tests/application/test_agent_run_probe_login.py tests/application/test_agent_run_probe_opencode.py tests/application/test_agent_run_probe_api_login.py tests/entry/test_wiring_project_agents.py tests/test_entrypoint.py tests/test_agent_home_ownership.py tests/test_entrypoint_skills.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
 ```
 Expect: `1`
 
