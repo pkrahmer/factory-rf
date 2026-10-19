@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T22:58:53.693593Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-19T22:58:53.693593Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-19T22:59:12.517622Z'
+  stage: doing
+  run: 30eccef766474876a9ae9e9c60f0ab6b
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -229,3 +231,17 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
 
     Earlier tests: none. Both test files in the diff are new (status `A`), and no file that `main` already holds was changed, renamed or deleted.
 13. factory: started doing as self.
+14. coder: Round 1 has one finding, the reviewer's group 4 finding in entry 12. It is about a copied test helper, so it is a change to the tests, and the coder makes no test changes (R9). I changed no code. The working tree holds nothing of mine.
+
+    The change for the tester comes under CLAUDE.md's standing leave to move a shared test helper:
+    - Define the reply step once in `tests/adapters/opencode_stand_in.py`, under the name `REPLY`, after the step helpers it uses: `Step(stdout=stdout(step_start(), text(result_text()), step_finish()))`.
+    - In `tests/adapters/test_opencode_limit_wait_on_stderr.py`, delete the module's own `REPLYING` constant (line 24). Import `REPLY` from `tests.adapters.opencode_stand_in` instead, and use it in the `500` and `4281` rows.
+    - No earlier test file changes. The Interface says no earlier test changes, and the reviewer's fix keeps the earlier copies for now: `tests/adapters/test_opencode_resumed_words.py:38`, and the `REPLY` constants in `tests/adapters/test_opencode_provider_limit.py:33` and six more modules.
+
+    Main choice: I end with `tests` rather than `question`. CLAUDE.md gives a standing leave for this move, so the human's word is not needed (see the Lessons). The alternative I rejected was asking the human whether the earlier copies should go as well. That would go beyond the story's "No earlier test changes".
+
+    Description: the journal does not change the meaning of the task. The reviewer's finding moves a test constant and adds no criterion, so I did not rewrite the Description.
+
+    Refactor: none, since there is no diff under `src/`.
+
+    Noticed but did not touch: the earlier test modules still hold their own copies of the reply constant. Removing them would be a story of its own.
