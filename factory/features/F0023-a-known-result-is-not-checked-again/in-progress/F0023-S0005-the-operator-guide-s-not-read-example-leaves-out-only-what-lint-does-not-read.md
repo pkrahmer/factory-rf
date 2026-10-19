@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T21:58:37.410370Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T21:58:16.966835Z'
   stage: review
   run: d80dab0ffaff4cfaa853cec7574bf512
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:58:37.410370Z'
+  stage: docs
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -144,3 +153,4 @@ Expect: `documents ok`
    - 2 to 4. Architecture, security and quality: nothing to judge on an empty code diff.
    - 5. Work item hygiene: the coder's entry gives the main decision (leave `docs/operator-guide.md` to the documenter) and what it rejected. The Description matches what was built, which is nothing outside the docs. The docs criterion is still accurate. Every passage it names is still on the branch: `docs/operator-guide.md:900` (`lint: {time_limit: 10, not_read: ["factory/*", "docs/*"]}`), `:903` ("List only what the command does not read at all"), `:905` ("after the story that built the key"), `:909` (`check: {time_limit: 15, ...}`) and `:914` ("will run `secrets`"). `factory/pipeline.yml:10` holds `check: {time_limit: 8, not_read: [...]}` with the same `not_read` list. The documenter copies that line.
    - 6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the two files under `factory/`).
+10. factory: started docs as self.
