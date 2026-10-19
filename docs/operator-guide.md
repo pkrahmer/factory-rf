@@ -629,6 +629,10 @@ A comment answers a question when it was written after the factory posted that q
 
 A stage without `round_cap` sends back without limit and never asks. Sending back counts rounds; a stall counts attempts (see "A stall"), and the two caps are separate.
 
+### The reviewer's notes and added criteria
+
+Two things in a reviewer's entry are not findings in the usual sense. From round 1 on, a point that is only about the quality of a test file the story adds (a copied helper, a name, a duplicate test) goes under `Notes:` after the findings, one line each with its location; the notes do not send the story back, so read them at the approval. The first review, at round 0, still sends such a point back. A point on a criterion, the architecture, security or `src/` is a finding at every round. When the diff builds a behaviour that no criterion names and pinning it needs no code, the reviewer writes the criterion into the story itself and names it in its entry as `criterion <n> added: it needs its test`; the coder changes no code and the tester writes the test. That is a send-back like any other and counts a round, so the round cap may still ask you afterwards.
+
 ## The stop `pipeline_definition_invalid`
 
 The pipeline definition is `factory/pipeline.yml` as it stands on `origin/main`, never the file in the work tree. The factory loads it each cycle, and a load that refuses it raises the stop `pipeline_definition_invalid` (scope `repository`): a line in the factory log and an entry in the health status, nothing on a pull request.
@@ -1128,6 +1132,10 @@ Not counted as such a change:
 - a merge of the pull request by any method: merge commit, squash or rebase. The factory reads the pull request first, and a merged pull request is `merged`, never an illegal change.
 
 A hand-made change that a later commit on the branch buried is not seen: only the newest commit that touched the file is judged.
+
+### Never edit a running work item on main
+
+Do not edit the file of a work item in `in-progress/` on `main`. Answer in its pull request instead: the agents amend the story on its branch (the description, the criteria), and your edit on `main` changes the same file. At the next stage start the factory merges `main` into the branch, the merge conflicts, and the stage stalls with the reason `merge_conflict` (F0019-S0004 showed it). When it has happened, revert the edit on `main`; the stage then starts again from the branch's story.
 
 ## An event that keeps failing
 
