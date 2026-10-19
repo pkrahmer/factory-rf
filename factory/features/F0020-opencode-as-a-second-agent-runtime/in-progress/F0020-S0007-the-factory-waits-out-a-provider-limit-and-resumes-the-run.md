@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T10:47:56.799760Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-19T10:47:56.799760Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T10:49:01.372614Z'
+  stage: review
+  run: 8748505153d444448db07be10fb3efcb
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -237,8 +239,9 @@ Tests (the tester writes them): `tests/adapters/test_waiters.py`, `tests/domain/
 15. The preflight's probe whose fake run ends `provider_limit` fails `agent-run-probe` after one call, with no wait (`the probe run ended provider_limit; ...`).
 16. `build_boundaries` gives a `SleepingWaiter`.
 17. A `limit_wait` of 90.9 seconds gives the log line `provider limit: coder waits 90 s before it resumes ses_a` and `ManualWaiter.waits` records the wait of 90.9 seconds; a ceiling reached after waits that sum to 1800.7 seconds gives the log line `provider limit: coder waited 1800 s, the ceiling of <c> s; the run ends provider_limit` with whole seconds (rows).
-18. `make check` stays green.
-19. docs: `docs/operator-guide.md`: a section *A provider's spend limit*: what a limit is (HTTP 428 behind a gateway, or the operator's pattern), that the factory waits the named wait or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) and resumes the same session with what is left of the budget and the time limit, without counting an attempt; that it stalls after `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120) of waiting, and what to do then; the two log lines; that the claim stays held while waiting, so that a stage may hold it past its `lease_duration`, which only another instance on the same repository would act on (run one instance per repository); that a stop or restart during a wait reruns the stage as a crash. The configuration table gets both variables, and the stall reasons `provider_limit` gets what to do. `docs/project-guide/stages.md`, *Starting a stage*: `PatientRuns`, the `Waiter` interface and its two implementations. `docs/project-guide/watching.md`, *Boundaries* in *Stops, the clock and the factory log*: `run_sealed`'s `run`. `docs/decisions.md`: an entry *The factory waits out a provider limit around a stage's run*, dated with the story, with the reasons of the feature's decision 14.
+18. `read_settings` accepts the lower bound of each rule: a cool-down of `1` and a ceiling of `1` give one minute each (the least whole number of minutes, and a ceiling equal to the cool-down), and a cool-down of `30` and a ceiling of `30` give 30 minutes each (a row beside criterion 3's `5` and `60`).
+19. `make check` stays green.
+20. docs: `docs/operator-guide.md`: a section *A provider's spend limit*: what a limit is (HTTP 428 behind a gateway, or the operator's pattern), that the factory waits the named wait or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) and resumes the same session with what is left of the budget and the time limit, without counting an attempt; that it stalls after `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120) of waiting, and what to do then; the two log lines; that the claim stays held while waiting, so that a stage may hold it past its `lease_duration`, which only another instance on the same repository would act on (run one instance per repository); that a stop or restart during a wait reruns the stage as a crash. The configuration table gets both variables, and the stall reasons `provider_limit` gets what to do. `docs/project-guide/stages.md`, *Starting a stage*: `PatientRuns`, the `Waiter` interface and its two implementations. `docs/project-guide/watching.md`, *Boundaries* in *Stops, the clock and the factory log*: `run_sealed`'s `run`. `docs/decisions.md`: an entry *The factory waits out a provider limit around a stage's run*, dated with the story, with the reasons of the feature's decision 14.
 
 ## Smoke test
 
@@ -443,3 +446,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
 18. factory: started review as self.
+19. reviewer: 1. criterion 18 added: it needs its test. Location: `tests/domain/test_settings_provider_limit_wait.py::test_the_cooldown_and_ceiling_are_read_in_minutes`. Problem: the Interface sets two limits for `read_settings`, and neither is tested at its accepting boundary. The first limit is "a whole number of minutes of at least 1": only `0` (refused) and `5` (accepted) are tested, never `1`. The second is "a ceiling below the cool-down raises": only 30/20 (refused) and 5/60 are tested, never a ceiling equal to the cool-down. The check `ceiling < cooldown` in `src/factory/domain/settings.py` (`_provider_limit`) is its own code, apart from `ProviderLimit`'s validator, so a `<=` there would pass every test. Fix: add the rows `{COOLDOWN: "1", CEILING: "1"}` → 1, 1 and `{COOLDOWN: "30", CEILING: "30"}` → 30, 30 to that parametrized test. No change under `src/` is needed. This gap is in the story too: criterion 3 named only the refused values and the 5/60 pair, so I wrote the accepting side into the work item as criterion 18, and the two closing criteria are now 19 (`make check`) and 20 (`docs:`).
+
+    I stopped at group 1 (acceptance criteria), as the checklist says. Every other criterion from 1 to 17 has a test that checks what its criterion says. Entry 17 records that `make check` was green after the coder.
+
+    Earlier tests: none changed. Every test file in the diff has status `A`.
