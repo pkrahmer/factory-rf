@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T23:33:10.965748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T23:32:50.551621Z'
   stage: review
   run: 1ffb8c4a37484ea984f5791cc2265db8
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:33:10.965748Z'
+  stage: docs
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -139,3 +148,4 @@ Expect: `documents ok`
    2–4. Architecture, security and quality: there is no code to check. The `duplicates: 5 new` in entry 7 cannot come from this branch, because the branch changes no code.
    5. Work item hygiene: the docs criterion still matches the guide. `docs/operator-guide.md:703` (*What a stage run shows*, point 3) holds the old example `` `mutants`: 1718/1858 mutants (stopped at its time limit after 600 s) ``, and it is the only `` `mutants`: `` in the guide. The new example is accurate: `factory/pipeline.yml` lists `test` among the tests stage's `reports`, with `time_limit: 10`, which is 600 s.
    6. Earlier tests: none changed. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
