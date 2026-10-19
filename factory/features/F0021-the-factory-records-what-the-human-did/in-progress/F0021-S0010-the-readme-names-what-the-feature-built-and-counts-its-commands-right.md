@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T02:16:43.132879Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T02:16:22.234655Z'
   stage: docs
   run: 871e22203f41497eb8b6b15e504447a3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T02:16:43.132879Z'
+  stage: smoke-test
 ---
 
 # The README names what the feature built and counts its commands right
@@ -187,3 +196,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
