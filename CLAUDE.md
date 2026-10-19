@@ -7,7 +7,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 
 ## Vocabulary
 - `factory/v1/` is v1's history: its stage table, its forms and its features F0001 to F0017, in v1's words. Nothing reads it and no stage writes it; leave it as it is.
-- Everything else, the pipeline's own files under `factory/` included (the pipeline definition, the story and feature forms, the features and their work items), uses the glossary's names: work item, journal, backlog, start, approval, pipeline definition, write paths, project commands, acceptance reviewer, smoke test, error (R3). Stall, lease, crash and `time_limit` keep the meanings the decision log gives them.
+- Everything else, the pipeline's own files under `factory/` included (the pipeline definition, the story and feature forms, the features and their work items), uses the glossary's names: work item, journal, backlog, start, approval, pipeline definition, write paths, project commands, acceptance reviewer, smoke test, error (R3). Stall, lease, crash, `time_limit` and provider limit keep the meanings the decision log gives them.
 
 ## Architecture
 - One package, `factory`, under `src/` (Python 3.12, uv). Four layers; a higher one may import a lower one and never the reverse: `factory.entry` → `factory.adapters` → `factory.application` → `factory.domain`. import-linter enforces this in `make check`.
