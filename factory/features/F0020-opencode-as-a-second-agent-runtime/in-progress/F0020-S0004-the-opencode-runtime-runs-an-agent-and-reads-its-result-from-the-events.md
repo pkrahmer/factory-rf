@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T05:32:51.244613Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-10-19T05:32:51.244613Z'
   stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T05:34:02.906493Z'
+  stage: review
+  run: 33fae1320c2a4f42837c1e98dac6b60c
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -711,3 +713,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 4 gone
 37. factory: started review as self.
+38. reviewer: Review, round 2: no findings. The work item goes on to docs.
+
+    Both round 1 findings (entry 30) are fixed.
+    - Finding 1, criterion 20: covered by `tests/adapters/test_opencode_runtime_launch.py::test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds`, with a `sudo` row and a `wrapper` row.
+      - The `sudo` row uses `_write_sudo(..., warning=...)`, so stderr holds `sudo: a password is required` before the call runs. The `wrapper` row plays `Played(stdout=REPLY, exit_status=0)`, whose default stderr is the `factory-confine: ...` line.
+      - Both rows check `completed` plus the block's decision and entry. If `printed = bool(_events(process.stdout))` at `src/factory/adapters/opencode_runtime.py:560` became `printed = False`, `call_refusal` would raise in both rows, so the test pins the side the Interface states.
+    - Finding 2, the copied `_confinement`: both runtimes now call the new `agent_launch.device_confinement`, and each passes its own module's `DEVICE_FOLDERS` and `DEVICE_FILES`. That keeps `tests/adapters/test_claude_runtime_confinement.py`'s monkeypatch of `claude_runtime.DEVICE_FOLDERS` working, so it is a sound change from the fix I suggested in round 1.
+
+    The rest of the review:
+    - Criteria 1 to 20 each have a test that checks what the criterion says. The factory's `make check` after the coder was green (entry 36).
+    - Architecture: the layers hold, `agent_launch` still imports no process module, neither module reads `os.environ`, and `OpencodeRuntime` derives from the `AgentRuntime` ABC.
+    - Security: the diff adds no suppression marker, and the prompt goes in as one argument.
+    - `call_refusal` keeps the Claude Code runtime's order, conditions and texts (sudo, then the wrapper, then the login).
+    - Work item: the `## Description` matches what was built, and docs criterion 22 still says what the documenter has to write.
+
+    Not raised: `_request_of` is the same four lines in both runtimes. Sharing it would mean `agent_launch` builds a `ProcessRequest`, which `tests/test_wrapper_search.py` forbids, so it would need the human. Round 1 did not count it either. `make duplicates` gave `5 new, 35 known, 4 gone` (entry 32), and the code has not changed since. The 3 similar blocks are calls to the shared helpers. The 2 dead-code flags are `_ErrorData.status_code` and `OpencodeRuntime`, which S0006 and S0008 use.
+
+    Notes:
+    - `tests/adapters/test_opencode_events.py:276`: `test_a_step_with_zero_values_is_a_valid_step` is still a separate function beside `test_a_line_that_does_not_validate_is_skipped` (:235). They are the two sides of one rule.
+    - `tests/adapters/test_opencode_runtime.py:283`: `test_a_version_that_cannot_be_read_names_the_reason` still repeats the exit-1 and printed-nothing rows of `tests/adapters/test_opencode_runtime_launch.py:262` `test_a_version_that_cannot_be_read_is_a_runtime_error`.
+
+    Earlier tests:
+    - `tests/test_model_configuration.py`: changed under the leave the story gives (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
+    - `tests/test_wrapper_search.py`: changed under the leave the story gives (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
