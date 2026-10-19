@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T22:17:51.527921Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T22:17:31.105626Z'
   stage: doing
   run: 2d4b3b3eca8640c480edc9b3698832c2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:17:51.527921Z'
+  stage: review
 ---
 
 # The guide's index names the modules its files describe by class
@@ -135,3 +144,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
