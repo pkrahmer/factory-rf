@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T07:56:33.606205Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-19T07:56:12.638656Z'
   stage: doing
   run: abeaa89cde1c40a5a8079389e73c9370
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:56:33.606205Z'
+  stage: tests
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -540,3 +549,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The 5 new `make duplicates` findings from entry 13. None of them comes from this story's diff.
 
     The journal did not change what the task means, so `## Description` stays as it is.
+26. factory: started tests as self.
