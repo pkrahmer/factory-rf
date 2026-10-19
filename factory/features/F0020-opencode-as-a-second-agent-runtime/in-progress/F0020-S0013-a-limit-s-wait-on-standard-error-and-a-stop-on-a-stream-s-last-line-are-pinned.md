@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T22:52:49.376894Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-19T22:52:49.376894Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T22:55:12.950010Z'
+  stage: tests
+  run: e2dcf3b2f1494ea9b7e85d8e299f5161
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -154,3 +156,19 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
    - Architecture: the new tests sit under `tests/adapters/`, as `CLAUDE.md` requires. They import the shared helpers and change no earlier test.
    - Scope: within F0020's scope, which covers the opencode runtime and `process.py` streaming. Nothing in the feature's Out of scope is touched.
 7. factory: started tests as self.
+8. tester: Wrote the two new test modules that the Interface names. They import the shared helpers and copy none. No earlier test changed.
+
+   - criterion 1: tests/adapters/test_opencode_limit_wait_on_stderr.py::test_a_limit_line_on_standard_error_gives_the_wait_it_names. It has five rows: `seconds` (provider_limit, 120 s), `minutes` (provider_limit, 420 s), `no-wait` (provider_limit, None), `500` (completed, None) and `4281` (completed, None). Each row puts its line on standard error first through `stand_in_runtime(..., stderr_first=...)`. The provider_limit rows use a stand-in that prints a `step_start` and waits `WAIT_SECONDS`. The completed rows use one that ends with a valid result block. Every row checks the end reason and `limit_wait`, and that the run ended within `BOUND_SECONDS`.
+   - criterion 2: tests/adapters/test_process_streaming_last_line.py::test_a_stop_on_a_last_line_without_a_newline_stops_the_call_at_once. It has three rows: `stdout`, `stderr` and `no-stop`. The `Recorder` stops on `go` and the time limit is 30 s. The child writes its pid to a file in `tmp_path`, writes the last line to fd 1 or 2 with no newline, closes that descriptor, and then either sleeps 60 s (the stop rows) or calls `os._exit(0)` (the no-stop row). `os._exit` keeps Python's exit-time flush from writing anything to standard error. Every row checks that the calls are exactly `[(stream, line)]`, plus `stopped` and `exit_status`. The stop rows also check `timed_out` is False, that the call returns within 10 s, and that the child is gone (`is_gone`).
+   - criteria 3 and 4 (make check, docs): no test, as they belong to the coder and the documenter.
+
+   Files created: tests/adapters/test_opencode_limit_wait_on_stderr.py, tests/adapters/test_process_streaming_last_line.py.
+
+   Modules the test run could not import: none. This story pins behaviour that already exists and changes no code, so the new tests pass as soon as they are written. `make test` was green, not red, and that is expected here. I could not check that the tests are red under the two mutants the Description names, because the stage does not run `make mutants`. `make lint` is green. I skipped `make types`, as this stage says to.
+
+   Set aside: the separate `then` column in criterion 2's table. Ruff's PLR0917 refused six positional parameters, so the test now picks "sleep" or "exit" from the `stopped` column.
+
+   Nothing was open to interpretation.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.2 s)
