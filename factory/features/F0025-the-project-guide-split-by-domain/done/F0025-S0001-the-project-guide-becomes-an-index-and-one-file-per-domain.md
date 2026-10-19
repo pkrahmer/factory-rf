@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T06:47:19.197080Z'
   stage: smoke-test
   run: 1bb31f76631e497eb677d3fd5448f640
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T06:59:52.538704Z'
+  stage: approval
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -469,3 +474,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criterion 7: I did not run `make check`. The factory runs the stage's checks itself.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 9.7 min, 73 turns, 286960 tokens in (1492179 more from cache), 30961 out, $2.74
