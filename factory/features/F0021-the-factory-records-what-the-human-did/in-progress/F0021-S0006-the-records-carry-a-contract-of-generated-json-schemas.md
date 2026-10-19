@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T00:07:35.168085Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T00:07:14.903436Z'
   stage: doing
   run: 4aa5c166486b4e5280146caeaac0dfc6
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:07:35.168085Z'
+  stage: review
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -212,3 +221,4 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
