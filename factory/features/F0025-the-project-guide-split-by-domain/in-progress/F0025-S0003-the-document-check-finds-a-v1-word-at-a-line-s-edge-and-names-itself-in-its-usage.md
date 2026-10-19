@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T09:23:06.962341Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T09:22:46.543115Z'
   stage: review
   run: a63e09cc9a0a473187d4f871d7c7829f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:23:06.962341Z'
+  stage: doing
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -156,3 +165,4 @@ Expect: `documents ok`
    - The coder's journal entry records `check: green`.
 
    Earlier tests: none. The diff only adds test files (`A`). No test file that `main` already holds was changed, renamed or deleted.
+10. factory: started doing as self.
