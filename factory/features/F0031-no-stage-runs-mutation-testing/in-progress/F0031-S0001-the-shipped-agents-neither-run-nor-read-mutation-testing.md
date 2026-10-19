@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T20:50:48.736600Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T20:50:27.935593Z'
   stage: intake
   run: 6dedcc08f3dc416a855ead9a8ad44429
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:50:48.736600Z'
+  stage: tests
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -104,3 +113,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the commands are runnable greps. I checked the first one: its four patterns sit on four separate lines (check 3, check 7, step 1, step 3), so `4` is right. The second block's four expected lines (`0`, `0`, `template/CLAUDE.md:0`, `template/Makefile:0`) match grep -c output for two files. Each `Expect:` line can be checked against the output.
    - Architecture: only shipped agent texts and template files change, in `claude/` and `template/`. Those are the coder's write paths and the tests are the tester's. No layer, dependency or suppression marker is involved.
    - Scope: it is within the feature's Scope. It leaves alone the Out-of-scope items (the `mutants` target, `src/`, the pipeline files and the todo demo). The pipeline file and the demo changes stay the human's, as the feature says.
+4. factory: started tests as self.
