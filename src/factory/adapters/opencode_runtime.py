@@ -5,7 +5,7 @@ import re
 import tempfile
 import time
 import uuid
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -26,6 +26,7 @@ from pydantic import (
 from factory.adapters.agent_launch import (
     CLEANUP_TIME_LIMIT,
     ENTRY_DESCRIPTION,
+    FINISH_MESSAGE,
     RUN_FILE_MODE,
     SHELL_EXECUTABLE,
     SUDO_EXECUTABLE,
@@ -42,7 +43,9 @@ from factory.adapters.agent_launch import (
     killed_at_limit,
     login_argv,
     login_used,
+    resume_budget,
     run_launch,
+    since,
     temporary_folder,
     version_printed,
 )
@@ -61,10 +64,12 @@ from factory.domain.agent_runs import (
     EndReason,
     PermissionDenial,
     TokenCounts,
+    resumed_result,
 )
 from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
+from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
@@ -250,10 +255,6 @@ class _RunFiles(BaseModel):
             path.unlink(missing_ok=True)
 
 
-def _never_stop(_stream: Stream, _line: str) -> bool:
-    return False
-
-
 def _model(agent: AgentDefinition, models: Mapping[str, str]) -> str:
     if "/" in agent.model:
         return agent.model
@@ -322,14 +323,64 @@ def _configuration(request: AgentRunRequest, bash: dict[str, str]) -> str:
     return json.dumps(configuration)
 
 
+def _event(line: str) -> _Event | None:
+    try:
+        return _Event.model_validate_json(line)
+    except ValidationError:
+        return None
+
+
 def _events(stdout: str) -> list[_Event]:
-    events = []
-    for line in stdout.splitlines():
-        try:
-            events.append(_Event.model_validate_json(line))
-        except ValidationError:
-            continue
-    return events
+    events = (_event(line) for line in stdout.splitlines())
+    return [event for event in events if event is not None]
+
+
+def _limit_message(event: _Event, limit: ProviderLimit) -> str | None:
+    """The message of an error event that shows `limit`, empty without one; else `None`."""
+    data = None if event.error is None else event.error.data
+    if event.type != "error" or data is None:
+        return None
+    message = data.message or ""
+    if data.status_code == limit.status or limit_in_text(message, limit):
+        return message
+    return None
+
+
+class _Watch:
+    """Reads a call's lines as they stream and stops it past its budget or at a limit."""
+
+    def __init__(self, budget: Decimal, limit: ProviderLimit) -> None:
+        self._budget = budget
+        self._limit = limit
+        self._cost = Decimal(0)
+        self.stopped_by: EndReason | None = None
+        self.limit_text: str | None = None
+
+    def on_line(self, stream: Stream, line: str) -> bool:
+        """Read `line` of `stream`; True stops the call."""
+        if stream == "stderr":
+            if limit_in_text(line, self._limit):
+                self._stop_at_limit(line)
+        else:
+            event = _event(line)
+            if event is not None:
+                self._read(event)
+        return self.stopped_by is not None
+
+    def _read(self, event: _Event) -> None:
+        # Only an error event can be a limit: the agent's text and its tools' output name
+        # whatever they like.
+        limit_message = _limit_message(event, self._limit)
+        if limit_message is not None:
+            self._stop_at_limit(limit_message)
+        elif event.type == "step_finish" and event.part is not None and event.part.cost is not None:
+            self._cost += Decimal(str(event.part.cost))
+            if self._cost > self._budget:
+                self.stopped_by = "budget"
+
+    def _stop_at_limit(self, text: str) -> None:
+        self.stopped_by = "provider_limit"
+        self.limit_text = text
 
 
 def _steps(events: Sequence[_Event]) -> list[_Step]:
@@ -406,10 +457,15 @@ def _session(events: Sequence[_Event], request: AgentRunRequest) -> str | None:
 
 
 def _end_reason(
-    process: ProcessResult, steps: Sequence[_Step], answer: tuple[str, str] | None
+    process: ProcessResult,
+    watch: _Watch,
+    steps: Sequence[_Step],
+    answer: tuple[str, str] | None,
 ) -> EndReason:
     if process.timed_out:
         return "time_limit"
+    if watch.stopped_by is not None:
+        return watch.stopped_by
     if process.exit_status != 0 or not steps:
         return "died"
     if answer is None:
@@ -417,7 +473,13 @@ def _end_reason(
     return "completed"
 
 
-def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
+def _limit_wait(end_reason: EndReason, watch: _Watch) -> timedelta | None:
+    if end_reason != "provider_limit" or watch.limit_text is None:
+        return None
+    return named_wait(watch.limit_text)
+
+
+def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> AgentRunResult:
     # The duration is the whole run's, so `run` sets it once the call has ended.
     login = login_used(process.stderr)
     events = _events(process.stdout)
@@ -427,7 +489,7 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
         return AgentRunResult(end_reason="time_limit", duration=_ZERO, login=login, session=session)
     steps = _steps(events)
     answer = _answer(events, request.allowed_decisions)
-    end_reason = _end_reason(process, steps, answer)
+    end_reason = _end_reason(process, watch, steps, answer)
     completed = answer if end_reason == "completed" else None
     return AgentRunResult(
         end_reason=end_reason,
@@ -441,6 +503,7 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
         permission_denials=_denials(events),
         login=login,
         session=session,
+        limit_wait=_limit_wait(end_reason, watch),
     )
 
 
@@ -476,6 +539,7 @@ class OpencodeRuntime(AgentRuntime):
         api_login_file: Path | None = None,
         confine_executable: str | None = None,
         temporary_root: Path | None = None,
+        provider_limit: ProviderLimit | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -485,6 +549,7 @@ class OpencodeRuntime(AgentRuntime):
         A run's call gets the key held in `api_login_file`, read by the call's own shell.
         With `confine_executable`, every call starts through it with the run's rules and
         its own temporary folder under `temporary_root`, the system's by default.
+        A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
         """
         self._executable = executable
         self._state_directory = state_directory
@@ -500,12 +565,15 @@ class OpencodeRuntime(AgentRuntime):
         self._temporary_root = (
             Path(tempfile.gettempdir()) if temporary_root is None else temporary_root
         )
+        self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON events it prints into a result.
 
-        A request the runtime cannot configure, a call that cannot be started, or files that
-        cannot be written are `AgentRuntimeError`.
+        A call is stopped once the cost of its steps passes its budget, or at once when it shows
+        the provider limit. A budget stop of a known session resumes it once within what is
+        left of the time limit. A request the runtime cannot configure, a call that cannot be
+        started, or files that cannot be written are `AgentRuntimeError`.
         """
         started = time.monotonic()
         model = _model(request.agent, self._models)
@@ -513,7 +581,9 @@ class OpencodeRuntime(AgentRuntime):
         files = _RunFiles.of(self._state_directory, self._temporary_root, str(uuid.uuid4()))
         try:
             self._write_files(request, files, configuration)
-            result = _result(request, self._call(request, files, model))
+            result = self._call(request, files, model, request.agent.budget_usd)
+            if result.end_reason == "budget" and result.session is not None:
+                result = self._resume(request, files, model, result, started)
             return finished_run(result, started, self._kill_points)
         finally:
             files.remove()
@@ -551,9 +621,34 @@ class OpencodeRuntime(AgentRuntime):
                 f"cannot write the state directory {self._state_directory}: {exc}"
             ) from exc
 
-    def _call(self, request: AgentRunRequest, files: _RunFiles, model: str) -> ProcessResult:
+    def _resume(
+        self,
+        request: AgentRunRequest,
+        files: _RunFiles,
+        model: str,
+        first: AgentRunResult,
+        started: float,
+    ) -> AgentRunResult:
+        left = request.time_limit - since(started)
+        if left <= _ZERO:
+            second = AgentRunResult(end_reason="time_limit", duration=_ZERO)
+        else:
+            resume = request.model_copy(
+                update={
+                    "prompt": FINISH_MESSAGE,
+                    "resume_session": first.session,
+                    "time_limit": left,
+                }
+            )
+            second = self._call(resume, files, model, resume_budget(request.agent.budget_usd))
+        return resumed_result(first, second)
+
+    def _call(
+        self, request: AgentRunRequest, files: _RunFiles, model: str, budget: Decimal
+    ) -> AgentRunResult:
+        watch = _Watch(budget, self._provider_limit)
         process_request = self._process_request(request, files, model)
-        process = self._start(process_request, streaming=True)
+        process = self._start(process_request, watch.on_line)
         if self._starters.confine_executable is not None:
             self._remove_temporary_folder(request, files.temporary)
         killed = killed_at_limit(
@@ -575,7 +670,7 @@ class OpencodeRuntime(AgentRuntime):
         )
         if refusal is not None:
             raise AgentRuntimeError(refusal)
-        return process
+        return _result(request, process, watch)
 
     def _remove_temporary_folder(self, request: AgentRunRequest, temporary: Path) -> None:
         # Its status is not read: a folder left behind changes no run's result.
@@ -614,10 +709,14 @@ class OpencodeRuntime(AgentRuntime):
         )
         return _request_of(started, request.working_directory)
 
-    def _start(self, process_request: ProcessRequest, *, streaming: bool = False) -> ProcessResult:
+    def _start(
+        self,
+        process_request: ProcessRequest,
+        on_line: Callable[[Stream, str], bool] | None = None,
+    ) -> ProcessResult:
         try:
-            if streaming:
-                return run_streaming(process_request, _never_stop)
+            if on_line is not None:
+                return run_streaming(process_request, on_line)
             return run_process(process_request)
         except OSError as exc:
             program = process_request.argv[0]

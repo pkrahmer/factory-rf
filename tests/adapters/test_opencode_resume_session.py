@@ -10,12 +10,12 @@ from adapters.opencode_stand_in import (
     SESSION,
     opencode_request,
     result_text,
+    stand_in_runtime,
     stdout,
     step_finish,
     step_start,
     text,
 )
-from adapters.test_opencode_runtime import _runtime
 
 OTHER_SESSION = "ses_b"
 # The first event names another session than the later ones, so the first one is told apart.
@@ -61,7 +61,7 @@ def test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_ev
     time_limit: timedelta,
     session: str | None,
 ) -> None:
-    runtime = _runtime(tmp_path, [step])
+    runtime = stand_in_runtime(tmp_path, [step])
     request = opencode_request(tmp_path / "work", time_limit=time_limit).model_copy(
         update={"resume_session": resume_session}
     )

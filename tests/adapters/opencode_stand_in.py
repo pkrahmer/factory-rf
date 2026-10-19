@@ -8,7 +8,10 @@ from decimal import Decimal
 from pathlib import Path
 
 from adapters.claude_stand_in import STEPS, Step
+from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.domain.kill_points import KillPoints
+from factory.domain.provider_limits import ProviderLimit
 
 CONFIG_MODES = "config-modes.jsonl"
 SESSION = "ses_a"
@@ -19,6 +22,10 @@ TOKENS: Mapping[str, object] = {
     "reasoning": 2,
     "cache": {"read": 100, "write": 20},
 }
+# A stopped stand-in waits far longer than a stop may take, so a missed stop is plain.
+WAIT_SECONDS = 30
+BOUND_SECONDS = 20
+RESUME_ENTRY = "Stopped at the budget."
 
 # Records its arguments, environment, directory and the text of the file `OPENCODE_CONFIG`
 # names in the shape of `claude_stand_in.StandInCall`, and that file's mode beside it.
@@ -217,3 +224,76 @@ def opencode_request(
         else dict(environment),
         os_user=os_user,
     )
+
+
+def stand_in_runtime(  # noqa: PLR0913 - one parameter per setting a test varies
+    tmp_path: Path,
+    steps: list[Step],
+    *,
+    settings_file: Path | None = None,
+    kill_points: KillPoints | None = None,
+    provider_limit: ProviderLimit | None = None,
+    stderr_first: str | None = None,
+) -> OpencodeRuntime:
+    """A runtime that calls the stand-in in `tmp_path / "bin"`, playing `steps`.
+
+    With `stderr_first`, the runtime calls a wrapper that prints that line on standard error
+    and then becomes the stand-in, since the stand-in itself writes standard error last.
+    """
+    executable = write_opencode(tmp_path / "bin", steps)
+    if stderr_first is not None:
+        executable = _stderr_first(tmp_path, executable, stderr_first)
+    state = tmp_path / "state"
+    state.mkdir(exist_ok=True)
+    return OpencodeRuntime(
+        str(executable),
+        state,
+        kill_points,
+        models=MODELS,
+        settings_file=settings_file,
+        provider_limit=provider_limit,
+    )
+
+
+def _stderr_first(tmp_path: Path, executable: Path, line: str) -> Path:
+    wrapper = tmp_path / "wrapper" / "opencode"
+    wrapper.parent.mkdir()
+    wrapper.write_text(
+        f"#!{sys.executable}\n"
+        "import os\nimport sys\n"
+        f"sys.stderr.write({line!r} + '\\n')\n"
+        "sys.stderr.flush()\n"
+        f"os.execv({str(executable)!r}, [{str(executable)!r}, *sys.argv[1:]])\n",
+        encoding="utf-8",
+    )
+    wrapper.chmod(0o755)
+    return wrapper
+
+
+def budget_steps(*costs: float) -> list[str]:
+    """The event lines of one step per cost, each a `step_start` and a `step_finish`."""
+    lines: list[str] = []
+    for index, cost in enumerate(costs):
+        lines += [step_start(1000 * index), step_finish(1000 * index + 500, cost=cost)]
+    return lines
+
+
+def _without_session(line: str) -> str:
+    return line.replace(f', "sessionID": "{SESSION}"', "")
+
+
+def over_budget(*, with_session: bool = True) -> Step:
+    """A first call whose steps of 0.4, 0.4 and 0.21 pass a budget of 1, then a long wait."""
+    lines = budget_steps(0.4, 0.4, 0.21)
+    if not with_session:
+        lines = [_without_session(line) for line in lines]
+    return Step(stdout_before_wait=stdout(*lines), wait_seconds=WAIT_SECONDS)
+
+
+RESUME_REPLY = Step(
+    stdout=stdout(
+        step_start(10_000),
+        text(result_text("question", RESUME_ENTRY), 10_200),
+        step_finish(10_500, cost=0.1),
+    )
+)

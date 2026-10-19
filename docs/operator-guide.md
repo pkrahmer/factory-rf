@@ -202,11 +202,15 @@ The write-path guard is the command `factory-guard`, installed with the factory 
 Some gateways limit the spend per model in a rolling window and answer a call past it with an HTTP error (the human's gateway: status 428, about $3 per 10 minutes). Without a rule the run would end `died`. The factory gives it its own end reason, `provider_limit`, and keeps the run's session in the result so that a later run can continue it.
 
 - What matches: the status in `FACTORY_PROVIDER_LIMIT_STATUS` (default 428) as a whole number in the text (`HTTP 428:` and `(428)` match; `14280` does not), or a text the regular expression in `FACTORY_PROVIDER_LIMIT_MESSAGE` finds. Set the message when the gateway's text is not known to carry the status.
-- Where it is looked for: in the error result the `claude` call printed, or, when no result could be read, in a line of its standard error. The opencode runtime does not look for it yet (a later story of the feature). Never in the agent's own text, so an agent that writes "428" in a report cannot end its run.
+- Where it is looked for: in the error result the `claude` call printed, or, when no result could be read, in a line of its standard error. The opencode runtime looks for it while the run streams: in an `error` event (its `statusCode`, or the limit in its message) or in a line of standard error, and stops the run at once with the session kept. Never in the agent's own text, so an agent that writes "428" in a report cannot end its run.
 - A run past its time limit, or stopped by its budget, keeps that end reason; the limit is looked for only when neither applies.
 - A message that names a wait (`in 7 minutes`, `after 30 s`, `retry-after: 420`) gives the run's wait; otherwise none is known.
 - The cost record's `end_reason` is `provider_limit`, and the record carries the refused calls (`denials`, `denied_paths`) like any run that replied.
 - For now such a run is a stall with the cause `the provider's spend limit lasted past the waiting ceiling`: it costs one attempt and is retried by the usual rules. Waiting out the limit and continuing the same session is a later story of the same feature.
+
+### An opencode run's budget
+
+opencode has no budget flag, so the factory keeps the budget of an opencode run itself: it adds up the cost of every step as the run prints it and stops the run when the sum is above the agent's budget. It then resumes the session once with a quarter of the budget (at least 0.50 USD), as for a `claude` run. A step is counted when it ends, so a run may pass its budget by the cost of one step.
 
 ## The machine's image
 

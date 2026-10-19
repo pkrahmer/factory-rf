@@ -13,6 +13,7 @@ from adapters.opencode_stand_in import (
     opencode_request,
     read_config_modes,
     result_text,
+    stand_in_runtime,
     stdout,
     step_finish,
     step_start,
@@ -41,21 +42,6 @@ CONFIG_NAME = re.compile(
 )
 
 
-def _runtime(
-    tmp_path: Path,
-    steps: list[Step],
-    *,
-    settings_file: Path | None = None,
-    kill_points: KillPoints | None = None,
-) -> OpencodeRuntime:
-    executable = write_opencode(tmp_path / "bin", steps)
-    state = tmp_path / "state"
-    state.mkdir(exist_ok=True)
-    return OpencodeRuntime(
-        str(executable), state, kill_points, models=MODELS, settings_file=settings_file
-    )
-
-
 def _settings(tmp_path: Path, text_of_file: str) -> Path:
     path = tmp_path / "settings.json"
     path.write_text(text_of_file, encoding="utf-8")
@@ -72,7 +58,7 @@ def _settings(tmp_path: Path, text_of_file: str) -> Path:
 def test_a_run_calls_opencode_run_with_its_words_in_the_working_directory(
     tmp_path: Path, model: str, passed: str
 ) -> None:
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)])
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
     request = opencode_request(tmp_path / "work", model=model)
 
     runtime.run(request)
@@ -144,7 +130,7 @@ def test_a_request_the_runtime_cannot_configure_fails_before_anything_starts(
         settings_file = tmp_path / "missing.json"
     elif settings is not None:
         settings_file = _settings(tmp_path, settings)
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
 
     with pytest.raises(AgentRuntimeError) as raised:
         runtime.run(opencode_request(tmp_path / "work", model=model, tools=tools))
@@ -181,7 +167,7 @@ def test_the_configuration_defines_the_agent_from_its_definition_and_the_setting
         if with_settings
         else None
     )
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
     request = opencode_request(tmp_path / "work", tools=("Read", "Bash"))
 
     runtime.run(request)
@@ -214,7 +200,7 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
         API_LOGIN_VARIABLE: "request-key",
         LOGIN_VARIABLE: "request-token",
     }
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)])
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
 
     runtime.run(opencode_request(tmp_path / "work", environment=given))
 
@@ -247,7 +233,7 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
 def test_the_state_directory_holds_no_file_after_a_run(
     tmp_path: Path, step: Step, time_limit: timedelta, end_reason: str
 ) -> None:
-    runtime = _runtime(tmp_path, [step])
+    runtime = stand_in_runtime(tmp_path, [step])
     request = opencode_request(tmp_path / "work", time_limit=time_limit)
 
     result = runtime.run(request)
@@ -259,7 +245,7 @@ def test_the_state_directory_holds_no_file_after_a_run(
 def test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime(
     tmp_path: Path, kill_points: KillPoints
 ) -> None:
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], kill_points=kill_points)
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], kill_points=kill_points)
 
     runtime.run(opencode_request(tmp_path / "work"))
 
