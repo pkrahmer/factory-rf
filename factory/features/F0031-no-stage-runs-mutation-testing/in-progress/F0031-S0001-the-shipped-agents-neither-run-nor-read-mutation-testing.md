@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T21:02:33.993454Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T21:02:13.064672Z'
   stage: doing
   run: 2d2e2941a2104de2b3c4736389df9b8f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:02:33.993454Z'
+  stage: review
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -268,3 +277,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
