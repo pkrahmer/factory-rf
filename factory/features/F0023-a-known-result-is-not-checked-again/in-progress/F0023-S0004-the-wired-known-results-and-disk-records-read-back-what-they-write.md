@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T21:44:23.800167Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T21:44:03.189350Z'
   stage: tests
   run: 68ce178efcbd44c6840658807086c092
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:44:23.800167Z'
+  stage: doing
 ---
 
 # The wired known results and disk records read back what they write
@@ -94,3 +103,4 @@ Expect: a line that starts with `2 passed`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.5 s)
+6. factory: started doing as self.
