@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -142,6 +142,11 @@ journal:
   at: '2026-10-19T03:53:28.526246Z'
   stage: smoke-test
   run: 1fc38dbd2b0c419794fc715da1024aff
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-19T03:54:46.751622Z'
+  stage: approval
 ---
 
 # The agent runs can log in with an API key
@@ -617,3 +622,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Checked against the acceptance criteria: the result agrees with criterion 8. With a key in the API file the stand-in got `ANTHROPIC_API_KEY` and no token, and `login` was `api_key`. Once the file was emptied, the next run got the token and its `login` was `subscription`. It also agrees with criterion 9: the request's environment held only `PATH`, and the stand-in got only the login names the files supplied. No criterion is contradicted.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 16.8 min, 143 turns, 489208 tokens in (5227559 more from cache), 75718 out, $5.84
