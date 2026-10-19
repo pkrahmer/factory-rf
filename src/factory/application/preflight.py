@@ -18,6 +18,7 @@ from factory.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
     GuardSettings,
+    Login,
 )
 from factory.domain.checks import CheckResult
 from factory.domain.confinement import abi_fault
@@ -230,13 +231,40 @@ def agent_run_probe_item(
             f"the probe run ended {result.end_reason}; "
             f"run claude -p by hand as {settings.agent_user or 'the factory user'} to see why"
         )
-        if settings.claude_login_file is not None:
-            detail += (
-                f"; the agent's login token is read from {settings.claude_login_file}: "
-                "make it with claude setup-token if it is missing, empty or expired"
-            )
+        detail += _login_hint(settings, result.login)
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
-    return PreflightItem(name=_PROBE_ITEM, passed=True)
+    return PreflightItem(
+        name=_PROBE_ITEM, passed=True, detail=_login_detail(settings, result.login)
+    )
+
+
+def _login_hint(settings: InstanceSettings, login: Login | None) -> str:
+    if login == "api_key":
+        return (
+            f"; the agent's API key is read from {settings.api_login_file}: "
+            "check that it is valid and that its account has credit"
+        )
+    if settings.claude_login_file is None:
+        return ""
+    return (
+        f"; the agent's login token is read from {settings.claude_login_file}: "
+        "make it with claude setup-token if it is missing, empty or expired"
+    )
+
+
+def _login_detail(settings: InstanceSettings, login: Login | None) -> str:
+    # Said once per image build in the factory log, so the operator sees which login is in force.
+    if login == "api_key":
+        return f"the agent runs log in with the API key from {settings.api_login_file}"
+    if login == "subscription":
+        return (
+            f"the agent runs log in with the subscription token from {settings.claude_login_file}"
+        )
+    if login == "none":
+        return (
+            "the agent runs get no login from a file; the runtime uses the login kept in its home"
+        )
+    return ""
 
 
 def _probe_request(
@@ -378,7 +406,9 @@ class Preflight:
         # No timer: only a new image build can change what the machine's items find.
         if self._image is not None and stamp is not None and stamp.image == self._image:
             return stamp
-        stop = machine_stop(self._checks.run(), at=self._boundaries.clock.now())
+        report = self._checks.run()
+        self._log_passed_details(report)
+        stop = machine_stop(report, at=self._boundaries.clock.now())
         if stop is not None:
             self._stops.raise_stop(stop)
             return None
@@ -386,6 +416,11 @@ class Preflight:
         passed = PreflightStamp(image=self._image)
         self._stamps.write(passed)
         return passed
+
+    def _log_passed_details(self, report: PreflightReport) -> None:
+        for item in report.items:
+            if item.passed and item.detail:
+                self._boundaries.log.line(f"preflight: {item.name}: {item.detail}")
 
     def _clear_stale_failing_stop(self, stamp: PreflightStamp | None) -> None:
         # The machine cannot run the probe, but a stop naming a commit that is no longer

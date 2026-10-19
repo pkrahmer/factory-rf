@@ -13,7 +13,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.agent_runs import EndReason, TokenCounts
+from factory.domain.agent_runs import EndReason, Login, TokenCounts
 from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.times import UtcDatetime
 
@@ -29,6 +29,8 @@ class CostRecord(BaseModel):
     the instance; either may be `None` on a record written without settings.
     `denials` counts the tool calls the runtime reported as refused and `denied_paths`
     holds the files they named, each once; both are `None` when the runtime gave no reply.
+    `login` says which login the run's calls were handed: an API key, the subscription's
+    token, or neither; it is `None` when the runtime had no login file.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -50,6 +52,7 @@ class CostRecord(BaseModel):
     instance: Name | None = None
     denials: NonNegativeInt | None = None
     denied_paths: list[str] | None = None
+    login: Login | None = None
 
     @field_validator("cost_usd", mode="before")
     @classmethod
@@ -71,6 +74,7 @@ class CostRecord(BaseModel):
                 "cost_usd": self.cost_usd,
                 "denials": self.denials,
                 "denied_paths": self.denied_paths,
+                "login": self.login,
             }
             for field, value in measures.items():
                 if value is not None:

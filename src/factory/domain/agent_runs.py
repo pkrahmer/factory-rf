@@ -38,6 +38,8 @@ ALLOWED_ENVIRONMENT_NAMES: frozenset[str] = frozenset(
 )
 
 EndReason = Literal["completed", "no_result", "time_limit", "budget", "died"]
+# The login a run's calls were handed: an API key, the subscription's token, or neither.
+Login = Literal["api_key", "subscription", "none"]
 
 
 def scrub_environment(source: Mapping[str, str]) -> dict[str, str]:
@@ -146,6 +148,7 @@ class AgentRunResult(BaseModel):
     tokens: TokenCounts | None = None
     cost_usd: Decimal | None = None
     permission_denials: list[PermissionDenial] = []
+    login: Login | None = None
 
     @model_validator(mode="after")
     def _decision_and_entry_only_when_completed(self) -> Self:

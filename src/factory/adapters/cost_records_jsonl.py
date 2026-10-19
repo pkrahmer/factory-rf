@@ -45,7 +45,7 @@ def _line_of_record(record: CostRecord) -> str:
     fields["started_at"] = record.started_at.isoformat().removesuffix("+00:00") + "Z"
     fields["cost_usd"] = None if record.cost_usd is None else str(record.cost_usd)
     # Left out, not null, so a line written before the field existed is written back as read.
-    for field in ("instance", "denials", "denied_paths"):
+    for field in ("instance", "denials", "denied_paths", "login"):
         if fields[field] is None:
             del fields[field]
     return json.dumps(fields, separators=_SEPARATORS) + "\n"

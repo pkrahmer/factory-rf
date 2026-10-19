@@ -253,6 +253,7 @@ def build_boundaries(
             state / RUNS_DIRECTORY_NAME,
             sudo_executable=which("sudo") or SUDO_EXECUTABLE,
             login_file=settings.claude_login_file,
+            api_login_file=settings.api_login_file,
             confine_executable=confine_executable,
         ),
         project_commands=RecordingProjectCommands(

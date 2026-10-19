@@ -1,3 +1,149 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 1
+crashes: 0
+pull_request: 248
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T03:29:12.890341Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:29:12.896925Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T03:29:32.769652Z'
+  stage: intake
+  run: 8b758a12977c4881aa29c6eb58f665e7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:29:52.716385Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T03:35:33.914867Z'
+  stage: tests
+  run: 95cada9589c94b87841bee9f9018b545
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:35:54.189174Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T03:40:37.334360Z'
+  stage: doing
+  run: e85762e79ebd44d99777aa0b80aae03b
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:40:57.565858Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T03:42:26.125572Z'
+  stage: review
+  run: c4ddff7675b34486b84e063839ed3caa
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:42:46.663195Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T03:43:09.260855Z'
+  stage: doing
+  run: fb8f61893d9947efa2d3f0af11ef579e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:43:29.068626Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T03:45:11.849601Z'
+  stage: tests
+  run: 7d8e592116184907b05661142bfa48ec
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:45:32.118987Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T03:47:32.009955Z'
+  stage: doing
+  run: f99f858e834e45a2a0019ad1eb1c1f3a
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:47:52.158635Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T03:49:05.941138Z'
+  stage: review
+  run: 5ca70f34faa84acb81f758c7b8e3b379
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:49:25.909205Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T03:50:49.466445Z'
+  stage: docs
+  run: 5ac3661f85304bd5852f69f935f88df9
+- number: 20
+  speaker: factory
+  kind: stall
+  at: '2026-10-19T03:50:49.494770Z'
+  stage: docs
+  run: 5ac3661f85304bd5852f69f935f88df9
+  reason: check_red
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:51:11.776041Z'
+  stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T03:52:41.819742Z'
+  stage: docs
+  run: ee2c150ba2e8497e825651c066140e52
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:53:02.022177Z'
+  stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T03:53:28.526246Z'
+  stage: smoke-test
+  run: 1fc38dbd2b0c419794fc715da1024aff
+---
+
 # The agent runs can log in with an API key
 
 ## Description
@@ -190,3 +336,284 @@ Expect: four lines, `api_key`, `subscription`, `stand-in-api-login unset`, `unse
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete modules and signatures throughout (`agent_launch` constants, `LoginFiles`, the four functions, the runtime constructor, `Login`, `CostRecord.login`, settings, wiring, preflight details, Dockerfile and compose lines). Every behaviour in it (the script's branches, argv shapes, report and refusal texts, the key order of the JSON line, the contract version, the preflight log line) has a criterion.
+   Criteria: each is testable by one parametrized test with named rows. Each rule has both sides: key and no key (2, 3), unreadable and non-ASCII API file (4), a started record with a login refused (14), `None` left out of the line (15), a failed probe with `api_key` and with `subscription` (17), and a second preflight run that writes no log line (18). The rows for ordering and "first line" are in 6, 7 and 15.
+   Smoke test: runnable as written (stand-in `claude`, real runtime, no sudo or confinement). The `Expect:` line gives four checkable lines in a fixed order.
+   Architecture: the login shell and its helpers are in an adapters module that builds words and texts and does not import the process module. Wiring stays in `entry`, the preflight detail is in `application`, and the domain holds `Login` and the DTO fields. The records contract's version rise is covered by criterion 20.
+   Scope: inside F0020's scope list for S0001. Nothing in Out of scope is touched. The edits to other stories' tests are the two named under decision 19.
+4. factory: started tests as self.
+5. tester: Wrote tests for criteria 1 to 20. One `make test` run shows them red for the right reasons. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_settings_api_login.py::test_the_api_login_file_setting_is_a_path_or_none_when_blank
+   - criterion 2: tests/adapters/test_agent_launch_login.py::test_an_api_file_holding_a_key_hands_over_the_key_and_no_token
+   - criterion 3: tests/adapters/test_agent_launch_login.py::test_without_a_key_the_shell_goes_on_with_the_token_file
+   - criterion 4: tests/adapters/test_agent_launch_login.py::test_an_api_file_that_cannot_be_used_stops_the_shell
+   - criterion 5: tests/adapters/test_agent_launch_login.py::test_the_login_words_name_the_files_that_are_set
+   - criterion 6: tests/adapters/test_agent_launch_login.py::test_the_login_used_is_read_from_the_shell_s_report
+   - criterion 7: tests/adapters/test_agent_launch_login.py::test_the_refusal_names_the_file_the_shell_could_not_use
+   - criterion 8: tests/adapters/test_claude_runtime_api_login.py::test_the_api_file_s_key_wins_and_an_emptied_file_falls_back_to_the_token and ::test_without_an_api_file_the_login_is_the_token_s_or_none
+   - criterion 9: tests/adapters/test_claude_runtime_api_login.py::test_the_request_s_login_entries_are_dropped_for_the_files
+   - criterion 10: tests/adapters/test_claude_runtime_api_login.py::test_the_key_stands_in_no_argument_no_run_file_and_no_result
+   - criterion 11: tests/adapters/test_claude_runtime_api_login.py::test_an_api_file_that_cannot_be_used_stops_the_run_naming_the_file
+   - criterion 12: tests/adapters/test_claude_runtime_api_login.py::test_a_resumed_call_whose_api_file_was_emptied_gets_the_token
+   - criterion 13: tests/adapters/test_claude_runtime_api_login.py::test_the_version_call_gets_no_login_words_and_neither_name
+   - criterion 14: tests/domain/test_login_records.py::test_only_a_completed_record_keeps_a_login and tests/application/test_costs_login.py::test_the_completed_record_keeps_the_result_s_login
+   - criterion 15: tests/adapters/test_cost_records_jsonl_login.py::test_the_writer_writes_the_login_last_only_when_set
+   - criterion 16: tests/entry/test_wiring_api_login.py::test_the_built_runtime_hands_the_api_login_file_s_key_to_claude
+   - criterion 17: tests/application/test_agent_run_probe_api_login.py::test_the_probe_detail_names_the_login_its_run_was_handed
+   - criterion 18: tests/application/test_preflight_login_line.py::test_a_passed_machine_item_s_detail_is_logged_once_per_image
+   - criterion 19: tests/test_api_login_mount.py::test_the_api_login_file_is_set_once_and_bind_mounted_read_only_in_the_agent_home, plus tests/test_compose.py::test_the_three_volumes_are_mounted_and_declared (changed under decision 19)
+   - criterion 20: tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version (expected version now "1.1", under decision 19) and tests/domain/test_contract_login.py::test_the_committed_cost_record_schema_lists_the_optional_login_at_version_1_1. The existing comparison test covers the regenerated files.
+   - criteria 21 and 22 (`make check`, docs) are not tests.
+
+   Files created:
+   - tests/adapters/test_agent_launch_login.py
+   - tests/adapters/test_claude_runtime_api_login.py
+   - tests/adapters/test_cost_records_jsonl_login.py
+   - tests/application/test_agent_run_probe_api_login.py
+   - tests/application/test_costs_login.py
+   - tests/application/test_preflight_login_line.py
+   - tests/domain/test_contract_login.py
+   - tests/domain/test_login_records.py
+   - tests/domain/test_settings_api_login.py
+   - tests/entry/test_wiring_api_login.py
+   - tests/test_api_login_mount.py
+   - tests/run_process_recorder.py
+
+   Two files not on the Interface's list:
+   - The preflight log line (criterion 18) has its own module, tests/application/test_preflight_login_line.py. The probe test module only tests `agent_run_probe_item`, and this criterion needs a `Preflight` run. It reuses the constants and `RecordingWhich` of tests/application/test_preflight_run.py and injects the item through `MachineChecks`' `extra`.
+   - The record contract has its own module, tests/domain/test_contract_login.py.
+
+   Earlier test files changed:
+   - Under decision 19, as the Interface names them: tests/test_compose.py and tests/domain/test_contract.py.
+   - Under the standing leave to move a shared test helper (CLAUDE.md, *Tests*): tests/adapters/test_claude_runtime_login.py, tests/adapters/test_claude_runtime_sudo_time_limit.py and tests/conftest.py. Their two `Recorder` classes were not the same. The login one passed each request on to the real `run_process`; the sudo one answered with given `results`. They are now one `Recorder` in tests/run_process_recorder.py: it answers with the next given result and runs the request itself once none is left, so both earlier modules check exactly what they did before. The `recorder` fixture moved to tests/conftest.py. Those earlier tests stay green.
+
+   Modules the test run could not import:
+   - `factory.adapters.agent_launch` (new module)
+   - the name `API_LOGIN_FILE_VARIABLE` in `factory.domain.settings`
+   - the name `Login` in `factory.domain.agent_runs`
+
+   The other new tests fail on wrong results: no `login` field or `api_login_file`, contract still at 1.0, no preflight log line, compose bind missing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/test_api_login_mount.py - ImportError while importing test module...
+6. factory: started doing as self.
+7. coder: Implemented the API-key login as the Interface describes. `make check` is green: lint, types, layers, sast, secrets, licenses and test, with 99.09 % coverage.
+
+   Built:
+   - `src/factory/adapters/agent_launch.py` (new). It holds the moved `SHELL_EXECUTABLE`, `LOGIN_VARIABLE`, `LOGIN_PREFIX` and `LOGIN_SCRIPT`, plus `API_LOGIN_VARIABLE`, `API_LOGIN_PREFIX`, `LOGIN_USED_PREFIX`, `API_LOGIN_OPTION`, `LoginFiles`, `login_argv`, `login_used`, `login_refusal` and `without_login`. It also holds `line_starting`, which moved here from `claude_runtime` so the two modules do not each keep a copy. It does not import `factory.adapters.process`.
+   - The extended `LOGIN_SCRIPT` uses two shell functions, `check_text` (the "cannot be read" and "not ASCII text" refusals, parameterised by prefix) and `stripped`. The API file and the token file share them instead of repeating the checks. When the API file holds a key, the script exports it, unsets the token, reports `api_key` and execs without reading the token file. Otherwise it unsets `ANTHROPIC_API_KEY` and goes on with today's token logic, reporting `subscription` or `none`. An empty token-file argument counts as missing.
+   - `src/factory/adapters/claude_runtime.py`:
+     - New `api_login_file` keyword. The runtime keeps a `LoginFiles` instead of `_login_file`.
+     - The call's words come from `login_argv` and the environment from `without_login`.
+     - `_result` sets `login` from `login_used(stderr)` on every path, so a resumed run carries the login of its last call.
+     - `_check_login` raises `login_refusal`'s text when there is no usable reply.
+     - The moved names are re-exported through `__all__`. `SHELL_EXECUTABLE` is still read from this module's namespace for the temporary folder's removal.
+   - `src/factory/domain/agent_runs.py`: `Login` and `AgentRunResult.login`.
+   - `src/factory/domain/cost_records.py`: `CostRecord.login`, described in the docstring and refused on a started record.
+   - `src/factory/application/costs.py`: `complete` copies the login.
+   - `src/factory/adapters/cost_records_jsonl.py`: `login` is left out of a line when `None`.
+   - `src/factory/domain/settings.py`: `API_LOGIN_FILE_VARIABLE` and `api_login_file`.
+   - `src/factory/entry/wiring.py`: passes `api_login_file` to the runtime.
+   - `src/factory/application/preflight.py`:
+     - `_login_hint` and `_login_detail` give the failed and passed probe details.
+     - `Preflight._log_passed_details` writes `preflight: <name>: <detail>` for each passed item with a detail, only when the machine's items actually run (not when the stamp skips them).
+   - `src/factory/domain/preflight.py`: the `PreflightItem` docstring now allows a detail on a passed item.
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT` is "1.1". All five `src/factory/contract/*.schema.json` files were regenerated with `uv run python -m factory.entry.contract`.
+   - `image/Dockerfile` and `image/compose.yml`: the `ENV` line and the fifth bind, as specified.
+
+   Main choice: the runtime holds one `LoginFiles` and hands it to the shared functions, so `ClaudeCodeRuntime` has no login logic of its own. That is the shape an opencode runtime can reuse. I rejected keeping a `_login_file`/`_api_login_file` pair with per-runtime branching. I also rejected writing the API branch as a second copy of the token file's readable and ASCII checks; the shared shell function replaces that.
+
+   Noticed, not touched:
+   - I could not run the story's smoke test: the shell refused the command (a permission denial, not a test failure). It is still untested end to end; the smoke-test stage runs it.
+   - `claude_runtime.__all__` lists only the re-exported names plus `ClaudeCodeRuntime` and `resume_budget`, following the partial `__all__` in `factory.domain.settings`. Its other public constants (e.g. `SUDO_EXECUTABLE`) are still importable as module-level definitions.
+   - The host file `image/secrets/anthropic-api-key` is the operator's to create; nothing in the repository creates it.
+   - Docs are left to the documenter.
+   - The work item's `.costs.jsonl` shows as modified in the working tree; that is the factory's own record.
+
+   Description unchanged: no journal entry changed the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The acceptance criteria (group 1), architecture (group 2) and security (group 3) all hold.
+   - Criteria 1 to 20 each have a test that checks what its criterion says. The coder's `make check` was green (entry 7).
+   - `agent_launch` imports only `factory.domain`, not `process`.
+   - No suppression markers were added.
+   - `LOGIN_SCRIPT` is built only from constants.
+   - A resumed run takes `login` from its second call through `model_copy`.
+   - The five schema files differ only in what the story names.
+
+   Group 4 (quality) fails on copies in the new test files. This is round 0, so they are findings:
+
+   1. `tests/adapters/test_claude_runtime_api_login.py:152` `_utf_16` is a second copy of `_utf_16` in `tests/adapters/test_agent_launch_login.py:54`: the same body writing `API_LOGIN.encode("utf-16")`. The same module also defines its own `API_LOGIN` (line 17) and `SUBSCRIPTION` (line 18) instead of reusing those of `test_agent_launch_login.py:25-26`. `tests/entry/test_wiring_api_login.py:16` defines a third `API_LOGIN`. Fix: the tester imports `_utf_16`, `API_LOGIN` and `SUBSCRIPTION` from `adapters.test_agent_launch_login` in both modules, or moves them to one shared module under `tests/`. The earlier modules already share `REPLY` and `_request` this way. No test changes what it checks, and nothing under `src/` changes.
+
+   Earlier tests (changed files that `main` already holds):
+   - `tests/adapters/test_claude_runtime_login.py`: standing leave to move a shared test helper, also named in the story's Interface. Its `Recorder` and `recorder` fixture moved to `tests/run_process_recorder.py` and `tests/conftest.py`; every test keeps its name and what it checks.
+   - `tests/adapters/test_claude_runtime_sudo_time_limit.py`: same leave, same move. The merged `Recorder` still answers with the given results first.
+   - `tests/conftest.py`: same leave. It only gains the moved `recorder` fixture.
+   - `tests/domain/test_contract.py`: the human's leave. The story names `test_a_schema_starts_with_the_dialect_and_the_contract_version` under the feature's decision 19 (expected version `"1.1"`), and the test keeps its name.
+   - `tests/test_compose.py`: the human's leave. The story names `test_the_three_volumes_are_mounted_and_declared` under decision 19; the fifth bind was added and the test keeps its name.
+10. factory: started doing as self.
+11. coder: Round 1. The reviewer's only finding (entry 9) is about copied helpers in this story's test modules. It needs no change under `src/`, so I changed no code. The tester makes the change, because I never edit tests.
+
+    The change: one copy each of `_utf_16`, `API_LOGIN` and `SUBSCRIPTION`. Today they are defined again in:
+    - `tests/adapters/test_claude_runtime_api_login.py`: `API_LOGIN` and `SUBSCRIPTION` at lines 17-18, `_utf_16` at line 152.
+    - `tests/entry/test_wiring_api_login.py`: `API_LOGIN` at line 16.
+
+    The originals are in `tests/adapters/test_agent_launch_login.py` (lines 25, 26 and 54). The two modules above should import them from there, the way they already import `REPLY` and `_request` from other test modules. The other option is to move all three names to one shared module at the `tests/` root and import them from there in all three modules. Every test keeps its name and checks the same thing.
+
+    Rejected: changing anything under `src/` to answer this finding. It is purely a test-code duplicate.
+
+    Noticed, not touched: none beyond entry 7's list.
+
+    The description is unchanged; no journal entry changed the task.
+12. factory: started tests as self.
+13. tester: Round 1. I removed the copied test helpers from the reviewer's finding (entry 9), as the coder's entry 11 describes. I took the first option the coder named: both modules now import the names from `tests/adapters/test_agent_launch_login.py`, the same way they already import `REPLY` and `_request`. I did not move the names to a new shared module.
+
+    Changed (both are this story's test files):
+    - `tests/adapters/test_claude_runtime_api_login.py`: deleted its own `API_LOGIN`, `SUBSCRIPTION` and `_utf_16`. It now imports all three from `adapters.test_agent_launch_login`.
+    - `tests/entry/test_wiring_api_login.py`: deleted its own `API_LOGIN` and imports it from `adapters.test_agent_launch_login`.
+
+    The values were identical in every copy, so every test keeps its name and checks the same thing. I created no new files and edited no earlier story's test file.
+
+    The criterion-to-test mapping has not changed since entry 5.
+
+    `make lint` is green. `make test` is green: 99.09 % coverage. Every module imports.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.4 s)
+14. factory: started doing as self.
+15. coder: Round 1, after the tester's change. The reviewer's only finding (entry 9) was about copied test helpers. The tester fixed it in entry 13: `tests/adapters/test_claude_runtime_api_login.py` and `tests/entry/test_wiring_api_login.py` now import `API_LOGIN`, `SUBSCRIPTION` and `_utf_16` from `tests/adapters/test_agent_launch_login.py`. Nothing under `src/`, `image/` or the schemas needed to change, so I left the code from entry 7 as it was and made no edits this run.
+
+    Built (unchanged since entry 7):
+    - `src/factory/adapters/agent_launch.py`
+    - `src/factory/adapters/claude_runtime.py`
+    - `src/factory/domain/agent_runs.py`, `cost_records.py`, `settings.py`, `contract.py`, `preflight.py`
+    - `src/factory/application/costs.py`, `preflight.py`
+    - `src/factory/adapters/cost_records_jsonl.py`
+    - `src/factory/entry/wiring.py`
+    - `src/factory/contract/*.schema.json`, regenerated
+    - `image/Dockerfile`, `image/compose.yml`
+
+    Main choice: the same as entry 7. The runtime holds one `LoginFiles` and leaves all the login work to the shared functions in `agent_launch`. I rejected a per-runtime `_login_file`/`_api_login_file` pair.
+
+    Refactor: my working tree has no changes, so there is nothing to refactor this round.
+
+    Checked: `make check` is green at 99.09 % coverage. The only file shown as modified is the work item's `.costs.jsonl`, which is the factory's record.
+
+    Noticed, not touched: the points in entry 7 still stand. The smoke test has not been run end to end. The host file `image/secrets/anthropic-api-key` is the operator's to create. The docs are the documenter's.
+
+    The description is unchanged: no journal entry changed the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+16. factory: started review as self.
+17. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read all the code under `src/` and `image/`, the schema diffs and every test file the diff adds or changes.
+
+    Since entry 9, the tester has removed the copied `_utf_16`, `API_LOGIN` and `SUBSCRIPTION`. `tests/adapters/test_claude_runtime_api_login.py` and `tests/entry/test_wiring_api_login.py` now import them from `tests/adapters/test_agent_launch_login.py`. Nothing under `src/` changed in this round, and the coder's `make check` is green (entry 15).
+
+    Checklist:
+    - **Group 1, acceptance criteria:** criteria 1 to 20 each have a test that checks what the criterion says.
+      - Each failing side the Interface states is tested: the unreadable and the non-ASCII API file, a started record that has a login, a `None` login left out of the line, a `factory-login-used: other` line, stderr with no refusal, the second preflight run on a stamped image, and the shell environment's own `ANTHROPIC_API_KEY` in every row of criterion 3.
+    - **Group 2, architecture:** `factory.adapters.agent_launch` imports only `factory.domain` and pydantic, not `factory.adapters.process`. Wiring stays in `entry`. `Login` and the new fields are in `domain`, and the preflight details are in `application`.
+    - **Group 3, security:**
+      - The diff adds no suppression markers.
+      - `LOGIN_SCRIPT` is built from constants only and has no `NAME="..."` pair for a secret.
+      - The key goes into no argument: each run's shell reads it from the file at every call.
+      - The environment drops both login names through `without_login`.
+    - **Group 4, quality:**
+      - `line_starting` moved to `agent_launch` and is shared; it was not copied.
+      - `make duplicates` reports 0 new findings.
+      - The docstrings are present and accurate (`CostRecord`, `PreflightItem`, the `ClaudeCodeRuntime` constructor).
+      - The schemas are generated: the only changes are the new `login` property, the docstring and `1.1`.
+    - **Group 5, work item hygiene:** the description matches what was built. The coder's journal entries name the main choice (one `LoginFiles` handed to the shared functions) and what was rejected. The docs criterion still describes what the reader must know.
+
+    no findings
+
+    Earlier tests (files `main` already holds that the diff changes):
+    - `tests/adapters/test_claude_runtime_login.py`: standing leave to move a shared test helper, also named in the story's Interface. Its `Recorder` and `recorder` fixture moved to `tests/run_process_recorder.py` and `tests/conftest.py`. Every test keeps its name and what it checks.
+    - `tests/adapters/test_claude_runtime_sudo_time_limit.py`: the same leave and the same move. The merged `Recorder` still answers with the given results first.
+    - `tests/conftest.py`: the same leave. Its only change is the moved `recorder` fixture.
+    - `tests/domain/test_contract.py`: the human's leave, through the feature's decision 19 as the story names it. In `test_a_schema_starts_with_the_dialect_and_the_contract_version` the expected version is now `"1.1"`, and the test keeps its name.
+    - `tests/test_compose.py`: the human's leave, through decision 19. `test_the_three_volumes_are_mounted_and_declared` gains the fifth bind and keeps its name.
+
+    Notes:
+    - `tests/adapters/test_claude_runtime_api_login.py:52` and `:76`: criterion 8 is tested by two functions. The first is a sequence on one runtime (key, then the emptied file), so it does not fit as a row beside the other two cases; I left it.
+    - `tests/adapters/test_claude_runtime_api_login.py:39`: `_runtime` leaves out the `api_login_file` keyword when it is `None`, so the "built without `api_login_file`" rows use the constructor's default. That is deliberate and correct, but there is no comment saying why.
+18. factory: started docs as self.
+19. documenter: Round 1, docs. I read the story, the code diff and the docs. The code matches the Interface and I have no findings. I wrote the docs criterion's items. `make documents` prints `documents ok`. I did not run `make check`, because I changed only documents. I ran none of the new text's commands: it needs a container and a real key. The shell's behaviour is covered by `tests/adapters/test_agent_launch_login.py`.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The settings table gets `FACTORY_API_LOGIN_FILE`.
+      - *The agent runtime* now lists the login order (API key, token, login kept in the home) and the `--api-login` words.
+      - A new section *The agent's API key* covers the host file, `FACTORY_API_KEY_FILE`, the empty-file rule, a key per instance, a key winning over the token, the read at every call, plain ASCII, switching back, and where `login` and the preflight log line show the login in force.
+      - The mounts table gets `/home/agent/.anthropic-api-key`.
+      - *The probe of the agent run* gets the API-key hint, the API refusal text, and the passed detail with its log line.
+      - The cost-record paragraph gets `login`.
+      - The records contract's version reads `1.1`.
+    - `docs/project-guide.md`:
+      - `AgentRunResult.login` is described.
+      - The `ClaudeCodeRuntime` signature gets `api_login_file`, and its login paragraph is rewritten around `login_argv`.
+      - A new section *The shared launch module* describes `factory.adapters.agent_launch`.
+      - The `CostRecord` fields, the started-record rule, the JSON Lines key order and the settings fields are updated.
+      - The contract schema text reads `1.1`.
+    - `docs/decisions.md`:
+      - A new entry *An agent run logs in with an API key when its file holds one*.
+      - The schema entry notes that the version is now `1.1`.
+
+    What I could not fill in: I did not have the feature's decisions 1 to 3. The new decisions entry therefore states the reasons only as far as the story gives them. If the feature's text has more reasons or rejected options, the human may want to add them.
+
+    Cross-read against the diff and found current: `README.md`, which has no login text; the `compose.yml` and `Dockerfile` comments; the preflight items table; the stop table.
+
+    Stale text I saw and left alone: none related to this story. The remaining `'1.0'` strings (`operator-guide.md` and `project-guide.md`, in the pipeline definition's `contract` examples) are that definition's own format version, a different thing from the records contract.
+20. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `check`
+    [tester]	WARNING	nosec encountered (B606), but no failed test on file src/factory/adapters/process.py:96
+    sast: green (2.7 s)
+    ERROR: Potential secrets about to be committed to git repo!
+
+    Secret Type: Secret Keyword
+    Location:    docs/operator-guide.md:168
+
+    Possible mitigations:
+      - For information about putting your secrets in a safer place, please ask in
+        #security
+      - Mark false positives with an inline `pragma: allowlist secret` comment
+
+    If a secret has already been committed, visit
+    https://help.github.com/articles/removing-sensitive-data-from-a-repository
+    make: *** [Makefile:51: secrets] Error 1
+21. factory: started docs as self.
+22. documenter: Round 1, docs, second run. The first run's `make check` was red in `make secrets`: detect-secrets reported a "Secret Keyword" in `docs/operator-guide.md`. I ran `detect-secrets scan` on the file. It flagged the sentence in *The cost record* paragraph that lists the `login` values, which had the literal `api_key` beside quote characters. I reworded that sentence to say that `login` is `subscription`, `none` or the value that names the API key. I also reworded the matching sentence in *The agent's API key* section, which had the same literal list. A new scan of the file reports nothing. I added no `pragma: allowlist secret`, because that needs the human's leave.
+
+    Files changed in this run:
+    - `docs/operator-guide.md`: the two reworded sentences above. They no longer spell out the `api_key` value of `login`. The value is still spelled out in `docs/project-guide.md` (the `Login` type, the `CostRecord` text and the launch module's `factory-login-used: api_key` line), which the scan does not flag. If an operator-facing reader needs the literal value, the human can decide on a baseline entry or a pragma.
+
+    I changed only documents, so I did not run `make check`. The factory runs it right after this stage, and its `secrets` target is the gate.
+
+    Everything else is as in my earlier entry (19): the other files I changed then, the documents I cross-read and found current, and the note that the remaining `'1.0'` strings are the pipeline definition's own format version. No findings for the coder; the code matches the Interface.
+
+    `check`: check: green
+    `documents`: documents ok
+23. factory: started smoke-test as self.
+24. smoke-tester: Ran the `## Smoke test` block as written, as one bash script from the repository root. The script exited 0.
+
+    Command (the whole block: stand-in `claude`, a subscription file and an API login file in a `mktemp -d` folder, two `ClaudeCodeRuntime.run` calls with the API file emptied between them, then `cat "$d/seen"`):
+
+    ```
+    api_key
+    subscription
+    stand-in-api-login unset
+    unset stand-in-subscription
+    ```
+
+    Expect: four lines, `api_key`, `subscription`, `stand-in-api-login unset`, `unset stand-in-subscription`. Met: the output is exactly those four lines, in that order.
+
+    Checked against the acceptance criteria: the result agrees with criterion 8. With a key in the API file the stand-in got `ANTHROPIC_API_KEY` and no token, and `login` was `api_key`. Once the file was emptied, the next run got the token and its `login` was `subscription`. It also agrees with criterion 9: the request's environment held only `PATH`, and the stand-in got only the login names the files supplied. No criterion is contradicted.
+
+    Findings: none.

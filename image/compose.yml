@@ -31,6 +31,13 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      # The agent's API key, read instead of the token when it holds one; an empty file means no API key.
+      - type: bind
+        source: ${FACTORY_API_KEY_FILE:-./secrets/anthropic-api-key}
+        target: /home/agent/.anthropic-api-key
+        read_only: true
+        bind:
+          create_host_path: false
       # Compose ignores a file secret's owner and mode outside Swarm, so the folder, made in the
       # image for the factory's user alone, not the file, keeps the agent out.
       - type: bind

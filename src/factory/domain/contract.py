@@ -12,7 +12,7 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.stops import StopRecord
 from factory.domain.work_item import WorkItemState
 
-RECORDS_CONTRACT = "1.0"
+RECORDS_CONTRACT = "1.1"
 CONTRACT_KEY = "x-records-contract"
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 

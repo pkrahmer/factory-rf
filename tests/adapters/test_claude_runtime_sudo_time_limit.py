@@ -9,11 +9,11 @@ import pytest
 
 from adapters.claude_stand_in import Step, write_stand_in
 from adapters.test_claude_runtime_os_user import _request, _write_sudo
-from factory.adapters import claude_runtime
 from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
-from factory.adapters.process import ProcessRequest, ProcessResult
+from factory.adapters.process import ProcessResult
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import AgentRuntimeError
+from run_process_recorder import Recorder
 
 REPLY = json.dumps(
     {
@@ -41,25 +41,6 @@ BUDGET_STOP = json.dumps(
     }
 )
 WARNING = "sudo: unable to resolve host x"
-
-
-class Recorder:
-    """Stands in for `run_process`: keeps each request and answers with the next given result."""
-
-    def __init__(self) -> None:
-        self.requests: list[ProcessRequest] = []
-        self.results: list[ProcessResult] = []
-
-    def __call__(self, request: ProcessRequest) -> ProcessResult:
-        self.requests.append(request)
-        return self.results[len(self.requests) - 1]
-
-
-@pytest.fixture
-def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
-    recording = Recorder()
-    monkeypatch.setattr(claude_runtime, "run_process", recording)
-    return recording
 
 
 def _process_result(stdout: str, exit_status: int, seconds: float) -> ProcessResult:

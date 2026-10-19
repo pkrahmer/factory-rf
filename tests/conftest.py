@@ -9,6 +9,7 @@ import pytest
 
 from acceptance_walk import AcceptanceWalk
 from confine_support import Layout, build_layout
+from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.clock import ManualClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -30,6 +31,7 @@ from factory.domain.stops import StopRecord
 from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
+from run_process_recorder import Recorder
 from tmp_path_support import reopen
 from wiring_support import HOSTED_URL
 
@@ -204,3 +206,11 @@ def layout(tmp_path: Path) -> Layout:
 def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
     """The stop records in the test's state directory."""
     return JsonLinesRecordLog(tmp_path / "state" / "records" / "stops.jsonl", StopRecord)
+
+
+@pytest.fixture
+def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
+    """Replace the runtime's `run_process` with a `Recorder` and return it."""
+    recording = Recorder()
+    monkeypatch.setattr(claude_runtime, "run_process", recording)
+    return recording

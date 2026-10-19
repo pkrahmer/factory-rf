@@ -8,7 +8,6 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from adapters.test_claude_runtime_os_user import _request, _sudo_calls, _write_sudo
-from factory.adapters import claude_runtime
 from factory.adapters.claude_runtime import (
     LOGIN_SCRIPT,
     LOGIN_VARIABLE,
@@ -16,7 +15,6 @@ from factory.adapters.claude_runtime import (
     SWITCHES,
     ClaudeCodeRuntime,
 )
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.domain.agent_runs import (
     ALLOWED_ENVIRONMENT_NAMES,
     AgentRunRequest,
@@ -24,6 +22,7 @@ from factory.domain.agent_runs import (
     scrub_environment,
 )
 from factory.domain.errors import AgentRuntimeError
+from run_process_recorder import Recorder
 
 LOGIN = "stand-in-login"
 CHANGED_LOGIN = "changed-login"
@@ -53,24 +52,6 @@ BUDGET_STOP = json.dumps(
         "permission_denials": [],
     }
 )
-
-
-class Recorder:
-    """Stands in for `run_process`: keeps each request and hands it to the real one."""
-
-    def __init__(self) -> None:
-        self.requests: list[ProcessRequest] = []
-
-    def __call__(self, request: ProcessRequest) -> ProcessResult:
-        self.requests.append(request)
-        return run_process(request)
-
-
-@pytest.fixture
-def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
-    recording = Recorder()
-    monkeypatch.setattr(claude_runtime, "run_process", recording)
-    return recording
 
 
 def _login_path(tmp_path: Path) -> Path:

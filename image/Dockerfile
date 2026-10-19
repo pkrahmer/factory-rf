@@ -48,6 +48,8 @@ RUN sed -i 's/\r$//' /etc/sudoers.d/factory-agent && chmod 0440 /etc/sudoers.d/f
 ENV FACTORY_AGENT_USER=agent
 # The agent's login, a token from `claude setup-token` that Compose mounts; each agent run's shell reads it.
 ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token
+# The agent's API key, which Compose mounts; each agent run's shell reads it, and an empty file is no key.
+ENV FACTORY_API_LOGIN_FILE=/home/agent/.anthropic-api-key
 # A fresh id per build, so a rebuild never keeps a stale preflight stamp valid.
 RUN cat /proc/sys/kernel/random/uuid > /opt/factory/image-id
 ENV PATH=/opt/factory/.venv/bin:$PATH \

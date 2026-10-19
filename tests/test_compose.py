@@ -72,6 +72,13 @@ def test_the_three_volumes_are_mounted_and_declared() -> None:
         },
         {
             "type": "bind",
+            "source": "${FACTORY_API_KEY_FILE:-./secrets/anthropic-api-key}",
+            "target": "/home/agent/.anthropic-api-key",
+            "read_only": True,
+            "bind": {"create_host_path": False},
+        },
+        {
+            "type": "bind",
             "source": "./secrets/hosting-token",
             "target": "/home/factory/.secrets/hosting-token",
             "read_only": True,
