@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T17:53:41.391021Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-19T17:53:20.274352Z'
   stage: tests
   run: a3bf0f5db08945b3a247372bbf5fefed
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:53:41.391021Z'
+  stage: doing
 ---
 
 # The claim service's refusals name their cause
@@ -315,3 +324,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.7 s)
+17. factory: started doing as self.
