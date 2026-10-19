@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T04:42:55.866030Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-19T04:42:35.507885Z'
   stage: intake
   run: 81e36e6f3fed4c91b6bf302fd542e530
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:42:55.866030Z'
+  stage: tests
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -245,3 +254,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable. Per answer 5 it now runs `mkdir "$d/work" "$d/state"` before the runtime is built, and the `Expect:` line is unchanged and checkable line by line.
    - Architecture: the new module sits in `adapters`, and the Wrappers bullet of CLAUDE.md already allows `opencode_runtime`. The runtime reads no `os.environ`, and the interface is an ABC implementation.
    - Scope: within the feature's Scope for S0004, outside its Out of scope. The two test-module changes are covered by decision 19.
+7. factory: started tests as self.
