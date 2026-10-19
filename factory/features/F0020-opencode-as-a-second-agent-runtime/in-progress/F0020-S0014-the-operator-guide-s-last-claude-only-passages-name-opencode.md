@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T23:13:40.263542Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T23:13:20.101165Z'
   stage: intake
   run: 102f8d77503842dcbc5158feaa1df5cf
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:13:40.263542Z'
+  stage: tests
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -82,3 +91,4 @@ Expect: `documents ok`
    Smoke test: I ran the greps' anchors against the guide. The opening paragraph (line 3) contains "the `claude -p` runtime," once, so the first command prints 1 now and 0 after the fix. The headings `### The agent runs as a second user` (line 113), `### The kernel refuses every other write` (143), `### \`factory-guard\` on the agent run's PATH` (216) and `### A provider's spend limit` (220) exist, so both `sed` ranges resolve. The referenced sections "Running on opencode" (260) and "What differs from Claude Code" (281) also exist. Each `Expect:` line is checkable against the output, and `check_documents` prints `documents ok`.
    Architecture: only `docs/operator-guide.md` changes, and it is the documenter's write path. No layer is touched.
    Scope: it is within feature F0020's documentation scope (`docs/operator-guide.md`, from a story's docs criterion). It touches nothing in the feature's Out of scope and changes no test another story wrote.
+4. factory: started tests as self.
