@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T01:34:07.080307Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T01:34:07.080307Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:35:56.309583Z'
+  stage: doing
+  run: 073309ac20b3496797965cb3b50e1e6b
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -193,3 +195,11 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.2 s)
 14. factory: started doing as self.
+15. coder: Built nothing this round. The tester's move from entry 13 dealt with the reviewer's only finding (entry 9, item 1), the copied test helper. `WRITTEN`, `USAGE` and the row dataclass `MainRow` now live once, in `tests/contract_support.py`, and both `tests/entry/test_contract.py` and `tests/entry/test_contract_arguments.py` import them from there. Against `main`, my diff changes only those three test files and no source file, so there was nothing to refactor. I ran `make check` on the committed state and it ended `check: green`, with `test: green (39.9 s)`.
+    Main choice: leave `src/factory/entry/contract.py` unchanged. The Interface says no module under `src/factory/` changes, and the code already meets criteria 1 and 2. I rejected any source edit, for example one aimed only at coverage, because the story's scope does not allow it.
+    Noticed, not touched: `src/factory/entry/contract.py:41`, the `__main__` guard, is still the module's one uncovered line. Only the smoke test's `python -m` run reaches it. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
