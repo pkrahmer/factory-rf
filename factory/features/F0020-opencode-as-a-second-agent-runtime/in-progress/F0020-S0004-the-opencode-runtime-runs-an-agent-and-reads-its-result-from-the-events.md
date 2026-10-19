@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T04:42:14.852550Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T04:41:57.255889Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:42:14.852550Z'
   stage: intake
 ---
 
@@ -223,3 +232,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Yes: add the rules file's mode `0640` to criterion 14.
    4. Yes: add to criterion 16 that `--version` is called as `<executable> --version` alone, without login words, even when an API login file is set.
    5. The other choice: the smoke test creates `state` first (`mkdir` before the runtime is built); the runtime does not create its state directory, which always exists in the instance. The `Expect:` line stays.
+5. factory: started intake as self.
