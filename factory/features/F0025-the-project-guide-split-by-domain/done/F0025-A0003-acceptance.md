@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T22:25:51.960776Z'
   stage: acceptance
   run: c166a41d668c4d13a161804d88794397
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:27:03.100350Z'
+  stage: done
 stories: [F0025-S0001, F0025-S0002, F0025-S0003, F0025-S0004]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project guide split by domain
@@ -363,3 +368,4 @@ The four stories cost 32 runs, 22.2 min, 180 turns, 605,813 tokens in (2,900,632
       - S0001 accounts for $2.74 (the move, code and tests).
       - S0004 cost $0.76, of which about $0.25 was tester and coder runs that did nothing.
       - 0 questions answered, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.2 min, 27 turns, 67067 tokens in (1428595 more from cache), 16409 out, $1.15
