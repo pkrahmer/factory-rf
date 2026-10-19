@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T02:15:21.748120Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T02:15:21.748120Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T02:16:22.234655Z'
+  stage: docs
+  run: 871e22203f41497eb8b6b15e504447a3
 ---
 
 # The README names what the feature built and counts its commands right
@@ -170,3 +172,18 @@ Expect: `documents ok`
    - Hygiene: the coder's entry explains the main choice, which was to hand forward empty and leave the README and the guide to the documenter, and it names what was rejected. The Description matches what was built, which is nothing yet. The docs criterion still says what a newcomer and an operator must know.
    - Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Changed two documents, nothing else. I ran no `make check`, since only documents changed.
+    - `README.md`: the summary of what is built now has one sentence naming the cause on a blocking question and on a stall, the `Human:` line under the cost table, the stop records in `factory/stops.jsonl` on `main`, and the records contract under `src/factory/contract/`. It points to "The records contract" in the operator guide. "Six console commands" now reads "seven". The paragraph names `uv run python -m factory.entry.contract [<folder>]` once, with one clause on what it does.
+    - `docs/operator-guide.md`, "The records contract": added the sentence that with two or more arguments the command prints the usage line to standard error, writes nothing and exits with 2.
+
+    Checks I ran:
+    - The smoke greps give 0, 1, 1 and 1 for the README counts, as expected.
+    - The command with `one two` exits with status 2.
+    - `python -m factory.entry.check_documents` prints `documents ok`.
+
+    I cross-read the rest of the README and the guide's contract section against the diff, which is empty outside `factory/`. They were current, and I found nothing that contradicts the code.
+
+    I noticed no stale text outside this story. There are no findings for the coder.
+
+    `check`: check: green
+    `documents`: documents ok

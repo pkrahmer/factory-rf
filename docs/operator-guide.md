@@ -811,7 +811,7 @@ The schemas are JSON Schema files (draft 2020-12) in `src/factory/contract/`, na
 uv run python -m factory.entry.contract [<folder>]
 ```
 
-The command prints `contract: 5 schemas written`. The files are package data, so they ship in the wheel, and a reader in another repository can fetch them from `main`.
+The command prints `contract: 5 schemas written`. With two or more arguments it prints `usage: python -m factory.entry.contract [<folder>]` to standard error, writes nothing and exits with status 2. The files are package data, so they ship in the wheel, and a reader in another repository can fetch them from `main`.
 
 **Where a work item's records are.** While the work item is in progress they are on its branch `work-item/<id>`: the factory writes the front matter and the sidecar there at every stage. From the merge on they are on `main`, moved to `done/` by the archive commit. A work item in `in-progress/` on `main` without a merge shows only the state it had at its start.
 
