@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T04:14:16.143187Z'
   stage: smoke-test
   run: 288f1ddd92cd4568ba2c877f7e6592dc
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T04:15:34.546348Z'
+  stage: approval
 ---
 
 # What every agent runtime shares moves into one module
@@ -449,3 +454,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The output contradicts no criterion. The commands did not exercise criteria 3–8 and 11–14; the factory's checks gate `make check`. I did not run `make check` myself, because this stage only runs the smoke test.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 10.6 min, 72 turns, 289614 tokens in (1638514 more from cache), 40276 out, $3.16
