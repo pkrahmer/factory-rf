@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T16:43:17.962858Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   stage: docs
   run: bc21f9430fe24ac1b5a6068635d85a26
   reason: check_red
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:43:17.962858Z'
+  stage: docs
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -214,3 +223,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 12. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `documents`
     docs/project-guide/processes-and-checks.md: uses the v1 word 'ticket'
     make: *** [Makefile:93: documents] Error 1
+13. factory: started docs as self.
