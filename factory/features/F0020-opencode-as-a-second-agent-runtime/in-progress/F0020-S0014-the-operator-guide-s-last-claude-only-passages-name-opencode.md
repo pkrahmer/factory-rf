@@ -23,7 +23,7 @@ None: no module under `src/factory/`, no test, no image, template or agent file 
 3. docs: `docs/operator-guide.md`:
    - The opening paragraph names "the `claude -p` and `opencode run` runtimes" where it now names "the `claude -p` runtime".
    - *The agent runs as a second user*: after the sentence that shows the `sudo` chain, one sentence says that under opencode the same chain starts the opencode executable (`FACTORY_OPENCODE`) with `run` and its arguments in place of `claude` (see "Running on opencode"). The documenter checks the words against `docs/project-guide/agents.md` (*The opencode runtime*). The sentence on the `claude` login in `~/.claude` says it concerns Claude Code.
-   - *`factory-guard` on the agent run's `PATH`*: one sentence says that an opencode run registers no hook (see "What differs from Claude Code"), and that the item `agent-environment` checks the command on the `PATH` under either runtime. The documenter checks this against `factory.application.preflight`.
+   - *`factory-guard` on the agent run's `PATH`*: one sentence says that an opencode run registers no hook (see "What differs from Claude Code"), and that the item `agent-environment` checks the command on the `PATH` under either runtime. The documenter checks this against `agent_environment_item` (`factory.application.preflight`) and `machine_extras` (`factory.entry.wiring`), which adds the item whatever the runtime.
    - No other passage changes. `uv run python -m factory.entry.check_documents` prints `documents ok`.
 
 ## Smoke test
