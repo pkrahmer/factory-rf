@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T20:07:32.527804Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T20:07:32.527804Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T20:07:55.377608Z'
+  stage: smoke-test
+  run: 9ecc8c50a0684191be8ca03d0c8a5df1
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -202,3 +204,18 @@ Expect: two lines, `completed question`, `['grep', 'read']`
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran the one command block under `## Smoke test` exactly as written, from the repository root, in a fresh shell. It used its own `mktemp -d` folder with an EXIT trap that removes it. It started no server.
+
+    Command 1 (the stand-in `opencode` script, then `OpencodeRuntime.run` with an agent whose tools are `["Skill", "Read", "Grep"]`). Exit 0.
+    ```
+    completed question
+    ['grep', 'read']
+    ```
+    Met its `Expect:` line: two lines, `completed question` and `['grep', 'read']`.
+
+    Check against the acceptance criteria:
+    - Criterion 1: the smoke test agrees with it. `Skill` comes first in the list and is left out without a refusal. Both tools after it, `read` and `grep`, are turned on, and no other name in the configuration's `tools` is true. That is the behaviour the rows `skill-first`, `skill-before-two` and `skill-in-the-middle` pin. The smoke test does not exercise the refusal row (`["Skill", "NotebookEdit"]`), and nothing in it contradicts that row.
+    - Criterion 2: the smoke test says nothing against `make check`. Entries 7 and 11 record it green. I did not run it myself, because this stage only runs the smoke test.
+    - Criterion 3 (docs: none): nothing contradicts it. The output has no new message or behaviour.
+
+    Findings: none.
