@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T15:21:05.990878Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-19T15:21:05.990878Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T15:21:31.443128Z'
+  stage: smoke-test
+  run: 8bade8b43b3b4690b62ad0a479bba039
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -586,3 +588,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 27. factory: started smoke-test as self.
+28. smoke-tester: Smoke test run from the repository root, exactly as written: one bash block, written verbatim to a script in `$TMPDIR` and run with `bash`. The script was removed afterwards and the block's own `trap` removed its temporary directory. Exit status 0.
+
+    Command 1 (the whole block: a fresh git work tree with `src/a.py`, `docs/guide.md` and a Makefile whose `check` appends to `../ran`; four `KnownResults.run("check")` calls with `not_read: ["docs/*"]`, the third after an edit of `docs/guide.md` and the fourth after an edit of `src/a.py`):
+
+    ```
+    check: green True
+    check: green True
+    True True
+    2 [True, False, False, True]
+    ```
+
+    Expect: four lines, `check: green True`, `check: green True`, `True True`, `2 [True, False, False, True]`. **Met**: all four lines match exactly.
+
+    What the output shows:
+    - The first run ran the command and was not reused.
+    - The second run reused the first run's result. Its `reused.at` equals the first record's `at`.
+    - After an edit of a `not_read` file (`docs/guide.md`) the result was reused again.
+    - After an edit of a read file (`src/a.py`) the command ran again.
+    - The Makefile recipe ran twice.
+    - The four records' `reused is None` flags are run, reuse, reuse, run.
+
+    Against `## Acceptance criteria`: the output agrees with criteria 6, 7 and 8. It agrees with the edit-of-`docs/guide.md` row (reuse) and the edit-of-`src/a.py` row (run). It also agrees with the record shape in the Interface: each run and each reuse adds one record. It contradicts no criterion. The smoke test does not exercise the journal line format, the fault paths, the stage integration or the wiring; their tests cover them, and this stage does not judge them.
+
+    No findings. Nothing fixed, nothing changed in the working tree.
