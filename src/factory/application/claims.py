@@ -11,7 +11,7 @@ from factory.domain.errors import PushFailed
 from factory.domain.git import CommitId
 from factory.domain.identifiers import WorkItemId, branch_name, parse_work_item_file_name
 from factory.domain.journal import NewEntry, append_entry
-from factory.domain.lease import ClaimStatus, claim_status
+from factory.domain.lease import ClaimStatus, claim_status, observed_claim_status
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, require_state
 
@@ -73,6 +73,12 @@ class ClaimService:
     def status(self, state: WorkItemState) -> ClaimStatus:
         """The status of the state's claim for this instance, by the claim's own lease."""
         return claim_status(state.claim, instance=self._instance, now=self._boundaries.clock.now())
+
+    def observed_status(self, state: WorkItemState) -> ClaimStatus:
+        """The status of the state's claim as seen from outside this instance's tick."""
+        return observed_claim_status(
+            state.claim, instance=self._instance, now=self._boundaries.clock.now()
+        )
 
     def release(self, document: WorkItemDocument) -> WorkItemDocument:
         """Return the document with its claim cleared; `ValueError` when it has no state."""
