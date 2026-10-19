@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T22:17:51.527921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T22:17:51.527921Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T22:18:07.729924Z'
+  stage: review
+  run: 7b253c52d46c496f96cfa9a0a1e2ce44
 ---
 
 # The guide's index names the modules its files describe by class
@@ -145,3 +147,10 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, which meets criterion 1: nothing under src/, tests/, image/, template/, demo/ or claude/ changed. The tester's entry (5) and the coder's entry (7) both say so, as the criterion requires.
+   1. Acceptance criteria: criterion 1 holds (the diff is empty). For criterion 2, the coder's entry (7) records `check: green`. Criterion 3 is the documenter's job. The Interface states no rule or limit, so no failing side needs a test.
+   2. to 4. Architecture, security and quality: there is no code to judge.
+   5. Work item hygiene: the coder's entry gives the main decision, which is to leave both doc edits to the documenter, and the option it rejected. The Description matches what was built, which is nothing outside docs. The docs criterion still describes what the next stage must write. I checked that its targets exist: the `watching.md` line at `docs/project-guide/README.md:19` holds `factory.adapters.health_file`, `factory.application.boundaries` and `factory.domain.stop_table`, the three anchors the insertions follow. The sentence it replaces is at `docs/decisions.md:23`. None of the three module names appears anywhere under `docs/project-guide/` yet.
+   6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
