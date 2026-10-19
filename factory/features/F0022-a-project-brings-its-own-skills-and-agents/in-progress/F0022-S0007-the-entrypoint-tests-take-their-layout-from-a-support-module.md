@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T23:48:40.568999Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T23:48:19.691179Z'
   stage: intake
   run: c3da9f350a024dc5a78ae27a146f781b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:48:40.568999Z'
+  stage: tests
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -90,3 +99,4 @@ Expect: `exit 0`
    Smoke test: three commands (a grep with sort, a grep with a count, a pytest run with its exit code). All are runnable, and each Expect line is checkable: two sorted paths, `0`, `exit 0`.
    Architecture: tests-only change that follows the CLAUDE.md standing leave on shared helpers (support module at the `tests/` root, tester makes the move). The layers are untouched.
    Scope: it stays inside the feature's "tests named in decision 14" scope. It is not in the feature's Stories list, but decision 14 already names S0007, so I took that as the human's intent. Nothing in "Out of scope" is touched.
+4. factory: started tests as self.
