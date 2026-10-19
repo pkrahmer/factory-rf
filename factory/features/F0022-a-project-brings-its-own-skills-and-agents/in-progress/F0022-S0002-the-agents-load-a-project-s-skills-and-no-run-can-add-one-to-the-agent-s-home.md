@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T13:51:39.521795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T13:51:39.521795Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T13:52:14.860043Z'
+  stage: smoke-test
+  run: b64a6fd15f794a44b47023af4cf13978
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -405,3 +407,44 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Ran the three `## Smoke test` blocks from the repository root, exactly as written and in order. Each ran in its own shell, so each block's `trap` removed its own temporary directory. I changed nothing.
+
+    Command 1 (tools lines, R15 lines, settings allow list):
+    ```
+    claude/agents/acceptance-reviewer.md:1
+    claude/agents/coder.md:1
+    claude/agents/documenter.md:1
+    claude/agents/intake.md:1
+    claude/agents/reviewer.md:1
+    claude/agents/smoke-tester.md:1
+    claude/agents/tester.md:1
+    claude/agents/acceptance-reviewer.md:1
+    claude/agents/coder.md:1
+    claude/agents/documenter.md:1
+    claude/agents/intake.md:1
+    claude/agents/reviewer.md:1
+    claude/agents/smoke-tester.md:1
+    claude/agents/tester.md:1
+    ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Skill']
+    ```
+    Met its `Expect:` line: fifteen lines, the seven agents twice and then the allow list with `Skill` right after `Grep`.
+
+    Command 2 (entrypoint with a planted skill in the Claude home):
+    ```
+    exit 0
+    755 skills
+    755 commands
+    0
+    ```
+    Met its `Expect:` line: the run exited 0, both folders have mode 755 and both are empty, so the planted `skills/planted/SKILL.md` was removed.
+
+    Command 3 (opencode runtime with a stand-in, tools `["Read", "Skill"]`):
+    ```
+    completed question
+    ['read']
+    ```
+    Met its `Expect:` line: the run completed, `Skill` was left out without being refused, and only `read` is turned on.
+
+    Against the acceptance criteria: nothing in the output contradicts any criterion. The output supports criteria 1 (the tools lines), 2 (the settings), 3 (the R15 line is in each of the seven agents once), 4 (the case of a planted skill folder: exit 0, empty folders, mode 755) and 5 (the `["Read", "Skill"]` row). The smoke test does not check the entrypoint's three log lines, because it discards the output, and it does not check folder ownership. The tests behind criteria 4 and 6 cover those, along with criterion 7 (`make check`), which the factory runs. I did not run `make check` myself.
+
+    Findings: none.
