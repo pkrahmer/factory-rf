@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 251
-comments_read: []
+comments_read: [6259811093]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 5f835af96aea46b2943097666c68d747
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T04:41:57.255889Z'
+  stage: intake
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -213,3 +218,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. Interface, `version()`: "called without login words". Criterion 16 does not test this, so a call through the login shell would pass. Option I would choose: add to criterion 16 that the stand-in's recorded call for `--version` has no login words (it is called as `<executable> --version` alone, even when an API login file is set).
 
    5. Smoke test: `OpencodeRuntime(..., d / "state", ...)` is given a state directory that does not exist, and the Expect line ends with `[]` from `(d / "state").iterdir()`. The story does not say the runtime creates the state directory. If it does not, the smoke test fails with `FileNotFoundError` before any output. Option I would choose: add the sentence "the state directory is created when missing" to the Interface's run files and a row for it in criterion 4. The other choice is to make the smoke test create `state` first.
+4. 2026-10-19 human: 1. Yes: extend criterion 11's rows with a negative `timestamp`, a negative `input`, a `step_finish` without `tokens`, and `tokens` without `output`, each skipped.
+   2. Yes: a `step_finish` with no earlier `step_start` adds 0 to the model time and still counts as a turn; "between" is by line order. Add the row to criterion 8.
+   3. Yes: add the rules file's mode `0640` to criterion 14.
+   4. Yes: add to criterion 16 that `--version` is called as `<executable> --version` alone, without login words, even when an API login file is set.
+   5. The other choice: the smoke test creates `state` first (`mkdir` before the runtime is built); the runtime does not create its state directory, which always exists in the instance. The `Expect:` line stays.
