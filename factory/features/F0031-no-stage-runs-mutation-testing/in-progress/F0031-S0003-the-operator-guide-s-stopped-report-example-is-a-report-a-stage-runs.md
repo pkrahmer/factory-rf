@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 301
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T23:29:18.073844Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T23:29:18.073844Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T23:29:33.865711Z'
+  stage: intake
+  run: 33125197a51c45ea8df2a14394ff5f88
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -70,3 +72,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names the one passage (`docs/operator-guide.md`, *What a stage run shows*, point 3, line 703) with the exact old and new text; the old text is present there once, `test` is a stage report in `factory/pipeline.yml` (time_limit 10 = 600 s); no signature involved, and the Interface states no behaviour beyond the replaced example.
+   Criteria: 1 (nothing outside docs changes), 2 (`make check` green) and 3 (new string occurs exactly once, `` `mutants`: `` zero times, `check_documents` prints `documents ok`) are each checkable by grep or a command. The story states no rule with a failing side. Grep shows `` `mutants`: `` occurs only at line 703, so zero is reachable.
+   Smoke test: three runnable commands (two greps, one `uv run`), each with an `Expect:` line checkable against the output (`0`, `1`, `documents ok`).
+   Architecture: documentation only, no layer touched; consistent with CLAUDE.md, where the documenter owns `docs/`.
+   Scope: within F0031's goal (documents say no stage runs mutation testing). The tests that use `mutants` as sample data stay, as feature decision 7 says. Nothing is in its "Out of scope".
