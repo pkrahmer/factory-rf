@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T00:59:56.557305Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T00:59:56.557305Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T01:01:09.681293Z'
+  stage: docs
+  run: 9a9a4b03cd7a43ce8ac5d84cb3846150
 ---
 
 # The documents repair what the feature's stories left stale
@@ -162,3 +164,18 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as self.
+11. documenter: Files changed, all documents, so I did not run `make check` (the factory's run after this stage is the gate):
+    - `docs/project-guide.md`: the journal example now prints `... run=None blocked=None reason=None`. The `Boundaries` field list now ends with `disk`, `disk_records` and `stop_records`, each optional and each with one clause pointing to the tick's step 0, the `DiskRecord` paragraph and "Stop records".
+    - `docs/operator-guide.md`: the "Comment reads" cells of "The form has findings" and "The round cap" now hold the `factory: ` text with the findings question and the round-cap question. No other cell changed. The opening paragraph now names the stop records on `factory/stops.jsonl` and the records contract under `src/factory/contract/`.
+    - `docs/decisions.md`, "The stops reach main as raised and cleared records": the reason for leaving the detail out now names `make secrets` (every tracked file on `main`, a commit id or URL in a git error's text, `main_branch_failing`). The "Rejected" line adds a GitHub issue or comment (the hosting-service interface does pull requests only, R10).
+
+    Checks I ran: `python -m factory.entry.check_documents` prints `documents ok`. The first smoke-test grep (`run=None blocked=None reason=None`) gives 1.
+
+    Cross-read and found current against the (empty) code diff: the `Boundaries` description in `src/factory/application/boundaries.py` and the two question texts in `post_texts.py`, as the reviewer also checked.
+
+    Stale text I noticed and did not touch: none.
+
+    Code findings: none. The branch changes nothing under `src/` or `tests/`.
+
+    `check`: check: green
+    `documents`: documents ok
