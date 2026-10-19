@@ -788,3 +788,11 @@ Date: 2026-10-19 (F0024-S0001; F0024 decisions 2, 3 and 8). `make mutants` ended
 - Decision: the rules are pure functions in `factory.domain.mutants`; the command reads the file through `factory.entry.inputs.read_input`, which `check_duplicates` now uses too.
 - Reasons: the last line is the one the factory and the reader see, so it must hold the whole answer; the exit status carries completeness without a new kind of result.
 - Rejected: a fourth check status for a partial run (the pipeline's statuses stay passed, failed and timed out); mutmut's own listing as the last line (it holds no count and no word for partial); the survivors of every module in the report (the reader would see other features' survivors and read them as the story's).
+
+## The journal line of a command stopped at its time limit says so
+
+Date: 2026-10-19 (F0024-S0002; F0024 decision 10). A command that reaches its time limit is killed, and its journal line showed whatever it printed last, for example a progress line of mutmut. The records hold `time_limit`, but the reviewer and the human read the journal, and a `mutants` run killed at its 10 minutes read like an ordinary result.
+
+- Decision: `command_line` adds ` (stopped at its time limit after <whole seconds> s)` to the line of a `time_limit` result; the seconds are rounded down. A passed line, a reused line and a failed line stay as they are.
+- Reasons: a green check is never `time_limit` and a red one stalls with its tail, so in practice only a report shows the note; no new status and no new record field are needed.
+- Rejected: the suffix for failed results too (a failed report's own last line already says what it is, and `tests/application/test_stage_finish.py` pins one); a gentler stop in the process module (it would change how every command ends for the sake of one line).
