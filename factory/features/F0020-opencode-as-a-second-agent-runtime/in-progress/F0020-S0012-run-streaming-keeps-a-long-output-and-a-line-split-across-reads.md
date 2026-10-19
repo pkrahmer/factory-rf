@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 278
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T18:43:18.483571Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T18:43:18.483571Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T18:43:40.616337Z'
+  stage: intake
+  run: 30dcdd2f68aa4627abba3dade15a12d6
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -75,3 +77,9 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change. It pins the behaviour of `run_streaming(request, on_line) -> ProcessResult` in `factory.adapters.process`. I checked that `python_argv` is in `tests/process_support.py`, that `Recorder` is in `tests/adapters/test_process_streaming.py` (the move to `tests/process_support.py` is covered by the standing leave and named in the story), and that `_LineReader.read_ready` holds both `+=` lines the story names (`src/factory/adapters/process.py` lines 126-127).
+   Criteria: criterion 1 (200000-character line, once and whole, `stdout` and `stderr` of length 200001) and criterion 2 (a line split across a 0.5 s pause, `stdout` and `stderr`) are each one parametrized test with exact values. Every clause of the two Interface bullets has a criterion on both streams. The story states no limit, refusal or default, so there is no failing side to cover. Criteria 3 and 4 are the two closing ones, in the right order.
+   Smoke test: it runs as written with `uv run -q python` on real child processes, and the `Expect:` line gives the exact values to compare. The run's two lines and the sorted list make the second check order-independent.
+   Architecture: it fits. The change is tests only, in `tests/adapters/`, mirroring the package. It uses no fake git and no mocks, and the child processes are real. The docs criterion names `docs/project-guide/processes-and-checks.md`, which has the `run_streaming` paragraph at line 71.
+   Scope: it is within F0020 (S0003's streaming) and not in its Out of scope. Moving `Recorder` is covered by the standing leave and the story names the file changed. I changed nothing in the story.
