@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:05:02.271823Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-10-19T10:05:02.271823Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:07:18.361173Z'
+  stage: doing
+  run: 8645df2a9d354815849bb271b4988a02
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -267,3 +269,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    FAILED tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]
    make: *** [Makefile:75: test] Error 1
 9. factory: started doing as self.
+10. coder: The previous run's implementation in `src/factory/adapters/opencode_runtime.py` is unchanged and still the work: a per-call `_Watch` is the `run_streaming` callback, a budget stop resumes once by session through `_resume`, and a limit stop ends `provider_limit`. Entry 7 describes it. The tester's `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_provider_limit.py` pass unchanged.
+
+    **Why it stalled, and what I did**
+    - The stall in entry 8 was `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]`. That test belongs to another story, and this story touched neither it nor `make_commands`.
+    - It passes when its module runs alone. A fresh `make check` is green (`test: green (37.1 s)`, `check: green`).
+    - I take the failure to be a one-off under the parallel workers, not a fault of this work. I changed no code for it.
+
+    **Main choice and the alternative I rejected** (unchanged from entry 7)
+    - Chosen: a stateful watch object per call, which records why it stopped. The result reads that record afterwards.
+    - Rejected: working out the stop reason again from the collected output after the kill. That would repeat the budget and limit rules and could disagree with what actually stopped the call.
+
+    **Refactor:** I read the diff against `main` as a reviewer would. Nothing needed changing.
+
+    **Noticed, not touched**
+    - The flaky row above, in `tests/adapters/test_make_commands.py`. If it fails again, it is worth a story of its own.
+    - `_Watch.stopped_by` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
+    - `_resume` has the same shape as `ClaudeCodeRuntime._resume`, so `make duplicates` may report the two as similar code.
+    - The private `_limit_message` and `_Watch` keep short docstrings, which CLAUDE.md leaves out for private names. I kept them because they state the return contract.
+
+    The journal did not change the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
