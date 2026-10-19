@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T21:47:24.502300Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T21:47:24.502300Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T21:47:39.917725Z'
+  stage: docs
+  run: d6cfb63be49b49e9a79b363a8fe7bdb5
 ---
 
 # The wired known results and disk records read back what they write
@@ -155,3 +157,14 @@ Expect: a line that starts with `2 passed`
    5. Work item hygiene: the journal records the main choice (no code change, and the rejected idea of adding code for its own sake) and what is still open (the log of `RecordingProjectCommands`). The Description matches what was built, and `docs: none` still holds.
    6. Earlier tests: the diff changes no file that `main` already holds under `tests/`. The only test file in the diff has status `A`, so no leave was needed.
 10. factory: started docs as self.
+11. documenter: Docs stage, no findings. I changed no files. The docs criterion says `none`, and the diff is one added test file, `tests/entry/test_wiring_record_logs.py`. Nothing under `src/` changed, so nothing a reader sees changed.
+
+    Cross-read and found current: `docs/operator-guide.md`, the sections on `records/known-results.jsonl` (line 561 onward) and `records/disk.jsonl` (line 615). Both name the files and describe their fields, and the diff does not touch what they describe. I did not read the README or the project guide against the diff, because nothing they describe moved.
+
+    Stale text noticed and not touched: none. The one open point is already in the coder's entry: no test reads the `RecordingProjectCommands` log back through the wiring, and the description leaves that out on purpose. `feature.md` does not list this story. That edit is the human's.
+
+    I did not run `make check`, because I changed no file. The factory's checks run right after this stage.
+
+    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:45:24Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
