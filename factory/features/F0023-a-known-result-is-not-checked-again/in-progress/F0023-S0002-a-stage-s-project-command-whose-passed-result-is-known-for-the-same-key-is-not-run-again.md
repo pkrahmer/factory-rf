@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T15:10:18.664732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-19T15:10:18.664732Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T15:11:43.614635Z'
+  stage: review
+  run: f8a370417bb64d1284b1019bd311c979
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -401,3 +403,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 15. factory: started review as self.
+16. reviewer: 1. `tests/application/test_known_results.py:62` (`_raising`): this is a second copy of `_raising` in `tests/application/test_recording_project_commands.py:45`, with the same signature and body. Fix: the tester moves that helper to one shared module under `tests/`, using the standing leave to move a shared test helper, and both modules import it from there.
+    2. `tests/application/test_known_results.py:116` (`Rig.log_lines`): this copies `log_lines` of `tests/log_support.py:6`, which reads the same `tmp_path / "state" / "factory.log"` the same way. Only the stripping of the time stamp is new. Fix: build it on `log_support.log_lines(tmp_path)` and keep only the stripping of the stamp, then drop `Rig.log_path`.
+
+    Everything outside these two copies checked out:
+    - Each of criteria 1 to 13 has a test that tests it.
+    - The stated limits are tested on both sides:
+      - `definition` with 63, 64 and 65 characters, and with upper-case hex.
+      - `duration_seconds` at -1 and at 0.
+      - `reused` with `passed`, `failed` and `time_limit`, on both models.
+      - The failed and time-limited last run.
+      - Without records, and without settings, where the `boundaries` fixture has none, so the image is `None`.
+      - The three faults and the two errors that propagate.
+    - The factory's `make check` after the coder was green (entry 14).
+    - `src/` matches the Interface. The layers hold: the domain has no I/O, `KnownResults` stays in `application` and reaches git only through `Git.work_tree_id`, and `wiring` is the only place it is wired.
+    - No secrets, no check-silencing markers, and no strings handed to a shell.
+    - None of the five new findings of `make duplicates` is in a module this story changed.
+
+    Earlier tests:
+    - `tests/domain/test_checks.py` (M): changed under the human's leave, which is the story's Interface naming `test_fields_are_exactly_the_generic_seven` → `test_fields_are_exactly_the_generic_eight` under the feature's decision 15. The change is only the rename and `"reused"` added to the expected set, which is within that leave.
