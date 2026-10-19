@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T02:17:05.948848Z'
   stage: smoke-test
   run: 5d3878beadb64826a0d47454f695f10e
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T02:17:50.836715Z'
+  stage: approval
 ---
 
 # The README names what the feature built and counts its commands right
@@ -241,3 +246,4 @@ Expect: `documents ok`
     Findings: none.
 
     Not a finding, just a note: the README's summary sentence now chains "and the cost records with the bill, and the records the human can read…". That is clumsy wording but meets the criterion. The same goes for the following "It is no console script", which now follows two `python -m` commands and reads slightly oddly.
+14. factory: done (pull request merged); cost: 6 runs, 2.4 min, 27 turns, 73048 tokens in (302416 more from cache), 6471 out, $0.62
