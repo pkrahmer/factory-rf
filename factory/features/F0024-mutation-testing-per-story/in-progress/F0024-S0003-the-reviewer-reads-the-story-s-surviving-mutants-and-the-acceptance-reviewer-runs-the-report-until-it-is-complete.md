@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T16:38:39.080881Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T16:38:18.286387Z'
   stage: tests
   run: 1e49b017accd4bbeac1aa4412eeb5a29
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:38:39.080881Z'
+  stage: doing
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -118,3 +127,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_the_mutation_score_check_once[old-sentence-gone]
+6. factory: started doing as self.
