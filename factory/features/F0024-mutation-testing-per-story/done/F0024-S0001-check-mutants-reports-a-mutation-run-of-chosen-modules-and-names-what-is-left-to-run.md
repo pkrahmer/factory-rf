@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T16:19:45.856726Z'
   stage: smoke-test
   run: e9727ae2205d4dd9a1c1b4882b611f64
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T16:22:10.676124Z'
+  stage: approval
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -436,3 +441,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Findings: none.
 
     Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 10.0 min, 78 turns, 283044 tokens in (1671224 more from cache), 40127 out, $3.03
