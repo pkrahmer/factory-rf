@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T00:04:51.381749Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T00:04:51.381749Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T00:07:14.903436Z'
+  stage: doing
+  run: 4aa5c166486b4e5280146caeaac0dfc6
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -196,3 +198,17 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_contract.py - ImportError while importing test module ...
 6. factory: started doing as self.
+7. coder: Built the records contract the Interface describes.
+
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT`, `CONTRACT_KEY`, `JSON_SCHEMA_DIALECT`, `SchemaMode`, the frozen dataclass `ContractEntry`, the five `CONTRACT` entries in order, `schema_file_name` and `contract_schema`. `contract_schema` uses exactly the `json.dumps(..., indent=2)` formula from the Interface plus one newline.
+   - `src/factory/entry/contract.py`: `CONTRACT_FOLDER` (`Path(factory.__file__).parent / "contract"`), `write_contract` and `main`. `main` takes the folder given or `CONTRACT_FOLDER`, prints `contract: 5 schemas written` and returns 0. With more than one argument it prints the usage line to standard error and returns 2.
+   - `src/factory/contract/*.schema.json`: the five schemas, written with `uv run python -m factory.entry.contract` and not edited by hand. The smoke test's `diff -r` against a fresh run prints `same`.
+
+   Main choice: `main` reads `CONTRACT_FOLDER` from the module when it is called, not as a default argument, so the `monkeypatch.setattr` in the tests takes effect. `write_contract` writes each file directly with `Path.write_text`. I rejected the atomic replace (`os.replace`) the factory uses for records: these files are generated build data that the next run can rewrite, and `tests/test_atomic_replace_search.py` allows only one `os.replace` call in the package.
+
+   Refactor: I read the diff and found nothing to change. `make check` is green (coverage 99.06 %). The only line not covered in the new modules is the `if __name__ == "__main__"` line, the same as in the other entry modules. The journal did not change the meaning of the task, so `## Description` is unchanged.
+
+   Noticed but did not touch: the schemas keep the models' `additionalProperties: false` (from `extra="forbid"`). The operator guide's sentence about ignoring unknown properties belongs to the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone

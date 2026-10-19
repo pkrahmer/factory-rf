@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "x-records-contract": "1.0",
+  "$defs": {
+    "Claim": {
+      "additionalProperties": false,
+      "description": "An instance's hold on a work item for one stage; the lease lasts `lease_duration` minutes.",
+      "properties": {
+        "instance": {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "title": "Instance",
+          "type": "string"
+        },
+        "stage": {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "title": "Stage",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "lease_duration": {
+          "exclusiveMinimum": 0,
+          "title": "Lease Duration",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "instance",
+        "stage",
+        "started_at",
+        "lease_duration"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "JournalRecord": {
+      "additionalProperties": false,
+      "description": "One journal entry as the state lists it: its number, who spoke and what kind it is.\n\n`at` (when it was written, in UTC), `stage` (the work item's stage then) and `run` (the\nagent run it came from) are optional, so a record written without them stays valid. So are\nthe causes: `blocked`, the block a `question` record opened, and `reason`, the reason of a\n`stall` record.",
+      "properties": {
+        "number": {
+          "exclusiveMinimum": 0,
+          "title": "Number",
+          "type": "integer"
+        },
+        "speaker": {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "title": "Speaker",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "created",
+            "started",
+            "result",
+            "question",
+            "comment",
+            "close",
+            "stall",
+            "crash",
+            "expiry",
+            "move_back",
+            "send_back",
+            "done"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "At"
+        },
+        "stage": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stage"
+        },
+        "run": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run"
+        },
+        "blocked": {
+          "anyOf": [
+            {
+              "enum": [
+                "question",
+                "attempts_cap",
+                "round_cap",
+                "crash_cap",
+                "send_back"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Blocked"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "died",
+                "time_limit",
+                "budget",
+                "no_result",
+                "decision_not_allowed",
+                "left_branch",
+                "form_invalid",
+                "check_red",
+                "merge_conflict",
+                "nested_repository"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "number",
+        "speaker",
+        "kind"
+      ],
+      "title": "JournalRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The state a work item keeps in its front matter, its fields in the order they are written.",
+  "properties": {
+    "stage": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "title": "Stage",
+      "type": "string"
+    },
+    "blocked": {
+      "anyOf": [
+        {
+          "enum": [
+            "question",
+            "attempts_cap",
+            "round_cap",
+            "crash_cap",
+            "send_back"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Blocked"
+    },
+    "round": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Round",
+      "type": "integer"
+    },
+    "attempts": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Attempts",
+      "type": "integer"
+    },
+    "crashes": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Crashes",
+      "type": "integer"
+    },
+    "pull_request": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pull Request"
+    },
+    "comments_read": {
+      "default": [],
+      "items": {
+        "exclusiveMinimum": 0,
+        "type": "integer"
+      },
+      "title": "Comments Read",
+      "type": "array"
+    },
+    "handed_over": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Handed Over"
+    },
+    "claim": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Claim"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "journal": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/JournalRecord"
+      },
+      "title": "Journal",
+      "type": "array"
+    }
+  },
+  "required": [
+    "stage"
+  ],
+  "title": "WorkItemState",
+  "type": "object"
+}

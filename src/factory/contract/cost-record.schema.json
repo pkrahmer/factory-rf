@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "x-records-contract": "1.0",
+  "$defs": {
+    "TokenCounts": {
+      "additionalProperties": false,
+      "description": "The tokens one run used, by kind.",
+      "properties": {
+        "input": {
+          "minimum": 0,
+          "title": "Input",
+          "type": "integer"
+        },
+        "output": {
+          "minimum": 0,
+          "title": "Output",
+          "type": "integer"
+        },
+        "cache_read": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cache Read",
+          "type": "integer"
+        },
+        "cache_creation": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cache Creation",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input",
+        "output"
+      ],
+      "title": "TokenCounts",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One agent run: started, or completed with its measures; a measure `None` is unknown.\n\n`image` and `instance` say where the run ran: the machine's image and the name of\nthe instance; either may be `None` on a record written without settings.\n`denials` counts the tool calls the runtime reported as refused and `denied_paths`\nholds the files they named, each once; both are `None` when the runtime gave no reply.",
+  "properties": {
+    "run": {
+      "pattern": "^[0-9a-f]{32}$",
+      "title": "Run",
+      "type": "string"
+    },
+    "work_item": {
+      "pattern": "^F\\d{4}-[SA]\\d{4}$",
+      "title": "Work Item",
+      "type": "string"
+    },
+    "stage": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "title": "Stage",
+      "type": "string"
+    },
+    "role": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "title": "Role",
+      "type": "string"
+    },
+    "attempt": {
+      "minimum": 0,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "started",
+        "completed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "duration_seconds": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Seconds"
+    },
+    "model_seconds": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Seconds"
+    },
+    "end_reason": {
+      "anyOf": [
+        {
+          "enum": [
+            "completed",
+            "no_result",
+            "time_limit",
+            "budget",
+            "died"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "End Reason"
+    },
+    "turns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Turns"
+    },
+    "tokens": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TokenCounts"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "cost_usd": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cost Usd"
+    },
+    "image": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Image"
+    },
+    "instance": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Instance"
+    },
+    "denials": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Denials"
+    },
+    "denied_paths": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Denied Paths"
+    }
+  },
+  "required": [
+    "run",
+    "work_item",
+    "stage",
+    "role",
+    "attempt",
+    "status",
+    "started_at"
+  ],
+  "title": "CostRecord",
+  "type": "object"
+}
