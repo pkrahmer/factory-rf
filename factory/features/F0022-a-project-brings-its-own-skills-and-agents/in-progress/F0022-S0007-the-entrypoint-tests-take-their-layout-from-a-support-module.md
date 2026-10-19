@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:57:36.099821Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T23:57:36.099821Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:59:24.582681Z'
+  stage: doing
+  run: 35b41dc67cc94dd5b4e5112b1d35449d
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -241,3 +243,15 @@ Expect: `exit 0`
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.9 s)
 14. factory: started doing as self.
+15. coder: Round 1: I built nothing and changed no file. The reviewer's finding (entry 9) was the copied search helper. The tester fixed it in entry 13: the search now lives in `tests/search_support.py` (`modules_matching`), and `tests/test_shared_test_helpers.py` and `tests/test_entrypoint_support.py` both use it. Nothing under `src/` changes in this story.
+
+    Checked: `make check` is green, ending with `test: green (39.7 s)`, `check: green`, and 99.13 % coverage. This also covers the import reorder in entry 13, after which the tester did not re-run `make test`.
+
+    Main choice: I accepted the tester's move as it stands and hand forward to review. The alternative I rejected was adjusting `tests/search_support.py` during the refactor step. The coder never edits tests (R9), so there was nothing of mine to refactor.
+
+    Journal: no entry changed the meaning of the task, so the Description stays as it is.
+
+    Noticed, not touched: none.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
