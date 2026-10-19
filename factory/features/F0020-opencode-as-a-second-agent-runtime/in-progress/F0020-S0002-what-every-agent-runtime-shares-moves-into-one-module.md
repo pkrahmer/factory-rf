@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:01:00.646410Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T04:01:00.646410Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:04:38.394953Z'
+  stage: doing
+  run: b3138f20daee49bbbb0a15745034f460
 ---
 
 # What every agent runtime shares moves into one module
@@ -210,3 +212,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_resumed_result.py - ImportError while importing test ...
 6. factory: started doing as self.
+7. coder: I moved the parts every agent runtime shares out of `claude_runtime` and kept the Claude Code runtime's behaviour as it was. `make check` is green and `make duplicates` reports 0 new, 36 known, 3 gone.
+
+   What I built:
+   - `src/factory/domain/agent_runs.py`: `resumed_result` plus its private `_add` and `_add_tokens`, moved from `claude_runtime`. One change follows the Interface and the tester's `time_limit` row: `duration` is now the sum of both calls in every case. Before, a `time_limit` resume kept only the second call's duration. Runs are not affected, because `ClaudeCodeRuntime.run` still sets the duration afterwards from the whole run's clock.
+   - `src/factory/adapters/agent_launch.py`:
+     - The moved constants: `ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `MINIMUM_RESUME_BUDGET`, `CENT`, `VERSION_TIME_LIMIT`, the sudo, timeout and kill constants, `RUN_FILE_MODE`, `TEMPORARY_PREFIX`, `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `CONFINE_PREFIX`.
+     - `Launch`, frozen and with `extra="forbid"`.
+     - The functions `resume_budget`, `sudo_prefix`, `launch`, `confined_argv`, `cleanup_argv`, `temporary_folder`, `existing_devices`, `run_confinement`, `killed_at_limit` and `first_word`. `line_starting` was already there from S0001.
+     - Nothing in the module starts a process or reads `os.environ`.
+   - `src/factory/adapters/claude_runtime.py`: its private copies are gone and it calls the shared functions instead.
+     - Its `__all__` re-exports the moved names that earlier tests import: `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `SUDO_EXECUTABLE`, `VERSION_TIME_LIMIT`, `resume_budget`.
+     - `SWITCHES`, `CONFIG_VARIABLE` and `RUNTIME_FOLDER` are still defined here.
+     - The values tests set on the module are still read from its namespace when a run calls them: `SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT` for the removal, `DEVICE_FOLDERS` and `DEVICE_FILES` through a small `_confinement` wrapper, and `run_process`.
+
+   Main choice: I made one extra public helper, `request_home(request)` in `agent_launch`, which is not in the Interface. Both `run_confinement` and Claude Code's `_config_folder` need the request's `HOME`, so sharing it avoids a second copy of the private `_home`. The alternative I rejected was keeping a private `_home` in each module: that is a duplicated helper, which the reviewer would flag.
+
+   Refactor pass: I read the whole diff and nothing needed changing.
+
+   Not run: the story's smoke test. The shell tool refused the heredoc script, so I left it to the smoke-test stage. The tests that cover the same calls pass.
+
+   Noticed but not touched:
+   - The tester's open point still stands: `tests/test_agent_launch_search.py` reads the source, so mutmut may need it on the list of left-out structural tests in `pyproject.toml`. That file is outside my write paths.
+   - `make duplicates` reports 3 findings as gone, the unused `close` methods of the hosting service. That comes from `main`, not from this work.
+   - The docs criterion is the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
