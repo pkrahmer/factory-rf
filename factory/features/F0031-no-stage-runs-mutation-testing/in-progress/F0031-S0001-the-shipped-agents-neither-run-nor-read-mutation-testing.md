@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T21:02:33.993454Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T21:02:33.993454Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T21:02:57.963878Z'
+  stage: review
+  run: d1b3c51175754e128154d2369a4adaa0
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -278,3 +280,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    I checked:
+    - The four files under `claude/` and `template/` match the Interface's old and new pairs exactly.
+      - In `claude/agents/acceptance-reviewer.md`: check 3 and check 7 both changed, the rest of check 7 (`Say so.` through the Disk sentence) is as it was, and the recommendation, proposals, step 1 and step 3 all have their new text.
+      - In `claude/agents/reviewer.md`: the paragraph is gone along with one of its two blank lines.
+      - The `template/CLAUDE.md` bullet and the `template/Makefile` comment changed; the next comment line and the recipe are as they were.
+      - Nothing else in those files changed, and no module under `src/` changed.
+    - Criteria 1 to 4: each has a test that checks what the criterion names.
+      - `test_acceptance_reviewer_leaves_mutation_testing_to_sweeps` has six rows, one per new text, each read through `section_text` of the named section.
+      - `test_acceptance_reviewer_holds_no_old_mutation_text` has seven rows that count 0 and one row that counts once.
+      - `test_acceptance_reviewer_mutation_testing_is_the_third_check` checks that the line after check 3 starts check 4.
+      - `test_reviewer_names_no_mutation_testing` has three lowercased rows.
+      - `test_reviewer_item_6_is_followed_by_the_findings_paragraph` checks the blank line and then the findings paragraph.
+      - `test_template_makefile_leaves_mutants_to_a_sweep_by_hand` has a row for once and a row for 0.
+      - `TEMPLATE_RULES_LINES` holds the new sentence.
+      - Every count rule is tested on both sides, as rows of one parametrized test.
+    - Criterion 5: the earlier tests it names are not in the diff.
+    - The factory's `make check` after the coder is green (entry 15). It was red in entry 5 only because the tests were written before the code.
+    - Round 0's finding is fixed. The module docstring's value is decision 7's exact text; the backslash continuation sits inside the string literal, so the value is one line.
+    - Architecture and security: only shipped texts and tests changed, with no suppression markers and no secrets.
+    - Hygiene: the journal gives the coder's choice (a script that asserts each replacement happens exactly once) and what was rejected. The Description matches what was built. The docs criterion (7) still describes what the reader must know.
+
+    Earlier tests:
+    - `tests/test_claude_agent_texts_mutants.py`: the human's leave, decision 7 of the feature, which the story names. Rewritten as decision 7 lists: the docstring, the three old constants and their three tests replaced by criteria 1 to 3 and the Makefile test of criterion 4.
+    - `tests/test_claude_files.py`: the human's leave, decision 7 of the feature, which the story names. Only the sentence in `TEMPLATE_RULES_LINES` changed, with the strings wrapped again; every other line and every test is as it was.
+
+    Notes:
+    - `tests/test_claude_agent_texts_mutants.py:1`: the docstring is held under 100 columns by a backslash continuation inside the string. This is unusual, but needed to keep decision 7's exact one-line text.
+    - `template/Makefile:4` (the coder's entries 7, 11 and 15): it still calls `duplicates` and `mutants` "reports outside `check`". This is outside this story's Interface; the feature acceptance can consider it as a wording story.
