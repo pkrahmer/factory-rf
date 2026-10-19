@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:21:30.711930Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T20:21:30.711930Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:23:27.047308Z'
+  stage: doing
+  run: 17f1c7fb90b64302957e331d745745c7
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -237,3 +239,15 @@ Expect: `1`
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.7 s)
 14. factory: started doing as self.
+15. coder: Round 1: I built nothing and changed no file. The tester has fixed the reviewer's only finding: `tests/test_entrypoint.py:1` reads "... in a temporary layout." again, as it does on `main`. `git diff main --stat -- src` is empty, so the Interface's "No module under `src/factory/` changes" still holds.
+
+    Main choice: I hand the item back to review as it is. The alternative was to tidy the moved helpers further, for example to move `Layout` out of `test_entrypoint` into a support module. I rejected that because the Interface fixes where each helper goes, and the coder never edits tests. Refactor step: there is no diff of mine to read, so nothing changed.
+
+    Checked: `make check` ends with `check: green` (test: green, 45.0 s; coverage 99.12 %).
+
+    Noticed but did not touch: `tests/conftest.py` still imports `Layout as ImageLayout` from the test module `test_entrypoint`, as entries 7 and 9 already noted. Moving it would be a later story.
+
+    Description: unchanged. The finding did not change what the task means.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
