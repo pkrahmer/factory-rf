@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T22:39:13.813057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T22:39:13.813057Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T22:41:10.029802Z'
+  stage: doing
+  run: 0e7fc979e4754e1b812425b73d7639cd
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -122,3 +124,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (49.0 s)
 6. factory: started doing as self.
+7. coder: Nothing built. This story only changes docs. Its Interface says no module under `src/factory/` and no test changes, and the only change is two lines of `docs/project-guide/README.md`, *The files*. That edit belongs to the documenter, not the coder.
+   Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. I left the working tree as I found it: the factory's `.costs.jsonl` sidecar is the only modified file.
+   Main choice: I left `docs/project-guide/README.md` alone, even though the edit is only two lines. CLAUDE.md, *Docs*, says the documenter keeps the guide true and the coder does not write it. I rejected making the edit here because it would cross that split.
+   Refactor: there is no diff, so nothing needed changing.
+   `make check` is green (`check: green`, coverage 99.12 %).
+   Noticed and not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
