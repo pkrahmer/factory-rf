@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T17:32:02.368822Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T17:31:41.105396Z'
   stage: tests
   run: 71d5025f285148f8a8bf8b062e8ad2f9
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:32:02.368822Z'
+  stage: doing
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -117,3 +126,4 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (44.1 s)
+6. factory: started doing as self.
