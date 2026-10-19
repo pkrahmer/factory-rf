@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T12:48:53.532380Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T12:48:53.532380Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T12:49:50.182284Z'
+  stage: review
+  run: 1bf4f13b85a049b2af937bd1971dae8c
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -399,3 +401,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item.
+
+    no findings
+
+    - Acceptance criteria: criteria 1 to 6 each have one parametrized test that checks what the criterion says. Criterion 1 tests the lease boundary on both sides for an own claim (59m59s gives held, 60m gives own, a negative age gives held) and for another instance's claim. Criteria 3 and 4 test both `observer=True` and the default. Criterion 5 checks the first line, the status, an empty `err` and the `claim=factory-1` board row. Entry 15 says `make check` is green, and `.reports/junit.xml` shows 5689 tests with 0 failures and 0 errors.
+    - Architecture: `observed_claim_status` is pure and lives in `factory.domain.lease`. It handles only the own claim within its lease and hands everything else to `claim_status`. `ClaimService.observed_status` wraps it. `Watcher` picks the status function, with a comment that explains why. Only `factory.entry.watch` passes `observer=True`. The layer order is kept.
+    - Security: no suppression markers, no secrets, no commands or queries built from strings.
+    - Quality: round 0's finding 5 is fixed (`src/factory/entry/watch.py:1` is now one sentence that matches the Interface). Findings 1 to 4 are fixed by `tests/watch_support.py` and the `definition` fixture in `tests/conftest.py`. None of the "5 new" findings in `.reports/similar-code.json` or `.reports/dead-code.txt` is in a file this story changed.
+    - Work item hygiene: the journal names the main choice (only the one differing case, handing the rest to `claim_status`) and what was rejected. The Description matches what was built. Criterion 8 still says what the documenter must write.
+
+    Earlier tests:
+    - `tests/test_claim_ownership.py`: changed under the human's leave, the feature's decision 5, which the story names. Only `LEASE_FUNCTIONS` changed, and both tests keep their names and what they check.
+    - `tests/application/test_watcher_acceptance.py`: changed under the standing leave to move a shared test helper. `definition`, `_push_complete`, `_open`, `_branch_state`, `_push_state` and the constants moved to `tests/conftest.py` and `tests/watch_support.py`, and `BRANCH` was renamed `ACCEPTANCE_BRANCH`. Every test keeps its name and checks the same thing.
+    - `tests/entry/test_watch_acceptance.py`: changed under the standing leave to move a shared test helper. The `todo` fixture keeps its name and docstring and now calls `watch_support.push_complete`. The `TODO` constant was removed.
+    - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It gains the `definition` fixture moved from `tests/application/test_watcher_acceptance.py`. Modules with their own `definition` fixture still override it.
+
+    Notes:
+    - `tests/entry/test_watch_own_claim.py:27`: the `_agents` fixture is a copy of the one in `tests/entry/test_watch.py` (the Interface allows the copy). It could move to `tests/conftest.py` under the standing leave.
+    - `tests/domain/test_lease_observed.py:15`, `tests/application/test_watcher_observer.py:20` and `tests/entry/test_watch_own_claim.py:23`: the `INSTANCE` and `OTHER_INSTANCE` constants are repeated in each new file. `_claim` sits beside `watch_support.aged_claim`, which builds the same claim from a clock instead of a fixed `NOW`.
