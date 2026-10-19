@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T23:33:48.409141Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T23:33:48.409141Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T23:34:07.215815Z'
+  stage: smoke-test
+  run: 66bf0d0f0d8c4256918dde34377d76b6
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -172,3 +174,29 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the three smoke test commands from the repository root, exactly as written and in order. All three met their `Expect:` lines.
+
+    Command 1: `grep -c -F '`mutants`: ' docs/operator-guide.md || true`
+    ```
+    0
+    ```
+    Met: `Expect: 0`.
+
+    Command 2: `grep -c -F '`test`: ........ [ 87%] (stopped at its time limit after 600 s)' docs/operator-guide.md`
+    ```
+    1
+    ```
+    Met: `Expect: 1` (exit code 0).
+
+    Command 3: `uv run python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Met: `Expect: documents ok` (exit code 0).
+
+    Checked against the acceptance criteria:
+    - Criterion 1 holds. `git diff --stat main...HEAD` lists only `docs/operator-guide.md` (1 line changed) and this work item's `.md` and `.costs.jsonl`. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) both say they changed nothing.
+    - Criterion 2 is not contradicted. The journal records `check: green`, and the branch changes no file that `make check` reads apart from the document. I did not run `make check`, because the smoke test does not list it.
+    - Criterion 3 holds. `docs/operator-guide.md:703`, *What a stage run shows*, point 3, now carries the Interface's new text word for word, followed by "(the tests stage's `make test`, stopped at its 10 minutes)". The rule it illustrates, ` (stopped at its time limit after <seconds> s)`, is unchanged.
+
+    Findings: none.
