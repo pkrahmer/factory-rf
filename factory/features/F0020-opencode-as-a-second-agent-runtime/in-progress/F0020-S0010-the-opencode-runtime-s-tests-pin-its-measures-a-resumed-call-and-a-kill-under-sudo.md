@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T19:04:28.979558Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-19T19:04:08.175679Z'
   stage: review
   run: 80eec480762f4fdaa75ddd7d5c59e90c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:04:28.979558Z'
+  stage: docs
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -254,3 +263,4 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
     - In `test_opencode_confinement.py`, `_runtime` builds `OpencodeRuntime` in two branches that differ only in `sudo_executable`. This is small and inside a new test file.
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` holds was changed.
+13. factory: started docs as self.
