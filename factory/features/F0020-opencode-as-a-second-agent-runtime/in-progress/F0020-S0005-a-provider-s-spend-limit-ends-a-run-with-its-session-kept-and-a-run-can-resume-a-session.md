@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T08:12:07.912080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-10-19T08:12:07.912080Z'
   stage: review
+- number: 43
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T08:12:43.199868Z'
+  stage: review
+  run: ec52ae325a024659a59b649a06dab67f
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -797,3 +799,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 42. factory: started review as self.
+43. reviewer: Review, round 1. Entry 33 limits this round to the test for criterion 19, and that is all I checked. I read the work item, `git diff --name-status main...HEAD`, the two test files the tester changed in entry 39, and the stand-in's `Step` (`tests/adapters/claude_stand_in.py:53-73`). The factory's `make check` after the coder was green (entry 41). Since entry 13, no round has changed anything under `src/`.
+
+    Criterion 19 is now tested in both runtimes:
+    - Claude, `tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit`: the script writes its arguments to `arguments.json` before it sleeps. The test checks `end_reason` `time_limit` and also that `result.session` equals the `--session-id` of the call. The time limit is 3 s, with an upper bound of 20 s on the elapsed time.
+    - opencode, `tests/adapters/test_opencode_resume_session.py::test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_events`: two new rows in the existing table, each with a 3 s limit and a 30 s wait.
+      - `timed-out-with-events` prints the events through `stdout_before_wait`, which the stand-in flushes before it sleeps, and expects the first event's `sessionID`, `ses_b`.
+      - `timed-out-resumed-without-events` prints nothing, sets `resume_session` to `ses_a` and expects `ses_a`.
+      - Both rows pin `end_reason` `time_limit`. The four earlier rows still play the same events under the default 30 s limit, so they check what they checked before.
+
+    no findings
+
+    Earlier tests:
+    - tests/domain/test_agent_runs.py: changed under the leave the story names under the feature's decision 19 (renamed to `test_question_and_the_six_end_reasons`, count 6, `provider_limit` added). The change stays within that leave.
+    - tests/domain/test_contract.py: changed under the leave the story names under decision 19 (expected version `"1.2"`, name kept). The change stays within that leave.
+    - tests/domain/test_contract_login.py: changed under the human's leave in journal entry 9 (two version assertions removed, test renamed; the import those assertions alone used was removed with them). The change stays within that leave.
+
+    Notes:
+    - tests/adapters/test_claude_runtime_provider_limit.py:22 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply`. Carried forward from entry 31.
+    - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal `""` matches any validation error. A fragment naming the rule that a `limit_wait` must be positive would pin which rule refused it. Carried forward from entry 31.
+    - tests/adapters/test_opencode_resume_session.py:41-54: the two time-limited rows have no upper bound on the elapsed time, unlike the Claude time-limit test. The criterion does not ask for one.
