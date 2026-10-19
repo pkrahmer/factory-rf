@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T01:11:44.171802Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T01:11:24.050324Z'
   stage: doing
   run: a0f57d8bebda4eeb917b1997291e426c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:11:44.171802Z'
+  stage: tests
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -202,3 +211,4 @@ Expect: `0`
     3. The `records` fixture: move it from tests/application/test_tick_stop_records.py to `tests/conftest.py`, and use it from both modules.
     4. `_commit_on_main` in test_preflight_stops_commit.py: replace it with `rig.human.push_file("main", ...)` (tests/human_clone.py) for the one-file rows. For the two-file row, reuse that shared helper (or extend HumanClone in tests/human_clone.py) instead of writing raw git calls again.
     Every earlier test keeps its name and checks the same thing. I did not touch any test. The journal did not change what the task means, so the Description is unchanged. Not touched: the reliance of `changed_paths` on the tick's restore leaving the work tree at `origin/main`. The reviewer confirmed it is safe.
+12. factory: started tests as self.
