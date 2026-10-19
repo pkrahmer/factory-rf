@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T13:43:48.512965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T13:43:48.512965Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T13:45:50.551264Z'
+  stage: tests
+  run: b0bc512dc7ac49c699d21d6759cd052d
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -273,3 +275,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal did not change the meaning of the task, so `## Description` stays as it is. I noticed nothing else and touched nothing else. I did not run `make check` in this round, because no file changed.
 12. factory: started tests as self.
+13. tester: Round 1 test change, from the reviewer's finding as the coder's entry 11 names it. This file is one I wrote for this story, so no earlier story's test changed.
+
+    In `tests/adapters/test_opencode_left_out_tools.py` I merged `test_skill_turns_on_no_opencode_tool_and_is_not_refused` and `test_another_tool_without_an_opencode_name_is_still_refused_before_anything_starts` into one parametrized test: `test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused`. It has three rows:
+    - `read-and-skill`: `("Read", "Skill")` expects the configuration's `tools` to be true for `{"read"}` alone.
+    - `skill-alone`: `("Skill",)` expects every tool to be false.
+    - `notebook-edit-refused`: `("Read", "NotebookEdit")` expects `AgentRuntimeError` with the detail `the opencode runtime has no tool for NotebookEdit`, and the stand-in is never called.
+
+    Each row branches on its expected value: a string means the refused side, a set means the enabled tools. This is how `test_a_request_the_runtime_cannot_configure_fails_before_anything_starts` does it. The test checks the same things as the two tests it replaces.
+
+    Criterion mapping after this change:
+    - criterion 5: `tests/adapters/test_opencode_left_out_tools.py::test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused`
+    - criterion 6: `tests/adapters/test_opencode_left_out_tools.py::test_each_shipped_agent_runs_with_its_tools_but_skill`, unchanged.
+    - The other criteria are mapped as in entry 5.
+
+    I created no new files. Every module imported.
+
+    `make test`: green (50.1 s, coverage 99.07 %), since the code exists now.
+    `make lint`: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (45.1 s)

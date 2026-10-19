@@ -40,34 +40,33 @@ def _tools_of(call: StandInCall, agent: str) -> dict[str, bool]:
 
 
 @pytest.mark.parametrize(
-    ("tools", "enabled"),
+    ("tools", "expected"),
     [
         pytest.param(("Read", "Skill"), {"read"}, id="read-and-skill"),
         pytest.param(("Skill",), set(), id="skill-alone"),
+        pytest.param(
+            ("Read", "NotebookEdit"),
+            "the opencode runtime has no tool for NotebookEdit",
+            id="notebook-edit-refused",
+        ),
     ],
 )
-def test_skill_turns_on_no_opencode_tool_and_is_not_refused(
-    tmp_path: Path, tools: tuple[str, ...], enabled: set[str]
+def test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused(
+    tmp_path: Path, tools: tuple[str, ...], expected: set[str] | str
 ) -> None:
     runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
+    request = opencode_request(tmp_path / "work", tools=tools)
 
-    result = runtime.run(opencode_request(tmp_path / "work", tools=tools))
-
-    assert result.end_reason == "completed"
-    [call] = read_calls(tmp_path / "bin")
-    assert _tools_of(call, "coder") == {name: name in enabled for name in OPENCODE_TOOLS}
-
-
-def test_another_tool_without_an_opencode_name_is_still_refused_before_anything_starts(
-    tmp_path: Path,
-) -> None:
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
-
-    with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(opencode_request(tmp_path / "work", tools=("Read", "NotebookEdit")))
-
-    assert raised.value.detail == "the opencode runtime has no tool for NotebookEdit"
-    assert read_calls(tmp_path / "bin") == []
+    if isinstance(expected, str):
+        with pytest.raises(AgentRuntimeError) as raised:
+            runtime.run(request)
+        assert raised.value.detail == expected
+        assert read_calls(tmp_path / "bin") == []
+    else:
+        result = runtime.run(request)
+        assert result.end_reason == "completed"
+        [call] = read_calls(tmp_path / "bin")
+        assert _tools_of(call, "coder") == {name: name in expected for name in OPENCODE_TOOLS}
 
 
 @pytest.mark.parametrize("agent", SHIPPED_AGENTS, ids=SHIPPED_NAMES)
