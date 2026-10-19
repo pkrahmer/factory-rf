@@ -15,7 +15,7 @@ from factory.adapters.process import (
     run_process,
     run_streaming,
 )
-from process_support import is_gone, python_argv
+from process_support import Recorder, is_gone, python_argv
 
 # A child that starts a grandchild, writes its pid to `sys.argv[1]` and then runs `REST`.
 GRANDCHILD = (
@@ -24,20 +24,6 @@ GRANDCHILD = (
     "pathlib.Path(sys.argv[1]).write_text(str(p.pid)); "
 )
 RETURNS_WITHIN_SECONDS = 20
-
-
-class Recorder:
-    """A callback that records each call and says stop on the lines it is given."""
-
-    def __init__(self, stop_on: frozenset[str] = frozenset()) -> None:
-        self.calls: list[tuple[Stream, str]] = []
-        self.threads: list[int] = []
-        self._stop_on = stop_on
-
-    def __call__(self, stream: Stream, line: str) -> bool:
-        self.calls.append((stream, line))
-        self.threads.append(threading.get_ident())
-        return line in self._stop_on
 
 
 def test_every_line_of_both_streams_reaches_the_callback_on_the_calling_thread(
