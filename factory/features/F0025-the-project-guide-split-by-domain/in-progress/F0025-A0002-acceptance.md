@@ -7,8 +7,17 @@ crashes: 0
 pull_request: null
 comments_read: []
 handed_over: null
-claim: null
-journal: []
+claim:
+  instance: self
+  stage: acceptance
+  started_at: '2026-10-19T09:32:13.881593Z'
+  lease_duration: 100
+journal:
+- number: 1
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:32:13.881593Z'
+  stage: acceptance
 stories: [F0025-S0001, F0025-S0002, F0025-S0003]
 outcome: null
 ---
@@ -16,3 +25,5 @@ outcome: null
 # Acceptance of The project guide split by domain
 
 ## Journal
+
+1. factory: started acceptance as self.
