@@ -10,8 +10,8 @@ from factory.domain.settings import (
     PROVIDER_LIMIT_COOLDOWN_VARIABLE,
     read_settings,
 )
+from settings_support import BASE
 
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
 COOLDOWN = "FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES"
 CEILING = "FACTORY_PROVIDER_LIMIT_CEILING_MINUTES"
 NOT_MINUTES = "is not a whole number of minutes of at least 1"

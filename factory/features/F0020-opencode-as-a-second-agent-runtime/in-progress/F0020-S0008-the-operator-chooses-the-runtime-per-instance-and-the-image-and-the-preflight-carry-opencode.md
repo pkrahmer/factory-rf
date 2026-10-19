@@ -1,3 +1,187 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 260
+comments_read: [6265790615, 6265944829]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T11:01:42.422626Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:01:42.428672Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T11:02:10.349477Z'
+  stage: intake
+  run: 2374b9efe1e6470aae7e6cdb6c6633d4
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:02:30.592165Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-19T11:07:31.363511Z'
+  stage: tests
+  run: 21766fb91a18405dadb558f9b954e10e
+  blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-19T11:08:16.132135Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:08:34.010755Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T11:10:29.589401Z'
+  stage: tests
+  run: e99f1c09789243b98eab997cc1454054
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:10:50.209799Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-19T11:15:59.438181Z'
+  stage: doing
+  run: ebf0aa0ba20243ad8b428237356abc1f
+  blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-19T11:17:15.832358Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:17:33.494144Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:17:55.303815Z'
+  stage: doing
+  run: 3960e7dca5d84181bab3f9a8838fed7f
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:18:15.562504Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-19T11:20:13.666244Z'
+  stage: tests
+  run: 8c9e851d5cd14857b430feb836099384
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:20:34.120668Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:22:55.848066Z'
+  stage: doing
+  run: 23f7d1be20fb4d498b35608f5efa63f6
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:23:16.324743Z'
+  stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T11:24:43.675525Z'
+  stage: review
+  run: 877af524d69e4832a93d388913c7cc98
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:25:04.188628Z'
+  stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:25:40.673247Z'
+  stage: doing
+  run: 2aeea47664c14354b244f71ba3540587
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:26:00.995057Z'
+  stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-19T11:29:15.487287Z'
+  stage: tests
+  run: 962aa57ea2bd4316bf970ef31428e617
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:29:35.957124Z'
+  stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:31:57.297601Z'
+  stage: doing
+  run: 63c91f24a60b425ebf6795bdd7532c14
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:32:17.860139Z'
+  stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T11:33:40.239196Z'
+  stage: review
+  run: c4d605a5f64242c4ad5effe09679fe11
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:34:00.483790Z'
+  stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T11:36:12.739227Z'
+  stage: docs
+  run: 9a40e61146284be4958fe163ac959dc5
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:36:33.334498Z'
+  stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T11:36:57.332879Z'
+  stage: smoke-test
+  run: 861e55454cca4c1083521b31fd64af64
+---
+
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
 
 ## Description
@@ -110,3 +294,291 @@ Expect: four lines, `OpencodeRuntime {'sonnet': 'anthropic/claude-sonnet-5-5'}`,
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete modules and signatures throughout (`factory.domain.settings`, `factory.entry.wiring`, `OpencodeRuntime.__init__`, `opencode_item`, `installed_models`, Dockerfile and compose lines), with exact error texts.
+   - Criteria: each can be tested by one parametrized test function. Every rule has a criterion for its failing side. Blank and invalid runtime values are in 1. Each malformed model entry and the duplicate alias are in 3. Each bad folder entry is in 13. A missing PATH, an unmapped alias and the order of the joined faults are in 6. The unreadable agents folder is in 8. A missing pin is in 9. Both login hints are in 10. Folder order with and without `runtime_folders` is in 14. The one gap is the comment line above each `ENV` in the Dockerfile, which no criterion covers. I did not raise it because it only documents the line and changes no behaviour.
+   - Smoke test: runnable as written. I traced the output against the Interface and the four Expect values match: `OpencodeRuntime {...}`, `False`, the PATH fault joined with the missing `opus` model, and `1`.
+   - Architecture: the settings and DTO changes sit in domain, the item and checks in application, the runtime folders in adapters, and the runtime choice and extras in entry wiring. This respects the layer order. No new dependency or package.
+   - Scope: within F0020's scope for S0008. It touches no item in Out of scope, and it names no earlier test change beyond the standing leave.
+4. factory: started tests as self.
+5. tester: Question: one row of criterion 8 contradicts the Interface for `installed_models`. Which order is right?
+
+   The Interface says `installed_models` gives "the `model` of every installed agent, in the order of the agents' names, each once". Criterion 8 gives the agents as `coder` (sonnet), `intake` (opus) and `tester` (sonnet), in that name order, and expects `["opus", "sonnet"]`. Reading the agents in name order and keeping each model once gives `["sonnet", "opus"]` instead. Options:
+   - (a) Name order, as the Interface says. The criterion's expected value becomes `["sonnet", "opus"]`.
+   - (b) Sorted models. The Interface becomes "each once, sorted" and the criterion stays `["opus", "sonnet"]`.
+
+   I would choose (a). `opencode_item` sorts its own faults, so `installed_models` needs no order of its own. I have not written that row; once you answer I add it to `tests/application/test_opencode_item.py::test_the_installed_models_are_none_when_the_agents_cannot_be_read`, renamed to cover both cases. Its two `[]` rows (no agents folder, an agent file that cannot be read) are written.
+
+   Where I stopped: every other criterion's tests are written and `make lint` is green. I ran `make test` once and it fails for the right reasons. Some test modules cannot be imported because names are missing: `AGENT_RUNTIME_VARIABLE`, `OPENCODE_EXECUTABLE_VARIABLE`, `OPENCODE_VERSION_VARIABLE`, `OPENCODE_MODELS_VARIABLE` and `OPENCODE_FOLDERS_VARIABLE` from `factory.domain.settings`, and `opencode_item` and `installed_models` from `factory.application.preflight`. Other tests error because `InstanceSettings` refuses the new fields (`agent_runtime`, `opencode_*`). In the remaining tests the Dockerfile and compose file lack the opencode lines, or `OpencodeRuntime` refuses `runtime_folders`.
+
+   Mapping:
+   - criterion 1: tests/domain/test_settings_agent_runtime.py::test_the_agent_runtime_is_claude_by_default_or_the_one_named
+   - criterion 2: tests/domain/test_settings_agent_runtime.py::test_the_opencode_executable_and_pin_default_to_opencode_and_none
+   - criterion 3: tests/domain/test_settings_opencode_models.py::test_the_opencode_models_map_each_alias_in_their_order and ::test_a_malformed_opencode_models_entry_is_refused_naming_it
+   - criterion 4: tests/entry/test_wiring_opencode.py::test_the_built_runtime_is_the_one_the_instance_names and ::test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_and_limit
+   - criterion 5: tests/entry/test_wiring_opencode.py::test_the_opencode_item_comes_after_confinement_only_under_opencode
+   - criterion 6: tests/application/test_opencode_item.py::test_the_opencode_item_names_a_missing_executable_and_each_unmapped_alias
+   - criterion 7: tests/application/test_opencode_item.py::test_the_opencode_item_does_not_depend_on_the_api_login_file
+   - criterion 8: tests/application/test_opencode_item.py::test_the_installed_models_are_none_when_the_agents_cannot_be_read (the three-agent row is open, see above)
+   - criterion 9: tests/application/test_machine_checks_runtime.py::test_the_last_required_tool_is_the_runtime_s_executable and ::test_the_version_item_compares_against_the_pin_of_the_runtime_in_force
+   - criterion 10: tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint
+   - criterion 11: tests/test_opencode_image.py::test_the_image_installs_opencode_at_its_pin_and_sets_its_version_and_models
+   - criterion 12: tests/test_opencode_image.py::test_the_compose_service_passes_the_runtime_and_opencode_build_with_the_image_s_defaults
+   - criterion 13: tests/domain/test_settings_opencode_folders.py::test_the_opencode_folders_are_the_named_ones_in_their_order and ::test_an_opencode_folder_outside_the_agent_s_home_is_refused_naming_it
+   - criterion 14: tests/adapters/test_opencode_runtime_folders.py::test_the_rules_allow_each_runtime_folder_in_the_home_in_order, and for build_boundaries tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s
+
+   Smaller readings I took, which you can overrule along with the answer:
+   - For `a,` in criterion 13 the entry named in the error is empty: `holds , which is not a folder inside the agent's home`.
+   - The mismatch text in criterion 9 and the runtime text in criterion 1 are checked as a prefix and as contained text, because the criteria show them only in part.
+
+   Files created: tests/domain/test_settings_agent_runtime.py, tests/domain/test_settings_opencode_models.py, tests/domain/test_settings_opencode_folders.py, tests/adapters/test_opencode_runtime_folders.py, tests/application/test_opencode_item.py, tests/application/test_machine_checks_runtime.py, tests/application/test_agent_run_probe_opencode.py, tests/entry/test_wiring_opencode.py, tests/test_opencode_image.py. I changed no earlier test file.
+6. 2026-10-19 human: (a). The Interface stands: `installed_models` gives each model once in the order of the agents' names, so criterion 8's three-agent row expects `["sonnet", "opus"]`. Add the row as you propose, with the test renamed to cover both cases. Your two smaller readings are accepted as you took them (the empty entry named in criterion 13's error for `a,`; prefix and contained-text checks for the texts criteria 1 and 9 show in part).
+7. factory: started tests as self.
+8. tester: Added criterion 8's three-agent row, following the human's answer (a): `installed_models` gives each model once, in the order of the agents' names. The agents are `coder` (sonnet), `intake` (opus) and `tester` (sonnet), and the row expects `["sonnet", "opus"]`. The test writes the agent files in the order tester, coder, intake, so a result in file order fails the row. I renamed the test to cover both cases. The two `[]` rows are unchanged. The readings the human accepted stay as they were: the empty entry named in criterion 13's error for `a,`, and prefix or contained-text checks for the texts that criteria 1 and 9 show only in part.
+
+   I ran `make test` once. It fails for the right reasons only: collection errors where a module imports a name that does not exist yet (the new `*_VARIABLE` constants in `factory.domain.settings`, `opencode_item` and `installed_models` in `factory.application.preflight`), and test errors where `InstanceSettings` refuses the new fields. `make lint` is green.
+
+   Mapping:
+   - criterion 1: tests/domain/test_settings_agent_runtime.py::test_the_agent_runtime_is_claude_by_default_or_the_one_named
+   - criterion 2: tests/domain/test_settings_agent_runtime.py::test_the_opencode_executable_and_pin_default_to_opencode_and_none
+   - criterion 3: tests/domain/test_settings_opencode_models.py::test_the_opencode_models_map_each_alias_in_their_order and ::test_a_malformed_opencode_models_entry_is_refused_naming_it
+   - criterion 4: tests/entry/test_wiring_opencode.py::test_the_built_runtime_is_the_one_the_instance_names and ::test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_and_limit
+   - criterion 5: tests/entry/test_wiring_opencode.py::test_the_opencode_item_comes_after_confinement_only_under_opencode
+   - criterion 6: tests/application/test_opencode_item.py::test_the_opencode_item_names_a_missing_executable_and_each_unmapped_alias
+   - criterion 7: tests/application/test_opencode_item.py::test_the_opencode_item_does_not_depend_on_the_api_login_file
+   - criterion 8: tests/application/test_opencode_item.py::test_the_installed_models_are_each_agent_s_model_once_or_none_when_unreadable
+   - criterion 9: tests/application/test_machine_checks_runtime.py::test_the_last_required_tool_is_the_runtime_s_executable and ::test_the_version_item_compares_against_the_pin_of_the_runtime_in_force
+   - criterion 10: tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint
+   - criterion 11: tests/test_opencode_image.py::test_the_image_installs_opencode_at_its_pin_and_sets_its_version_and_models
+   - criterion 12: tests/test_opencode_image.py::test_the_compose_service_passes_the_runtime_and_opencode_build_with_the_image_s_defaults
+   - criterion 13: tests/domain/test_settings_opencode_folders.py::test_the_opencode_folders_are_the_named_ones_in_their_order and ::test_an_opencode_folder_outside_the_agent_s_home_is_refused_naming_it
+   - criterion 14: tests/adapters/test_opencode_runtime_folders.py::test_the_rules_allow_each_runtime_folder_in_the_home_in_order, and tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s (build_boundaries)
+
+   Files created on this branch (the last run wrote all of them; this run changed only test_opencode_item.py): tests/domain/test_settings_agent_runtime.py, tests/domain/test_settings_opencode_models.py, tests/domain/test_settings_opencode_folders.py, tests/adapters/test_opencode_runtime_folders.py, tests/application/test_opencode_item.py, tests/application/test_machine_checks_runtime.py, tests/application/test_agent_run_probe_opencode.py, tests/entry/test_wiring_opencode.py, tests/test_opencode_image.py. No earlier test file changed.
+
+   Not importable by the test run:
+   - `factory.domain.settings`: the new `*_VARIABLE` names are missing.
+   - `factory.application.preflight`: `opencode_item` and `installed_models` are missing.
+
+   `InstanceSettings` lacks the new fields, and `OpencodeRuntime` lacks `runtime_folders`. The Dockerfile and compose file lack the opencode lines.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none]
+9. factory: started doing as self.
+10. coder: Question: one row of criterion 14 cannot pass with the Interface's `build_boundaries` as written, and the tester's `tests/application/test_opencode_item.py` fails `make types`. Which way do you want it?
+
+    **1. Missing `settings.json` in criterion 14's `build_boundaries` test.** The test is `tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, rows `set` and `unset`. The Interface says to pass `settings_file=settings.agent_home / "settings.json"` without condition. `OpencodeRuntime` deliberately fails closed when that file is missing: `tests/adapters/test_opencode_runtime.py` row `settings-missing` expects `cannot read the agent settings ...`. This test never writes `settings.json` into `agent_home`, so the run raises `AgentRuntimeError` before the rules are written. The other test of criterion 4 writes the file and passes. Options:
+       - (a) The tester writes a `settings.json` holding a `permissions.deny` list into `settings.agent_home` in that test, as the test of criterion 4 does. No code or Interface change. **I would choose (a).**
+       - (b) The wiring passes `settings_file` only when the file exists. This changes the Interface, and the opencode runs would silently lose their denies whenever the file is missing. That works against the runtime's fail-closed decision.
+
+    **2. `make types` is red in a test file.** `tests/application/test_opencode_item.py` has two errors:
+       - line 90: `write_text(content)` with `content: str | None` gives `arg-type`.
+       - line 112: the lambda builds a tuple from the value of `write_agent`, which is typed `-> None`. That gives `func-returns-value`, the trap CLAUDE.md names.
+
+       Both need the tester. If you agree, I end the next run with `tests` naming the three changes.
+
+    **Where I stopped.** The implementation is complete in the working tree. With `make test`, every other new and earlier test passes, coverage is 99 %, and `make lint` and `make layers` are green. Only the two rows above and the two type errors in the test file fail.
+    - `src/factory/domain/settings.py`: the five `*_VARIABLE` constants, `AgentRuntimeName` and the five new `InstanceSettings` fields, read by `_agent_runtime`, `_opencode_models`/`_opencode_model` and `_opencode_folders`/`_opencode_folder`.
+    - `src/factory/adapters/opencode_runtime.py`: the `runtime_folders` keyword, passed through to `_confinement`.
+    - `src/factory/application/preflight.py`: `opencode_item` and `installed_models`. `MachineChecks` uses the runtime's executable and pin (`_runtime_executable`, `_runtime_pin`). The probe names `<opencode> run` and gives the single sign-on hint (`_runtime_command`, `_opencode_login_hint`).
+    - `src/factory/entry/wiring.py`: `_agent_runtime` builds `OpencodeRuntime` or `ClaudeCodeRuntime`, and `machine_extras` adds `opencode` after `confinement`.
+    - `image/Dockerfile` and `image/compose.yml`: the pin, the install, the two `ENV` lines and the five compose entries.
+
+    **Main choice.** The runtime is chosen in one private builder in the wiring, `_agent_runtime`. I rejected a runtime registry or factory interface: with two runtimes it would be machinery beyond the story. `installed_models` reuses the reader's `names()`, which already sorts, rather than sorting again.
+
+    **Not done yet.** I have not done the refactor pass or the final `make check`; I do both once the tests are settled. I touched no docs; criterion 16 is the documenter's.
+11. 2026-10-19 human: 1. (a). The tester writes a `settings.json` with a `permissions.deny` list into `settings.agent_home` in `test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, as criterion 4's test does. The Interface and the runtime's fail-closed read of the settings stay as they are.
+    2. Yes: end with `tests` naming the three changes, the two type errors in `tests/application/test_opencode_item.py` (line 90's `str | None` and line 112's lambda over a `-> None` helper) and change 1. These are this story's own tests.
+12. factory: started doing as self.
+13. coder: Following the human's answer (entry 11), I changed no code and no test. The tester needs to make three changes to this story's own tests:
+
+    1. In `tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, write a `settings.json` holding a `permissions.deny` list into `settings.agent_home` before the run, as criterion 4's test does at line 93. Without it, the opencode runtime fails closed with `cannot read the agent settings ...` before it writes the rules.
+    2. In `tests/application/test_opencode_item.py`, line 90 (`api_login_file.write_text(content, ...)`) fails `mypy --strict` with `arg-type`, because `content` is `str | None` there. Narrow it, for example with a check that `content is not None`.
+    3. In `tests/application/test_opencode_item.py`, line 112, the `no-agents-folder` neighbour row's lambda builds a tuple from the value of `write_agent`, which is typed `-> None`. That gives `func-returns-value`, the trap CLAUDE.md names. Make it a named helper function that calls `write_agent` and `write_bytes` as statements.
+
+    State: the implementation from my previous run is committed on the branch (`src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, `image/Dockerfile`, `image/compose.yml`). Its design choice is in entry 10: one private `_agent_runtime` builder in the wiring, not a runtime registry. Still open for my next doing run, once the tests are settled: the refactor pass and the final `make check`. The journal changed nothing in the Description: the Interface and the runtime's fail-closed settings read stay as written.
+14. factory: started tests as self.
+15. tester: Made exactly the three test changes from the coder's entry 13, which the human approved in entry 11. All three are in this story's own tests.
+
+    1. `tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`: before the run, the test now creates `settings.agent_home` and writes a `settings.json` holding a `permissions.deny` list (`{"permissions": {"allow": [], "deny": ["Bash(git push*)"]}}`) into it, as criterion 4's test does. Without it, the runtime's fail-closed read of the settings stops the run before the rules are written. I wrote it inline, so criterion 4's test is unchanged. What the test checks is unchanged: the folders in the home, in order.
+    2. `tests/application/test_opencode_item.py::test_the_opencode_item_does_not_depend_on_the_api_login_file`: the guard before `write_text` now also checks `content is not None`, which narrows `str | None` to `str` for mypy. The four rows and what they check are unchanged.
+    3. `tests/application/test_opencode_item.py::test_the_installed_models_are_each_agent_s_model_once_or_none_when_unreadable`: the `unreadable-agent-file` row's lambda built a tuple from `write_agent`, which returns `-> None`. A named helper `_write_an_unreadable_agent(home) -> None` replaces it and calls `write_agent` and `write_bytes` as statements. The row's id and expected `[]` are unchanged.
+
+    The criterion → test mapping in entry 8 still holds. No test was renamed or added.
+
+    I created no files. I changed only the two test files above, both written by this story, and no earlier story's test file. Every module now imports in the test run.
+
+    `make test` ran once: test: green (38.7 s), 99.06 % coverage. `make lint`: lint: green. As this stage says, I did not run `make types`. A plain `mypy` call on the two files did not count, because it ran without the project's setup. The coder's `make check` covers the type check.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.0 s)
+16. factory: started doing as self.
+17. coder: The tester made the three test changes from entry 13, so I did the two steps entry 13 left open: the refactor pass and the final `make check`. I changed no code and no test in this run. `make check` is green: check: green, test: green (40.0 s), coverage 99.06 %.
+
+    What I built (from entry 10; committed on the branch):
+    - `src/factory/domain/settings.py`: the five `*_VARIABLE` constants, `AgentRuntimeName` and the five new `InstanceSettings` fields. `_agent_runtime`, `_opencode_models`/`_opencode_model` and `_opencode_folders`/`_opencode_folder` read them.
+    - `src/factory/adapters/opencode_runtime.py`: the `runtime_folders` keyword, passed through to `_confinement`.
+    - `src/factory/application/preflight.py`: `opencode_item` and `installed_models`. `MachineChecks` uses the executable and pin of the runtime in force (`_runtime_executable`, `_runtime_pin`). A failed probe names `<opencode> run` and gives the single sign-on hint (`_runtime_command`, `_opencode_login_hint`).
+    - `src/factory/entry/wiring.py`: `_agent_runtime` builds `OpencodeRuntime` or `ClaudeCodeRuntime`, and `machine_extras` adds `opencode` after `confinement` under opencode only.
+    - `image/Dockerfile` and `image/compose.yml`: the pin, the npm install, the two commented `ENV` lines and the five compose entries.
+
+    Main choice: one private builder in the wiring, `_agent_runtime`, picks the runtime from `settings.agent_runtime`. I rejected a runtime registry or factory interface: with two runtimes it is machinery beyond the story. `installed_models` reuses the agent definitions reader's `names()`, which already sorts, and drops repeats with `dict.fromkeys` rather than sorting again.
+
+    Refactor: I read the diff against main for unclear names, duplication and dead code, and found nothing to change.
+
+    Noticed, not touched: `make duplicates` reports `5 new, 33 known, 3 gone`.
+    - Four of the new ones are similar-code pairs between `claude_runtime` and `opencode_runtime` (`call_refusal`, `cleanup_launch`, `version_printed`, the `confine_executable` branch). They are in code this story did not write. My edits to `opencode_runtime.py` moved their line ranges, which is likely why they no longer match the baseline's entries.
+    - The fifth is dead code: `ManualWaiter` in `src/factory/adapters/clock.py`, a file this story does not touch.
+
+    I did not compare against a `make duplicates` run on main, so the shifted-lines reading is a guess. The reviewer should judge it.
+
+    The journal did not change the Description. The human's answers settled the tests (the order of `installed_models`, the `settings.json` in the folders test) and left the Interface as it is. Docs (criterion 16) are the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+18. factory: started review as self.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: six changed files under `src/` and `image/`, and nine new test files. Groups 1 to 3 hold. Every criterion from 1 to 14 has a parametrized test that checks what the criterion says. The refused sides of `FACTORY_AGENT_RUNTIME`, `FACTORY_OPENCODE_MODELS` and `FACTORY_OPENCODE_FOLDERS` are rows. The coder's entry 17 records `make check` green. The layers hold: the domain has the settings and the `Literal`, the application has the item and the pins, the adapters have `runtime_folders`, and only the entry chooses the runtime. I found nothing on security. The source has no quality finding. I ran `make duplicates`: 5 new, 33 known, 3 gone. The four new `claude_runtime`/`opencode_runtime` similar-code pairs sit in code this diff does not touch, and the baseline has no entry for them, so the coder's line-shift reading is wrong and they predate this story. `ManualWaiter` is in an untouched file. Neither counts against this story. Group 4 fails on copied test helpers in the new test files. At round 0 these are findings.
+
+    1. tests/entry/test_wiring_opencode.py:37 `_settings` copies the `local_settings` fixture of tests/conftest.py:113 (same root, checkout, state, `agents-home`). Fix: use `local_settings.model_copy(update=...)` instead of a second copy.
+    2. tests/entry/test_wiring_opencode.py:92-95 and :135-138 write the same `settings.json` inline twice. This repeats `_settings` of tests/adapters/test_opencode_runtime.py:45. Fix: one shared helper or fixture under `tests/`, moved under the standing leave, used by both tests.
+    3. tests/test_opencode_image.py:10 and :41-43: `COMPOSE` and the loading of the service's environment copy `COMPOSE` and the `service` fixture of tests/test_compose.py:10-21. Fix: move them to a shared place under `tests/` (standing leave) and use them from there.
+    4. tests/domain/test_settings_agent_runtime.py:13, tests/domain/test_settings_opencode_models.py:8 and tests/domain/test_settings_opencode_folders.py:8: `BASE` is a further copy of the environment constant that tests/domain/test_settings_pinned.py:7 and its neighbours hold. Fix: one shared constant under `tests/`, moved under the standing leave, imported by the new modules.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`), and no earlier test file changed.
+20. factory: started doing as self.
+21. coder: Round 1. The reviewer's entry 19 has four findings, and each one is a change to tests, not to code. I checked that each holds against the files on the branch. I changed no code and no test. The implementation from entries 10 and 17 stays as it is: `src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, `image/Dockerfile`, `image/compose.yml`.
+
+    The tester should make these changes. Findings 2 to 4 move helpers under CLAUDE.md's standing leave to move a shared test helper. Finding 1 changes only this story's own test.
+
+    1. `tests/entry/test_wiring_opencode.py:37`: `_settings` copies the `local_settings` fixture in `tests/conftest.py:113`, with the same root, checkout, state and `agents-home`. Drop `_settings` and use `local_settings.model_copy(update=...)` in its place.
+    2. `tests/entry/test_wiring_opencode.py:92-95` and `:135-138` write the same `settings.json` inline. `_settings` in `tests/adapters/test_opencode_runtime.py:45` does the same thing. Move it to one shared helper under `tests/` (a support module at the root, or a fixture in `tests/conftest.py`). Use it from both wiring tests and from `tests/adapters/test_opencode_runtime.py`.
+    3. `tests/test_opencode_image.py:10` and `:41-43` copy `COMPOSE` and the `service` fixture of `tests/test_compose.py:10-21`. Move them to one shared place under `tests/` and import them in both modules.
+    4. `BASE` in `tests/domain/test_settings_agent_runtime.py:13`, `tests/domain/test_settings_opencode_models.py:8` and `tests/domain/test_settings_opencode_folders.py:8` is another copy of the base environment. That same constant is also defined in the earlier modules: `tests/domain/test_settings_pinned.py:7` and its neighbours that define `BASE` (`test_settings_min_free.py`, `test_settings_provider_limit.py`, `test_settings_provider_limit_wait.py`, `test_settings_claude_login.py`, `test_settings_api_login.py`, `test_settings_boundaries.py`, `test_settings_agent_user.py`, `test_settings.py`). Move it to one shared constant under `tests/`. Change only the earlier modules whose `BASE` is the same value, and name each one in the entry.
+
+    Every test keeps its name and checks the same thing.
+
+    Main choice: I ended with `tests` rather than `question`, because the standing leave covers moves 2 to 4 and finding 1 changes only this story's own test. The other option was to ask the human; I rejected it because the leave already answers this.
+
+    Noticed, not touched: `make duplicates` still reports the four `claude_runtime`/`opencode_runtime` similar-code pairs and `ManualWaiter` in `src/factory/adapters/clock.py`. The reviewer judged that none of these comes from this story. The journal did not change the Description. I did not run `make check` this run because I changed nothing; it was green after entry 17.
+22. factory: started tests as self.
+23. tester: Round 1, mode: a test change the human approved. I made the four test changes from the coder's entry 21, which come from the reviewer's findings in entry 19. Finding 1 changes only this story's own test. Findings 2 to 4 are moves of a shared test helper under the standing leave in CLAUDE.md (*Tests*). Every test keeps its name and checks the same thing. No test was added or renamed, and the criterion → test mapping in entry 8 still holds.
+
+    1. `tests/entry/test_wiring_opencode.py`: I removed `_settings`. The three tests that used it now take the `local_settings` fixture from `tests/conftest.py` and call `local_settings.model_copy(update={...})` with the same fields as before. The fixture has the same root, checkout, state and `agents-home`.
+    2. The agent-settings writer: `write_agent_settings(folder, text_of_file) -> Path` is now in the shared stand-in module `tests/adapters/opencode_stand_in.py`. It creates the folder if it is missing and writes `settings.json` there. It replaces `_settings` in `tests/adapters/test_opencode_runtime.py` and the two inline writes in `tests/entry/test_wiring_opencode.py`, which now use one constant, `DENY_PUSH`.
+    3. Compose: I created `tests/compose_support.py`, which holds `COMPOSE`. The `service` fixture of `tests/test_compose.py` moved to `tests/conftest.py` as `compose_service`. `tests/test_compose.py` now uses that fixture (the parameter was renamed in its three tests) and imports `COMPOSE` from the new module. `tests/test_opencode_image.py` reads the service's environment through the same fixture. Other modules still define their own `COMPOSE` (`test_claude_token_mount.py`, `test_compose_init.py`, `test_compose_project.py`, `test_image_credentials.py`, `test_token_folder.py`). I left them alone because the finding did not name them.
+    4. `BASE`: I created `tests/settings_support.py`, which holds the shared environment constant. It replaces the module's own `BASE` in this story's three modules (`tests/domain/test_settings_agent_runtime.py`, `test_settings_opencode_models.py`, `test_settings_opencode_folders.py`). It also replaces `BASE` in these earlier modules, each of which held the same value: `tests/domain/test_settings.py`, `test_settings_pinned.py`, `test_settings_min_free.py`, `test_settings_provider_limit.py`, `test_settings_provider_limit_wait.py`, `test_settings_claude_login.py`, `test_settings_api_login.py`, `test_settings_boundaries.py` and `test_settings_agent_user.py`. `tests/entry/test_wiring_agent_user.py` also has a `BASE`, but it is a different value (a process environment), so I did not change it.
+
+    Files I created: `tests/compose_support.py` and `tests/settings_support.py`.
+
+    Earlier tests I changed under the standing leave: `tests/conftest.py`, `tests/test_compose.py`, `tests/adapters/opencode_stand_in.py`, `tests/adapters/test_opencode_runtime.py`, and the nine earlier `tests/domain/test_settings*.py` modules listed in item 4.
+
+    Every module imports in the test run.
+
+    `make test` ran once: test: green (38.3 s), coverage 99.06 %. `make lint`: lint: green. As this stage says, I did not run `make types`; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (42.4 s)
+24. factory: started doing as self.
+25. coder: Round 1. The reviewer's four findings in entry 19 were all about tests. The tester dealt with them in entry 23: dropped `_settings` in favour of `local_settings.model_copy`, and moved three shared helpers under the standing leave (`write_agent_settings` in `tests/adapters/opencode_stand_in.py`, `COMPOSE` in `tests/compose_support.py` with the `compose_service` fixture in `tests/conftest.py`, and `BASE` in `tests/settings_support.py`). The only thing left for this stage was the final check. I changed no code and no test in this run, and `make check` is green: check: green, test: green (41.9 s), coverage 99.06 %.
+
+    What I built (entries 10 and 17, committed on the branch; the code diff against main is unchanged):
+    - `src/factory/domain/settings.py`: the five `*_VARIABLE` constants, `AgentRuntimeName`, the five new `InstanceSettings` fields, and their readers.
+    - `src/factory/adapters/opencode_runtime.py`: the `runtime_folders` keyword.
+    - `src/factory/application/preflight.py`: `opencode_item` and `installed_models`; the runtime's own executable and pin in `MachineChecks`; the opencode probe command and the single sign-on hint.
+    - `src/factory/entry/wiring.py`: `_agent_runtime` picks `OpencodeRuntime` or `ClaudeCodeRuntime`, and `machine_extras` adds `opencode` after `confinement`.
+    - `image/Dockerfile` and `image/compose.yml`: the pin, the npm install, the two `ENV` lines, and the five compose entries.
+
+    Main choice: one private builder in the wiring, `_agent_runtime`, picks the runtime. I rejected a runtime registry or factory interface, which would be machinery the story does not need for two runtimes.
+
+    Refactor: the code diff is the same one I read in entry 17, and it still needs no change.
+
+    Noticed, not touched:
+    - `make duplicates` still shows the four `claude_runtime`/`opencode_runtime` similar-code pairs and `ManualWaiter` in `src/factory/adapters/clock.py`. The reviewer judged that both predate this story.
+    - The tester noted that other test modules still define their own `COMPOSE` (`test_claude_token_mount.py`, `test_compose_init.py`, `test_compose_project.py`, `test_image_credentials.py`, `test_token_folder.py`). No finding named them.
+
+    The journal did not change the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+26. factory: started review as self.
+27. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. Since the round-0 review (efe108db), the only changes are to tests: the four helper moves from entry 23. `src/` and `image/` have not changed since then. I read them again anyway. Groups 1 to 5 hold.
+
+    - Acceptance criteria: criteria 1 to 14 each have a parametrized test that checks what the criterion says. The refused sides of `FACTORY_AGENT_RUNTIME`, `FACTORY_OPENCODE_MODELS` and `FACTORY_OPENCODE_FOLDERS` are rows of the same test as their accepted sides. Both sides of the version pin, the probe's login hints and the runtime choice are rows. The three-agent row of `installed_models` follows the human's answer in entry 6. The coder's entry 25 records `make check` green after the moves.
+    - Architecture: the settings and `AgentRuntimeName` are in the domain. `opencode_item`, `installed_models` and the runtime's pin and executable are in the application. `runtime_folders` is in the adapters. Only `factory.entry.wiring._agent_runtime` chooses the runtime.
+    - Security: no new marker or secret, and no command built from strings.
+    - Quality and hygiene: the names and docstrings hold, and the comments say why. The Description matches what was built, and criterion 16 still describes what the documenter must write.
+    - The moves from entry 19's findings are done: `local_settings.model_copy`, `write_agent_settings` in `tests/adapters/opencode_stand_in.py`, `COMPOSE` in `tests/compose_support.py` with `compose_service` in `tests/conftest.py`, and `BASE` in `tests/settings_support.py`.
+
+    no findings
+
+    Earlier tests:
+    - tests/adapters/opencode_stand_in.py: standing leave to move a shared test helper (`write_agent_settings` added as the shared home of `_settings` from test_opencode_runtime.py).
+    - tests/adapters/test_opencode_runtime.py: standing leave (its `_settings` replaced by the shared `write_agent_settings`; the same two tests, same names, same checks).
+    - tests/conftest.py: standing leave (the `service` fixture of test_compose.py moved here as `compose_service`).
+    - tests/test_compose.py: standing leave (`COMPOSE` and the `service` fixture moved out; its three tests keep their names and checks, and only the parameter follows the fixture's new name).
+    - tests/domain/test_settings.py: standing leave (`BASE` moved to tests/settings_support.py, same value).
+    - tests/domain/test_settings_agent_user.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_api_login.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_boundaries.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_claude_login.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_min_free.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_pinned.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_provider_limit.py: standing leave (same `BASE` move).
+    - tests/domain/test_settings_provider_limit_wait.py: standing leave (same `BASE` move).
+
+    Notes:
+    - tests/application/test_opencode_item.py:22 and tests/application/test_machine_checks_runtime.py:19: each builds `InstanceSettings` with its own `_settings` instead of starting from a shared fixture such as `local_settings`.
+    - tests/adapters/test_opencode_runtime_folders.py:39-55: the two `OpencodeRuntime(...)` branches repeat every argument just to leave out `runtime_folders`. A keyword dict would say the same once.
+    - Other test modules still define their own `COMPOSE` (test_claude_token_mount.py, test_compose_init.py, test_compose_project.py, test_image_credentials.py, test_token_folder.py). They are outside this diff and are left for a later move.
+28. factory: started docs as self.
+29. documenter: Docs, round 1. I read the story, the code diff against main and the existing docs. I found no contradiction between the Interface and the code, so there are no findings. I changed only documents, so I did not run `make check`; the factory runs it after this stage. `make documents` says `documents ok`. I did not run any of the examples I wrote. They are `docker exec` and `opencode models anthropic` commands that need a running container. The smoke-test stage runs the story's own example.
+
+    Files changed:
+    - `README.md`: one clause saying the agents run on Claude Code, or on opencode when the operator chooses it for an instance.
+    - `docs/operator-guide.md`:
+      - New section *Running on opencode*, before *The machine's image*. It covers the two logins: the API key, and single sign-on made once by the operator as the agent user, with the compose-override mount and `FACTORY_OPENCODE_FOLDERS`. It also covers the operator's own build, the models and how to check them, the pin, the folders opencode keeps in the agent's home, and what differs from Claude Code.
+      - Five new rows in the configuration table.
+      - The preflight section: the new `opencode` item with its two faults, the tool and version rows now following the runtime in force, the probe hints under opencode, and "up to fourteen" items.
+    - `docs/decisions.md`: new entry *The agent runtime is chosen per instance*. I wrote its reasons from the story's Description, since I may not read `feature.md`. The feature's decisions 9, 16 and 17 are cited but not read, so check the reasons against them.
+    - `docs/project-guide/watching.md`: step 4 of *The tick* now lists the extras under opencode, `opencode_item`, `installed_models`, the runtime's executable among the required tools, and the probe's opencode hints.
+    - `docs/project-guide/agents.md`: *The opencode runtime* replaces "nothing builds it yet" with `_agent_runtime` in `build_boundaries`. Its signature now has the keywords `provider_limit` and `runtime_folders`, and the folders paragraph covers `runtime_folders` with `FACTORY_OPENCODE_FOLDERS`.
+
+    Cross-read and found current: `docs/operator-guide.md` (the provider-limit and budget sections, the image and compose sections, the stops) and `docs/project-guide/agents.md` elsewhere.
+
+    Stale text that is not mine to fix, and was not caused by this story:
+    - `docs/operator-guide.md` section *The machine's image* (*Claude Code*, *Update the pins*) names only Claude Code's pin and the image's tools. It does not mention `OPENCODE_VERSION` or the second npm install. It is the same pins list, so the coder could widen it, or the human can say so on the pull request.
+    - The reviewer's notes about duplicated `_settings` and `COMPOSE` helpers in tests are not documentation.
+
+    `check`: check: green
+    `documents`: documents ok
+30. factory: started smoke-test as self.
+31. smoke-tester: Ran the `## Smoke test` block as written from the repository root. It ran in one bash shell, so the `mktemp -d` folder and its `trap` cleanup applied to the whole block. Exit status 0. Nothing was fixed or changed.
+
+    Command 1 (the `uv run -q python - "$d"` heredoc), output:
+    ```
+    OpencodeRuntime {'sonnet': 'anthropic/claude-sonnet-5-5'}
+    False
+    opencode is not on the agent run's PATH /nowhere; no model is set for opus in FACTORY_OPENCODE_MODELS
+    ```
+    Command 2 (`grep -c 'opencode-ai@${OPENCODE_VERSION}' image/Dockerfile`), output:
+    ```
+    1
+    ```
+    Expect line: met. The output is exactly four lines and each one matches the expected text:
+    1. `OpencodeRuntime {'sonnet': 'anthropic/claude-sonnet-5-5'}`
+    2. `False`
+    3. `opencode is not on the agent run's PATH /nowhere; no model is set for opus in FACTORY_OPENCODE_MODELS`
+    4. `1`
+
+    Judged against the acceptance criteria:
+    - AC4: with `FACTORY_AGENT_RUNTIME=opencode`, `build_boundaries` built an `OpencodeRuntime`.
+    - AC3: one `FACTORY_OPENCODE_MODELS` entry was read into the mapping.
+    - AC6: `opencode_item` failed with the PATH fault and the fault for the unmapped `opus`, joined by `; ` in that order. The mapped `sonnet` was not reported.
+    - AC7: a login file that does not exist did not change or block the item.
+    - AC11: the Dockerfile installs `opencode-ai@${OPENCODE_VERSION}` exactly once.
+
+    No criterion is contradicted. The smoke test did not cover the other criteria (compose environment, version item, probe hints, folders); those are left to the tests and `make check`.
+
+    Findings: none.

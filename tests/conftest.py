@@ -6,8 +6,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from ruamel.yaml import YAML
 
 from acceptance_walk import AcceptanceWalk
+from compose_support import COMPOSE
 from confine_support import Layout, build_layout
 from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
@@ -121,6 +123,17 @@ def local_settings(tmp_path: Path) -> InstanceSettings:
         state_directory=root / "state",
         agent_home=root / "agents-home",
     )
+
+
+@pytest.fixture
+def compose_service() -> dict[str, object]:
+    """Return the service `factory` of the compose file."""
+    loaded = YAML(typ="safe").load(COMPOSE.read_text(encoding="utf-8"))
+    services = loaded["services"]
+    assert isinstance(services, dict)
+    found = services["factory"]
+    assert isinstance(found, dict)
+    return found
 
 
 @pytest.fixture

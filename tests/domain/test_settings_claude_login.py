@@ -5,8 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.domain.settings import CLAUDE_LOGIN_FILE_VARIABLE, read_settings
-
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
+from settings_support import BASE
 
 
 @pytest.mark.parametrize(

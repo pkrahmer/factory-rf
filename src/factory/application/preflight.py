@@ -39,7 +39,13 @@ from factory.domain.preflight import (
     machine_stop,
     version_matches,
 )
-from factory.domain.settings import CLAUDE_VERSION_VARIABLE, InstanceSettings
+from factory.domain.settings import (
+    API_LOGIN_FILE_VARIABLE,
+    CLAUDE_VERSION_VARIABLE,
+    OPENCODE_MODELS_VARIABLE,
+    OPENCODE_VERSION_VARIABLE,
+    InstanceSettings,
+)
 from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 
 REQUIRED_TOOLS = ("git", "uv", "make")
@@ -64,6 +70,7 @@ _NO_AGENT_USER = (
 )
 _AGENT_ENVIRONMENT_ITEM = "agent-environment"
 _CONFINEMENT_ITEM = "confinement"
+_OPENCODE_ITEM = "opencode"
 _PROBE_ITEM = "agent-run-probe"
 _KERNEL_ADVICE = (
     "update the kernel (on WSL: wsl --update), "
@@ -208,6 +215,42 @@ def _kernel_fault(abi: int) -> str | None:
     return f"{fault}: {_KERNEL_ADVICE}"
 
 
+def opencode_item(
+    settings: InstanceSettings,
+    environment: Mapping[str, str],
+    find: Callable[[str, str], str | None],
+    agent_models: Sequence[str],
+) -> PreflightItem:
+    """Check that an agent run finds opencode and that every alias the agents use has a model."""
+    # No login is checked here: a build may log in with a key file or with a login of its
+    # own in the agent's home, and only the probe shows whether a run can log in.
+    path_fault = _path_fault(environment, find, settings.opencode_executable)
+    faults = [] if path_fault is None else [path_fault]
+    faults.extend(
+        f"no model is set for {alias} in {OPENCODE_MODELS_VARIABLE}"
+        for alias in _unmapped_aliases(settings.opencode_models, agent_models)
+    )
+    if faults:
+        return PreflightItem(name=_OPENCODE_ITEM, passed=False, detail="; ".join(faults))
+    return PreflightItem(name=_OPENCODE_ITEM, passed=True)
+
+
+def _unmapped_aliases(models: Mapping[str, str], agent_models: Sequence[str]) -> list[str]:
+    # A model with a slash is already opencode's `provider/model` id and needs no mapping.
+    return sorted({model for model in agent_models if "/" not in model and model not in models})
+
+
+def installed_models(boundaries: Boundaries) -> list[str]:
+    """Return the model of every installed agent, each once, in the order of the agents' names."""
+    definitions = boundaries.agent_definitions
+    try:
+        models = [definitions.read(name).model for name in definitions.names()]
+    except AgentDefinitionError:
+        # The item `agents` reports agents that cannot be read.
+        return []
+    return list(dict.fromkeys(models))
+
+
 def agent_run_probe_item(
     boundaries: Boundaries, settings: InstanceSettings, environment: Mapping[str, str]
 ) -> PreflightItem:
@@ -229,7 +272,8 @@ def agent_run_probe_item(
     if result.end_reason != "completed":
         detail = (
             f"the probe run ended {result.end_reason}; "
-            f"run claude -p by hand as {settings.agent_user or 'the factory user'} to see why"
+            f"run {_runtime_command(settings)} by hand as "
+            f"{settings.agent_user or 'the factory user'} to see why"
         )
         detail += _login_hint(settings, result.login)
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
@@ -238,17 +282,36 @@ def agent_run_probe_item(
     )
 
 
+def _runtime_command(settings: InstanceSettings) -> str:
+    if settings.agent_runtime == "opencode":
+        return f"{settings.opencode_executable} run"
+    return "claude -p"
+
+
 def _login_hint(settings: InstanceSettings, login: Login | None) -> str:
     if login == "api_key":
         return (
             f"; the agent's API key is read from {settings.api_login_file}: "
             "check that it is valid and that its account has credit"
         )
+    if settings.agent_runtime == "opencode":
+        return _opencode_login_hint(settings, login)
     if settings.claude_login_file is None:
         return ""
     return (
         f"; the agent's login token is read from {settings.claude_login_file}: "
         "make it with claude setup-token if it is missing, empty or expired"
+    )
+
+
+def _opencode_login_hint(settings: InstanceSettings, login: Login | None) -> str:
+    # opencode reads no subscription token, so the token hint would send the operator astray.
+    if login != "none":
+        return ""
+    return (
+        f"; the agent runs get no API key: log in once as "
+        f"{settings.agent_user or 'the factory user'} with the opencode build's own login, "
+        f"or put a key in the file {API_LOGIN_FILE_VARIABLE} names"
     )
 
 
@@ -305,7 +368,7 @@ class MachineChecks:
 
     def run(self) -> PreflightReport:
         """Run every item, whatever the earlier ones found, and report them all in order."""
-        tools = (*REQUIRED_TOOLS, self._settings.claude_executable)
+        tools = (*REQUIRED_TOOLS, self._runtime_executable())
         items = [tool_item(tool, self._which) for tool in tools]
         items.append(self._hosting_service())
         items.append(self._agents())
@@ -336,10 +399,21 @@ class MachineChecks:
             return PreflightItem(name=_AGENTS_ITEM, passed=False, detail=detail)
         return PreflightItem(name=_AGENTS_ITEM, passed=True)
 
+    def _runtime_executable(self) -> str:
+        if self._settings.agent_runtime == "opencode":
+            return self._settings.opencode_executable
+        return self._settings.claude_executable
+
+    def _runtime_pin(self) -> tuple[str | None, str]:
+        settings = self._settings
+        if settings.agent_runtime == "opencode":
+            return settings.pinned_opencode_version, OPENCODE_VERSION_VARIABLE
+        return settings.pinned_agent_version, CLAUDE_VERSION_VARIABLE
+
     def _agent_runtime_version(self) -> PreflightItem:
-        pinned = self._settings.pinned_agent_version
+        pinned, variable = self._runtime_pin()
         if pinned is None:
-            detail = f"the image does not pin a version: {CLAUDE_VERSION_VARIABLE} is not set"
+            detail = f"the image does not pin a version: {variable} is not set"
             return PreflightItem(name=_VERSION_ITEM, passed=False, detail=detail)
         try:
             reported = self._boundaries.agent_runtime.version()
