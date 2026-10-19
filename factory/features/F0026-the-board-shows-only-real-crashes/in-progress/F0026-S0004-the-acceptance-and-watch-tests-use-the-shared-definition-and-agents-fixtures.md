@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T17:28:50.747992Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T17:28:29.901086Z'
   stage: intake
   run: 074f839f876a4f1bb54b687fc284e833
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:28:50.747992Z'
+  stage: tests
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -81,3 +90,4 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    Smoke test: the two greps and the pytest line are runnable. The `Expect:` line is checkable: `tests/conftest.py`, `tests/conftest.py`, `pytest exit 0`.
    Architecture: tests only, moved to the shared `tests/conftest.py` under the standing leave in CLAUDE.md (*Tests*). The tester makes the move, and the story names every changed module. No layer or `src/` change.
    Scope: the feature.md Scope names only S0001's files. This story comes from the acceptance reviewer's proposal (R13) and touches only tests, and it stays out of the feature's Out-of-scope items. It changes no test of `test_watcher_move_rule.py`. The edits to other stories' modules are limited to the standing leave (removing duplicate fixtures, with test names unchanged).
+4. factory: started tests as self.
