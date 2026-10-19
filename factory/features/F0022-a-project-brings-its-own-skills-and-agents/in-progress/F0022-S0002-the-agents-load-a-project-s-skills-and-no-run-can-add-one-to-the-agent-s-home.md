@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T13:39:03.303866Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T13:39:03.303866Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T13:41:30.929334Z'
+  stage: doing
+  run: e25951f6c12648c0b663b9e86e45efc0
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -202,3 +204,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_skills.py::test_the_rules_hold_the_skills_rule_once_right_after_r14[acceptance-reviewer]
 6. factory: started doing as self.
+7. coder: Made the changes the Interface lists. `make check` is green on the first run, and the tester's tests are untouched.
+
+   Built:
+   - `claude/agents/*.md` (all seven): `Skill` is now the last entry of each `tools` line. The R15 line comes right after the R14 line, with one blank line between them. Nothing else in the bodies changed.
+   - `claude/settings.json`: `"Skill"` added to `permissions.allow` right after `"Grep"`, on the same line.
+   - `image/entrypoint.sh`: the commented `for folder in skills commands` loop (`rm -rf "${home:?}/$folder"`, `mkdir`, `chmod 0755`) sits right after `chmod 0644 "$home/settings.json"` and before the log line `installed agents and settings`. There is no new log line.
+   - `src/factory/adapters/opencode_runtime.py`: added `LEFT_OUT_TOOLS: frozenset[str] = frozenset({"Skill"})` beside `TOOL_NAMES`, with a comment on why. `_tools` now skips a tool in `LEFT_OUT_TOOLS` before it looks the tool up in `TOOL_NAMES`. Every other unmapped tool still raises `the opencode runtime has no tool for <tool>`.
+
+   Main choice: a separate set that `_tools` skips. I rejected mapping `Skill` to a sentinel inside `TOOL_NAMES` (for example `None`), because that would mix "a tool that has an opencode name" with "a tool that is left out". It would also change the type of `TOOL_NAMES`, which other code and tests read as a plain str-to-str map.
+
+   Refactor: I read the diff. Nothing needed changing.
+
+   Noticed, not touched: none of these changes affects the records contract or the schemas. The docs criterion (operator guide, `docs/project-guide/agents.md`, `docs/decisions.md`) is the documenter's job. The journal did not change the meaning of the task, so I left `## Description` as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
