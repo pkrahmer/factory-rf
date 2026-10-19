@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T22:37:49.377902Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T22:37:29.049172Z'
   stage: intake
   run: 06f44ed3ae40476786d76baed81414d9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:37:49.377902Z'
+  stage: tests
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -90,3 +99,4 @@ Expect: `documents ok`
    Smoke test: the commands are runnable. The Python snippet prints four lines and its `Expect:` states them (`True`, `True`, `2`, `True`). The second block expects `0` and `docs/project-guide/README.md`. The third expects `documents ok`.
    Architecture: it fits. The documenter writes only `docs/*`, and no layer is touched.
    Scope: it is inside F0025's purpose, the index naming each module of the guide's files. It is not in "Out of scope", because it adds no lasting test and no rewording. The story leaves the question of a lasting check of the index's completeness open for the human (F0025-A0003).
+4. factory: started tests as self.
