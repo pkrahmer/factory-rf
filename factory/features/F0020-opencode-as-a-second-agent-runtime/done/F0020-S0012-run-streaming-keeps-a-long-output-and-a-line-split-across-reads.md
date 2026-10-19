@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T18:50:54.725043Z'
   stage: smoke-test
   run: 840f23cce74c400b9be5276b88dcb7c2
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T18:52:14.889525Z'
+  stage: approval
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -202,3 +207,4 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
     - Criterion 4: `docs/project-guide/processes-and-checks.md:71` holds the sentence: "A line reaches the callback once and whole however many reads it takes to arrive …, and `stdout` and `stderr` hold the whole output."
 
     I changed nothing. The working tree holds only the factory's `.costs.jsonl` sidecar.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 30 turns, 112384 tokens in (464826 more from cache), 8947 out, $0.96
