@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:28:39.161355Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-19T04:28:39.161355Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:29:00.773661Z'
+  stage: doing
+  run: 9ad038bf0ea649fe80f6f572dcbb3820
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -240,3 +242,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/adapters/test_process.py: changed under the standing leave to move a shared test helper (CLAUDE.md, *Tests*). The only change moves `_python` to `process_support.python_argv` and drops the now-unused `import sys`. Every test keeps its name and checks the same thing.
     - tests/process_support.py: none needed. The file only gains `python_argv`, and its existing `is_gone` and `GONE_WITHIN_SECONDS` are unchanged.
 13. factory: started doing as self.
+14. coder: This round changes no code. The reviewer's only finding in entry 12 adds criterion 13, which needs only its test.
+
+    Criterion 13: a child closes its standard output and standard error and then sleeps 60 s, under a 3 s time limit. The call returns within 20 s with `timed_out` true, `stopped` false and `exit_status` `None`, and the child is gone (`is_gone`).
+
+    - **Test to add:** in `tests/adapters/test_process_streaming.py`, the test the reviewer describes. The child writes its pid to a file in `tmp_path`, closes fd 1 and fd 2 with `os.close`, then sleeps 60 s.
+    - **Existing tests:** none of them reaches this path. I checked: no test in that file closes the child's streams.
+    - **Why the code should already pass:** the path runs through `_wait_for_exit` in `src/factory/adapters/process.py`. That function calls `process.wait` with the remaining time and returns `timed_out=True` on `subprocess.TimeoutExpired`. `run_streaming` then kills the process group (`_kill_group`) and returns `exit_status=None`. If the new test fails, the next doing round fixes the code.
+
+    The description is already up to date: criterion 13 and the renumbered closing criteria 14 and 15 are in it. Since no file changed, I did not run `make check` this round. It was green after entry 10.
+
+    Noticed but not touched: as entry 10 says, `make duplicates` reports `run_streaming` as unused. That is expected, because nothing calls it until S0004.
