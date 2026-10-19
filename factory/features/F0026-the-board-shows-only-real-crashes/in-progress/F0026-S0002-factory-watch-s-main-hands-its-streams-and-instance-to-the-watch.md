@@ -1,17 +1,13 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
-crashes: 1
+crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T18:04:52.791487Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -44,6 +40,12 @@ journal:
   kind: started
   at: '2026-10-19T18:04:52.791487Z'
   stage: tests
+- number: 7
+  speaker: tester
+  kind: result
+  at: '2026-10-19T18:07:44.732964Z'
+  stage: tests
+  run: be605248478f4993be62cb16be58f09e
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -176,3 +178,18 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
 4. factory: started tests as self.
 5. factory: crash 1: the run of stage tests ended without a result. Its work is discarded back to commit 89542f8b3d9d0cf21231592263b8f660ca9dd937.
 6. factory: started tests as self.
+7. tester: I wrote the tests for the five behaviour criteria. The story changes no code, so the new tests pass against today's `main`, `run_watch` and `Watcher`: one `make test` run ended `test: green` rather than red. This is expected here. The tests exist to kill the surviving mutants, so the coder has nothing to implement and only needs to confirm `make check`. `make lint` is green.
+
+   - criterion 1: tests/entry/test_watch_main.py::test_main_watches_as_the_given_instance_on_the_given_boundaries
+   - criterion 2: tests/entry/test_watch_main.py::test_main_writes_an_invalid_definition_to_the_given_error_stream
+   - criterion 3: tests/entry/test_watch_main.py::test_main_writes_to_the_standard_streams_when_none_are_given (rows `held-story`, `invalid-definition`; read with `capsys`)
+   - criterion 4: tests/entry/test_watch_main.py::test_main_takes_both_from_the_environment_when_either_is_left_out (rows `both-left-out`, `only-instance`, `only-boundaries`; the stand-in for `boundaries_from_environment` is set with `monkeypatch.setattr` and returns `local_settings` with instance `factory-2` and the test's boundaries)
+   - criterion 5: tests/application/test_watcher_main_ref.py::test_an_unresolved_origin_main_raises_the_operators_git_error (rows `run_watch`, `watcher`; checks the exact `str` of the `GitError`)
+   - criteria 6 and 7: nothing to test (`make check` green; docs: none)
+
+   Files created: `tests/entry/test_watch_main.py` and `tests/application/test_watcher_main_ref.py`. No earlier test was changed.
+
+   Every module imported. The test data is the invalid YAML `contract: [\n` pushed to `main`, and claims built with `watch_support.aged_claim`/`push_story_claim` at ages 1 and 61 minutes. I skipped the type check for this stage as instructed; the coder's `make check` covers it.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (48.6 s)
