@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T14:22:40.042125Z'
   stage: acceptance
   run: 4d0e83045d184d81b61dcde48efca1ba
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T14:23:58.405481Z'
+  stage: done
 stories: [F0022-S0001, F0022-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A project brings its own skills and agents
@@ -206,3 +211,4 @@ Disk: at acceptance, /work has 978.6 GB free and 0.5 GB used, and /state and /tm
    6 Decisions for the human: decisions 1–13 of `feature.md`, plus the coder's placements of `check_agent_name`, `AGENT_SUFFIX` and `LEFT_OUT_TOOLS`. Two points stay open: the proof run (change 2) and the nested-skills question. Five earlier tests were changed, all under decision 14's leave and named by the reviewers; none was changed without leave.
    7 Slow checks: the project has nothing beyond `make check` and `make mutants`. `make check` is green (51.3 s, 99.07 % coverage). The feature's 89 test cases take 3.6 s; the slowest is 0.4 s. Disk use is the same as at the start (0.5 GB).
    8 Cost: 18 runs, 19.6 min, $5.86. S0001 cost $3.44, with the costliest single run (the tester, 196 s, $1.08) and one review round. S0002 cost $2.42, including a three-run coder→tester→coder detour for a test-only finding. The human answered 0 questions and the stories waited 0.0 h for them.
+3. factory: done (pull request merged); cost: 1 runs, 28.3 min, 84 turns, 177901 tokens in (8807712 more from cache), 50115 out, $4.19
