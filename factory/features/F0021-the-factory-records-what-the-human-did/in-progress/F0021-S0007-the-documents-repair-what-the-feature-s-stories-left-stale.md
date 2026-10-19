@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T00:55:07.692054Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T00:55:07.692054Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T00:56:43.753529Z'
+  stage: tests
+  run: 8d60d618fa3e4f4ab95107b05a1509d2
 ---
 
 # The documents repair what the feature's stories left stale
@@ -99,3 +101,11 @@ Expect: `documents ok`
    Architecture: No layer is touched.
    Scope: The story repairs the five passages the feature acceptance found and nothing else. It stays inside the feature's docs paths, and nothing in `feature.md`'s Out of scope covers it.
 4. factory: started tests as self.
+5. tester: No tests written, because this story only changes documents. Its Interface says no module under `src/factory/` and no test changes, and none of its criteria describes behaviour that code could test.
+   criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test. A diff checks it, and on the tester's side nothing under those paths changed. `git status` shows only the work item's `.costs.jsonl` sidecar, which is the factory's.
+   criterion 2 (`make check` stays green): no test; this is the factory's check after the stage.
+   criterion 3 (docs): no test. These are the documenter's passages, checked by `make documents` / `python -m factory.entry.check_documents` and by the story's smoke test.
+   Files created: none. Modules the test run could not import: none. `make test` is green: 99.06 % coverage, nothing red on purpose, since the coder has no code to write. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.1 s)
