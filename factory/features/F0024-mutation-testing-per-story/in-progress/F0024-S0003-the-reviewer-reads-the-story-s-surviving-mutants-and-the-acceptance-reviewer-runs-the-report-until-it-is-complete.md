@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T16:44:05.985233Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-19T16:43:45.108230Z'
   stage: docs
   run: 09c8447f091840b9834071fc89321250
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:44:05.985233Z'
+  stage: smoke-test
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -245,3 +254,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 3cf1f2b13373 at 2026-10-19T16:39:50Z)
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
