@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T16:41:50.714028Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T16:41:30.123393Z'
   stage: review
   run: ad0d652d967c4397930e691f2279d959
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:41:50.714028Z'
+  stage: docs
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -170,3 +179,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Work item hygiene: the journal explains the scripted literal replacement and why typing the texts by hand was rejected. The Description matches what was built. The docs criterion still says what the documenter must write. The coder rightly noted that the fifth smoke-test grep waits for the docs stage.
 
    Earlier tests: none. The diff only adds `tests/test_claude_agent_texts_mutants.py` (status `A`).
+10. factory: started docs as self.
