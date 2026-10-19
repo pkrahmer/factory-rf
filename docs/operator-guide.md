@@ -897,21 +897,21 @@ An agent run can write only its stage's write paths and these folders. A project
 
 ```yaml
 project_commands:
-  lint: {time_limit: 10, not_read: ["factory/*", "docs/*"]}
+  check: {time_limit: 10, not_read: ["README.md", "docs/*.md"]}
 ```
 
-A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results"), so a change only there is no reason to run the command again. List only what the command does not read at all. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
+A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results"), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
 
-factory-rf's own definition takes this after the story that built the key, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
+factory-rf's own definition, `factory/pipeline.yml`, takes this, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
 
 ```yaml
 project_commands:
-  check: {time_limit: 15, not_read: ["README.md", "docs/*.md", "factory/features/*.md", "factory/features/*.jsonl", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
+  check: {time_limit: 8, not_read: ["README.md", "docs/*.md", "factory/features/*.md", "factory/features/*.jsonl", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
 ```
 
 Two warnings:
 
-- A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. factory-rf's docs stage will run `secrets` as a check of its own, with nothing left out.
+- A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. factory-rf's docs stage runs `secrets` as a check of its own, with nothing left out.
 - A command whose result depends on anything outside the tree and the image, such as dependencies fetched at run time with unpinned versions, is reused safely only when those versions are pinned in the tree (for example by a lockfile). Otherwise leave `not_read` empty and do not rely on reuse for it.
 
 A project made from `template/`, and the todo demo, do not run under the guard as they are. Their `Makefile`'s `licenses` recipe writes `.licenses-requirements.txt`, and coverage writes `.coverage`, both at the checkout's root, where the kernel allows no write. Move both into a tool path folder, as this repository did into `.reports/` (`data_file` under `[tool.coverage.run]` in `pyproject.toml`, and the `licenses` recipe), and name the project's `tool_paths` in its pipeline definition. Until then its `make check` ends with `Permission denied`.
