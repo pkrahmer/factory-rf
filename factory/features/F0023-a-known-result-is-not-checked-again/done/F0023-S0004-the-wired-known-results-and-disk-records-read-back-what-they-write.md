@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T21:48:16.249238Z'
   stage: smoke-test
   run: e9f6d3f04be948978f6385002f398440
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T21:52:40.315666Z'
+  stage: approval
 ---
 
 # The wired known results and disk records read back what they write
@@ -196,3 +201,4 @@ Expect: a line that starts with `2 passed`
     - Criterion 3 (docs: none): the smoke test does not contradict it.
 
     I changed no files. Open from earlier entries, not a finding: no test reads the `RecordingProjectCommands` log back through the wiring. The description leaves that out on purpose. `feature.md` does not list this story, and that edit is the human's.
+14. factory: done (pull request merged); cost: 6 runs, 3.6 min, 31 turns, 95411 tokens in (442462 more from cache), 8243 out, $0.85
