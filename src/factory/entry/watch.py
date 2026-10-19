@@ -1,7 +1,4 @@
-"""The watcher's command line: the event of one evaluation, as seen from outside the tick.
-
-It shows the event as a look from outside the tick sees it, and the board.
-"""
+"""The watcher's command line: an evaluation's event seen from outside the tick, and the board."""
 
 import argparse
 import os

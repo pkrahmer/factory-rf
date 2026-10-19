@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T12:41:12.790764Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T12:41:12.790764Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T12:42:47.966695Z'
+  stage: doing
+  run: 6a248fe4e04746e994954f9b7e6db0b0
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -284,3 +286,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/test_claim_ownership.py`: changed under the feature's decision 5, which the story names. Only `LEASE_FUNCTIONS` changed; both tests keep their names and what they check.
 10. factory: started doing as self.
+11. coder: Round 1. I fixed finding 5 myself. Findings 1 to 4 are moves of shared test helpers, which the tester makes under the standing leave in `CLAUDE.md`, so I'm handing them to the tester.
+
+    Finding 5 (fixed): `src/factory/entry/watch.py` now has a one-line module docstring: "The watcher's command line: an evaluation's event seen from outside the tick, and the board." I did not use the reviewer's exact sentence: it is 117 characters and ruff's E501 refuses lines over 100. A `noqa` marker or a two-line summary (which the docstring rules refuse) were the other options, and I rejected both. `make check` is green.
+
+    For the tester (standing leave). No test keeps a copy, and every earlier test keeps its name and what it checks:
+    - Finding 1: move the push of the complete `F0002-todo` to one shared place under `tests/`. These copies should use it:
+      - `_push_complete` in `tests/application/test_watcher_acceptance.py`
+      - the `todo` fixture in `tests/entry/test_watch_acceptance.py`
+      - `_push_complete_todo` in `tests/application/test_watcher_observer.py`
+      - the copy in `tests/entry/test_watch_own_claim.py`
+    - Finding 2: one shared helper that opens `F0002` and pushes its branch state with a given claim. It replaces:
+      - `_push_acceptance_claim` in `test_watcher_observer.py`
+      - `_push_acceptance` in `test_watch_own_claim.py`
+      - the `_open`, `_branch_state` and `_push_state` sequence in `test_watcher_acceptance.py`, if it stays the same thing
+    - Finding 3: one shared `_claim` helper and one set of constants (`STORY`, `STORY_PATH`, `BACKLOG_PATH`, `ACCEPTANCE`, `REPORT`, `TODO`), imported by `test_watcher_observer.py` and `test_watch_own_claim.py`.
+    - Finding 4: move the `definition` fixture of `tests/application/test_watcher_acceptance.py` to `tests/conftest.py`, and use it there and in `test_watcher_observer.py`.
+
+    Refactor: I read my diff again and found nothing else to change.
+
+    Not touched: the docs for criterion 8 are the documenter's.
