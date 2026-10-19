@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T11:23:16.324743Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-19T11:22:55.848066Z'
   stage: doing
   run: 23f7d1be20fb4d498b35608f5efa63f6
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:23:16.324743Z'
+  stage: review
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -361,3 +370,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+18. factory: started review as self.
