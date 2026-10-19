@@ -109,6 +109,9 @@ mutants:
 	# A mutant that drops a working folder can make a test's repository in mutants/ itself; the
 	# factory cannot remove the agent's folder there and stops, so the run removes it.
 	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true; find mutants -name .git -prune -exec rm -rf {} + 2>/dev/null || true' EXIT
+	# mutmut copies the other files under src/ (the contract's schemas) into mutants/ only on its
+	# first run: copy them again, so a changed file is not tested in its old form.
+	if [ -d mutants/src ]; then (cd src && find . -type f ! -name '*.py' ! -path '*/__pycache__/*' -exec cp --parents {} ../mutants/src/ \;); fi
 	# An agent's shell command ends after 10 minutes: stop mutmut before that and report what it
 	# reached; its results stay in mutants/, so the next run goes on from there.
 	TMPDIR="$$temporary" timeout $(MUTANTS_SECONDS) uv run mutmut run $(foreach module,$(MUTATED),"$(subst /,.,$(patsubst src/%.py,%,$(module))).*") || { status=$$?; [ $$status -eq 124 ] && echo "mutants: stopped after $(MUTANTS_SECONDS) s; the results below are partial, run it again to go on"; [ $$status -eq 124 ]; }
