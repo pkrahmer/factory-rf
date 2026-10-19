@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T23:31:07.855420Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T23:30:47.264736Z'
   stage: tests
   run: 09f2fa45dee24f39aab0a45212617bdd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:31:07.855420Z'
+  stage: doing
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -100,3 +109,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.3 s)
+6. factory: started doing as self.
