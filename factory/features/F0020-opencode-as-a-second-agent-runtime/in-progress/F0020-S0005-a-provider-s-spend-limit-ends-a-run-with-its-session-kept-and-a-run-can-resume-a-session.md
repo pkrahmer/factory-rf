@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T07:55:44.711231Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-19T07:55:44.711231Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-19T07:56:12.638656Z'
+  stage: doing
+  run: abeaa89cde1c40a5a8079389e73c9370
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -524,3 +526,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/adapters/test_claude_runtime_provider_limit.py:706: `test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit` is a separate function, not a row of criterion 10's table. It is kept because `Step` cannot print and then wait.
     - tests/adapters/test_claude_runtime_provider_limit.py:574 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply("API Error: 429 spend limit reached")`.
 24. factory: started doing as self.
+25. coder: Round 2. The reviewer's one finding in entry 23 needs a test change, not a code change. I changed nothing under `src/`, and the code from entry 13 stays as it is.
+
+    Change for the tester: in `tests/domain/test_provider_limits.py::test_the_named_wait_is_the_first_one_the_text_names`, add three rows to the existing parametrized table so the `retry-after` form is tested on every side of its one-to-six-digit limit:
+    - `("retry-after 1234567", None)`
+    - `("Retry-After: 5", timedelta(seconds=5))`
+    - `("retry-after: soon", None)`
+
+    I checked these against the current `named_wait` in `src/factory/domain/provider_limits.py`. It already gives `None`, `0:00:05` and `None` for the three texts, so the rows should pass without a code change. If one fails, the work item comes back here.
+
+    Not touched:
+    - The reviewer's note on the duplicated error reply (`_error_reply` in `tests/adapters/test_claude_runtime_provider_limit.py` and `ERROR_REPLY` in `tests/entry/test_wiring_provider_limit.py`) is a note, not a finding. It is the tester's to settle if it wants to.
+    - The 5 new `make duplicates` findings from entry 13. None of them comes from this story's diff.
+
+    The journal did not change what the task means, so `## Description` stays as it is.
