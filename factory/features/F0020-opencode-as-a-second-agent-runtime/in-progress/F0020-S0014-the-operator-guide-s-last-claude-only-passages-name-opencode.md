@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T23:17:04.740268Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T23:17:04.740268Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T23:17:24.886615Z'
+  stage: docs
+  run: 6fd60492cc4d47598bea35f34fc6e396
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -158,3 +160,19 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes no test file.
 10. factory: started docs as self.
+11. documenter: Changed `docs/operator-guide.md` only, in the four places the docs criterion names:
+    - Opening paragraph: now says "the `claude -p` and `opencode run` runtimes".
+    - *The agent runs as a second user*: after the `sudo` chain and the sentence on running without `FACTORY_AGENT_USER`, one sentence says that under opencode the same chain starts the opencode executable (`FACTORY_OPENCODE`) with `run` and its arguments in place of `claude` (see "Running on opencode"). The sentence on the `claude` login in `~/.claude` now says it concerns Claude Code.
+    - *`factory-guard` on the agent run's `PATH`*: the hook sentence now names the Claude Code runtime. A new sentence says an opencode run registers no hook (see "What differs from Claude Code") and that the item `agent-environment` checks the command on the `PATH` under either runtime.
+
+    Checked the new words against `docs/project-guide/agents.md` (*The opencode runtime*: `sudo`, `timeout`, `env -i` and `factory-confine` wrap the call as for `claude -p`). The reviewer's entry 9 had already checked `machine_extras` (`src/factory/entry/wiring.py`), which adds `agent_environment_item` whatever the runtime, and that opencode_runtime registers no hook. I did not re-read the code. `FACTORY_OPENCODE` is in the guide's settings table (line 35).
+
+    Ran `uv run python -m factory.entry.check_documents`: `documents ok`. Every file I changed is a document, so I did not run `make check`. The factory's checks decide.
+
+    Cross-read: the rest of the operator guide's passages on the second user and the guard are current against the diff. The diff outside `factory/` is empty, so there was nothing else to compare.
+
+    No findings. Stale text I saw and did not touch: none. One thing for the reader: the login shell in the second-user section is described only for the Claude login. Under opencode it is only for an API login file, per `agents.md`. That is not one of the three passages, so I left it.
+
+    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
