@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T12:39:59.673720Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T12:39:59.673720Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T12:40:46.296997Z'
+  stage: review
+  run: bb1159f652174673b6a4ca6eadb76441
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -257,3 +259,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Review of `git diff main...HEAD -- . ':!factory'` against the work item. Groups 1 to 3 hold:
+   - Acceptance criteria: criteria 1 to 6 each have a parametrized test that checks what its criterion says, the lease boundary is tested on both sides, and the coder's journal entry says `make check` is green.
+   - Architecture: the rule is pure and sits in `factory.domain.lease`, `ClaimService` wraps it, `Watcher` picks the status function, and `entry` sets `observer=True`. The layer order is kept.
+   - Security: no suppression markers, no secrets, no built commands.
+
+   Group 4 (quality) fails:
+
+   1. `tests/application/test_watcher_observer.py:109` `_push_complete_todo` and `tests/entry/test_watch_own_claim.py:53-55` are copies of `_push_complete` in `tests/application/test_watcher_acceptance.py:35` (and of the `todo` fixture in `tests/entry/test_watch_acceptance.py:24`). Fix: the tester moves the push of the complete `F0002-todo` to one shared place under `tests/` (`tests/conftest.py` as a fixture, or a root module) under the standing leave, and the new tests use it.
+   2. `tests/application/test_watcher_observer.py:115` `_push_acceptance_claim` and `tests/entry/test_watch_own_claim.py:52` `_push_acceptance` hold the same open/read/claim/push sequence twice, and that sequence copies `_open`, `_branch_state` and `_push_state` of `tests/application/test_watcher_acceptance.py:42-63`. Fix: one shared helper under `tests/` that opens `F0002` and pushes its branch state with a given claim, used by both new files.
+   3. `tests/application/test_watcher_observer.py:39` and `tests/entry/test_watch_own_claim.py:36`: `_claim` is written twice in the diff, and so are the `STORY`, `STORY_PATH`, `BACKLOG_PATH`, `ACCEPTANCE`, `REPORT` and `TODO` constants. Fix: one shared helper and one set of constants that both files import.
+   4. `tests/application/test_watcher_observer.py:33`: the `definition` fixture is a word-for-word copy, docstring included, of `tests/application/test_watcher_acceptance.py:29`. Fix: move it to `tests/conftest.py` under the standing leave and use it in both files.
+   5. `src/factory/entry/watch.py:1-4`: the module docstring's body repeats its summary line ("as seen from outside the tick" / "as a look from outside the tick sees it"). Fix: one sentence, "The watcher's command line: the event of one evaluation as a look from outside the tick sees it, and the board."
+
+   Earlier tests:
+   - `tests/test_claim_ownership.py`: changed under the feature's decision 5, which the story names. Only `LEASE_FUNCTIONS` changed; both tests keep their names and what they check.
