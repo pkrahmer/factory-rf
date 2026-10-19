@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T04:39:12.058578Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T04:39:12.053294Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:39:12.058578Z'
+  stage: intake
+---
+
 # The opencode runtime runs an agent and reads its result from the events
 
 ## Description
@@ -170,3 +197,5 @@ Expect: six lines, `completed question The smoke entry.`, `0.012 1 10 7 100 20 0
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
