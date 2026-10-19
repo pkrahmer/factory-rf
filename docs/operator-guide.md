@@ -822,7 +822,7 @@ The keys, with what a left-out key takes:
 | `contract` | the contract version, quoted: `'1.0'` | required |
 | `stages` | name to stage; the order in the file is the pipeline's order | required |
 | `roles` | name to role; the name is also the agent file's name | required |
-| `project_commands` | name to `time_limit` in minutes | `check`, `lint` and `test`, each 10 |
+| `project_commands` | name to `time_limit` in minutes and, optionally, `not_read` (see below) | `check`, `lint` and `test`, each 10 and `not_read: []` |
 | `attempts_cap` | attempts before the human is asked | 2 |
 | `crash_cap` | crashes before the human is asked | 2 |
 | `acceptance_stage` | the stage of the feature acceptance | none |
@@ -837,6 +837,15 @@ tool_paths: [".venv/*", ".reports/*", "~/.cache/*"]
 ```
 
 An agent run can write only its stage's write paths and these folders. A project's tool that writes anywhere else is refused by the kernel, so list its folder here. Any other form is a fault of the definition: `tool path *.log: must be <folder>/* or ~/<folder>/*`. The tool paths widen what the kernel allows only; the hook and the undo still judge the write paths alone.
+
+`not_read` of a project command lists the paths the command does not read, in the form of `write_paths` patterns: relative to the checkout, `*` also crosses `/`, case-sensitive. The default `[]` leaves nothing out. For example:
+
+```yaml
+project_commands:
+  lint: {time_limit: 10, not_read: ["factory/*", "docs/*"]}
+```
+
+A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. The key does nothing yet: a later story of the feature "a known result is not checked again" uses it to decide that a changed file the command does not read is no reason to run it again.
 
 A project made from `template/`, and the todo demo, do not run under the guard as they are. Their `Makefile`'s `licenses` recipe writes `.licenses-requirements.txt`, and coverage writes `.coverage`, both at the checkout's root, where the kernel allows no write. Move both into a tool path folder, as this repository did into `.reports/` (`data_file` under `[tool.coverage.run]` in `pyproject.toml`, and the `licenses` recipe), and name the project's `tool_paths` in its pipeline definition. Until then its `make check` ends with `Permission denied`.
 
@@ -943,7 +952,7 @@ The command prints `contract: 5 schemas written`. With two or more arguments it 
 
 **The approval.** A work item enters the approval with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
 
-**The version.** Each schema carries the records contract's version in `x-records-contract`, now `1.2` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
+**The version.** Each schema carries the records contract's version in `x-records-contract`, now `1.3` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
 
 **Unknown properties.** The schemas say `additionalProperties: false` for what this version of the factory writes. A reader still ignores a property it does not know, since a later minor version may add one.
 

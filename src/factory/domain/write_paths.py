@@ -14,8 +14,8 @@ from factory.domain.paths import (
 )
 from factory.domain.pipeline_definition import (
     FEATURE_PLACEHOLDER,
-    PARENT_SEGMENT,
     WORK_ITEM_PLACEHOLDER,
+    is_inside_checkout,
 )
 
 PROTECTED_PATHS: tuple[str, ...] = (
@@ -62,14 +62,6 @@ def refusal(path: str, guard: GuardSettings) -> str | None:
     if not matches_any(path, guard.write_paths):
         return f"{path} is outside the write paths of this stage."
     return None
-
-
-def is_inside_checkout(path: str) -> bool:
-    """Whether `path` is relative, non-empty and holds no `..` segment."""
-    # fnmatch sees only the string, so `src/../x` would match `src/*` though it leaves `src`.
-    if not path or path.startswith("/"):
-        return False
-    return PARENT_SEGMENT not in path.split("/")
 
 
 def _expand(pattern: str, work_item_path: str, feature_path: str) -> str:

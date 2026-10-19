@@ -3,8 +3,7 @@
 import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML
+from git_support import PIPELINE_YAML, pipeline_outcome
 
 CODER = '  coder: {write_paths: ["src/*"]}'
 TESTS_STAGE = "  tests: {role: tester, next: [doing], checks: [lint], reports: [test]}"
@@ -49,15 +48,6 @@ def _limit(path: str, value: str) -> tuple[str, str]:
     return old, template.format(value)
 
 
-def _outcome(text: str) -> str | None:
-    """The fault of a refused text, or `None` when the text is accepted."""
-    try:
-        RuamelPipelineDefinitionReader().parse(text)
-    except PipelineDefinitionInvalid as error:
-        return error.fault
-    return None
-
-
 def test_the_test_pipeline_definition_still_parses() -> None:
     RuamelPipelineDefinitionReader().parse(PIPELINE_YAML)
 
@@ -65,7 +55,7 @@ def test_the_test_pipeline_definition_still_parses() -> None:
 @pytest.mark.parametrize("value", ["true", "'30'", "30.0"])
 @pytest.mark.parametrize("path", list(INTEGER_LIMITS))
 def test_an_integer_limit_not_written_as_an_integer_is_refused(path: str, value: str) -> None:
-    fault = _outcome(_changed(PIPELINE_YAML, _limit(path, value)))
+    fault = pipeline_outcome(_changed(PIPELINE_YAML, _limit(path, value)))
 
     assert fault is not None
     assert fault.startswith(f"invalid {path}:")
@@ -75,7 +65,7 @@ def test_an_integer_limit_not_written_as_an_integer_is_refused(path: str, value:
 def test_an_integer_limit_written_as_an_integer_is_accepted(path: str) -> None:
     text = _changed(PIPELINE_YAML, _limit(path, ACCEPTED_INTEGERS[path]))
 
-    assert _outcome(text) is None
+    assert pipeline_outcome(text) is None
 
 
 @pytest.mark.parametrize("value", ["'yes'", "'off'", "1", "0"])
@@ -84,7 +74,7 @@ def test_an_approval_not_written_as_a_boolean_is_refused(value: str) -> None:
         PIPELINE_YAML, (APPROVAL_STAGE, f"  approval: {{approval: {value}, next: [done, doing]}}")
     )
 
-    fault = _outcome(text)
+    fault = pipeline_outcome(text)
 
     assert fault is not None
     assert fault.startswith("invalid stages.approval.approval:")
@@ -92,7 +82,7 @@ def test_an_approval_not_written_as_a_boolean_is_refused(value: str) -> None:
 
 def test_an_approval_written_as_true_is_accepted() -> None:
     assert APPROVAL_STAGE in PIPELINE_YAML
-    assert _outcome(PIPELINE_YAML) is None
+    assert pipeline_outcome(PIPELINE_YAML) is None
 
 
 def test_an_approval_written_as_false_is_accepted() -> None:
@@ -101,14 +91,14 @@ def test_an_approval_written_as_false_is_accepted() -> None:
         (DOING_STAGE, DOING_STAGE.replace("{role: coder,", "{role: coder, approval: false,")),
     )
 
-    assert _outcome(text) is None
+    assert pipeline_outcome(text) is None
 
 
 @pytest.mark.parametrize("write_path", ["''", "'  '"])
 def test_a_blank_write_path_is_refused_at_its_position(write_path: str) -> None:
     text = _changed(PIPELINE_YAML, (CODER, f"  coder: {{write_paths: [{write_path}]}}"))
 
-    fault = _outcome(text)
+    fault = pipeline_outcome(text)
 
     assert fault is not None
     assert fault.startswith("invalid roles.coder.write_paths[0]:")
@@ -118,7 +108,7 @@ def test_a_blank_write_path_is_refused_at_its_position(write_path: str) -> None:
 def test_a_write_path_with_text_is_accepted(write_path: str) -> None:
     text = _changed(PIPELINE_YAML, (CODER, f"  coder: {{write_paths: [{write_path}]}}"))
 
-    assert _outcome(text) is None
+    assert pipeline_outcome(text) is None
 
 
 @pytest.mark.parametrize(
@@ -137,7 +127,7 @@ def test_a_write_path_with_text_is_accepted(write_path: str) -> None:
     ],
 )
 def test_a_number_in_a_text_list_is_refused(old: str, new: str, path: str) -> None:
-    fault = _outcome(_changed(PIPELINE_YAML, (old, new)))
+    fault = pipeline_outcome(_changed(PIPELINE_YAML, (old, new)))
 
     assert fault is not None
     assert fault.startswith(f"invalid {path}:")
@@ -150,7 +140,7 @@ def test_a_strict_value_fault_comes_alone_before_a_fault_of_the_rules() -> None:
         (DOING_STAGE, DOING_STAGE.replace("[review, tests]", "[review, ship]")),
     )
 
-    fault = _outcome(text)
+    fault = pipeline_outcome(text)
 
     assert fault is not None
     assert fault.startswith("invalid roles.coder.time_limit:")

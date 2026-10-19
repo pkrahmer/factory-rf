@@ -10,6 +10,7 @@ from factory.domain.git import (
     MergeOutcome,
     PushOutcome,
     RemoteBranch,
+    TreeId,
     WorkTreeStatus,
 )
 
@@ -160,3 +161,13 @@ class Git(ABC):
     @abstractmethod
     def discard(self) -> None:
         """Remove the working copy and its repository; a missing working copy is no error."""
+
+    @abstractmethod
+    def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
+        """The tree a commit of the work tree would record now, less the paths matching `left_out`.
+
+        Tracked files count with their content in the work tree, untracked files that are
+        not ignored count, deleted and ignored files do not. A path is left out when
+        `matches_any(path, left_out)`. The index, `HEAD`, the refs and the work tree stay
+        as they are.
+        """

@@ -1,3 +1,175 @@
+---
+stage: approval
+blocked: null
+round: 2
+attempts: 0
+crashes: 0
+pull_request: 267
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T14:24:48.220000Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:24:48.227452Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T14:25:06.019383Z'
+  stage: intake
+  run: 3e4cc65b172b460691dec86d99fb6a73
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:25:26.681339Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T14:28:34.739919Z'
+  stage: tests
+  run: a2fe8bf5b0744716ac8312611cf8741d
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:28:55.104292Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:32:15.630018Z'
+  stage: doing
+  run: 911c94291ef8401e8ac595d077b86416
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:32:36.302068Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T14:33:45.904837Z'
+  stage: review
+  run: 6cd31f31389b45f58c6f4bfbac87d2a7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:34:07.286058Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:34:30.899753Z'
+  stage: doing
+  run: db0c5cecd9d441f19f806a6768ee64c4
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:34:51.352028Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T14:36:58.183346Z'
+  stage: tests
+  run: ec2395a87fb340d9a1c3a19ca9a14d13
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:37:19.247939Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:39:39.284092Z'
+  stage: doing
+  run: 0984ab8ae1e0459c9b46f94a3fd6f4d0
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:40:00.435271Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T14:41:33.802836Z'
+  stage: review
+  run: e4f5b747b9fe442b9f8b63ce1291e480
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:41:54.778949Z'
+  stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:42:33.319043Z'
+  stage: doing
+  run: a1f7f8786ad24423a204b624c4ea2581
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:42:53.979135Z'
+  stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-10-19T14:44:36.340719Z'
+  stage: tests
+  run: 02f11883ce914c12af2390537f8df9f6
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:44:56.951382Z'
+  stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:46:55.998875Z'
+  stage: doing
+  run: 3c03081b15d54487aafd2ba0a3ab4256
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:47:18.041497Z'
+  stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T14:47:56.219692Z'
+  stage: review
+  run: 0013be7b4d404c608a3546ce0766b02c
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:48:18.083189Z'
+  stage: docs
+- number: 27
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T14:50:07.765607Z'
+  stage: docs
+  run: db32725ca0c5441a9d4a57de20cbf125
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:50:29.269971Z'
+  stage: smoke-test
+- number: 29
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T14:51:04.344929Z'
+  stage: smoke-test
+  run: 725dd2ec47794271ad1f15c8f95c90e5
+---
+
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
 
 ## Description
@@ -71,8 +243,9 @@ Changed under the feature's decision 15, by the tester only, nothing else in tho
 6. `not_read` loads (rows of one parametrized test): a definition whose `check` is `{time_limit: 10}` gives `not_read == []`; `{time_limit: 10, not_read: ["README.md", "docs/*"]}` gives `["README.md", "docs/*"]`, in that order, and the other commands keep `[]`.
 7. The load rule (rows of one parametrized test, each a `check: {time_limit: 10, not_read: [<pattern>]}`): `docs/*`, `*.md`, `.github/*` and `factory/features/*` load. `/etc/*`, `~/notes/*`, `../docs/*`, `docs/../src/*`, `{work_item}`, `docs/{x` and `docs/x}` raise `PipelineDefinitionInvalid` whose fault is exactly `project command check: not_read <pattern> must be a path pattern inside the checkout`. With `check` and `lint` both holding `/a/*`, the fault is `project command check: not_read /a/* must be a path pattern inside the checkout; project command lint: not_read /a/* must be a path pattern inside the checkout`. `not_read: ["/b/*", "/a/*"]` gives the two faults in that order, joined by `; `. With `tool_paths: ["x"]` beside `not_read: ["/a/*"]`, the fault is `tool path x: must be <folder>/* or ~/<folder>/*; project command check: not_read /a/* must be a path pattern inside the checkout`. `not_read: "docs/*"`, `not_read: [1]`, `not_read: [""]` and `not_read: [" "]` raise `PipelineDefinitionInvalid` whose fault names `not_read`.
 8. The committed `src/factory/contract/pipeline-definition.schema.json` holds `not_read` among the `properties` of `ProjectCommandDefinition` under `$defs`, not among its `required`, and its `x-records-contract` equals `RECORDS_CONTRACT`. F0021-S0006's comparison of the committed schemas with the generated ones passes.
-9. `make check` stays green.
-10. docs: `docs/project-guide/git-and-hosting.md`, *The git wrapper*: `work_tree_id(left_out)`, what counts in the tree, the temporary index and that nothing in the checkout changes; *Which feature uses which operation*: `work_tree_id`, F0023. `docs/project-guide/stages.md`, *The pipeline definition*, where the guide describes the pipeline definition's model: `ProjectCommandDefinition.not_read`, its default and its load rule with the fault. `docs/operator-guide.md`, *The pipeline definition*: the key `not_read` of a project command, its form (patterns as in `write_paths`, `*` crossing `/`), the refused forms with the fault, and that it does nothing yet. `docs/decisions.md`: none, the entry comes with S0002.
+9. The load rule's positional sides (rows of criterion 7's parametrized test): `docs/~old/*` (a `~` not at the start) and `docs/a..b/*` and `docs..x/*` (`..` inside a segment, not a segment of its own) load.
+10. `make check` stays green.
+11. docs: `docs/project-guide/git-and-hosting.md`, *The git wrapper*: `work_tree_id(left_out)`, what counts in the tree, the temporary index and that nothing in the checkout changes; *Which feature uses which operation*: `work_tree_id`, F0023. `docs/project-guide/stages.md`, *The pipeline definition*, where the guide describes the pipeline definition's model: `ProjectCommandDefinition.not_read`, its default and its load rule with the fault. `docs/operator-guide.md`, *The pipeline definition*: the key `not_read` of a project command, its form (patterns as in `write_paths`, `*` crossing `/`), the refused forms with the fault, and that it does nothing yet. `docs/decisions.md`: none, the entry comes with S0002.
 
 ## Smoke test
 
@@ -135,3 +308,326 @@ Expect: `True False`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.git.TreeId`, `Git.work_tree_id(left_out)`, `GitCli.work_tree_id`, `ProjectCommandDefinition.not_read`, the load rule with its exact fault text, the move of `is_inside_checkout`, the contract minor 1.2 to 1.3). Every comment-stated behaviour has a criterion: the tree contents (2), the literal-path removal (3), the unchanged index, status and HEAD (4), the temporary folder removed also on error (4), the no-commit case (2), the default `[]` (6).
+   Criteria: each is testable by one parametrized test and the rows are concrete. Each rule has its failing side: `TreeId` refusals (1), the refused patterns `/`, `~`, `..`, `{`, `}` and the faults' order and joining (7), a non-list, non-string, empty or blank `not_read` (7), `GitError` on a non-repository (4), `Docs/*` case-sensitivity and `docsx` (3). The renamed and literal-pinned tests have the feature's decision 15 as the human's word.
+   Smoke test: three runnable blocks. Each `Expect:` line is checkable: the printed booleans, the list and the exact fault text, `True False`.
+   Architecture: matches CLAUDE.md. `TreeId` lives in domain; `Git` is the abstract class, `GitCli` its only implementation and the only git caller; DTOs are Pydantic; the layer direction holds (`write_paths` and `confinement` import from `pipeline_definition`).
+   Scope: inside F0023's scope list (S0001 items) and not in its Out of scope; nothing uses `not_read` or `work_tree_id` yet, which is S0002's.
+   Open: none. One note, not a question: criterion 8 pins the contract version only through `x-records-contract` equal to `RECORDS_CONTRACT`; the `"1.3"` literal itself is pinned by the changed existing tests.
+4. factory: started tests as self.
+5. tester: Wrote the tests for every criterion. `make lint` is green, and one `make test` run is red for the expected reasons: `TreeId` and `work_tree_id` don't exist yet, `not_read` is still an unknown key the strict model refuses, and the schema has no `not_read` yet.
+   criterion 1: tests/domain/test_tree_id.py::test_a_tree_id_is_forty_lower_case_hex_characters
+   criterion 2: tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records
+   criterion 3: tests/adapters/test_git_cli_work_tree.py::test_the_left_out_paths_are_not_in_the_work_tree_id
+   criterion 4: tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_changes_nothing_and_leaves_no_temporary_file
+   criterion 5: tests/application/test_git_interface.py::test_git_has_exactly_the_twenty_four_operations_and_git_cli_has_each, tests/application/test_interfaces.py::test_git_abstract_methods_are_exactly_its_twenty_four_operations
+   criterion 6: tests/domain/test_pipeline_not_read.py::test_not_read_loads_in_order_and_defaults_to_nothing
+   criterion 7: tests/domain/test_pipeline_not_read.py::test_a_not_read_pattern_outside_the_checkout_is_refused (the accepted patterns, the refused patterns, two commands, two patterns, after tool_paths), tests/domain/test_pipeline_not_read.py::test_a_not_read_that_is_not_a_list_of_patterns_is_refused (a plain string, `[1]`, `[""]`, `[" "]`)
+   criterion 8: tests/entry/test_contract_not_read.py::test_the_committed_pipeline_schema_holds_an_optional_not_read, and the existing tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones (F0021-S0006's comparison)
+   criteria 9 (`make check`) and 10 (docs): no test, these are the coder's and the documenter's.
+
+   Files created: tests/domain/test_tree_id.py, tests/adapters/test_git_cli_work_tree.py, tests/domain/test_pipeline_not_read.py, tests/entry/test_contract_not_read.py.
+   Earlier test files changed, as the feature's decision 15 allows and nothing else in them:
+   - tests/application/test_git_interface.py: `"work_tree_id"` added to `OPERATIONS`, and the test renamed to `..._twenty_four_...`.
+   - tests/application/test_interfaces.py: the git test renamed to `..._twenty_four_...`.
+   - tests/domain/test_contract.py: the `"1.2"` literal on line 54 is now `"1.3"`.
+   - tests/domain/test_contract_provider_limit.py: the two `"1.2"` literals are now `"1.3"`. The test name and the module docstring still say 1.2, as the story asks.
+   No other test module pins the contract version as a literal.
+
+   Could not import: `factory.domain.git.TreeId`, so tests/domain/test_tree_id.py stops at collection with an ImportError. The other new tests fail on missing behaviour: `GitCli.work_tree_id`, `ProjectCommandDefinition.not_read` with its load rule, and the regenerated schema at contract 1.3.
+
+   Choices made inside the criteria:
+   - In criterion 3, the files are committed before each row runs.
+   - In criterion 4, the checkout has a staged new file, an unstaged edit of a tracked file and an untracked file.
+   - For criterion 7's type rows, the test checks only that the fault names `not_read`, since the criterion says nothing more.
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_tree_id.py - ImportError while importing test module ...
+6. factory: started doing as self.
+7. coder: Built the git wrapper's twenty-fourth operation, `work_tree_id`, and the `not_read` key of a project command with its load rule. I raised the records contract to 1.3. `make check` is green.
+
+   What I built (paths):
+   - `src/factory/domain/git.py`: `TreeId`, which uses the same pattern as `CommitId`.
+   - `src/factory/application/git.py`: the abstract `Git.work_tree_id(left_out=())`, with the docstring from the Interface.
+   - `src/factory/adapters/git_cli.py`: `GitCli.work_tree_id`. It works in a `tempfile.TemporaryDirectory()`. When the checkout has its own `.git/index`, it starts from a copy of it; otherwise it starts empty. It then runs `add --all`, then `ls-files -z`, keeps the paths that `matches_any(path, left_out)` accepts and passes them to `update-index --force-remove -- <paths>`, and returns `write-tree`. All four git calls go through `_run` with a new keyword `index`, which `_execute` hands to `_environment(index)`. That function adds `GIT_INDEX_FILE` last, after the isolation variables.
+   - `src/factory/domain/pipeline_definition.py`:
+     - `ProjectCommandDefinition.not_read: list[WritePath] = []`.
+     - `is_inside_checkout`, moved here from `write_paths`.
+     - The rule `_not_read_faults`, last in `_RULES`. It refuses a pattern that `is_inside_checkout` refuses, that starts with `~`, or that holds `{` or `}`. The fault text is the one the story gives.
+   - `src/factory/domain/write_paths.py` and `src/factory/domain/confinement.py` now import `is_inside_checkout` from `pipeline_definition`. `write_paths` no longer imports `PARENT_SEGMENT`, which it no longer uses.
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT` is now "1.3".
+   - `src/factory/contract/*.schema.json`: all five regenerated with `uv run python -m factory.entry.contract`. Four of them change only their version; the pipeline definition's schema also gains `not_read`.
+
+   Main choice: I remove the left-out paths with `git update-index --force-remove -- <paths>`, whose arguments git reads as literal paths. I rejected `git rm --cached` with `:(literal)` pathspecs and `--pathspec-from-file`: they still go through pathspec parsing, would need a magic prefix on every path, and `rm --cached` complains about paths it doesn't find. The temporary index goes to git through an `index` keyword on `_run` and `_execute`. I rejected a second `GitCli` built with `GIT_INDEX_FILE` in `GitOptions.environment`, because that would create a wrapper per call and could not reuse the checkout's index path.
+
+   Refactor pass: I read the diff and changed nothing. Only `ruff format` ran, which rewrapped the code it touched. A `git stash` I tried in order to compare `make duplicates` against the base was refused and changed nothing; the working tree is intact.
+
+   Noticed but not touched:
+   - `make duplicates` reports 7 new findings. Two are mine and expected: `work_tree_id` (in `git_cli.py` and `application/git.py`) shows as unused until S0002 calls it. The other five were not caused by this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter` in `adapters/clock.py`.
+   - `update-index` gets all dropped paths in one argument list. A `left_out` that drops a very large number of files could reach the system's limit on argument length. That is fine for this repository; a batched or `--stdin` form would need `ProcessRequest` to accept input.
+
+   `check`: check: green
+   `duplicates`: duplicates: 7 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read the generated schemas only for `pipeline-definition.schema.json`; the other four change only their version.
+
+   Groups 1 to 3 hold. Every criterion from 1 to 8 has a test that checks what the criterion says, and every stated limit is tested on both sides:
+   - `TreeId`: 39, 40 and 41 characters, upper case and non-hex.
+   - `left_out`: `Docs/*` and `docsx`.
+   - The load rule's refused forms, the order of faults and how they join.
+   - The non-list, non-string, empty and blank `not_read`.
+   - `GitError` together with the removed temporary folder.
+
+   The coder's entry 7 records `make check` green. The layers hold: `is_inside_checkout` moved to `pipeline_definition` with no cycle, git is reached only through `GitCli._run`, and `update-index --force-remove --` takes literal paths. No markers, no strings built into a shell, no secrets. The contract went from 1.2 to 1.3 for an optional field, which follows the minor-version rule.
+
+   Group 4 fails on one test file the diff adds (round 0, so it is a finding):
+
+   1. `tests/domain/test_pipeline_not_read.py:17` `_fault_of` is a second copy of `_outcome`, which is already in `tests/domain/test_tool_paths.py:39`, `tests/adapters/test_pipeline_strict_values.py` and `tests/adapters/test_pipeline_rules.py`. It has the same body and the same docstring: parse with `RuamelPipelineDefinitionReader` and return the fault, or `None`. Fix: under the standing leave, the tester moves `_outcome` to one shared module at the `tests/` root (for example beside `PIPELINE_YAML` in `tests/git_support.py`). The new test and the earlier modules then use it from there, and every earlier test keeps its name and what it checks. This is a tester change, so the coder ends with `tests` and names this change.
+
+   Rejected as findings:
+   - `TreeId` repeats `CommitId`'s pattern literally, but the story's Interface prescribes exactly that line.
+   - `self._directory / ".git" / "index"` and the `rev-parse`-style `stdout.strip()` return follow the wrapper's existing idiom (`git_cli.py:311`, `:476`).
+
+   Earlier tests (changed, not added):
+   - `tests/application/test_git_interface.py`: the human's leave, the story naming it under the feature's decision 15 (`work_tree_id` added to `OPERATIONS`, test renamed to `..._twenty_four_...`). Within the leave.
+   - `tests/application/test_interfaces.py`: the human's leave, the story under decision 15 (test renamed). Within the leave.
+   - `tests/domain/test_contract.py`: the human's leave, the story under decision 15 (one `"1.2"` became `"1.3"`). Within the leave.
+   - `tests/domain/test_contract_provider_limit.py`: the human's leave, the story under decision 15 (two `"1.2"` became `"1.3"`; name and docstring kept). Within the leave.
+10. factory: started doing as self.
+11. coder: Round 1: the reviewer's one finding (entry 9) is a duplicated test helper, which is a change to tests. CLAUDE.md's standing leave to move a shared test helper covers it, so the tester makes the move. I changed no code.
+
+    The change for the tester: the helper that parses a pipeline-definition text with `RuamelPipelineDefinitionReader` and returns `PipelineDefinitionInvalid.fault`, or `None` when the text loads. It currently exists as `_fault_of` in `tests/domain/test_pipeline_not_read.py:17` and as `_outcome` in four earlier modules. Move it to one shared module at the `tests/` root, for example beside `PIPELINE_YAML` in `tests/git_support.py`, with a public name such as `pipeline_outcome`. Then change every module that holds a copy to import it from there:
+    - `tests/domain/test_pipeline_not_read.py` (`_fault_of`, line 17, the new test)
+    - `tests/domain/test_tool_paths.py` (`_outcome`, line 39)
+    - `tests/adapters/test_pipeline_strict_values.py` (`_outcome`, line 52)
+    - `tests/adapters/test_pipeline_rules.py` (`_outcome`, line 40)
+    - `tests/adapters/test_pipeline_stage_moves.py` (`_outcome`, line 26). The reviewer did not list this one, but its body and docstring are identical, so leaving it would keep a copy.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    What I built: nothing new this round. The round-0 code is unchanged; entry 7 lists its paths, and it recorded `make check` green.
+
+    Main choice: end with `tests` instead of `question`, because the standing leave in CLAUDE.md covers this exact move. I rejected adding the fifth module only as a note: the leave covers it too, and the reviewer would count it next round.
+
+    Noticed, not touched: the open notes from entry 7 still stand. `make duplicates` shows five findings that predate this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter`. `update-index` receives the left-out paths in one argument list, which could hit the system's argument-length limit if a very large number of paths were left out.
+12. factory: started tests as self.
+13. tester: Round 1, a test change: I moved the shared test helper that the coder named in entry 11, as the reviewer's finding in entry 9 asked. The standing leave in CLAUDE.md (*Tests*, moving a shared test helper) covers this move. No criterion's test changed in what it checks.
+
+    What I changed:
+    - `tests/git_support.py`: added `pipeline_outcome(text) -> str | None` beside `PIPELINE_YAML`. It parses the text with `RuamelPipelineDefinitionReader` and returns `PipelineDefinitionInvalid.fault`, or `None` when the text loads. Its body is the same as the copies it replaces.
+    - Five modules dropped their copy and now import `pipeline_outcome` from `git_support`. I also removed the imports that were no longer used. Every test keeps its name and checks the same thing:
+      - `tests/domain/test_pipeline_not_read.py`: this story's test; its copy was `_fault_of`.
+      - Four earlier test files, each changed under the standing leave; each copy was `_outcome`:
+        - `tests/domain/test_tool_paths.py`
+        - `tests/adapters/test_pipeline_strict_values.py`
+        - `tests/adapters/test_pipeline_rules.py`: I also wrapped three assert lines that the longer name pushed past 100 characters.
+        - `tests/adapters/test_pipeline_stage_moves.py`
+
+    Rejected: also moving the `_changed` helper that `test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py` each hold. The coder named only the parse helper, and an approved change is exactly the change named.
+
+    Criterion → test mapping: unchanged from my entry in round 0.
+
+    `make lint` is green and `make test` is green (coverage 99.07 %).
+
+    Open: none.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (48.6 s)
+14. factory: started doing as self.
+15. coder: Round 1, after the tester's move. The reviewer's one finding (entry 9, the copied parse helper) is fixed: in entry 13 the tester moved it to `pipeline_outcome` in `tests/git_support.py`, and the five modules that held a copy now use it from there. That was a change to tests only, so I changed no code this round. `make check` is green on the committed state: `test: green (47.2 s)`, coverage 99.07 %, `check: green`.
+
+    What I built: nothing new this round. The paths from round 0 are unchanged (entry 7):
+    - `src/factory/domain/git.py`
+    - `src/factory/application/git.py`
+    - `src/factory/adapters/git_cli.py`
+    - `src/factory/domain/pipeline_definition.py`
+    - `src/factory/domain/write_paths.py`
+    - `src/factory/domain/confinement.py`
+    - `src/factory/domain/contract.py`
+    - `src/factory/contract/*.schema.json`
+
+    Main choice (unchanged, from round 0): the left-out paths are removed with `git update-index --force-remove -- <paths>`, which takes them as literal paths. I rejected `git rm --cached` with `:(literal)` pathspecs, which need a prefix on every path and complain about paths they don't find.
+
+    Refactor pass: I had no new diff of my own to read, so nothing changed. The journal did not change what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - The tester left the `_changed` helper as a copy in `tests/adapters/test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py`, because only the parse helper was named. These copies were there before this story.
+    - The notes from entry 7 still stand:
+      - `make duplicates` shows five findings older than this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused `ManualWaiter`.
+      - `update-index` gets all left-out paths in one argument list, so a very large `left_out` could hit the system's limit on argument length.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
+16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. Of the generated schemas I read only `pipeline-definition.schema.json`: it gains an optional `not_read` with default `[]` and `x-records-contract` `"1.3"`. That is a minor raise for an added optional field, which follows the version rule in `docs/decisions.md` (line 641). Entry 15 records `make check` green.
+
+    What holds:
+    - Criteria 1 to 8 each have a test that checks what the criterion says.
+    - `TreeId` is tested on both sides of 40.
+    - `work_tree_id` is tested for case-sensitivity (`Docs/*`), the `docsx` sibling, the `*` empty tree and literal removal of `*` and `:` names.
+    - The checkout is shown unchanged after the call, and `GitError` is raised with the temporary folder emptied.
+    - The load rule's faults are tested for order and joining, after `tool_paths`, and for the type, empty and blank rows.
+    - Architecture holds. `is_inside_checkout` moved into `pipeline_definition` with no cycle. git is reached only through `GitCli._run`, which gains an `index` keyword that `_environment` turns into `GIT_INDEX_FILE`. `update-index --force-remove --` takes literal paths.
+    - Security: no markers, no strings built into a shell, no secrets.
+
+    Findings:
+    1. criterion 9 added: it needs its test. Where: `tests/domain/test_pipeline_not_read.py:50` (`ACCEPTED`), against the Interface's load rule (`src/factory/domain/pipeline_definition.py:251`, `_is_checkout_pattern`). What is wrong: the rule refuses a pattern that *starts with* `~` and one that has a *segment* `..`, but no accepted row has a `~` that is not at the start or a `..` inside a segment. So each of those two limits is tested on one side only, and a check like `"~" in pattern` or `".." in pattern` would pass every test. Fix: the tester adds `docs/~old/*`, `docs/a..b/*` and `docsx..y/*`… as accepted rows of `test_a_not_read_pattern_outside_the_checkout_is_refused`, the patterns as criterion 9 now names them: `docs/~old/*`, `docs/a..b/*`, `docs..x/*`. The code already accepts them, so nothing under `src/` changes. I wrote criterion 9 into `## Acceptance criteria` before the two closing ones, which are now 10 (`make check`) and 11 (docs).
+
+    Rejected as findings:
+    - `TreeId` repeats `CommitId`'s pattern, as the Interface prescribes.
+    - `.git/index` is reached through `self._directory / ".git"`, the wrapper's existing idiom.
+    - The `_changed` copies in three earlier modules were there before this story, and the diff does not add them.
+
+    Earlier tests (status M):
+    - `tests/application/test_git_interface.py`: the human's leave, the story's named change under the feature's decision 15 (`work_tree_id` added to `OPERATIONS`, test renamed). Within it.
+    - `tests/application/test_interfaces.py`: the human's leave, decision 15 (test renamed). Within it.
+    - `tests/domain/test_contract.py`: the human's leave, decision 15 (one `"1.2"` became `"1.3"`). Within it.
+    - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 15 (two `"1.2"` became `"1.3"`; name and docstring kept). Within it.
+    - `tests/git_support.py`: the standing leave to move a shared test helper (`pipeline_outcome` added as the shared place). Within it.
+    - `tests/domain/test_tool_paths.py`: the standing leave (`_outcome` replaced by `pipeline_outcome`, its unused import dropped). Within it.
+    - `tests/adapters/test_pipeline_rules.py`: the standing leave (`_outcome` replaced; three asserts rewrapped, each checking the same text). Within it.
+    - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
+    - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
+18. factory: started doing as self.
+19. coder: Round 2. I changed no code. In entry 17 the reviewer added criterion 9, which needs only its test. The tester should add `docs/~old/*`, `docs/a..b/*` and `docs..x/*` as accepted rows of `test_a_not_read_pattern_outside_the_checkout_is_refused` in `tests/domain/test_pipeline_not_read.py`.
+
+    Why no code changes: the load rule already accepts all three patterns. I checked by calling `_is_checkout_pattern` (`src/factory/domain/pipeline_definition.py:278`) on each of them: all three return True. The rule refuses only a leading `~` and a `..` that is a segment of its own.
+
+    What I built: nothing new this round. The paths from round 0 are unchanged (entry 7):
+    - `src/factory/domain/git.py`
+    - `src/factory/application/git.py`
+    - `src/factory/adapters/git_cli.py`
+    - `src/factory/domain/pipeline_definition.py`
+    - `src/factory/domain/write_paths.py`
+    - `src/factory/domain/confinement.py`
+    - `src/factory/domain/contract.py`
+    - `src/factory/contract/*.schema.json`
+
+    Main choice: end with `tests` and name the criterion. I rejected tightening or rewriting the rule's code: the finding is only about missing test coverage, and the code is already correct.
+
+    Description: the reviewer wrote criterion 9 into `## Acceptance criteria` before the two closing ones. The Description itself keeps its meaning, so I left it as it is.
+
+    Noticed but not touched (same as entries 7 and 15):
+    - The `_changed` helper is still copied in three earlier pipeline test modules: `tests/adapters/test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py`.
+    - `make duplicates` shows five findings older than this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused `ManualWaiter`.
+    - `update-index` gets all left-out paths in one argument list, so a very large `left_out` could hit the system's limit on argument length.
+20. factory: started tests as self.
+21. tester: Round 2, the test change named in the coder's entry 19, following the reviewer's finding in entry 17. I added the reviewer's criterion 9, which needed only its test, as three accepted rows of the existing parametrized test. No new test function was needed.
+
+    - criterion 9: tests/domain/test_pipeline_not_read.py::test_a_not_read_pattern_outside_the_checkout_is_refused. The new rows are `accepts-docs/~old/*`, `accepts-docs/a..b/*` and `accepts-docs..x/*`.
+
+    Files changed: `tests/domain/test_pipeline_not_read.py`, which this story wrote. I added the three patterns to `ACCEPTED`; the list is now one pattern per line. I created no new files and changed no test from another story.
+
+    Every module under test imported. The code already accepts all three patterns, so the new rows pass at once, as the coder's entry 19 predicted. `make test`: test: green (43.1 s), coverage 99.07 %. `make lint`: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (42.5 s)
+22. factory: started doing as self.
+23. coder: Round 2, after the tester's entry 21. I changed no code. The reviewer's only finding in entry 17 was criterion 9, the accepted rows for a `~` that is not at the start and a `..` inside a segment. The tester added those three rows to `tests/domain/test_pipeline_not_read.py::test_a_not_read_pattern_outside_the_checkout_is_refused`. They pass against the round-0 rule without any change, so that finding is closed. I ran `make check` on the committed state and it is green: `test: green (41.4 s)`, coverage 99.07 %, `check: green`.
+
+    What I built: nothing new this round. The round-0 paths are unchanged (entry 7):
+    - `src/factory/domain/git.py`: `TreeId`
+    - `src/factory/application/git.py`: the abstract method `Git.work_tree_id`
+    - `src/factory/adapters/git_cli.py`: `GitCli.work_tree_id`, using a temporary index through `_run(..., index=...)`, which sets `GIT_INDEX_FILE`
+    - `src/factory/domain/pipeline_definition.py`: the `not_read` field, the `is_inside_checkout` function moved in from `write_paths`, and the last rule in `_RULES`
+    - `src/factory/domain/write_paths.py` and `src/factory/domain/confinement.py`: they now import `is_inside_checkout` from `pipeline_definition`
+    - `src/factory/domain/contract.py`: the contract version is now 1.3
+    - `src/factory/contract/*.schema.json`: regenerated with `uv run python -m factory.entry.contract`
+
+    Main choice (from round 0): left-out paths are removed with `git update-index --force-remove -- <paths>`, which reads its arguments as literal paths. I rejected `git rm --cached` with `:(literal)` pathspecs, which would need a prefix on every path and complains about paths it does not find.
+
+    Refactor pass: this round has no new diff of mine to read, so nothing changed. The journal added criterion 9 but did not change what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched (same as entries 7, 15 and 19):
+    - The `_changed` test helper is still copied in three earlier modules: `tests/adapters/test_pipeline_rules.py`, `tests/adapters/test_pipeline_strict_values.py` and `tests/adapters/test_pipeline_stage_moves.py`.
+    - `make duplicates` shows five findings that predate this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter`.
+    - `update-index` gets all left-out paths in one argument list. A very large `left_out` could hit the system's limit on argument length.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
+24. factory: started review as self.
+25. reviewer: Round 2 review of `git diff main...HEAD -- . ':!factory'` against the work item. Of the generated schemas, I left out the five `src/factory/contract/*.schema.json` files and checked them only through `--stat` and the tests. Four of them change one line each (the version). The pipeline definition's schema gains `not_read`, which `tests/entry/test_contract_not_read.py` checks.
+
+    no findings
+
+    Checked:
+    - Acceptance criteria: criteria 1 to 9 each have a test that checks what the criterion says. Round 1's finding is closed: criterion 9's rows `docs/~old/*`, `docs/a..b/*` and `docs..x/*` are now in `ACCEPTED` (`tests/domain/test_pipeline_not_read.py:50`). So the leading-`~` limit and the `..`-segment limit of `_is_checkout_pattern` (`src/factory/domain/pipeline_definition.py:278`) are each tested on both sides.
+    - Other limits tested on both sides:
+      - `TreeId`: 39, 40 and 41 characters, upper case, and a non-hex character.
+      - `work_tree_id`: `Docs/*` (case) and `docsx` (a sibling folder).
+      - Literal removal: `a[*]b.md` and `:x.md` are removed, while `aXb.md` and `x.md` stay.
+      - Errors: the refused patterns, the order and joining of the faults (also after `tool_paths`), the non-list, number, empty and blank `not_read`, and `GitError` together with the emptied temporary folder.
+    - Entry 23 records `make check` green.
+    - Architecture: git is reached only through `GitCli._run`. The temporary index reaches git through the `index` keyword, which `_environment` turns into `GIT_INDEX_FILE`. `update-index --force-remove --` takes literal paths. `is_inside_checkout` moved into `pipeline_definition` without an import cycle. The contract minor goes from 1.2 to 1.3 for an optional field, as the version rule requires.
+    - Security: no markers, no shell or SQL built from strings, no secrets.
+    - Quality: the round-0 copied helper is now one `pipeline_outcome` in `tests/git_support.py`. `TreeId` repeats `CommitId`'s pattern, but the Interface prescribes that line.
+    - Hygiene: the Description matches what was built. Criterion 11 (docs) still names what the documenter must write.
+
+    Earlier tests (status M against `main`):
+    - `tests/application/test_git_interface.py`: the human's leave, the story's named change under the feature's decision 15 (`work_tree_id` added to `OPERATIONS`, test renamed to `..._twenty_four_...`). Within it.
+    - `tests/application/test_interfaces.py`: the human's leave, decision 15 (test renamed to `..._twenty_four_...`). Within it.
+    - `tests/domain/test_contract.py`: the human's leave, decision 15 (one `"1.2"` became `"1.3"`). Within it.
+    - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 15 (two `"1.2"` became `"1.3"`, name and docstring kept). Within it.
+    - `tests/git_support.py`: the standing leave to move a shared test helper (`pipeline_outcome` added as the shared place). Within it.
+    - `tests/domain/test_tool_paths.py`: the standing leave (`_outcome` replaced by `pipeline_outcome`, the unused import dropped). Within it.
+    - `tests/adapters/test_pipeline_rules.py`: the standing leave (`_outcome` replaced; three asserts rewrapped, each checking the same text). Within it.
+    - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
+    - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
+26. factory: started docs as self.
+27. documenter: Docs round 2. Only documents changed, so I did not run `make check`; the factory's check after this stage decides. I ran no example. I took the fault text and the accepted and refused patterns from `tests/domain/test_pipeline_not_read.py` and from the diff.
+
+    Files changed:
+    - `docs/project-guide/git-and-hosting.md`: "The git wrapper" now says twenty-four operations. It has a row for `work_tree_id(left_out)`: what counts in the tree, the temporary copy of the index set through `GIT_INDEX_FILE`, literal removal with `update-index --force-remove --`, and that the checkout's index, `HEAD`, refs and work tree stay as they are. "Which feature uses which operation" gets `work_tree_id` for F0023.
+    - `docs/project-guide/stages.md`, "The pipeline definition": `ProjectCommandDefinition.not_read`, its default `[]`, the refused forms and the fault text. It also says that `is_inside_checkout` moved into `pipeline_definition` and that nothing reads `not_read` yet.
+    - `docs/operator-guide.md`: the `project_commands` row, a paragraph and a YAML example for `not_read` (patterns as in `write_paths`, `*` crosses `/`, the refused forms and the fault, and that it does nothing yet). The records contract version is now 1.3, with what 1.3 added.
+    - `docs/project-guide/work-items.md`: `RECORDS_CONTRACT` in the contract paragraph went from `1.2` to `1.3`. That sentence was stale because of this story.
+
+    Cross-read and current against the diff: `README.md`, `docs/project-guide/README.md`, `docs/project-guide/write-guard.md` (`matches_any` and `*` crossing `/`; it does not name `is_inside_checkout`), `docs/decisions.md` (criterion 11 says no entry until S0002).
+
+    No findings: the code agrees with the Interface and the criteria.
+
+    Stale text I noticed and did not touch: nothing unrelated to this story.
+
+    `check`: check: green
+    `documents`: documents ok
+28. factory: started smoke-test as self.
+29. smoke-tester: Smoke test, round 2. I ran the three commands under `## Smoke test` from the repository root, as written and in order. No command starts a server. The first command's `mktemp -d` folder was removed by its own `trap`.
+
+    Command 1 (`work_tree_id` with and without `left_out`, against the commit `GitCli.commit` makes), exit 0:
+    ```
+    False True
+    False
+    True True
+    ```
+    Met `Expect:` (three lines, `False True`, `False`, `True True`).
+
+    Command 2 (`not_read` loads; the `../docs/*` pattern is refused), exit 0:
+    ```
+    ['README.md', 'docs/*']
+    project command check: not_read ../docs/* must be a path pattern inside the checkout
+    ```
+    Met `Expect:` (two lines, the list in the order written, then the fault text exactly).
+
+    Command 3 (the committed pipeline-definition schema), exit 0:
+    ```
+    True False
+    ```
+    Met `Expect:` (`True False`).
+
+    I checked the acceptance criteria against what the commands showed:
+    - Criterion 2: the tree id matches the tree of the commit made right after the call, and the status is clean afterwards.
+    - Criterion 3: an edit under `docs/` leaves `work_tree_id(["docs/*"])` unchanged but changes `work_tree_id()`, and an edit outside `docs/` changes both.
+    - Criterion 6: the patterns come back in the order written.
+    - Criterion 7: the fault text is exact.
+    - Criterion 8: `not_read` is among the schema's properties and not among its required fields.
+
+    Nothing contradicts any criterion. The commands do not cover criteria 1, 4, 5, 9 and 10, and they contradict none of them; the tests and the earlier stages' `make check` cover those.
+
+    Findings: none.

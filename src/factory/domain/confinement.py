@@ -11,9 +11,9 @@ from factory.domain.pipeline_definition import (
     CURRENT_SEGMENT,
     HOME_PREFIX,
     has_wildcard,
+    is_inside_checkout,
     tool_path_folder,
 )
-from factory.domain.write_paths import is_inside_checkout
 
 LANDLOCK_MINIMUM_ABI = 3
 # The devices a shell and its tools write to; a run allows those of them that exist.
