@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T22:33:19.395740Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T22:32:58.994034Z'
   stage: review
   run: 1314d728adeb4b4f9b0995b2dc8a9c3b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:33:19.395740Z'
+  stage: docs
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -158,3 +167,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests: none. The diff only adds `tests/test_template_makefile_header.py`. No test file on `main` is changed, renamed or deleted.
 
    Open: the todo demo's `Makefile:4` still has the old line. That file is outside every write path, and changing it is the human's call, as the Description says.
+10. factory: started docs as self.
