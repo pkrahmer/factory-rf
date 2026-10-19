@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T03:40:57.565858Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T03:40:57.565858Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T03:42:26.125572Z'
+  stage: review
+  run: c4ddff7675b34486b84e063839ed3caa
 ---
 
 # The agent runs can log in with an API key
@@ -354,3 +356,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The acceptance criteria (group 1), architecture (group 2) and security (group 3) all hold.
+   - Criteria 1 to 20 each have a test that checks what its criterion says. The coder's `make check` was green (entry 7).
+   - `agent_launch` imports only `factory.domain`, not `process`.
+   - No suppression markers were added.
+   - `LOGIN_SCRIPT` is built only from constants.
+   - A resumed run takes `login` from its second call through `model_copy`.
+   - The five schema files differ only in what the story names.
+
+   Group 4 (quality) fails on copies in the new test files. This is round 0, so they are findings:
+
+   1. `tests/adapters/test_claude_runtime_api_login.py:152` `_utf_16` is a second copy of `_utf_16` in `tests/adapters/test_agent_launch_login.py:54`: the same body writing `API_LOGIN.encode("utf-16")`. The same module also defines its own `API_LOGIN` (line 17) and `SUBSCRIPTION` (line 18) instead of reusing those of `test_agent_launch_login.py:25-26`. `tests/entry/test_wiring_api_login.py:16` defines a third `API_LOGIN`. Fix: the tester imports `_utf_16`, `API_LOGIN` and `SUBSCRIPTION` from `adapters.test_agent_launch_login` in both modules, or moves them to one shared module under `tests/`. The earlier modules already share `REPLY` and `_request` this way. No test changes what it checks, and nothing under `src/` changes.
+
+   Earlier tests (changed files that `main` already holds):
+   - `tests/adapters/test_claude_runtime_login.py`: standing leave to move a shared test helper, also named in the story's Interface. Its `Recorder` and `recorder` fixture moved to `tests/run_process_recorder.py` and `tests/conftest.py`; every test keeps its name and what it checks.
+   - `tests/adapters/test_claude_runtime_sudo_time_limit.py`: same leave, same move. The merged `Recorder` still answers with the given results first.
+   - `tests/conftest.py`: same leave. It only gains the moved `recorder` fixture.
+   - `tests/domain/test_contract.py`: the human's leave. The story names `test_a_schema_starts_with_the_dialect_and_the_contract_version` under the feature's decision 19 (expected version `"1.1"`), and the test keeps its name.
+   - `tests/test_compose.py`: the human's leave. The story names `test_the_three_volumes_are_mounted_and_declared` under decision 19; the fifth bind was added and the test keeps its name.
