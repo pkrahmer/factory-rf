@@ -13,7 +13,6 @@ import github
 import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.clock import SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -26,6 +25,7 @@ from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.pygithub_hosting import PyGithubHostingService
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
+from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.errors import SettingsInvalid
@@ -208,7 +208,7 @@ def test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing(
     assert isinstance(boundaries.cost_reader, JsonLinesCostRecordReader)
     assert isinstance(boundaries.cost_writer, JsonLinesCostRecordWriter)
     assert isinstance(boundaries.pipeline_reader, RuamelPipelineDefinitionReader)
-    assert isinstance(boundaries.agent_definitions, FrontmatterAgentDefinitionReader)
+    assert isinstance(boundaries.agent_definitions, ProjectAgentDefinitions)
     assert isinstance(boundaries.clock, SystemClock)
     assert isinstance(boundaries.log, TimestampedFactoryLog)
     assert isinstance(boundaries.health, JsonHealthStatusFile)
@@ -279,8 +279,9 @@ def test_the_built_project_commands_run_in_the_checkout(settings: InstanceSettin
 
 
 def test_the_built_agent_definitions_are_read_from_the_agent_home(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, settings: InstanceSettings
+    tmp_path: Path, remote: Path, monkeypatch: pytest.MonkeyPatch, settings: InstanceSettings
 ) -> None:
+    GitCli(settings.checkout).clone(str(remote))
     home = tmp_path / "home"
     install_agents(home / ".claude", ["intruder"])
     monkeypatch.setenv("HOME", str(home))

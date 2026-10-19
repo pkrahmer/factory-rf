@@ -22,7 +22,7 @@ Errors: `ValueError` when `work_item_path` is not `factory/features/<feature dir
 
 ### Protected paths and the refusal
 
-`PROTECTED_PATHS` is the engine's fixed list of ten patterns: `.claude/*`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, `feature.md` and `*/feature.md`. No write path can reach them, and a project cannot change the list. The patterns are anchored: `docs/CLAUDE.md` and `src/pyproject.toml` are not protected. `docs/project-guide/` is not protected; the documenter keeps it.
+`PROTECTED_PATHS` is the engine's fixed list of eleven patterns: `.claude/*`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, `feature.md`, `*/feature.md` and `factory/agents/*` (a project's own agents, `PROJECT_AGENTS_DIRECTORY` in `factory.domain.paths`). The last pattern reaches subfolders too; `factory/agentsx/coder.md` and `docs/factory/agents/coder.md` are not protected. No write path can reach them, and a project cannot change the list. The patterns are anchored: `docs/CLAUDE.md` and `src/pyproject.toml` are not protected. `docs/project-guide/` is not protected; the documenter keeps it.
 
 `refusal(path, guard)` is the one verdict, `None` when the write is allowed, else a text, checked in this order:
 

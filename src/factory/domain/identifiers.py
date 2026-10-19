@@ -3,7 +3,7 @@
 import re
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, StringConstraints, TypeAdapter, ValidationError
 
 # Defined here rather than beside the other names in paths, which builds on this module.
 BRANCH_PREFIX = "work-item/"
@@ -17,6 +17,8 @@ WorkItemId = Annotated[str, StringConstraints(pattern=r"^F\d{4}-[SA]\d{4}$")]
 FeatureId = Annotated[str, StringConstraints(pattern=r"^F\d{4}$")]
 Name = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9-]*$")]
 Slug = Annotated[str, StringConstraints(pattern=rf"^{_SLUG}$")]
+
+_NAME = TypeAdapter(Name)
 
 _WORK_ITEM_FILE_NAME = re.compile(rf"(?P<id>{_WORK_ITEM_ID})(-(?P<slug>{_SLUG}))?\.md")
 _FEATURE_DIRECTORY_NAME = re.compile(rf"(?P<id>{FEATURE_ID})(-(?P<slug>{_SLUG}))?")
@@ -39,6 +41,15 @@ class FeatureDirectoryName(BaseModel):
 
     id: FeatureId
     slug: Slug | None
+
+
+def is_name(text: str) -> bool:
+    """Tell whether `text` is a name: a lower-case letter, then lower-case letters, digits, `-`."""
+    try:
+        _NAME.validate_python(text)
+    except ValidationError:
+        return False
+    return True
 
 
 def parse_work_item_file_name(name: str) -> WorkItemFileName | None:
