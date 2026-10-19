@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T16:17:58.743524Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T16:17:58.743524Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T16:18:59.051582Z'
+  stage: docs
+  run: 17e299ccd4cf4d5fa3c4ab82ee5730fd
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -371,3 +373,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. Every test file in the diff has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
 18. factory: started docs as self.
+19. documenter: Docs round 1. No findings: the code matches the Interface and the criteria. I changed documents only, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: a new subsection *The report of a mutation run* under *Mutation testing*. It covers the input, the module of a mutant, the lines and the last line with an example, partial runs, exit statuses 0, 1 and 2, `--names` and the `<module>.*` pattern, and that the `make mutants` recipe is to call the command (the human's change after this story). In *The duplicates report* I added one sentence that `check_duplicates` reads its files through `factory.entry.inputs.read_input`.
+    - `docs/decisions.md`: a new entry, *A mutation run's report is a line of its own, and a partial run is never complete*, dated 2026-10-19. It has the decisions, the reasons, and the three rejected alternatives: a fourth check status, mutmut's own listing as the last line, and the survivors of every module in the report.
+    - `docs/project-guide/README.md`: the index line for `processes-and-checks.md` now names `factory.domain.mutants`, `factory.entry.check_mutants` and `factory.entry.inputs`, and the new subsection.
+
+    Examples: I ran the report, `--stopped-after 540`, `--names` and the missing-file fault against a results file in a temporary folder. The outputs and exit statuses 1, 1, 0 and 2 match what the docs show.
+
+    One thing differs from criterion 14. It asks for the feature's decisions 2, 3 and 8. The stage forbids reading `feature.md`, so I wrote the decision entry from the story's Description and criteria. The human may want to compare it with the feature's wording.
+
+    Cross-read and found current: the rest of `processes-and-checks.md` (*Mutation testing*, including the paragraph that describes today's `make mutants` recipe), the *Docs* and *Checks* sections of `CLAUDE.md`, and the other entries in `docs/decisions.md` that touch mutation testing.
+
+    Stale text I saw and did not touch:
+    - The *Mutation testing* paragraph on the acceptance reading survivors with `mutmut results | grep`, and `CLAUDE.md`'s "a second run goes on from the results kept in `mutants/`", describe the recipe as it is today. They change with the human's `Makefile` and `CLAUDE.md` changes after this story, not here.
+    - The reviewer's note that the two sides of `--stopped-after`'s "at least 1" sit in separate test functions is a test-file point, not a docs one.
+
+    `check`: check: green (not run again: passed on tree a2d0c03d102a at 2026-10-19T16:15:39Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok

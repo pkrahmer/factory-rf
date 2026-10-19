@@ -777,3 +777,14 @@ Date: 2026-10-19 (F0023-S0002). After an agent the factory ran every check and r
 - Decision: the store is a record log of its own in the state directory, not new fields on `CommandRecord`. No agent can write there, and `RecordingProjectCommands` sees no key.
 - Decision: only the factory's own runs are known. An agent's own `make check` would be the agent's word.
 - Rejected: a positive list of the paths a command reads; keying on the commit or the stage; fields on `CommandRecord`; counting an agent's run.
+
+## A mutation run's report is a line of its own, and a partial run is never complete
+
+Date: 2026-10-19 (F0024-S0001; F0024 decisions 2, 3 and 8). `make mutants` ended with mutmut's own listing of every survivor in `mutants/`, earlier features' modules included, and no line said how far the run got. The factory reads only the last line, and the acceptance reviewer worked out the score by hand.
+
+- Decision: `python -m factory.entry.check_mutants` reads the text of `mutmut results --all true` and prints the survivors of the named modules only, then one last line that counts every status.
+- Decision: a run is partial while a chosen mutant is `not checked` or the recipe stopped mutmut; the last line then says `partial`, and the exit status is 1, never 0. A partial run is not a pass and is not taken for a complete one.
+- Decision: `--names` prints the chosen mutants that are not killed, and a pattern `<module>.*` for a module with no mutant, so a later run goes on with what is left by name.
+- Decision: the rules are pure functions in `factory.domain.mutants`; the command reads the file through `factory.entry.inputs.read_input`, which `check_duplicates` now uses too.
+- Reasons: the last line is the one the factory and the reader see, so it must hold the whole answer; the exit status carries completeness without a new kind of result.
+- Rejected: a fourth check status for a partial run (the pipeline's statuses stay passed, failed and timed out); mutmut's own listing as the last line (it holds no count and no word for partial); the survivors of every module in the report (the reader would see other features' survivors and read them as the story's).
