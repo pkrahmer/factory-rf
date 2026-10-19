@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 271
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T16:26:16.051646Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T16:26:16.051646Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T16:26:38.909346Z'
+  stage: intake
+  run: b73d88c57c5245d18769af5ed9478863
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -77,3 +79,9 @@ Expect: three lines, `` `mutants`: 1718/1858 mutants (stopped at its time limit 
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: `factory.domain.checks.command_line(result: CheckResult) -> str` exists (checks.py:88) and `CheckResult` has `duration: timedelta`. The signature, the `time_limit` format (whole seconds rounded down, the empty last line form) and the unchanged passed/failed lines are concrete. `application.stage` is declared unchanged.
+   Criteria: Criterion 1 covers every Interface clause in parametrized rows: the time_limit line, rounding down (599.999 gives 599), the empty last line, and the passed and failed lines unchanged (the failing side). Criterion 2 is one stage test through `StageFinisher` with the named helpers. Each is testable by one test function. The reuse note is not tested alongside the suffix, which the Interface justifies because a reused result is always passed. Criteria 3 and 4 are the two closing ones.
+   Smoke test: The script is runnable with `uv run -q python`, using the existing `CheckResult` fields. The `Expect:` line names three exact lines that can be compared with the output.
+   Architecture: The change sits in `factory.domain.checks`, which is pure (no I/O). The stage test uses a `ProjectCommands` subclass, as CLAUDE.md requires, and no layer is crossed.
+   Scope: It matches feature decision 10 and the scope line for `checks.py` (S0002). It does not touch the Out of scope items (no new status, no gentler stop). The earlier tests stay as they are (decision 15).
