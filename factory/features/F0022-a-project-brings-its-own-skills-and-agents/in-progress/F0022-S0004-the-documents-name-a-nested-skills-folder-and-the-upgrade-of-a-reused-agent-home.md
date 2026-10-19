@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T20:35:44.643442Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T20:35:23.391373Z'
   stage: docs
   run: fe88aaf2f11141a2b75dbf57444d97a3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:35:44.643442Z'
+  stage: smoke-test
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -182,3 +191,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
