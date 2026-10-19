@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T14:40:00.435271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T14:40:00.435271Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T14:41:33.802836Z'
+  stage: review
+  run: e4f5b747b9fe442b9f8b63ce1291e480
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -175,8 +177,9 @@ Changed under the feature's decision 15, by the tester only, nothing else in tho
 6. `not_read` loads (rows of one parametrized test): a definition whose `check` is `{time_limit: 10}` gives `not_read == []`; `{time_limit: 10, not_read: ["README.md", "docs/*"]}` gives `["README.md", "docs/*"]`, in that order, and the other commands keep `[]`.
 7. The load rule (rows of one parametrized test, each a `check: {time_limit: 10, not_read: [<pattern>]}`): `docs/*`, `*.md`, `.github/*` and `factory/features/*` load. `/etc/*`, `~/notes/*`, `../docs/*`, `docs/../src/*`, `{work_item}`, `docs/{x` and `docs/x}` raise `PipelineDefinitionInvalid` whose fault is exactly `project command check: not_read <pattern> must be a path pattern inside the checkout`. With `check` and `lint` both holding `/a/*`, the fault is `project command check: not_read /a/* must be a path pattern inside the checkout; project command lint: not_read /a/* must be a path pattern inside the checkout`. `not_read: ["/b/*", "/a/*"]` gives the two faults in that order, joined by `; `. With `tool_paths: ["x"]` beside `not_read: ["/a/*"]`, the fault is `tool path x: must be <folder>/* or ~/<folder>/*; project command check: not_read /a/* must be a path pattern inside the checkout`. `not_read: "docs/*"`, `not_read: [1]`, `not_read: [""]` and `not_read: [" "]` raise `PipelineDefinitionInvalid` whose fault names `not_read`.
 8. The committed `src/factory/contract/pipeline-definition.schema.json` holds `not_read` among the `properties` of `ProjectCommandDefinition` under `$defs`, not among its `required`, and its `x-records-contract` equals `RECORDS_CONTRACT`. F0021-S0006's comparison of the committed schemas with the generated ones passes.
-9. `make check` stays green.
-10. docs: `docs/project-guide/git-and-hosting.md`, *The git wrapper*: `work_tree_id(left_out)`, what counts in the tree, the temporary index and that nothing in the checkout changes; *Which feature uses which operation*: `work_tree_id`, F0023. `docs/project-guide/stages.md`, *The pipeline definition*, where the guide describes the pipeline definition's model: `ProjectCommandDefinition.not_read`, its default and its load rule with the fault. `docs/operator-guide.md`, *The pipeline definition*: the key `not_read` of a project command, its form (patterns as in `write_paths`, `*` crossing `/`), the refused forms with the fault, and that it does nothing yet. `docs/decisions.md`: none, the entry comes with S0002.
+9. The load rule's positional sides (rows of criterion 7's parametrized test): `docs/~old/*` (a `~` not at the start) and `docs/a..b/*` and `docs..x/*` (`..` inside a segment, not a segment of its own) load.
+10. `make check` stays green.
+11. docs: `docs/project-guide/git-and-hosting.md`, *The git wrapper*: `work_tree_id(left_out)`, what counts in the tree, the temporary index and that nothing in the checkout changes; *Which feature uses which operation*: `work_tree_id`, F0023. `docs/project-guide/stages.md`, *The pipeline definition*, where the guide describes the pipeline definition's model: `ProjectCommandDefinition.not_read`, its default and its load rule with the fault. `docs/operator-guide.md`, *The pipeline definition*: the key `not_read` of a project command, its form (patterns as in `write_paths`, `*` crossing `/`), the refused forms with the fault, and that it does nothing yet. `docs/decisions.md`: none, the entry comes with S0002.
 
 ## Smoke test
 
@@ -395,3 +398,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. Of the generated schemas I read only `pipeline-definition.schema.json`: it gains an optional `not_read` with default `[]` and `x-records-contract` `"1.3"`. That is a minor raise for an added optional field, which follows the version rule in `docs/decisions.md` (line 641). Entry 15 records `make check` green.
+
+    What holds:
+    - Criteria 1 to 8 each have a test that checks what the criterion says.
+    - `TreeId` is tested on both sides of 40.
+    - `work_tree_id` is tested for case-sensitivity (`Docs/*`), the `docsx` sibling, the `*` empty tree and literal removal of `*` and `:` names.
+    - The checkout is shown unchanged after the call, and `GitError` is raised with the temporary folder emptied.
+    - The load rule's faults are tested for order and joining, after `tool_paths`, and for the type, empty and blank rows.
+    - Architecture holds. `is_inside_checkout` moved into `pipeline_definition` with no cycle. git is reached only through `GitCli._run`, which gains an `index` keyword that `_environment` turns into `GIT_INDEX_FILE`. `update-index --force-remove --` takes literal paths.
+    - Security: no markers, no strings built into a shell, no secrets.
+
+    Findings:
+    1. criterion 9 added: it needs its test. Where: `tests/domain/test_pipeline_not_read.py:50` (`ACCEPTED`), against the Interface's load rule (`src/factory/domain/pipeline_definition.py:251`, `_is_checkout_pattern`). What is wrong: the rule refuses a pattern that *starts with* `~` and one that has a *segment* `..`, but no accepted row has a `~` that is not at the start or a `..` inside a segment. So each of those two limits is tested on one side only, and a check like `"~" in pattern` or `".." in pattern` would pass every test. Fix: the tester adds `docs/~old/*`, `docs/a..b/*` and `docsx..y/*`… as accepted rows of `test_a_not_read_pattern_outside_the_checkout_is_refused`, the patterns as criterion 9 now names them: `docs/~old/*`, `docs/a..b/*`, `docs..x/*`. The code already accepts them, so nothing under `src/` changes. I wrote criterion 9 into `## Acceptance criteria` before the two closing ones, which are now 10 (`make check`) and 11 (docs).
+
+    Rejected as findings:
+    - `TreeId` repeats `CommitId`'s pattern, as the Interface prescribes.
+    - `.git/index` is reached through `self._directory / ".git"`, the wrapper's existing idiom.
+    - The `_changed` copies in three earlier modules were there before this story, and the diff does not add them.
+
+    Earlier tests (status M):
+    - `tests/application/test_git_interface.py`: the human's leave, the story's named change under the feature's decision 15 (`work_tree_id` added to `OPERATIONS`, test renamed). Within it.
+    - `tests/application/test_interfaces.py`: the human's leave, decision 15 (test renamed). Within it.
+    - `tests/domain/test_contract.py`: the human's leave, decision 15 (one `"1.2"` became `"1.3"`). Within it.
+    - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 15 (two `"1.2"` became `"1.3"`; name and docstring kept). Within it.
+    - `tests/git_support.py`: the standing leave to move a shared test helper (`pipeline_outcome` added as the shared place). Within it.
+    - `tests/domain/test_tool_paths.py`: the standing leave (`_outcome` replaced by `pipeline_outcome`, its unused import dropped). Within it.
+    - `tests/adapters/test_pipeline_rules.py`: the standing leave (`_outcome` replaced; three asserts rewrapped, each checking the same text). Within it.
+    - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
+    - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
