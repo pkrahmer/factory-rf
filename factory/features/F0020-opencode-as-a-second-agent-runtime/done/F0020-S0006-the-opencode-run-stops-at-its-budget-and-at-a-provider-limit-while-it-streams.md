@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -186,6 +186,11 @@ journal:
   at: '2026-10-19T10:28:45.593335Z'
   stage: smoke-test
   run: 63f30196c9624328b70dc9f4decc617b
+- number: 33
+  speaker: factory
+  kind: done
+  at: '2026-10-19T10:29:33.137718Z'
+  stage: approval
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -670,3 +675,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Nothing in the output contradicts any criterion, including the ones the command does not target.
 
     Findings: none.
+33. factory: done (pull request merged); cost: 15 runs, 23.3 min, 137 turns, 451056 tokens in (3524074 more from cache), 71482 out, $5.43
