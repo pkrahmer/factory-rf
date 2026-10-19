@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T14:24:48.227452Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T14:24:48.227452Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T14:25:06.019383Z'
+  stage: intake
+  run: 3e4cc65b172b460691dec86d99fb6a73
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -164,3 +166,10 @@ Expect: `True False`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.git.TreeId`, `Git.work_tree_id(left_out)`, `GitCli.work_tree_id`, `ProjectCommandDefinition.not_read`, the load rule with its exact fault text, the move of `is_inside_checkout`, the contract minor 1.2 to 1.3). Every comment-stated behaviour has a criterion: the tree contents (2), the literal-path removal (3), the unchanged index, status and HEAD (4), the temporary folder removed also on error (4), the no-commit case (2), the default `[]` (6).
+   Criteria: each is testable by one parametrized test and the rows are concrete. Each rule has its failing side: `TreeId` refusals (1), the refused patterns `/`, `~`, `..`, `{`, `}` and the faults' order and joining (7), a non-list, non-string, empty or blank `not_read` (7), `GitError` on a non-repository (4), `Docs/*` case-sensitivity and `docsx` (3). The renamed and literal-pinned tests have the feature's decision 15 as the human's word.
+   Smoke test: three runnable blocks. Each `Expect:` line is checkable: the printed booleans, the list and the exact fault text, `True False`.
+   Architecture: matches CLAUDE.md. `TreeId` lives in domain; `Git` is the abstract class, `GitCli` its only implementation and the only git caller; DTOs are Pydantic; the layer direction holds (`write_paths` and `confinement` import from `pipeline_definition`).
+   Scope: inside F0023's scope list (S0001 items) and not in its Out of scope; nothing uses `not_read` or `work_tree_id` yet, which is S0002's.
+   Open: none. One note, not a question: criterion 8 pins the contract version only through `x-records-contract` equal to `RECORDS_CONTRACT`; the `"1.3"` literal itself is pinned by the changed existing tests.
