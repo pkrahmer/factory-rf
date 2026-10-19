@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T08:05:04.754841Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T08:04:47.025048Z'
+  stage: review
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-10-19T08:05:04.754841Z'
   stage: review
 ---
 
@@ -653,3 +662,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal is `""`, which matches any validation error. A fragment such as `limit_wait must be positive` would pin which rule refused it.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-10-19 human: Go on, one more round, limited to entry 31's finding: the tester writes the test for criterion 19 (a time-limited run of both runtimes carries its `session`), the code stays as built. The reviewer then checks that test only; its two notes go forward as notes, not back.
+34. factory: started review as self.
