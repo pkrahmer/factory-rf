@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T22:59:32.769074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-19T22:59:32.769074Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:01:20.574439Z'
+  stage: tests
+  run: 4c2ec8b77b324468812a76ec23d31103
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -255,3 +257,20 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
 
     Noticed but did not touch: the earlier test modules still hold their own copies of the reply constant. Removing them would be a story of its own.
 15. factory: started tests as self.
+16. tester: I made the move named in the coder's entry 14, under CLAUDE.md's standing leave to move a shared test helper. It answers the reviewer's group 4 finding in entry 12.
+
+    - `tests/adapters/opencode_stand_in.py`: I added `REPLY = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))` at the end of the module, after the step helpers it uses.
+    - `tests/adapters/test_opencode_limit_wait_on_stderr.py`: I deleted the module's own `REPLYING` constant. The module now imports `REPLY` from `adapters.opencode_stand_in` and uses it in the `500` and `4281` rows. I also dropped the imports the constant alone used (`result_text`, `step_finish`, `text`).
+
+    No earlier test file changed. `opencode_stand_in.py` is a shared helper module, not a test, and the earlier modules keep their own copies of the reply constant, as the Interface ("No earlier test changes") and the reviewer's fix ask.
+
+    The criterion mapping is unchanged:
+    - criterion 1: `tests/adapters/test_opencode_limit_wait_on_stderr.py::test_a_limit_line_on_standard_error_gives_the_wait_it_names`
+    - criterion 2: `tests/adapters/test_process_streaming_last_line.py::test_a_stop_on_a_last_line_without_a_newline_stops_the_call_at_once`
+
+    Files created: none in this round. Modules the test run could not import: none. The story changes no code, so the tests pass as they did before.
+
+    `make test` is green (coverage 99.13 %) and `make lint` is green. I skipped `make types`, as this stage says to.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (45.4 s)

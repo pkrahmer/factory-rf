@@ -9,19 +9,16 @@ import pytest
 from adapters.claude_stand_in import Step
 from adapters.opencode_stand_in import (
     BOUND_SECONDS,
+    REPLY,
     RESUME_REPLY,
     WAIT_SECONDS,
     opencode_request,
-    result_text,
     stand_in_runtime,
     stdout,
-    step_finish,
     step_start,
-    text,
 )
 
 WAITING = Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)
-REPLYING = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))
 
 
 @pytest.mark.parametrize(
@@ -46,14 +43,14 @@ REPLYING = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))
         ),
         pytest.param(
             "HTTP 500 Internal Server Error, retry after 120 seconds",
-            REPLYING,
+            REPLY,
             "completed",
             None,
             id="500",
         ),
         pytest.param(
             "HTTP 4281 Precondition Required, retry after 120 seconds",
-            REPLYING,
+            REPLY,
             "completed",
             None,
             id="4281",
