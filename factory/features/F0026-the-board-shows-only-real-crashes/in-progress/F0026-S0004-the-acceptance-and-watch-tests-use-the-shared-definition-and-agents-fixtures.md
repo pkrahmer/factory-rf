@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T17:34:22.744759Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T17:34:01.224702Z'
   stage: doing
   run: 6a3127ead1384c5eab424cee64f3a1e4
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:34:22.744759Z'
+  stage: review
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -140,3 +149,4 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
    `mutants`: mutants: no module under src/factory changed by F0026-S0004
+8. factory: started review as self.
