@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T08:00:55.362367Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,19 @@ journal:
   kind: started
   at: '2026-10-19T08:00:55.362367Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T08:02:27.599642Z'
+  stage: review
+  run: ab553c4b94984e75b7571b478fca37c7
+- number: 32
+  speaker: factory
+  kind: question
+  at: '2026-10-19T08:02:27.599642Z'
+  stage: review
+  run: ab553c4b94984e75b7571b478fca37c7
+  blocked: round_cap
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -291,8 +300,9 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 16. `CostRecorder.complete` with a `provider_limit` result that holds one refused call naming `/work/a.py` writes `end_reason` `provider_limit`, `denials` 1 and `denied_paths` `["/work/a.py"]`; with no refused call, `denials` 0 and `denied_paths` `[]`; a `died` and a `time_limit` result leave both unknown (rows).
 17. A `JournalRecord` of kind `stall` with `reason` `provider_limit` is valid and round-trips through the work item's state; every value of `StallReason` in `factory.domain.journal` is still a row of F0021-S0001's criterion that covers them, and `factory.domain.decisions.StallReason` is the same type.
 18. The records contract's version is `1.2` and the committed schemas are the generated ones: `provider_limit` is among the values of `end_reason` in `cost-record.schema.json` and of the journal record's `reason` in `work-item-state.schema.json` and `acceptance-state.schema.json`; `stop-record.schema.json` and `pipeline-definition.schema.json` differ from the earlier ones only in `x-records-contract`, which reads `1.2` in all five; `uv run python -m factory.entry.contract` leaves the committed files unchanged (the existing comparison test passes).
-19. `make check` stays green.
-20. docs: `docs/operator-guide.md`: the configuration table gets `FACTORY_PROVIDER_LIMIT_STATUS` (default 428) and `FACTORY_PROVIDER_LIMIT_MESSAGE` (a regular expression, unset by default), with a sentence on what each matches and where (an error result or event and standard error, never the agent's own text); the stall reasons gain `provider_limit`; the records contract's version now reads `1.2` and the cost record's `end_reason` and the journal record's `reason` list `provider_limit`. `docs/project-guide/agents.md`: the end reason `provider_limit`, `AgentRunResult.session` and `limit_wait`, `AgentRunRequest.resume_session` and how each runtime resumes a session. `docs/decisions.md`: an entry *A provider's spend limit is its own end reason, and the session is kept*, dated with the story, with the reasons of the feature's decisions 12 and 13.
+19. A run that outlasts its time limit keeps its session: the Claude Code runtime's `time_limit` result has the `--session-id` it called with, and the opencode runtime's has the `sessionID` of the events the stand-in printed before its wait (`stdout_before_wait`), or the request's `resume_session` `"ses_a"` when it printed none (rows).
+20. `make check` stays green.
+21. docs: `docs/operator-guide.md`: the configuration table gets `FACTORY_PROVIDER_LIMIT_STATUS` (default 428) and `FACTORY_PROVIDER_LIMIT_MESSAGE` (a regular expression, unset by default), with a sentence on what each matches and where (an error result or event and standard error, never the agent's own text); the stall reasons gain `provider_limit`; the records contract's version now reads `1.2` and the cost record's `end_reason` and the journal record's `reason` list `provider_limit`. `docs/project-guide/agents.md`: the end reason `provider_limit`, `AgentRunResult.session` and `limit_wait`, `AgentRunRequest.resume_session` and how each runtime resumes a session. `docs/decisions.md`: an entry *A provider's spend limit is its own end reason, and the session is kept*, dated with the story, with the reasons of the feature's decisions 12 and 13.
 
 ## Smoke test
 
@@ -614,3 +624,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 30. factory: started review as self.
+31. reviewer: Review, round 2. I read the work item and `git diff main...HEAD -- . ':!factory'` without the generated schemas. The factory's `make check` after the coder was green (entry 29).
+
+    The finding from entry 23 is settled: the `retry-after` form now has the rows `Retry-After: 5`, `retry-after 1234567` and `retry-after: soon`, so both forms of the one-to-six-digit limit are tested on every side. I read the code again under `src/`:
+    - `claude_runtime._end_reason` checks the time limit, then the budget, then the provider limit, then `died`.
+    - `_limit_text` searches only an `is_error` reply's `result`, or standard error when no reply parses.
+    - `_session_arguments` and `_resume_arguments` keep an existing `--resume`.
+    - In `opencode_runtime`, `_session` and `--session` come right before the prompt.
+    - `resumed_result` takes the second call's session, else the first's.
+    - `provider_limits` and `settings` match the Interface.
+
+    Group 1 (acceptance criteria) fails on one point:
+
+    1. criterion 19 added: it needs its test. The Interface says `session` is "set by both runtimes whatever the end reason". The coder built exactly that for the time-limited run: in `src/factory/adapters/opencode_runtime.py` `_result`, the events are now parsed before the `timed_out` return so that result carries `session`, and `claude_runtime._result` passes `session` into the time-limited early return. No test pins either one. `test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit` does not check `session`, and the opencode tests have no time-limited row. The fix is tests only, with no change under `src/`: the Claude time-limit test (or a row beside it) checks `result.session` against its `--session-id`. An opencode row uses `Step(stdout_before_wait=<events with a sessionID>, wait_seconds=...)` and a time limit of a few seconds, and expects that `sessionID`; another row prints no events, sets `resume_session` `"ses_a"`, and expects `ses_a`. I wrote this into `## Acceptance criteria` as criterion 19 and renumbered the closing two to 20 (`make check`) and 21 (docs).
+
+    Earlier tests:
+    - tests/domain/test_agent_runs.py: the leave the story names under the feature's decision 19 (renamed `test_question_and_the_six_end_reasons`, count 6, `provider_limit` added). The change stays within that leave.
+    - tests/domain/test_contract.py: the leave the story names under decision 19 (expected version `"1.2"`, name kept). The change stays within that leave.
+    - tests/domain/test_contract_login.py: the human's leave in journal entry 9 (the two version assertions removed, the test renamed). The removed import was used only by those assertions, so the change stays within that leave.
+
+    Notes:
+    - tests/adapters/test_claude_runtime_provider_limit.py:22 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply("API Error: 429 spend limit reached")`.
+    - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal is `""`, which matches any validation error. A fragment such as `limit_wait must be positive` would pin which rule refused it.
+32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
