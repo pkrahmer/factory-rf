@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T21:00:20.059729Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T21:00:20.059729Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T21:02:13.064672Z'
+  stage: doing
+  run: 2d2e2941a2104de2b3c4736389df9b8f
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -256,3 +258,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (44.2 s)
 14. factory: started doing as self.
+15. coder: Round 1: the tester made the test change I passed on in entry 11, so this run changed no code and no file.
+    - What the tester did (entry 13): the module docstring of `tests/test_claude_agent_texts_mutants.py` now holds decision 7's exact text. The source line is split with a backslash continuation to stay within the line limit.
+    - Code: the four files under `claude/` and `template/` are as they were in entry 7: `claude/agents/acceptance-reviewer.md`, `claude/agents/reviewer.md`, `template/CLAUDE.md` and `template/Makefile`. The reviewer found that they match the Interface's old and new pairs exactly.
+    - Main choice: I'm sending it back to review without touching the code. Reviewer finding 1, the only finding, was in a test and is now done. I rejected re-editing the shipped texts, because no finding concerned them.
+    - Refactor: nothing to change. The diff is only exact text replacements.
+    - Checks: `make check` is green on the committed state (coverage 99.12 %).
+    - Noticed, not touched: what I said in entries 7 and 11 still holds. Line 4 of `template/Makefile` calls `duplicates` and `mutants` "reports outside `check`", which could be a later wording story. The docs criterion (7) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
