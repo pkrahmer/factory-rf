@@ -3,15 +3,11 @@ stage: tests
 blocked: null
 round: 0
 attempts: 0
-crashes: 0
+crashes: 1
 pull_request: 276
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T18:01:31.655014Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -33,6 +29,11 @@ journal:
   speaker: factory
   kind: started
   at: '2026-10-19T18:01:31.655014Z'
+  stage: tests
+- number: 5
+  speaker: factory
+  kind: crash
+  at: '2026-10-19T18:04:50.733930Z'
   stage: tests
 ---
 
@@ -164,3 +165,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
    Architecture: tests only, in `tests/entry/` and `tests/application/`, mirroring the package. The stand-in replaces `boundaries_from_environment`, not the code under test. No earlier test changes.
    Scope: the story is not in `feature.md`'s Stories list because the feature acceptance proposed it. It sits inside the feature's goal, touches nothing in "Out of scope" (not `test_watcher_move_rule.py`, not the tick's judgement), and changes no code.
 4. factory: started tests as self.
+5. factory: crash 1: the run of stage tests ended without a result. Its work is discarded back to commit 89542f8b3d9d0cf21231592263b8f660ca9dd937.
