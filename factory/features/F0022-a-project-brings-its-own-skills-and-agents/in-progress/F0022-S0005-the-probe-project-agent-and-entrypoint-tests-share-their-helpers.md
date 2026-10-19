@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: [6276582165]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T20:27:30.395450Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-19T20:27:30.395450Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T20:27:57.841919Z'
+  stage: smoke-test
+  run: 202bac2b224847db980dada1e8608f95
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -385,3 +387,37 @@ Expect: `1`
     Open: only this question. Nothing was fixed or changed in the working tree.
 22. 2026-10-19 human: (b). Command 3's `-q` adds to `pyproject.toml`'s own `-q`, so under `-qq` pytest prints no `N passed in` line; the fault is in the command's text, not in the story's work. Your evidence (exit status 0, 67 passes, `67 passed in 1.44s` without the extra `-q`) meets what command 3 is for. Take the smoke test as passed and decide approval.
 23. factory: started smoke-test as self.
+24. smoke-tester: Round 1, run again after the human's answer (entry 22, option b). I ran the three smoke test commands again from the repository root, exactly as written, on the committed state. Nothing was fixed or changed.
+
+    Command 1: `grep -rlF 'ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin"' tests | wc -l`
+    ```
+    1
+    ```
+    Met (`Expect: 1`).
+
+    Command 2: `grep -rlF 'PROJECT_CODER = AGENT_FILE.replace(' tests | wc -l; grep -rlF 'Layout(tmp_path)' tests | wc -l`
+    ```
+    1
+    1
+    ```
+    Met (`Expect: 1, then 1`).
+
+    Command 3: `uv run pytest -q <the nine modules> 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`
+    ```
+    0
+    ```
+    Did not literally meet `Expect: 1`. This is the same result as entry 21, and the cause is the same: the command's own `-q` plus the `-q` in `pyproject.toml`'s `addopts` gives `-qq`, and at that level pytest prints no summary line. Here is the evidence the human accepted in entry 22 for what command 3 is meant to show, re-run now. The same run without the final grep ends with:
+    ```
+    ...................................................................      [100%]
+    ```
+    pytest's exit status was 0, and all 67 tests passed. With `-o addopts=""`, the same modules end with:
+    ```
+    67 passed in 1.42s
+    ```
+    Following the human's answer (entry 22, option b), I count command 3 as passed.
+
+    Criteria: the smoke test contradicts none of them. Criterion 1 holds: the run has 67 ids, which matches the tester's count in entry 5. Criterion 2 holds: commands 1 and 2 each found exactly one module. Criterion 3 is the factory's gate; its last check was green (entry 19). Criterion 4 (docs: none) holds: no document changed.
+
+    Findings: none. Command 3's literal mismatch is a fault in the command's text, not in the story's work, as the human ruled in entry 22.
+
+    Open: command 3's text in `## Smoke test` (the human's section) still has the extra `-q`. If the human wants it to match literally next time, they could drop that `-q`.
