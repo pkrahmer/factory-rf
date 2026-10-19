@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T11:25:04.188628Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-19T11:25:04.188628Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:25:40.673247Z'
+  stage: doing
+  run: 2aeea47664c14354b244f71ba3540587
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -391,3 +393,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. Every test file in the diff is new (status `A`), and no earlier test file changed.
 20. factory: started doing as self.
+21. coder: Round 1. The reviewer's entry 19 has four findings, and each one is a change to tests, not to code. I checked that each holds against the files on the branch. I changed no code and no test. The implementation from entries 10 and 17 stays as it is: `src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, `image/Dockerfile`, `image/compose.yml`.
+
+    The tester should make these changes. Findings 2 to 4 move helpers under CLAUDE.md's standing leave to move a shared test helper. Finding 1 changes only this story's own test.
+
+    1. `tests/entry/test_wiring_opencode.py:37`: `_settings` copies the `local_settings` fixture in `tests/conftest.py:113`, with the same root, checkout, state and `agents-home`. Drop `_settings` and use `local_settings.model_copy(update=...)` in its place.
+    2. `tests/entry/test_wiring_opencode.py:92-95` and `:135-138` write the same `settings.json` inline. `_settings` in `tests/adapters/test_opencode_runtime.py:45` does the same thing. Move it to one shared helper under `tests/` (a support module at the root, or a fixture in `tests/conftest.py`). Use it from both wiring tests and from `tests/adapters/test_opencode_runtime.py`.
+    3. `tests/test_opencode_image.py:10` and `:41-43` copy `COMPOSE` and the `service` fixture of `tests/test_compose.py:10-21`. Move them to one shared place under `tests/` and import them in both modules.
+    4. `BASE` in `tests/domain/test_settings_agent_runtime.py:13`, `tests/domain/test_settings_opencode_models.py:8` and `tests/domain/test_settings_opencode_folders.py:8` is another copy of the base environment. That same constant is also defined in the earlier modules: `tests/domain/test_settings_pinned.py:7` and its neighbours that define `BASE` (`test_settings_min_free.py`, `test_settings_provider_limit.py`, `test_settings_provider_limit_wait.py`, `test_settings_claude_login.py`, `test_settings_api_login.py`, `test_settings_boundaries.py`, `test_settings_agent_user.py`, `test_settings.py`). Move it to one shared constant under `tests/`. Change only the earlier modules whose `BASE` is the same value, and name each one in the entry.
+
+    Every test keeps its name and checks the same thing.
+
+    Main choice: I ended with `tests` rather than `question`, because the standing leave covers moves 2 to 4 and finding 1 changes only this story's own test. The other option was to ask the human; I rejected it because the leave already answers this.
+
+    Noticed, not touched: `make duplicates` still reports the four `claude_runtime`/`opencode_runtime` similar-code pairs and `ManualWaiter` in `src/factory/adapters/clock.py`. The reviewer judged that none of these comes from this story. The journal did not change the Description. I did not run `make check` this run because I changed nothing; it was green after entry 17.
