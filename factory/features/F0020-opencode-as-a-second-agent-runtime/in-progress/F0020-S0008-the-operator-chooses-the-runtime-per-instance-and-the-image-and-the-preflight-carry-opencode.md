@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T11:10:50.209799Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-19T11:10:29.589401Z'
   stage: tests
   run: e99f1c09789243b98eab997cc1454054
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:10:50.209799Z'
+  stage: doing
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -239,3 +248,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none]
+9. factory: started doing as self.
