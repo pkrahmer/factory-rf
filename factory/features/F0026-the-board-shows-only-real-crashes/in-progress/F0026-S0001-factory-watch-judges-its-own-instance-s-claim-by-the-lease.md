@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T12:52:25.046449Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T12:52:25.046449Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T12:52:55.260428Z'
+  stage: smoke-test
+  run: 68f944ec3f994d3fbe1a192124cbc0ca
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -468,3 +470,40 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the two commands under `## Smoke test` from the repository root, as written and in order. Both met their `Expect:` lines.
+
+    **Command 1** (`observed_claim_status` beside `claim_status`, for own and other claims around the 60-minute lease, and for no claim):
+
+    ```
+    self 0 held own
+    self 59 held own
+    self 60 own own
+    other 59 held held
+    other 60 expired expired
+    none
+    ```
+    Exit 0. **Met** `Expect:` exactly: six lines, in the expected order.
+
+    **Command 2** (`run_watch` as instance `self` on a story branch whose claim is `self`'s and started 1 minute ago, then 61 minutes ago; real local bare remote in a `mktemp -d` folder that the trap removes):
+
+    ```
+    0 event: idle:-  F0001-S0001 is held by self ''
+    0 event: crash:F0001-S0001 ''
+    ```
+    Exit 0. **Met** `Expect:` exactly: status 0, `err` empty in both rows.
+
+    **Judgement against `## Acceptance criteria`:**
+    - Criterion 1: matches the held/own/expired/none outcomes, including that an own claim at exactly 60 minutes is `own` and another instance's claim at 60 minutes is `expired`.
+    - Criterion 2: the unchanged `claim_status` still gives `own` for an own claim at any age, as the smoke test's second column shows.
+    - Criterion 5: matches `run_watch`'s first line, its status 0 and its empty `err`.
+
+    Nothing the smoke test showed contradicts any criterion. It did not check:
+    - the acceptance rows (criteria 3 and 4)
+    - the board row's `claim=` (criterion 5)
+    - `test_claim_ownership` (criterion 6)
+    - `make check` (criterion 7)
+    - the docs (criterion 8)
+
+    The tests and the factory's checks cover those.
+
+    Findings: none. Open: nothing.
