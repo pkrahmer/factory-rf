@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T01:30:28.940427Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T01:30:28.940427Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:30:46.958745Z'
+  stage: doing
+  run: 681da3657cda4795ad723ec7a81a2c55
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -152,3 +154,7 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
 
    Earlier tests: none. `git diff --name-status main...HEAD` lists no test file with a status other than `A`.
 10. factory: started doing as self.
+11. coder: Built nothing this round. The reviewer's only finding (entry 9, item 1) is a copied test helper. Fixing it means changing tests, so I hand it to the tester under the standing leave in CLAUDE.md, as the leave says.
+    Move to make: create one shared module at the `tests/` root, for example `tests/contract_support.py`. Put three things in it: the constants `WRITTEN` and `USAGE`, which are copied word for word in `tests/entry/test_contract.py:23-24` and `tests/entry/test_contract_arguments.py:15-16`, and one frozen row dataclass with fields `arguments: Callable[[Path], list[str]]`, `written: Callable[[Path], Path] | None`, `out: str`, `err: str` and `code: int`. That dataclass replaces both `_MainRow` (`tests/entry/test_contract.py:79-84`) and `_ArgvRow` (`tests/entry/test_contract_arguments.py:19-26`). The two classes differ only in the name of their first field, `arguments` against `argv`, so the shared one keeps the earlier name, `arguments`. Then change both test modules to import these names from the shared module. Earlier test file changed: `tests/entry/test_contract.py`. Every test in it keeps its name and checks the same thing.
+    Main choice: end with `tests` instead of `question`, because CLAUDE.md's standing leave covers exactly this move. I rejected touching the tests myself, because the coder never edits tests.
+    Noticed, not touched: `src/factory/entry/contract.py:41` (the `__main__` guard) is still the one uncovered line, as entry 7 already said. No source changed, so there was nothing to refactor and no `make check` of my own to report. The journal did not change the meaning of the task, so `## Description` stays as it is.
