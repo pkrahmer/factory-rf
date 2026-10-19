@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T17:56:09.066748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-19T17:56:09.066748Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T17:57:06.349235Z'
+  stage: review
+  run: bcca8fb9e5854a84bb272b63a3fc42bc
 ---
 
 # The claim service's refusals name their cause
@@ -125,7 +127,7 @@ journal:
 
 ## Description
 
-`ClaimService` (`factory.application.claims`) refuses, with `ValueError` and before it writes anything, in these cases: a name that is no instance name; a claim for a stage other than the work item's; a stage the pipeline definition does not have; a stage without a role; a branch that is not the work item's own; a path that is no work item's file; and a checkout on another branch. When a tick meets one of these, its message is what the factory log's line of the failed iteration shows the operator. The tests in `tests/application/test_claims.py` match the message with `r".+"` or `r".*"`, which `"None"` also passes, so F0026's mutation run left seven mutants alive that replace a message with `None`. This story pins each message's text with new tests and changes no code. The refusals themselves, their order and the claim are unchanged, and so is `tests/application/test_claims.py`.
+`ClaimService` (`factory.application.claims`) refuses, with `ValueError` and before it writes anything, in these cases: a name that is no instance name; a claim for a stage other than the work item's; a stage the pipeline definition does not have; a stage without a role; a branch that is not the work item's own; a path that is no work item's file; and a checkout on another branch. When a tick meets one of these, its message is what the factory log's line of the failed iteration shows the operator. The tests in `tests/application/test_claims.py` match the message with `r".+"` or `r".*"`, which `"None"` also passes, so F0026's mutation run left seven mutants alive that replace a message with `None`. This story pins each message's text with new tests and changes no code. The refusals themselves, their order and the claim are unchanged, and the tests in `tests/application/test_claims.py` keep their names and what they check.
 
 ## Interface
 
@@ -139,7 +141,7 @@ No module under `src/factory/` changes. The behaviour pinned is that of `ClaimSe
 - a path whose file name is no work item's: `<path> is not a work item's file`;
 - a checkout on another branch: `the checkout is on <checked-out branch>, not on <branch>`.
 
-Tests (the tester writes them): `tests/application/test_claims_refusals.py` (new), on the `boundaries` fixture and the test remote's pipeline definition (`definition` in `tests/conftest.py`), whose `approval` stage has no role. No earlier test changes.
+Tests (the tester writes them): `tests/application/test_claims_refusals.py` (new), on the `boundaries` fixture and the test remote's pipeline definition (`definition` in `tests/conftest.py`), whose `approval` stage has no role. Under the human's leave (journal entry 10), the work-item preparation and the checkout file reader move to one shared module, `tests/work_item_support.py` (`CREATED`, `created_state`, `put_work_item`, `checkout_text`), and `tests/application/test_claims.py` and `tests/application/test_undo.py` import them from there; every earlier test keeps its name and what it checks.
 
 ## Acceptance criteria
 
@@ -355,3 +357,30 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 19. factory: started review as self.
+20. reviewer: Review at round 1. I reviewed `git diff main...HEAD -- . ':!factory'` and the work item. The diff covers `tests/work_item_support.py` (new), `tests/application/test_claims_refusals.py` (new), and changes to `tests/application/test_claims.py` and `tests/application/test_undo.py`. Nothing under `src/` changed.
+
+    no findings
+
+    - Group 1 passes.
+      - Criterion 1: `test_service_refusal_of_an_instance_name_quotes_the_name` has three rows. `"Factory-1"` and `""` must give the exact `str`, and `"factory-1"` must be accepted.
+      - Criterion 2: `test_claim_refusal_names_its_cause_and_writes_nothing` has six rows, one per refusal. Each row checks the message for equality and compares a snapshot taken before and after the claim (git status, the work item, `notes.md`, the remote branch's commit).
+      - Each message is the one `claims.py` reaches first for that row's inputs.
+      - The coder's entry 18 records `check: green`. It has no `mutants` line, so there was no mutation report to read.
+    - Groups 2 and 3 have nothing to fail: no code changed and no marker was added.
+    - Group 4: findings 1 and 2 of entry 12 are fixed.
+      - `_file_text` and `test_undo.py`'s `_text` are now one `checkout_text` in `tests/work_item_support.py`.
+      - The preparation is now one `put_work_item`, which `_prepare` and the `prepared` fixture both call.
+    - Group 5: finding 3 of entry 12 was still open. The coder and the tester cannot write the work item, so the rewrite would have looped back to `doing`. The work item is in the reviewer's write paths, so I made the rewrite myself, using the wording the human gave in entry 10:
+      - In `## Description`, "and so is `tests/application/test_claims.py`" now reads "and the tests in `tests/application/test_claims.py` keep their names and what they check".
+      - In `## Interface`, "No earlier test changes" now names the shared `tests/work_item_support.py` and its four helpers, and says that `test_claims.py` and `test_undo.py` import them under the human's leave in entry 10, every earlier test keeping its name and what it checks.
+      - I considered sending this back with `doing` and rejected it: no stage after me can write that text.
+      - The docs criterion ("docs: none") still holds, because only tests changed.
+
+    Earlier tests:
+    - tests/application/test_claims.py: the human's leave, entry 10. `_file_text` was replaced by the shared `checkout_text`, `_prepare` and `_state` were delegated to `put_work_item` and `created_state`, and `CREATED` is now imported. The test names and assertions are unchanged.
+    - tests/application/test_undo.py: the human's leave, entry 10. `_text` was merged into `checkout_text`, and `_start` builds its state with `created_state`. The test names and assertions are unchanged.
+
+    Notes:
+    - tests/application/test_undo.py:62-70: `_start` still repeats `put_work_item`'s checkout, write, commit and push, because it writes `BASE_FILES` in between. `put_work_item(..., committed=False)` followed by `write_files` and the commit would remove most of that repetition.
+    - tests/application/test_claims_refusals.py:19: `BODY` is the same text as `BODY` in `tests/application/test_undo.py:37` and in `tests/application/test_claims.py:34`. It could join `tests/work_item_support.py`.
+    - tests/application/test_claims_refusals.py:28: `_snapshot` is a four-field variant of `_snapshot` in `tests/application/test_claims.py:85`.
