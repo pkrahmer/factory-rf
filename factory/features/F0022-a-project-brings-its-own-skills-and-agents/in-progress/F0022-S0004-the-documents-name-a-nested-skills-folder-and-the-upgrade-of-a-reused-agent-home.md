@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T20:30:19.979524Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T20:29:59.286344Z'
   stage: intake
   run: 79a9706a59a0431ebe70eaa12858e59b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:30:19.979524Z'
+  stage: tests
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -82,3 +91,4 @@ Expect: `documents ok`
    Smoke test: all five commands are runnable. I confirmed that the sections they read exist: `### A project's own skills` (operator-guide.md:998), `## The agents load a project's skills...` (decisions.md:757) and the sentence "there is no other copy" (project-guide/agents.md:254). Each `Expect:` is a count or a fixed string. The first four counts are 0 today, so they fail now and pass after the documenter's edit. The documenter must put `src/.claude/skills` on exactly one line in each of those two sections, and `rm: cannot remove` on exactly one line in the guide.
    Architecture: documents only, so no layer is touched. The wording follows the glossary and the guide's section names. The `*The agent runs as a second user*` section exists (operator-guide.md:125).
    Scope: the story is within F0022. It carries in decision 12's open point and the human's change 1, and it adds no behaviour. It stays inside the documenter's write paths (`docs/*`). It does not touch `feature.md`, `factory/`, `planning/` or `docs/runs/`.
+4. factory: started tests as self.
