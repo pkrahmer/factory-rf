@@ -12,7 +12,7 @@ No module under `src/factory/` changes. `factory.entry.wiring` (`entry`): `build
 
 - `boundaries.result_records` and `boundaries.disk_records` of `build_boundaries` each give `[]` from `read()` before anything is appended, and after one `append(record)` their `read()` gives `[record]`, equal to the record appended.
 
-Tests (the tester writes them): `tests/entry/test_wiring_record_logs.py`, with the `remote` and `local_settings` fixtures of `tests/conftest.py`, `clone` of `tests/git_support.py`, `CREDENTIAL` of `tests/wiring_support.py` and a `FakeHostingService`, as `tests/entry/test_wiring_known_results.py` builds the boundaries. No earlier test changes.
+Tests (the tester writes them): `tests/entry/test_wiring_record_logs.py`, with the `local_settings` fixture of `tests/conftest.py`, `CREDENTIAL` of `tests/wiring_support.py` and a `FakeHostingService`, as `tests/entry/test_wiring_stop_records.py` builds the boundaries. No earlier test changes.
 
 ## Acceptance criteria
 
