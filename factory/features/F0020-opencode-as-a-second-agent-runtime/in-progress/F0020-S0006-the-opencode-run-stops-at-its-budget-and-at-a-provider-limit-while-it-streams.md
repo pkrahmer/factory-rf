@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T10:27:28.760305Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-19T10:27:08.032031Z'
   stage: docs
   run: 08583d77426a43dfaa0a9780408fe2cb
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:27:28.760305Z'
+  stage: smoke-test
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -639,3 +648,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+31. factory: started smoke-test as self.
