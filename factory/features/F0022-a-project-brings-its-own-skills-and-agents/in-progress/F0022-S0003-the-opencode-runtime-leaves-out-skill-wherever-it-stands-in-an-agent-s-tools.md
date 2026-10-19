@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T20:06:14.663423Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T20:06:14.663423Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:06:34.326227Z'
+  stage: review
+  run: 1031c21739e24166a306484f385d3a7e
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -148,3 +150,22 @@ Expect: two lines, `completed question`, `['grep', 'read']`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and the diff (`git diff main...HEAD -- . ':!factory'`). The diff adds 8 lines to `tests/adapters/test_opencode_left_out_tools.py` and changes nothing under `src/`.
+   - Criterion 1: the four rows `skill-first`, `skill-before-two`, `skill-in-the-middle` and `notebook-edit-after-skill-refused` are in `test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused`, after its three original rows.
+     - The completing rows compare the whole `tools` map of the configuration with `{name: name in expected for name in OPENCODE_TOOLS}`. So they check both that the expected names are true and that every other name is false.
+     - The refused row checks the exact `detail`, and checks that `read_calls` is empty, which means the stand-in was never called.
+     - Read against `_tools` in `src/factory/adapters/opencode_runtime.py:271-279`: with `continue` changed to `break`, the first three rows would fail because the tools after `Skill` would be false. The fourth would fail because nothing would be refused.
+     - Both Interface clauses are tested: the left-out tool in first, middle and last position, and the refused tool after a left-out tool.
+     - Entry 7 records that the factory's `make check` was green.
+   - Architecture and security: nothing under `src/` changed, and the diff adds no marker that silences a check.
+   - Quality: the rows are part of the existing parametrized test. No new helper, no duplicated code.
+   - Work item: the Description matches what was built (no code change, rows added). The coder's entry gives the main choice, leaving `_tools` as it is, and the rejected rewrite as a comprehension. Criterion 3, `docs: none`, still holds: no behaviour and no message changed.
+   - The coder's entry has no `mutants` line, so there is no mutation report to read.
+
+   Earlier tests:
+   - tests/adapters/test_opencode_left_out_tools.py (M): the human's leave, `feature.md` decision 14 (S0003). Four rows were added after the three existing ones, the test keeps its name and its rows, and nothing else in the module changed.
+
+   Notes:
+   - The coder's entry records `duplicates: 5 new` with no change under `src/factory` on this branch, so those findings do not come from this story. The acceptance reviewer can look at them.
