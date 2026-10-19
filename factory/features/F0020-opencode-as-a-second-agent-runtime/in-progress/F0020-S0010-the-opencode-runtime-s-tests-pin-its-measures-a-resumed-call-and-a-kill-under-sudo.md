@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 279
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T18:52:33.936980Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-19T18:52:33.936980Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T18:52:57.471973Z'
+  stage: intake
+  run: 9d0bec5d8afa4c7792e39adcbfc114b0
+  blocked: question
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -123,3 +126,11 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. Questions, each a clause of the Interface with no criterion of its own (so a mutant on it would survive again):
+
+   1. `permission_denials` (Interface, `DENIAL_PATTERN` = `permission|denied`, any case): criterion 3 plays only the lowercase text `permission denied by rule git push*`, which holds both words. Nothing tests that an error with only `permission` is a denial, that one with only `denied` is a denial, that the match is case-insensitive (`Permission Denied`), or that a `tool_use` whose `status` is not `error` but whose error text contains `denied` is not listed. Proposed: add rows to criterion 3 for each of the four.
+   2. `KILL_STATUSES` is `{137, -9}` (`agent_launch.py:32`). Criterion 5 tests only 137, and only on the side "exits at once, before its time limit → `died`". Nothing tests `-9` as a kill status, nor the side "exit status not in `KILL_STATUSES` (e.g. 1) after the time limit is reached → not `time_limit`". Proposed: add a row with exit status `-9` ending `time_limit`, and a row that exits 1 after the limit and does not end `time_limit` (name the expected end reason).
+   3. `parse_result_block`: "the second line is exactly `entry:`". Criterion 1 tests `note:` only; a second line such as `entry: text` or ` entry:` (the "exactly" side) has no row, and neither does the "stripped" clause (an entry with leading or trailing blank lines or spaces around the entry). Proposed: add rows for `entry: First line.` giving `None` and for an entry padded with blank lines giving the stripped text.
+   4. Criterion 6 gives the cleanup under `sudo` only for the confine-and-agent-user case. The Interface says "as the agent user under `sudo` when one is set", which implies the other side (confine set, no `os_user`: the folder is removed without `sudo`). The no-sudo rows cover this only for the three end reasons. I judge this side covered; no change needed unless you want an explicit assertion that `sudo` is not called.
+
+   The smoke test is runnable and its `Expect:` line checks out against the stand-in (0.8 s = 1000 − 100 − 200 plus 100; the first call's cost of 1.2 passes the budget of 1). The Interface, architecture (adapters-only, tests only, no `src` change) and scope (within the feature's S0004/S0006 behaviour, nothing in Out of scope) are fine apart from the questions above.
