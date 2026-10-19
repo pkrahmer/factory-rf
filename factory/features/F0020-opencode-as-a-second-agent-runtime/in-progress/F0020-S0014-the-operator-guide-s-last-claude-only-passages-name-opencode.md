@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T23:17:45.125062Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T23:17:24.886615Z'
   stage: docs
   run: 6fd60492cc4d47598bea35f34fc6e396
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:17:45.125062Z'
+  stage: smoke-test
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -176,3 +185,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
