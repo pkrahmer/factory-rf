@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T20:36:06.638540Z'
   stage: smoke-test
   run: 1abbaa0b5eb14424a917316a4f92f072
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T20:40:31.956573Z'
+  stage: approval
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -228,3 +233,4 @@ Expect: `documents ok`
       - No other passage in these files changed. Nothing in the smoke test contradicts a criterion.
 
     Open: none. I did not run the `docker run` fix, because it needs a Docker volume; the smoke test does not ask for it.
+14. factory: done (pull request merged); cost: 6 runs, 3.6 min, 27 turns, 105439 tokens in (372136 more from cache), 8147 out, $0.86
